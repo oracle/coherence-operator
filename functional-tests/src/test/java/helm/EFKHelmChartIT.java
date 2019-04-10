@@ -44,7 +44,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @author sc
  */
-@Ignore
 public class EFKHelmChartIT
         extends BaseHelmChartTest {
 
