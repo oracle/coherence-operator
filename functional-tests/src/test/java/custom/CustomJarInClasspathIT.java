@@ -348,7 +348,7 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
     /**
      * The base Coherence image name without a tag.
      */
-    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "/oracle/coherence:";
+    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "oracle/coherence:";
 
     /**
      * The tag to use when pulling the Coherence image for this test.
