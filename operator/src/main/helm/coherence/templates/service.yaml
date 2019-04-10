@@ -1,0 +1,52 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+{{- if .Values.service }}
+  {{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "coherence.fullname" . }}
+  annotations:
+    # ref: https://github.com/kubernetes/kops/blob/master/dns-controller/pkg/watchers/annotations.go#L21
+    dns.alpha.kubernetes.io/internal: "{{ .Release.Name }}.{{ .Values.service.domain }}"
+    {{- if .Values.service.annotations }}
+{{ toYaml .Values.service.annotations | indent 4 }}
+    {{- end }}
+  labels:
+{{- include "coherence.release_labels" . | indent 4 }}
+    component: "coherence-service"
+spec:
+  type: {{ .Values.service.type }}
+    {{- if eq .Values.service.type "LoadBalancer" }}
+      {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+      {{- end }}
+    {{- end }}
+  ports:
+    - name: coherence-extend
+      protocol: TCP
+      port: {{ .Values.service.externalPort | default 20000 }}
+      targetPort: "extend-port"
+    - name: coherence-mgmt-http
+      protocol: TCP
+      port: {{ .Values.service.managementHttpPort | default 30000 }}
+      targetPort: "mgmt-http-port"
+    - name: coherence-metrics-http
+      protocol: TCP
+      port: {{ .Values.service.metricsHttpPort | default 9095 }}
+      targetPort: "metrics-port"
+{{- if .Values.store.ports -}}
+  {{- range $name, $port := .Values.store.ports }}
+    - name: {{ $name | quote }}
+      protocol: TCP
+      port: {{ $port }}
+      targetPort: {{ $name | quote }}
+  {{- end }}
+{{- end }}
+  selector:
+    coherenceDeployment: {{ template "coherence.fullname" . }}
+    component: coherencePod
+  {{- end }}
+{{- end }}

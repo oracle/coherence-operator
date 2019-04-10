@@ -1,0 +1,52 @@
+{
+  "links": [
+    {
+      "rel": "parent",
+      "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster"
+    },
+    {
+      "rel": "self",
+      "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/"
+    },
+    {
+      "rel": "canonical",
+      "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/"
+    }
+  ],
+  "items": [
+    {
+      "links": [
+        {
+          "rel": "parent",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/"
+        },
+        {
+          "rel": "self",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo"
+        },
+        {
+          "rel": "canonical",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo"
+        },
+        {
+          "rel": "caches",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo/caches"
+        },
+        {
+          "rel": "members",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo/members"
+        },
+        {
+          "rel": "partition",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo/partition"
+        },
+        {
+          "rel": "federation",
+          "href": "http://0%3A0%3A0%3A0%3A0%3A0%3A0%3A1:30000/management/coherence/cluster/services/Foo/federation"
+        }
+      ],
+      "type": "DistributedCache",
+      "name": "Foo"
+    }
+  ]
+}

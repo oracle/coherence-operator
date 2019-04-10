@@ -1,0 +1,15 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+targetNamespaces: [ ${k8s.target.namespaces} ]
+
+serviceAccount: my-coh-operator
+
+prometheusoperator:
+  enabled: true
+  prometheus:
+    prometheusSpec:
+      #override default intervalScrape to speed up test
+      scrapeInterval : "10s"
+
+  grafana:
+    enabled: false

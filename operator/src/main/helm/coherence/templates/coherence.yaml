@@ -1,0 +1,681 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+{{- $utilsImage := required "A value is required for the value .Values.coherenceUtils.image" .Values.coherenceUtils.image -}}
+{{- $cohImage := required "A value is required for the value .Values.coherence.image" .Values.coherence.image -}}
+{{- $extLibDir := "/u01/oracle/oracle_home/coherence/ext/lib" -}}
+{{- $extConfDir := "/u01/oracle/oracle_home/coherence/ext/conf" -}}
+{{- define "rootCoherenceSnapshot" }}
+- mountPath: "/root/coherence/snapshot"
+  name: snapshot-volume
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "coherence.fullname" . }}
+  labels:
+    {{- include "coherence.release_labels" . | indent 4 }}
+    component: coherence
+spec:
+  replicas: {{ .Values.clusterSize | default 3 | int }}
+  podManagementPolicy: {{ default "Parallel" .Values.store.podManagementPolicy }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  revisionHistoryLimit: {{ default 3 .Values.store.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      coherenceDeployment: {{ template "coherence.fullname" . }}
+      component: coherencePod
+  serviceName: {{ template "coherence.name" . }}
+  template:
+    metadata:
+      labels:
+{{- include "coherence.release_labels" . | indent 8 }}
+        component: coherencePod
+{{- if .Values.store }}
+  {{- if .Values.store.labels }}
+{{ toYaml .Values.store.labels | indent 8 }}
+  {{- end }}
+{{- end }}
+      annotations:
+        prometheus.io/port: "9095"
+        prometheus.io/scrape: "true"
+{{- if .Values.store }}
+  {{- if .Values.store.annotations }}
+{{ toYaml .Values.store.annotations | indent 8 }}
+  {{- end }}
+{{- end }}
+    spec:
+{{- if .Values.serviceAccountName }}
+  {{- if not ((eq .Values.serviceAccountName "default")) }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+  {{- end }}
+{{- end }}
+{{- if .Values.imagePullSecrets }}
+  {{- $secretsType := typeOf .Values.imagePullSecrets }}
+      imagePullSecrets:
+  {{- if eq $secretsType "string" }}
+      - name: {{ .Values.imagePullSecrets }}
+  {{- else }}
+    {{- range .Values.imagePullSecrets }}
+      - name: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+# ---------------------------------------------------------------------------
+# Node scheduling
+# ---------------------------------------------------------------------------
+{{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+{{- end }}
+{{- if .Values.affinity }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
+{{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+{{- end }}
+# ---------------------------------------------------------------------------
+#  Containers:
+# ---------------------------------------------------------------------------
+      initContainers:
+# ---------------------------------------------------------------------------
+#  Container: For adding required artifacts e.g. startup scripts to the pod.
+# ---------------------------------------------------------------------------
+        - name: coherence-k8s-utils
+          image: {{ .Values.coherenceUtils.image | quote }}
+          imagePullPolicy: {{ .Values.coherenceUtils.imagePullPolicy | default "IfNotPresent" }}
+          env:
+          - name: COH_UTIL_DIR
+            value: "/utils"
+          volumeMounts:
+          - name: utils-dir
+            mountPath: /utils
+{{- if .Values.store.persistence }}
+  {{- if .Values.store.persistence.enabled }}
+          - mountPath: "/persistence"
+            name: persistence-volume
+  {{- end }}
+{{- end }}
+{{- if .Values.store.snapshot }}
+  {{- if .Values.store.snapshot.enabled }}
+          - mountPath: "/snapshot"
+            name: snapshot-volume
+  {{- else if .Values.store.snapshot.volume }}
+    {{- if .Values.store.persistence }}
+      {{- if .Values.store.persistence.enabled }}
+{{- include "rootCoherenceSnapshot" . | indent 12 }}
+      {{- end }}
+    {{- else }}
+{{- include "rootCoherenceSnapshot" . | indent 12 }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "/files/init.sh" ]
+# ---------------------------------------------------------------------------
+#  Container: user-artifacts
+# ---------------------------------------------------------------------------
+{{- if .Values.userArtifacts }}
+  {{- if .Values.userArtifacts.image }}
+        - name: user-artifacts
+          image: {{ .Values.userArtifacts.image | quote }}
+          imagePullPolicy: {{ .Values.userArtifacts.imagePullPolicy | default "IfNotPresent" }}
+          env:
+          - name: "EXTERNAL_LIB_DIR"
+            value: {{ $extLibDir }}
+          - name: "LIB_DIR"
+            value: {{ .Values.userArtifacts.libDir | default "/files/lib" | quote }}
+          - name: "EXTERNAL_CONF_DIR"
+            value: {{ $extConfDir }}
+          - name: "CONF_DIR"
+            value: {{ .Values.userArtifacts.configDir | default "/files/conf" | quote }}
+          volumeMounts:
+          - name: utils-dir
+            mountPath: /utils
+          - name: user-artifacts-dir
+            mountPath: {{ $extLibDir | quote }}
+          - name: user-conf-dir
+            mountPath: {{ $extConfDir | quote }}
+          - name: coherence-scripts
+            mountPath: /scripts
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "/scripts/copyArtifacts.sh" ]
+  {{- end }}
+{{- end }}
+      containers:
+# ---------------------------------------------------------------------------
+#  Container: coherence
+# ---------------------------------------------------------------------------
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.coherence.image | quote }}
+          imagePullPolicy: {{ .Values.coherence.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: "extend-port"
+              containerPort: 20000
+            - name: "mgmt-http-port"
+              containerPort: 30000
+            - name: "metrics-port"
+              containerPort: 9095
+{{- if .Values.store -}}
+  {{- if .Values.store.ports -}}
+    {{- range $name, $port := .Values.store.ports }}
+            - name: {{ $name | quote }}
+              containerPort: {{ $port }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+          env:
+{{- if .Values.store -}}
+  {{- if .Values.store.env -}}
+    {{- range $name, $val := .Values.store.env }}
+            - name: {{ $name | quote }}
+              value: {{ $val }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.wkaRelease }}
+#           WKA set to existing Helm release headless service
+            - name: COH_WKA
+              value: {{ printf "%s-coherence-headless" .Values.store.wkaRelease }}
+  {{- else if .Values.store.wka }}
+#           WKA set from wka override
+            - name: COH_WKA
+              value: {{ .Values.store.wka }}
+  {{- else }}
+#           Default WKA setting from Helm release headless service
+            - name: COH_WKA
+              value: {{ template "coherence.fullname" . }}-headless
+  {{- end }}
+{{- else }}
+#           Default WKA setting from Helm release headless service
+            - name: COH_WKA
+              value: {{ template "coherence.fullname" . }}-headless
+{{- end }}
+            - name: COH_USE_REST
+              value: "true"
+            - name: COH_EXTRA_CLASSPATH
+              value: {{ printf "%s/*:%s" $extLibDir $extConfDir | quote }}
+            - name: COH_EXTEND_PORT
+              value: "20000"
+            - name: COH_MGMT_HTTP_PORT
+              value: "30000"
+            - name: COH_METRICS_PORT
+              value: "9095"
+            - name: COH_MACHINE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: COH_MEMBER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: coherence-internal-config
+                  key: operator.host
+                  optional: true
+            - name: COH_SITE_INFO_LOCATION
+              value: http://$(OPERATOR_HOST):8000/zone/$(COH_MACHINE_NAME)
+            - name: COH_CLUSTER_NAME
+              value: {{ template "coherence.clusterName" . }}
+            - name: COH_ROLE
+              value: {{ template "coherence.role" . }}
+            - name: COH_UTIL_DIR
+              value: "/utils"
+{{- if .Values.store }}
+  {{- if .Values.store.cacheConfig }}
+            - name: COH_CACHE_CONFIG
+              value: {{ .Values.store.cacheConfig | quote }}
+  {{- end }}
+  {{- if .Values.store.overrideConfig }}
+            - name: COH_OVERRIDE_CONFIG
+              value: {{ .Values.store.overrideConfig | quote }}
+  {{- end }}
+  {{- if .Values.store.pof.config }}
+            - name: COH_POF_CONFIG
+              value: {{ .Values.store.pof.config | quote }}
+  {{- end }}
+  {{- $storageEnabled := toString .Values.store.storageEnabled }}
+  {{- if eq $storageEnabled "true" }}
+            - name: COH_STORAGE_ENABLED
+              value: "true"
+  {{- else if eq $storageEnabled "false" }}
+            - name: COH_STORAGE_ENABLED
+              value: "false"
+  {{- end }}
+  {{- if .Values.store.persistence }}
+    {{- if .Values.store.persistence.enabled }}
+            - name: COH_PERSISTENCE_ENABLED
+              value: "true"
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.snapshot }}
+    {{- if .Values.store.snapshot.enabled }}
+            - name: COH_SNAPSHOT_ENABLED
+              value: "true"
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.maxHeap }}
+            - name: MAX_HEAP
+              value: {{ .Values.store.maxHeap | quote }}
+  {{- end }}
+  {{- if .Values.store.jvmArgs }}
+            - name: JVM_ARGS
+              value: {{ .Values.store.jvmArgs | quote }}
+  {{- end }}
+  {{- if .Values.store.logging }}
+    {{- if .Values.store.logging.level }}
+            - name: COH_LOG_LEVEL
+              value: {{ .Values.store.logging.level | quote }}
+    {{- end }}
+    {{- if .Values.store.logging.configFile }}
+      {{- if .Values.store.logging.configMapName }}
+#          Set the logging configuration relative to /loggingconfig mounted from the logging-config ConfigMap volume
+            - name: COH_LOGGING_CONFIG
+              value: {{ printf "/loggingconfig/%s" .Values.store.logging.configFile | quote }}
+      {{- else if .Values.userArtifacts.image }}
+#          Set the logging configuration relative to user artifacts configuration directory
+            - name: COH_LOGGING_CONFIG
+              value: {{ printf "%s/%s" $extConfDir .Values.store.logging.configFile | quote }}
+      {{- else }}
+#          Set the logging configuration as an absolute file name
+            - name: COH_LOGGING_CONFIG
+              value: {{ .Values.store.logging.configFile | quote }}
+      {{- end }}
+    {{- else }}
+#          Use the default logging configuration
+            - name: COH_LOGGING_CONFIG
+              value: "/scripts/logging.properties"
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.management.ssl }}
+    {{- if .Values.store.management.ssl.enabled }}
+            - name: COH_MGMT_SSL_ENABLED
+              value: {{ .Values.store.management.ssl.enabled | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.secrets }}
+            - name: COH_MGMT_SSL_CERTS
+              value: "/coherence/certs/management"
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyStore }}
+            - name: COH_MGMT_SSL_KEYSTORE
+              value: {{ .Values.store.management.ssl.keyStore | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyStorePasswordFile }}
+            - name: COH_MGMT_SSL_KEYSTORE_PASSWORD_FILE
+              value: {{ .Values.store.management.ssl.keyStorePasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyPasswordFile }}
+            - name: COH_MGMT_SSL_KEY_PASSWORD_FILE
+              value: {{ .Values.store.management.ssl.keyPasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyStoreAlgorithm }}
+            - name: COH_MGMT_SSL_KEYSTORE_ALGORITHM
+              value: {{ .Values.store.management.ssl.keyStoreAlgorithm | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyStoreProvider }}
+            - name: COH_MGMT_SSL_KEYSTORE_PROVIDER
+              value: {{ .Values.store.management.ssl.keyStoreProvider | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.keyStoreType }}
+            - name: COH_MGMT_SSL_KEYSTORE_TYPE
+              value: {{ .Values.store.management.ssl.keyStoreType | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.trustStore }}
+            - name: COH_MGMT_SSL_TRUSTSTORE
+              value: {{ .Values.store.management.ssl.trustStore | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.trustStorePasswordFile }}
+            - name: COH_MGMT_SSL_TRUSTSTORE_PASSWORD_FILE
+              value: {{ .Values.store.management.ssl.trustStorePasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.trustStoreAlgorithm }}
+            - name: COH_MGMT_SSL_TRUSTSTORE_ALGORITHM
+              value: {{ .Values.store.management.ssl.trustStoreAlgorithm | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.trustStoreProvider }}
+            - name: COH_MGMT_SSL_TRUSTSTORE_PROVIDER
+              value: {{ .Values.store.management.ssl.trustStoreProvider | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.trustStoreType }}
+            - name: COH_MGMT_SSL_TRUSTSTORE_TYPE
+              value: {{ .Values.store.management.ssl.trustStoreType | quote }}
+    {{- end }}
+    {{- if .Values.store.management.ssl.requireClientCert }}
+            - name: COH_MGMT_SSL_REQUIRE_CLIENT_CERT
+              value: "true"
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.metrics.ssl }}
+    {{- if .Values.store.metrics.ssl.enabled }}
+            - name: COH_METRICS_SSL_ENABLED
+              value: {{ .Values.store.metrics.ssl.enabled | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.secrets }}
+            - name: COH_METRICS_SSL_CERTS
+              value: "/coherence/certs/metrics"
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyStore }}
+            - name: COH_METRICS_SSL_KEYSTORE
+              value: {{ .Values.store.metrics.ssl.keyStore | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyStorePasswordFile }}
+            - name: COH_METRICS_SSL_KEYSTORE_PASSWORD_FILE
+              value: {{ .Values.store.metrics.ssl.keyStorePasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyPasswordFile }}
+            - name: COH_METRICS_SSL_KEY_PASSWORD_FILE
+              value: {{ .Values.store.metrics.ssl.keyPasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyStoreAlgorithm }}
+            - name: COH_METRICS_SSL_KEYSTORE_ALGORITHM
+              value: {{ .Values.store.metrics.ssl.keyStoreAlgorithm | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyStoreProvider }}
+            - name: COH_METRICS_SSL_KEYSTORE_PROVIDER
+              value: {{ .Values.store.metrics.ssl.keyStoreProvider | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.keyStoreType }}
+            - name: COH_METRICS_SSL_KEYSTORE_TYPE
+              value: {{ .Values.store.metrics.ssl.keyStoreType | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.trustStore }}
+            - name: COH_METRICS_SSL_TRUSTSTORE
+              value: {{ .Values.store.metrics.ssl.trustStore | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.trustStorePasswordFile }}
+            - name: COH_METRICS_SSL_TRUSTSTORE_PASSWORD_FILE
+              value: {{ .Values.store.metrics.ssl.trustStorePasswordFile | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.trustStoreAlgorithm }}
+            - name: COH_METRICS_SSL_TRUSTSTORE_ALGORITHM
+              value: {{ .Values.store.metrics.ssl.trustStoreAlgorithm | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.trustStoreProvider }}
+            - name: COH_METRICS_SSL_TRUSTSTORE_PROVIDER
+              value: {{ .Values.store.metrics.ssl.trustStoreProvider | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.trustStoreType }}
+            - name: COH_METRICS_SSL_TRUSTSTORE_TYPE
+              value: {{ .Values.store.metrics.ssl.trustStoreType | quote }}
+    {{- end }}
+    {{- if .Values.store.metrics.ssl.requireClientCert }}
+            - name: COH_METRICS_SSL_REQUIRE_CLIENT_CERT
+              value: "true"
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.javaOpts }}
+            - name: JAVA_OPTS
+              value: {{ .Values.store.javaOpts | quote }}
+  {{- end }}
+{{- end }}
+          readinessProbe:
+            exec:
+              command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "readiness" ]
+            initialDelaySeconds: {{default 30 .Values.store.readinessProbe.initialDelaySeconds }}
+            periodSeconds:       {{default 60 .Values.store.readinessProbe.periodSeconds }}
+            failureThreshold:    {{default 50 .Values.store.readinessProbe.failureThreshold }}
+            successThreshold:    {{ .Values.store.readinessProbe.successThreshold }}
+            timeoutSeconds:      {{default 5 .Values.store.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            exec:
+              command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "liveness" ]
+            initialDelaySeconds: 45
+            periodSeconds: 60
+            failureThreshold: 5
+          command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "server" ]
+{{- if .Values.resources }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: log-dir
+              mountPath: /logs
+              readOnly: false
+            - name: utils-dir
+              mountPath: /utils
+            - name: user-artifacts-dir
+              mountPath: {{ $extLibDir | quote }}
+            - name: user-conf-dir
+              mountPath: {{ $extConfDir | quote }}
+            - name: coherence-scripts
+              mountPath: /scripts
+{{- if .Values.store }}
+  {{- if .Values.store.volumeMounts }}
+{{ toYaml .Values.store.volumeMounts | indent 12 }}
+  {{- end }}
+  {{- if .Values.store.logging }}
+    {{- if .Values.store.logging.configMapName }}
+            - name: logging-config
+              mountPath: /loggingconfig
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.management.ssl }}
+    {{- if .Values.store.management.ssl.secrets }}
+            - name: management-ssl-config
+              mountPath: /coherence/certs/management
+              readOnly: true
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.metrics.ssl }}
+    {{- if .Values.store.metrics.ssl.secrets }}
+            - name: metrics-ssl-config
+              mountPath: /coherence/certs/metrics
+              readOnly: true
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.persistence }}
+    {{- if .Values.store.persistence.enabled }}
+            - mountPath: "/persistence"
+              name: persistence-volume
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.snapshot }}
+    {{- if .Values.store.snapshot.enabled }}
+            - mountPath: "/snapshot"
+              name: snapshot-volume
+    {{- else if .Values.store.snapshot.volume }}
+      {{- if .Values.store.persistence }}
+        {{- if .Values.store.persistence.enabled }}
+{{- include "rootCoherenceSnapshot" . | indent 12 }}
+        {{- end }}
+      {{- else }}
+{{- include "rootCoherenceSnapshot" . | indent 12 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if .Values.logCaptureEnabled }}
+# ---------------------------------------------------------------------------
+#  Container: fluentd
+# ---------------------------------------------------------------------------
+        - name: fluentd
+          image: {{ .Values.fluentd.image }}
+          imagePullPolicy: {{ .Values.fluentd.imagePullPolicy | default "IfNotPresent" }}
+          args: ["-c", "/etc/fluent.conf"]
+          env:
+            - name: COHERENCE_POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: FLUENTD_CONF
+              value: fluentd-coherence.conf
+            - name: FLUENT_ELASTICSEARCH_SED_DISABLE
+              value: "true"
+            - name: ELASTICSEARCH_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: coherence-internal-config
+                  key: elasticsearch.host
+            - name: ELASTICSEARCH_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: coherence-internal-config
+                  key: elasticsearch.port
+          volumeMounts:
+            - mountPath: /fluentd/etc/fluentd-coherence.conf
+              subPath: fluentd-coherence.conf
+              name: fluentd-coherence-conf
+            - mountPath: /logs
+              name: log-dir
+{{- end }}
+# ---------------------------------------------------------------------------
+#  Volumes mappings
+# ---------------------------------------------------------------------------
+      volumes:
+#       The logs directory
+        - name: log-dir
+          emptyDir:
+            medium:
+#       The utility files and scripts directory
+        - name: utils-dir
+          emptyDir: {}
+#       The user artifacts to add to the class path
+        - name: user-artifacts-dir
+          emptyDir: {}
+#       The user configuration files to add to the class path
+        - name: user-conf-dir
+          emptyDir: {}
+#       The scripts loaded from a ConfigMap generated by the Helm chart
+        - name: coherence-scripts
+          configMap:
+            name: {{ template "coherence.fullname" . }}-scripts
+            defaultMode: 0777
+{{- if .Values.store }}
+  {{- if .Values.store.logging }}
+    {{- if .Values.store.logging.configMapName }}
+#       The scripts loaded from a ConfigMap generated by the Helm chart
+        - name: logging-config
+          configMap:
+            name: {{ .Values.store.logging.configMapName }}
+            defaultMode: 0777
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.management.ssl }}
+    {{- if .Values.store.management.ssl.secrets }}
+#       The Management SSL certs and passwords are loaded from existing k8s secrets
+        - name: management-ssl-config
+          secret:
+            secretName: {{ .Values.store.management.ssl.secrets }}
+            defaultMode: 0777
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.metrics.ssl }}
+    {{- if .Values.store.metrics.ssl.secrets }}
+#       The Metrics SSL certs and passwords are loaded from existing k8s secrets
+        - name: metrics-ssl-config
+          secret:
+            secretName: {{ .Values.store.metrics.ssl.secrets }}
+            defaultMode: 0777
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.persistence }}
+    {{- if .Values.store.persistence.volume }}
+        - name: persistence-volume
+{{ toYaml .Values.store.persistence.volume | indent 10 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.snapshot }}
+    {{- if .Values.store.snapshot.volume }}
+        - name: snapshot-volume
+{{ toYaml .Values.store.snapshot.volume | indent 10 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.volumes }}
+{{ toYaml .Values.store.volumes | indent 8 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.logCaptureEnabled }}
+        - name: fluentd-coherence-conf
+          configMap:
+            name: {{ template "coherence.fullname" . }}-efk-config
+            defaultMode: 420
+{{- end }}
+# ---------------------------------------------------------------------------
+#  Volumes claim templates
+# ---------------------------------------------------------------------------
+  volumeClaimTemplates:
+{{- if .Values.store }}
+  {{- if .Values.store.persistence }}
+    {{- if .Values.store.persistence.enabled }}
+      {{- if not .Values.store.persistence.volume }}
+    - metadata:
+        name: persistence-volume
+        labels:
+{{- include "coherence.release_labels" . | indent 10 }}
+          component: "coherence-vol"
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        {{- if .Values.store.persistence.dataSource }}
+        dataSource: {{ .Values.store.persistence.dataSource }}
+        {{- end }}
+        {{- if .Values.store.persistence.volumeMode }}
+        volumeMode: {{ .Values.store.persistence.volumeMode }}
+        {{- end }}
+        {{- if .Values.store.persistence.volumeName }}
+        volumeName: {{ .Values.store.persistence.volumeName }}
+        {{- end }}
+        {{- if .Values.store.persistence.selector }}
+        selector:
+{{ toYaml .Values.store.persistence.selector | indent 10 }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.store.persistence.size }}
+        {{- if .Values.store.persistence.storageClass }}
+          {{- if (eq "-" .Values.store.persistence.storageClass) }}
+        storageClassName: ""
+          {{- else }}
+        storageClassName: "{{ .Values.store.persistence.storageClass }}"
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.snapshot }}
+    {{- if .Values.store.snapshot.enabled }}
+      {{- if not .Values.store.snapshot.volume }}
+    - metadata:
+        name: snapshot-volume
+        labels:
+{{- include "coherence.release_labels" . | indent 10 }}
+          component: "coherence-vol"
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        {{- if .Values.store.snapshot.dataSource }}
+        dataSource: {{ .Values.store.snapshot.dataSource }}
+        {{- end }}
+        {{- if .Values.store.snapshot.volumeMode }}
+        volumeMode: {{ .Values.store.snapshot.volumeMode }}
+        {{- end }}
+        {{- if .Values.store.snapshot.volumeName }}
+        volumeName: {{ .Values.store.snapshot.volumeName }}
+        {{- end }}
+        {{- if .Values.store.snapshot.selector }}
+        selector:
+{{ toYaml .Values.store.snapshot.selector | indent 10 }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.store.snapshot.size }}
+        {{- if .Values.store.snapshot.storageClass }}
+          {{- if (eq "-" .Values.store.snapshot.storageClass) }}
+        storageClassName: ""
+          {{- else }}
+        storageClassName: "{{ .Values.store.snapshot.storageClass }}"
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.store.volumeClaimTemplates }}
+{{ toYaml .Values.store.volumeClaimTemplates | indent 4 }}
+  {{- end }}
+{{- end }}

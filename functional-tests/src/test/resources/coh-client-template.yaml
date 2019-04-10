@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: %%NAME%%
+  namespace: %%NAMESPACE%%
+spec:
+  containers:
+  - name: coh-client
+    image: %%TEST_REGISTRY_PREFIX%%coh-client:2.0
+    imagePullPolicy: %%IMAGE_PULL_POLICY%%
+    env:
+    - name: WKA
+      value: "%%WKA%%"
+    - name: LISTEN_PORT
+      value: "%%LISTEN_PORT%%"
+    - name: CLUSTER
+      value: "%%CLUSTER%%"
+  imagePullSecrets:
+  - name: %%IMAGE_PULL_SECRETS%%

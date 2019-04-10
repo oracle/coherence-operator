@@ -1,0 +1,41 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+{{- if and .Values.prometheusoperator.enabled .Values.coherenceServiceMonitorEnabled}}
+## ServiceMonitor for Coherence Service
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "{{ .Release.Name }}-coherence-service-monitor"
+  labels:
+    component: coherence-service-monitor
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+spec:
+  jobLabel: component
+  selector:
+    matchLabels:
+      component: "coherence-service"
+
+  namespaceSelector:
+{{- if .Values.targetNamespaces }}
+    # prometheus will only scrape coherence services running in target namespaces
+    any: false
+    matchNames: [ {{ join ", " .Values.targetNamespaces }} ]
+{{- else }}
+    # prometheus will scrape coherence services in all namespaces
+    any: true
+{{- end }}
+
+  endpoints:
+  - port: coherence-metrics-http
+    interval: 30s
+    path: "/metrics"
+
+    # blacklist these relabels produced to implement this ServiceMonitor
+    metricRelabelings:
+    - action: labeldrop
+      regex: '(endpoint|instance|job|service)'
+{{- end}}
+
+

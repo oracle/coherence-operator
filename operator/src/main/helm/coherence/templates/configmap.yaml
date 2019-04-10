@@ -1,0 +1,62 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+{{- if .Values.logCaptureEnabled }}
+{{- $clusterName := include "coherence.clusterName" . }}
+{{- $roleName := include "coherence.role" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "coherence.fullname" . }}-efk-config
+  labels:
+{{- include "coherence.release_labels" . | indent 4 }}
+    component: coherence-config
+data:
+  fluentd-coherence.conf: |
+    # Ignore fluentd messages
+    <match fluent.**>
+      @type null
+    </match>
+
+    # Coherence Logs
+    <source>
+      @type tail
+      path /logs/*.log
+      pos_file /tmp/cohrence.log.pos
+      read_from_head true
+      tag coherence-cluster
+      multiline_flush_interval 20s
+      <parse>
+       @type multiline
+       format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+       format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+      </parse>
+    </source>
+
+    <filter coherence-cluster>
+     @type record_transformer
+     <record>
+       cluster {{ $clusterName | quote }}
+       role {{ $roleName | quote }}
+       host "#{ENV['HOSTNAME']}"
+       pod-uid "#{ENV['COHERENCE_POD_ID']}"
+     </record>
+    </filter>
+
+    <match coherence-cluster>
+      @type elasticsearch
+      host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
+      port "#{ENV['ELASTICSEARCH_SERVICE_PORT']}"
+      logstash_format true
+      logstash_prefix coherence-cluster
+      {{- if .Values.elasticsearchEndpoint }}
+	{{- if .Values.elasticsearchEndpoint.user }}
+	    user "{{ .Values.elasticsearchEndpoint.user }}"
+	{{- end }}
+	{{- if .Values.elasticsearchEndpoint.password }}
+	    password "{{ .Values.elasticsearchEndpoint.password }}"
+	{{- end }}
+      {{- end }}
+    </match>
+{{- end }}

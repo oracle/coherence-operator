@@ -1,0 +1,49 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+targetNamespaces: [ ${k8s.target.namespaces} ]
+
+serviceAccount: my-coh-operator
+
+# set this to false to use annotations defined by prometheusoperator.prometheus.prometheusSpec.additionalScrapeConfigs.
+coherenceServiceMonitorEnabled: false
+
+prometheusoperator:
+  enabled: true
+  prometheus:
+    prometheusSpec:
+      #override default intervalScrape to speed up test
+      scrapeInterval : "10s"
+
+      # Define prometheus annotations prometheus_io:[scrape,path,port].
+      # Add metric labels namespace and pod.
+      # Drop unneeded relabels from metric labels.
+      additionalScrapeConfigs:
+      - job_name: 'prometheus-scrape-annotated-coherence-service-pods'
+        kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names: [ ${k8s.target.namespaces} ]
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: pod
+        metric_relabel_configs:
+        - action: labeldrop
+          regex: '(instance|job)'
+  grafana:
+    enabled: false

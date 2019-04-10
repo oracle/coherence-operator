@@ -1,0 +1,18 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+dependencies:
+
+  # DO NOT MODIFY src/main/helm/coherence-operator/requirement.yaml.
+  # MODIFY filtered file from src/main/helm/coherence-operator/resources/yaml.
+  - name: prometheus-operator
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: ${prometheus.operator.helmchart.version}
+    alias: prometheusoperator
+    condition: prometheusoperator.enabled
+    # prometheus-operator helm chart requires helm 2.10+.
+    # see https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md
+    #
+    # helm init did not work behind a proxy in 2.10, https://github.com/helm/helm/issues/4326
+    # min is helm 2.11 or higher.

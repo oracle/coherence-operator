@@ -1,0 +1,7 @@
+operator/src/main/helm/coherence-k8s-operator/requirements.yaml
+operator/src/main/helm/coherence-k8s-operator/charts/prometheus-operator*.tgz
+.idea/
+target/
+*.iml
+.DS_Store
+settings.xml

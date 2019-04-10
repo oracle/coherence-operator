@@ -1,0 +1,33 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+# ===============================================================================
+#
+# DO NOT USE THIS VALUES FILE FOR A REAL INSTALL!
+# The value sin this file are garbage, it is used only to test yaml is generated
+# with the correct fields.
+#
+# ===============================================================================
+
+store:
+  persistence:
+    enabled: true
+    size: "2Gi"
+    storageClass: "test-class-one"
+    dataSource: "test-data-source-one"
+    volumeMode: "test-volume-mode-one"
+    volumeName: "test-volume-name-one"
+    selector:
+      matchLabels:
+        selector-one: "label-one"
+        selector-two: "label-two"
+  snapshot:
+    enabled: true
+    size: "2Gi"
+    storageClass: "test-class-two"
+    dataSource: "test-data-source-two"
+    volumeMode: "test-volume-mode-two"
+    volumeName: "test-volume-name-two"
+    selector:
+      matchLabels:
+        selector-three: "label-three"
+        selector-four: "label-four"

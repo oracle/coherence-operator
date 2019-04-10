@@ -1,0 +1,13 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+clusterSize: 1
+
+cluster: mycluster
+
+role: myrole
+
+store:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds:       10
+  javaOpts: -Dtest1=dummy

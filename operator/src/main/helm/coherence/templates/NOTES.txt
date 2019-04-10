@@ -1,0 +1,107 @@
+1. Get the application URLs by running these commands:
+{{- if contains "NodePort" .Values.service.type }}
+  To use the internal IP address of the nodes use:
+
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+
+  or to use the external IP address of the nodes use:
+
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[1].status.addresses[0].address}")
+
+  Then to access specific ports use:
+
+  export EXTEND_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "coherence.fullname" . }})
+  export HTTP_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[1].nodePort}" services {{ template "coherence.fullname" . }})
+
+  echo Coherence*Extend endpoint: $NODE_IP:$EXTEND_PORT
+  echo HTTP endpoint: http://$NODE_IP:$HTTP_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl --namespace {{ .Release.Namespace }} get svc -w {{ template "coherence.fullname" . }}'
+
+  export SERVICE_IP=$(kubectl --namespace {{ .Release.Namespace }} get svc {{ template "coherence.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo Coherence*Extend: $SERVICE_IP:20000
+  echo http: http://$SERVICE_IP:30000
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "coherence.name" . }},release={{ .Release.Name }},component=coherencePod" -o jsonpath="{.items[0].metadata.name}")
+
+  To forward a local port to the Pod Coherence*Extend port run:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 20000:{{ default 20000 .Values.service.extendPort }}
+
+  then access the Coherence*Extend endpoint at 127.0.0.1:20000
+
+  To forward a local port to the Pod Http port run:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 30000:{{ default 30000 .Values.service.managementPort }}
+
+  then access the http endpoint at http://127.0.0.1:30000
+{{- end }}
+{{- if .Values.store.jmx.enabled }}
+
+2. To connect to the JMX endpoint
+{{- if .Values.store.jmx.service.enabled }}
+{{- if contains "NodePort" .Values.store.jmx.service.type }}
+  To use the internal IP address of the nodes use:
+
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+
+  or to use the external IP address of the nodes use:
+
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[1].status.addresses[0].address}")
+
+  Then to access specific ports use:
+
+  export JMX_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "coherence.fullname" . }}-jmx)
+
+  echo JMX URL: service:jmx:jmxmp://$NODE_IP:$HTTP_PORT
+{{- else if contains "LoadBalancer" .Values.store.jmx.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl --namespace {{ .Release.Namespace }} get svc -w {{ template "coherence.fullname" . }}-jmx'
+
+  export SERVICE_IP=$(kubectl --namespace {{ .Release.Namespace }} get svc {{ template "coherence.fullname" . }}-jmx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  echo JMX URL: service:jmx:jmxmp://$SERVICE_IP:9099
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "coherence.name" . }},release={{ .Release.Name }},component=coherenceJMXPod" -o jsonpath="{.items[0].metadata.name}")
+
+  To forward a local port to the Pod JMX port run:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 9099:9099
+
+  then access the JMX endpoint at the URL service:jmx:jmxmp://127.0.0.1:9099
+{{- end }}
+{{- else }} {{/* JMX service not enabled */}}
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "coherence.name" . }},release={{ .Release.Name }},component=coherenceJMXPod" -o jsonpath="{.items[0].metadata.name}")
+
+  To forward a local port to the Pod JMX port run:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 9099:9099
+
+  then access the JMX endpoint at the URL service:jmx:jmxmp://127.0.0.1:9099
+{{- end }} {{/* end of JMX service enabled condition */}}
+
+  The JMX endpoint does not use RMI, it uses JMXMP. This requires an additional jar on the classpath
+  of the Java JMX client (i.e. VisualVM, JConsole, etc). This can be downloaded as a Maven dependency:
+
+    <dependency>
+        <groupId>org.glassfish.external</groupId>
+        <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+        <version>1.0-b01-ea</version>
+    </dependency>
+
+  or directly from:
+    
+    http://central.maven.org/maven2/org/glassfish/external/opendmk_jmxremote_optional_jar/1.0-b01-ea/opendmk_jmxremote_optional_jar-1.0-b01-ea.jar
+
+  2.1 To run JConsole with the JMXMP connector on the classpath:
+
+  jconsole -J-Djava.class.path="$JAVA_HOME/lib/jconsole.jar:$JAVA_HOME/lib/tools.jar:opendmk_jmxremote_optional_jar-1.0-b01-ea.jar" service:jmx:jmxmp://127.0.0.1:9099
+
+  2.2 To run VisualVM with the JMXMP connector on the classpath:
+
+  visualvm -cp "$JAVA_HOME/lib/tools.jar:opendmk_jmxremote_optional_jar-1.0-b01-ea.jar"
+{{- end }} {{/* end of JMX enabled condition */}}

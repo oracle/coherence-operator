@@ -1,0 +1,20 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+cluster: MyCoherenceCluster
+
+store:
+  cacheConfig: "server-cache-config.xml"
+  pof:
+    enabled: true
+    config: "test-pof-config.xml"
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds:       10
+
+service:
+  enabled: true
+
+userArtifacts:
+  image: "${test.image.prefix}user-artifacts:1.0"
+  libDir: "/files/lib"
+  configDir: "/files/conf"

@@ -1,0 +1,18 @@
+# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+clusterSize: 1
+
+store:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds:       10
+
+  persistence:
+    enabled: true
+    size: "2Gi"
+  snapshot:
+    enabled: true
+    size: "2Gi"
+
+service:
+  enabled: true

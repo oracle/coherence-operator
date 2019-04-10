@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>image</id>
+  <formats>
+    <format>dir</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <!-- copy this module's jar and the coherence jar dependency -->
+  <moduleSets>
+    <moduleSet>
+      <useAllReactorProjects>true</useAllReactorProjects>
+      <includes>
+        <include>com.oracle.coherence.kubernetes:coherence-utils</include>
+      </includes>
+      <binaries>
+        <outputDirectory>lib</outputDirectory>
+        <unpack>false</unpack>
+        <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
+        <dependencySets>
+          <dependencySet>
+            <excludes>
+              <exclude>com.oracle.coherence:coherence</exclude>
+            </excludes>
+            <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+          </dependencySet>
+        </dependencySets>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
+
+
+  <fileSets>
+    <!-- copy the shell script(s) for the image with no filtering -->
+    <fileSet>
+      <directory>src/main/docker</directory>
+      <outputDirectory/>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <!-- copy all files except the shell script(s) for the image with filtering -->
+    <fileSet>
+      <directory>src/main/docker</directory>
+      <outputDirectory/>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <filtered>true</filtered>
+    </fileSet>
+  </fileSets>
+</assembly>

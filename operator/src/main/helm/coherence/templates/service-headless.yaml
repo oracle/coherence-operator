@@ -1,0 +1,27 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "coherence.fullname" . }}-headless
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  labels:
+{{- include "coherence.release_labels" . | indent 4 }}
+    component: "coherence-headless"
+spec:
+  clusterIP: None
+  ports:
+    - name: coherence-extend
+      protocol: TCP
+      port: {{ .Values.service.externalPort | default 20000 }}
+      targetPort: "extend-port"
+    - name: coherence-mgmt-http
+      protocol: TCP
+      port: {{ .Values.service.managementHttpPort | default 30000 }}
+      targetPort: "mgmt-http-port"
+  selector:
+    coherenceDeployment: {{ template "coherence.fullname" . }}
+    component: coherencePod
