@@ -81,6 +81,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToExtendPort() throws Exception
         {
         m_sRelease = installCoherence(m_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
