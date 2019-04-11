@@ -10,10 +10,7 @@ import com.oracle.bedrock.deferred.options.InitialDelay;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.List;
 import java.util.Queue;
@@ -33,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author sc
  */
+@Ignore
 public class LogHelmChartIT
         extends BaseHelmChartTest {
 

@@ -14,11 +14,7 @@ import com.oracle.bedrock.runtime.k8s.helm.Helm;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 
 import util.AssumingCoherenceVersion;
 
@@ -43,6 +39,7 @@ import static org.junit.Assert.assertTrue;
  * @author jf
  * @author sc
  */
+@Ignore
 public class PrometheusOperatorHelmSubChartIT
     extends BaseHelmChartTest
     {

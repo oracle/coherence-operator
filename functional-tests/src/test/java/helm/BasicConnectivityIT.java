@@ -62,6 +62,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToMetricsPort() throws Exception
         {
         assumeThat(versionCheck("12.2.1.4.0"), is(true));
