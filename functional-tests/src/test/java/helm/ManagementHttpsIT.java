@@ -7,10 +7,7 @@
 package helm;
 
 import com.oracle.bedrock.runtime.Application;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import util.AssumingCoherenceVersion;
 
 import javax.net.ssl.SSLException;
@@ -25,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author jk  2019.02.21
  */
+@Ignore
 public class ManagementHttpsIT
         extends BaseHttpsTest
     {
