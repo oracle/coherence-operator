@@ -179,6 +179,7 @@ public class PersistenceSnapshotHelmChartIT
      * @throws Exception if the test fails
      */
     @Test
+    @Ignore
     public void testSnapshotWithoutPersistenceWithVol() throws Exception
         {
         testPersistence("values/helm-values-coh-snapshot-vol.yaml", false, false);

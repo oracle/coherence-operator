@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import com.tangosol.util.Resources;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.oracle.bedrock.options.Timeout;
@@ -45,6 +46,7 @@ import static org.hamcrest.CoreMatchers.is;
  */
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(CustomParameterizedRunner.Factory.class)
+@Ignore
 public class CustomJarInClasspathIT extends BaseHelmChartTest
     {
     // ----- test lifecycle --------------------------------------------------

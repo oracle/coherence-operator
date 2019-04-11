@@ -162,6 +162,7 @@ public class EFKHelmChartIT
      * @throws Exception
      */
     @Test
+    @Ignore
     public void testCoherenceRoleClusterUid() throws Exception
         {
         String[] asCohNamespaces = getTargetNamespaces();

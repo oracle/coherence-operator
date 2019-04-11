@@ -191,5 +191,5 @@ public abstract class BaseHttpsTest
     /**
      * The base Coherence image name without a tag.
      */
-    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "oracle/coherence:";
+    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "coherence:";
     }

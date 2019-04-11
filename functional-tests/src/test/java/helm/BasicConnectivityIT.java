@@ -62,6 +62,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToMetricsPort() throws Exception
         {
         assumeThat(versionCheck("12.2.1.4.0"), is(true));
@@ -81,6 +82,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToExtendPort() throws Exception
         {
         m_sRelease = installCoherence(m_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
@@ -99,6 +101,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToJmxPort() throws Exception
         {
         m_sRelease = installCoherence(m_k8sCluster,

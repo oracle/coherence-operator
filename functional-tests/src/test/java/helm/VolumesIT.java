@@ -11,11 +11,7 @@ import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.tangosol.util.Resources;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -34,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author jk  2019.02.12
  */
+@Ignore
 public class VolumesIT
         extends BaseHelmChartTest
     {
