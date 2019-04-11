@@ -101,6 +101,7 @@ public class BasicConnectivityIT
         }
 
     @Test
+    @Ignore
     public void shouldConnectToJmxPort() throws Exception
         {
         m_sRelease = installCoherence(m_k8sCluster,
