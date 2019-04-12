@@ -3,7 +3,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
-FROM alpine
+FROM oraclelinux:7-slim
 
 ARG  VERSION
 
