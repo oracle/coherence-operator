@@ -1,4 +1,4 @@
-FROM alpine
+FROM oraclelinux:7-slim
 
 RUN  mkdir /files
 
