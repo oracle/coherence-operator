@@ -28,6 +28,8 @@ before any of the steps in this guide.
    
    * [Supply a Configuration File and/or Application Classes In a Jar File](#finally-lets-combine-the-preceding-two-use-cases-and-deploy-a-jar-containing-both-application-classes-and-configuration-files)
    
+   * [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
+   
 * [Scale a Coherence Cluster With Helm](#using-helm-to-scale-the-coherence-deployment)
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
@@ -601,6 +603,72 @@ $ helm --debug install --version 1.0.0-SNAPSHOT \
      --set store.cacheConfig=cache-config.xml \
      --set store.pof.config=pof-config.xml
 ```
+
+#### Extract Reporter Files from a Kubernetes Coherence Pod
+
+Any of the debugging techniques described in [Debugging in
+Coherence](https://docs.oracle.com/middleware/12213/coherence/develop-applications/debugging-coherence.htm)
+that call for the creation of files to be examined, such as log files
+and JVM heap dumps, can also be accomplished with the Coherence
+Operator.  Let's take the example of collecting a `.hprof` file for a
+heap dump.  A single-command technique is included at the end of this
+use case.
+
+Assuming you have the operator and Coherence as the only apps running in
+the Kubernetes cluster, the following command lists the pods of the
+operator and Coherence.
+
+```
+$ kubectl get pods
+NAME                                 READY     STATUS    RESTARTS   AGE
+coherence-demo-storage-0             1/1       Running   0          45m
+coherence-demo-storage-1             1/1       Running   0          44m
+coherence-operator-7bc94cfb4-g4kz2   1/1       Running   0          47m
+```
+
+Get a shell into the storage node:
+
+```
+$ kubectl exec -it coherence-demo-storage-0 -- /bin/bash
+```
+
+Obtain the PID of the Coherence process.  Usually this is PID `1`, but
+it is a good idea to use `jps` to get the actual PID.
+
+```
+bash-4.2# /usr/java/default/bin/jps
+1 DefaultCacheServer
+4230 Jps
+```
+
+Now use the `jcmd` command to extract the heap dump and exit the shell.
+
+```
+bash-4.2# /usr/java/default/bin/jcmd 1 GC.heap_dump /DefaultCache.hprof
+bash-4.2# exit
+```
+
+Finally, use `kubectl exec` to extract the heap dump.
+
+```
+$ (kubectl exec coherence-demo-storage-0 -it -- cat /DefaultCache.hprof ) > DefaultCache.hprof
+```
+
+Assuming the Coherence PID is `1`, a repeatable single-command version of this technique is:
+
+```
+$ (kubectl exec coherence-demo-storage-0 -- /bin/bash -c "rm -f /tmp/heap.hprof; /usr/java/default/bin/jcmd 1 GC.heap_dump /tmp/heap.hprof; cat /tmp/heap.hprof > /dev/stderr" ) 2> heap.hprof
+```
+
+Note that we redirect the heap dump output to `stderr` to prevent the unsuppressable 
+
+```
+1:
+Heap dump file created
+```
+
+output from `jcmd` from showing up in the heap dump file.
+
 
 ## Kubernetes Specific Use Cases
 
