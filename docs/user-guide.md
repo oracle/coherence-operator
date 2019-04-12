@@ -150,7 +150,7 @@ We must now package the jar file within the sidecar Docker image.
    following contents.
 
     ```
-    FROM alpine:3.9
+    FROM oraclelinux:7-slim
     RUN mkdir -p /files/lib
     COPY files/lib/hello-example.jar files/lib
     ```
@@ -459,7 +459,7 @@ We must now package the XML file within the sidecar Docker image.
    following contents.
    
     ```
-    FROM alpine:3.9
+    FROM oraclelinux:7-slim
     RUN mkdir -p /files/conf
     COPY files/conf/hello-server-config.xml files/conf/hello-server-config.xml
     ```
