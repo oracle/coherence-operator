@@ -28,6 +28,8 @@ before any of the steps in this guide.
    
    * [Supply a Configuration File and/or Application Classes In a Jar File](#finally-lets-combine-the-preceding-two-use-cases-and-deploy-a-jar-containing-both-application-classes-and-configuration-files)
    
+   * [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
+   
 * [Scale a Coherence Cluster With Helm](#using-helm-to-scale-the-coherence-deployment)
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
