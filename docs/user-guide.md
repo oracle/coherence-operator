@@ -20,6 +20,8 @@ before any of the steps in this guide.
 
 ### Table of Use-Cases
 
+#### Common Coherence Tasks
+
 * [Supply Configuration Files And Application Classes to the Coherence Cluster within Kubernetes](#supply-configuration-files-and-application-classes-to-the-coherence-cluster-within-kubernetes)
 
    * [Supply a Jar File Containing Application Classes](#first-lets-show-the-simple-example-of-including-a-jar-file)
@@ -30,7 +32,11 @@ before any of the steps in this guide.
    
    * [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
    
+#### Kubernetes Specific Use Cases
+   
 * [Scale a Coherence Cluster With Helm](#using-helm-to-scale-the-coherence-deployment)
+
+* [Perform a Safe Rolling Upgrade](#perform-a-safe-rolling-upgrade)
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
 
@@ -692,6 +698,38 @@ Monitoring the progress of the cluster as Kubernetes adjusts to the new
 intent will show the number of pods being adjusted and the status of
 each pod progressing through the various stages to end up at `Running`
 status.
+
+### Perform a Safe Rolling Upgrade
+
+The steps detailed in section [Supply a Jar File Containing Application
+Classes](#table-of-use-cases) call for the creation of a sidecar docker
+image that conveys the application classes to Kubernetes.  This docker
+image is tagged with a version number, and the version number is how
+Kubernetes enables safe rolling upgrades.  You can read more about safe
+rolling upgrades in [the Helm
+documentation](https://helm.sh/docs/helm/#helm-upgrade).  Briefly, as
+with the scaling described in the preceding section, the safe rolling
+upgrade feature allows you to instruct Kubernetes, via the operator, to
+replace the currently deployed version of your application classes with
+a different one.  Kubernetes does not care if the different version is
+"newer" or "older", as long as it has a docker tag and can be pulled by
+the cluster, that is all Kubernetes needs to know.  The operator will
+ensure this is done without data loss or interruption of service.
+
+Assuming the sidecar has been installed using the steps detailed in
+[Supply a Jar File Containing Application Classes](#table-of-use-cases),
+and the upgrade destination is available and has been tagged with
+`coherence-operator-hello-example:1.0.1`, the following command will
+instruct the operator to upgrade from
+`coherence-operator-hello-example:1.0.0-SNAPSHOT` to
+`coherence-operator-hello-example:1.0.1`.
+
+```
+$ helm --debug upgrade \
+     ./coherence --name hello-example --reuse-values \
+     --set userArtifacts.image=coherence-operator-hello-example:1.0.1 --wait \
+     --set imagePullSecrets=sample-coherence-secret
+```
 
 ### Deploy Multiple Coherence Clusters Managed by the Operator
 

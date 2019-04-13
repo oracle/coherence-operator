@@ -46,10 +46,9 @@ The fastest way to experience the operator is to follow the
 [blogs](https://blogs.oracle.com/weblogicserver/how-to-weblogic-server-on-kubernetes),
 or try out the [samples](docs/samples/README.md).
 
-```diff
-+ The current release of the operator is 0.9.1.
-+ This release was published on 2019-03-01.
-```
+This documentation is for the current release of the operator.  For
+documentation on previous releases, use the GitHub `Branch` pulldown,
+select the `Tags` tab, and click on the desired release.
 
 ## Known issues
 
