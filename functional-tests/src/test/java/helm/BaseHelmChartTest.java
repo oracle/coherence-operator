@@ -1999,8 +1999,23 @@ public abstract class BaseHelmChartTest
      */
     protected static Application portForwardCoherencePod(K8sCluster k8sCluster, String sNamespace, String sRelease, int nPort) throws Exception
         {
+        final int MAX_RETRY     = 3;
+        Exception lastException = null;
+
         String sSelector = getCoherencePodSelector(sRelease);
-        return portForward(k8sCluster, sNamespace, sSelector, nPort);
+        for (int i=0; i < MAX_RETRY; i++)
+            {
+            try
+                {
+                return portForward(k8sCluster, sNamespace, sSelector, nPort);
+                }
+            catch (Exception e)
+                {
+                lastException = e;
+                }
+            }
+
+        throw lastException;
         }
 
     /**
