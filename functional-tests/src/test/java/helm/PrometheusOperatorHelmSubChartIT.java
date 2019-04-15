@@ -39,6 +39,7 @@ import static org.junit.Assert.assertTrue;
  * @author jf
  * @author sc
  */
+@Ignore
 public class PrometheusOperatorHelmSubChartIT
     extends BaseHelmChartTest
     {
@@ -107,7 +108,6 @@ public class PrometheusOperatorHelmSubChartIT
      * Test with user supplied prometheus_io annotations with coherence-service-monitor disabled.
      * @throws Exception
      */
-    @Ignore
     @Test
     public void testPrometheusOperatorSubchartWithUserSuppliedAdditionalScrapeConfig()
         throws Exception
