@@ -10,6 +10,15 @@
             xml-override="{coherence.k8s.override /tangosol-coherence-override.xml}">
 
   <cluster-config>
+    <unicast-listener>
+      <well-known-addresses>
+        <address-provider>
+          <class-factory-name>com.oracle.coherence.k8s.RetryingWkaAddressProvider
+          </class-factory-name>
+          <method-name>create</method-name>
+        </address-provider>
+      </well-known-addresses>
+    </unicast-listener>
     <socket-providers>
       <socket-provider id="ManagementSSLProvider">
         <ssl>

@@ -30,7 +30,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author sc
  */
-@Ignore
 public class LogHelmChartIT
         extends BaseHelmChartTest {
 

@@ -59,17 +59,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 
 import java.nio.file.Files;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +85,7 @@ import static helm.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 /**
  * A base class for executing Helm chart tests.
@@ -1735,6 +1732,7 @@ public abstract class BaseHelmChartTest
      * @param sRelease    the Helm release name
      */
     protected void assertCoherenceJMX(K8sCluster cluster, String sNamespace, String sRelease)
+        throws Exception
         {
         String selector = getCoherenceJmxDeploymentSelector(sRelease);
         assertDeploymentReady(cluster, sNamespace, selector, true);
@@ -1743,11 +1741,12 @@ public abstract class BaseHelmChartTest
         }
 
     protected void ensureJMXServerPartOfCluster(K8sCluster k8sCluster, String sNamespace, String sRelease)
+        throws Exception
         {
         try
             {
             Eventually.assertThat("Unable to confirm JMX server is part of cluster",
-                invoking(this).isJmxServerPartOfCluster(k8sCluster, sNamespace, sRelease), is(true));
+                invoking(this).getClusterSizeViaJMX(k8sCluster, sNamespace, sRelease), greaterThanOrEqualTo(2));
             }
         catch (Throwable t)
             {
@@ -1759,59 +1758,6 @@ public abstract class BaseHelmChartTest
                 }
             throw t;
             }
-        }
-
-    public boolean isJmxServerPartOfCluster(K8sCluster k8sCluster, String sNamespace, String sRelease)
-        {
-        // Ensure JMX MBean Server is started.
-        Eventually.assertThat(invoking(this).getJMXServerClusterStarted(k8sCluster, sNamespace, sRelease), is(true));
-
-        // fix race condition between coherence-headless service starting and JMX MBeanServer trying to resolve to its address to join cluster.
-        String sCoherenceJmxSelector = getCoherenceJmxPodSelector(sRelease);
-        List<String> listJmxPods     = getPods(k8sCluster, sNamespace, sCoherenceJmxSelector);
-        if (listJmxPods.size() > 0)
-            {
-            Queue<String> sLogs = getPodLog(k8sCluster, sNamespace, listJmxPods.get(0));
-            if (sLogs.stream().anyMatch(l -> l.contains("The ConfigurableAddressProvider is skipping the unresolvable address")))
-                {
-                System.out.println("Restart JMX MBean Server since it failed to join cluster due to unresolved " + sRelease + "-coherence-headless");
-
-                // try restarting pod that did not join cluster due to race condition that headless server for JMX wka list was not found due to not being started yet.
-                deleteResource(k8sCluster, "pod/" + listJmxPods.get(0), sNamespace);
-                return false;
-                }
-            else
-                {
-                return true;
-                }
-            }
-        else
-            {
-            return false;
-            }
-        }
-
-    public boolean getJMXServerClusterStarted(K8sCluster k8sCluster, String sNamespace, String sRelease)
-        {
-        String sCoherenceJmxSelector = getCoherenceJmxPodSelector(sRelease);
-        List<String> listJmxPods     = getPods(k8sCluster, sNamespace, sCoherenceJmxSelector);
-        if (listJmxPods.size() > 0)
-            {
-            Queue<String> sLogs = getPodLog(k8sCluster, sNamespace, listJmxPods.get(0));
-
-            if (sLogs.stream().anyMatch(l -> l.contains("Stopping cluster due to unhandled exception") ||
-                                             l.contains("The ConfigurableAddressProvider is skipping the unresolvable address")))
-                {
-                System.out.println("Restart JMX MBean Server since it failed to join cluster due to unresolved " + sRelease + "-coherence-headless");
-
-                // try restarting pod that did not join cluster due to race condition that headless server for JMX wka list was not found due to not being started yet.
-                deleteResource(k8sCluster, "pod/" + listJmxPods.get(0), sNamespace);
-                return false;
-                }
-
-            return sLogs.stream().anyMatch(l -> l.contains("Started cluster Name"));
-            }
-        return false;
         }
 
     /**
