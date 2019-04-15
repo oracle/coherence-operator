@@ -107,6 +107,7 @@ public class PrometheusOperatorHelmSubChartIT
      * Test with user supplied prometheus_io annotations with coherence-service-monitor disabled.
      * @throws Exception
      */
+    @Ignore
     @Test
     public void testPrometheusOperatorSubchartWithUserSuppliedAdditionalScrapeConfig()
         throws Exception
@@ -175,8 +176,8 @@ public class PrometheusOperatorHelmSubChartIT
             System.err.println("validating cluster size of " + CLUSTER_NAME + " in namespace " + asCohNamespaces[i] + " for coherence release " + m_asReleases[i]);
             Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("coherence_cluster_size", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
                 greaterThanOrEqualTo(EXPECTED_CLUSTER_SIZE),
-                RetryFrequency.every(10, TimeUnit.SECONDS),
-                Timeout.after(4, TimeUnit.MINUTES));
+                RetryFrequency.every(15, TimeUnit.SECONDS),
+                Timeout.after(2, TimeUnit.MINUTES));
             }
         }
 
