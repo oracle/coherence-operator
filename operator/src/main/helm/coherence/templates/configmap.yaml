@@ -14,7 +14,7 @@ metadata:
     component: coherence-config
 data:
   fluentd-coherence.conf: |
-      # Optional application specific fluentd source(s)  i.e. Java Logger messages from server-side app classes such as entryprocessor, interceptor, ...
+    # Optional application specific fluentd source(s)  i.e. Java Logger messages from server-side app classes such as entryprocessor, interceptor, ...
 {{- if .Values.fluentd.application.configFile }}
     @include {{ .Values.fluentd.application.configFile }}
 {{- end }}

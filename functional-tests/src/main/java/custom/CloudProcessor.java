@@ -124,8 +124,6 @@ public class CloudProcessor extends AbstractProcessor<String, Cloud, Cloud> impl
         return f.format(new Date(System.currentTimeMillis()));
         }
 
-
-
     // ----- data members ---------------------------------------------------
 
     private Cloud OCI = new PortableCloud(new OCI().getName());
