@@ -36,6 +36,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.k8s.CoherenceVersion;
 
+import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -1929,7 +1930,30 @@ public abstract class BaseHelmChartTest
      */
     protected Queue<String> processHttpRequest(K8sCluster cluster, String sPod, String sHttpMethod, String sHost, int nPort, String sPath)
         {
-        return processHttpRequest(cluster, sPod, sHttpMethod, sHost, nPort, sPath, /*fConsole*/ true);
+        // Workaround intermittent kubectl exec returning non-zero due to a communication failure by retrying
+        final int          MAX_RETRY     = 3;
+        AssertionException lastException = null;
+
+        for (int i=0; i < MAX_RETRY; i++)
+            {
+            try
+                {
+                return processHttpRequest(cluster, sPod, sHttpMethod, sHost, nPort, sPath, /*fConsole*/ true);
+                }
+            catch (AssertionException e)
+                {
+                lastException = e;
+                try
+                    {
+                    // backoff before retry
+                    Thread.sleep(500);
+                    }
+                catch (InterruptedException e1)
+                    {
+                    }
+                }
+            }
+        throw lastException;
         }
 
     /**
@@ -2067,7 +2091,7 @@ public abstract class BaseHelmChartTest
      * @return  an {@link Application} running the port-forward process
      * @throws Exception  if the port-forward application fails to start
      */
-    protected static Application portForward(K8sCluster k8sCluster, String sNamespace, String sSelector, int nPort) throws Exception
+    protected static Application internalPortForward(K8sCluster k8sCluster, String sNamespace, String sSelector, int nPort) throws Exception
         {
         List<String>                               listPod        = getPods(k8sCluster, sNamespace, sSelector);
         String                                     sPod           = listPod.get(0);
@@ -2086,6 +2110,45 @@ public abstract class BaseHelmChartTest
                    listener.await(1, TimeUnit.MINUTES), is(true));
 
         return application;
+        }
+
+    /**
+     * Run a kubectl port-forward process to forward a port to a Pod.
+     *
+     * @param k8sCluster  the {@link K8sCluster} to use
+     * @param sNamespace  the namespace that the Pod is in
+     * @param sSelector   the name of the k8s selector to use to locate a Pod
+     * @param nPort       the Pod's port to forward
+     *
+     * @return  an {@link Application} running the port-forward process
+     *
+     * @throws Exception  if the port-forward application fails to start
+     */
+    protected static Application portForward(K8sCluster k8sCluster, String sNamespace, String sSelector, int nPort) throws Exception
+        {
+        // Workaround intermittent kubectl port-forward failure by retrying
+        Exception lastException = null;
+        final int MAX_RETRY     = 3;
+        for (int i = 0; i < MAX_RETRY; i++)
+            {
+            try
+                {
+                return internalPortForward(k8sCluster, sNamespace, sSelector, nPort);
+                }
+            catch (Exception e)
+                {
+                lastException = e;
+                try
+                    {
+                    // backoff before retry
+                    Thread.sleep(500);
+                    }
+                catch (InterruptedException e1)
+                    {
+                    }
+                }
+            }
+        throw lastException;
         }
 
     /**
