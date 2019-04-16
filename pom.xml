@@ -58,7 +58,7 @@
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
 
-    <coherence.version>12.2.1-3-1</coherence.version>
+    <coherence.version>12.2.1-3-0</coherence.version>
     <coherence.docker.version>12.2.1.3</coherence.docker.version>
 
     <test.image.prefix>SET test.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</test.image.prefix>
