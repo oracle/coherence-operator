@@ -135,7 +135,7 @@ logger.info("....");
 ##### 1. set values to configure fluentd for application log events
 ```
 --set logCaptureEnabled=true,store.logging.configFile=custom-logging.properties
---set fluentd.application.enabled=true,fluentd.application.configFile=/conf/fluentd-sample.conf,fluentd.application.tag=sample
+--set fluentd.application.configFile=/conf/fluentd-sample.conf,fluentd.application.tag=sample
 ```
 
 #### 2. Port forward extend port
