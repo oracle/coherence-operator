@@ -530,6 +530,15 @@ coherence:
   # coherence.imagePullPolicy controls the K8s Coherence container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
+  # optional application logging configuration
+    application:
+      # ignored if fluentd.application.enabled is false.
+      # fluentd configuration file configuring source for application log.
+      configFile:
+      # This value should be source.tag from fluentd.application.configFile.
+      tag:
+
+
 
 # ---------------------------------------------------------------------------
 # coherenceUtils groups the values used to configure the Coherence utilities images used by the chart

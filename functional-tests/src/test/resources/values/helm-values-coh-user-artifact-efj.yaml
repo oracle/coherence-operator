@@ -1,0 +1,26 @@
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+
+clusterSize: 1
+
+cluster: mycluster
+
+role: myrole
+
+store:
+  cacheConfig: "server-cache-config.xml"
+  logging:
+    configFile: custom-logging.properties
+
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds:       10
+
+logCaptureEnabled: true
+
+elasticsearchEndpoint:
+  host: elasticsearch.${k8s.namespace}.svc.cluster.local
+
+userArtifacts:
+  image: "iad.ocir.io/odx-stateservice/test/user-artifacts:1.0"
+  libDir: "/files/lib"
+  configDir: "/files/conf"

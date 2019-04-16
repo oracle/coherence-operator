@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
+import static helm.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -122,7 +123,7 @@ public class LogHelmChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
-            List<String> listPods = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+            List<String> listPods = getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
 
             Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, asCohNamespaces[i], listPods.get(0)), is(true),
                     Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
@@ -147,7 +148,7 @@ public class LogHelmChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
-            List<String> listPods = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+            List<String> listPods = getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
 
             Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, asCohNamespaces[i], listPods.get(0)), is(true),
                                   Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
@@ -160,6 +161,39 @@ public class LogHelmChartIT
             assertThat(sLogs.stream().anyMatch(l -> l.contains("-Dcoherence.cluster=mycluster")), is(true));
             assertThat(sLogs.stream().anyMatch(l -> l.contains("Role=myrole")), is(true));
             assertThat(sLogs.stream().anyMatch(l -> l.contains("Started cluster Name=mycluster")), is(true));
+            }
+        }
+
+    @Test
+    public void shouldUseFluentdApplicationConfiguration() throws Exception
+        {
+        String[] asCohNamespaces = getTargetNamespaces();
+        String   sValues         = "values/helm-values-coh-user-artifacts-efk.yaml";
+        String   sLogConfig      = "/files/conf/custom-logging.properties";
+        String[] asSetValues     = {
+            "clusterSize=1", "store.logging.configFile=" + sLogConfig,
+            "fluentd.application.configFile=/conf/fluentd-cloud.conf",
+            "fluentd.application.tag=cloud"
+        };
+
+        m_asReleases = installCoherence(s_k8sCluster, asCohNamespaces, sValues, asSetValues);
+
+        assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+
+        // verify the jvm option, role and cluster are set for each Coherence
+        for (int i = 0; i < m_asReleases.length; i++)
+            {
+            String sSelector = getCoherencePodSelector(m_asReleases[i]);
+            List<String> listPod = getPods(s_k8sCluster, asCohNamespaces[i], sSelector);
+
+            assertThat(listPod.isEmpty(), is(false));
+
+            Queue<String> queueLog = getPodLog(s_k8sCluster, asCohNamespaces[i], listPod.get(0), "fluentd");
+            boolean fAppSource = queueLog.stream().anyMatch(s -> s.contains("tag \"cloud\""));
+            boolean fAppMatch = queueLog.stream().anyMatch(s -> s.contains("<match cloud>"));
+
+            assertThat("fluentd source for cloud is missing", fAppSource, is(true));
+            assertThat("fluentd match for cloud is missing", fAppMatch, is(true));
             }
         }
 

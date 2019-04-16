@@ -4,6 +4,8 @@ The Oracle Coherence Operator includes the Prometheus Operator as an optional su
 To configure the Prometheus Operator and monitor Coherence services via grafana dashboards, 
 please follow the instructions below.
 
+Note: Prometheus metrics are only available with Coherence v12.2.1.4 and greater.
+
 ## 1. Installing the Charts
 
 When you install the `coherence-operator` chart, you must specify the following
@@ -82,7 +84,8 @@ and fill in these fields.
   
 ```bash
    Name:      Prometheus 
-   HTTP URL:  http://release-name-prometheus:9090/
+   Type:      prometheus
+   HTTP URL:  http://prometheus-operated.<namespace>.svc.cluster.local:9090
 ```
 
 CLick `Save & Test` button on bottom of page.

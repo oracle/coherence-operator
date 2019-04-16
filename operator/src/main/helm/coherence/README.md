@@ -122,6 +122,10 @@ Coherence 12.2.1.4.
 | `coherenceUtils.image` | Coherence Utils image to be pulled | `"oracle/coherence-utils:1.0.0"` |
 | `coherenceUtils.imagePullPolicy` | Coherence Utils Image pull policy | `"IfNotPresent"` |
 | `logCaptureEnabled` | Whether log capture via EFK stack is enabled | `false` |
+| `fluentd.image` | Fluentd image to be pulled | `"fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"' |
+| `fluentd.imagepullPolicy` | Fluentd Image pull policy | `"IfNotPresent"` |
+| `fluentd.application.configFile` | The location of fluentd application configuration file containing application source.  | |
+| `fluentd.application.tag` | The fluentd tag for fluentd source specified in fluentd.application.configFile file |  |
 | `logstash.image` | Logstash Docker image url with tag | `docker.elastic.co/logstash/logstash-oss:6.6.0` |
 | `logstash.imagePullPolicy` | Logstash image pull policy | `"IfNotPresent"` |
 | `filebeat.image` | FileBeat Docker image url with tag | `docker.elastic.co/beats/filebeat:6.2.4` |
