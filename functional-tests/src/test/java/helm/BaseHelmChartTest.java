@@ -36,6 +36,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.k8s.CoherenceVersion;
 
+import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -1875,7 +1876,29 @@ public abstract class BaseHelmChartTest
      */
     protected Queue<String> processHttpRequest(K8sCluster cluster, String sPod, String sHttpMethod, String sHost, int nPort, String sPath)
         {
-        return processHttpRequest(cluster, sPod, sHttpMethod, sHost, nPort, sPath, /*fConsole*/ true);
+        final int          MAX_RETRY     = 3;
+        AssertionException lastException = null;
+
+        for (int i=0; i < MAX_RETRY; i++)
+            {
+            try
+                {
+                return processHttpRequest(cluster, sPod, sHttpMethod, sHost, nPort, sPath, /*fConsole*/ true);
+                }
+            catch (AssertionException e)
+                {
+                lastException = e;
+                try
+                    {
+                    // backoff before retry
+                    Thread.sleep(500);
+                    }
+                catch (InterruptedException e1)
+                    {
+                    }
+                }
+            }
+        throw lastException;
         }
 
     /**
