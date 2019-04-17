@@ -30,11 +30,13 @@ before any of the steps in this guide.
    
    * [Supply a Configuration File and/or Application Classes In a Jar File](#finally-lets-combine-the-preceding-two-use-cases-and-deploy-a-jar-containing-both-application-classes-and-configuration-files)
    
-   * [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
+* [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
    
-   * [Use JMX to Inspect and Manage Coherence](#use-jmx-to-inspect-and-manage-coherence)
+* [Use JMX to Inspect and Manage Coherence](#use-jmx-to-inspect-and-manage-coherence)
+
+* [Provide arguments to the JVM that runs Coherence](#provide-arguments-to-the-jvm-that-runs-coherence)
    
-#### Kubernetes Specific Use Cases
+#### Kubernetes Specific Use-Cases
    
 * [Scale a Coherence Cluster With Helm](#using-helm-to-scale-the-coherence-deployment)
 
@@ -620,7 +622,7 @@ that call for the creation of files to be examined, such as log files
 and JVM heap dumps, can also be accomplished with the Coherence
 Operator.  Let's take the example of collecting a `.hprof` file for a
 heap dump.  A single-command technique is included at the end of this
-use case.
+use-case.
 
 Assuming you have the operator and Coherence as the only apps running in
 the Kubernetes cluster, the following command lists the pods of the
@@ -694,10 +696,10 @@ Coherence](https://docs.oracle.com/middleware/12213/coherence/COHMG/using-jmx-ma
 All of the capabilities of JMX with Coherence are also present with the
 operator, but the Coherence Helm chart must be installed with some
 additional arguments, and of course the network port for JMX must be
-exposed.  This use case covers how to install Coherence in a Kubernetes
+exposed.  This use-case covers how to install Coherence in a Kubernetes
 cluster with JMX enabled.
 
-Note that to fully appreciate this use case, deploy an application that
+Note that to fully appreciate this use-case, deploy an application that
 uses Coherence and creates some caches.  Such an application can be
 installed using the steps detailed in [Supply a Jar File Containing
 Application Classes](#table-of-use-cases).  Assuming the operator has
@@ -722,7 +724,7 @@ proceeding.
 
 The instructions will also include suggestions on how to use JConsole or
 [VisualVM](https://visualvm.github.io/).  For the sake of completeness,
-this use case documents how to use VisualVM to access and manipulate
+this use-case documents how to use VisualVM to access and manipulate
 Coherence MBeans when running within Kubernetes.
 
 #### 1. Download the `opendmk_jmxremote_optional_jar` JAR
@@ -781,9 +783,56 @@ visualvm --jdkhome ${JAVA_HOME} --cp:a PATH_TO_DOWNLOADED.jar
   Note that any changes to MBean attributes done in this way will not
   persist when the cluster restarts.  To make persistent changes, you
   must modify the Coherence configuration files.
+  
+### Provide arguments to the JVM that runs Coherence
 
+Any production enterprise Java application must carefully tune the JVM
+arguments for maximum performance, and Coherence is no exception.  This
+use-case explains how to convey JVM arguments to Coherence running
+inside Kubernetes.
 
-## Kubernetes Specific Use Cases
+Please see [the Coherence Performance Tuning
+documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB)
+for authoritative information on this topic.
+
+There are several values in the
+[values.yaml](https://github.com/oracle/coherence-operator/blob/master/operator/src/main/helm/coherence/values.yaml)
+file of the Coherence Helm chart that convey JVM arguments to the JVM
+that runs Coherence within Kubernetes.  Please see the source code for
+the authoritative documentation on these values.  Such values include
+the following.
+
+| `--set` left hand side | Meaning | 
+|------------------------|---------|
+| `store.maxHeap`        | Heap size arguments to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used. |
+| `store.jmx.maxHeap` | Heap size arguments passed to the MBean server JVM.  Same format and meaning as the preceding row. | 
+| `store.jvmArgs` | Options passed directly to the JVM running Coherence within Kubernetes |
+| `store.javaOpts` | Miscellaneous JVM options to pass to the Coherence store container |
+
+The following invocation installs and starts Coherence with specific
+values to be passed to the JVM.
+
+```
+$ helm --debug install --version 1.0.0-SNAPSHOT \
+     ./coherence --name hello-example \
+     --set store.maxHeap="8g" \
+     --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp" \
+     --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true"
+     --set userArtifacts.image=coherence-operator-hello-example:1.0.0-SNAPSHOT \
+     --set imagePullSecrets=sample-coherence-secret
+```
+
+The JVM arguments will include the `store.` arguments specified above,
+in addition to many others required by the operator and Coherence.
+
+```
+-Xloggc:/tmp/gc-log -server -Xcomp -Xms8g -Xmx8g -Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true
+```
+
+To inspect the full JVM arguments, you can use `kubectl get logs -f
+<pod-name>` and search for one of the arguments you specified.
+
+## Kubernetes Specific Use-Cases
 
 ### Using Helm to Scale the Coherence Deployment
 
