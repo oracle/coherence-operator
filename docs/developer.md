@@ -119,111 +119,111 @@ All of the maven commands in this document are assumed to use this
    </properties>
    ```
 
-`DOCKER_REPO_HOSTNAME` is the hostname of the docker repo that you may
-eventually push your built docker images to.  **You are not required to
-push any images when executing the steps in this document.**
+   `DOCKER_REPO_HOSTNAME` is the hostname of the docker repo that you may
+   eventually push your built docker images to.  **You are not required to
+   push any images when executing the steps in this document.**
 
-`DOCKER_REPO_PREFIX` is some prefix within that repo.
+   `DOCKER_REPO_PREFIX` is some prefix within that repo.
 
-`DEV_USERNAME` is a username unique to your development environment.
+   `DEV_USERNAME` is a username unique to your development environment.
 
-In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
-value of your `test.image.prefix` property in your `settings.xml` file.
+   In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
+   value of your `test.image.prefix` property in your `settings.xml` file.
 
 * Obtain the Coherence 12.2.1.3 Docker image and tag it correctly.
 
-`docker pull IDENTIFIER_OF_THE_Coherence_12.2.1.3_DOCKER_IMAGE`
+   `docker pull IDENTIFIER_OF_THE_Coherence_12.2.1.3_DOCKER_IMAGE`
 
-Note the image hash of the resultant image, for example `7e7feca04384`.
-For discussion, let's call this `COHERENCE_IMAGE_HASH`.
+   Note the image hash of the resultant image, for example `7e7feca04384`.
+   For discussion, let's call this `COHERENCE_IMAGE_HASH`.
 
-`docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3`
+   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3`
 
-After this command successfully completes, you must be able to say
+   After this command successfully completes, you must be able to say
 
-`docker images | grep 12.2.1.3` 
+   `docker images | grep 12.2.1.3` 
 
-and see the expected COHERENCE_IMAGE_HASH.  For example:
+   and see the expected COHERENCE_IMAGE_HASH.  For example:
 
-```
-YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3 7e7feca04384 2 months ago 547MB
-```
+   ```
+   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3 7e7feca04384 2 months ago 547MB
+   ```
 
 * `mvn -DskipTests clean install`
 
-This should produce output similar to the following:
+   This should produce output similar to the following:
 
-```
-...
-[INFO] ------------------------------------------------------------------------
-[INFO] Reactor Summary:
-[INFO]
-[INFO] coherence-operator parent OPERATOR_VERSION ........... SUCCESS [  2.487 s]
-[INFO] coherence-operator ................................. SUCCESS [ 21.651 s]
-[INFO] coherence-utils .................................... SUCCESS [ 22.868 s]
-[INFO] coherence-operator-tests OPERATOR_VERSION ............ SUCCESS [ 11.468 s]
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 58.756 s
-[INFO] Finished at: 2019-04-17T18:35:14-04:00
-[INFO] ------------------------------------------------------------------------
-```
+   ```
+   ...
+   [INFO] ------------------------------------------------------------------------
+   [INFO] Reactor Summary:
+   [INFO]
+   [INFO] coherence-operator parent OPERATOR_VERSION ........... SUCCESS [  2.487 s]
+   [INFO] coherence-operator ................................. SUCCESS [ 21.651 s]
+   [INFO] coherence-utils .................................... SUCCESS [ 22.868 s]
+   [INFO] coherence-operator-tests OPERATOR_VERSION ............ SUCCESS [ 11.468 s]
+   [INFO] ------------------------------------------------------------------------
+   [INFO] BUILD SUCCESS
+   [INFO] ------------------------------------------------------------------------
+   [INFO] Total time: 58.756 s
+   [INFO] Finished at: 2019-04-17T18:35:14-04:00
+   [INFO] ------------------------------------------------------------------------
+   ```
 
-Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
 * `mvn -DskipTests generate-resources`
 
-This should produce output similar to the output of the preceding step.
+   This should produce output similar to the output of the preceding step.
 
 * `mvn -DskipTests -Pdocker clean install`
 
-This should produce output similar to the output of the preceding step.
-In addition the the output must contain output similar to the following,
-somewhere in the middle of the output.
+   This should produce output similar to the output of the preceding step.
+   In addition the the output must contain output similar to the following,
+   somewhere in the middle of the output.
 
-```
-...
-Successfully built af61471e4774
-Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-operator:OPERATOR_VERSION
-...
-Successfully built 88495a497a16
-Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-utils:OPERATOR_VERSION
-```
+   ```
+   ...
+   Successfully built af61471e4774
+   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-operator:OPERATOR_VERSION
+   ...
+   Successfully built 88495a497a16
+   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-utils:OPERATOR_VERSION
+   ```
 
-Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
 * Verify the docker images have been built and are accessible to your
   local docker server.
   
-`docker images | grep YOUR_test.image.prefix_VALUE`
+   `docker images | grep YOUR_test.image.prefix_VALUE`
 
-This should produce output similar to the following:
+   This should produce output similar to the following:
 
-```
-YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
-YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
-YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3       7e7feca04384 2 months ago 547MB
-```
+   ```
+   YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3       7e7feca04384 2 months ago 547MB
+   ```
 
-Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
 * Verify the Helm charts have been built and are accessible in your
   workarea.
   
-`ls -la operator/target | grep "drw" | grep coherence`
+   `ls -la operator/target | grep "drw" | grep coherence`
 
-This should produce output similar to the following:
+   This should produce output similar to the following:
 
-```
-drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-OPERATOR_VERSION-helm
-drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-operator-OPERATOR_VERSION-helm
-```
+   ```
+   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-OPERATOR_VERSION-helm
+   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-operator-OPERATOR_VERSION-helm
+   ```
 
-When executing the steps in the [quickstart](quickstart.md) and
-[user-guide](user-guide.md), replace `HELM_PREFIX` with the fully
-qualified path to the parent directory of those two above directories.
-For example:
-`/Users/username/workareas/coherence-operator/operator/target`.
+   When executing the steps in the [quickstart](quickstart.md) and
+   [user-guide](user-guide.md), replace `HELM_PREFIX` with the fully
+   qualified path to the parent directory of those two above directories.
+   For example:
+   `/Users/username/workareas/coherence-operator/operator/target`.
 
-Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
