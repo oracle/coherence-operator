@@ -113,11 +113,11 @@ have one, make sure the following is included in your `default` profile.
 All of the maven commands in this document are assumed to use this
 `settings.xml` file.
 
-```
-<properties>
-    <test.image.prefix>DOCKER_REPO_HOSTNAME/DOCKER_REPO_PREFIX/dev/DEV_USERNAME/</test.image.prefix>
-</properties>
-```
+   ```
+   <properties>
+       <test.image.prefix>DOCKER_REPO_HOSTNAME/DOCKER_REPO_PREFIX/dev/DEV_USERNAME/</test.image.prefix>
+   </properties>
+   ```
 
 `DOCKER_REPO_HOSTNAME` is the hostname of the docker repo that you may
 eventually push your built docker images to.  **You are not required to
