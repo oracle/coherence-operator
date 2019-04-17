@@ -829,8 +829,7 @@ in addition to many others required by the operator and Coherence.
 -Xloggc:/tmp/gc-log -server -Xcomp -Xms8g -Xmx8g -Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true
 ```
 
-To inspect the full JVM arguments, you can use `kubectl get logs -f
-<pod-name>` and search for one of the arguments you specified.
+To inspect the full JVM arguments, you can use `kubectl get logs -f <pod-name>` and search for one of the arguments you specified.
 
 ## Kubernetes Specific Use-Cases
 
