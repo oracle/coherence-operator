@@ -6,6 +6,8 @@ name: coherence
 description: Coherence in Kubernetes
 apiVersion: v1
 version: ${project.version}
+keywords:
+- coherence
 appVersion: ${project.version}
 home: https://github.com/oracle/coherence-operator
 sources:
