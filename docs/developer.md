@@ -68,7 +68,7 @@ Client Version: version.Info{Major:"1", Minor:"13", GitVersion:"v1.13.3", GitCom
 Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.11", GitCommit:"637c7e288581ee40ab4ca210618a89a555b6e7e9", GitTreeState:"clean", BuildDate:"2018-11-26T14:25:46Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-#### 3 Validate Helm in Installed Correctly
+#### 3 Validate Helm is installed Correctly
 
 `helm version`
 
