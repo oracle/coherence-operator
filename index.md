@@ -20,7 +20,7 @@ clusters in a Kubernetes environment. You can:
 
 * Use popular industry standard tools such as
   [Grafana](https://grafana.com/),
-  [ELK](https://www.elastic.co/elk-stack), and
+  [EFK](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-elasticsearch-fluentd-and-kibana-efk-logging-stack-on-kubernetes), and
   [Prometheus](https://prometheus.io/) to monitor the performance,
   logs and and health from your clusters.
 
@@ -41,8 +41,7 @@ enabled" cluster nodes.
 * Deploy custom code for your `EntryProcessor` classes and other
 server-side Coherence constructs.
 
-The fastest way to experience the operator is to follow the [Quick Start
-guide](docs/quickstart.md), or try out the
+The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md), or try out the
 [samples](docs/samples/README.md).
 
 # About this documentation
