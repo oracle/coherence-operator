@@ -194,7 +194,10 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
 
     if [[ ${IS_12_2_1_4} == 0 ]]
     then
-        configure_12_2_1_4
+        # when 12.2.1.4 released, enable following line
+        # configure_12_2_1_4
+        # and delete next line
+        configure_pre_12_2_1_4
     else
         configure_pre_12_2_1_4
     fi
