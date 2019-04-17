@@ -20,6 +20,8 @@ before any of the steps in this guide.
 
 ### Table of Use-Cases
 
+#### Common Coherence Tasks
+
 * [Supply Configuration Files And Application Classes to the Coherence Cluster within Kubernetes](#supply-configuration-files-and-application-classes-to-the-coherence-cluster-within-kubernetes)
 
    * [Supply a Jar File Containing Application Classes](#first-lets-show-the-simple-example-of-including-a-jar-file)
@@ -30,7 +32,13 @@ before any of the steps in this guide.
    
    * [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
    
+   * [Use JMX to Inspect and Manage Coherence](#use-jmx-to-inspect-and-manage-coherence)
+   
+#### Kubernetes Specific Use Cases
+   
 * [Scale a Coherence Cluster With Helm](#using-helm-to-scale-the-coherence-deployment)
+
+* [Perform a Safe Rolling Upgrade](#perform-a-safe-rolling-upgrade)
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
 
@@ -669,6 +677,111 @@ Heap dump file created
 
 output from `jcmd` from showing up in the heap dump file.
 
+### Use JMX to Inspect and Manage Coherence
+
+Java Management Extensions (JMX) is the standard way to inspect and
+manage enterprise Java applications.  Applications that expose
+themselves via JMX incur no runtime performance penalty for doing so,
+unless a tool is actively connected to the JMX connection, and only then
+in certain cases.  [The Java
+Tutorials](https://docs.oracle.com/javase/tutorial/) provide
+[introduction to
+JMX](https://docs.oracle.com/javase/tutorial/jmx/index.html).  Once
+familiar with JMX, [the Coherence
+documentation](https://docs.oracle.com/middleware/12213/coherence/COHMG/toc.htm)
+has complete coverage of [how to use JMX with
+Coherence](https://docs.oracle.com/middleware/12213/coherence/COHMG/using-jmx-manage-oracle-coherence.htm#COHMG239).
+All of the capabilities of JMX with Coherence are also present with the
+operator, but the Coherence Helm chart must be installed with some
+additional arguments, and of course the network port for JMX must be
+exposed.  This use case covers how to install Coherence in a Kubernetes
+cluster with JMX enabled.
+
+Note that to fully appreciate this use case, deploy an application that
+uses Coherence and creates some caches.  Such an application can be
+installed using the steps detailed in [Supply a Jar File Containing
+Application Classes](#table-of-use-cases).  Assuming the operator has
+been installed [as described in the
+quickstart](quickstart.md#2-install-the-coherence-operator), install
+Coherence with the following Helm invocation.
+
+```
+$ helm --debug install --version 1.0.0-SNAPSHOT \
+     ./coherence --name hello-example \
+     --set userArtifacts.image=coherence-demo-app:1.0 \
+     --set store.jmx.enabled=true \
+     --set imagePullSecrets=sample-coherence-secret
+```
+
+The only new argument is *--set store.jmx.enabled=true*.
+
+Look carefully at the output for instructions about how to expose the
+JMX port.  The instructions will include running a `kubectl
+port-forward` command.  Perform the port forward instructions before
+proceeding.
+
+The instructions will also include suggestions on how to use JConsole or
+[VisualVM](https://visualvm.github.io/).  For the sake of completeness,
+this use case documents how to use VisualVM to access and manipulate
+Coherence MBeans when running within Kubernetes.
+
+#### 1. Download the `opendmk_jmxremote_optional_jar` JAR
+
+The JMX endpoint does not use RMI, it uses JMXMP. This requires an
+additional jar on the classpath of the Java JMX client (i.e. VisualVM,
+JConsole, etc). This can be downloaded as a Maven dependency:
+
+```
+<dependency>
+    <groupId>org.glassfish.external</groupId>
+    <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+    <version>1.0-b01-ea</version>
+</dependency>
+```
+or directly from:
+
+    http://central.maven.org/maven2/org/glassfish/external/opendmk_jmxremote_optional_jar/1.0-b01-ea/opendmk_jmxremote_optional_jar-1.0-b01-ea.jar
+    
+#### 2. Run VisualVM with the additional JAR
+    
+Once downloaded, VisualVM 1.4.2 and later can be started in the
+following manner to enable connection to Coherence in Kubernetes.
+
+```
+visualvm --jdkhome ${JAVA_HOME} --cp:a PATH_TO_DOWNLOADED.jar
+```
+
+#### 3. Manipulate the VisualVM UI to see the Coherence MBeans
+
+* In the `File` menu, Choose `Add JMX Connection`.  In the `Connection`
+  field enter the value that was output by the Helm chart instructions.
+  For example, `service:jmx:jmxmp://127.0.0.1:9099`.  Press OK.
+
+* Click on `Applications` on the left navigation bar.  Then double click
+  on the `service:jmx:jmxmp...` link.
+  
+* Click on `MBeans` to open the MBeans browser.
+
+* In the tree view on the left, open Coherence > Cache >
+  DistributedCache and keep drilling down , until you can find a cache
+  created by your application.
+
+  Here you can see the MBeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-A443DF50-F151-4E9B-AFC9-DFEDF4B149E7__CHDFJDAC
+  
+  In particular `HighUnits`, which defaults to 0.  This can be
+  interactively changed in `visualvm`.
+  
+* Expand the tree view to Coherence > Node and pick one of the nodes.
+
+  Here you can see the mbeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-0AB8710B-2A1D-432D-AFBF-8E73B8230D51__CHDBIJFA
+
+  In particular `LoggingLevel`, which defaults to 5.  This can be
+  also be interactively changed.
+  
+  Note that any changes to MBean attributes done in this way will not
+  persist when the cluster restarts.  To make persistent changes, you
+  must modify the Coherence configuration files.
+
 
 ## Kubernetes Specific Use Cases
 
@@ -692,6 +805,38 @@ Monitoring the progress of the cluster as Kubernetes adjusts to the new
 intent will show the number of pods being adjusted and the status of
 each pod progressing through the various stages to end up at `Running`
 status.
+
+### Perform a Safe Rolling Upgrade
+
+The steps detailed in section [Supply a Jar File Containing Application
+Classes](#table-of-use-cases) call for the creation of a sidecar docker
+image that conveys the application classes to Kubernetes.  This docker
+image is tagged with a version number, and the version number is how
+Kubernetes enables safe rolling upgrades.  You can read more about safe
+rolling upgrades in [the Helm
+documentation](https://helm.sh/docs/helm/#helm-upgrade).  Briefly, as
+with the scaling described in the preceding section, the safe rolling
+upgrade feature allows you to instruct Kubernetes, via the operator, to
+replace the currently deployed version of your application classes with
+a different one.  Kubernetes does not care if the different version is
+"newer" or "older", as long as it has a docker tag and can be pulled by
+the cluster, that is all Kubernetes needs to know.  The operator will
+ensure this is done without data loss or interruption of service.
+
+Assuming the sidecar has been installed using the steps detailed in
+[Supply a Jar File Containing Application Classes](#table-of-use-cases),
+and the upgrade destination is available and has been tagged with
+`coherence-operator-hello-example:1.0.1`, the following command will
+instruct the operator to upgrade from
+`coherence-operator-hello-example:1.0.0-SNAPSHOT` to
+`coherence-operator-hello-example:1.0.1`.
+
+```
+$ helm --debug upgrade \
+     ./coherence --name hello-example --reuse-values \
+     --set userArtifacts.image=coherence-operator-hello-example:1.0.1 --wait \
+     --set imagePullSecrets=sample-coherence-secret
+```
 
 ### Deploy Multiple Coherence Clusters Managed by the Operator
 

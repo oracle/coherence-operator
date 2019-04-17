@@ -41,30 +41,9 @@ enabled" cluster nodes.
 * Deploy custom code for your `EntryProcessor` classes and other
 server-side Coherence constructs.
 
-The fastest way to experience the operator is to follow the
-[Quick Start guide](docs/quickstart.md), or you can read our
-[blogs](https://blogs.oracle.com/weblogicserver/how-to-weblogic-server-on-kubernetes),
-or try out the [samples](docs/samples/README.md).
-
-```diff
-+ The current release of the operator is 0.9.1.
-+ This release was published on 2019-03-01.
-```
-
-## Known issues
-
-| Issue | Description |
-|-------|-------------|
-| TODO | MVP Docs: a collection of hyperlinked markdown files |
-
-<!--
-Operator version 0.1.0
-Documentation for the 0.1.0 release of the operator is
-available [here](docs/0.1.0/README.md).
-
-Backward compatibility guidelines
-PENDING
--->
+The fastest way to experience the operator is to follow the [Quick Start
+guide](docs/quickstart.md), or try out the
+[samples](docs/samples/README.md).
 
 # About this documentation
 
@@ -117,17 +96,26 @@ about all aspects of using the operator including:
 Please refer to our [samples](docs/samples/README.md) for
 information about the available sample code.
 
-<!--
 Need more help? Have a suggestion? Come and say "Hello!"
 
-We have a **public Slack channel** where you can get in
-touch with us to ask questions about using the operator or
-give us feedback or suggestions about what features and
-improvements you would like to see.  We would love to hear
-from you. To join our channel, please
-[visit this site to get an invitation](https://weblogic-slack-inviter.herokuapp.com/).
-The invitation email will include details of how to access
-our Slack workspace.  After you are logged in, please come
-to `#operator` and say, "hello!"
+We have a **public Slack channel** where you can get in touch with us to
+ask questions about using the operator or give us feedback or
+suggestions about what features and improvements you would like to see.
+We would love to hear from you. To join our channel, please [visit this
+site to get an
+invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
+invitation email will include details of how to access our Slack
+workspace.  After you are logged in, please come to `#operator` and say,
+"hello!"
 
--->
+# Things to Keep In Mind for Existing Coherence Users
+
+* Software running in Kubernetes must provide "health checks" so that
+  Kubernetes can make informed decisions about starting, stopping, or
+  even killing, the containers running the software.  The operator
+  provides everything required to do this for Coherence.  Keep in mind
+  that these health checks cause frequent `MemberJoined` and
+  `MemberLeft` events to happen.  If these evnents refer to something
+  like `OracleCoherenceK8sPodChecker`, they are normal and be safely
+  ignored.
+

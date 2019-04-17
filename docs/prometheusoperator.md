@@ -1,3 +1,7 @@
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
+
 # Monitoring Coherence services via Grafana dashboards
 
 The Oracle Coherence Operator includes the Prometheus Operator as an optional subchart named `prometheusoperator`.
