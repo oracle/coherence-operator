@@ -30,7 +30,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author jk  2019.02.12
  */
-@Ignore
 public class VolumesIT
         extends BaseHelmChartTest
     {

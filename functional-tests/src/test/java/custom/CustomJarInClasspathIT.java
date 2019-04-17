@@ -46,7 +46,6 @@ import static org.hamcrest.CoreMatchers.is;
  */
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(CustomParameterizedRunner.Factory.class)
-@Ignore
 public class CustomJarInClasspathIT extends BaseHelmChartTest
     {
     // ----- test lifecycle --------------------------------------------------
