@@ -200,8 +200,8 @@ We must now package the jar file within the sidecar Docker image.
 ##### 4. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
 ```
-$ helm --debug install --version 1.0.0-SNAPSHOT \
-     ./coherence --name hello-example \
+$ helm --debug install --version OPERATOR_VERSION \
+     HELM_PREFIX/coherence --name hello-example \
      --set userArtifacts.image=coherence-operator-hello-example:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret
 ```
@@ -509,8 +509,8 @@ We must now package the XML file within the sidecar Docker image.
 ##### 5. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
 ```
-$ helm --debug install --version 1.0.0-SNAPSHOT \
-     ./coherence --name hello-server-config \
+$ helm --debug install --version OPERATOR_VERSION \
+     HELM_PREFIX/coherence --name hello-server-config \
      --set userArtifacts.image=coherence-operator-hello-server-config:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=hello-server-config.xml
@@ -579,7 +579,7 @@ above will end up on the Coherence Classpath.  Any Java classes in those
 jar files, will therefore be available for Classloading by the entire
 Coherence cluster.  Any configuration files *must be included in the top
 level of a jar file* in order to be referenced by the Coherence helm
-helm chart.  Consider the following sidecar image layout.
+chart.  Consider the following sidecar image layout.
 
 ```
 files/
@@ -606,8 +606,8 @@ supplied to coherence, as well as all the java classes in the jar file
 being in the Coherence classpath.
 
 ```
-$ helm --debug install --version 1.0.0-SNAPSHOT \
-     TODO/coherence --name hello-server-config \
+$ helm --debug install --version OPERATOR_VERSION \
+     HELM_PREFIX/coherence --name hello-server-config \
      --set userArtifacts.image=coherence-operator-hello-server-config:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=cache-config.xml \
@@ -708,7 +708,7 @@ quickstart](quickstart.md#2-install-the-coherence-operator), install
 Coherence with the following Helm invocation.
 
 ```
-$ helm --debug install --version 1.0.0-SNAPSHOT \
+$ helm --debug install --version OPERATOR_VERSION \
      ./coherence --name hello-example \
      --set userArtifacts.image=coherence-demo-app:1.0 \
      --set store.jmx.enabled=true \
@@ -813,7 +813,7 @@ The following invocation installs and starts Coherence with specific
 values to be passed to the JVM.
 
 ```
-$ helm --debug install --version 1.0.0-SNAPSHOT \
+$ helm --debug install --version OPERATOR_VERSION \
      ./coherence --name hello-example \
      --set store.maxHeap="8g" \
      --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp" \
@@ -880,8 +880,8 @@ instruct the operator to upgrade from
 `coherence-operator-hello-example:1.0.1`.
 
 ```
-$ helm --debug upgrade \
-     ./coherence --name hello-example --reuse-values \
+$ helm --debug upgrade --version OPERATOR_VERSION \
+     HELM_PREFIX/coherence --name hello-example --reuse-values \
      --set userArtifacts.image=coherence-operator-hello-example:1.0.1 --wait \
      --set imagePullSecrets=sample-coherence-secret
 ```
@@ -898,24 +898,24 @@ Coherence clusters, on the same Kubernetes cluster, managed by that one
 operator.
 
 ```
-$ helm --debug install --version 0.9.1 TODO/coherence-operator \
+$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
 
-$ helm --debug install --version 1.0.0-SNAPSHOT \
+$ helm --debug install --version OPERATOR_VERSION \
      --set cluster=revenue-management \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=revenue-app:2.0.1 \
      --name revenue-management \
-     TODO/coherence
+     HELM_PREFIX/coherence
 
-$ helm --debug install --version 1.0.0-SNAPSHOT \
+$ helm --debug install --version OPERATOR_VERSION \
      --set cluster=charging \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=charging-app:2.0.1 \
      --name charging \
-     TODO/coherence
+     HELM_PREFIX/coherence
 ```
 
 The first `helm install` installs the operator with an empty list for
@@ -929,6 +929,10 @@ Coherence clusters to not merge and form one cluster.
 
 
 ## Monitoring Performance and Logging
+
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
 
 ### Use-Cases
 
@@ -1014,7 +1018,7 @@ kubectl create secret generic ssl-secret \
  c) Install the Coherence helm chart using the YAML file created in step b): <p />
 
 ```
-  helm install --version 1.0.0-SNAPSHOT TODO/coherence \
+  helm install --version OPERATOR_VERSION HELM_PREFIX/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
@@ -1073,7 +1077,7 @@ a SSL endpont for Coherence metrics:
  c) Install the Coherence helm chart using the YAML created in step b): <p />
 
 ```
-  helm install --version 1.0.0-SNAPSHOT TODO/coherence \
+  helm install --version OPERATOR_VERSION HELM_PREFIX/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
@@ -1118,48 +1122,10 @@ To enable SSL for both management over REST and metrics publishing for Prometheu
 Coherence chart with both YAML files:
 
 ```
-  helm install --version 1.0.0-SNAPSHOT TODO/coherence \
+  helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
     -f helm-values-ssl-management.yaml,helm-values-ssl-metrics.yaml
 ```
     
-## Kubernetes Specific Tasks
-
-### Use-Cases
-
-  2. Access the management over REST json info.
-  
-  3. Illustrate that changing of an image version (Coherence of
-     application container) results in a safe rolling restart.
-
-  4. Enable a PVC and therefore illustrate Coherence persisting to the
-     specified location.
-     
-     Ensure documenting the case of using local SSD for active
-     persistence and Block Storage for snapshots.
-
-  5. Highlight how a Coherence deployment uses the zone information; zone
-     should be viewable in the Member information.
-
-<!-- 
-
-    Moved from quickstart, work into userguide.
-
-    ## 4. ELK Stack
-    By default, the ELK is installed with Coherence Operator. Kibana is deployed
-    with a NodePort type service. The Kibana host and port can be found by looking
-    at service information:
-    ```
-    $ kubectl get svc -n sample-coherence-ns
-    ```
-    Note that in Docker/Kubernetes environment over Mac. The host is `localhost`.
-
-    ## 5. Remove Coherence.
-    Remove Coherence:
-    ```
-    $ helm delete --purge sample-coherence
-    ```
-
--->

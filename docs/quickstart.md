@@ -4,14 +4,17 @@ The Oracle Coherence Kubernetes Operator manages Oracle Coherence on Kubernetes.
 It manages monitoring data through Prometheus, and logging data through
 ElasticSearch and Kibana.
 
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
 Use this quick start guide to deploy Coherence applications in a
 Kubernetes cluster managed by the Coherence Operator. Please note that
 this walk-through is for demonstration purposes only, not for use in
-production.  This instructions assume that you are already familiar with
+production.  These instructions assume that you are already familiar with
 Kubernetes and Helm.  If you need to learn more about these two
 important and complimentary technologies, please refer to the
-[Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational),
-[Helm](https://github.com/helm/helm) documentation.
+[Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational) and 
+[Helm](https://helm.sh/docs/) documentation.
 
 ## More Advanced Actions
 
@@ -45,18 +48,26 @@ see the [User Guide](user-guide.md).
       [in the docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
 
 * If running the operator with a local Kubernetes cluster on a developer
-  laptop, ensure the laptop meets the reasonable hardware requirements
-  and the Docker preferences have been tuned to run optimally for the
-  hardware.  In particular, ensure memory and disk limits have been
-  correctly tuned.
+  workstation, ensure the workstation meets the reasonable hardware
+  requirements and the Docker preferences have been tuned to run
+  optimally for the hardware.  In particular, ensure memory and disk
+  limits have been correctly tuned.
   
 ## 1. Environment Configuration
 
 ### Set up Helm repository for Coherence
 
-==== TODO =====
-  
-Use the `helm inspect` command to explore the many options of these charts.
+In the absence of a Helm repository, execute the steps [Developer
+Guide](developer.md) and derive the correct value for `HELM_PREFIX`.
+
+Whenever `HELM_PREFIX` appears in this document or the
+[user-guide](user-guide.md), replace it with the value from the
+[Developer Guide](developer.md).
+
+Whenever `OPERATOR_VERSION` appears in this document or the
+[user-guide](user-guide.md), replace it with the value from the
+[Developer Guide](developer.md).
+
 
 ## 2. Install the Coherence Operator
 
@@ -68,7 +79,7 @@ may also like to customize `targetNamespaces` which the operator manages
 and `imagePullSecrets` (if it is necessary).
 
 ```
-$ helm --debug install --version 0.9.1 ./coherence-operator \
+$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
@@ -116,7 +127,7 @@ Install the `coherence` helm chart.  You may want to customize the values
 for the `--name`, `--namespace` and `imagePullSecrets` options.
 
 ```
-$ helm --debug install --version 0.9.1 ./coherence \
+$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
