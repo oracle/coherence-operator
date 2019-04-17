@@ -1877,7 +1877,7 @@ public abstract class BaseHelmChartTest
     protected Queue<String> processHttpRequest(K8sCluster cluster, String sPod, String sHttpMethod, String sHost, int nPort, String sPath)
         {
         // Workaround intermittent kubectl exec returning non-zero due to a communication failure by retrying
-        final int          MAX_RETRY     = 3;
+        final int          MAX_RETRY     = 5;
         AssertionException lastException = null;
 
         for (int i=0; i < MAX_RETRY; i++)
@@ -2074,7 +2074,7 @@ public abstract class BaseHelmChartTest
         {
         // Workaround intermittent kubectl port-forward failure by retrying
         Exception lastException = null;
-        final int MAX_RETRY     = 3;
+        final int MAX_RETRY     = 8;
         for (int i = 0; i < MAX_RETRY; i++)
             {
             try

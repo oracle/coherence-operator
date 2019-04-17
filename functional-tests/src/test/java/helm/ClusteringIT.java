@@ -234,7 +234,6 @@ public class ClusteringIT
         assertThat(listPodsInService, is(listPod));
         }
 
-
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings("unchecked")

@@ -7,16 +7,13 @@
 package helm;
 
 import com.oracle.bedrock.deferred.options.InitialDelay;
-import com.oracle.bedrock.deferred.options.MaximumRetryDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.util.AssertionException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -67,11 +64,6 @@ public class PersistenceSnapshotHelmChartIT
         {
         if (m_sRelease != null)
             {
-            String sJmxSelector       = getCoherenceJmxPodSelector(m_sRelease);
-            String sCoherenceSelector = getCoherencePodSelector(m_sRelease);
-
-            //capturePodLogs(PersistenceSnapshotHelmChartIT.class, s_k8sCluster, sJmxSelector);
-            //capturePodLogs(PersistenceSnapshotHelmChartIT.class, s_k8sCluster, sCoherenceSelector, COHERENCE_CONTAINER_NAME);
             deleteCoherence(s_k8sCluster, getK8sNamespace(), m_sRelease, m_fStatefulSet);
             }
         }
@@ -246,21 +238,13 @@ public class PersistenceSnapshotHelmChartIT
 
         // create a snapshot called test-snapshot for service PartitionedCache
         List<String> listCreateSnapshot = jmxInvokePersistenceManager(sNamespace, m_sRelease, "createSnapshot", "test-snapshot");
-        if (!listCreateSnapshot.stream().anyMatch(l -> l.contains("test-snapshot")))
-            {
-            String       sCoherenceSelector = getCoherencePodSelector(m_sRelease);
-            List<String> listPods           = getPods(s_k8sCluster, sNamespace, sCoherenceSelector);
-
-            System.out.println("CreateSnapshot failed to create a test-snapshot, dump coherence log for failures");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0));
-            Eventually.assertThat(invoking(this).getPersistenceManagerSnapshotsViaJMX(sNamespace, m_sRelease), is(true), Timeout.after(60, TimeUnit.SECONDS));
-            }
+        assertThat(listCreateSnapshot.stream().anyMatch(l -> l.contains("test-snapshot")), is(true));
 
         // recover a snapshot named test-snapshot
         List<String> listRecoverSnapshot = jmxInvokePersistenceManager(sNamespace, m_sRelease, "recoverSnapshot", "test-snapshot");
         assertThat(listRecoverSnapshot.stream().anyMatch(l -> l.contains("test-snapshot")), is(true));
 
-        // Remove snapshot
+        // remove snapshot
         List<String> listRemoveSnapshot  = jmxInvokePersistenceManager(sNamespace, m_sRelease, "removeSnapshot", "test-snapshot");
         assertThat(listRemoveSnapshot.size(), is(0));
 
@@ -296,34 +280,10 @@ public class PersistenceSnapshotHelmChartIT
         Object[] aoParameters = new Object[]{sSnapshotName};;
         String[] aaSignatures = new String[]{"java.lang.String"};
 
-        for (int i=0; i < 3; i++)
-            {
-            try
-                {
-                jmxInvoke(s_k8sCluster, sNamespace, sRelease, PERSISTENCE_MANAGER_MBEAN_FOR_SVC_PARTIONED_CACHE,
-                    sOperation, aoParameters, aaSignatures);
-                break;
-                }
-            catch (AssertionException ae)
-                {
-                // ignore failed port forward assertion and retry
-                }
-            }
-
+        jmxInvoke(s_k8sCluster, sNamespace, sRelease, PERSISTENCE_MANAGER_MBEAN_FOR_SVC_PARTIONED_CACHE,
+            sOperation, aoParameters, aaSignatures);
         assertPersistenceManagerIdle(sNamespace, m_sRelease);
-
-        for (int i=0; i < 3; i++)
-            {
-            try
-                {
-                return getPersistenceManagerSnapshotsViaJMX(sNamespace, sRelease);
-                }
-            catch (AssertionException ae)
-                {
-                // ignore failed port forward assertion and retry
-                }
-            }
-        return null;
+        return getPersistenceManagerSnapshotsViaJMX(sNamespace, sRelease);
         }
 
     private void assertPersistenceManagerIdle(String sNamespace, String sRelease)
@@ -331,8 +291,8 @@ public class PersistenceSnapshotHelmChartIT
         {
         Eventually.assertThat(invoking(this).getPersistenceManagerIdleViaJMX(sNamespace, sRelease), is(true),
                 InitialDelay.of(3, TimeUnit.SECONDS),
-                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
-                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS));
+                Timeout.after(2, TimeUnit.MINUTES),
+                RetryFrequency.every(RETRY_FREQUENCY_SECONDS, TimeUnit.SECONDS));
         }
 
     private void assertCoherenceService(String sNamespace, String sRelease)
@@ -373,7 +333,7 @@ public class PersistenceSnapshotHelmChartIT
     /**
      * The retry frequency in seconds.
      */
-    private static final int RETRY_FREQUENCEY_SECONDS = 5;
+    private static final int RETRY_FREQUENCY_SECONDS = 5;
 
     /**
      * The name of the deployed Coherence Helm release.
