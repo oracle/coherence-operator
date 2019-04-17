@@ -204,8 +204,7 @@ public class PersistenceSnapshotHelmChartIT
         String sNamespace     = getK8sNamespace();
 
                m_fStatefulSet = fPersistence || fSnapshot;
-               m_sRelease     = installCoherence(s_k8sCluster, sNamespace, sHelmValues, "store.jmx.enabled=true"
-               );
+               m_sRelease     = installCoherence(s_k8sCluster, sNamespace, sHelmValues, "store.jmx.enabled=true");
 
         assertCoherence(s_k8sCluster, sNamespace, m_sRelease);
         assertCoherenceService(sNamespace, m_sRelease);

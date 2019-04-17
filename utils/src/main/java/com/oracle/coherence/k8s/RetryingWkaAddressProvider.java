@@ -14,6 +14,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.WrapperException;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -161,17 +162,32 @@ public class RetryingWkaAddressProvider
         while ((Base.getLastSafeTimeMillis() - ldtStart) < f_WkaDNSResolutionTimeout_ms)
             {
             m_nLastReresolveCount++;
-            if (getNextAddress() == null)
+
+            InetSocketAddress addr = getNextAddress();
+
+            if (addr == null)
                 {
-                Base.sleep(f_WkaDNSReresolveFrequency_ms);
+                try
+                    {
+                    Thread.sleep(f_WkaDNSReresolveFrequency_ms);
+                    }
+                catch(InterruptedException e)
+                    {
+                    // ignore
+                    }
                 reset();
                 }
             else
                 {
                 reset();
+                System.out.println("RetryingWkaAddressProvider: resolved " + addr.getHostName() + " in " + (Base.getLastSafeTimeMillis() - ldtStart) + " ms");
                 return this;
                 }
             }
+
+        System.out.println(RetryingWkaAddressProvider.class.getName() +
+            " failed to resolve configured WKA address(es) " + System.getProperty(PROP_WKA_OVERRIDE) +
+            " within " + f_WkaDNSResolutionTimeout_ms + " milliseconds");
 
         throw new UnknownHostException(RetryingWkaAddressProvider.class.getName() +
             " failed to resolve configured WKA address(es) " + System.getProperty(PROP_WKA_OVERRIDE) +
