@@ -194,6 +194,7 @@
                     <argument>build</argument>
                     <argument>-t</argument>
                     <argument>${release.image.prefix}oracle/${project.artifactId}:${project.version}</argument>
+                    <argument>--no-cache</argument>
                     <argument>.</argument>
                   </arguments>
                 </configuration>
