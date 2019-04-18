@@ -9,6 +9,7 @@ package com.oracle.coherence.k8s;
 import com.oracle.common.util.Duration;
 import com.oracle.common.util.Duration.Magnitude;
 import com.tangosol.net.AddressProvider;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableAddressProvider;
 import com.tangosol.util.Base;
 import com.tangosol.util.WrapperException;
@@ -173,14 +174,11 @@ public class RetryingWkaAddressProvider
             else
                 {
                 reset();
-                System.out.println("RetryingWkaAddressProvider: resolved " + addr.getHostName() + " in " + (Base.getLastSafeTimeMillis() - ldtStart) + " ms");
+                CacheFactory.log("RetryingWkaAddressProvider: resolved " + addr.getHostName() + " in " + (Base.getLastSafeTimeMillis() - ldtStart) + " ms",
+                    Base.LOG_INFO);
                 return this;
                 }
             }
-
-        System.out.println(RetryingWkaAddressProvider.class.getName() +
-            " failed to resolve configured WKA address(es) " + System.getProperty(PROP_WKA_OVERRIDE) +
-            " within " + f_WkaDNSResolutionTimeout_ms + " milliseconds");
 
         throw new UnknownHostException(RetryingWkaAddressProvider.class.getName() +
             " failed to resolve configured WKA address(es) " + System.getProperty(PROP_WKA_OVERRIDE) +
