@@ -109,13 +109,6 @@ public class JmxmpServer
         {
         Cluster cluster = CacheFactory.ensureCluster();
 
-        if (cluster.getOldestMember().getId() == cluster.getLocalMember().getId())
-            {
-            CacheFactory.log("Shutdown: Invalid for JMX Server to form its own cluster for cluster " + cluster.getClusterName(), Base.LOG_WARN);
-            cluster.shutdown();
-            return;
-            }
-
         while (cluster.isRunning())
             {
             try
