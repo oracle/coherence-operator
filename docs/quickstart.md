@@ -29,8 +29,8 @@ see the [User Guide](user-guide.md).
 
 ### Software and Version Prerequisites
 
-* Kubernetes 1.10.3 or above
-* Helm 2.12.3 or above
+* Kubernetes 1.10.3 or above (and all of its prerequisites, including Docker)
+* Helm 2.12.3 or above (and all of its prerequisites)
 
 ### Runtime Environment Prerequisites
 
