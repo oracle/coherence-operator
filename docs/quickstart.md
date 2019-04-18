@@ -57,8 +57,7 @@ see the [User Guide](user-guide.md).
 
 ### Set up Helm repository for Coherence
 
-In the absence of a Helm repository, execute the steps [Developer
-Guide](developer.md) and derive the correct value for `HELM_PREFIX`.
+In the absence of a Helm repository, execute the steps in the [Developer Guide](developer.md) and derive the correct value for `HELM_PREFIX`.
 
 Whenever `HELM_PREFIX` appears in this document or the
 [user-guide](user-guide.md), replace it with the value from the
