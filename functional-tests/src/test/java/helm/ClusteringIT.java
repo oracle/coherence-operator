@@ -32,6 +32,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -75,6 +77,11 @@ public class ClusteringIT
         m_listRelease.stream()
                 .filter(Objects::nonNull)
                 .forEach(sRelease -> deleteCoherence(s_k8sCluster, getK8sNamespace(), sRelease, false));
+
+        if (m_headlessService != null)
+            {
+            s_k8sCluster.kubectlAndWait(Arguments.of("-n", getK8sNamespace(), "delete", "svc", m_headlessService));
+            }
         }
 
     // ----- test methods ---------------------------------------------------
@@ -122,6 +129,77 @@ public class ClusteringIT
         String   sValuesFile     = "values/helm-values-coh.yaml";
 
         createHeadlessService(sNamespace, sWkaService, sClusterName);
+
+        String sReleaseOne = installCoherence(s_k8sCluster, sNamespace, sValuesFile, asSetArgsOne);
+
+        m_listRelease.add(sReleaseOne);
+
+        assertCoherence(s_k8sCluster, sNamespace, sReleaseOne);
+        assertCoherenceJMX(s_k8sCluster, sNamespace, sReleaseOne);
+
+        Eventually.assertThat(invoking(this).getClusterSizeViaJMX(s_k8sCluster, sNamespace, sReleaseOne),
+            greaterThanOrEqualTo(3), RetryFrequency.every(10, TimeUnit.SECONDS), Timeout.after(60, TimeUnit.SECONDS));
+
+        List<String> listPod           = getPods(s_k8sCluster, sNamespace, getCoherencePodSelector(sReleaseOne));
+        List<String> listPodsInService = getPodsInService(sNamespace, sWkaService);
+
+        assertThat(listPodsInService, is(listPod));
+
+        String[] asSetArgsTwo = {sValClusterName, sValClusterSize, sWka};
+        String sReleaseTwo = installCoherence(s_k8sCluster, sNamespace, sValuesFile, asSetArgsTwo);
+
+        m_listRelease.add(sReleaseTwo);
+
+        assertCoherence(s_k8sCluster, sNamespace, sReleaseTwo);
+
+        Eventually.assertThat(invoking(this).getClusterSizeViaJMX(s_k8sCluster, sNamespace, sReleaseOne),
+            greaterThanOrEqualTo(5), RetryFrequency.every(10, TimeUnit.SECONDS), Timeout.after(60, TimeUnit.SECONDS));
+
+        listPod.addAll(getPods(s_k8sCluster, sNamespace, getCoherencePodSelector(sReleaseTwo)));
+        Collections.sort(listPod);
+
+        listPodsInService = getPodsInService(sNamespace, sWkaService);
+
+        assertThat(listPodsInService, is(listPod));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", "--ignore-not-found=true", sWkaService));
+        }
+
+    // Integration test for RetryingWkaAddressProvider that waits for wka dns entry to come up
+    @Test
+    public void shouldFormClusterUsingDeferredHeadlessService() throws Exception
+        {
+        String   sNamespace      = getK8sNamespace();
+        String   sClusterName    = "bar";
+        String   sWkaService     = "bar-wka-service";
+        String   sValClusterSize = "clusterSize=2";
+        String   sValClusterName = "cluster=" + sClusterName;
+        String   sWka            = "store.wka=" + sWkaService;
+        String   sValEnableJmx   = "store.jmx.enabled=true";
+        String[] asSetArgsOne    = {sValClusterName, sValClusterSize, sWka, sValEnableJmx};
+        String   sValuesFile     = "values/helm-values-coh.yaml";
+
+        // rather than start headless service referenced in wka first,
+        // ensure that cluster can form despite delay in headless service creation.
+        // simulates behavior when coherence headless service does not start immediately waiting for volume claims.
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = new Runnable()
+            {
+            public void run()
+                {
+                try
+                    {
+                    createHeadlessService(sNamespace, sWkaService, sClusterName);
+                    }
+                catch (Throwable t)
+                    {
+                    fail("delayed start of wka service bar-wka-service failed with exception " + t);
+                    t.printStackTrace();
+                    }
+                }
+            };
+
+        scheduler.schedule(task, 45, TimeUnit.SECONDS);
+        scheduler.shutdown();
 
         String sReleaseOne = installCoherence(s_k8sCluster, sNamespace, sValuesFile, asSetArgsOne);
 
@@ -225,6 +303,8 @@ public class ClusteringIT
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "-f", file.getCanonicalPath()));
 
         assertThat("Creation of headless service failed", nExitCode, is(0));
+
+        m_headlessService = sServiceName;
         }
 
     private Application portForwardManagement(String sNamespace, String sRelease) throws Exception
@@ -257,6 +337,11 @@ public class ClusteringIT
      * The name of the deployed Coherence Helm release.
      */
     private final List<String> m_listRelease = new ArrayList<>();
+
+    /**
+     * The name of the headless service used by current test.
+     */
+    private String             m_headlessService;
 
     /**
      * The mapper to parse json.
