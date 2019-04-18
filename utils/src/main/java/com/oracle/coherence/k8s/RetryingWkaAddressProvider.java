@@ -167,14 +167,7 @@ public class RetryingWkaAddressProvider
 
             if (addr == null)
                 {
-                try
-                    {
-                    Thread.sleep(f_WkaDNSReresolveFrequency_ms);
-                    }
-                catch(InterruptedException e)
-                    {
-                    // ignore
-                    }
+                Base.sleep(f_WkaDNSReresolveFrequency_ms);
                 reset();
                 }
             else

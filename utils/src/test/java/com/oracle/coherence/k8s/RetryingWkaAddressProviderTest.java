@@ -29,12 +29,12 @@ import static org.junit.Assert.fail;
 
 public class RetryingWkaAddressProviderTest
     {
-    @Test(expected = UnknownHostException.class)
+    @Test
     public void testShouldTimeoutOnNonExistentDnsReference()
         throws UnknownHostException
         {
         final long FREQUENCY_MS = 500;
-        final long TIMEOUT_MS   = 5000;
+        final long TIMEOUT_MS   = 6000;
 
         long ldtStart = Base.getLastSafeTimeMillis();
         Iterable<AddressHolder> holders = new Iterable<AddressHolder>()
@@ -52,16 +52,22 @@ public class RetryingWkaAddressProviderTest
             provider.eventuallyResolve();
             fail("should throw exception");
             }
+        catch (UnknownHostException e)
+            {
+            // expected exception
+            }
         finally
             {
             long ldtTimeoutDuration = Base.getLastSafeTimeMillis() - ldtStart;
 
-            assertThat("validate reresolve happened over specified minimum timeout",
+            System.out.println("actual resolve duration: " + ldtTimeoutDuration + " ms   timeoutParam=" + TIMEOUT_MS + " ms " +
+            " reresolve count=" + provider.m_nLastReresolveCount);
+            assertThat("validate reresolve happened over specified minimum timeout. actualDuration(ms)=" + ldtTimeoutDuration,
                 ldtTimeoutDuration, greaterThanOrEqualTo(TIMEOUT_MS));
-            assertThat("validate lower bound of reresolve count" ,
-                provider.m_nLastReresolveCount, greaterThanOrEqualTo(3));
-            assertThat("validate upper bound of reresolve count" ,
-                provider.m_nLastReresolveCount, lessThanOrEqualTo((int)(TIMEOUT_MS / FREQUENCY_MS)));
+            assertThat("validate lower bound of reresolve count. actual reresolve count=" + provider.m_nLastReresolveCount ,
+                provider.m_nLastReresolveCount, greaterThanOrEqualTo(4));
+            assertThat("validate upper bound of reresolve count. actual reresolve count=" + provider.m_nLastReresolveCount ,
+                provider.m_nLastReresolveCount, lessThanOrEqualTo((int)(TIMEOUT_MS / FREQUENCY_MS) + 1));
             }
         }
 
