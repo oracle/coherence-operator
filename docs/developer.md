@@ -130,23 +130,24 @@ All of the maven commands in this document are assumed to use this
    In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
    value of your `test.image.prefix` property in your `settings.xml` file.
 
-* Obtain the Coherence 12.2.1.3 Docker image and tag it correctly.
+* Obtain the Coherence 12.2.1.3.2 Docker image and tag it correctly.
 
-   `docker pull IDENTIFIER_OF_THE_Coherence_12.2.1.3_DOCKER_IMAGE`
+   Please refer to [these instructions](https://github.com/oracle/docker-images/tree/master/OracleCoherence/samples/122132-patch) to create a Coherence 12.2.1.3.2 docker image.  Obtain the image hash for the resultant Docker image.
 
-   Note the image hash of the resultant image, for example `7e7feca04384`.
+   `docker images | grep 12.2.1.3.2` 
+
    For discussion, let's call this `COHERENCE_IMAGE_HASH`.
 
-   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3`
+   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2`
 
    After this command successfully completes, you must be able to say
-
-   `docker images | grep 12.2.1.3` 
+   
+   `docker images | grep 12.2.1.3.2` 
 
    and see the expected COHERENCE_IMAGE_HASH.  For example:
 
    ```
-   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3 7e7feca04384 2 months ago 547MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
    ```
 
 * `mvn -DskipTests clean install`
@@ -203,7 +204,7 @@ All of the maven commands in this document are assumed to use this
    ```
    YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
    YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
-   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3       7e7feca04384 2 months ago 547MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.2       7e7feca04384 2 months ago 547MB
    ```
 
    Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
