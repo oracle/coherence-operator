@@ -61,14 +61,6 @@ public class CoherenceVersion
 
     private static int[] splitVersion(String sVersion)
         {
-        // strip -bXXXXX for pre-release tag
-        int idx = sVersion.indexOf("-b");
-
-        if (idx != -1)
-            {
-            sVersion = sVersion.substring(0, idx);
-            }
-
         Matcher matcher = pattern.matcher(sVersion);
         int[]   anPart;
 

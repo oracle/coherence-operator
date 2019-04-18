@@ -161,7 +161,7 @@ public class ClusteringIT
         listPodsInService = getPodsInService(sNamespace, sWkaService);
 
         assertThat(listPodsInService, is(listPod));
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sWkaService));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", "--ignore-not-found=true", sWkaService));
         }
 
     // Integration test for RetryingWkaAddressProvider that waits for wka dns entry to come up
