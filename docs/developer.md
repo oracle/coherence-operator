@@ -132,7 +132,7 @@ All of the maven commands in this document are assumed to use this
 
 * Obtain the Coherence 12.2.1.3.2 Docker image and tag it correctly.
 
-   Please refer to [these instructions](https://github.com/oracle/docker-images/tree/master/OracleCoherence/samples/122132-patch) to create a Coherence 12.2.1.3.2 docker image.  Obtain the image hash for the resultant Docker image.
+   Please refer to [these instructions](https://github.com/fryp/docker-images/blob/master/OracleCoherence/samples/122132-patch/README.md) to create a Coherence 12.2.1.3.2 docker image.  Obtain the image hash for the resultant Docker image.
 
    `docker images | grep 12.2.1.3.2` 
 
