@@ -146,7 +146,20 @@ All of the maven commands in this document are assumed to use this
    5. Build the docker image and tag it as
       `oracle/coherence:12.2.1.3.0-standalone`.
       
-      `docker build -f Dockerfile.standalone -t oracle/coherence:12.2.1.3.0-standalone`
+      This `Dockerfile` references `oracle/serverjre:8` in its `FROM`
+      clause.  Therefore, you must have the right image with that Docker
+      tag in your local server.  This image may be pulled by visiting
+      [the Docker Store](https://hub.docker.com/_/oracle-serverjre-8)
+      and doing `Proceed to Checkout`, and following the instructions.
+      Once you have that docker image, make sure to tage it with
+      `oracle/serverjre:8`, as shown here.
+      
+      `docker tag store/oracle/serverjre:8 oracle/serverjre:8`
+        
+      Once the parent image has been tagged as show above, build the
+      Coherence 12.2.1.3.0 Docker image.
+      
+      `docker build -f Dockerfile.standalone -t oracle/coherence:12.2.1.3.0-standalone .`
       
    6. Verify that it built correctly
    
@@ -181,7 +194,10 @@ All of the maven commands in this document are assumed to use this
    YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
    ```
 
-* `mvn -DskipTests clean install`
+* From the top level directory of the `coherence-operator` repository,
+  on the `1.0` branch, do the following.
+
+   `mvn -DskipTests clean install`
 
    This should produce output similar to the following:
 
