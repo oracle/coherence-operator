@@ -132,7 +132,38 @@ All of the maven commands in this document are assumed to use this
 
 * Obtain the Coherence 12.2.1.3.2 Docker image and tag it correctly.
 
-   Please refer to [these instructions](https://github.com/fryp/docker-images/blob/master/OracleCoherence/samples/122132-patch/README.md) to create a Coherence 12.2.1.3.2 docker image.  Obtain the image hash for the resultant Docker image.
+   1. Download [Oracle Coherence 12.2.1.3.0 Standalone](https://www.oracle.com/technetwork/middleware/coherence/downloads/index.html).  Download the `Coherence Stand-Alone Install`.
+   
+   2. Git Clone the Oracle `docker-images` repository.
+   
+      `git clone git@github.com:fryp/docker-images.git`
+
+   3. Within that repository, cd to `OracleCoherence/dockerfiles/12.2.1.3.0`.
+   
+   4. Make it so the `fmw_12.2.1.3.0_coherence_Disk1_1of1.zip`
+      downloaded in step 1 is in that directory.
+      
+   5. Build the docker image and tag it as
+      `oracle/coherence:12.2.1.3.0-standalone`.
+      
+      `docker build -f Dockerfile.standalone -t oracle/coherence:12.2.1.3.0-standalone`
+      
+   6. Verify that it built correctly
+   
+      `docker images | grep 12.2.1.3.0-standalone`
+      
+      This should show output similar to the following:
+      
+      `oracle/coherence 12.2.1.3.0-standalone c6dbeed01b35 22 seconds ago 622MB`
+      
+   7. cd to `OracleCoherence/samples/122132-patch` within the
+      `docker-images` cloned repository.
+      
+   8. Follow the steps in [these
+      instructions](https://github.com/fryp/docker-images/blob/master/OracleCoherence/samples/122132-patch/README.md)
+      to create a Coherence 12.2.1.3.2 docker image.  
+      
+   9. Obtain the image hash for the resultant Docker image.
 
    `docker images | grep 12.2.1.3.2` 
 
