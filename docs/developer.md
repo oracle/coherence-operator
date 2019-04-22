@@ -136,7 +136,7 @@ All of the maven commands in this document are assumed to use this
    
    2. Git Clone the Oracle `docker-images` repository.
    
-      `git clone git@github.com:fryp/docker-images.git`
+      `git clone git@github.com:oracle/docker-images.git`
 
    3. Within that repository, cd to `OracleCoherence/dockerfiles/12.2.1.3.0`.
    
