@@ -130,7 +130,7 @@ All of the maven commands in this document are assumed to use this
    In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
    value of your `test.image.prefix` property in your `settings.xml` file.
 
-* Obtain the Coherence 12.2.1.3.2 Docker image and tag it correctly.
+* Obtain the Coherence 12.2.1.3.1 Docker image and tag it correctly.
 
    1. Download [Oracle Coherence 12.2.1.3.0 Standalone](https://www.oracle.com/technetwork/middleware/coherence/downloads/index.html).  Download the `Coherence Stand-Alone Install`.
    
@@ -173,25 +173,25 @@ All of the maven commands in this document are assumed to use this
       `docker-images` cloned repository.
       
    8. Follow the steps in [these
-      instructions](https://github.com/fryp/docker-images/blob/master/OracleCoherence/samples/122132-patch/README.md)
-      to create a Coherence 12.2.1.3.2 docker image.  
+      instructions](https://github.com/oracle/docker-images/blob/master/OracleCoherence/samples/122131-patch/README.md)
+      to create a Coherence 12.2.1.3.1 docker image.  
       
    9. Obtain the image hash for the resultant Docker image.
 
-   `docker images | grep 12.2.1.3.2` 
+   `docker images | grep 12.2.1.3.1` 
 
    For discussion, let's call this `COHERENCE_IMAGE_HASH`.
 
-   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2`
+   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.1`
 
    After this command successfully completes, you must be able to say
    
-   `docker images | grep 12.2.1.3.2` 
+   `docker images | grep 12.2.1.3.1` 
 
    and see the expected COHERENCE_IMAGE_HASH.  For example:
 
    ```
-   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.1 7e7feca04384 2 months ago 547MB
    ```
 
 * From the top level directory of the `coherence-operator` repository,
@@ -251,7 +251,7 @@ All of the maven commands in this document are assumed to use this
    ```
    YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
    YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
-   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.2       7e7feca04384 2 months ago 547MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.1       7e7feca04384 2 months ago 547MB
    ```
 
    Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
