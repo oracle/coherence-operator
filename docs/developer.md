@@ -169,7 +169,7 @@ All of the maven commands in this document are assumed to use this
       
       `oracle/coherence 12.2.1.3.0-standalone c6dbeed01b35 22 seconds ago 622MB`
       
-   7. cd to `OracleCoherence/samples/122132-patch` within the
+   7. cd to `OracleCoherence/samples/122131-patch` within the
       `docker-images` cloned repository.
       
    8. Follow the steps in [these
