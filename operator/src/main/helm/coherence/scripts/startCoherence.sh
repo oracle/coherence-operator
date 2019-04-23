@@ -194,7 +194,10 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
 
     if [[ ${IS_12_2_1_4} == 0 ]]
     then
-        configure_12_2_1_4
+        # when 12.2.1.4 released, enable following line
+        # configure_12_2_1_4
+        # and delete next line
+        configure_pre_12_2_1_4
     else
         configure_pre_12_2_1_4
     fi
@@ -359,9 +362,16 @@ configure_pre_12_2_1_4()
     {
     echo "Adding configuration for pre-12.2.1.4.0 version"
 
+    #   This is pre Coherence 12.2.1.4.0
+    #   copy our AddressProvider overrides file onto the classpath
+    cp /scripts/k8s-coherence-nossl-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-nossl-override.xml
+
+    #   use our AddressProvider overrides file
+    PROPS="${PROPS} -Dcoherence.override=k8s-coherence-nossl-override.xml"
+
     if [[ -n "${COH_OVERRIDE_CONFIG}" ]]
     then
-        PROPS="${PROPS} -Dcoherence.override=${COH_OVERRIDE_CONFIG}"
+        PROPS="${PROPS} -Dcoherence.k8s.override=${COH_OVERRIDE_CONFIG}"
     fi
     }
 
@@ -374,10 +384,10 @@ configure_12_2_1_4()
     echo "Adding configuration for 12.2.1.4.0 and above"
 
 #   This is Coherence 12.2.1.4.0 or above so we support SSL management and metrics
-#   copy our SSL overrides file onto the classpath
+#   copy our AddressProvider and SSL overrides file onto the classpath
     cp /scripts/k8s-coherence-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-override.xml
 
-#   use our SSL overrides file
+#   use our AP and SSL overrides file
     PROPS="${PROPS} -Dcoherence.override=k8s-coherence-override.xml"
 
     if [[ -n "${COH_OVERRIDE_CONFIG}" ]]
