@@ -22,7 +22,7 @@ clusters in a Kubernetes environment. You can:
   [Grafana](https://grafana.com/),
   [EFK](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-elasticsearch-fluentd-and-kibana-efk-logging-stack-on-kubernetes), and
   [Prometheus](https://prometheus.io/) to monitor the performance,
-  logs and and health from your clusters.
+  logs and health from your clusters.
 
 * Flexibly override and customize cluster configuration.
 
@@ -113,7 +113,7 @@ workspace.  After you are logged in, please come to `#operator` and say,
   even killing, the containers running the software.  The operator
   provides everything required to do this for Coherence.  Keep in mind
   that these health checks cause frequent `MemberJoined` and
-  `MemberLeft` events to happen.  If these evnents refer to something
+  `MemberLeft` events to happen.  If these events refer to something
   like `OracleCoherenceK8sPodChecker`, they are normal and be safely
   ignored.
 

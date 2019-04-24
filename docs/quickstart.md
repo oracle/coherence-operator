@@ -68,9 +68,7 @@ Whenever `OPERATOR_VERSION` appears in this document or the
 [Developer Guide](developer.md).
 
 
-## 2. Install the Coherence Operator
-
-##### 1. Use Helm to install the Coherence Operator
+## 2. Use Helm to install the Coherence Operator
 
 You may like to customize the value of the of the `--name` and
 (optional) `--namespace` arguments to `kubectl` for the operator.  You
@@ -104,7 +102,7 @@ NOTES:
   then access the http endpoint at http://127.0.0.1:8000
 ```
 
-##### 2. Verify that the Helm install is running by checking Helm status:
+You can also query the status with `helm status`:
 
 ```
 $ helm status sample-coherence-operator

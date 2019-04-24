@@ -5,7 +5,7 @@ This document describes:
 * how to build the operator, without running any tests.
 
 * how to locally "install" the built artifacts so that the operator
-  can be trialed.  Built artifacts include:
+  can be tried out.  Built artifacts include:
 
    * Docker images
 
@@ -151,7 +151,7 @@ All of the maven commands in this document are assumed to use this
       tag in your local server.  This image may be pulled by visiting
       [the Docker Store](https://hub.docker.com/_/oracle-serverjre-8)
       and doing `Proceed to Checkout`, and following the instructions.
-      Once you have that docker image, make sure to tage it with
+      Once you have that docker image, make sure to tag it with
       `oracle/serverjre:8`, as shown here.
       
       `docker tag store/oracle/serverjre:8 oracle/serverjre:8`
@@ -169,7 +169,8 @@ All of the maven commands in this document are assumed to use this
       
       `oracle/coherence 12.2.1.3.0-standalone c6dbeed01b35 22 seconds ago 622MB`
       
-   7. cd to `OracleCoherence/samples/122131-patch` within the
+   7. Coherence operator requires Coherence 12.2.1.3.1 docker image.  To build a 12.2.1.3.1 patch from the Coherence 12.2.1.3.0 base docker image,
+      cd to `OracleCoherence/samples/122131-patch` within the
       `docker-images` cloned repository.
       
    8. Follow the steps in [these
@@ -227,7 +228,7 @@ All of the maven commands in this document are assumed to use this
 * `mvn -DskipTests -Pdocker clean install`
 
    This should produce output similar to the output of the preceding step.
-   In addition the the output must contain output similar to the following,
+   In addition the output must contain messages similar to the following,
    somewhere in the middle of the output.
 
    ```
