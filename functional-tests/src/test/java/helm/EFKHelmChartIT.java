@@ -21,41 +21,27 @@ import com.tangosol.util.Resources;
 import org.hamcrest.Matcher;
 import org.junit.*;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.ProxySelector;
-import java.net.SocketAddress;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
 import static helm.HelmUtils.getPods;
-import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -270,9 +256,9 @@ public class EFKHelmChartIT
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                 is(true),
-                Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+                Eventually.within(TIMEOUT_SECS, TimeUnit.SECONDS));
 
-            Eventually.assertThat("cloud-* index is not null", invoking(this).getCloudApplicationESIndex(),
+            Eventually.assertThat("cloud- index-pattern is null", invoking(this).getCloudApplicationESIndex(),
                 notNullValue(), RetryFrequency.every(10, TimeUnit.SECONDS), Timeout.after(3, TimeUnit.MINUTES));
 
             assertThat(verifyEFKApplicationData(m_asReleases[0], "cluster", CLUSTER1), is(true));
@@ -282,12 +268,6 @@ public class EFKHelmChartIT
             }
         finally
             {
-            dumpPodLog(s_k8sCluster, sNamespace, CLIENT1, null);
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "fluentd");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "coherence");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "fluentd");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "coherence");
-
             deleteClients();
             }
         }
@@ -479,7 +459,6 @@ public class EFKHelmChartIT
             assertThat(sIndexName, notNullValue());
 
             m_sElasticsearchIndex = sIndexName;
-            System.out.println("getESIndex: " + sIndexName);
             }
 
         return m_sElasticsearchIndex;
@@ -490,11 +469,8 @@ public class EFKHelmChartIT
         if (m_sCloudElasticsearchIndex == null)
             {
             Queue<String>  queueIndices = processElasticsearchQuery("/_cat/indices");
-            String sIndexName = queueIndices.stream().filter(s -> s.contains("cloud"))
+            String         sIndexName   = queueIndices.stream().filter(s -> s.contains("cloud-"))
                 .map(s -> s.split(" ")[2]).findFirst().orElse(null);
-
-            assertThat("expected an index name for cloud-", sIndexName, notNullValue());
-
             m_sCloudElasticsearchIndex = sIndexName;
             }
 
@@ -512,62 +488,36 @@ public class EFKHelmChartIT
         }
 
     /**
-     * Coherence-cluster-index is part of coherence operator.
-     *
-     * Here is a workaround for installing application index when application is in a side car.
-     * Do not know how to get this picked up in a configmap for a side car.
+     * Install index-pattern for cloud application.
      *
      * @return response for request to create an index pattern in kibana
      */
     String createCloudApplicationESIndex()
         throws Exception
         {
-        HttpResponse<String> response = null;
+        HttpResponse<String> response  = null;
+        String               sSelector = getKibanaSelector(s_sOperatorRelease);
 
-        // TODO:  delete before review. This worked on command line.
-        // Adapted from: https://discuss.elastic.co/t/cli-for-creating-index-pattens-in-kibana-in-6-2-x/119361
-        //curl -XPOST http://127.0.0.1:5601/api/saved_objects/index-pattern/cloud-* -H "Content-Type: application/json" -H "kbn-xsrf: true" -d @cloud.index_pattern.json
-
-        String sSelector = getKibanaSelector(s_sOperatorRelease);
         try (Application application = portForward(s_k8sCluster, getK8sNamespace(), sSelector, 5601))
             {
-            String      sFilePath   = Resources.findFileOrResource(CLOUD_KIBANA_INDEX, null).getPath();
+            // dynamically create an index pattern with Kibana REST api
+            // Adapted from https://discuss.elastic.co/t/cli-for-creating-index-pattens-in-kibana-in-6-2-x/119361
+            String      sFilePath   = Resources.findFileOrResource(EXPORTED_CLOUD_INDEX_PATTERN_JSON, null).getPath();
             String      sPath       = "/api/saved_objects/index-pattern/cloud-*";
-            PortMapping portMapping = application.get(PortMapping.class);
-            int         nPort       = portMapping.getPort().getActualPort();
-
-            ProxySelector noproxy = new ProxySelector()
-                {
-                @Override
-                public List<Proxy> select(URI uri)
-                    {
-                    return Arrays.asList(Proxy.NO_PROXY);
-                    }
-
-                @Override
-                public void connectFailed(URI uri, SocketAddress sa, IOException ioe)
-                    {
-                    }
-                };
-
-            URI         uri     = URI.create("http://127.0.0.1:" + nPort + sPath);
-            HttpClient  client  = HttpClient.newBuilder().proxy(noproxy).version(Version.HTTP_1_1).build();
-            HttpRequest request = HttpRequest.newBuilder().uri(uri).
+            int         nPort       = application.get(PortMapping.class).getPort().getActualPort();
+            URI         uri         = URI.create("http://127.0.0.1:" + nPort + sPath);
+            HttpClient  client      = HttpClient.newBuilder().proxy(ProxySelector.of(null)).version(Version.HTTP_1_1).build();
+            HttpRequest request     = HttpRequest.newBuilder().uri(uri).
                 header("Content-Type", "application/json").
                 header("kbn-xsrf", "true").
                 POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
             
-            try
+            response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() != 200)
                 {
-                response = client.send(request, BodyHandlers.ofString());
-                assertEquals(200, response.statusCode());
-                }
-            catch(Throwable t)
-                {
-                System.out.println("Handled unexpected exception " + t);
-                t.printStackTrace();
                 dumpPodLog(s_k8sCluster, getK8sNamespace(), s_sKibanaPod);
                 }
+            assertEquals("create application index-pattern for cloud application failed: " + uri.toString(), 200, response.statusCode());
             }
 
         return response == null ? "<no response>" : response.body();
@@ -744,7 +694,7 @@ public class EFKHelmChartIT
      */
     private String m_sCloudElasticsearchIndex;
 
-/**
+    /**
      * The name of the deployed Coherence Helm releases.
      */
     private String[] m_asReleases;
@@ -752,13 +702,16 @@ public class EFKHelmChartIT
     /**
      * Time out value for checking the required condition.
     */
-    private static final int      TIMEOUT      = 300;
+    private static final int      TIMEOUT_SECS = 300;
 
-    private static final String   CLIENT1  = "coh-client-1";
+    private static final String   CLIENT1      = "coh-client-1";
 
-    private static final String   CLIENT2  = "coh-client-2";
+    private static final String   CLIENT2      = "coh-client-2";
 
-    private static final String   CLUSTER1 = "ApplicationLoggingEnabledCluster";
+    private static final String   CLUSTER1     = "ApplicationLoggingEnabledCluster";
 
-    private static final String   CLOUD_KIBANA_INDEX = "json/cloud.index_pattern.json";
+    /**
+     * Exported cloud.index_pattern json from kibana.
+     */
+    private static final String EXPORTED_CLOUD_INDEX_PATTERN_JSON = "json/cloud.index_pattern.json";
     }

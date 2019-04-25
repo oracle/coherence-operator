@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
-import static helm.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -124,7 +123,7 @@ public class LogHelmChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
-            List<String> listPods = getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+            List<String> listPods = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
 
             Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, asCohNamespaces[i], listPods.get(0)), is(true),
                     Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
@@ -149,7 +148,7 @@ public class LogHelmChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
-            List<String> listPods = getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+            List<String> listPods = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
 
             Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, asCohNamespaces[i], listPods.get(0)), is(true),
                                   Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
@@ -184,7 +183,7 @@ public class LogHelmChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sSelector = getCoherencePodSelector(m_asReleases[i]);
-            List<String> listPod = getPods(s_k8sCluster, asCohNamespaces[i], sSelector);
+            List<String> listPod = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sSelector);
 
             assertThat(listPod.isEmpty(), is(false));
 
