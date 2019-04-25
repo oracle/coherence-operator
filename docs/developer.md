@@ -130,71 +130,71 @@ All of the maven commands in this document are assumed to use this
    In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
    value of your `test.image.prefix` property in your `settings.xml` file.
 
-* Obtain the Coherence 12.2.1.3.1 Docker image and tag it correctly.
+* Obtain a Coherence 12.2.1.3.2 Docker image and tag it correctly.
 
-   1. Download [Oracle Coherence 12.2.1.3.0 Standalone](https://www.oracle.com/technetwork/middleware/coherence/downloads/index.html).  Download the `Coherence Stand-Alone Install`.
+   1. The process is to get the 12.2.1.3 Docker image and apply a patch
+     to derive a Docker image that contains Coherence 12.2.1.3.2.
+     First, let's get the 12.2.1.3 Docker image and tag it correctly
+     
+      1. Go to [store.docker.com](https://store.docker.com/).
+
+      2. Search for "Oracle Coherence".
+
+      3. Choose "Developer Plan (12.2.1.3)".
+
+      4. Choose "Proceed to Checkout".
+
+      5. Create a Docker Id, or log in with it if you have one already.
+
+      6. Check the `I agree that my use of each program in this Content,
+         including any subsequent updates or upgrades...` box.
+
+      7. Check the `I acknowledge and allow Docker to share my personal
+         information linked to my Docker ID with this Publisher.` box.
+
+      8. Consider whether or not you want to check the `Please keep me
+         informed of products, services and solutions from this
+         Publisher` box.
+
+      9. At the command line, do `docker login` with your Docker store
+         credentials.
+
+      10. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
+     
+      11. Provide a tag that effectively removes the `store` prefix.
+      
+         `docker store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
+
+   2. Now that we have `oracle/coherence:12.2.1.3` in our local Docker
+     server, applyt the patch to derive 12.2.1.3.2 from it.
+     
+      1. Clone the Oracle Docker Images git repository: `git clone git@github.com:oracle/docker-images.git`
+      
+      2. Change directory to `OracleCoherence/samples/122132-patch-for-k8s`
+
+      3. Follow the steps in [these instructions](https://github.com/oracle/docker-images/blob/master/OracleCoherence/samples/122132-patch-for-k8s/README.md)
+         to create a Coherence 12.2.1.3.2 docker image.
+         
+      
+   3. Tag the 12.2.1.3.2 image in the way the operator build expects.  
    
-   2. Git Clone the Oracle `docker-images` repository.
-   
-      `git clone git@github.com:oracle/docker-images.git`
+      1. Obtain the image hash for the resultant Docker image.
 
-   3. Within that repository, cd to `OracleCoherence/dockerfiles/12.2.1.3.0`.
-   
-   4. Make it so the `fmw_12.2.1.3.0_coherence_Disk1_1of1.zip`
-      downloaded in step 1 is in that directory.
-      
-   5. Build the docker image and tag it as
-      `oracle/coherence:12.2.1.3.0-standalone`.
-      
-      This `Dockerfile` references `oracle/serverjre:8` in its `FROM`
-      clause.  Therefore, you must have the right image with that Docker
-      tag in your local server.  This image may be pulled by visiting
-      [the Docker Store](https://hub.docker.com/_/oracle-serverjre-8)
-      and doing `Proceed to Checkout`, and following the instructions.
-      Once you have that docker image, make sure to tag it with
-      `oracle/serverjre:8`, as shown here.
-      
-      `docker tag store/oracle/serverjre:8 oracle/serverjre:8`
-        
-      Once the parent image has been tagged as show above, build the
-      Coherence 12.2.1.3.0 Docker image.
-      
-      `docker build -f Dockerfile.standalone -t oracle/coherence:12.2.1.3.0-standalone .`
-      
-   6. Verify that it built correctly
-   
-      `docker images | grep 12.2.1.3.0-standalone`
-      
-      This should show output similar to the following:
-      
-      `oracle/coherence 12.2.1.3.0-standalone c6dbeed01b35 22 seconds ago 622MB`
-      
-   7. Coherence operator requires Coherence 12.2.1.3.1 docker image.  To build a 12.2.1.3.1 patch from the Coherence 12.2.1.3.0 base docker image,
-      cd to `OracleCoherence/samples/122131-patch` within the
-      `docker-images` cloned repository.
-      
-   8. Follow the steps in [these
-      instructions](https://github.com/oracle/docker-images/blob/master/OracleCoherence/samples/122131-patch/README.md)
-      to create a Coherence 12.2.1.3.1 docker image.  
-      
-   9. Obtain the image hash for the resultant Docker image.
+         `docker images | grep 12.2.1.3.1` 
 
-   `docker images | grep 12.2.1.3.1` 
+          For discussion, let's call this `COHERENCE_IMAGE_HASH`.
 
-   For discussion, let's call this `COHERENCE_IMAGE_HASH`.
+          `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.1`
 
-   `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.1`
+          After this command successfully completes, you must be able to say
 
-   After this command successfully completes, you must be able to say
-   
-   `docker images | grep 12.2.1.3.1` 
+          `docker images | grep 12.2.1.3.1` 
 
-   and see the expected COHERENCE_IMAGE_HASH.  For example:
+          and see the expected COHERENCE_IMAGE_HASH.  For example:
 
-   ```
-   YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.1 7e7feca04384 2 months ago 547MB
-   ```
-
+          ```
+          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.1 7e7feca04384 2 months ago 547MB
+          ```
 * From the top level directory of the `coherence-operator` repository,
   on the `1.0` branch, do the following.
 
