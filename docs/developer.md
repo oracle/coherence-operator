@@ -178,20 +178,20 @@ All of the maven commands in this document are assumed to use this
    
       1. Obtain the image hash for the resultant Docker image.
 
-         `docker images | grep 12.2.1.3.1` 
+         `docker images | grep 12.2.1.3.2` 
 
           For discussion, let's call this `COHERENCE_IMAGE_HASH`.
 
-          `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.1`
+          `docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2`
 
           After this command successfully completes, you must be able to say
 
-          `docker images | grep 12.2.1.3.1` 
+          `docker images | grep 12.2.1.3.2` 
 
           and see the expected COHERENCE_IMAGE_HASH.  For example:
 
           ```
-          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.1 7e7feca04384 2 months ago 547MB
+          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
           ```
 * From the top level directory of the `coherence-operator` repository,
   on the `1.0` branch, do the following.
@@ -250,7 +250,7 @@ All of the maven commands in this document are assumed to use this
    ```
    YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
    YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
-   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.1       7e7feca04384 2 months ago 547MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.2       7e7feca04384 2 months ago 547MB
    ```
 
    Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
