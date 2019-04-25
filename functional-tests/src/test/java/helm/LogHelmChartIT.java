@@ -170,7 +170,7 @@ public class LogHelmChartIT
         {
         String[] asCohNamespaces = getTargetNamespaces();
         String   sValues         = "values/helm-values-coh-user-artifact-efk.yaml";
-        String   sLogConfig      = "/files/conf/custom-logging.properties";
+        String   sLogConfig      = "custom-logging.properties";
         String[] asSetValues     = {
             "clusterSize=1", "store.logging.configFile=" + sLogConfig,
             "fluentd.application.configFile=/conf/fluentd-cloud.conf",

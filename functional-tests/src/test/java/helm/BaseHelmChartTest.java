@@ -1929,7 +1929,7 @@ public abstract class BaseHelmChartTest
 
         arguments = arguments.with("--", "curl", "-X", sHttpMethod, sHost + ":" + nPort + sPath);
 
-        int nExitCode = cluster.kubectlAndWait(arguments, LaunchLogging.disabled(), Console.of(console));
+        int nExitCode = cluster.kubectlAndWait(arguments, LaunchLogging.enabled(), Console.of(console));
 
         if (fConsole)
             {

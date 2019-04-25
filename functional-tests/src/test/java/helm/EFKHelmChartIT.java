@@ -10,29 +10,56 @@ import com.oracle.bedrock.deferred.options.InitialDelay;
 import com.oracle.bedrock.deferred.options.MaximumRetryDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.Timeout;
+import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
+import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.tangosol.util.Resources;
 import org.hamcrest.Matcher;
 import org.junit.*;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
 import static helm.HelmUtils.getPods;
+import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -194,6 +221,77 @@ public class EFKHelmChartIT
         validateIndexPatternExists(COHERENCE_OPERATOR_INDEX_PATTERN);
         }
 
+    /**
+     * Validate the configuration of application logging and including it in elastic search.
+     *
+     * @throws Exception  if the test fails
+     */
+    @Test
+    public void testApplicationEnabledLogging() throws Exception
+        {
+        String sNamespace      = getK8sNamespace();
+        String sValuesOriginal = "values/helm-values-coh-user-artifact-efk.yaml";
+
+        // required to perform elastic search for application log events
+        createCloudApplicationESIndex();
+
+        String sRelease        = installCoherence(s_k8sCluster, sNamespace, sValuesOriginal,
+             "clusterSize=2", "cluster=" + CLUSTER1,
+            "fluentd.application.configFile=/conf/fluentd-cloud.conf",
+            "fluentd.application.tag=cloud");
+
+        m_asReleases = new String[] {sRelease};
+
+        assertCoherence(s_k8sCluster, sNamespace, sRelease);
+
+        assertCoherenceService(s_k8sCluster, sNamespace, sRelease);
+
+        String       sCoherenceSelector = getCoherencePodSelector(sRelease);
+        List<String> listPods           = getPods(s_k8sCluster, sNamespace, sCoherenceSelector);
+
+        assertThat(listPods.size(), is(2));
+
+        System.err.println("Waiting for Coherence Pods");
+
+        for (String sPod : listPods)
+            {
+            System.err.println("Waiting for Coherence Pod " + sPod + "...");
+            Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, sPod),
+                is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
+            }
+
+        System.err.println("Coherence Pods started");
+
+        try
+            {
+            installClient(s_k8sCluster, CLIENT1, sNamespace, sRelease);
+            installClient(s_k8sCluster, CLIENT2, sNamespace, sRelease);
+
+            System.err.println("Waiting for Client-1 initial state ...");
+            Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
+                is(true),
+                Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+
+            Eventually.assertThat("cloud-* index is not null", invoking(this).getCloudApplicationESIndex(),
+                notNullValue(), RetryFrequency.every(10, TimeUnit.SECONDS), Timeout.after(3, TimeUnit.MINUTES));
+
+            assertThat(verifyEFKApplicationData(m_asReleases[0], "cluster", CLUSTER1), is(true));
+            assertThat(verifyEFKApplicationData(m_asReleases[0], "product", "Cloud 1.0"), is(true));
+            assertThat(verifyEFKApplicationData(m_asReleases[0], "log", "AWS"), is(true));
+            assertThat(verifyEFKApplicationData(m_asReleases[0], "log", "GCP"), is(true));
+            }
+        finally
+            {
+            dumpPodLog(s_k8sCluster, sNamespace, CLIENT1, null);
+            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "fluentd");
+            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "coherence");
+            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "fluentd");
+            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "coherence");
+
+            deleteClients();
+            }
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -226,7 +324,6 @@ public class EFKHelmChartIT
 
         return nExitCode == 0;
         }
-
 
     void assertEFKData(String sRelease, String sFieldName, String[] sKeyWord) throws IOException
         {
@@ -302,6 +399,62 @@ public class EFKHelmChartIT
             }).collect(Collectors.toList());
         }
 
+    boolean verifyEFKApplicationData(String sRelease, String sFieldName, String sKeyWord) throws IOException
+        {
+        return verifyEFKApplicationData(sRelease, sFieldName, new String[] {sKeyWord});
+        }
+
+    boolean verifyEFKApplicationData(String sRelease, String sFieldName, String[] sKeyWord) throws IOException
+        {
+        String       sName   = sRelease + "-" + COHERENCE_CONTAINER_NAME;
+        List<String> efkLogs = getEFKApplicationData(sName, sFieldName, sKeyWord);
+
+        boolean fResult = false;
+
+        assertTrue(sKeyWord.length > 0);
+        if (sKeyWord.length == 1)
+            {
+            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && l.contains(sKeyWord[0]));
+            }
+        else
+            {
+            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && (l.contains(sKeyWord[0])
+                || l.contains(sKeyWord[1])));
+            }
+
+        System.err.printf("Verify release %s - %s: %b%n", sRelease, Arrays.toString(sKeyWord), fResult);
+
+        return fResult;
+        }
+
+    List<String> getEFKApplicationData(String sHostPrefix, String sFieldName, String[] sKeyWords) throws IOException
+        {
+        String sIndexName = getCloudApplicationESIndex();
+
+        Queue<String> queueLogs = new ConcurrentLinkedQueue<>();
+        for (String sKeyWord : sKeyWords)
+            {
+            queueLogs.addAll(processElasticsearchQuery(
+                "/" + sIndexName + "/_search?q=" +
+                    sFieldName + "%3A" + sKeyWord.replace(" ", "%20") +
+                    "%20AND%20" +
+                    "member" + "%3A" + sHostPrefix));
+            }
+
+        Map<String, ?> map = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
+
+        Map<String, List<Map<String, ?>>> mapHits = (Map<String, List<Map<String, ?>>>) map.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        List<Map<String, ?>> list = mapHits.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        return list.stream().map(m -> {
+        Map<String, ?> mapSource = (Map<String, ?>) m.get("_source");
+        return mapSource.get("member") + ">" + mapSource.get(sFieldName);
+        }).collect(Collectors.toList());
+        }
+
     void validateIndexPatternExists(String sIndexPattern) throws IOException
         {
         Queue<String> queueLogs = new ConcurrentLinkedQueue<>();
@@ -326,9 +479,26 @@ public class EFKHelmChartIT
             assertThat(sIndexName, notNullValue());
 
             m_sElasticsearchIndex = sIndexName;
+            System.out.println("getESIndex: " + sIndexName);
             }
 
         return m_sElasticsearchIndex;
+        }
+
+    public String getCloudApplicationESIndex()
+        {
+        if (m_sCloudElasticsearchIndex == null)
+            {
+            Queue<String>  queueIndices = processElasticsearchQuery("/_cat/indices");
+            String sIndexName = queueIndices.stream().filter(s -> s.contains("cloud"))
+                .map(s -> s.split(" ")[2]).findFirst().orElse(null);
+
+            assertThat("expected an index name for cloud-", sIndexName, notNullValue());
+
+            m_sCloudElasticsearchIndex = sIndexName;
+            }
+
+        return m_sCloudElasticsearchIndex;
         }
 
     Queue<String> processElasticsearchQuery(String sPath)
@@ -339,6 +509,68 @@ public class EFKHelmChartIT
     Queue<String> processKibanaQuery(String sPath)
         {
         return processHttpRequest(s_k8sCluster, s_sKibanaPod, "GET", "localhost", 5601, sPath);
+        }
+
+    /**
+     * Coherence-cluster-index is part of coherence operator.
+     *
+     * Here is a workaround for installing application index when application is in a side car.
+     * Do not know how to get this picked up in a configmap for a side car.
+     *
+     * @return response for request to create an index pattern in kibana
+     */
+    String createCloudApplicationESIndex()
+        throws Exception
+        {
+        HttpResponse<String> response = null;
+
+        // TODO:  delete before review. This worked on command line.
+        // Adapted from: https://discuss.elastic.co/t/cli-for-creating-index-pattens-in-kibana-in-6-2-x/119361
+        //curl -XPOST http://127.0.0.1:5601/api/saved_objects/index-pattern/cloud-* -H "Content-Type: application/json" -H "kbn-xsrf: true" -d @cloud.index_pattern.json
+
+        String sSelector = getKibanaSelector(s_sOperatorRelease);
+        try (Application application = portForward(s_k8sCluster, getK8sNamespace(), sSelector, 5601))
+            {
+            String      sFilePath   = Resources.findFileOrResource(CLOUD_KIBANA_INDEX, null).getPath();
+            String      sPath       = "/api/saved_objects/index-pattern/cloud-*";
+            PortMapping portMapping = application.get(PortMapping.class);
+            int         nPort       = portMapping.getPort().getActualPort();
+
+            ProxySelector noproxy = new ProxySelector()
+                {
+                @Override
+                public List<Proxy> select(URI uri)
+                    {
+                    return Arrays.asList(Proxy.NO_PROXY);
+                    }
+
+                @Override
+                public void connectFailed(URI uri, SocketAddress sa, IOException ioe)
+                    {
+                    }
+                };
+
+            URI         uri     = URI.create("http://127.0.0.1:" + nPort + sPath);
+            HttpClient  client  = HttpClient.newBuilder().proxy(noproxy).version(Version.HTTP_1_1).build();
+            HttpRequest request = HttpRequest.newBuilder().uri(uri).
+                header("Content-Type", "application/json").
+                header("kbn-xsrf", "true").
+                POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
+            
+            try
+                {
+                response = client.send(request, BodyHandlers.ofString());
+                assertEquals(200, response.statusCode());
+                }
+            catch(Throwable t)
+                {
+                System.out.println("Handled unexpected exception " + t);
+                t.printStackTrace();
+                dumpPodLog(s_k8sCluster, getK8sNamespace(), s_sKibanaPod);
+                }
+            }
+
+        return response == null ? "<no response>" : response.body();
         }
 
     List<String> getPodUids(K8sCluster cluster, String sNamespace, String sSelector)
@@ -375,6 +607,88 @@ public class EFKHelmChartIT
             }
 
         return Arrays.asList(sList.split(" "));
+        }
+
+    /**
+     * Check for required client state.
+     *
+     * @param cluster     the k8s cluster
+     * @param sNamespace  the namespace name
+     * @param sClientPod  the pod name
+     *
+     * @return {@code true} if required client state is reached.
+     */
+    public boolean isRequiredClientStateReached(K8sCluster cluster, String sNamespace, String sClientPod)
+        {
+        try
+            {
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
+
+            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
+                && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
+            }
+        catch (Exception ex)
+            {
+            return false;
+            }
+        }
+
+    private void installClient(K8sCluster cluster, String name, String sNamespace, String sRelease) throws Exception
+        {
+        Arguments arguments = Arguments.of("apply");
+
+        if (sNamespace != null)
+            {
+            arguments = arguments.with("--namespace", sNamespace);
+            }
+
+        arguments = arguments.with("-f", getClientYaml(name, sRelease, CLUSTER1));
+
+        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
+
+        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
+        }
+
+    /**
+     * Determine whether the coherence start up log is ready. param cluster the k8s
+     * cluster
+     *
+     * @param cluster     the k8s cluster
+     * @param sNamespace  the namespace of coherence
+     * @param sPod        the pod name of coherence
+     *
+     * @return {@code true} if coherence container is ready
+     */
+    public boolean hasDefaultCacheServerStarted(K8sCluster cluster, String sNamespace, String sPod)
+        {
+        try
+            {
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sPod, COHERENCE_CONTAINER_NAME);
+            return sLogs.stream().anyMatch(l -> l.contains("Started DefaultCacheServer"));
+            }
+        catch (Exception ex)
+            {
+            return false;
+            }
+        }
+
+    private void deleteClients()
+        {
+        deleteClient(CLIENT1);
+        deleteClient(CLIENT2);
+        }
+
+    private void deleteClient(String sClient)
+        {
+        String sNamespace = getK8sNamespace();
+        Arguments arguments = Arguments.of("delete", "pod", sClient);
+
+        if (sNamespace != null)
+            {
+            arguments = arguments.with("-n", sNamespace);
+            }
+
+        s_k8sCluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
         }
 
     // ----- data members ---------------------------------------------------
@@ -426,7 +740,25 @@ public class EFKHelmChartIT
     private String m_sElasticsearchIndex;
 
     /**
+     * The Cloud application Elasticsearch index.
+     */
+    private String m_sCloudElasticsearchIndex;
+
+/**
      * The name of the deployed Coherence Helm releases.
      */
     private String[] m_asReleases;
+
+    /**
+     * Time out value for checking the required condition.
+    */
+    private static final int      TIMEOUT      = 300;
+
+    private static final String   CLIENT1  = "coh-client-1";
+
+    private static final String   CLIENT2  = "coh-client-2";
+
+    private static final String   CLUSTER1 = "ApplicationLoggingEnabledCluster";
+
+    private static final String   CLOUD_KIBANA_INDEX = "json/cloud.index_pattern.json";
     }

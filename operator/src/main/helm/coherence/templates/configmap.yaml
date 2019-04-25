@@ -15,8 +15,12 @@ metadata:
 data:
   fluentd-coherence.conf: |
     # Optional application specific fluentd source(s)  i.e. Java Logger messages from server-side app classes such as entryprocessor, interceptor, ...
-{{- if .Values.fluentd.application.configFile }}
+{{- if .Values.fluentd }}
+  {{- if .Values.fluentd.application }}
+    {{- if .Values.fluentd.application.configFile }}
     @include {{ .Values.fluentd.application.configFile }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 
     # Ignore fluentd messages
@@ -65,7 +69,9 @@ data:
       {{- end }}
     </match>
 
-{{- if .Values.fluentd.application.tag }}
+{{- if .Values.fluentd }}
+  {{- if .Values.fluentd.application }}
+    {{- if .Values.fluentd.application.tag }}
     <match {{ .Values.fluentd.application.tag }} >
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
@@ -81,6 +87,8 @@ data:
     {{- end }}
       {{- end }}
     </match>
+    {{- end }}
+  {{- end }}
 {{- end }}
 
 {{- end }}

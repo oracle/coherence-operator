@@ -14,6 +14,8 @@ store:
     initialDelaySeconds: 10
     periodSeconds:       10
   podManagementPolicy: Parallel
+  logging:
+    configFile: custom-logging.properties
 
 service:
   enabled: true

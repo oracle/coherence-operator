@@ -69,7 +69,6 @@ public class CloudProcessor extends AbstractProcessor<String, Cloud, Cloud> impl
     @Override
     public Cloud process(Entry<String, Cloud> entry)
         {
-        System.out.println("Before Cloud Processor: " + entry.getValue().getName());
         log(INFO, "Before Cloud Processor: " + entry.getValue().getName());
 
         String sVersion = getVersion();
@@ -79,7 +78,6 @@ public class CloudProcessor extends AbstractProcessor<String, Cloud, Cloud> impl
 
         Cloud newCloud = entry.getValue();
 
-        System.out.println("After Cloud Processor: " + newCloud.getName());
         log(Level.INFO, "After Cloud Processor: " + newCloud.getName());
 
         return newCloud;
@@ -113,7 +111,7 @@ public class CloudProcessor extends AbstractProcessor<String, Cloud, Cloud> impl
         {
         Cluster cluster = CacheFactory.getCluster();
         String member   = cluster.getLocalMember().getMemberName();
-        logger.info(getLogTimestamp() + " Cloud 1.0 " + " <" + level.getName() + "> " +
+        logger.info(getLogTimestamp() + " Cloud 1.0" + " <" + level.getName() + "> " +
             "(cluster=" + cluster.getClusterName() + ", member=" + member + ", thread=" + Thread.currentThread().getName() + "): " +
             msg);
         }
