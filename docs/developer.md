@@ -161,9 +161,7 @@ All of the maven commands in this document are assumed to use this
 
       10. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
      
-      11. Provide a tag that effectively removes the `store` prefix.
-      
-         `docker store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
+      11. Provide a tag that effectively removes the `store` prefix: `docker store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
 
    2. Now that we have `oracle/coherence:12.2.1.3` in our local Docker
      server, applyt the patch to derive 12.2.1.3.2 from it.
