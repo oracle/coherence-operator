@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.kubernetes</groupId>
+  <artifactId>samples-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <description>Oracle Coherence Kubernetes Operator Samples Project</description>
+  <name>Samples Parent</name>
+
+  <modules>
+    <module>coherence-deployments/extend/proxy-tier</module>
+    <module>coherence-deployments/extend/default</module>
+    <module>coherence-deployments/storage-disabled/interceptor</module>
+    <module>coherence-deployments/storage-disabled/other</module>
+    <module>coherence-deployments/elastic-data/default</module>
+    <module>coherence-deployments/elastic-data/pvc</module>
+    <module>coherence-deployments/sidecar</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+
+    <!-- library dependency versions -->
+    <bedrock.version>5.0.10</bedrock.version>
+    <hamcrest.version>1.3</hamcrest.version>
+    <helidon.version>1.0.0</helidon.version>
+    <jline.version>2.14.6</jline.version>
+    <junit.version>4.12</junit.version>
+    <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
+    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
+    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
+    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
+    <maven.jib.plugin.version>1.1.0</maven.jib.plugin.version>
+    <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
+    <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
+    <mockito.version>2.18.3</mockito.version>
+
+    <coherence.version>12.2.1-4-0-73500</coherence.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- module dependencies -->
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.helidon.bundles</groupId>
+        <artifactId>helidon-bundles-webserver</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      
+      <!-- test dependencies -->
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.2.1-testing-support</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-docker</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-k8s</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.5</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons.compress.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deploy.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven.assembly.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven.exec.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>test</goal>
+              </goals>
+            </execution>
+          </executions>
+         </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+       </plugin>
+    </plugins>
+  </build>
+
+  <developers>
+    <developer>
+      <name>Tim Middleton</name>
+      <organization>Oracle</organization>
+      <email>tim.middleton@oracle.com</email>
+    </developer>
+  </developers>
+</project>
+

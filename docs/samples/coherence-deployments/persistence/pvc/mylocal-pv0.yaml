@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mylocal-pv0
+  labels:
+    type: local
+    coherenceCluster: persistence-cluster
+spec:
+  storageClassName: mylocalsc
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/coh/mydata"
