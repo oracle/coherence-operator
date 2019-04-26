@@ -525,6 +525,9 @@ spec:
               name: fluentd-coherence-conf
             - mountPath: /logs
               name: log-dir
+            - mountPath: /conf
+              name: user-conf-dir
+
 {{- end }}
 # ---------------------------------------------------------------------------
 #  Volumes mappings

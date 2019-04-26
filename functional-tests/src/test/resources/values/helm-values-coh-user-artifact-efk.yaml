@@ -1,24 +1,27 @@
-# Copyright 2018 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
 
-cluster: MyCoherenceCluster
 clusterSize: 2
+
+cluster: ApplicationLoggingEnabledCluster
+
+role: myrole
 
 store:
   cacheConfig: "server-cache-config.xml"
   pof:
     enabled: true
     config: "test-pof-config.xml"
-  snapshot:
-    enabled: false
-  readinessProbe:
-    initialDelaySeconds: 10
-    periodSeconds:       10
-  podManagementPolicy: Parallel
   logging:
     configFile: custom-logging.properties
 
-service:
-  enabled: true
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds:       10
+
+logCaptureEnabled: true
+
+elasticsearchEndpoint:
+  host: elasticsearch.${k8s.namespace}.svc.cluster.local
 
 userArtifacts:
   image: "${test.image.prefix}user-artifacts:1.0"
