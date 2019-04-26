@@ -291,14 +291,14 @@ commonConfiguration()
         case "${COH_SITE_INFO_LOCATION}" in
             http://\$*)
                 SITE=""
-                break;;
+                ;;
             http://*)
                 SITE=$(curl ${COH_SITE_INFO_LOCATION})
                 if [[ $? != 0 ]]
                 then
                     SITE=""
                 fi
-                break;;
+                ;;
             *)
                 if [[ -f "${COH_SITE_INFO_LOCATION}" ]]
                 then
