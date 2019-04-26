@@ -225,50 +225,61 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
 
 1. [Coherence Operator](operator/)
    1. [Logging](operator/logging)
+      1. [Enable log capture to view logs in Kiabana ](operator/logging/log-capture) &#x2714;
+      1. [Configure user logs and view in Kibana](operator/logging/customer-logs) &#x2718;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
-      1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)
-      1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)
-      1. [Enable SSL for Metrics](operator/metrics/ssl)
-      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus)
-   1. [Scaling a Coherence deployment via kubectl](operator/scaling)
-   1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade)
+      1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
+      1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
+      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2718;
+      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2718;
+   1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
+   1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
 1. [Coherence Deployments](coherence-deployments)
-   1. [Add application jars/Config to a Coherence deployment](coherence-deployments/sidecar)
+   1. [Add application jars/Config to a Coherence deployment](coherence-deployments/sidecar) &#x2714;
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
-      1. [Access Coherence via default proxy port](coherence-deployments/extend/default)
-      1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier)
-      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl)
-      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple)
+      1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
+      1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
+      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2718;
+      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2718;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
-      1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor)
-      1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other)
+      1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
+      1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation](coherence-deployments/federation)
-      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster)
-      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters)
+      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2718;
+      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
    1. [Persistence](coherence-deployments/persistence)
-      1. [Use default persistent volume claim](coherence-deployments/persistence/default)
-      1. [Use a specific persistent volume](coherence-deployments/persistence/pvc)
-      1. [Specify a separate snapshot location for active persistence](coherence-deployments/persistence/snapshot)
-      1. [Specifying an archiver](coherence-deployments/persistence/archiver)
+      1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
+      1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
+      1. [Specify a separate snapshot location for active persistence](coherence-deployments/persistence/snapshot) &#x2714;
+      1. [Specifying an archiver](coherence-deployments/persistence/archiver) &#x2718;
    1. [Elastic Data](coherence-deployments/elastic-data)
-      1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default)
-      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc)
+      1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
+      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc) &#x2718;
 1. [Management](management)
    1. [Management using REST (12.2.1.4.X only)](management/rest)
-      1. [Access management over REST](management/rest/standard)
-      1. [Access management over REST using JVisualVM plugin](management/rest/jvisualvm)
-      1. [Enable SSL with management over REST](management/rest/ssl)
-      1. [Modify Writable MBeans](management/rest/mbeans)
-   1. [Access JMX in the Coherence cluster via JConsole and JVisualVM](management/jmx)
-   1. [Access Coherence Console and CohQL on a cluster node](management/console-cohql)
+      1. [Access management over REST](management/rest/standard) &#x2726;
+      1. [Access management over REST using JVisualVM plugin](management/rest/jvisualvm) &#x2726;
+      1. [Enable SSL with management over REST](management/rest/ssl) &#x2726;
+      1. [Modify Writable MBeans](management/rest/mbeans) &#x2726;
+   1. [Access JMX in the Coherence cluster via JConsole and JVisualVM](management/jmx) &#x2714;
+   1. [Access Coherence Console and CohQL on a cluster node](management/console-cohql) &#x2714;
    1. [Diagnostic Tools](management/diagnostics)
-      1. [Produce and extract a heap dump](management/diagnostics/heap-dump)
-       1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr)
+      1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2718; 
+      1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2718; 
    1. [Coherence Reporter](management/reporter) 
-      1. [Manage the Reporter (12.2.1.4 only)](management/reporter/manage)
-      1. [Retrieve Reporter reports](rmanagement/eporter/retrieve-reports) 
-   1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments)       
+      1. [Manage the Reporter (12.2.1.4 only)](management/reporter/manage) &#x2718; 
+      1. [Retrieve Reporter reports](rmanagement/eporter/retrieve-reports) &#x2718;  
+   1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
 
+Samples Legend:
+
+* &#x2714; - sample is available for Coherence 12.2.1.3.x and above
+
+* &#x2726; - sample is available for Coherence 12.2.1.4.x and above
+
+* &#x2718; - sample is not yet been written or functionality not yet available
+
+ 
 # Troubleshooting Tips
 
 ## Coherence Cluster pods never reach ready "1/1"
@@ -276,7 +287,7 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
 Use the following `kubectl` command to see what the message from the pod is:
 
 ```bash
-k$ ubectl describe pod pod-name -n sample-coherence-ns
+$ kubectl describe pod pod-name -n sample-coherence-ns
 ```
 
 ## Error: ImagePullBackOff after installing Operator or coherence
