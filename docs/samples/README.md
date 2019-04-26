@@ -271,13 +271,13 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
       1. [Retrieve Reporter reports](rmanagement/eporter/retrieve-reports) &#x2718;  
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
 
-Samples Legend:
+Samples legend:
 
 * &#x2714; - sample is available for Coherence 12.2.1.3.x and above
 
 * &#x2726; - sample is available for Coherence 12.2.1.4.x and above
 
-* &#x2718; - sample is not yet been written or functionality not yet available
+* &#x2718; - sample has not yet been written or functionality not yet available
 
  
 # Troubleshooting Tips
