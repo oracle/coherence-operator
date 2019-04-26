@@ -12,9 +12,11 @@ the given sample works, and then customize it to suit your needs.
 # Table of Contents
 
 1. [Start Here](#start-here)
-   1. [Review Prerequisites](#review-prerequisites)
+   1. [Confirm Quickstart Runtime Prerequisites](#confirm-quickstart-runtime-prerequisites)
    1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
-   1. [Create Sample Namespace](#create-sample-namespace)
+   1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
+   1. [Create the sample namespace](#create-the-sample-namespace)
+   1. [Add the helm repository](#add-the-helm-repository)
    1. [Install the Coherence Operator](#install-the-coherence-operator)
 1. [List of Samples](#list-of-samples)
 1. [Troubleshooting Tips](#troubleshooting-tips)
@@ -27,26 +29,24 @@ the given sample works, and then customize it to suit your needs.
 
 If you have never setup Coherence Operator before, please carry out the following:
 
-1. [Review prerequisites](#review-prerequisites)
+1. [Review Prerequisites](#review-prerequisites)
 1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
-1. [Ensure you install Coherence into your local Maven repository](#)
-1. [Create Sample Namespace](#create-sample-namespace)
+1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
+1. [Create the sample namespace](#create-the-sample-namespace)
 1. [Add the helm repository](#add-the-helm-repository)
 1. [Install the Coherence Operator](#install-the-coherence-operator)
 
 If you have already run samples before, please go to the [List of Samples](#list-of-samples).
 
-## Review Prerequisites
-
 Throughout all these samples we are using a Kubernetes namespace called `sample-coherence-ns`.
 If you wish to change this namespace,
 please ensure you change any references to this namespace to match your selected namespace.
 
-Confirm the following sections only, from the Quick start guide before continuing:
+## Confirm Quickstart Runtime Prerequisites
+
+Confirm the following section only, from the Quick start guide before continuing:
 
 * [Runtime Environment Prerequisites](../quickstart.md#prerequisites)
-
-* [Set up Helm repository for Coherence](../quickstart.md#set-up-helm-repository-for-coherence)
 
 ## Ensure you have JDK11 and Maven Installed
 
@@ -78,7 +78,7 @@ If you are not running samples that have a Maven project, then you can skip this
     <coherence.version>12.2.1-3-1</coherence.version>
    ```
 
-## Create Sample Namespace
+## Create the sample namespace
 
 You should only need to carry out the following the first time you
 run any of the samples.
@@ -106,7 +106,7 @@ run any of the samples.
   sample-coherence-secret   kubernetes.io/dockerconfigjson   1      18s
   ```
 
-## Add the helm repository
+### Add the Helm repository
 
 Issue the following to create a `coherence-community` helm repository:
 
@@ -226,21 +226,47 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
 1. [Coherence Operator](operator/)
    1. [Logging](operator/logging)
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
+      1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)
+      1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)
+      1. [Enable SSL for Metrics](operator/metrics/ssl)
+      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus)
    1. [Scaling a Coherence deployment via kubectl](operator/scaling)
    1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade)
 1. [Coherence Deployments](coherence-deployments)
    1. [Add application jars/Config to a Coherence deployment](coherence-deployments/sidecar)
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
+      1. [Access Coherence via default proxy port](coherence-deployments/extend/default)
+      1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier)
+      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl)
+      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple)
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
+      1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor)
+      1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other)
    1. [Federation](coherence-deployments/federation)
+      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster)
+      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters)
    1. [Persistence](coherence-deployments/persistence)
+      1. [Use default persistent volume claim](coherence-deployments/persistence/default)
+      1. [Use a specific persistent volume](coherence-deployments/persistence/pvc)
+      1. [Specify a separate snapshot location for active persistence](coherence-deployments/persistence/snapshot)
+      1. [Specifying an archiver](coherence-deployments/persistence/archiver)
    1. [Elastic Data](coherence-deployments/elastic-data)
+      1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default)
+      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc)
 1. [Management](management)
    1. [Management using REST (12.2.1.4.X only)](management/rest)
-   1. [Access JMX in the Coherence Cluster via JConsole and JVisualVM](management/jmx)
+      1. [Access management over REST](management/rest/standard)
+      1. [Access management over REST using JVisualVM plugin](management/rest/jvisualvm)
+      1. [Enable SSL with management over REST](management/rest/ssl)
+      1. [Modify Writable MBeans](management/rest/mbeans)
+   1. [Access JMX in the Coherence cluster via JConsole and JVisualVM](management/jmx)
    1. [Access Coherence Console and CohQL on a cluster node](management/console-cohql)
    1. [Diagnostic Tools](management/diagnostics)
+      1. [Produce and extract a heap dump](management/diagnostics/heap-dump)
+       1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr)
    1. [Coherence Reporter](management/reporter) 
+      1. [Manage the Reporter (12.2.1.4 only)](management/reporter/manage)
+      1. [Retrieve Reporter reports](rmanagement/eporter/retrieve-reports) 
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments)       
 
 # Troubleshooting Tips
@@ -330,5 +356,3 @@ If you have enabled log capture then you can use the `port-forward-prometheus.sh
 1. Access Prometheus using the following URL:
 
    [http://127.0.0.1:9090/](http://127.0.0.1:9090/)
-
-# Useful Helm and Kubectl commands
