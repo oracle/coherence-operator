@@ -89,7 +89,7 @@ public class LoggingConfigIT
     public void shouldUseDefaultLoggingConfiguration() throws Exception
         {
         String   sNamespace  = getK8sNamespace();
-        String   sValues     = "values/helm-values-coh-user-artifacts.yaml";
+        String   sValues     = "values/helm-values-coh.yaml";
         String[] asSetValues = {"clusterSize=1"};
         String   sLogConfig  = "/scripts/logging.properties";
 
