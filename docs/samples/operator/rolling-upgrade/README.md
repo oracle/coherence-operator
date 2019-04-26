@@ -1,4 +1,4 @@
-# Storage-disabled client in cluster via interceptor
+# Change image version for Coherence or application container using rolling upgrade
 
 The steps detailed in samples such as [Storage-disabled client in cluster via interceptor](../../coherence-deployments/storage-disabled/interceptor)
 call for the creation of a sidecar docker image that conveys the application classes 
@@ -151,8 +151,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    You will notice that the data always remains the same.
    
    *Note*: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
-   stop and restart it.  In an environment where you have configured a load balancer, then the 
-   Coherence*Extend session will automatically reconnect for you.
+   stop and restart it.  
+   
+   In an environment where you have configured a load balancer, then the 
+   Coherence*Extend session will automatically reconnect for you when it detects a disconnect.
    
 1. Check the status of the upgrade
 
