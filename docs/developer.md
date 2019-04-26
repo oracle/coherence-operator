@@ -161,7 +161,7 @@ All of the maven commands in this document are assumed to use this
 
       10. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
      
-      11. Provide a tag that effectively removes the `store` prefix: `docker store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
+      11. Provide a tag that effectively removes the `store` prefix: `docker tag store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
 
    2. Now that we have `oracle/coherence:12.2.1.3` in our local Docker
      server, apply the patch to derive 12.2.1.3.2 from it.
@@ -205,10 +205,10 @@ All of the maven commands in this document are assumed to use this
    [INFO] ------------------------------------------------------------------------
    [INFO] Reactor Summary:
    [INFO]
-   [INFO] coherence-operator parent OPERATOR_VERSION ........... SUCCESS [  2.487 s]
+   [INFO] coherence-operator parent VERSION ........... SUCCESS [  2.487 s]
    [INFO] coherence-operator ................................. SUCCESS [ 21.651 s]
    [INFO] coherence-utils .................................... SUCCESS [ 22.868 s]
-   [INFO] coherence-operator-tests OPERATOR_VERSION ............ SUCCESS [ 11.468 s]
+   [INFO] coherence-operator-tests VERSION ............ SUCCESS [ 11.468 s]
    [INFO] ------------------------------------------------------------------------
    [INFO] BUILD SUCCESS
    [INFO] ------------------------------------------------------------------------
@@ -217,7 +217,7 @@ All of the maven commands in this document are assumed to use this
    [INFO] ------------------------------------------------------------------------
    ```
 
-   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
 * `mvn -DskipTests generate-resources`
 
@@ -232,13 +232,13 @@ All of the maven commands in this document are assumed to use this
    ```
    ...
    Successfully built af61471e4774
-   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-operator:OPERATOR_VERSION
+   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-operator:VERSION
    ...
    Successfully built 88495a497a16
-   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-utils:OPERATOR_VERSION
+   Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-utils:VERSION
    ```
 
-   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
 * Verify the docker images have been built and are accessible to your
   local docker server.
@@ -248,23 +248,23 @@ All of the maven commands in this document are assumed to use this
    This should produce output similar to the following:
 
    ```
-   YOUR_test.image.prefix_VALUE/oracle/coherence-utils    OPERATOR_VERSION 88495a497a16 14 minutes ago 124MB
-   YOUR_test.image.prefix_VALUE/oracle/coherence-operator OPERATOR_VERSION af61471e4774 14 minutes ago 537MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence-utils    VERSION 88495a497a16 14 minutes ago 124MB
+   YOUR_test.image.prefix_VALUE/oracle/coherence-operator VERSION af61471e4774 14 minutes ago 537MB
    YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.2       7e7feca04384 2 months ago 547MB
    ```
 
-   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
 
-* Verify the Helm charts have been built and are accessible in your
-  workarea.
+* Verify the Coherence Helm chart and the Coherence Operator Helm chart
+  have been built and are accessible in your workarea.
   
    `ls -la operator/target | grep "drw" | grep coherence`
 
    This should produce output similar to the following:
 
    ```
-   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-OPERATOR_VERSION-helm
-   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-operator-OPERATOR_VERSION-helm
+   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-VERSION-helm
+   drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-operator-VERSION-helm
    ```
 
    When executing the steps in the [quickstart](quickstart.md) and
@@ -273,4 +273,4 @@ All of the maven commands in this document are assumed to use this
    For example:
    `/Users/username/workareas/coherence-operator/operator/target`.
 
-   Note that `OPERATOR_VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.

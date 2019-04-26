@@ -86,7 +86,7 @@ and fill in these fields.
   
 ```bash
    Name:      Prometheus 
-   HTTP URL:  http://release-name-prometheus:9090/
+   HTTP URL:  http://prometheus-operated.<namespace>.svc.cluster.local:9090
 ```
 
-CLick `Save & Test` button on bottom of page.
+Click `Save & Test` button on bottom of page.

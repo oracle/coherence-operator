@@ -1,5 +1,5 @@
 <!--
-Copyright 2018, Oracle Corporation and/or its affiliates.
+Copyright 2018, 2019, Oracle Corporation and/or its affiliates.
 All rights reserved.  Licensed under the Universal
 Permissive License v 1.0 as shown at
 http://oss.oracle.com/licenses/upl.
@@ -10,9 +10,9 @@ Oracle is finding ways for organizations using Oracle Coherence to move
 their important workloads into the cloud. By certifying on industry
 standards, such as Docker and Kubernetes, Coherence now runs in a cloud
 neutral infrastructure. In addition, we've provided an open-source
-Oracle Coherence Kubernetes Operator (the “operator”) which has several
-key features to assist you with deploying and managing Coherence
-clusters in a Kubernetes environment. You can:
+Oracle Coherence Operator (the “operator”) which has several key
+features to assist you with deploying and managing Coherence clusters in
+a Kubernetes environment. You can:
 
 * Run the Coherence you know and love on the industry standard
   Kubernetes container orchestration framework, using Docker containers
@@ -51,13 +51,12 @@ To help you find what you are looking for more easily, please consult
 this table of contents:
 
 * The [Quick Start guide](docs/quickstart.md) explains how to
-  quickly get the Coherence running on Kubernetes, using the defaults,
+  quickly get Coherence running on Kubernetes, using the defaults,
   nothing special.
 
 * The [User guide](docs/user-guide.md) contains detailed usage
   information on the Coherence Operator, including how to install and
-  configure the operator, and how to use it to create and manage
-  WebLogic domains.
+  configure the operator and several common use-cases.
 
 * The [Samples](docs/samples/README.md) provide detailed example
   code and instructions that show you how to perform various tasks

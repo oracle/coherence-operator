@@ -1,11 +1,11 @@
 # Quick Start guide
 
-The Oracle Coherence Kubernetes Operator manages Oracle Coherence on Kubernetes.
-It manages monitoring data through Prometheus, and logging data through
+The Oracle Coherence Operator manages Coherence on Kubernetes,
+monitoring data through Prometheus, and logging data through
 ElasticSearch and Kibana.
 
 > Note, use of Prometheus and Grafana is only available when using the
-> operator with Coherence 12.2.1.4.
+> operator with Coherence version 12.2.1.4.
 
 Use this quick start guide to deploy Coherence applications in a
 Kubernetes cluster managed by the Coherence Operator. Please note that
@@ -35,10 +35,10 @@ see the [User Guide](user-guide.md).
 ### Runtime Environment Prerequisites
 
 * Kubernetes must be able to pull the docker images required by the
-  Coherence Kubernetes Operator.
+  Coherence Operator.
   
 * Some of the Helm charts in this project require additional,
-  non-standard, configuration on the each of the Kubernetes PODs that
+  non-standard, configuration on the each Kubernetes pod that
   will be running the workloads related to the chart.  This
   configuration currently includes:
   
@@ -108,7 +108,7 @@ You can also query the status with `helm status`:
 $ helm status sample-coherence-operator
 ```
 
-If the deployment was succesfull, the output should include output
+If the deployment was successful, the output should include output
 similar to the following (abbreviated):
 
 ```
@@ -250,7 +250,7 @@ $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar -Dcoherence.cacheconfig=$PWD/ex
 This should produce output similar to the following:
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
+Oracle Coherence Version 12.2.1.3.2
  Grid Edition: Development mode
 Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
 
@@ -260,7 +260,7 @@ The value of the key is 1
 Running the program again should produce:
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
+Oracle Coherence Version 12.2.1.3.2
  Grid Edition: Development mode
 Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
 
