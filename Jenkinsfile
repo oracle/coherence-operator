@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('maven-build') {
             agent {
-              label 'Linux'
+              label 'Kubernetes'
             }
             steps {
                 sh 'rm PULL_SECRET_* || true'
@@ -53,7 +53,7 @@ pipeline {
         }
         stage('docker-build') {
             agent {
-                label 'Linux'
+                label 'Kubernetes'
             }
             steps {
                 echo 'Docker Build'
@@ -68,7 +68,7 @@ pipeline {
         }
         stage('docker-push') {
             agent {
-                label 'Linux'
+                label 'Kubernetes'
             }
             steps {
                 echo 'Docker Push'
@@ -80,7 +80,7 @@ pipeline {
         }
         stage('kubernetes-tests') {
             agent {
-                label 'Linux'
+                label 'Kubernetes'
             }
             steps {
                 echo 'Kubernetes Tests'
