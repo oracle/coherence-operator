@@ -28,7 +28,7 @@ pipeline {
                     label 'Docker'
                 }
             }
-    environment {
+            environment {
                 http_proxy  = credentials('coherence-operator-http-proxy')
                 https_proxy = credentials('coherence-operator-https-proxy')
                 HTTP_PROXY  = credentials('coherence-operator-http-proxy')
