@@ -1,5 +1,12 @@
 pipeline {
     agent none
+    environment {
+        http_proxy  = credentials('coherence-operator-http-proxy')
+        https_proxy = credentials('coherence-operator-https-proxy')
+        HTTP_PROXY  = credentials('coherence-operator-http-proxy')
+        HTTPS_PROXY = credentials('coherence-operator-https-proxy')
+        NO_PROXY    = credentials('coherence-operator-no-proxy')
+    }
     options {
         lock('kubernetes-stage1')
     }
@@ -27,13 +34,6 @@ pipeline {
                     args '-u root'
                     label 'Docker'
                 }
-            }
-            environment {
-                http_proxy  = credentials('coherence-operator-http-proxy')
-                https_proxy = credentials('coherence-operator-https-proxy')
-                HTTP_PROXY  = credentials('coherence-operator-http-proxy')
-                HTTPS_PROXY = credentials('coherence-operator-https-proxy')
-                NO_PROXY    = credentials('coherence-operator-no-proxy')
             }
             steps {
                 echo 'Helm Verify'
