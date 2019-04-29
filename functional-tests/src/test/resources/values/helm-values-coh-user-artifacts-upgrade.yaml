@@ -10,6 +10,8 @@ store:
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds:       10
+  logging:
+    configFile: custom-logging.properties
 
 userArtifacts:
   image: "${test.image.prefix}user-artifacts:2.0"

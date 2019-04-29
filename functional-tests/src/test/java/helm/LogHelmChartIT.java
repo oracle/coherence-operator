@@ -73,7 +73,8 @@ public class LogHelmChartIT
             {
             try
                 {
-                capturePodLogs(LogHelmChartIT.class, s_k8sCluster, getCoherenceOperatorSelector(s_sOperatorRelease), null);
+                capturePodLogs(LogHelmChartIT.class, s_k8sCluster, getCoherenceOperatorSelector(s_sOperatorRelease),
+                    "coherence-operator", "fluentd");
                 cleanupHelmReleases(s_sOperatorRelease);
                 }
             catch (Throwable t)
@@ -158,6 +159,48 @@ public class LogHelmChartIT
             assertThat(sLogs.stream().anyMatch(l -> l.contains("Role=myrole")), is(true));
             assertThat(sLogs.stream().anyMatch(l -> l.contains("Started cluster Name=mycluster")), is(true));
             }
+        }
+
+    @Test
+    public void shouldUseFluentdApplicationConfiguration() throws Exception
+        {
+        String[] asCohNamespaces = getTargetNamespaces();
+        String   sValues         = "values/helm-values-coh-user-artifact-efk.yaml";
+        String   sLogConfig      = "custom-logging.properties";
+        String[] asSetValues     = {
+            "clusterSize=1", "store.logging.configFile=" + sLogConfig,
+            "fluentd.application.configFile=/conf/fluentd-cloud.conf",
+            "fluentd.application.tag=cloud"
+        };
+
+        m_asReleases = installCoherence(s_k8sCluster, asCohNamespaces, sValues, asSetValues);
+
+        assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+
+        for (int i = 0; i < m_asReleases.length; i++)
+            {
+            String sSelector = getCoherencePodSelector(m_asReleases[i]);
+            List<String> listPod = HelmUtils.getPods(s_k8sCluster, asCohNamespaces[i], sSelector);
+
+            assertThat(listPod.isEmpty(), is(false));
+
+            Queue<String> queueLog = getPodLog(s_k8sCluster, asCohNamespaces[i], listPod.get(0), "fluentd");
+
+            Eventually.assertThat("ensure fluentd started",
+                invoking(this).fluentdLogMatch(asCohNamespaces[i], listPod.get(0), "starting fluentd"), is(true));
+            Eventually.assertThat("fluentd source for cloud is missing",
+                invoking(this).fluentdLogMatch(asCohNamespaces[i], listPod.get(0), "tag \"cloud\""), is(true));
+            Eventually.assertThat("fluentd match for cloud is missing",
+                invoking(this).fluentdLogMatch(asCohNamespaces[i], listPod.get(0), "<match cloud>"), is(true));
+            }
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    public boolean fluentdLogMatch(String sNamespace, String sPod, String sToMatch)
+        {
+        Queue<String> queueLog = getPodLog(s_k8sCluster, sNamespace, sPod, "fluentd");
+        return queueLog.stream().anyMatch(s -> s.contains(sToMatch));
         }
 
     // ----- data members ---------------------------------------------------
