@@ -32,6 +32,7 @@ pipeline {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
+                    export
                     sh operator/src/main/helm/scripts/install.sh
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
