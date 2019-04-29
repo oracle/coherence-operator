@@ -12,6 +12,7 @@ pipeline {
                 sh 'rm PULL_SECRET_* || true'
                 echo 'Maven Build'
                 sh 'helm init --client-only --skip-refresh'
+                echo 'Starting Maven process'
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh 'mvn clean install'
                 }
