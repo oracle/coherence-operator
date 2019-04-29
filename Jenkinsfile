@@ -1,12 +1,5 @@
 pipeline {
     agent none
-    environment {
-        HTTP_PROXY  = credentials('coherence-operator-http-proxy')
-        HTTPS_PROXY = credentials('coherence-operator-https-proxy')
-        NO_PROXY    = credentials('coherence-operator-no-proxy')
-        http_proxy  = credentials('coherence-operator-http-proxy')
-        https_proxy = credentials('coherence-operator-https-proxy')
-    }
     options {
         lock('kubernetes-stage1')
     }
@@ -35,11 +28,19 @@ pipeline {
                     label 'Docker'
                 }
             }
+            environment {
+                HTTP_PROXY  = credentials('coherence-operator-http-proxy')
+                HTTPS_PROXY = credentials('coherence-operator-https-proxy')
+                NO_PROXY    = credentials('coherence-operator-no-proxy')
+                http_proxy  = credentials('coherence-operator-http-proxy')
+                https_proxy = credentials('coherence-operator-https-proxy')
+            }
             steps {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
                     export
+                    alias curl="curl -x $http_proxy"
                     sh operator/src/main/helm/scripts/install.sh
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
