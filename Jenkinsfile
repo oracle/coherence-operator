@@ -6,13 +6,13 @@ pipeline {
     stages {
         stage('maven-build') {
             agent {
-              label 'Kubernetes'
+              label 'linux'
             }
             steps {
                 sh 'rm PULL_SECRET_* || true'
                 echo 'Maven Build'
                 sh 'helm init --client-only --skip-refresh'
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh 'mvn clean install'
                 }
                 archiveArtifacts 'operator/target/*.tar.gz'
@@ -24,7 +24,7 @@ pipeline {
                 docker {
                     image 'circleci/python:3.6.4'
                     args '-u root'
-                    label 'Docker'
+                    label 'docker'
                 }
             }
             steps {
@@ -53,14 +53,14 @@ pipeline {
         }
         stage('docker-build') {
             agent {
-                label 'Kubernetes'
+                label 'linux'
             }
             steps {
                 echo 'Docker Build'
                 sh 'helm init --client-only'
                 sh 'docker swarm leave --force || true'
                 sh 'docker swarm init'
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh 'mvn generate-resources'
                     sh 'mvn -Pdocker clean install'
                 }
@@ -68,19 +68,19 @@ pipeline {
         }
         stage('docker-push') {
             agent {
-                label 'Kubernetes'
+                label 'linux'
             }
             steps {
                 echo 'Docker Push'
                 sh 'helm init --client-only'
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh 'mvn -B -Dmaven.test.skip=true -P docker -P dockerPush clean install'
                 }
             }
         }
         stage('kubernetes-tests') {
             agent {
-                label 'Kubernetes'
+                label 'linux'
             }
             steps {
                 echo 'Kubernetes Tests'
