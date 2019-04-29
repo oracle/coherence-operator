@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('maven-build') {
             agent {
-              label 'linux'
+              label 'Linux'
             }
             steps {
                 sh 'rm PULL_SECRET_* || true'
@@ -24,7 +24,7 @@ pipeline {
                 docker {
                     image 'circleci/python:3.6.4'
                     args '-u root'
-                    label 'docker'
+                    label 'Docker'
                 }
             }
             steps {
@@ -53,7 +53,7 @@ pipeline {
         }
         stage('docker-build') {
             agent {
-                label 'linux'
+                label 'Linux'
             }
             steps {
                 echo 'Docker Build'
@@ -68,7 +68,7 @@ pipeline {
         }
         stage('docker-push') {
             agent {
-                label 'linux'
+                label 'Linux'
             }
             steps {
                 echo 'Docker Push'
@@ -80,7 +80,7 @@ pipeline {
         }
         stage('kubernetes-tests') {
             agent {
-                label 'linux'
+                label 'Linux'
             }
             steps {
                 echo 'Kubernetes Tests'
