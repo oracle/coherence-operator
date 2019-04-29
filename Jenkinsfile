@@ -94,10 +94,10 @@ pipeline {
             steps {
                 echo 'Kubernetes Tests'
                 withCredentials([
-                    string(credentialsId: 'docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
-                    string(credentialsId: 'docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
-                    string(credentialsId: 'docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
-                    string(credentialsId: 'docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
+                    string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
+                    string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
+                    string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
                     sh '''
                         helm init --client-only
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
