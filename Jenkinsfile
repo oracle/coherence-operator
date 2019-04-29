@@ -31,7 +31,6 @@ pipeline {
                     image 'circleci/python:3.6.4'
                     args '-u root'
                     label 'Docker'
-                    args '${DOCKER_PROXY}'
                 }
             }
             steps {
