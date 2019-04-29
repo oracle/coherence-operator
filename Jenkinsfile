@@ -1,5 +1,10 @@
 pipeline {
     agent none
+    environment {
+        HTTP_PROXY  = credentials('coherence-operator-http-proxy')
+        HTTPS_PROXY = credentials('coherence-operator-https-proxy')
+        NO_PROXY    = credentials('coherence-operator-no-proxy')
+    }
     options {
         lock('kubernetes-stage1')
     }
@@ -26,7 +31,7 @@ pipeline {
                     image 'circleci/python:3.6.4'
                     args '-u root'
                     label 'Docker'
-                    args '-e HTTP_PROXY=$HTTP_PROXY -e HTTPS_PROXY=$HTTPS_PROXY -e NO_PROXY=$NO_PROXY'
+                    args '${DOCKER_PROXY}'
                 }
             }
             steps {
