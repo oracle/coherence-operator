@@ -106,7 +106,7 @@ pipeline {
                            --docker-password="$PULL_SECRET_PASSWORD" \
                            --docker-email=$PULL_SECRET_EMAIL || true
                     '''
-                    withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'maven-settings', tempBinDir: '') {
+                    withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
                             mvn -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
