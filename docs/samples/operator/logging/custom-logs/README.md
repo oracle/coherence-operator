@@ -175,11 +175,11 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
    * Click on `Discover` and then the drop-down where it shows `coherence-cluster-*` and select `cloud-*`.
    
-   ![Cloud Dropdown](img/cloud-dropdown.png)
+     ![Cloud Dropdown](img/cloud-dropdown.png)
    
-   *  When you click `Refresh` you will now see the data from the custom logger:
+   * When you click `Refresh` you will now see the data from the custom logger:
    
-   [Cloud logger data](img/cloud-data.png) 
+     ![Cloud logger data](img/cloud-data.png) 
 
 ## Uninstalling the Charts
 
