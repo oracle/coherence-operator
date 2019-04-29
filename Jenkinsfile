@@ -40,7 +40,7 @@ pipeline {
                 unstash 'helm-chart'
                 sh '''
                     echo "proxy = $http_proxy" > ~/.curlrc
-                    sh operator/src/main/helm/scripts/install.sh || true
+                    sh operator/src/main/helm/scripts/install.sh
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
                     ls operator/target
