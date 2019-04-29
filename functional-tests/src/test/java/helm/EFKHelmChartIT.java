@@ -22,17 +22,13 @@ import org.hamcrest.Matcher;
 import org.junit.*;
 
 import java.io.IOException;
-import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -272,12 +268,6 @@ public class EFKHelmChartIT
             }
         finally
             {
-            dumpPodLog(s_k8sCluster, sNamespace, CLIENT1, null);
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "fluentd");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0), "coherence");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "fluentd");
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(1), "coherence");
-
             deleteClients();
             }
         }
@@ -714,7 +704,7 @@ public class EFKHelmChartIT
      */
     private String m_sCloudElasticsearchIndex;
 
-/**
+    /**
      * The name of the deployed Coherence Helm releases.
      */
     private String[] m_asReleases;
