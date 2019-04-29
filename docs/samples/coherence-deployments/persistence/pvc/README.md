@@ -201,7 +201,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart and PV's created in this sample.
+Carry out the following commands to delete the chart and PV's installed in this sample.
 
 ```bash
 $ helm delete storage --purge

@@ -82,10 +82,12 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart and PV's created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge
 ```
-     
-   
+
+Before starting another sample, ensure that all the pods are gone from previous sample.
+
+If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.

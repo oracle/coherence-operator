@@ -104,7 +104,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Issue the following to exec into one of the Coherence pods and list the files used by Elastic Data.
    
    ```bash
-   ls -l /tmp/
+   $ kubectl exec -it -n sample-coherence-ns storage-coherence-0 bash
+   
+   # ls -l /tmp/
    total 84744
    -rw-r--r-- 1 root root 86769664 Apr 15 07:37 coh1781907747204398478.tmp
    drwxr-xr-x 2 root root     4096 Apr 15 07:49 hsperfdata_root
@@ -127,7 +129,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

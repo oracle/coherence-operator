@@ -160,7 +160,7 @@ See [Here](../../management/rest/) for information on connecting to Management o
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart and PV's created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

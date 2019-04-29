@@ -147,7 +147,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the two charts installed in this sample.
 
 ```bash
 helm delete storage interceptor-client-tier --purge

@@ -123,7 +123,7 @@ There are a number of dashboard created via the import process.
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the charts installed in this sample.
 
 ```bash
 $ helm delete storage --purge

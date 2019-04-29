@@ -137,7 +137,7 @@ loaded and cam be accessed via the discover side-bar.
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

@@ -130,7 +130,7 @@ Note: This feature is only available in Coherence 12.2.1.4.0 and later.
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

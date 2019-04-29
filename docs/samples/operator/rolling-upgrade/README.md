@@ -7,7 +7,7 @@ is how Kubernetes enables safe rolling upgrades. You can read more about safe ro
 in the [Helm documentation](https://helm.sh/docs/helm/#helm-upgrade). 
 
 Briefly, as with the scaling described in the preceding section, the safe rolling upgrade 
-feature allows you to instruct Kubernetes, via the operator, to replace the currently deployed 
+feature allows you to instruct Kubernetes, via the operator, to replace the currently installed 
 version of your application classes with a different one. Kubernetes does not care if the different 
 version is "newer" or "older", as long as it has a docker tag and can be pulled by the cluster, 
 that is all Kubernetes needs to know. The operator will ensure this is done without data loss or interruption of service.
@@ -30,7 +30,7 @@ data to ensure its stored as uppercase.
 
 * [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client config for extend client
 
-* [src/main/java/com/oracle/coherence/examples/UppsercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppsercaseInterceptor.java) - interceptor that will change all entries to uppercase - version 2.
+* [src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java) - interceptor that will change all entries to uppercase - version 2.
 
 Note if you wish to enable Prometheus or log capture, change the following in the helm installs to `true`. Their default values are false, but they are set to `false` in the samples below for completeness.
 
@@ -51,7 +51,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    mvn clean install -P docker-v1
    ```
 
-   The above will build the v1 Docker image called `rolling-upgrade-sample:1.0.0`. This will be the initial image deployed 
+   The above will build the v1 Docker image called `rolling-upgrade-sample:1.0.0`. This will be the initial image installed 
    to the storage server.
    
    ```bash
@@ -208,7 +208,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Chart
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

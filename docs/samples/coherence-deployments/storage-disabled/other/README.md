@@ -1,6 +1,6 @@
 # Storage-disabled client in cluster as separate user image
 
-To ensure that a custom made container and Helm Chart can be deployed and join an existing Coherence
+To ensure that a custom made container and Helm Chart can be installed and join an existing Coherence
 cluster, the following needs be done for the custom container:
 
 * Ensure the correct version of Coherence is included in the packaging
@@ -144,7 +144,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the two charts installed in this sample.
 
 ```bash
 $ helm delete storage helidon-web-app --purge

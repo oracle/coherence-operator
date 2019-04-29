@@ -48,7 +48,7 @@ to a Coherence cluster using REST.
    
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

@@ -29,6 +29,8 @@
     <module>coherence-deployments/elastic-data/default</module>
     <module>coherence-deployments/elastic-data/pvc</module>
     <module>coherence-deployments/sidecar</module>
+    <module>operator/rolling-upgrade</module>
+    <module>operator/logging/custom-logs</module>
   </modules>
 
   <properties>

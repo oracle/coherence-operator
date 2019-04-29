@@ -69,7 +69,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge

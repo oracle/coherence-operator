@@ -169,7 +169,7 @@ Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the chart and PV's created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge
@@ -190,7 +190,6 @@ persistentvolumeclaim "snapshot-volume-storage-coherence-2" deleted
 $ kubectl get pvc -n sample-coherence-ns
 No resources found.
 ```
-
 
 Before starting another sample, ensure that all the pods are gone from previous sample.
 

@@ -8,7 +8,7 @@
       <interceptors>
         <interceptor>
           <instance>
-            <class-name>com.oracle.coherence.examples.UppercaseInterceptor</class-name>
+            <class-name>com.oracle.coherence.examples.UppercaseLoggingInterceptor</class-name>
           </instance>
         </interceptor>
       </interceptors>

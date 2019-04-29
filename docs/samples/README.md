@@ -226,7 +226,7 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
 1. [Coherence Operator](operator/)
    1. [Logging](operator/logging)
       1. [Enable log capture to view logs in Kiabana ](operator/logging/log-capture) &#x2714;
-      1. [Configure user logs and view in Kibana](operator/logging/customer-logs) &#x2718;
+      1. [Configure custom logger and view in Kibana ](operator/logging/custom-logs) &#x2714;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
       1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
@@ -266,9 +266,7 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
    1. [Diagnostic Tools](management/diagnostics)
       1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2718; 
       1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2718; 
-   1. [Coherence Reporter](management/reporter) 
-      1. [Manage the Reporter (12.2.1.4 only)](management/reporter/manage) &#x2718; 
-      1. [Retrieve Reporter reports](rmanagement/eporter/retrieve-reports) &#x2718;  
+   1. [Manage and use the Reporter](management/reporter) &#x2714; 
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
 
 Samples legend:

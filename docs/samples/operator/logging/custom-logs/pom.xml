@@ -16,11 +16,11 @@
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>samples-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>rolling-upgrade-sample</artifactId>
-  <name>Rolling Upgrade Sample</name>
+  <artifactId>custom-logger-sample</artifactId>
+  <name>Custom Logger Sample</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
@@ -45,7 +45,27 @@
     <!-- Use the assembly plugin to pull together the files to use to build the
          docker image under the target/docker folder -->
     <plugins>
-      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>docker</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>docker</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/assembly/image-assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- run QueryPlus via mvn exec:java -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -75,7 +95,7 @@
             </systemProperty>
             <systemProperty>
               <key>coherence.cluster</key>
-              <value>interceptor-cluster</value>
+              <value>proxy-tier-cluster</value>
             </systemProperty>
           </systemProperties>
         </configuration>
@@ -84,9 +104,8 @@
   </build>
 
   <profiles>
-    <!-- version 1.0.0 profile -->
     <profile>
-      <id>docker-v1</id>
+      <id>docker</id>
       <activation>
         <activeByDefault>false</activeByDefault>
         <property>
@@ -96,26 +115,6 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>docker</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>docker-v1</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <descriptors>
-                    <descriptor>src/assembly/image-assembly-v1.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
@@ -124,13 +123,13 @@
                 <phase>package</phase>
                 <configuration>
                   <executable>docker</executable>
-                  <workingDirectory>${project.build.directory}/docker-v1
+                  <workingDirectory>${project.build.directory}/docker
                   </workingDirectory>
                   <arguments>
                     <argument>build</argument>
                     <argument>-t</argument>
                     <argument>
-                      ${project.artifactId}:1.0.0
+                      ${project.artifactId}:${project.version}
                     </argument>
                     <argument>.</argument>
                   </arguments>
@@ -139,61 +138,20 @@
                   <goal>exec</goal>
                 </goals>
               </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- version 2.0.0 profile -->
-    <profile>
-      <id>docker-v2</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-        <property>
-          <name>project.docker</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
               <execution>
-                <id>docker</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>docker-v2</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <descriptors>
-                    <descriptor>src/assembly/image-assembly-v2.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-utils-docker-image</id>
+                <id>docker-tag</id>
                 <phase>package</phase>
                 <configuration>
                   <executable>docker</executable>
-                  <workingDirectory>${project.build.directory}/docker-v2
+                  <workingDirectory>${project.build.directory}/docker
                   </workingDirectory>
                   <arguments>
-                    <argument>build</argument>
-                    <argument>-t</argument>
+                    <argument>tag</argument>
                     <argument>
-                      ${project.artifactId}:2.0.0
+                      ${project.artifactId}:${project.version}
                     </argument>
-                    <argument>.</argument>
+                    <argument>${project.artifactId}:latest
+                    </argument>
                   </arguments>
                 </configuration>
                 <goals>

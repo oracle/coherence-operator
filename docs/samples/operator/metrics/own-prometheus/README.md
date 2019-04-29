@@ -85,7 +85,7 @@ coherence_jmx_scrape_total{member="storage-coherence-0", nodeId="1", cluster="st
 
 ## Uninstalling the Charts
 
-Carry out the following commands to delete the two charts created in this sample.
+Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge
