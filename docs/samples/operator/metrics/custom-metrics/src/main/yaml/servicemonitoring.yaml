@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: custom-coherence-monitor
+  namespace: sample-coherence-ns
+  labels:
+    component: coherence-service
+    release: coherence-operator
+spec:
+  selector:
+    matchLabels:
+      component: coherence-service
+      release: custom-coherence-metrics
+  namespaceSelector:
+    any: false
+    matchNames: [sample-coherence-ns]
+  endpoints:
+  - port: custom-port
+    path: /metrics

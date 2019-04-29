@@ -64,9 +64,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    **Note:** If you are running against a remote Kubernetes cluster you will need to
    push the above image to your repository accessible to that cluster.
 
-1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image
-
-   We are also setting the cluster-name to `interceptor-cluster` which will we use in later steps.
+1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image as a sidecar.
 
    ```bash
    helm install \

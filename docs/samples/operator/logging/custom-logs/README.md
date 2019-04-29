@@ -19,7 +19,7 @@ from this logger captured via `fluentd` and displayed in Kibana.
 
 * [src/main/java/com/oracle/coherence/examples/CustomFileHandler.java](src/main/java/com/oracle/coherence/examples/CustomFileHandler.java) - Logger for custom 'sample' logger
 
-* [src/main/java/com/oracle/coherence/examples/UppercaseLoggingInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseLoggingInterceptor.java) - Logger for custom 'sample' logger
+* [src/main/java/com/oracle/coherence/examples/UppercaseLoggingInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseLoggingInterceptor.java) - interceptor to update values to upper case and use custom logger
 
 ## Prerequisites
 
@@ -155,7 +155,6 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    ```
    
    *Note*: Depending upon the data distribution, not all members will show the message.
-   
    
 ## Verifying Kibana Logs
 

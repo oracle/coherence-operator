@@ -31,6 +31,7 @@
     <module>coherence-deployments/sidecar</module>
     <module>operator/rolling-upgrade</module>
     <module>operator/logging/custom-logs</module>
+    <module>operator/metrics/custom-metrics</module>
   </modules>
 
   <properties>
@@ -64,6 +65,12 @@
       <dependency>
         <groupId>com.oracle.coherence</groupId>
         <artifactId>coherence</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence-rest</artifactId>
         <version>${coherence.version}</version>
       </dependency>
 

@@ -264,8 +264,8 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
    1. [Access JMX in the Coherence cluster via JConsole and JVisualVM](management/jmx) &#x2714;
    1. [Access Coherence Console and CohQL on a cluster node](management/console-cohql) &#x2714;
    1. [Diagnostic Tools](management/diagnostics)
-      1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2718; 
-      1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2718; 
+      1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2714; 
+      1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2726; 
    1. [Manage and use the Reporter](management/reporter) &#x2714; 
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
 
