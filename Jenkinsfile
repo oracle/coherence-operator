@@ -4,6 +4,8 @@ pipeline {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
+        http_proxy  = credentials('coherence-operator-http-proxy')
+        https_proxy = credentials('coherence-operator-https-proxy')
     }
     options {
         lock('kubernetes-stage1')
