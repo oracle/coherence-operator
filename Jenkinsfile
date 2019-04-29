@@ -26,6 +26,7 @@ pipeline {
                     image 'circleci/python:3.6.4'
                     args '-u root'
                     label 'Docker'
+                    args '-e HTTP_PROXY=$HTTP_PROXY -e HTTPS_PROXY=$HTTPS_PROXY -e NO_PROXY=$NO_PROXY'
                 }
             }
             steps {
