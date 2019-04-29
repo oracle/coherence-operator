@@ -42,8 +42,8 @@ yamllinter() {
 }
 
 # include the semvercompare function
-curDir="$(dirname "$0")"
-source "$curDir/semvercompare.sh"
+# curDir="$(dirname "$0")"
+source "operator/src/main/helm/scripts/semvercompare.sh"
 
 directory=$1
 
