@@ -25,7 +25,7 @@ volumeBindingMode: WaitForFirstConsumer
 
 #### 2. Create local Persistent Volumes.
 
-Since local volumes can [only by used as a statically created](https://kubernetes.io/docs/concepts/storage/#local)
+Since local volumes can [only be used as a statically created](https://kubernetes.io/docs/concepts/storage/#local)
 PersistentVolume, persistent volumes need to be created before they are used.
 
 A sample yaml for creating Persistence Volume `mylocalsc-pv0` with label `type: local` is as follows. 
@@ -53,7 +53,7 @@ kubectl create -f mypv0.yaml
 ```
 
 Note that the number of Persistent Volumes created need to be the same as Coherence cluster size.
-For instance, in case of a cluster of size 3, one also need to create `mylocalsc-pv1` and `mylocalsc-pv2`.
+For instance, in case of a cluster of size 3, one also need to create `mylocalsc-pv1`, `mylocalsc-pv2`, and `mylocalsc-pv3`.
 
 #### 3. Specify parameters for Coherence Helm install.
 
@@ -112,7 +112,7 @@ etc.
 
 
 ### Snapshot
-By default, Coherence snapshot use the same location for persistence snapshot data as in active persistence.
+By default, Coherence snapshot use the same location as active persistence to store snapshot data.
 
 If it is desired to use a different location, then add the following parameter in Helm installation:
 
