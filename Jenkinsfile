@@ -39,7 +39,6 @@ pipeline {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
-                    export
                     echo "proxy = $http_proxy" > ~/.curlrc
                     sh operator/src/main/helm/scripts/install.sh || true
                     mkdir -p operator/target/temp
