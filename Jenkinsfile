@@ -41,7 +41,7 @@ pipeline {
                 sh '''
                     export
                     echo "proxy = $http_proxy" > ~/.curlrc
-                    sh operator/src/main/helm/scripts/install.sh
+                    sh operator/src/main/helm/scripts/install.sh || true
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
                     ls operator/target
