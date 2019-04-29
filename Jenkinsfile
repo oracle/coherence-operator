@@ -50,8 +50,8 @@ pipeline {
                     echo COH_OP_CHART=$COH_OP_CHART
                     tar -xf $COH_CHART -C operator/target/temp
                     tar -xf $COH_OP_CHART -C operator/target/temp
-                    sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence/
-                    sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence-operator/
+                    # sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence/
+                    # sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence-operator/
                 '''
             }
             post {
