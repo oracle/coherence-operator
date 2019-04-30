@@ -116,7 +116,7 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
-                            export HELM_BINARY=`type -ap helm`
+                            export HELM_BINARY=`which helm`
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
