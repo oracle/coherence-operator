@@ -1,0 +1,6 @@
+name: webserver
+description: Coherence Kubernetes Example
+apiVersion: v1
+version: ${project.version}
+appVersion: ${project.version}
+icon: "https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png"

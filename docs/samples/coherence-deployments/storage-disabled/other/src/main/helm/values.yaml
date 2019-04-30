@@ -1,0 +1,21 @@
+clusterSize:
+
+imagePullSecrets: []
+
+role: WebServer
+
+clusterName:
+
+wka:
+
+image: "${project.artifactId}:${project.version}"
+
+imagePullPolicy:
+
+service:
+  enabled: true
+  type: "ClusterIP"
+  domain: "cluster.local"
+  loadBalancerIP:
+  annotations:
+  httpPort:
