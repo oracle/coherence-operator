@@ -4,8 +4,6 @@ pipeline {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
-        http_proxy  = credentials('coherence-operator-http-proxy')
-        https_proxy = credentials('coherence-operator-https-proxy')
     }
     options {
         lock('kubernetes-stage1')
@@ -39,7 +37,7 @@ pipeline {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
-                    echo "proxy = $http_proxy" > ~/.curlrc
+                    echo "proxy = $HTTP_PROXY" > ~/.curlrc
                     sh operator/src/main/helm/scripts/install.sh
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
