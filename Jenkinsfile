@@ -99,6 +99,7 @@ pipeline {
                     string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
                     string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
                     sh '''
+                        export
                         helm init --client-only
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
                         kubectl create namespace test-cop2-$BUILD_NUMBER || true
@@ -117,6 +118,7 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
+                            export
                             mvn -Dbedrock.helm=helm \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
