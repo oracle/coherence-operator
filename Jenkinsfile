@@ -48,8 +48,8 @@ pipeline {
                     echo COH_OP_CHART=$COH_OP_CHART
                     tar -xf $COH_CHART -C operator/target/temp
                     tar -xf $COH_OP_CHART -C operator/target/temp
-                    # sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence/
-                    # sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence-operator/
+                    sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence/
+                    sh operator/src/main/helm/scripts/lint.sh operator/target/temp/coherence-operator/
                 '''
             }
             post {
@@ -97,7 +97,6 @@ pipeline {
                     string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
                     string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
                     sh '''
-                        export
                         helm init --client-only
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
                         kubectl create namespace test-cop2-$BUILD_NUMBER || true
