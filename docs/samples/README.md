@@ -359,8 +359,8 @@ If you have enabled log capture then you can use the `port-forward-prometheus.sh
    ```bash
    $ ./port-forward-prometheus.sh sample-coherence-ns
 
-   Forwarding from 127.0.0.1:5601 -> 5601
-   Forwarding from [::1]:5601 -> 5601
+   Forwarding from 127.0.0.1:9090 -> 9090
+   Forwarding from [::1]:9090 -> 9090
    ```
 1. Access Prometheus using the following URL:
 

@@ -27,14 +27,15 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
 ## Installation Steps
 
-1. Change to the `samples/operator/logging/custom-logs` directory and ensure you have your you have your maven build     
+1. Change to the `samples/operator/logging/custom-logs` directory and ensure you have your maven build     
    environment set for JDK11 and build the project.
 
    ```bash
    mvn clean install -P docker
    ```
 
-   The above will build the Docker image with the cache configuration files and compiled Java classes.
+   The above will build the Docker image with the cache and login configuration as well as compiled Java classes
+   
 
    **Note:** If you are running against a remote Kubernetes cluster you will need to
    push the above image to your repository accessible to that cluster.
@@ -57,7 +58,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    
    * `--set logCaptureEnabled=true` - enable log catpure
    
-   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - sepcify custom image with config and classes
+   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - specify custom image with config and classes
    
    * `--set store.logging.configFile=custom-logging.properties` - configure custom logger
    
@@ -120,7 +121,6 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    insert into 'test' key('key-2') value('value-2');
    insert into 'test' key('key-3') value('value-3');
    insert into 'test' key('key-4') value('value-4');
-
    ```
    
    Verify the data:
@@ -138,23 +138,15 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    to uppercase.
    
 1. Confirm the log message can be seen 
-
-   Issue the following to check that the log message can be seen via `kubectl logs`.
-
+   
    ```bash
-   $ kubectl logs storage-coherence-0  -n sample-coherence-ns -c coherence | egrep 'Before|Changed'
+   $ kubectl exec -it  storage-coherence-0  -n sample-coherence-ns -c coherence -- bash -c 'cat /logs/cloud*.log'
+   
    2019-04-29 04:45:03 Cloud 1.0 <INFO> (cluster=custom-logger-cluster, member=storage-coherence-0, thread=PartitionedCacheWorker:0x0000:5): Before, key=key-4, value=value-4
    2019-04-29 04:45:03 Cloud 1.0 <INFO> (cluster=custom-logger-cluster, member=storage-coherence-0, thread=PartitionedCacheWorker:0x0000:5): Changed key=key-4 to value=VALUE-4
    ``` 
-
-   Check the `/logs/cloud*.log` file exists.
    
-   ```bash
-   $ kubectl exec -it  storage-coherence-0  -n sample-coherence-ns -c coherence -- bash -c 'ls /logs/cloud*.log'
-   /logs/cloud-0.log
-   ```
-   
-   *Note*: Depending upon the data distribution, not all members will show the message.
+   *Note*: Depending upon the data distribution, not all members will show the messages.
    
 ## Verifying Kibana Logs
 

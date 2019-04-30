@@ -24,7 +24,7 @@ import static com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATING;
 
 /**
  * Interceptor that converts all data cache values to uppercase and uses
- * the custom 'sample' logger to log messages.
+ * the custom 'cloud' logger to log messages.
  *
  * @author tam  2019.04.29
  */

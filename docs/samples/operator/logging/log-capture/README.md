@@ -133,7 +133,7 @@ There are a number of dashboard created via the import process.
 ## Default Queries
 
 There are many queries related to common Coherence messages, warnings and errors that are 
-loaded and cam be accessed via the discover side-bar.
+loaded and can be accessed via the discover side-bar.
 
 ## Uninstalling the Charts
 

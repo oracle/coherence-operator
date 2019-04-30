@@ -62,7 +62,7 @@ configures Prometheus to scrape all components of `coherence-service`.
    
    Along with the `coherence-operator`, you should also see `grafana` and other `promethues` related pods.
    
-1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your you have your maven build     
+1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your maven build     
    environment set for JDK11 and build the project.
 
    ```bash

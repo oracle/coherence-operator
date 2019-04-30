@@ -37,7 +37,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/storage-disabled/interceptor` directory and ensure you have your you have your maven build     
+1. Change to the `samples/coherence-deployments/storage-disabled/interceptor` directory and ensure you have your maven build     
    environment set for JDK11 and build the project.
 
    ```bash

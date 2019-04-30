@@ -44,7 +44,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Installation Steps
 
-1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your you have your maven build     
+1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your maven build     
    environment set for JDK11 and build the project.
 
    ```bash

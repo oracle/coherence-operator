@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.logging.FileHandler;
 
 /**
- * Logger for custom 'sample' logger.
+ * Logger for custom 'cloud' logger.
  */
 public class CustomFileHandler extends FileHandler
     {
