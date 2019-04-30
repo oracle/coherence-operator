@@ -116,12 +116,12 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
-                            export
-                            mvn -Dbedrock.helm=helm \
+                            mvn -Dbedrock.helm=`type -ap helm` \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
                                 -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret \
                                 -Dk8s.create.namespace=false \
+                                -Dfailsafe.skipAfterFailureCount=1 \
                                 -P pushTestImage -P helm-test clean install
                         '''
                     }
