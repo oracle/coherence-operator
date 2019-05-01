@@ -26,6 +26,7 @@
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+    <coherence.version>12.2.1-4-0</coherence.version>
   </properties>
 
   <dependencies>

@@ -2,7 +2,8 @@
 
 This sample shows how an end-user can include their own custom metrics for scraping be prometheus.
 
-Note: This feature is only available in Coherence 12.2.1.4.0 and later.
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -101,11 +102,9 @@ configures Prometheus to scrape all components of `coherence-service`.
 
    The following additional options are set:
    
-   * `--set store.ports.custom-port-8200` - custom metrics port
+   * `--set store.ports.custom-port=8200` - custom metrics port
    
    * `--name custom-coherence-metrics` - matches spec.selector.matchLabels in (servicemonitoring.yaml)[src/main/yaml/servicemonitoring.yaml]
-
-   * 
    
    ```bash
    $ helm install --debug \

@@ -22,5 +22,6 @@
 1. [Elastic Data](elastic-data)
    1. [Deploy using default FlashJournal locations](elastic-data/default)
    1. [Deploy using external volume mapped to the host](elastic-data/pvc)
+1. [Installing Multiple Coherence clusters with one Operator](multiple-clusters)   
    
 [Return to samples](../README.md#list-of-samples)   

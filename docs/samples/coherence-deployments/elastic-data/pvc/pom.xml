@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>elastic-data-sample-pvc</artifactId>
-  <name>Elastic Data Sample - Specifying PVC</name>
+  <name>Elastic Data Sample - PVC</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
