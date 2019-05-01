@@ -256,6 +256,22 @@
     
     <plugins>
       <plugin>
+        <groupId>org.commonjava.maven.plugins</groupId>
+        <artifactId>directory-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-top-parent-basedir</id>
+            <goals>
+              <goal>highest-basedir</goal>
+            </goals>
+            <phase>validate</phase>
+            <configuration>
+              <property>top.parent.basedir</property>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.glassfish.copyright</groupId>
         <artifactId>glassfish-copyright-maven-plugin</artifactId>
         <version>2.1</version>
@@ -263,9 +279,9 @@
         <executions>
           <execution>
             <configuration>
-              <excludeFile>${session.executionRootDirectory}/src/copyright/EXCLUDE.txt</excludeFile>
+              <excludeFile>${top.parent.basedir}/src/copyright/EXCLUDE.txt</excludeFile>
               <ignoreYear>false</ignoreYear>
-              <templateFile>${session.executionRootDirectory}/src/copyright/HEADER.txt</templateFile>
+              <templateFile>${top.parent.basedir}/src/copyright/HEADER.txt</templateFile>
             </configuration>
             <goals>
               <goal>copyright</goal>
