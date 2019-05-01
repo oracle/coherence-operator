@@ -64,7 +64,7 @@ If you are not running samples that have a Maven project, then you can skip this
 1. Make sure COHERENCE_HOME environment variable is set to point to your `coherence` directory under your install location.
    I.e. the directory containing the bin, lib, doc directories. This is only required for the Maven install-file commands.
 
-1. Use the following file to install Coherence and Coherence into your local repository:
+1. Use the following file to install Coherence into your local repository:
 
    ```bash
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar   \
