@@ -119,7 +119,7 @@ pipeline {
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
-                                -Dbedrock.kubectl=''$KUBECTL_BINARY'' \
+                                -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
                                 -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret \
