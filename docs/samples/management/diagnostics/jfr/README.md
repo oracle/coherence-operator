@@ -12,7 +12,9 @@ In this sample, we will execute an operation across all nodes of a cluster.
 Valid JFR commands are jfrStart, jfrStop, jfrDump, and jfrCheck.
      
 See [documentation](https://docs.oracle.com/javacomponents/jmc-5-4/jfr-runtime-guide/run.htm#JFRUH176) for more details on commands.  
-      
+ 
+> Note, use of Management over REST is only available when using the
+> operator with Coherence 12.2.1.4.    
 
 [Return to Diagnostics Tools](../) / [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 

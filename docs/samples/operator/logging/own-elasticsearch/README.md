@@ -25,7 +25,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
    
    * `elasticsearchEndpoint.port` to your elasticsearch port 
    
-   *Note*: If your Elasticsearch engine requires user and password, you can also set the following:
+   *Note*: If your Elasticsearch host requires user and password, you can also set the following:
    
    * `elasticsearchEndpoint.user` to your elasticsearch username
    
@@ -55,7 +55,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
    <match coherence-operator>
     @type elasticsearch
     host "my-elastic-host"
-    port 9200
+    port my-elastic-port
    ```
    
    The above host and port should match the values you supplied in the above `helm install`.
@@ -98,7 +98,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
     <match coherence-cluster>
      @type elasticsearch
      host "my-elastic-host"
-     port 9200
+     port my-elastic-port
    ```
    
    The above host and port should match the values you supplied in the `coherence-operator` install.

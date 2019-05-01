@@ -2,7 +2,8 @@
 
 This sample shows how an end-user can include their own custom metrics for scraping be prometheus.
 
-Note: This feature is only available in Coherence 12.2.1.4.0 and later.
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 

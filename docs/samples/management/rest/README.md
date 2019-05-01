@@ -1,4 +1,7 @@
-# Using Management over REST (12.2.1.4 only)
+# Using Management over REST
+
+> Note, use of Management over REST is only available when using the
+> operator with Coherence 12.2.1.4.
 
 # Table of Contents
 

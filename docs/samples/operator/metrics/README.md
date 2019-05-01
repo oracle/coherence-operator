@@ -1,6 +1,7 @@
 # Metrics
 
-*Note:* Metrics are only available for Coherence 12.2.1.4.0 and above.
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
 
 # Table of Contents
 

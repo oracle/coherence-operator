@@ -15,12 +15,6 @@ for more information on Elastic Data.
 
 * [src/main/resources/conf/elastic-data-cache-config.xml](src/main/resources/conf/elastic-data-cache-config.xml) - cache config for storage-tier
 
-Note if you wish to enable Prometheus or log capture, change the following in the helm installs to `true`. Their default values are false, but they are set to `false` in the instructions below for completeness.
-
-* Prometheus: `--set prometheusoperator.enabled=true`
-
-* Log capture: `--set logCaptureEnabled=true`
-
 ## Prerequisites
 
 Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
@@ -35,7 +29,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```
 
 1. The result of the above is the docker image will be built with the cache configuration files
-   with the name in the format proxy-tier-sample:${version}.
+   with the name in the format elastic-data-sample-default:${version}.
 
    For Example:
 

@@ -64,18 +64,25 @@ If you are not running samples that have a Maven project, then you can skip this
 1. Make sure COHERENCE_HOME environment variable is set to point to your `coherence` directory under your install location.
    I.e. the directory containing the bin, lib, doc directories. This is only required for the Maven install-file commands.
 
-1. Use the following file to install Coherence into your local repository:
+1. Use the following file to install Coherence and Coherence into your local repository:
 
    ```bash
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar   \
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/12.2.1/coherence.12.2.1.pom
+   ```
+   
+   If you are using Coherence 12.2.1.4.0 or above you also need to install Coherence REST.
+   
+   ```bash
+   $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-rest.jar \
+                              -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
    ```   
 
 1. Ensure that the [samples top level pom.xml](pom.xml) has the Coherence version set to the version you
-   are using:  E.g. if you have Coherence 12.2.1.3.1 then `coherence.version` should be:
+   are using:  E.g. if you have Coherence 12.2.1.3.2 then `coherence.version` should be:
 
    ```xml
-    <coherence.version>12.2.1-3-1</coherence.version>
+    <coherence.version>12.2.1-3-2</coherence.version>
    ```
 
 ## Create the sample namespace
@@ -239,7 +246,7 @@ Samples legend:
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
       1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
       1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
-      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2718;
+      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2726;
    1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
    1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
 1. [Coherence Deployments](coherence-deployments)
@@ -248,7 +255,7 @@ Samples legend:
       1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
       1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
       1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2718;
-      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2718;
+      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
@@ -258,11 +265,10 @@ Samples legend:
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
       1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
-      1. [Specify a separate snapshot location for active persistence](coherence-deployments/persistence/snapshot) &#x2714;
       1. [Specifying an archiver](coherence-deployments/persistence/archiver) &#x2718;
    1. [Elastic Data](coherence-deployments/elastic-data)
       1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
-      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc) &#x2718;
+      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc) &#x2714;
    1. [Installing Multiple Coherence clusters with one Operator](coherence-deployments/multiple-clusters)    
 1. [Management](management)
    1. [Management using REST (12.2.1.4.X only)](management/rest)
