@@ -150,7 +150,7 @@
                     <argument>
                       ${project.artifactId}:${project.version}
                     </argument>
-                    <argument>${docker.repo}/${project.artifactId}:latest
+                    <argument>${project.artifactId}:latest
                     </argument>
                   </arguments>
                 </configuration>

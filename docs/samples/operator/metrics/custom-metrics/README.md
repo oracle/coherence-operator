@@ -101,11 +101,9 @@ configures Prometheus to scrape all components of `coherence-service`.
 
    The following additional options are set:
    
-   * `--set store.ports.custom-port-8200` - custom metrics port
+   * `--set store.ports.custom-port=8200` - custom metrics port
    
    * `--name custom-coherence-metrics` - matches spec.selector.matchLabels in (servicemonitoring.yaml)[src/main/yaml/servicemonitoring.yaml]
-
-   * 
    
    ```bash
    $ helm install --debug \

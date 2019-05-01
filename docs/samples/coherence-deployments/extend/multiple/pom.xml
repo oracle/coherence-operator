@@ -19,8 +19,8 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>elastic-data-sample-pvc</artifactId>
-  <name>Elastic Data Sample - Specifying PVC</name>
+  <artifactId>multiple-proxy-sample</artifactId>
+  <name>Coherence*Extend - Multiple Proxy Sample</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
@@ -95,7 +95,11 @@
             </systemProperty>
             <systemProperty>
               <key>coherence.cluster</key>
-              <value>proxy-tier-cluster</value>
+              <value>multiple-proxy-cluster</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.log.level</key>
+              <value>6</value>
             </systemProperty>
           </systemProperties>
         </configuration>

@@ -23,11 +23,11 @@
 
   <modules>
     <module>coherence-deployments/extend/proxy-tier</module>
+    <module>coherence-deployments/extend/multiple</module>
     <module>coherence-deployments/extend/default</module>
     <module>coherence-deployments/storage-disabled/interceptor</module>
     <module>coherence-deployments/storage-disabled/other</module>
     <module>coherence-deployments/elastic-data/default</module>
-    <module>coherence-deployments/elastic-data/pvc</module>
     <module>coherence-deployments/sidecar</module>
     <module>operator/rolling-upgrade</module>
     <module>operator/logging/custom-logs</module>

@@ -223,14 +223,22 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
 
 # List Of Samples
 
+Samples legend:
+* &#x2714; - Available for Coherence 12.2.1.3.x and above
+
+* &#x2726; - Available for Coherence 12.2.1.4.x and above
+
+* &#x2718; - Not yet available
+
 1. [Coherence Operator](operator/)
    1. [Logging](operator/logging)
       1. [Enable log capture to view logs in Kiabana ](operator/logging/log-capture) &#x2714;
       1. [Configure custom logger and view in Kibana ](operator/logging/custom-logs) &#x2714;
+      1. [Push logs to your own Elasticsearch Instance](operator/logging/own-elasticsearch) &#x2714;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
       1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
-      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2718;
+      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
       1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2718;
    1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
    1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
@@ -255,6 +263,7 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
    1. [Elastic Data](coherence-deployments/elastic-data)
       1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
       1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc) &#x2718;
+   1. [Installing Multiple Coherence clusters with one Operator](coherence-deployments/multiple-clusters)    
 1. [Management](management)
    1. [Management using REST (12.2.1.4.X only)](management/rest)
       1. [Access management over REST](management/rest/standard) &#x2726;
@@ -269,13 +278,6 @@ kibana-f6955c4b9-n8krf                1/1     Running   0          2m
    1. [Manage and use the Reporter](management/reporter) &#x2714; 
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
 
-Samples legend:
-
-* &#x2714; - sample is available for Coherence 12.2.1.3.x and above
-
-* &#x2726; - sample is available for Coherence 12.2.1.4.x and above
-
-* &#x2718; - sample has not yet been written or functionality not yet available
 
  
 # Troubleshooting Tips
