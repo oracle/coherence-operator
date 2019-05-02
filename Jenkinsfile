@@ -116,6 +116,11 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
+                            if [ -z "$HTTP_PROXY" ] then
+                              unset HTTP_PROXY
+                              unset HTTPS_PROXY
+                              unset NO_PROXY
+                            fi
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
