@@ -67,13 +67,13 @@ spec:
             - name: EFK_INTEGRATION_ENABLED
               value: {{ .Values.logCaptureEnabled | quote }}
   {{- if .Values.elasticsearch }}
-    {{- if .Values.elasticsearch.host }}
+    {{- if .Values.elasticsearchEndpoint.host }}
             - name: ES_HOST
-              value: {{ .Values.elasticsearch.host }}
+              value: {{ .Values.elasticsearchEndpoint.host }}
     {{- end }}
-    {{- if .Values.elasticsearch.port }}
+    {{- if .Values.elasticsearchEndpoint.port }}
             - name: ES_PORT
-              value: {{ .Values.elasticsearch.port | quote }}
+              value: {{ .Values.elasticsearchEndpoint.port | quote }}
     {{- end }}
   {{- end }}
             - name: ENABLE_FILE_LOGGING
@@ -101,9 +101,9 @@ spec:
               value: "true"
             - name: ELASTICSEARCH_SERVICE_HOST
   {{- $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
-  {{- if .Values.elasticsearch }}
-    {{- if .Values.elasticsearch.host }}
-              value: {{ .Values.elasticsearch.host }}
+  {{- if .Values.elasticsearchEndpoint }}
+    {{- if .Values.elasticsearchEndpoint.host }}
+              value: {{ .Values.elasticsearchEndpoint.host }}
     {{- else }}
               value: {{ $eshost }}
     {{- end }}
@@ -112,9 +112,9 @@ spec:
   {{- end }}
             - name: ELASTICSEARCH_SERVICE_PORT
   {{- $esport := 9200 }}
-  {{- if .Values.elasticsearch }}
-    {{- if .Values.elasticsearch.port }}
-              value: {{ .Values.elasticsearch.port | quote  }}
+  {{- if .Values.elasticsearchEndpoint }}
+    {{- if .Values.elasticsearchEndpoint.port }}
+              value: {{ .Values.elasticsearchEndpoint.port | quote  }}
     {{- else }}
               value: {{ $esport | quote }}
     {{- end }}
