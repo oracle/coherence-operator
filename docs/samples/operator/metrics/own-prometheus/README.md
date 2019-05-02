@@ -3,18 +3,23 @@
 You may wish to scrape the metrics from your own Prometheus instance rather than use the 
 included prometheus and Grafana. 
 
+This sample shows you how to scrape metrics from your own Prometheus instance.
+
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Installation Steps
 
-When you install the `coherence-operator` chart, you must ensure to specify `--set prometheusoperator.enabled=false`
- or leave out the option completely, which will default to false. 
-
-```bash
---set prometheusoperator.enabled=false
-```
-
 1. Install Coherence Operator
+
+   When you install the `coherence-operator` chart, you must ensure to specify `--set prometheusoperator.enabled=false`
+   or leave out the option completely, which will default to false. 
+  
+   ```bash
+   --set prometheusoperator.enabled=false
+   ```
 
    Issue the following command to install `coherence-operator` with `prometheusoperator` enabled:
    
@@ -36,7 +41,7 @@ When you install the `coherence-operator` chart, you must ensure to specify `--s
    
    There should only be a single `coherence-operator` pod.
    
-1. Install `coherence` chart with prometheusoperator.enabled
+1. Install the Coherence cluster with `prometheusoperator` enabled
 
    ```bash
    $ helm install \
@@ -67,7 +72,7 @@ Normally if `prometheusoperator.enabled=true` for the `coherence-operator`, Prom
 to scrape all the coherence pods. By just setting `prometheusoperator.enabled=true` for coherence install, 
 each pod will expose metrics on :9095/metrics. 
 
-You then need to point your prometheus to these targets.
+You then need to point your prometheus to these targets. 
 
 You can simulate this by using port-forward:
 

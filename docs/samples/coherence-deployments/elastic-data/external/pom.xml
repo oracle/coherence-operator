@@ -19,8 +19,8 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>elastic-data-sample-pvc</artifactId>
-  <name>Elastic Data Sample - PVC</name>
+  <artifactId>elastic-data-sample-external</artifactId>
+  <name>Elastic Data Sample - External</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

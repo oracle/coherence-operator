@@ -1,11 +1,12 @@
 # Use specific persistent volumes
 
-In this sample we explain how to use specific Persistent Volumes (PV) for Coherence when 
+This sample shows how to use specific Persistent Volumes (PV) for Coherence when 
 using `active` Persistence mode. Local storage is the recommended storage type for achieving best  
 performance for `active` Persistence, but this sample can be modified to use any storage class.
 
-*Note*: We only show how to set `store.persistence.*` chart values which apply for `active` persistence (/persistence mount point) only.
-It is equally applicable to `store.snapshot.*` chart values with apply to the `/snapshot` volume.
+> Note: We only show how to set `store.persistence.*` chart values which apply for `active` persistence (/persistence mount point) only.
+> 
+> It is equally applicable to `store.snapshot.*` chart values with apply to the `/snapshot` volume.
   
 [Return to Persistence samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -13,6 +14,11 @@ It is equally applicable to `store.snapshot.*` chart values with apply to the `/
 
 * [local-sc.yaml](local-sc.yaml) - Yaml for creating local storage class
 
+* [mylocal-pv0.yaml](mylocal-pv0.yaml) - Yaml for creating persistent volume mylocal-pv0
+
+* [mylocal-pv1.yaml](mylocal-pv2.yaml) - Yaml for creating persistent volume mylocal-pv0
+
+* [mylocal-pv2.yaml](mylocal-pv2.yaml) - Yaml for creating persistent volume mylocal-pv0
 
 ## Prerequisites
 
@@ -37,8 +43,8 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 1. Create the Persistent Volumes (PV)
 
-   Note: the PV have a label of `coherenceCluster=persistence-cluster` which will
-   be used by a nodeSelector to match PV with Coherence clusters.
+   > Note: the PV have a label of `coherenceCluster=persistence-cluster` which will
+   > be used by a nodeSelector to match PV with Coherence clusters.
 
    ```bash
    $ kubectl create -f mylocal-pv0.yaml -n sample-coherence-ns
@@ -57,8 +63,8 @@ Ensure you have already installed the Coherence Operator by using the instructio
    mylocal-pv2   2Gi        RWO            Retain           Available           mylocalsc               9s
    ```
 
-   *Note:*  The number of Persistent Volumes created need to be the same as Coherence cluster size.
-    For this example whe have assumed a cluster size of three.
+   > Note: The number of Persistent Volumes created need to be the same as Coherence cluster size.
+   > For this example whe have assumed a cluster size of three.
     
     
 1. Install the Coherence cluster    
@@ -187,7 +193,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    At the prompt, type `size` and it should show 100000. 
    
-   *This shows that the previous data entered has automatically been recovered due the PVC being honoured*.
+   > This shows that the previous data entered has automatically been recovered due the PVC being honoured.
     
    Then type `bye` to exit the `console`.   
    

@@ -5,7 +5,4 @@ store:
     name: elastic-data-volume
   volumes:
   - name: elastic-data-volume
-    hostPath:
-      # directory location on host
-      path: /coh/elastic-data
-      type: DirectoryOrCreate
+    emptyDir: {}

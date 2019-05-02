@@ -7,7 +7,7 @@ The Elastic Data feature uses a technique called journaling to optimize the stor
 # Table of Contents
 
 1. [Deploy Elastic Data using default FlashJournal locations](default)
-1. [Deploy Elastic Data using external volume mapped to the host](pvc)
+1. [Deploy Elastic Data using external volume mapped to the host](external)
 
 [Return to Coherence Deployments samples](../) / [Return to samples](../../README.md#list-of-samples)
 

@@ -5,7 +5,7 @@ of Persistent Volumes (PV) and claims (PVC) is setup automatically as well as th
 being set to `active`. This allows restarting of a Coherence cluster and retaining
 the data.
 
-*Note*: This sample shows how to enabled Persistence with the all the defaults 
+This sample shows how to enabled Persistence with the all the defaults 
 under `store.persistence` in `coherence` chart `values.yaml`. Please see (this sample)[../pvc/README.md]
 for more details on setting other values such as `storageClasses`.
 
@@ -37,8 +37,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    * `/persistence` default 2Gi - `--set store.persistence.size=10Gi`
    
-   * `/snapshot` default 2Gi - `--set store.snapshot.size-10Gi`
-                        
+   * `/snapshot` default 2Gi - `--set store.snapshot.size-10Gi`                  
 
 1. Ensure the pods are running:
 
@@ -153,9 +152,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    At the prompt, type `size` and it should show 100000. 
    
-   *This shows that the previous data entered has automatically been recovered due the PVC being honoured*.
-   
-   **TODO** - Add in recover snapshot command
+   > This shows that the previous data entered has automatically been recovered due the PVC being honoured.
     
    Then type `bye` to exit the `console`.
       
@@ -185,7 +182,6 @@ persistentvolumeclaim "persistence-volume-storage-coherence-2" deleted
 persistentvolumeclaim "snapshot-volume-storage-coherence-0" deleted
 persistentvolumeclaim "snapshot-volume-storage-coherence-1" deleted
 persistentvolumeclaim "snapshot-volume-storage-coherence-2" deleted
-
 
 $ kubectl get pvc -n sample-coherence-ns
 No resources found.

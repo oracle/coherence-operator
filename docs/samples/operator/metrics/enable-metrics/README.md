@@ -1,25 +1,29 @@
 # Deploy the operator with Prometheus enabled and view metrics in Grafana
 
 The Oracle Coherence Operator includes the Prometheus Operator as an optional subchart named `prometheusoperator`.
-To configure the Prometheus Operator and monitor Coherence services via Grafana dashboards, 
-please follow the instructions below.
+
+This sample shows you how configure the Prometheus Operator and monitor Coherence services via 
+Grafana dashboards, please follow the instructions below.
+
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Installation Steps
 
-When you install the `coherence-operator` chart, you must specify the following
-additional set value for `helm` to install subchart `prometheusoperator`.
-
-```bash
---set prometheusoperator.enabled=true
-```
-
-All `coherence` charts installed in `coherence-operator` `targetNamespaces` are monitored by 
-Prometheus. The servicemonitor `<releasename>-coherence-service-monitor` 
-configures Prometheus to scrape all components of `coherence-service`.
-
 1. Install Coherence Operator
+
+   When you install the `coherence-operator` chart, you must specify the following
+   additional set value for `helm` to install subchart `prometheusoperator`.
+  
+   ```bash
+   --set prometheusoperator.enabled=true
+   ```
+  
+   All `coherence` charts installed in `coherence-operator` `targetNamespaces` are monitored by 
+   Prometheus. The servicemonitor `<releasename>-coherence-service-monitor` 
+   configures Prometheus to scrape all components of `coherence-service`.
 
    Issue the following command to install `coherence-operator` with `prometheusoperator` enabled:
    
@@ -48,7 +52,7 @@ configures Prometheus to scrape all components of `coherence-service`.
    
    Along with the `coherence-operator`, you should also see `grafana` and other `promethues` related pods.
    
-1. Install `coherence` chart with prometheusoperator.enabled
+1. Install the Coherence cluster with `prometheusoperator` enabled
 
    ```bash
    $ helm install \
@@ -135,7 +139,7 @@ If you wish to remove the `coherence-operator`, then include it in the `helm del
 
 ## Troubleshooting
 
-## Helm install of `coherence-operator` fails creating a custom resource definition (CRD).
+### Helm install of `coherence-operator` fails creating a custom resource definition (CRD).
 
 Follow recommendation from [Prometheus Operator: helm fails to create CRDs](https://github.com/helm/charts/tree/master/stable/prometheus-operator#user-content-helm-fails-to-create-crds)
 to manually install the Prometheus Operator CRDs, then install the `coherence-operator` chart with these additional set values. 
@@ -144,7 +148,7 @@ to manually install the Prometheus Operator CRDs, then install the `coherence-op
 --set prometheusoperator.enabled=true --set prometheusoperator.prometheusOperator.createCustomResource=false
 ```
 
-## No datasource found in Grafana
+### No datasource found in Grafana
 
 Manually create a datasource by clicking on Grafana Home `Create your first data source` button 
 and fill in these fields.

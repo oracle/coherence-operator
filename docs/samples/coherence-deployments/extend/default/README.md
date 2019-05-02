@@ -1,20 +1,13 @@
 # Access Coherence via default proxy port
 
-In this sample we will deploy 1 single tier, Coherence chart, and utilize the
-inbuilt proxy servers that are exposed on port 20000.
+This sample shows how to access the Coherence cluster via the default proxy service
+exposed on port 20000.
 
 [Return to Coherence*Extend samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Sample files
 
 * [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client config for extend client
-
-Note: if you wish to enable Prometheus or log capture, change the following in the helm installs to `true`. Their default values are false,
-but they are set to `false` in the samples below for completeness.
-
-* Prometheus: `--set prometheusoperator.enabled=true`
-
-* Log capture: `--set logCaptureEnabled=true`
 
 ## Prerequisites
 
@@ -44,15 +37,14 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.
-   You can change this by using `--set store.podManagementPolicy=Parallel` in the above command.
     
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running. All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m
-   storage-coherence-2                                      1/1     Running   0          1m
+   NAME                  READY   STATUS    RESTARTS   AGE
+   storage-coherence-0   1/1     Running   0          4m
+   storage-coherence-1   1/1     Running   0          2m
+   storage-coherence-2   1/1     Running   0          1m
    ```
 
 1. Port forward the proxy port on the storage-coherence-0 pod.

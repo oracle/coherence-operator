@@ -48,8 +48,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
    with the name in the format helidon-sample:${version}. This image
    will be used by the chart.
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
    
 1. Install the Coherence cluster
 

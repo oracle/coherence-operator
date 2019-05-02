@@ -7,7 +7,7 @@ Coherence Operator.
 
 1. [Logging](logging)
    1. [Enable log capture to view logs in Kiabana](logging/log-capture)
-   1. [Configure user logs and view in Kibana](logging/customer-logs)
+   1. [Configure user logs and view in Kibana](logging/custom-logs)
    1. [Push logs to your own Elasticsearch Instance](logging/own-elasticsearch)
 1. [Metrics](metrics)
    1. [Deploy the operator with Prometheus enabled and view metrics in Grafana](metrics/enable-metrics)

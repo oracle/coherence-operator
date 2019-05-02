@@ -46,8 +46,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
    The above will build the Docker image with the cache configuration files and compiled Java classes.
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
 
 1. The result of the above is the docker image will be built with the cache configuration files
    and compiled Java classes with the name in the format interceptor-sample:${version}.
