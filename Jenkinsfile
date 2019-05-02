@@ -14,10 +14,15 @@ pipeline {
               label 'Kubernetes'
             }
             steps {
-                sh 'rm PULL_SECRET_* || true'
                 echo 'Maven Build'
-                sh 'helm init --client-only --skip-refresh'
-                echo 'Starting Maven process'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ] then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                    helm init --client-only --skip-refresh
+                '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh 'mvn clean install'
                 }
@@ -37,8 +42,14 @@ pipeline {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
-                    echo "proxy = $HTTP_PROXY" > ~/.curlrc
-                    export http_proxy=$HTTP_PROXY
+                    if [ -z "$HTTP_PROXY" ] then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    else
+                        echo "proxy = $HTTP_PROXY" > ~/.curlrc
+                        export http_proxy=$HTTP_PROXY
+                    fi
                     sh operator/src/main/helm/scripts/install.sh
                     mkdir -p operator/target/temp
                     echo "Contents of operator/target"
@@ -65,7 +76,14 @@ pipeline {
             }
             steps {
                 echo 'Docker Build'
-                sh 'helm init --client-only'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ] then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                    helm init --client-only
+                '''
                 sh 'docker swarm leave --force || true'
                 sh 'docker swarm init'
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
@@ -80,7 +98,14 @@ pipeline {
             }
             steps {
                 echo 'Docker Push'
-                sh 'helm init --client-only'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ] then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                    helm init --client-only
+                '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh 'mvn -B -Dmaven.test.skip=true -P docker -P dockerPush clean install'
                 }
@@ -98,6 +123,11 @@ pipeline {
                     string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
                     string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
                     sh '''
+                        if [ -z "$HTTP_PROXY" ] then
+                            unset HTTP_PROXY
+                            unset HTTPS_PROXY
+                            unset NO_PROXY
+                        fi
                         helm init --client-only
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
                         kubectl create namespace test-cop2-$BUILD_NUMBER || true
@@ -116,14 +146,8 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
-                            if [ -z "$HTTP_PROXY" ]; then
-                              unset HTTP_PROXY
-                              unset HTTPS_PROXY
-                              unset NO_PROXY
-                            fi
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
-                            export
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
