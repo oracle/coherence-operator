@@ -116,7 +116,7 @@ pipeline {
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
-                            if [ -z "$HTTP_PROXY" ] then
+                            if [ -z "$HTTP_PROXY" ]; then
                               unset HTTP_PROXY
                               unset HTTPS_PROXY
                               unset NO_PROXY
