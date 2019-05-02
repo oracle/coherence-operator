@@ -16,7 +16,7 @@ pipeline {
             steps {
                 echo 'Maven Build'
                 sh '''
-                    if [ -z "$HTTP_PROXY" ] then
+                    if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
                         unset NO_PROXY
@@ -42,7 +42,7 @@ pipeline {
                 echo 'Helm Verify'
                 unstash 'helm-chart'
                 sh '''
-                    if [ -z "$HTTP_PROXY" ] then
+                    if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
                         unset NO_PROXY
@@ -77,7 +77,7 @@ pipeline {
             steps {
                 echo 'Docker Build'
                 sh '''
-                    if [ -z "$HTTP_PROXY" ] then
+                    if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
                         unset NO_PROXY
@@ -99,7 +99,7 @@ pipeline {
             steps {
                 echo 'Docker Push'
                 sh '''
-                    if [ -z "$HTTP_PROXY" ] then
+                    if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
                         unset NO_PROXY
@@ -123,7 +123,7 @@ pipeline {
                     string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
                     string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
                     sh '''
-                        if [ -z "$HTTP_PROXY" ] then
+                        if [ -z "$HTTP_PROXY" ]; then
                             unset HTTP_PROXY
                             unset HTTPS_PROXY
                             unset NO_PROXY
