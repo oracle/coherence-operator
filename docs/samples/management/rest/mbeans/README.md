@@ -1,10 +1,12 @@
 # Modify Writable MBeans
 
 Management over REST provides the ability to modify Coherence MBeans that are writable.
+
 This sample will show how to do this using curl to modify the log level of a member as well
 as the expiryDelay of a cache.
 
-Note: This feature is only available in Coherence 12.2.1.4.0 and later.
+> Note, use of Management over REST is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 

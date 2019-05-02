@@ -1,7 +1,7 @@
 # Using multiple Coherence*Extend proxies       
 
-Coherence supports the ability to run multiple Proxy services on a single cluster node. To support this
-within the Coherence Operator, a custom cache configuration needs to be added as well as exposing
+This sample shows how to run multiple Proxy services on a single cluster node. 
+To support this within the Coherence Operator, a custom cache configuration needs to be added as well as exposing
 an additional port on the Pod.
 
 [Return to Coherence*Extend samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -37,8 +37,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
    multiple-proxy-sample:1.0.0-SNAPSHOT
    ```
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
 
 1. Install the Coherence cluster
 
@@ -68,10 +69,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m   
-   storage-coherence-2                                      1/1     Running   0          2m
+   NAME                   READY   STATUS    RESTARTS   AGE
+   storage-coherence-0    1/1     Running   0          4m
+   storage-coherence-1    1/1     Running   0          2m   
+   storage-coherence-2    1/1     Running   0          2m
    ```
    
 1. Ensure both Proxy services are running

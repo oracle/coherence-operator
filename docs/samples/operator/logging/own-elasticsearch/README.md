@@ -3,7 +3,7 @@
 The Oracle Coherence Operator manages logging data through the EFK
 (ElasticSearch, Fluentd and Kibana) stack.
 
-the sample explains how to instruct fluentd to your own elastic search instance.
+This sample explains how to instruct fluentd to push data your own elastic search instance.
 
 [Return to Logging samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -43,7 +43,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
    ```
 
-1. Confirm the elasticdata endpoint is set
+1. Confirm the Elasticsearch endpoint is set
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
@@ -91,7 +91,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
    storage-coherence-2                   2/2     Running   0          16m
    ```
    
-   Notice that the `coherence-operator` and all the `coherence` pods have two containers.
+   Notice that the `coherence-operator` and all the `coherence` pods have two containers, the second one being fluentd.
    
    ```bash
    $ kubectl logs storage-coherence-0  -n sample-coherence-ns -c fluentd | grep -A3 'match coherence-cluster'

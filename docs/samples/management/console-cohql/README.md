@@ -1,7 +1,9 @@
 # Access Coherence console and CohQL on a cluster node
 
-The Coherence Console and CohQL (Coherence Query Language) are developer tools for interacting with a Coherence cluster.
-When running Coherence under the Coherence Operator, you can `exec` to any of the pods to start 
+The Coherence Console and CohQL (Coherence Query Language) are developer tools for interacting with a 
+Coherence cluster.
+
+This samples shows using `kubectl exec' to connect to any of the pods and start 
 either of these tools as a storage-disabled client.
 
 [Return to Management samples](../) / [Return to samples](../../README.md#list-of-samples)

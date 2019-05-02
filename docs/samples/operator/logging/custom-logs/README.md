@@ -3,8 +3,10 @@
 The Oracle Coherence Operator manages logging data through the EFK
 (ElasticSearch, Fluentd and Kibana) stack.
 
-This sample explains how to configure your own application logger, called `cloud` and have the logs 
-from this logger captured via `fluentd` and displayed in Kibana. 
+This sample shows how to configure your own application logger, called `cloud` and have the logs 
+from this logger captured via Fluentd, passed into Elasticsearch and displayed in Kibana. 
+
+A server-side Interceptor updates values to upper case and writes log messages to the `cloud` logger.
 
 [Return to Logging samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -23,7 +25,7 @@ from this logger captured via `fluentd` and displayed in Kibana.
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator with `--set logCaptureEnabled=true` by using the instructions [here](here).
+Ensure you have already installed the Coherence Operator with `--set logCaptureEnabled=true` by using the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
@@ -36,9 +38,9 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
    The above will build the Docker image with the cache and login configuration as well as compiled Java classes
    
-
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
 
 1. The result of the above is the docker image will be built with the cache configuration files
    and compiled Java classes with the name in the format custom-logger-sample:{version}.
@@ -58,7 +60,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    
    * `--set logCaptureEnabled=true` - enable log catpure
    
-   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - specify custom image with config and classes
+   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - custom image with config and classes
    
    * `--set store.logging.configFile=custom-logging.properties` - configure custom logger
    
@@ -83,10 +85,6 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
       --version 1.0.0-SNAPSHOT coherence-community/coherence
    ```
 
-   Because we use stateful sets, the coherence cluster will start one pod at a time.
-   
-   You can change this by using `--set store.podManagementPolicy=Parallel` in the above command.
-    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 

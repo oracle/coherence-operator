@@ -1,12 +1,8 @@
 # Installing Multiple Coherence clusters with one Operator
 
-The Coherence Operator can managed one or more Coherence clusters.
+This sample shows how the Coherence Operator can manage two or more Coherence clusters.
 
 [Return to Coherence Deployments samples](../) / [Return to samples](../../README.md#list-of-samples)
-
-* Prometheus: `--set prometheusoperator.enabled=true`
-
-* Log capture: `--set logCaptureEnabled=true`
 
 ## Prerequisites
 

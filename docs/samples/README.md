@@ -29,7 +29,7 @@ the given sample works, and then customize it to suit your needs.
 
 If you have never setup Coherence Operator before, please carry out the following:
 
-1. [Review Prerequisites](#review-prerequisites)
+1. [Confirm Quickstart Runtime Prerequisites](#confirm-quickstart-runtime-prerequisites)
 1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
 1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
 1. [Create the sample namespace](#create-the-sample-namespace)
@@ -64,7 +64,7 @@ If you are not running samples that have a Maven project, then you can skip this
 1. Make sure COHERENCE_HOME environment variable is set to point to your `coherence` directory under your install location.
    I.e. the directory containing the bin, lib, doc directories. This is only required for the Maven install-file commands.
 
-1. Use the following file to install Coherence into your local repository:
+1. Use the following to install Coherence into your local repository:
 
    ```bash
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar   \
@@ -135,8 +135,8 @@ When you install the `coherence-operator` you can optionally enable the followin
 
 Enabling both Prometheus and log capture will require considerable extra system resources.
 
-Note: when running locally, (e.g. on Docker for Mac), you should allocate sufficient memory
-to you Docker for Mac process. The minimum recommended to run is 8G.
+> Note: when running locally, (e.g. on Docker for Mac), you should allocate sufficient memory
+> to you Docker for Mac process. The minimum recommended to run is 8G.
 
 ### Install the coherence-operator (no Prometheus or log capture)
 
@@ -175,7 +175,7 @@ helm install \
      --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
 ```
 
-**Note:** The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
+> Note: The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
 
 ### Enabling log Capture
 
@@ -199,8 +199,8 @@ $ helm install \
 
 ## Enabling Prometheus and log Capture
 
-**Note:** you can enable both Prometheus and log capture by including
-both of the options above.
+You can enable both Prometheus and log capture by setting 
+both of the options above to `true`.
 
 ## Checking that the Operator is Running
 
@@ -245,7 +245,7 @@ Samples legend:
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
       1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
-      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
+      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2718;
       1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2726;
    1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
    1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
@@ -268,7 +268,7 @@ Samples legend:
       1. [Specifying an archiver](coherence-deployments/persistence/archiver) &#x2718;
    1. [Elastic Data](coherence-deployments/elastic-data)
       1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
-      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/pvc) &#x2714;
+      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/external) &#x2714;
    1. [Installing Multiple Coherence clusters with one Operator](coherence-deployments/multiple-clusters)    
 1. [Management](management)
    1. [Management using REST (12.2.1.4.X only)](management/rest)
@@ -283,8 +283,6 @@ Samples legend:
       1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2726; 
    1. [Manage and use the Reporter](management/reporter) &#x2714; 
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
-
-
  
 # Troubleshooting Tips
 

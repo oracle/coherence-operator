@@ -1,6 +1,6 @@
 # Deploy Elastic Data using default FlashJournal locations
 
-In this sample we will enable Elastic Data using the default FlashJournal directory
+This sample shows how to enable Elastic Data using the default FlashJournal directory
 which is `/tmp/`.  
 
 Please see [Oracle Elastic Data Documentation](https://docs.oracle.com/middleware/12213/coherence/COHDG/implementing-storage-and-backing-maps.htm#COHDG5496) 
@@ -37,8 +37,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
    elastic-data-sample-default:1.0.0-SNAPSHOT
    ```
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
    
 1. Install the Coherence cluster
 
@@ -57,16 +58,15 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.
-   You can change this by using `--set store.podManagementPolicy=Parallel` in the above command.
-   
+
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m   
-   storage-coherence-2                                      1/1     Running   0          2m
+   NAME                   READY   STATUS    RESTARTS   AGE
+   storage-coherence-0    1/1     Running   0          4m
+   storage-coherence-1    1/1     Running   0          2m   
+   storage-coherence-2    1/1     Running   0          2m
    ```   
    
 1. Add data to Elastic Data
@@ -74,7 +74,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Connect to the Coherence `console` using the following to create a cache using `FlashJournal`.
 
    ```bash
-   $ kubectl exec -it --namespace sample-coherence-ns storage-coherence-0 bash /scripts/startCoherence.sh console
+   $ kubectl exec -it --namespace sample-coherence-ns storage-coherence-0 -- bash /scripts/startCoherence.sh console
    ```   
    
    At the `Map (?):` prompt, type `cache flash-01`.  This will create a cache in the service `DistributedSchemeFlash`
@@ -98,21 +98,18 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Issue the following to exec into one of the Coherence pods and list the files used by Elastic Data.
    
    ```bash
-   $ kubectl exec -it -n sample-coherence-ns storage-coherence-0 bash
-   
-   # ls -l /tmp/
+   $ kubectl exec -it -n sample-coherence-ns storage-coherence-0 -- bash -c 'ls -l /tmp/'
+  
    total 84744
    -rw-r--r-- 1 root root 86769664 Apr 15 07:37 coh1781907747204398478.tmp
    drwxr-xr-x 2 root root     4096 Apr 15 07:49 hsperfdata_root
-
    ```
   
-   The contents of the file(s) are not important, just the fact that they are using
+   The contents of the `coh*` file(s) are not important, just the fact that they are using
    the default location.
    
    Type `exit` to leave the `exec` session.
    
-
 ## Verifying Grafana Data (If you enabled Prometheus)
 
 Access Grafana using the instructions [here](../../../README.md#access-grafana).

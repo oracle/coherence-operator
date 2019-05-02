@@ -1,9 +1,10 @@
 # Access management over REST using JVisualVM plugin
 
-The Coherence JVisualVM Plugin in Coherence version 12.2.1.4.0 and above has the ability to connect 
+This sample shows how the Coherence JVisualVM Plugin in Coherence version 12.2.1.4.0 and above can connect 
 to a Coherence cluster using REST. 
 
-*Note*: This feature is only available in Coherence 12.2.1.4.0 and later.
+> Note, use of Management over REST is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 

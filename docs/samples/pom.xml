@@ -28,7 +28,7 @@
     <module>coherence-deployments/storage-disabled/interceptor</module>
     <module>coherence-deployments/storage-disabled/other</module>
     <module>coherence-deployments/elastic-data/default</module>
-    <module>coherence-deployments/elastic-data/pvc</module>
+    <module>coherence-deployments/elastic-data/external</module>
     <module>coherence-deployments/sidecar</module>
     <module>operator/rolling-upgrade</module>
     <module>operator/logging/custom-logs</module>
@@ -59,7 +59,7 @@
     <mockito.version>2.18.3</mockito.version>
 
     <!-- change this to match your Coherence version
-         Must be 12.2.1.3-3 or above -->
+         Must be 12.2.1.3-2 or above -->
     <coherence.version>12.2.1-3-2</coherence.version>
   </properties>
 

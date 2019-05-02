@@ -1,13 +1,12 @@
 # Enable log capture to view logs in Kiabana   
 
 The Oracle Coherence Operator manages logging data through the EFK
-(ElasticSearch, Fluentd and Kibana) stack.
+(ElasticSearch, Fluentd and Kibana) stack. Log capture is disabled be default.
 
-To access and configure the Kibana UI, please follow the instructions below.
+This sample shows how to enable log capture and access the Kibana user interface
+to view the captured logs.
 
 [Return to Logging samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
-
-This will ensure that Elasticsearch and Kibana will be installed and configured.
 
 ## Installation Steps
                         
@@ -44,7 +43,7 @@ is installed and correctly configured.
    
    Along with the `coherence-operator`, you should also see `elasticsearch` and `kibana` pods.
    
-1. Install `coherence` chart with logCaptureEnabled
+1. Install Coherence cluster with logCapture enabled
 
    ```bash
    $ helm install \
@@ -76,8 +75,8 @@ is installed and correctly configured.
    
    ```bash
    $ kubectl logs storage-coherence-0 -n sample-coherence-ns
-   Error from server (BadRequest): a container name must be specified for pod storage-coherence-0, choose one of: [coherence fluentd] 
-     or one of the init containers: [coherence-k8s-utils]
+   Error from server (BadRequest): a container name must be specified for pod storage-coherence-0, choose one of:
+     [coherence fluentd] or one of the init containers: [coherence-k8s-utils]
    ```
    
    ```bash
@@ -133,7 +132,7 @@ There are a number of dashboard created via the import process.
 ## Default Queries
 
 There are many queries related to common Coherence messages, warnings and errors that are 
-loaded and can be accessed via the discover side-bar.
+loaded and can be accessed via the `Discover` side-bar.
 
 ## Uninstalling the Charts
 

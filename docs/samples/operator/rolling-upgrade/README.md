@@ -12,7 +12,7 @@ version of your application classes with a different one. Kubernetes does not ca
 version is "newer" or "older", as long as it has a docker tag and can be pulled by the cluster, 
 that is all Kubernetes needs to know. The operator will ensure this is done without data loss or interruption of service.
 
-In this sample we will initially deploy version 1.0.0 of our sidecar and then do a rolling upgrade to
+This sample we will initially deploy version 1.0.0 of our sidecar and then do a rolling upgrade to
 version 2.0.0 of the sidecar which introduces a server side Interceptor to modify 
 data to ensure its stored as uppercase. 
 
@@ -30,13 +30,7 @@ data to ensure its stored as uppercase.
 
 * [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client config for extend client
 
-* [src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java) - interceptor that will change all entries to uppercase - version 2.
-
-Note if you wish to enable Prometheus or log capture, change the following in the helm installs to `true`. Their default values are false, but they are set to `false` in the samples below for completeness.
-
-* Prometheus: `--set prometheusoperator.enabled=true`
-
-* Log capture: `--set logCaptureEnabled=true`
+* [src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java) - interceptor that will change all entries to uppercase - version 2.0.0
 
 ## Prerequisites
 
@@ -61,8 +55,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
    The above will build the v2 Docker image called `rolling-upgrade-sample:2.0.0`. This will be the image we upgrade
    the deployment with.
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
 
 1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image as a sidecar.
 
@@ -80,18 +75,14 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --version 1.0.0-SNAPSHOT coherence-community/coherence
    ```
 
-   Because we use stateful sets, the coherence cluster will start one pod at a time.
-   
-   You can change this by using `--set store.podManagementPolicy=Parallel` in the above command.
-    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m
-   storage-coherence-2                                      1/1     Running   0          1m
+   NAME                   READY   STATUS    RESTARTS   AGE
+   storage-coherence-0    1/1     Running   0          4m
+   storage-coherence-1    1/1     Running   0          2m
+   storage-coherence-2    1/1     Running   0          1m
    ```
    
 1. Port forward the proxy port on the storage-coherence-0 pod.

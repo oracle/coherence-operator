@@ -1,11 +1,13 @@
 # Access management over REST
 
 By default when the Coherence chart is installed the Management over REST endpoint will be exposed
-as port 30000 on each of the Pods. You can access the Management of REST endpoint via the following URL
+as port 30000 on each of the Pods. 
 
-`http://host:300000`/management/coherence/cluster`
+This sample shows how you can access the Management of REST endpoint via the following URL
+`http://host:300000`/management/coherence/cluster`.
 
-*Note*: This feature is only available in Coherence 12.2.1.4.0 and later.
+> Note, use of Management over REST is only available when using the
+> operator with Coherence 12.2.1.4.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 

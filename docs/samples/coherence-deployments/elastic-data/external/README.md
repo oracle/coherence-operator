@@ -1,6 +1,6 @@
 # Deploy using external volume mapped to the host
 
-In this sample, we will create Persistent Volumes (PV) and then map the Elastic Data 
+This shows how to create Persistent Volumes (PV) and then map the Elastic Data 
 to be stored on these PV's.  This would allow for a specific size to be used for storing Elastic Data
 rather than just relying on the size of the underlying default "/tmp/ directory.
 
@@ -16,36 +16,31 @@ for more information on Elastic Data.
 
 * [src/main/resources/conf/elastic-data-cache-config.xml](src/main/resources/conf/elastic-data-cache-config.xml) - cache config for storage-tier
 
-Note if you wish to enable Prometheus or log capture, change the following in the helm installs to `true`. Their default values are false, but they are set to `false` in the instructions below for completeness.
-
-* Prometheus: `--set prometheusoperator.enabled=true`
-
-* Log capture: `--set logCaptureEnabled=true`
-
 ## Prerequisites
 
 Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/elastic-data/default` directory and ensure you have your maven build     
+1. Change to the `samples/coherence-deployments/elastic-data/external` directory and ensure you have your maven build     
    environment set for JDK11 and build the project.
 
    ```bash
-   mvn clean install -P docker
+   $ mvn clean install -P docker
    ```
 
 1. The result of the above is the docker image will be built with the cache configuration files
-   with the name in the format elastic-data-sample-pvc:${version}.
+   with the name in the format elastic-data-sample-external:${version}.
 
    For Example:
 
    ```bash
-   elastic-data-sample-pvc:1.0.0-SNAPSHOT
+   elastic-data-sample-external:1.0.0-SNAPSHOT
    ```
 
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
     
 1. Install the Coherence cluster
 
@@ -61,15 +56,12 @@ Ensure you have already installed the Coherence Operator by using the instructio
    In our example we are going to use a `yaml` file ([volumes.yaml](src/main/yaml/volumes.yaml)) to specify
    hostPath volumes. 
    
-   **You should set the values appropriately for your Kubernates environment and needs.**
+   > Note: You should set the values appropriately for your Kubernetes environment and needs.
    
-   We will also set `--set store.javaOpts="-Dcoherence.flashjournal.dir=/elastic-data" ` - which points Elastic data to the mount path
+   We will also set `--set store.javaOpts="-Dcoherence.flashjournal.dir=/elastic-data" ` - to point Elastic data to the mount path
    
-   *Note*: Please see the following links for more information regarding storage on Kubernetes:
-   
-   * https://kubernetes.io/docs/concepts/storage/volumes/
-   
-   * https://kubernetes.io/docs/concepts/storage/persistent-volumes/ 
+   > Note: The `coherence.flashjournal.dir` option was only added in Coherence 12.2.1.4, so we must include
+   > an override file to define this so it works in 12.2.1.3.X as well. 
    
    ```bash
    $ helm install \
@@ -80,9 +72,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set cluster=elastic-data-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=elastic-data-cache-config.xml \
+      --set store.overrideConfig=elastic-data-override.xml \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
-      --set userArtifacts.image=elastic-data-sample-pvc:1.0.0-SNAPSHOT \
+      --set userArtifacts.image=elastic-data-sample-external:1.0.0-SNAPSHOT \
       -f src/main/yaml/volumes.yaml \
       --version 1.0.0-SNAPSHOT coherence-community/coherence
    ```
@@ -91,10 +84,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m   
-   storage-coherence-2                                      1/1     Running   0          2m
+   NAME                  READY   STATUS    RESTARTS   AGE
+   storage-coherence-0   1/1     Running   0          4m
+   storage-coherence-1   1/1     Running   0          2m   
+   storage-coherence-2   1/1     Running   0          2m
    ```   
    
 1. Confirm the mounted volume
@@ -145,8 +138,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    ```bash
    $ kubectl exec -it -n sample-coherence-ns storage-coherence-0 -- bash -c 'ls -l /elastic-data'
-   
-   # ls -l //
+
    total 202496
    -rw-r--r-- 1 root root 69468160 May  1 08:44 coh1207347469383108692.tmp
    -rw-r--r-- 1 root root 68943872 May  1 08:44 coh5447980795344195354.tmp
@@ -157,7 +149,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    the default location.
    
    Type `exit` to leave the `exec` session.
-   
 
 ## Verifying Grafana Data (If you enabled Prometheus)
 

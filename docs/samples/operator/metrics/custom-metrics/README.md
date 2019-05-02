@@ -1,6 +1,7 @@
 # Include custom user metrics for scraping by Prometheus
 
-This sample shows how an end-user can include their own custom metrics for scraping be prometheus.
+This sample shows how an end-user can include their own custom metrics 
+for scraping by Prometheus.
 
 > Note, use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
@@ -20,21 +21,20 @@ This sample shows how an end-user can include their own custom metrics for scrap
 
 * [src/main/java/com/oracle/coherence/examples/PromInterceptor.java](src/main/java/com/oracle/coherence/examples/PromInterceptor.java) - Interceptor to create metrics
 
-
 ## Installation Steps
 
-When you install the `coherence-operator` chart, you must specify the following
-additional set value for `helm` to install subchart `prometheusoperator`.
-
-```bash
---set prometheusoperator.enabled=true
-```
-
-All `coherence` charts installed in `coherence-operator` `targetNamespaces` are monitored by 
-Prometheus. The servicemonitor `<releasename>-coherence-service-monitor` 
-configures Prometheus to scrape all components of `coherence-service`.
-
 1. Install Coherence Operator
+
+   When you install the `coherence-operator` chart, you must specify the following
+   additional set value for `helm` to install subchart `prometheusoperator`.
+  
+   ```bash
+   --set prometheusoperator.enabled=true
+   ```
+  
+   All `coherence` charts installed in `coherence-operator` `targetNamespaces` are monitored by 
+   Prometheus. The servicemonitor `<releasename>-coherence-service-monitor` 
+   configures Prometheus to scrape all components of `coherence-service`.
 
    Issue the following command to install `coherence-operator` with `prometheusoperator` enabled:
    
@@ -72,8 +72,9 @@ configures Prometheus to scrape all components of `coherence-service`.
 
    The above will build the v1 Docker image called `custom-metrics-sample:1.0.0-SNAPSHOT`. 
    
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > push the above image to your repository accessible to that cluster. You will also need to 
+   > prefix the image name in your `helm` command below.
    
 1. Install servicemonitor
 
@@ -178,7 +179,7 @@ configures Prometheus to scrape all components of `coherence-service`.
    ["key-3", "value-3"]
    ```
    
-   In the `Tail` of the Coherence pods started above, you should see some messages indicating that
+   In the `tail` of the Coherence pods started above, you should see some messages indicating that
    the cache has been created and the metrics are available.
    
    ```bash
