@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 31,
-  "iteration": 1553742687307,
+  "id": 12,
+  "iteration": 1556853255735,
   "links": [
     {
       "icon": "dashboard",
@@ -1365,9 +1365,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "NewYork",
-          "value": "NewYork"
+          "text": "coherence's cluster",
+          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -1376,7 +1375,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1390,9 +1389,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "Sydney",
-          "value": "Sydney"
+          "isNone": true,
+          "text": "None",
+          "value": ""
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -1415,9 +1414,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "FederatedPartitionedPofCache",
-          "value": "FederatedPartitionedPofCache"
+          "isNone": true,
+          "text": "None",
+          "value": ""
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -1440,7 +1439,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1471,5 +1470,5 @@
   "timezone": "",
   "title": "Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 12
+  "version": 2
 }

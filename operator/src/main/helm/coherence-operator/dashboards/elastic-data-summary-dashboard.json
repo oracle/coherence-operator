@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 9,
-  "iteration": 1551303158509,
+  "id": 13,
+  "iteration": 1556853196962,
   "links": [
     {
       "icon": "dashboard",
@@ -757,7 +757,6 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -768,7 +767,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -782,9 +781,8 @@
       {
         "allValue": null,
         "current": {
-          "isNone": true,
-          "text": "None",
-          "value": ""
+          "text": "12.2.1.4.0 (dev-coherence)",
+          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "hide": 2,
@@ -838,5 +836,5 @@
   "timezone": "",
   "title": "Elastic Data Summary Dashboard",
   "uid": "coh-elastic-data-summary",
-  "version": 1
+  "version": 2
 }

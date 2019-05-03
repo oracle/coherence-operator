@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 32,
-  "iteration": 1553666943823,
+  "id": 11,
+  "iteration": 1556853316279,
   "links": [
     {
       "icon": "dashboard",
@@ -1843,9 +1843,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "NewYork",
-          "value": "NewYork"
+          "text": "coherence's cluster",
+          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -1854,7 +1853,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1893,8 +1892,8 @@
         "allValue": null,
         "current": {
           "tags": [],
-          "text": "5",
-          "value": "5"
+          "text": "3",
+          "value": "3"
         },
         "hide": 0,
         "includeAll": false,
@@ -1908,12 +1907,12 @@
             "value": "1"
           },
           {
-            "selected": false,
-            "text": "2",
-            "value": "2"
+            "selected": true,
+            "text": "3",
+            "value": "3"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "5",
             "value": "5"
           },
@@ -1928,14 +1927,14 @@
             "value": "15"
           }
         ],
-        "query": "1,2,5,10,15",
+        "query": "1,3,5,10,15",
         "skipUrlSync": false,
         "type": "custom"
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1966,5 +1965,5 @@
   "timezone": "",
   "title": "Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "version": 7
+  "version": 3
 }
