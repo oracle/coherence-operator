@@ -17,6 +17,7 @@ the given sample works, and then customize it to suit your needs.
    1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
    1. [Create the sample namespace](#create-the-sample-namespace)
    1. [Add the helm repository](#add-the-helm-repository)
+   1. [Clone the GitHub Repository](#clone-the-github-repository)
    1. [Install the Coherence Operator](#install-the-coherence-operator)
 1. [List of Samples](#list-of-samples)
 1. [Troubleshooting Tips](#troubleshooting-tips)
@@ -34,6 +35,7 @@ If you have never setup Coherence Operator before, please carry out the followin
 1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
 1. [Create the sample namespace](#create-the-sample-namespace)
 1. [Add the helm repository](#add-the-helm-repository)
+1. [Clone the GitHub Repository](#clone-the-github-repository)
 1. [Install the Coherence Operator](#install-the-coherence-operator)
 
 If you have already run samples before, please go to the [List of Samples](#list-of-samples).
@@ -120,6 +122,32 @@ Issue the following to create a `coherence-community` helm repository:
 ```bash
 $ helm repo add coherence-community https://oracle.github.io/coherence-operator/charts
 ```
+
+## Clone the GitHub Repository
+
+The samples exist in the `hg-pages` branch of the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
+
+Issue the following to clone the repository and switch to the `gh-pages` branch.
+
+```bash
+$ git clone https://github.com/oracle/coherence-operator
+
+$ cd coherence-operator
+
+$ git checkout gh-pages
+
+$ cd docs/samples
+```
+
+Issue the following to ensure all the projects with source code build ok. 
+
+> Note: Any compilation errors will most likely indicate that the Coherence JAR's 
+> are not properly installed or you have not set your JDK.
+
+```bash
+$ mvn clean install
+```
+
 
 ## Install the Coherence Operator
 
