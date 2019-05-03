@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 16,
-  "iteration": 1548989677910,
+  "id": 9,
+  "iteration": 1556853459131,
   "links": [
     {
       "icon": "dashboard",
@@ -408,7 +408,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -419,7 +418,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -433,9 +432,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "19.1.0.0.0 (dev-coherence)",
-          "value": "19.1.0.0.0 (dev-coherence)"
+          "text": "12.2.1.4.0 (dev-coherence)",
+          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "hide": 2,
@@ -458,7 +456,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {

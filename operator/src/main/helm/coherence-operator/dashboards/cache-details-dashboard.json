@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 14,
-  "iteration": 1550715606379,
+  "id": 16,
+  "iteration": 1556852842500,
   "links": [
     {
       "icon": "dashboard",
@@ -1602,7 +1602,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -1613,7 +1612,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1651,8 +1650,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "dist-test-1",
-          "value": "dist-test-1"
+          "text": "dist-ms-test1",
+          "value": "dist-ms-test1"
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -1675,7 +1674,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1706,5 +1705,5 @@
   "timezone": "",
   "title": "Cache Details Dashboard",
   "uid": "coh-cache-details",
-  "version": 6
+  "version": 2
 }
