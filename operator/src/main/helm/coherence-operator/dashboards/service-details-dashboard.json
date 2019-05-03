@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1548989824117,
+  "iteration": 1556853830392,
   "links": [
     {
       "icon": "dashboard",
@@ -1984,7 +1984,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -1995,7 +1994,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2033,7 +2032,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -2064,5 +2063,5 @@
   "timezone": "",
   "title": "Service Details  Dashboard",
   "uid": "coh-service-details",
-  "version": 19
+  "version": 2
 }
