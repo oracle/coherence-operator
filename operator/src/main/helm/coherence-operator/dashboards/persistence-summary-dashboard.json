@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 19,
-  "iteration": 1551277709790,
+  "id": 5,
+  "iteration": 1556853653365,
   "links": [
     {
       "icon": "dashboard",
@@ -676,8 +676,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "kilted-opossum",
-          "value": "kilted-opossum"
+          "text": "coherence's cluster",
+          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "hide": 0,
@@ -686,7 +686,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -700,9 +700,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "12.2.1.4.0",
-          "value": "12.2.1.4.0"
+          "text": "12.2.1.4.0 (dev-coherence)",
+          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "hide": 2,
@@ -725,7 +724,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -750,7 +748,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -775,9 +772,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "5",
-          "value": "5"
+          "tags": [],
+          "text": "3",
+          "value": "3"
         },
         "hide": 0,
         "includeAll": false,
@@ -792,6 +789,11 @@
           },
           {
             "selected": true,
+            "text": "3",
+            "value": "3"
+          },
+          {
+            "selected": false,
             "text": "5",
             "value": "5"
           },
@@ -806,14 +808,14 @@
             "value": "15"
           }
         ],
-        "query": "1,5,10,15",
+        "query": "1,3,5,10,15",
         "skipUrlSync": false,
         "type": "custom"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -844,5 +846,5 @@
   "timezone": "",
   "title": "Persistence Summary Dashboard",
   "uid": "coh-persistence-summary",
-  "version": 1
+  "version": 3
 }

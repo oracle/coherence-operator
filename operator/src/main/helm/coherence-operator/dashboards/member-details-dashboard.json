@@ -31,7 +31,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 7,
-  "iteration": 1549343238943,
+  "iteration": 1556853555245,
   "links": [
     {
       "icon": "dashboard",
@@ -1740,7 +1740,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1754,7 +1754,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
           "text": "MultiserverMetricsTests1",
           "value": "MultiserverMetricsTests1"
         },
@@ -1779,7 +1778,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
