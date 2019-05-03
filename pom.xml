@@ -38,7 +38,7 @@
     <nonProxyHosts>${env.http_no_proxy}</nonProxyHosts>
 
     <!-- library dependency versions -->
-    <bedrock.version>5.0.10</bedrock.version>
+    <bedrock.version>5.0.11</bedrock.version>
     <commons.compress.version>1.18</commons.compress.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
     <hamcrest.version>1.3</hamcrest.version>
