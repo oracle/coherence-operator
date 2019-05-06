@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>helidon-sample</artifactId>
-  <name>Storage-Disabled Client - Helidon Sample</name>
+  <name>Storage-Disabled Client Sample - Helidon</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

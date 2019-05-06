@@ -283,11 +283,13 @@ Samples legend:
       1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
       1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
       1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2718;
+         1. [Enable SSL in Coherence 12.2.1.3.X](coherence-deployments/extend/ssl/12213)
+         1. [Enable SSL in Coherence 12.2.1.4.X and above](coherence-deployments/extend/ssl/12214)
       1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
-   1. [Federation](coherence-deployments/federation)
+   1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
       1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2718;
       1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
    1. [Persistence](coherence-deployments/persistence)
@@ -299,7 +301,7 @@ Samples legend:
       1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/external) &#x2714;
    1. [Installing Multiple Coherence clusters with one Operator](coherence-deployments/multiple-clusters)    
 1. [Management](management)
-   1. [Management using REST (12.2.1.4.X only)](management/rest)
+   1. [Using Management over REST (12.2.1.4.X only)](management/rest)
       1. [Access management over REST](management/rest/standard) &#x2726;
       1. [Access management over REST using JVisualVM plugin](management/rest/jvisualvm) &#x2726;
       1. [Enable SSL with management over REST](management/rest/ssl) &#x2726;

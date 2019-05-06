@@ -88,7 +88,7 @@ See [Here](../../management/rest/) for information on connecting to Management o
     
     You should see a pod prefixed with `storage-coherence-jmx` in the above output.
    
-1.  Port-forward the MBean Server Pod   
+1. Port-forward the MBean Server Pod   
    
    ```bash
    $ export POD_NAME=$(kubectl get pods --namespace sample-coherence-ns -l "app=coherence,release=storage,component=coherenceJMXPod" -o jsonpath="{.items[0].metadata.name}")

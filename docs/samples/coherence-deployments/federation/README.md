@@ -1,5 +1,8 @@
 # Federation
 
+> Note, use of Coherence Federation is only available when using the
+> operator with Coherence 12.2.1.4.
+
 # Table of Contents
 
 1. [Within a single Kubernetes cluster](within-cluster)
