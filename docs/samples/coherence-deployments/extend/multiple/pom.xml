@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>multiple-proxy-sample</artifactId>
-  <name>Coherence*Extend - Multiple Proxy Sample</name>
+  <name>Coherence*Extend Sample - Multiple Proxies</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

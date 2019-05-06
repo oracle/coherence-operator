@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>proxy-tier-sample</artifactId>
-  <name>Coherence*Extend - Proxy Tier Sample</name>
+  <name>Coherence*Extend Sample - Proxy Tier</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

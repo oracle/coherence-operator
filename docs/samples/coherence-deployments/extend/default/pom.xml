@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>default-proxy-sample</artifactId>
-  <name>Coherence*Extend - Default Proxy Sample</name>
+  <name>Coherence*Extend Sample - Default Proxy</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

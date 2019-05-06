@@ -25,6 +25,7 @@
     <module>coherence-deployments/extend/proxy-tier</module>
     <module>coherence-deployments/extend/multiple</module>
     <module>coherence-deployments/extend/default</module>
+    <module>coherence-deployments/extend/ssl/12213</module>
     <module>coherence-deployments/storage-disabled/interceptor</module>
     <module>coherence-deployments/storage-disabled/other</module>
     <module>coherence-deployments/elastic-data/default</module>
