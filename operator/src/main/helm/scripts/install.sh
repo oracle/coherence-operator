@@ -12,6 +12,7 @@ if [ "$(uname -s)" = "Darwin" ]; then
 else
     # We're on linux
     OS_SUFFIX="linux-amd64"
+    YQ_OS_SUFFIX="linux_amd64"
 fi
 
 if [ ! -f /usr/local/bin/helm ]; then
@@ -42,7 +43,7 @@ sudo pip install --proxy=${http_proxy} yamllint==1.8.1
 if [ ! -f /usr/local/bin/yq ]; then
     echo "Installing YQ..."
     YQ_VERSION=1.14.0
-    YQ_INSTALL=yq_${OS_SUFFIX}
+    YQ_INSTALL=yq_${YQ_OS_SUFFIX}
     YQ_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_INSTALL}"
     echo "Downloading YQ from ${YQ_URL}..."
     curl -fsSL -o ${YQ_INSTALL} ${YQ_URL}
