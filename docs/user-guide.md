@@ -50,6 +50,10 @@ before any of the steps in this guide.
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
 
+* [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
+
+* [Accessing the EFK stack for viewing logs](logcapture.md)
+
 -------------
 
 
@@ -928,6 +932,10 @@ Coherence clusters to not merge and form one cluster.
 
 > Note, use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
+
+* [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
+
+* [Accessing the EFK stack for viewing logs](logcapture.md)
 
 ### Configuring SSL endpoints for management over REST and metrics publishing
 
