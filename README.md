@@ -6,6 +6,22 @@ http://oss.oracle.com/licenses/upl.
 
 -->
 
+-----
+
+# Public Slack Channel Available
+
+Need more help? Have a suggestion? Come and say "Hello!"
+
+We have a **public Slack channel** where you can get in touch with us to
+ask questions about using the operator or give us feedback or
+suggestions about what features and improvements you would like to see.
+We would love to hear from you. To join our channel, please [visit this site to get an invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
+invitation email will include details of how to access our Slack
+workspace.  After you are logged in, please come to `#operator` and say,
+"hello!"
+
+-------
+
 Oracle is finding ways for organizations using Oracle Coherence to move
 their important workloads into the cloud. By certifying on industry
 standards, such as Docker and Kubernetes, Coherence now runs in a cloud
@@ -41,8 +57,8 @@ enabled" cluster nodes.
 * Deploy custom code for your `EntryProcessor` classes and other
 server-side Coherence constructs.
 
-The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md), or try out the
-[samples](docs/samples/README.md).
+The fastest way to experience the operator is to follow the [Quick Start guide](https://oracle.github.io/coherence-operator/docs/quickstart.html), or try out the
+[samples](https://oracle.github.io/coherence-operator/docs/samples/).
 
 # About this documentation
 
@@ -50,19 +66,19 @@ This documentation includes sections targeted to different audiences.
 To help you find what you are looking for more easily, please consult
 this table of contents:
 
-* The [Quick Start guide](docs/quickstart.md) explains how to
+* The [Quick Start guide](https://oracle.github.io/coherence-operator/docs/quickstart.html) explains how to
   quickly get Coherence running on Kubernetes, using the defaults,
   nothing special.
 
-* The [User guide](docs/user-guide.md) contains detailed usage
+* The [User guide](https://oracle.github.io/coherence-operator/docs/user-guide.html) contains detailed usage
   information on the Coherence Operator, including how to install and
   configure the operator and several common use-cases.
 
-* The [Samples](docs/samples/README.md) provide detailed example
+* The [Samples](https://oracle.github.io/coherence-operator/docs/samples/) provide detailed example
   code and instructions that show you how to perform various tasks
   related to the operator.
 
-* The [Developer guide](docs/developer.md) provides details for people
+* The [Developer guide](https://oracle.github.io/coherence-operator/docs/developer.html) provides details for people
   who want to understand how the operator is built, tested, and so
   on. Those who wish to contribute to the operator code will find useful
   information here.
@@ -73,7 +89,7 @@ this table of contents:
 
 # User guide
 
-The [User guide](docs/user-guide.md) provides detailed information
+The [User guide](https://oracle.github.io/coherence-operator/docs/user-guide.html) provides detailed information
 about all aspects of using the operator including:
 
 * Installing and configuring the operator.
@@ -90,20 +106,8 @@ about all aspects of using the operator including:
 
 # Samples
 
-Please refer to our [samples](docs/samples/README.md) for
+Please refer to our [samples](https://oracle.github.io/coherence-operator/docs/samples/) for
 information about the available sample code.
-
-Need more help? Have a suggestion? Come and say "Hello!"
-
-We have a **public Slack channel** where you can get in touch with us to
-ask questions about using the operator or give us feedback or
-suggestions about what features and improvements you would like to see.
-We would love to hear from you. To join our channel, please [visit this
-site to get an
-invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
-invitation email will include details of how to access our Slack
-workspace.  After you are logged in, please come to `#operator` and say,
-"hello!"
 
 # Things to Keep In Mind for Existing Coherence Users
 
