@@ -37,10 +37,9 @@ see the [User Guide](user-guide.md).
 * Kubernetes must be able to pull the docker images required by the
   Coherence Operator.
   
-* Some of the Helm charts in this project require additional,
-  non-standard, configuration on the each Kubernetes pod that
-  will be running the workloads related to the chart.  This
-  configuration currently includes:
+* Some of the Helm charts in this project require, configuration on each
+  Kubernetes pod that will be running the workloads related to the
+  chart.  This configuration currently includes:
   
     * setting the value of the `max_map_count` kernel parameter to at
       least `262144`.  The manner for doing this is OS specific and is
@@ -71,7 +70,7 @@ Whenever `OPERATOR_VERSION` appears in this document or the
 ## 2. Use Helm to install the Coherence Operator
 
 You may like to customize the value of the of the `--name` and
-(optional) `--namespace` arguments to `kubectl` for the operator.  You
+(optional) `--namespace` arguments to `helm` for the operator.  You
 may also like to customize `targetNamespaces` which the operator manages
 and `imagePullSecrets` (if it is necessary).
 
@@ -128,6 +127,13 @@ $ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
+
+> Use the command `helm inspect readme <chart name>` to print out the
+> `README.md` of the chart.  For example `helm inspect readme
+> HELM_PREFIX/coherence` will print out the `README.md` for the operator
+> chart.  This includes documentation on all the possible values that
+> can be configured with `--set` options to `helm`.  In particular, look
+> at the *Configuration* section of the `README.md`.
 
 If the operation completes successfully, you should see output similar
 to the following.
@@ -250,20 +256,12 @@ $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar -Dcoherence.cacheconfig=$PWD/ex
 This should produce output similar to the following:
 
 ```
-Oracle Coherence Version 12.2.1.3.2
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is 1
 ```
 
 Running the program again should produce:
 
 ```
-Oracle Coherence Version 12.2.1.3.2
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is 2
 ```
 
@@ -273,4 +271,6 @@ Remove the `coherence` release:
 
 ```
 $ helm delete --purge sample-coherence sample-coherence-operator
+$ kubectl delete configmap coherence-internal-config
 ```
+

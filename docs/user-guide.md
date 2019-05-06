@@ -1,9 +1,15 @@
 # User guide
 
 This document provides detailed user information for the Oracle
-Coherence Kubernetes Operator.  It provides instructions on how to
-install the operator in your Kubernetes cluster and how to use it to
-manage Coherence Clusters.
+Coherence Operator.  It provides instructions on how to install
+Coherence and the operator in your Kubernetes cluster and how to use the
+operator to manage Coherence Clusters.
+
+The steps in this user guide describe running the `coherence` and
+`coherence-operator` helm charts.  The former deals with the
+installation of Coherence into Kubernetes and the latter deals with the
+installation into Kubernetes of the
+[operator](https://coreos.com/operators/) for that Coherence.
 
 For convenience, unless otherwise stated, all the examples in this guide
 will be installed in a Kubernetes namespace called
@@ -44,6 +50,10 @@ before any of the steps in this guide.
 
 * [Deploy Multiple Coherence Clusters Managed by the Operator](#deploy-multiple-coherence-clusters-managed-by-the-operator)
 
+* [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
+
+* [Accessing the EFK stack for viewing logs](logcapture.md)
+
 -------------
 
 
@@ -71,7 +81,7 @@ approach can be used for any administrative task that requires making JAR
 files, or XML or other configuration files available to the Coherence
 Cluster.
 
-The Oracle Coherence Kubernetes Operator uses the "sidecar pattern", [as
+The Oracle Coherence Operator uses the "sidecar pattern", [as
 recommended by
 Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/logging/#sidecar-container-with-a-logging-agent),
 to make resources available to Coherence within the Kubernetes cluster.
@@ -178,10 +188,10 @@ We must now package the jar file within the sidecar Docker image.
 2. Ensure docker is running on current host.  If not, run through [the
    Docker getting-started](https://docs.docker.com/get-started/).
    
-3. Build and tag a docker image for your *coherence-operator-hello-example*:
+3. Build and tag a docker image for your *hello-example-sidecar*:
 
     ```
-    $ docker build -t "coherence-operator-hello-example:1.0.0-SNAPSHOT" .
+    $ docker build -t "hello-example-sidecar:1.0.0-SNAPSHOT" .
     ```
 
     Note that the trailing dot "." is very significant.  It means, "run
@@ -202,7 +212,7 @@ We must now package the jar file within the sidecar Docker image.
 ```
 $ helm --debug install --version OPERATOR_VERSION \
      HELM_PREFIX/coherence --name hello-example \
-     --set userArtifacts.image=coherence-operator-hello-example:1.0.0-SNAPSHOT \
+     --set userArtifacts.image=hello-example-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
@@ -275,20 +285,12 @@ $ java -cp files/lib/hello-example.jar:${COHERENCE_HOME}/lib/coherence.jar \
 This should show output similar to the following:
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is Timestamp: previousTime: 11:47:04 currentTime: 16:09:30
 ```
 
 Running the command again will show the `Timestamp` being updated:
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is Timestamp: previousTime: 16:09:30 currentTime: 16:10:20
 ```
 
@@ -486,10 +488,10 @@ We must now package the XML file within the sidecar Docker image.
 2. Ensure docker is running on current host.  If not, run through [the
    Docker getting-started](https://docs.docker.com/get-started/).
    
-3. Build and tag a docker image for your *coherence-operator-hello-example*:
+3. Build and tag a docker image for your *hello-server-config-sidecar*:
 
     ```
-    $ docker build -t "coherence-operator-hello-server-config:1.0.0-SNAPSHOT" .
+    $ docker build -t "hello-server-config-sidecar:1.0.0-SNAPSHOT" .
     ```
 
     Note that the trailing dot "." is very significant.  It means, "run
@@ -553,20 +555,12 @@ $ java -cp .:${COH_JAR} -Dcoherence.cacheconfig=$PWD/hello-client-config.xml -Dc
 This should produce output similar to the following:
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is 1
 ```
 
 Running the program again shows the value has been incremented.
 
 ```
-Oracle Coherence Version 12.2.1.4.0 Build 73407
- Grid Edition: Development mode
-Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-
 The value of the key is 2.
 ```
 
@@ -817,8 +811,8 @@ $ helm --debug install --version OPERATOR_VERSION \
      ./coherence --name hello-example \
      --set store.maxHeap="8g" \
      --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp" \
-     --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true"
-     --set userArtifacts.image=coherence-operator-hello-example:1.0.0-SNAPSHOT \
+     --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \
+     --set userArtifacts.image=hello-example-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
@@ -862,27 +856,27 @@ image that conveys the application classes to Kubernetes.  This docker
 image is tagged with a version number, and the version number is how
 Kubernetes enables safe rolling upgrades.  You can read more about safe
 rolling upgrades in [the Helm
-documentation](https://helm.sh/docs/helm/#helm-upgrade).  Briefly, as
-with the scaling described in the preceding section, the safe rolling
-upgrade feature allows you to instruct Kubernetes, via the operator, to
-replace the currently deployed version of your application classes with
-a different one.  Kubernetes does not care if the different version is
-"newer" or "older", as long as it has a docker tag and can be pulled by
-the cluster, that is all Kubernetes needs to know.  The operator will
-ensure this is done without data loss or interruption of service.
+documentation](https://helm.sh/docs/helm/#helm-upgrade).  As with the
+scaling described in the preceding section, the safe rolling upgrade
+feature allows you to instruct Kubernetes to replace the currently
+deployed version of your application classes with a different one.
+Kubernetes does not care if the different version is "newer" or "older",
+as long as it has a docker tag and can be pulled by the cluster, that is
+all Kubernetes needs to know.  The Coherence and Kubernetes will ensure
+this is done without data loss or interruption of service.
 
 Assuming the sidecar has been installed using the steps detailed in
 [Supply a Jar File Containing Application Classes](#table-of-use-cases),
 and the upgrade destination is available and has been tagged with
-`coherence-operator-hello-example:1.0.1`, the following command will
+`hello-example-sidecar:1.0.1`, the following command will
 instruct the operator to upgrade from
-`coherence-operator-hello-example:1.0.0-SNAPSHOT` to
-`coherence-operator-hello-example:1.0.1`.
+`hello-example-sidecar:1.0.0-SNAPSHOT` to
+`hello-example-sidecar:1.0.1`.
 
 ```
 $ helm --debug upgrade --version OPERATOR_VERSION \
      HELM_PREFIX/coherence --name hello-example --reuse-values \
-     --set userArtifacts.image=coherence-operator-hello-example:1.0.1 --wait \
+     --set userArtifacts.image=hello-example-sidecar:1.0.1 --wait \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
@@ -922,6 +916,12 @@ The first `helm install` installs the operator with an empty list for
 the `targetNamespaces` parameter.  This causes the operator to manage
 all namespaces for Coherence clusters.
 
+> Use the command `helm inspect readme <chart name>` to print out the
+> `README.md` of the chart.  For example `helm inspect readme
+> HELM_PREFIX/coherence-operator` will print out the `README.md` for the
+> operator chart.  This includes documentation on all the possible
+> values that can be configured with `--set` options to `helm`.
+
 The second and third `helm install` invocations differ in the values
 passed to the `cluster` and `userArtifacts.image` parameters, and
 `--name` option.  These values must be unique to ensure that the two
@@ -933,32 +933,14 @@ Coherence clusters to not merge and form one cluster.
 > Note, use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
+* [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
 
-### Use-Cases
+* [Accessing the EFK stack for viewing logs](logcapture.md)
 
+### Configuring SSL endpoints for management over REST and metrics publishing
 
-  1. Deploy Operator w/ Prometheus enabled showing coherence metrics in
-     prometheus.
-
-  2. Deploy Operator and Grafana showing OOTB grafana dashboard and
-     visualized display of the metrics in prometheus.
-     
-  3. Deploy Operator w/ ELK enabled, and deploy a Coherence Deployment.
-If you wish to access Kibana to view logs, then please see [Accessing
-the EFK stack for viewing logs](logcapture.md).
-
-     i) Show logs going to elasticsearch and output in kibana in addition
-        to highlighting what is extracted from the log record, i.e. thread
-        name, member id, service name, etc.
-
-     ii) Describe how customers put their own logs into ES.
-
-  4. How does a customer add their own metrics? (a research item that we
-     should work out how and then doc)
-
-  5. Configuring SSL endpoints for management over REST and metrics publishing
-
-``   Note: Management over REST and metrics publishing will be available in Coherence 12.2.1.4.``
+> Note: SSL and Management over REST and metrics publishing will be
+> available in Coherence 12.2.1.4.
 
 This section describes how to configure SSL for management over REST and Prometheus metrics through two examples.
 
