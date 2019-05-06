@@ -29,4 +29,4 @@ Please refer to the [documentation site](https://oracle.github.io/coherence-oper
 # Developers of Coherence Operator
 
 Please refer to the [documentation site](https://oracle.github.io/coherence-operator/) and the
-[Developer guide](https://oracle.github.io/coherence-operator/docs/developer.html).
+[developer guide](https://oracle.github.io/coherence-operator/docs/developer.html).
