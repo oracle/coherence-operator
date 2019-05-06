@@ -8,7 +8,7 @@ The Oracle Coherence Operator includes the Prometheus Operator as an optional su
 To configure the Prometheus Operator and monitor Coherence services via grafana dashboards, 
 please follow the instructions below.
 
-This use-case is covered [in the samples](https://oracle.github.io/coherence-operator/docs/samples/operator/metrics/enable-metrics/).
+This use-case is covered [in the samples](docs/samples/operator/metrics/enable-metrics/).
 
 ## 1. Installing the Charts
 
