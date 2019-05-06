@@ -30,7 +30,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 6,
-  "iteration": 1550631600034,
+  "iteration": 1556853599117,
   "links": [
     {
       "icon": "dashboard",
@@ -851,7 +851,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -862,7 +861,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -876,10 +875,8 @@
       {
         "allValue": null,
         "current": {
-          "isNone": true,
-          "selected": true,
-          "text": "None",
-          "value": ""
+          "text": "12.2.1.4.0 (dev-coherence)",
+          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "hide": 2,
@@ -902,7 +899,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -927,7 +923,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -952,9 +947,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "5",
-          "value": "5"
+          "text": "1",
+          "value": "1"
         },
         "hide": 0,
         "includeAll": false,
@@ -963,14 +957,14 @@
         "name": "TopLimit",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "1",
             "value": "1"
           },
           {
-            "selected": true,
-            "text": "5",
-            "value": "5"
+            "selected": false,
+            "text": "3",
+            "value": "3"
           },
           {
             "selected": false,
@@ -983,14 +977,14 @@
             "value": "15"
           }
         ],
-        "query": "1,5,10,15",
+        "query": "1,3,10,15",
         "skipUrlSync": false,
         "type": "custom"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1021,5 +1015,5 @@
   "timezone": "",
   "title": "Members Summary Dashboard",
   "uid": "coh-members-summary",
-  "version": 10
+  "version": 2
 }

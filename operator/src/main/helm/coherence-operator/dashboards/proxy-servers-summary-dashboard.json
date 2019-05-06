@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 3,
-  "iteration": 1550136420603,
+  "iteration": 1556853791664,
   "links": [
     {
       "icon": "dashboard",
@@ -876,7 +876,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -887,7 +886,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -901,7 +900,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "12.2.1.4.0 (dev-coherence)",
           "value": "12.2.1.4.0 (dev-coherence)"
         },
@@ -926,7 +924,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -957,5 +955,5 @@
   "timezone": "",
   "title": "Proxy Servers Summary Dashboard",
   "uid": "coh-proxy-services-summary",
-  "version": 11
+  "version": 2
 }

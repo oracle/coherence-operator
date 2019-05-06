@@ -45,7 +45,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1551301295574,
+  "iteration": 1556853863139,
   "links": [
     {
       "icon": "dashboard",
@@ -1201,7 +1201,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(cluster)",
+        "query": "label_values(coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1287,7 +1287,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "5",
           "value": "5"
         },
@@ -1301,6 +1300,11 @@
             "selected": false,
             "text": "1",
             "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "3",
+            "value": "3"
           },
           {
             "selected": true,
@@ -1318,14 +1322,14 @@
             "value": "15"
           }
         ],
-        "query": "1,5,10,15",
+        "query": "1,3,5,10,15",
         "skipUrlSync": false,
         "type": "custom"
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1356,5 +1360,5 @@
   "timezone": "",
   "title": "Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "version": 1
+  "version": 2
 }
