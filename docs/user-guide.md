@@ -81,6 +81,8 @@ approach can be used for any administrative task that requires making JAR
 files, or XML or other configuration files available to the Coherence
 Cluster.
 
+This use-case is covered [in the samples](docs/samples/coherence-deployments/sidecar/).
+
 The Oracle Coherence Operator uses the "sidecar pattern", [as
 recommended by
 Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/logging/#sidecar-container-with-a-logging-agent),
@@ -618,6 +620,8 @@ Operator.  Let's take the example of collecting a `.hprof` file for a
 heap dump.  A single-command technique is included at the end of this
 use-case.
 
+This use-case is covered [in the samples](docs/samples/management/reporter/).
+
 Assuming you have the operator and Coherence as the only apps running in
 the Kubernetes cluster, the following command lists the pods of the
 operator and Coherence.
@@ -692,6 +696,8 @@ operator, but the Coherence Helm chart must be installed with some
 additional arguments, and of course the network port for JMX must be
 exposed.  This use-case covers how to install Coherence in a Kubernetes
 cluster with JMX enabled.
+
+This use-case is covered [in the samples](docs/samples/management/jmx/).
 
 Note that to fully appreciate this use-case, deploy an application that
 uses Coherence and creates some caches.  Such an application can be
@@ -785,6 +791,8 @@ arguments for maximum performance, and Coherence is no exception.  This
 use-case explains how to convey JVM arguments to Coherence running
 inside Kubernetes.
 
+This use-case is covered [in the samples](docs/samples/management/jvmarguments/).
+
 Please see [the Coherence Performance Tuning
 documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB)
 for authoritative information on this topic.
@@ -833,6 +841,8 @@ The Coherence Operator leverages Kubernetes Statefulsets to ensure that
 scale up and scale down operations allow the underlying Coherence
 cluster nodes sufficient time to rebalance the cluster data.
 
+This use-case is covered [in the samples](docs/samples/operator/scaling/).
+
 Assume the Coherence helm chart has been run with the default options
 and a [Helm release](https://helm.sh/docs/glossary/#release) by the name of
 `coherence-deploy` has been created and is successfully running, the
@@ -865,6 +875,8 @@ as long as it has a docker tag and can be pulled by the cluster, that is
 all Kubernetes needs to know.  The Coherence and Kubernetes will ensure
 this is done without data loss or interruption of service.
 
+This use-case is covered [in the samples](docs/samples/operator/rolling-upgrade/).
+
 Assuming the sidecar has been installed using the steps detailed in
 [Supply a Jar File Containing Application Classes](#table-of-use-cases),
 and the upgrade destination is available and has been tagged with
@@ -890,6 +902,8 @@ installed on the given Kubernetes cluster.  The following commands
 install the Coherence operator, then install multiple, independent
 Coherence clusters, on the same Kubernetes cluster, managed by that one
 operator.
+
+This use-case is covered [in the samples](docs/samples/coherence-deployments/multiple-clusters/).
 
 ```
 $ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence-operator \

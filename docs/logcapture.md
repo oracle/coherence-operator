@@ -4,6 +4,8 @@ The Oracle Coherence Kubernetes Operator manages Oracle Coherence on Kubernetes.
 It manages monitoring data through Prometheus, and logging data through the EFK
 (ElasticSearch, Fluentd and Kibana) stack.
 
+This use-case is covered [in the samples](docs/samples/operator/logging/log-capture/).
+
 To access and configure the Kibana UI, please follow the instructions below.
 
 ## 1. Installing the Charts
