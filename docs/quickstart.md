@@ -37,10 +37,9 @@ see the [User Guide](user-guide.md).
 * Kubernetes must be able to pull the docker images required by the
   Coherence Operator.
   
-* Some of the Helm charts in this project require additional,
-  non-standard, configuration on each Kubernetes pod that will be
-  running the workloads related to the chart.  This configuration
-  currently includes:
+* Some of the Helm charts in this project require, configuration on each
+  Kubernetes pod that will be running the workloads related to the
+  chart.  This configuration currently includes:
   
     * setting the value of the `max_map_count` kernel parameter to at
       least `262144`.  The manner for doing this is OS specific and is
