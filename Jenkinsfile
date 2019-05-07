@@ -164,8 +164,8 @@ pipeline {
                         '''
                     }
                 }
+                archiveArtifacts 'operator/target/helm-tiller-logs/tiller.logs'
             }
-            archiveArtifacts 'operator/target/helm-tiller-logs/tiller.logs'
             post {
                 always {
                     sh '''
