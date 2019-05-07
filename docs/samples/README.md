@@ -193,7 +193,7 @@ To enable Prometheus, add the following options to the above command:
 Full helm install example for enabling Prometheus is:
 
 ```bash
-helm install \
+$ helm install \
      --namespace sample-coherence-ns \
      --set imagePullSecrets=sample-coherence-secret \
      --name coherence-operator \

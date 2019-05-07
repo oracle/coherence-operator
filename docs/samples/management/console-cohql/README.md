@@ -103,14 +103,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    Please see [Coherence Documentation](https://docs.oracle.com/middleware/1221/coherence/develop-applications/api_cq.htm#COHDG5264) 
    for more information on CohQL.
-   
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 

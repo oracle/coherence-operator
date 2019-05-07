@@ -160,6 +160,8 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    
    * Click `Next Step` and select the `@timestamp` field and click on `Create index pattern`.
    
+   >Note: It may take up to 5 minutes for the data to reach the elasticsearch instance.
+   
 1. View data from the `cloud-*` index pattern
 
    * Click on `Discover` and then the drop-down where it shows `coherence-cluster-*` and select `cloud-*`.

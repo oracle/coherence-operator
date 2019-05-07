@@ -155,11 +155,11 @@ This sample shows you how to scale-up a statefulset using `kubectl` as well as s
       
 ## Verifying Grafana Data (If you enabled Prometheus)
 
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
+Access Grafana using the instructions [here](../../README.md#access-grafana).
 
 ## Verifying Kibana Logs (if you enabled log capture)
 
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
+Access Kibana using the instructions [here](../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 

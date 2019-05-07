@@ -20,8 +20,7 @@ execute this command:
 $ kubectl config set-context $(kubectl config current-context) --namespace=sample-coherence-ns
 ```
 
-The steps listed in [Environment Configuration in the
-quickstart](quickstart.md#1-environment-configuration) must be performed
+The steps listed in [Environment Configuration in the quickstart](./quickstart.md#1-environment-configuration) must be performed
 before any of the steps in this guide.
 
 ### Table of Use-Cases
@@ -200,8 +199,7 @@ We must now package the jar file within the sidecar Docker image.
     the build relative to the current directory."
 
 4. Push your image to the docker registry which the Kubernetes cluster
-   can reach.  See [the
-   quickstart](quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
+   can reach.  See [the quickstart](./quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
@@ -501,7 +499,7 @@ We must now package the XML file within the sidecar Docker image.
 
 4. Push your image to the docker registry which the Kubernetes cluster
    can reach.  See [the
-   quickstart](quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
+   quickstart](./quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
@@ -704,7 +702,7 @@ uses Coherence and creates some caches.  Such an application can be
 installed using the steps detailed in [Supply a Jar File Containing
 Application Classes](#table-of-use-cases).  Assuming the operator has
 been installed [as described in the
-quickstart](quickstart.md#2-install-the-coherence-operator), install
+quickstart](./quickstart.md#2-install-the-coherence-operator), install
 Coherence with the following Helm invocation.
 
 ```
@@ -775,7 +773,7 @@ visualvm --jdkhome ${JAVA_HOME} --cp:a PATH_TO_DOWNLOADED.jar
   
 * Expand the tree view to Coherence > Node and pick one of the nodes.
 
-  Here you can see the mbeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-0AB8710B-2A1D-432D-AFBF-8E73B8230D51__CHDBIJFA
+  Here you can see the MBeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-0AB8710B-2A1D-432D-AFBF-8E73B8230D51__CHDBIJFA
 
   In particular `LoggingLevel`, which defaults to 5.  This can be
   also be interactively changed.

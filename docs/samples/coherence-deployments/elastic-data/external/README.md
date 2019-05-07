@@ -150,14 +150,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    Type `exit` to leave the `exec` session.
 
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
-
 ## Uninstalling the Charts
 
 Carry out the following commands to delete the chart installed in this sample.
