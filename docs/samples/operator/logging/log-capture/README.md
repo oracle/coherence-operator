@@ -105,6 +105,8 @@ Use the `port-forward-kibana.sh` script in the
 
    [http://127.0.0.1:5601/](http://127.0.0.1:5601/)
    
+   >Note: It may take up to 5 minutes for the data to reach the elasticsearch instance.   
+   
 ## Default Dashboards
 
 There are a number of dashboard created via the import process.

@@ -10,7 +10,7 @@ please follow the instructions below.
 
 This use-case is covered [in the samples](docs/samples/operator/metrics/enable-metrics/).
 
-## 1. Installing the Charts
+## Installing the charts
 
 When you install the `coherence-operator` chart, you must specify the following
 additional set value for `helm` to install subchart `prometheusoperator`.
@@ -24,23 +24,27 @@ Prometheus. The servicemonitor `<releasename>-coherence-service-monitor`
 configures Prometheus to scrape all components of `coherence-service`.
 
 
-## 2. Port Forward Grafana
+## Port forward Grafana
 
 Once you have installed the charts, use the following script to port forward the Grafana pod.
 
 ```bash
 #!/bin/bash
+
+trap "exit" INT
   
 while :
 do
-  kubectl port-forward $(kubectl get pods --selector=app=grafana -n namespace --output=jsonpath="{.items..metadata.name}") -n namespace 9200:3000
+  kubectl port-forward $(kubectl get pods --selector=app=grafana -n namespace --output=jsonpath="{.items..metadata.name}") -n namespace 3000:3000
 done
-
 ```
 
-## 3. Login to Grafana
+> Note: We add place the port-forward in a while to ensure it restarts any time it exists as 
+> port-forwarding is sometimes unreliable and should only be used as a development tool. 
 
-In browser, go to url `http://localhost:9200`.
+## Login to Grafana
+
+In browser, go to the url `http://127.0.0.1:3000/d/coh-main/coherence-dashboard-main` to access the main Coherence dashboard.
 
 At the Grafana login screen, the login is `admin` and the password is `prom-operator`.
 
@@ -48,7 +52,7 @@ Click `Home` in the upper left corner of screen to get a list of preconfigured d
 Click ` Coherence Dashboard Main`.
 
 
-## 4. Default Dashboards
+## Default dashboards
 
 There are a number of dashboard created via the import process.
 
@@ -70,7 +74,32 @@ There are a number of dashboard created via the import process.
 
 * Coherence Http Servers Summary
 
-## 5. Troubleshooting
+## Navigating the dashboards
+
+The Grafana dashboards created to monitor Coherence Clusters have some common UI elements and navigation patterns:
+
+1. Variables and Annotations
+
+   At the top left under the dashboard name any [variables](https://grafana.com/docs/reference/templating/), which are changeable and affect the
+   queries in the dashboards, are displayed. Also [annotations](https://grafana.com/docs/reference/annotations/), which
+   indicate events on the dashboard are also able to be enabled or disabled.
+   
+   ![Variables and Annotations](img/variables-and-annotations.png)
+   
+   `ClusterName` is a common variable which can be changed to choose the cluster do display information for.
+   
+   `Show Cluster Size Changed` is an annotation which shows anytime the cluster size has changed. All
+   annotations appear as a red vertical line as shown below:
+   
+   ![Show Cluster Size Changed Annotation](img/annotation.png)
+
+1. Access other dashboards
+
+   On the right of the page you can click to show all the dashboards available for viewing.
+   
+   ![All Dashboards](img/all-dashboards.png)
+      
+## Troubleshooting
 
 ## Helm install of `coherence-operator` fails creating a custom resource definition (CRD).
 
@@ -84,7 +113,7 @@ to manually install the Prometheus Operator CRDs, then install the `coherence-op
 ### No datasource found
 
 Manually create a datasource by clicking on Grafana Home `Create your first data source` button 
-and fill in these fields.
+and fill in these fields. Ensure the datasource is set as the default.
   
 ```bash
    Name:      Prometheus 

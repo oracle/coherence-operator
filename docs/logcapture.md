@@ -8,7 +8,7 @@ This use-case is covered [in the samples](docs/samples/operator/logging/log-capt
 
 To access and configure the Kibana UI, please follow the instructions below.
 
-## 1. Installing the Charts
+## Installing the charts
 
 When you install the `coherence-operator` and `coherence` charts, you must specify the following
 option for `helm` , for both charts, to ensure the EFK stack (Elasitcsearch, Fluentd and Kibana) 
@@ -18,7 +18,7 @@ is installed and correctly configured.
 --set logCaptureEnabled=true 
 ```
 
-## 2. Port Forward Kibana
+## Port forward Kibana
 
 Once you have installed both charts, use the following script to port forward the Kibana port 5601.
 
@@ -27,18 +27,16 @@ then include `--namespace` option for both `kubectl` commands.
 
 ```bash
 #!/bin/bash
+trap "exit" INT
   
-export KIBANA_POD=$(kubectl get pods | grep kibana | awk '{print $1}')
-echo $KIBANA_POD
-
 while :
 do
- kubectl port-forward $KIBANA_POD 5601:5601
+   kubectl port-forward $(kubectl get pods | grep kibana | awk '{print $1}') 5601:5601
 done
 
 ```
 
-## 3. Default Dashboards
+## Default dashboards
 
 There are a number of dashboard created via the import process.
 
@@ -62,14 +60,14 @@ There are a number of dashboard created via the import process.
 
 * *Coherence Cluster - Network* - Shows network related messages such as communication delays and TCP ring disconnects 
 
-## 4. Default Queries
+## Default queries
 
 There are many queries related to common Coherence messages, warnings and errors that are 
 loaded and can be accessed via the discover side-bar.
 
-## 5. Troubleshooting
+## Troubleshooting
 
-### No Default Index Pattern
+### No default index pattern
 
 There are two index patterns created via the import process and the `coherence-cluster-*` pattern
 will be set as the default. If for some reason this is not the case, then carry out the following

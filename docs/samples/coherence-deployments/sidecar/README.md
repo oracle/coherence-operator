@@ -106,14 +106,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    New Person is: Person{Id=1, Name='Tom Jones', Address='123 Hollywood Ave, California, USA'}
    Person after entry processor is: Person{Id=1, Name='TOM JONES', Address='123 HOLLYWOOD AVE, CALIFORNIA, USA'}
    ```
-   
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 

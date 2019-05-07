@@ -186,14 +186,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```
    
    The above shows that the version 2.0.0 image is now present.
-   
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Chart
 

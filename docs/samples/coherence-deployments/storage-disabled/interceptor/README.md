@@ -138,14 +138,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    2019-03-20 08:33:44.143/49.459 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=pool-1-thread-1, member=4): Inserted key=41, value=08:33:44
    ```
 
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
-
 ## Uninstalling the Charts
 
 Carry out the following commands to delete the two charts installed in this sample.

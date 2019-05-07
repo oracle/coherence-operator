@@ -144,14 +144,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```bash
    2019-05-01 10:05:18.764/20.659 Oracle Coherence GE 12.2.1.4.0 <D6> (thread=com.tangosol.coherence.dslquery.QueryPlus.main(), member=n/a): Connecting Socket to 127.0.0.1:20001   
    ```
-   
-## Verifying Grafana Data (If you enabled Prometheus)
-
-Access Grafana using the instructions [here](../../../README.md#access-grafana).
-
-## Verifying Kibana Logs (if you enabled log capture)
-
-Access Kibana using the instructions [here](../../../README.md#access-kibana).
 
 ## Uninstalling the Charts
 
