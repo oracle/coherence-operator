@@ -211,21 +211,6 @@
                   <goal>exec</goal>
                 </goals>
               </execution>
-              <execution>
-                <id>docker-tag</id>
-                <phase>package</phase>
-                <configuration>
-                  <executable>docker</executable>
-                  <workingDirectory>${project.build.directory}/docker</workingDirectory>
-                  <arguments>
-                    <argument>tag</argument>
-                    <argument>${operator.image}:${operator.image.version}</argument>
-                  </arguments>
-                </configuration>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-              </execution>
             </executions>
           </plugin>
         </plugins>
