@@ -6,8 +6,11 @@
 
 package helm;
 
+import com.oracle.bedrock.deferred.options.InitialDelay;
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.runtime.options.Arguments;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.util.Resources;
 import org.junit.*;
 
@@ -15,7 +18,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static helm.HelmUtils.HELM_TIMEOUT;
 import static helm.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -77,6 +83,9 @@ public class LoggingConfigIT
 
         assertThat(listPod.isEmpty(), is(false));
 
+        Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, listPod.get(0)),
+            is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
+
         Queue<String> queueLog = getPodLog(s_k8sCluster, sNamespace, listPod.get(0));
         boolean       fEnvVar  = queueLog.stream().anyMatch(s -> s.equals("COH_LOG_LEVEL=9"));
         boolean       fSysProp = queueLog.stream().anyMatch(s -> s.contains(" -Dcoherence.log.level=9 "));
@@ -101,6 +110,9 @@ public class LoggingConfigIT
         List<String> listPod   = getPods(s_k8sCluster, sNamespace, sSelector);
 
         assertThat(listPod.isEmpty(), is(false));
+
+        Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, listPod.get(0)),
+            is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
 
         Queue<String> queueLog = getPodLog(s_k8sCluster, sNamespace, listPod.get(0));
         boolean       fEnvVar  = queueLog.stream().anyMatch(s -> s.equals("COH_LOGGING_CONFIG=" + sLogConfig));
@@ -128,6 +140,9 @@ public class LoggingConfigIT
         List<String> listPod   = getPods(s_k8sCluster, sNamespace, sSelector);
 
         assertThat(listPod.isEmpty(), is(false));
+
+        Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, listPod.get(0)),
+            is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
 
         Queue<String> queueLog     = getPodLog(s_k8sCluster, sNamespace, listPod.get(0));
         String        sExpectedCfg = sCfgDir + sLogConfig;
@@ -173,6 +188,9 @@ public class LoggingConfigIT
         List<String> listPod   = getPods(s_k8sCluster, sNamespace, sSelector);
 
         assertThat(listPod.isEmpty(), is(false));
+
+        Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, listPod.get(0)),
+            is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
 
         Queue<String> queueLog     = getPodLog(s_k8sCluster, sNamespace, listPod.get(0));
         String        sExpectedCfg = sCfgDir + sLogConfig;
