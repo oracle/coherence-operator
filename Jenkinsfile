@@ -176,7 +176,7 @@ pipeline {
                         kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
                         kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
                         kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
-                        helm tiller stop
+                        helm tiller stop || true
                     '''
                     deleteDir()
                 }
