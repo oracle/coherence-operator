@@ -119,7 +119,7 @@ Coherence 12.2.1.4.
 | `resources.limits.cpu` | See (http://kubernetes.io/docs/user-guide/compute-resources) | `32`|
 | `coherence.image` | Coherence image to be pulled | `"oracle/coherence:12.2.1.3"` |
 | `coherence.imagepullPolicy` | Coherence Image pull policy | `"IfNotPresent"` |
-| `coherenceUtils.image` | Coherence Utils image to be pulled | `"oracle/coherence-utils:1.0.0"` |
+| `coherenceUtils.image` | Coherence Utils image to be pulled | `"oracle/coherence-operator:1.0.0-utils"` |
 | `coherenceUtils.imagePullPolicy` | Coherence Utils Image pull policy | `"IfNotPresent"` |
 | `logCaptureEnabled` | Whether log capture via EFK stack is enabled | `false` |
 | `fluentd.image` | Fluentd image to be pulled | `"fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"' |
