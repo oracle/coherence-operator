@@ -538,7 +538,7 @@ coherenceUtils:
   # coherenceUtils.image is the name of the CoherenceUtils image to be used
   #   NOTE: This is a required value and if this value is set to null then installing the
   #   chart will result in a missing required value error
-  image: "${release.image.prefix}oracle/coherence-utils:${project.version}"
+  image: "${release.image.prefix}oracle/coherence-operator:${project.version}-utils"
   # coherenceUtils.imagePullPolicy controls the K8s Coherence utilities container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:

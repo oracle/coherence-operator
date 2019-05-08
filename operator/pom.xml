@@ -220,7 +220,6 @@
                   <arguments>
                     <argument>tag</argument>
                     <argument>${operator.image}:${operator.image.version}</argument>
-                    <argument>${operator.image}:latest</argument>
                   </arguments>
                 </configuration>
                 <goals>

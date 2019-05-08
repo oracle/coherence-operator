@@ -36,4 +36,4 @@ As a prerequisite the release (aka Git tag) should exist in GitHub
 5. Create the docker images (mvn -Pdocker -DskipTests=true -DskipITs=true clean install)
 6. Push the created Docker images (docker push ...)
    a. oracle/coherence-operator:x.y.z
-   b. oracle/coherence-utils:x.y.z
+   b. oracle/coherence-operator:x.y.z-utils

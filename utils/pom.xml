@@ -193,7 +193,7 @@
                   <arguments>
                     <argument>build</argument>
                     <argument>-t</argument>
-                    <argument>${release.image.prefix}oracle/${project.artifactId}:${project.version}</argument>
+                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
                     <argument>--no-cache</argument>
                     <argument>.</argument>
                   </arguments>
@@ -210,8 +210,7 @@
                   <workingDirectory>${project.build.directory}/docker</workingDirectory>
                   <arguments>
                     <argument>tag</argument>
-                    <argument>${release.image.prefix}oracle/${project.artifactId}:${project.version}</argument>
-                    <argument>${release.image.prefix}oracle/${project.artifactId}:latest</argument>
+                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
                   </arguments>
                 </configuration>
                 <goals>
@@ -243,22 +242,7 @@
                   <workingDirectory>${project.build.directory}/docker</workingDirectory>
                   <arguments>
                     <argument>push</argument>
-                    <argument>${release.image.prefix}oracle/${project.artifactId}:${project.version}</argument>
-                  </arguments>
-                </configuration>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>docker-push-latest-version</id>
-                <phase>install</phase>
-                <configuration>
-                  <executable>docker</executable>
-                  <workingDirectory>${project.build.directory}/docker</workingDirectory>
-                  <arguments>
-                    <argument>push</argument>
-                    <argument>${release.image.prefix}oracle/${project.artifactId}</argument>
+                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
                   </arguments>
                 </configuration>
                 <goals>
