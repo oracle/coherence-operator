@@ -1,0 +1,37 @@
+apiVersion: v1
+entries:
+  coherence:
+  - apiVersion: v1
+    appVersion: 0.9.3
+    created: 2019-05-08T20:27:14.767575235Z
+    description: Coherence in Kubernetes
+    digest: 23d32f064de903205c55290be7d5f493104d0c76dbbe3f270b926867e4b30e74
+    home: https://github.com/oracle/coherence-operator
+    icon: https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png
+    keywords:
+    - coherence
+    name: coherence
+    sources:
+    - https://github.com/oracle/coherence-operator
+    urls:
+    - https://oracle.github.io/coherence-operator/charts/coherence-0.9.3.tgz
+    version: 0.9.3
+  coherence-operator:
+  - apiVersion: v1
+    appVersion: 0.9.3
+    created: 2019-05-08T20:27:14.780841583Z
+    description: A Kubernetes Operator for Coherence
+    digest: 4ffe57a7f81974baa4ae1cc6d0485747f266d99d1af17e73a283c4b73c6a5b3a
+    home: https://github.com/oracle/coherence-operator
+    icon: https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png
+    keywords:
+    - operator
+    - coherence
+    - datagrid
+    name: coherence-operator
+    sources:
+    - https://github.com/oracle/coherence-operator
+    urls:
+    - https://oracle.github.io/coherence-operator/charts/coherence-operator-0.9.3.tgz
+    version: 0.9.3
+generated: 2019-05-08T20:27:14.765521212Z
