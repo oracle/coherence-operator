@@ -131,8 +131,8 @@ pipeline {
                         helm init --client-only
                         export HELM_TILLER_LOGS=true
                         export HELM_TILLER_LOGS_DIR=$PWD/operator/target/helm-tiller-logs
-                        rm -rf HELM_TILLER_LOGS_DIR
-                        mkdir HELM_TILLER_LOGS_DIR
+                        rm -rf $HELM_TILLER_LOGS_DIR
+                        mkdir $HELM_TILLER_LOGS_DIR
                         helm tiller start-ci test-cop-$BUILD_NUMBER
                         export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
                         export HELM_HOST=:44134
