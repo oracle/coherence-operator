@@ -185,6 +185,9 @@ The above will install the `coherence-operator` without Prometheus or log captur
 
 ### Enabling Prometheus
 
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
 To enable Prometheus, add the following options to the above command:
 
 ```bash
@@ -313,7 +316,7 @@ Samples legend:
    1. [Diagnostic Tools](management/diagnostics)
       1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2714; 
       1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2726; 
-   1. [Manage and use the Reporter](management/reporter) &#x2714; 
+   1. [Manage and use the Reporter](management/reporter) &#x2726;
    1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
  
 # Troubleshooting Tips
@@ -349,6 +352,9 @@ Error: configmaps "coherence-internal-config" not found
 # Accessing UI endpoints
 
 ## Access Grafana
+
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
 
 If you have enabled Prometheus then you can use the `port-forward-grafana.sh` script in the
 [common](common) directory to view metrics.
@@ -389,8 +395,12 @@ If you have enabled log capture then you can use the `port-forward-kibana.sh` sc
 
 ## Access Prometheus
 
-If you have enabled log capture then you can use the `port-forward-prometheus.sh` script in the
-[common](common) directory to view metrics.
+
+> Note, use of Prometheus and Grafana is only available when using the
+> operator with Coherence 12.2.1.4.
+
+If you have enabled Prometheus then you can use the `port-forward-prometheus.sh` script in the
+[common](common) directory to view metrics directly.
 
 1. Start the port-forward
 

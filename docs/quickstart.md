@@ -304,7 +304,9 @@ next:
 
 ```
 $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloCoherence.java
-$ java -cp .:${COHERENCE_HOME}/lib/coherence.jar -Dcoherence.cacheconfig=$PWD/example-client-config.xml -Dcoherence.log.level=-1 HelloCoherence
+$ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
+       -Dcoherence.cacheconfig=$PWD/example-client-config.xml 
+       -Dcoherence.log.level=1 HelloCoherence
 ```
 
 This should produce output similar to the following:
