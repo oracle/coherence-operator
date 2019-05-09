@@ -1,6 +1,6 @@
 # Deploy using external volume mapped to the host
 
-This shows how to create Persistent Volumes (PV) and then map the Elastic Data 
+This sample shows how to create Persistent Volumes (PV) and then map the Elastic Data 
 to be stored on these PV's.  This would allow for a specific size to be used for storing Elastic Data
 rather than just relying on the size of the underlying default "/tmp/ directory.
 
@@ -77,7 +77,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set logCaptureEnabled=false \
       --set userArtifacts.image=elastic-data-sample-external:1.0.0-SNAPSHOT \
       -f src/main/yaml/volumes.yaml \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -132,7 +132,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    Then type `bye` to exit the `console`.
    
-1. Inspect the Elastic Data FlashJournal files  
+1. Ensure the Elastic Data FlashJournal files exist 
 
    Issue the following to exec into one of the Coherence pods and list the files used by Elastic Data.
    
@@ -145,9 +145,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    -rw-r--r-- 1 root root 68943872 May  1 08:44 coh6857569664465911116.tmp
    ```
   
-   The contents of the file(s) are not important, just the fact that they are using
-   the default location.
-   
    Type `exit` to leave the `exec` session.
 
 ## Uninstalling the Charts

@@ -4,7 +4,9 @@ Any of the debugging techniques described in [Debugging in
 Coherence](https://docs.oracle.com/middleware/12213/coherence/develop-applications/debugging-coherence.htm)
 that call for the creation of files to be examined, such as log files
 and JVM heap dumps, can also be accomplished with the Coherence
-Operator.  Let's take the example of collecting a `.hprof` file for a
+Operator.  
+
+This sample shows how to collect a `.hprof` file for a
 heap dump.  A single-command technique is included at the end of this sample.
 
 [Return to Diagnostics Tools](../) / [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -28,7 +30,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
 1. Ensure the pods are running:
@@ -45,7 +47,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 1. Open a shell into one of the storage nodes
 
    ```bash
-   $ kubectl exec -it storage-coherence-0 -n sample-coherence-ns bash
+   $ kubectl exec -it storage-coherence-0 -n sample-coherence-ns -- bash
    ```
 
    Obtain the PID of the Coherence process.  Usually this is PID `1`, but
@@ -60,9 +62,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
 1. Use the `jcmd` command to extract the heap dump
 
    ```bash
-   # rm /tmp/heap.hprof
-   # /usr/java/default/bin/jcmd 1 GC.heap_dump /tmp/heap.hprof
-   # exit
+   $ rm /tmp/heap.hprof
+   $ /usr/java/default/bin/jcmd 1 GC.heap_dump /tmp/heap.hprof
+   $ exit
    ```
    
 1. Copy the heap dump to local machine

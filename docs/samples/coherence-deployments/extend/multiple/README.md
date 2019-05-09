@@ -62,7 +62,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set userArtifacts.image=multiple-proxy-sample:1.0.0-SNAPSHOT \
       --set store.javaOpts="-Dcoherence.extend.port2=20001" \
       --set store.ports.custom-port=20001 \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -104,13 +104,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster via proxy port 20000.
 
    ```
-   CohQL> insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-1') value('value-1');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
 
-   CohQL> select count() from 'test';
+   > select count() from 'test';
    Results
    1
    ```
@@ -131,11 +131,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster via proxy port 20001.
 
    ```
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
 
-   CohQL> select count() from 'test';
+   select count() from 'test';
    Results
    1
    ```

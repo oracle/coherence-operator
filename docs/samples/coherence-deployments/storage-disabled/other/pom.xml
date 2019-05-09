@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
- <parent>
+  <parent>
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>samples-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -86,47 +86,63 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>${maven.jib.plugin.version}</version>
-        <configuration>
-          <to>
-            <image>${project.artifactId}</image>
-            <tags>
-              <tag>${project.version}</tag>
-              <tag>latest</tag>
-            </tags>
-          </to>
-          <container>
-            <!-- good defaults intended for containers -->
-            <jvmFlags>
-              <jmxFlag>-server</jmxFlag>
-              <jmxFlag>-Djava.awt.headless=true</jmxFlag>
-              <jmxFlag>-Dcoherence.distributed.localstorage=false</jmxFlag>
-              <jmxFlag>-XX:+UnlockExperimentalVMOptions</jmxFlag>
-              <jmxFlag>-XX:+UseCGroupMemoryLimitForHeap</jmxFlag>
-              <jmxFlag>-XX:InitialRAMFraction=2</jmxFlag>
-              <jmxFlag>-XX:MinRAMFraction=2</jmxFlag>
-              <jmxFlag>-XX:MaxRAMFraction=2</jmxFlag>
-              <jmxFlag>-XX:+UseG1GC</jmxFlag>
-            </jvmFlags>
-            <mainClass>com.oracle.coherence.examples.Main</mainClass>
-            <ports>
-              <port>8080</port>
-            </ports>
-            </container>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                  <goal>dockerBuild</goal>
-              </goals>
-              <phase>package</phase>
-            </execution>
-          </executions>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>${maven.jib.plugin.version}</version>
+            <configuration>
+              <to>
+                <image>${project.artifactId}</image>
+                <tags>
+                  <tag>${project.version}</tag>
+                  <tag>latest</tag>
+                </tags>
+              </to>
+              <container>
+                <!-- good defaults intended for containers -->
+                <jvmFlags>
+                  <jmxFlag>-server</jmxFlag>
+                  <jmxFlag>-Djava.awt.headless=true</jmxFlag>
+                  <jmxFlag>-Dcoherence.distributed.localstorage=false</jmxFlag>
+                  <jmxFlag>-XX:+UnlockExperimentalVMOptions</jmxFlag>
+                  <jmxFlag>-XX:+UseCGroupMemoryLimitForHeap</jmxFlag>
+                  <jmxFlag>-XX:InitialRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:MinRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:MaxRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:+UseG1GC</jmxFlag>
+                </jvmFlags>
+                <mainClass>com.oracle.coherence.samples.Main</mainClass>
+                <ports>
+                  <port>8080</port>
+                </ports>
+                </container>
+              </configuration>
+              <executions>
+                <execution>
+                  <goals>
+                      <goal>dockerBuild</goal>
+                  </goals>
+                  <phase>package</phase>
+                </execution>
+              </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
 </project>

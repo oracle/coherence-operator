@@ -16,7 +16,7 @@ will be installed in a Kubernetes namespace called
 *sample-coherence-ns*.  To set this namespace as the active namespace
 execute this command:
 
-```
+```bash
 $ kubectl config set-context $(kubectl config current-context) --namespace=sample-coherence-ns
 ```
 
@@ -35,7 +35,7 @@ before any of the steps in this guide.
    
    * [Supply a Configuration File and/or Application Classes In a Jar File](#finally-lets-combine-the-preceding-two-use-cases-and-deploy-a-jar-containing-both-application-classes-and-configuration-files)
    
-* [Extract Reporter Files from Kubernetes](#extract-reporter-files-from-a-kubernetes-coherence-pod)
+* [Extract Heap Dump Files from Kubernetes](#extract-heap-dump-files-from-a-kubernetes-coherence-pod)
    
 * [Use JMX to Inspect and Manage Coherence](#use-jmx-to-inspect-and-manage-coherence)
 
@@ -108,7 +108,7 @@ for use within Kubernetes.
 
 ##### 1. Create a directory for the files.
 
-```
+```bash
 $ mkdir -p hello-example/files/lib
 $ cd hello-example
 ```
@@ -132,7 +132,7 @@ public class HelloExample {
     cache.put("ts1",
               ts = new Timestamp((null == ts) ? Long.MIN_VALUE : ts.currentTime));
 
-    System.out.print("The value of the key is " + ts.toString());
+    System.out.println("The value of the key is " + ts.toString());
   }
 
   public static class Timestamp implements Serializable {
@@ -169,10 +169,9 @@ $ jar -cf files/lib/hello-example.jar *.class
 
 We must now package the jar file within the sidecar Docker image.
 
-1. Create a `Dockerfile` next to the XML and JAR files, with the
-   following contents.
+1. Create a `Dockerfile` with the following contents.
 
-    ```
+    ```bash
     FROM oraclelinux:7-slim
     RUN mkdir -p /files/lib
     COPY files/lib/hello-example.jar files/lib
@@ -191,32 +190,32 @@ We must now package the jar file within the sidecar Docker image.
    
 3. Build and tag a docker image for your *hello-example-sidecar*:
 
-    ```
+    ```bash
     $ docker build -t "hello-example-sidecar:1.0.0-SNAPSHOT" .
     ```
 
     Note that the trailing dot "." is very significant.  It means, "run
     the build relative to the current directory."
 
-4. Push your image to the docker registry which the Kubernetes cluster
-   can reach.  See [the quickstart](./quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
+4. Push your image to the docker registry which the Kubernetes cluster can reach
+
+   See [the quickstart](./quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
-    If you are using a local Kubernetes, you can omit this step, since
-    the Kubernetes pulls from the same Docker server as the one to which
-    the local build command built the image.
+   > Note: If you are using a local Kubernetes, you can omit this step, since
+   > the Kubernetes pulls from the same Docker server as the one to which
+   > the local build command built the image.
    
 ##### 4. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
-```
-$ helm --debug install --version OPERATOR_VERSION \
-     HELM_PREFIX/coherence --name hello-example \
+```bash
+$ helm --debug install coherence-community/coherence --name hello-example \
      --set userArtifacts.image=hello-example-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
-> If your jar files are in a different location within the sidecar Docker
+> Note: If your jar files are in a different location within the sidecar Docker
 > image, use the `--set userArtifacts.libDir=<absolute path within
 > docker image>` argument to `helm install` to configure the correct location.
 
@@ -225,14 +224,14 @@ Extend port so that your local client can use it.  The instructions for
 doing this are output from the above `helm install` command, but they
 are repeated hear for your convenience.
 
-```
+```bash
 $ export POD_NAME=$(kubectl get pods --namespace default -l "app=coherence,release=hello-example" -o jsonpath="{.items[0].metadata.name}")
 $ kubectl --namespace default port-forward $POD_NAME 20000:20000
 ```
 
 This prints the following output and blocks the shell:
 
-```
+```bash
 Forwarding from 127.0.0.1:20000 -> 20000
 Forwarding from [::1]:20000 -> 20000
 ```
@@ -276,10 +275,10 @@ called `hello-client-config.xml` with the following contents.
 
 Run the client with the following command.
 
-```
+```bash
 $ java -cp files/lib/hello-example.jar:${COHERENCE_HOME}/lib/coherence.jar \
-  -Dcoherence.log.level=-1 \
-  -Dcoherence.cacheconfig=$PWD/hello-client-config.xml HelloExample
+       -Dcoherence.log.level=1 -Dcoherence.distributed.localstorage=false \
+       -Dcoherence.cacheconfig=$PWD/hello-client-config.xml HelloExample
 ```
 
 This should show output similar to the following:
@@ -294,14 +293,11 @@ Running the command again will show the `Timestamp` being updated:
 The value of the key is Timestamp: previousTime: 16:09:30 currentTime: 16:10:20
 ```
 
-##### 6. Delete the Helm relese
+##### 6. Delete the Helm release
 
 ```
 $ helm delete --purge hello-example
 ```
-
-  3. Change the cache configuration that is used to one in the application
-     jar.
 
 ##### Now let's modify the preceding example to deploy a config file
 
@@ -312,7 +308,10 @@ the illustration, we will use a subset of that configuration.
 
 ##### 1. Create a directory for the files.
 
-```
+Ensure you are in the parent directory of the last example.
+
+```bash
+$ cd ..
 $ mkdir -p hello-config-example/files/conf
 $ cd hello-config-example
 ```
@@ -324,7 +323,7 @@ In the same directory, create this simple java program, in the file
 [quickstart](quickstart.md).
 
 
-```
+```java
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -472,25 +471,25 @@ We must now package the XML file within the sidecar Docker image.
 1. Create a `Dockerfile` next to the java file, with the
    following contents.
    
-    ```
-    FROM oraclelinux:7-slim
-    RUN mkdir -p /files/conf
-    COPY files/conf/hello-server-config.xml files/conf/hello-server-config.xml
-    ```
+   ```bash
+   FROM oraclelinux:7-slim
+   RUN mkdir -p /files/conf
+   COPY files/conf/hello-server-config.xml files/conf/hello-server-config.xml
+   ```
 
-    Note that the XML file is placed in the `files/conf` directory
-    relative to the root of the docker image.  This is the default
-    location where Coherence will look for config files apply to
-    Coherence.  It is possible to change the location where Coherence
-    looks for jars to add to the classpath as shown in the following
-    step.
+   Note that the XML file is placed in the `files/conf` directory
+   relative to the root of the docker image.  This is the default
+   location where Coherence will look for config files apply to
+   Coherence.  It is possible to change the location where Coherence
+   looks for jars to add to the classpath as shown in the following
+   step.
 
 2. Ensure docker is running on current host.  If not, run through [the
    Docker getting-started](https://docs.docker.com/get-started/).
    
 3. Build and tag a docker image for your *hello-server-config-sidecar*:
 
-    ```
+    ```bash
     $ docker build -t "hello-server-config-sidecar:1.0.0-SNAPSHOT" .
     ```
 
@@ -503,22 +502,21 @@ We must now package the XML file within the sidecar Docker image.
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
-    If you are using a local Kubernetes, you can omit this step, since
-    the Kubernetes pulls from the same Docker server as the one to which
-    the local build command built the image.
+   > Note: If you are using a local Kubernetes, you can omit this step, since
+   > the Kubernetes pulls from the same Docker server as the one to which
+   > the local build command built the image.
 
 
 ##### 5. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
-```
-$ helm --debug install --version OPERATOR_VERSION \
-     HELM_PREFIX/coherence --name hello-server-config \
-     --set userArtifacts.image=coherence-operator-hello-server-config:1.0.0-SNAPSHOT \
+```bash
+$ helm --debug install coherence-community/coherence --name hello-server-config \
+     --set userArtifacts.image=hello-server-config-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=hello-server-config.xml
 ```
 
-> If your XML files are in a different location within the sidecar Docker
+> Note: If your XML files are in a different location within the sidecar Docker
 > image, use the `--set userArtifacts.configDir=<absolute path within
 > docker image>` argument to `helm install` to configure the correct
 > location.
@@ -528,14 +526,14 @@ Extend port so that your local client can use it.  The instructions for
 doing this are output from the above `helm install` command, but they
 are repeated hear for your convenience.
 
-```
+```bash
 $ export POD_NAME=$(kubectl get pods --namespace default -l "app=coherence,release=hello-server-config" -o jsonpath="{.items[0].metadata.name}")
 $ kubectl --namespace default port-forward $POD_NAME 20000:20000
 ```
 
 This prints the following output and blocks the shell:
 
-```
+```bash
 Forwarding from 127.0.0.1:20000 -> 20000
 Forwarding from [::1]:20000 -> 20000
 ```
@@ -546,21 +544,23 @@ Assuming you are in the same directory as the XML and Java source files,
 and that the correct `coherence.jar` is available at
 `${COHERENCE_HOME}/lib/coherence.jar`, compile and run the program as
 shown next:
-
-```
-$ javac -cp .:${COH_JAR} HelloConfigXml.java
-$ java -cp .:${COH_JAR} -Dcoherence.cacheconfig=$PWD/hello-client-config.xml -Dcoherence.log.level=-1 HelloConfigXml
+                     
+```bash
+$ javac  -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloConfigXml.java
+$ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
+       -Dcoherence.distributed.localstorage=false \
+       -Dcoherence.cacheconfig=$PWD/hello-client-config.xml -Dcoherence.log.level=1 HelloConfigXml
 ```
 
 This should produce output similar to the following:
 
-```
+```bash
 The value of the key is 1
 ```
 
 Running the program again shows the value has been incremented.
 
-```
+```bash
 The value of the key is 2.
 ```
 
@@ -568,14 +568,14 @@ The value of the key is 2.
 
 Frequently, the sidecar image contains one or more jar files, each of
 which may contain application classes, configuration files, or both.
-Any jar files included in the sidecare image using the approach detailed
+Any jar files included in the sidecar image using the approach detailed
 above will end up on the Coherence Classpath.  Any Java classes in those
 jar files, will therefore be available for Classloading by the entire
 Coherence cluster.  Any configuration files *must be included in the top
 level of a jar file* in order to be referenced by the Coherence helm
 chart.  Consider the following sidecar image layout.
 
-```
+```bash
 files/
    lib/
       coherence-operator-hello-server-config-1.0.0-SNAPSHOT.jar
@@ -583,7 +583,7 @@ files/
 
 Within the jar, consider the following excerpt from the file layout.
 
-```
+```bash
 META-INF/
 META-INF/LICENSE
 META-INF/beans.xml
@@ -600,15 +600,14 @@ supplied to coherence, as well as all the java classes in the jar file
 being in the Coherence classpath.
 
 ```
-$ helm --debug install --version OPERATOR_VERSION \
-     HELM_PREFIX/coherence --name hello-server-config \
+$ helm --debug install coherence-community/coherence --name hello-server-config \
      --set userArtifacts.image=coherence-operator-hello-server-config:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=cache-config.xml \
      --set store.pof.config=pof-config.xml
 ```
 
-#### Extract Reporter Files from a Kubernetes Coherence Pod
+#### Extract Heap Dump Files from a Kubernetes Coherence Pod
 
 Any of the debugging techniques described in [Debugging in
 Coherence](https://docs.oracle.com/middleware/12213/coherence/develop-applications/debugging-coherence.htm)
@@ -624,7 +623,7 @@ Assuming you have the operator and Coherence as the only apps running in
 the Kubernetes cluster, the following command lists the pods of the
 operator and Coherence.
 
-```
+```bash
 $ kubectl get pods
 NAME                                 READY     STATUS    RESTARTS   AGE
 coherence-demo-storage-0             1/1       Running   0          45m
@@ -634,14 +633,14 @@ coherence-operator-7bc94cfb4-g4kz2   1/1       Running   0          47m
 
 Get a shell into the storage node:
 
-```
+```bash
 $ kubectl exec -it coherence-demo-storage-0 -- /bin/bash
 ```
 
 Obtain the PID of the Coherence process.  Usually this is PID `1`, but
 it is a good idea to use `jps` to get the actual PID.
 
-```
+```bash
 bash-4.2# /usr/java/default/bin/jps
 1 DefaultCacheServer
 4230 Jps
@@ -649,26 +648,26 @@ bash-4.2# /usr/java/default/bin/jps
 
 Now use the `jcmd` command to extract the heap dump and exit the shell.
 
-```
+```bash
 bash-4.2# /usr/java/default/bin/jcmd 1 GC.heap_dump /DefaultCache.hprof
 bash-4.2# exit
 ```
 
 Finally, use `kubectl exec` to extract the heap dump.
 
-```
+```bash
 $ (kubectl exec coherence-demo-storage-0 -it -- cat /DefaultCache.hprof ) > DefaultCache.hprof
 ```
 
 Assuming the Coherence PID is `1`, a repeatable single-command version of this technique is:
 
-```
+```bash
 $ (kubectl exec coherence-demo-storage-0 -- /bin/bash -c "rm -f /tmp/heap.hprof; /usr/java/default/bin/jcmd 1 GC.heap_dump /tmp/heap.hprof; cat /tmp/heap.hprof > /dev/stderr" ) 2> heap.hprof
 ```
 
 Note that we redirect the heap dump output to `stderr` to prevent the unsuppressable 
 
-```
+```bash
 1:
 Heap dump file created
 ```
@@ -705,15 +704,14 @@ been installed [as described in the
 quickstart](./quickstart.md#2-install-the-coherence-operator), install
 Coherence with the following Helm invocation.
 
-```
-$ helm --debug install --version OPERATOR_VERSION \
-     ./coherence --name hello-example \
+```bash
+$ helm --debug install coherence-community/coherence --name hello-example \
      --set userArtifacts.image=coherence-demo-app:1.0 \
      --set store.jmx.enabled=true \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
-The only new argument is *--set store.jmx.enabled=true*.
+The only new argument is `--set store.jmx.enabled=true*`
 
 Look carefully at the output for instructions about how to expose the
 JMX port.  The instructions will include running a `kubectl
@@ -731,7 +729,7 @@ The JMX endpoint does not use RMI, it uses JMXMP. This requires an
 additional jar on the classpath of the Java JMX client (i.e. VisualVM,
 JConsole, etc). This can be downloaded as a Maven dependency:
 
-```
+```xml
 <dependency>
     <groupId>org.glassfish.external</groupId>
     <artifactId>opendmk_jmxremote_optional_jar</artifactId>
@@ -747,7 +745,7 @@ or directly from:
 Once downloaded, VisualVM 1.4.2 and later can be started in the
 following manner to enable connection to Coherence in Kubernetes.
 
-```
+```bash
 visualvm --jdkhome ${JAVA_HOME} --cp:a PATH_TO_DOWNLOADED.jar
 ```
 
@@ -812,9 +810,8 @@ the following.
 The following invocation installs and starts Coherence with specific
 values to be passed to the JVM.
 
-```
-$ helm --debug install --version OPERATOR_VERSION \
-     ./coherence --name hello-example \
+```bash
+$ helm --debug install coherence/community/coherence --name hello-example \
      --set store.maxHeap="8g" \
      --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp" \
      --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \
@@ -825,7 +822,7 @@ $ helm --debug install --version OPERATOR_VERSION \
 The JVM arguments will include the `store.` arguments specified above,
 in addition to many others required by the operator and Coherence.
 
-```
+```bash
 -Xloggc:/tmp/gc-log -server -Xcomp -Xms8g -Xmx8g -Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true
 ```
 
@@ -847,8 +844,8 @@ and a [Helm release](https://helm.sh/docs/glossary/#release) by the name of
 following command will increase the number of Coherence cluster nodes
 from the default to the new value of `4`.
 
-```
-kubectl scale statefulsets coherence-deploy --replicas=4
+```bash
+$ kubectl scale statefulsets coherence-deploy --replicas=4
 ```
 
 Monitoring the progress of the cluster as Kubernetes adjusts to the new
@@ -883,9 +880,8 @@ instruct the operator to upgrade from
 `hello-example-sidecar:1.0.0-SNAPSHOT` to
 `hello-example-sidecar:1.0.1`.
 
-```
-$ helm --debug upgrade --version OPERATOR_VERSION \
-     HELM_PREFIX/coherence --name hello-example --reuse-values \
+```bash
+$ helm --debug upgrade coherence-community/coherence --name hello-example --reuse-values \
      --set userArtifacts.image=hello-example-sidecar:1.0.1 --wait \
      --set imagePullSecrets=sample-coherence-secret
 ```
@@ -903,25 +899,23 @@ operator.
 
 This use-case is covered [in the samples](samples/coherence-deployments/multiple-clusters/).
 
-```
-$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence-operator \
+```bash
+$ helm --debug install coherence-community/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
 
-$ helm --debug install --version OPERATOR_VERSION \
+$ helm --debug install coherence-community/coherence \
      --set cluster=revenue-management \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=revenue-app:2.0.1 \
-     --name revenue-management \
-     HELM_PREFIX/coherence
+     --name revenue-management
 
-$ helm --debug install --version OPERATOR_VERSION \
+$ helm --debug install coherence-community/coherence \
      --set cluster=charging \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=charging-app:2.0.1 \
-     --name charging \
-     HELM_PREFIX/coherence
+     --name charging
 ```
 
 The first `helm install` installs the operator with an empty list for
@@ -930,7 +924,7 @@ all namespaces for Coherence clusters.
 
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
-> HELM_PREFIX/coherence-operator` will print out the `README.md` for the
+> coherence-community/coherence-operator` will print out the `README.md` for the
 > operator chart.  This includes documentation on all the possible
 > values that can be configured with `--set` options to `helm`.
 
@@ -956,101 +950,103 @@ Coherence clusters to not merge and form one cluster.
 
 This section describes how to configure SSL for management over REST and Prometheus metrics through two examples.
 
-i) Configuring SSL for management over REST <p />
+i) Configuring SSL for management over REST
 The following is an example on how to configure a two-way SSL for 
 Coherence management over REST:
 
- a) Create k8s secrets for your key store and trust store files <p />
- Coherence SSL requires Java key store and trust store files. These files
- are usually password protected.
- Let's say our key store and trust store are password protected.  Below are 
- the required files:
+  a) Create k8s secrets for your key store and trust store files <p />
+  Coherence SSL requires Java key store and trust store files. These files
+  are usually password protected.
+  Let's say our key store and trust store are password protected.  Below are 
+  the required files:
  
-```
-keyStore - name of the Java keystore file: myKeystore.jks
-keyStorePasswordFile - name of the keystore password file: storepassword.txt
-keyPasswordFile - name of the key password file: keypassword.txt
-trustStore - name of the Java trust store file: myTruststore.jks
-trustStorePasswordFile - name of the trust store password file: trustpassword.txt
-```
+  ```
+  keyStore - name of the Java keystore file: myKeystore.jks
+  keyStorePasswordFile - name of the keystore password file: storepassword.txt
+  keyPasswordFile - name of the key password file: keypassword.txt
+  trustStore - name of the Java trust store file: myTruststore.jks
+  trustStorePasswordFile - name of the trust store password file: trustpassword.txt
+  ```
 
-The following command creates a k8s secret, ssl-secret, to contain these files:
+  The following command creates a k8s secret, ssl-secret, to contain these files:
 
-```
-kubectl create secret generic ssl-secret \
-   --namespace myNamespace \
-   --from-file=./myKeystore.jks \
-   --from-file=./myTruststore.jks \
-   --from-file=./storepassword.txt \
-   --from-file=./keypassword.txt \
-   --from-file=./trustpassword.txt
-```
+  ```bash
+  kubectl create secret generic ssl-secret \
+     --namespace myNamespace \
+     --from-file=./myKeystore.jks \
+     --from-file=./myTruststore.jks \
+     --from-file=./storepassword.txt \
+     --from-file=./keypassword.txt \
+     --from-file=./trustpassword.txt
+  ```
 
- b) Create a YAML file, helm-values-ssl-management.yaml, to enable SSL for 
- Coherence management over REST 
- using the keystore, trust store, and password files in the ssl-secret
- we created in a):
+  b) Create a YAML file, helm-values-ssl-management.yaml, to enable SSL for 
+  Coherence management over REST 
+  using the keystore, trust store, and password files in the ssl-secret
+  we created in a):
 
-     
-     store:
-       management:
-         ssl:
-           enabled: true
-           secrets: ssl-secret
-           keyStore: myKeystore.jks
-           keyStorePasswordFile: storepassword.txt
-           keyPasswordFile: keypassword.txt
-           keyStoreType: JKS
-           trustStore: myTruststore.jks
-           trustStorePasswordFile: trustpassword.txt
-           trustStoreType: JKS
-           requireClientCert: true
-           
-       readinessProbe:
-         initialDelaySeconds: 10  
+  ```yaml     
+       store:
+         management:
+           ssl:
+             enabled: true
+             secrets: ssl-secret
+             keyStore: myKeystore.jks
+             keyStorePasswordFile: storepassword.txt
+             keyPasswordFile: keypassword.txt
+             keyStoreType: JKS
+             trustStore: myTruststore.jks
+             trustStorePasswordFile: trustpassword.txt
+             trustStoreType: JKS
+             requireClientCert: true
+             
+         readinessProbe:
+           initialDelaySeconds: 10  
+  ```
   
- c) Install the Coherence helm chart using the YAML file created in step b): <p />
+  c) Install the Coherence helm chart using the YAML file created in step b):
 
-```
-  helm install --version OPERATOR_VERSION HELM_PREFIX/coherence \
+  ```bash
+  helm install coherence-community/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
     -f helm-values-ssl-management.yaml
-```
+  ```
 
-To verify that Coherence management over REST is running
-with https, you could forward the management listen port
-to your local machine and access the REST endpoint
-using the following command and URL respectively:
+  To verify that Coherence management over REST is running
+  with https, you could forward the management listen port
+  to your local machine and access the REST endpoint
+  using the following command and URL respectively:
 
-```
-kubectl port-forward <pod name> 30000:30000
- 
-https://localhost:30000/management/coherence/cluster
-```
+  ```bash
+  $ kubectl port-forward <pod name> 30000:30000
+   
+  https://localhost:30000/management/coherence/cluster
+  ```
 
-If you have self-signed certificate, you may get "Your connection is not secure" from the browser.
-You can click "Advanced" button, then "Add Exception..." to allow the request go through.
+  If you have self-signed certificate, you may get "Your connection is not secure" from the browser.
+  You can click "Advanced" button, then "Add Exception..." to allow the request go through.
 
-You could also look for the following message in the log file of the Coherence pod: <br />
-`Started: HttpAcceptor{Name=Proxy:ManagementHttpProxy:HttpAcceptor, State=(SERVICE_STARTED), HttpServer=NettyHttpServer{Protocol=HTTPS, AuthMethod=cert}`
+  You could also look for the following message in the log file of the Coherence pod: <br />
+  `Started: HttpAcceptor{Name=Proxy:ManagementHttpProxy:HttpAcceptor, State=(SERVICE_STARTED), HttpServer=NettyHttpServer{Protocol=HTTPS, AuthMethod=cert}`
 
   
 ii) Configuring SSL for metrics publishing for Prometheus <p />
-You can either create a different k8s secret with a different set of keystore,
-trust store, etc. or use the same secret used by management over rest. For our example,
-we will just use the same secret, ssl-secret.  Here is an example on how to configure 
-a SSL endpont for Coherence metrics:
 
- a) Create k8s secret for your key store and trust store files <p />
- We can skip this step since we already have a k8s secret created 
- from the management over REST example. <p />
+  You can either create a different k8s secret with a different set of keystore,
+  trust store, etc. or use the same secret used by management over rest. For our example,
+  we will just use the same secret, ssl-secret.  Here is an example on how to configure 
+  a SSL endpont for Coherence metrics:
 
- b) Create a YAML file, helm-values-ssl-metrics.yaml, using the keystore, trust store,
- and password file stored in ssl-secret we created in example i):
+  a) Create k8s secret for your key store and trust store files <p />
+  We can skip this step since we already have a k8s secret created 
+  from the management over REST example. <p />
 
-     
+  b) Create a YAML file, helm-values-ssl-metrics.yaml, using the keystore, trust store,
+  and password file stored in ssl-secret we created in example i):
+
+  ```yaml   
      store:
        metrics:
          ssl:
@@ -1066,60 +1062,60 @@ a SSL endpont for Coherence metrics:
            requireClientCert: true
            
        readinessProbe:
-         initialDelaySeconds: 10  
+         initialDelaySeconds: 10 
+  ```        
   
  c) Install the Coherence helm chart using the YAML created in step b): <p />
 
-```
-  helm install --version OPERATOR_VERSION HELM_PREFIX/coherence \
+  ```bash
+  helm install coherence-community/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
     -f helm-values-ssl-metrics.yaml
-```
+  ```
 
-To verify that Coherence metrics for Prometheus is running
-with https, you could forward the Coherence metrics port and access the metrics
- from your local machine use the following commands:
+  To verify that Coherence metrics for Prometheus is running
+  with https, you could forward the Coherence metrics port and access the metrics
+   from your local machine use the following commands:
 
-```
-kubectl port-forward <Coherence pod> 9095:9095
- 
-curl -X GET https://localhost:9095/metrics \
---cacert <caCert> --cert <certificate>
- 
-add "--insecure" if you use self-signed certificate.
-```
+  ```bash
+  $ kubectl port-forward <Coherence pod> 9095:9095
+  
+  $ curl -X GET https://localhost:9095/metrics --cacert <caCert> --cert <certificate>
+  
+  add "--insecure" if you use self-signed certificate.
+  ```
 
-You could also look for the following message in the log file of the Coherence pod:
-`Started: HttpAcceptor{Name=Proxy:MetricsHttpProxy:HttpAcceptor, State=(SERVICE_STARTED), HttpServer=NettyHttpServer{Protocol=HTTPS, AuthMethod=cert}`
+  You could also look for the following message in the log file of the Coherence pod:
+  `Started: HttpAcceptor{Name=Proxy:MetricsHttpProxy:HttpAcceptor, State=(SERVICE_STARTED), HttpServer=NettyHttpServer{Protocol=HTTPS, AuthMethod=cert}`
 
-To configure Prometheus SSL (TLS) connections with the Coherence metrics SSL endpoints,
-see: https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md
-on how to specify k8s secrets that contain the certificates required for two-way SSL in Prometheus; <br />
-see: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config
-on how to configure Prometheus to use SSL (TLS) connections.
+  To configure Prometheus SSL (TLS) connections with the Coherence metrics SSL endpoints,
+  see: https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md
+  on how to specify k8s secrets that contain the certificates required for two-way SSL in Prometheus; <br />
+  see: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config
+  on how to configure Prometheus to use SSL (TLS) connections.
+  
+  Once you configured Prometheus to use SSL, you can verify that Prometheus is scraping Coherence
+  metrics over https by forwarding the Prometheus service port to your local machine
+  and access the following URL:
 
-Once you configured Prometheus to use SSL, you can verify that Prometheus is scraping Coherence
-metrics over https by forwarding the Prometheus service port to your local machine
-and access the following URL:
+  ```bash
+  $ kubectl port-forward <Prometheus pod> 9090:9090
+   
+  http://localhost:9090/graph
+  ```
 
-```
-kubectl port-forward <Prometheus pod> 9090:9090
- 
-http://localhost:9090/graph
-```
+  You should see many coherence_* metrics.   
+  
+  To enable SSL for both management over REST and metrics publishing for Prometheus, install the
+  Coherence chart with both YAML files:
 
-You shoud see many coherence_* metrics    
-
-To enable SSL for both management over REST and metrics publishing for Prometheus, install the
-Coherence chart with both YAML files:
-
-```
-  helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence \
-    --name coherence \
-    --namespace myNamespace \
-    --set imagePullSecrets=my-imagePull-secret \
-    -f helm-values-ssl-management.yaml,helm-values-ssl-metrics.yaml
-```
+  ```bash
+    helm --debug install coherence-community/coherence \
+      --name coherence \
+      --namespace myNamespace \
+      --set imagePullSecrets=my-imagePull-secret \
+      -f helm-values-ssl-management.yaml,helm-values-ssl-metrics.yaml
+  ```
     

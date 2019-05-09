@@ -22,9 +22,9 @@ on the server side.
 
 * [src/main/resources/conf/storage-pof-config.xml](src/main/resources/conf/storage-pof-config.xml) - POF cache config for storage-enabled tier
 
-* [src/main/java/demo/Person.java](src/main/java/demo/Person.java) - domain class for storing Person
+* [src/main/java/com/oracle/coherence/examples/Person.java](src/main/java/com/oracle/coherence/examples/Person.java) - domain class for storing Person
 
-* [src/main/java/demo/SampleClient.java](src/main/java/demo/SampleClient.java) - Java client to connect via extend and run entry processor. 
+* [src/main/java/com/oracle/coherence/examples/SampleClient.java](src/main/java/com/oracle/coherence/examples/SampleClient.java) - Java client to connect via extend and run entry processor. 
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    environment set for JDK11 and build the project.
 
    ```bash
-   mvn clean install -P docker
+   $ mvn clean install -P docker
    ```
 
 1. The result of the above is the docker image will be built with the cache configuration files
@@ -66,7 +66,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=sidecar-sample:1.0.0-SNAPSHOT \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.
@@ -94,7 +94,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Issue the following to run the `SampleClient.java` class to insert a Person and
    run a server-side Lambda entry processor to change name and address to uppercase. 
    The execution of this entry processor shows that the Coherence cluster 
-   is aware of the Person object.
+   is aware of the Person object as it we specified in the `userArtifacts.image`. 
    
    ```bash
    $ mvn exec:java
@@ -112,7 +112,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
-helm delete storage --purge
+$ helm delete storage --purge
 ```
 
 Before starting another sample, ensure that all the pods are gone from previous sample.

@@ -33,7 +33,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```bash
    $ kubectl create -f local-sc.yaml
 
-    storageclass.storage.k8s.io/localsc created
+   storageclass.storage.k8s.io/localsc created
 
    $ kubectl get storageclass 
    NAME                 PROVISIONER                    AGE
@@ -88,7 +88,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \
       --set store.persistence.selector.matchLabels.coherenceCluster=persistence-cluster \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Check the pods are running using:
@@ -133,6 +133,20 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    At the prompt, type `size` and it should show 100000.
    
+   Create a snapshot of the `PartitionedCache` service which contains the cache `test`. We will use this later on.
+   
+   ```bash
+   snapshot create test-snapshot
+   Issuing createSnapshot for service PartitionedCache and snapshot empty-service
+   Success
+   ```
+   
+   ```bash
+   snapshot list
+    Snapshots for service PartitionedCache
+       test-snapshot
+   ```
+   
    Then type `bye` to exit the `console`.
    
 1. Delete the Coherence cluster
@@ -176,7 +190,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \
       --set store.persistence.selector.matchLabels.coherenceCluster=persistence-cluster \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
   Wait until all three pods are running before you continue to the next step.
@@ -194,6 +208,15 @@ Ensure you have already installed the Coherence Operator by using the instructio
    At the prompt, type `size` and it should show 100000. 
    
    > This shows that the previous data entered has automatically been recovered due the PVC being honoured.
+   
+   Clear the cache using `clear` command and confirm the cache size is zero.
+   
+   Recover the `test-snapshot` using:
+   
+   ```bash
+   snapshot recover test-snapshot
+   ```
+
     
    Then type `bye` to exit the `console`.   
 

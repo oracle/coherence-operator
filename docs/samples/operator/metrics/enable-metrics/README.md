@@ -35,7 +35,7 @@ Grafana dashboards, please follow the instructions below.
       --set prometheusoperator.enabled=true \
       --set prometheusoperator.prometheusOperator.createCustomResource=false \
       --set "targetNamespaces={sample-coherence-ns}" \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+      coherence-community/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -63,7 +63,7 @@ Grafana dashboards, please follow the instructions below.
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Once the install has completed issue the following command to list the pods:

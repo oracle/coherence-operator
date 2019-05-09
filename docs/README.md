@@ -51,8 +51,8 @@ The fastest way to experience the operator is to follow the
 or try out the [samples](samples/README.md).
 
 ```diff
-+ The current release of the operator is 1.0.0.
-+ This release was published on 2019-03-01.
++ The current release of the operator is 0.9.3.
++ This release was published on 2019-05-09.
 ```
 
 ## Known issues
@@ -85,7 +85,7 @@ this table of contents:
   configure the operator, and how to use it to create and manage
   WebLogic domains.
 
-* The [Samples](samples/README.md) provide detailed example
+* The [Samples](samples/README.md) provides detailed example
   code and instructions that show you how to perform various tasks
   related to the operator.
 

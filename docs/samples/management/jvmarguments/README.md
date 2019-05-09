@@ -25,7 +25,6 @@ the following.
 
 [Return to Management samples](../) / [Return to samples](../../README.md#list-of-samples)
 
-
 ## Prerequisites
 
 Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
@@ -54,7 +53,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp"  \
       --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \
       --set store.maxHeap=1g \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
 1. Ensure the pods are running:

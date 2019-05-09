@@ -46,7 +46,7 @@ for scraping by Prometheus.
       --set prometheusoperator.enabled=true \
       --set prometheusoperator.prometheusOperator.createCustomResource=false \
       --set "targetNamespaces={sample-coherence-ns}" \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+      coherence-community/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -118,7 +118,7 @@ for scraping by Prometheus.
       --set prometheusoperator.enabled=true \
       --set userArtifacts.image=custom-metrics-sample:1.0.0-SNAPSHOT \
       --set store.ports.custom-port=8200 \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence 2>&1 | tee /tmp/tim.out
+      coherence-community/coherence 2>&1 | tee /tmp/tim.out
    ```
     
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -168,11 +168,11 @@ for scraping by Prometheus.
    Run the following CohQL commands to insert data into the cluster.
 
    ```sql
-   CohQL> insert into 'test' key('key-1') value('value-1');
-   CohQL> insert into 'test' key('key-2') value('value-2');
-   CohQL> insert into 'test' key('key-3') value('value-3');
+   insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-2') value('value-2');
+   insert into 'test' key('key-3') value('value-3');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]   
    ["key-2", "value-2"]   
