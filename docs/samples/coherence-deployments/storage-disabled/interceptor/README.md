@@ -33,7 +33,7 @@ Note if you wish to enable Prometheus or log capture, change the following in th
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](here).
+Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

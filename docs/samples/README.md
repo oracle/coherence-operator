@@ -58,6 +58,11 @@ Confirm you have completed the following sections from the `Quick Start Guide` b
   
   * [Obtain the Coherence Docker Image](../quickstart.md#obtain-the-coherence-docker-image)
   
+  
+> Note: For all helm install commands you can leave the --version option off 
+> and the latest version of the chart will be retrieved. If you wanted 
+> to use a specific version, such as 0.9.3, add --version 0.9.3 to all installs for the coherence-operator and coherence charts.  
+
 ## Ensure you have JDK11 and Maven Installed
 
 Ensure you have the following installed:
@@ -69,7 +74,7 @@ Ensure you have the following installed:
 
 If you are not running samples that have a Maven project, then you can skip this step, otherwise continue on.
 
-1. Download and install Coherence.
+1. Download and install Coherence 12.2.1.3 from [Oracle Technology Network](https://www.oracle.com/technetwork/middleware/coherence/downloads/index.html).
 
 1. Make sure COHERENCE_HOME environment variable is set to point to your `coherence` directory under your install location.
    I.e. the directory containing the bin, lib, doc directories. This is only required for the Maven install-file commands.
@@ -165,9 +170,7 @@ Enabling both Prometheus and log capture will require considerable extra system 
 > Note: when running locally, (e.g. on Docker for Mac), you should allocate sufficient memory
 > to you Docker for Mac process. The minimum recommended to run is 8G.
 
-### Install the coherence-operator (no Prometheus or log capture)
-
-Run the following from the `coherence-operator` directory.
+### Install the Coherence Operator (no Prometheus or log capture)
 
 ```bash
 $ helm install \

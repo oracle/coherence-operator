@@ -225,7 +225,8 @@ doing this are output from the above `helm install` command, but they
 are repeated hear for your convenience.
 
 ```bash
-$ export POD_NAME=$(kubectl get pods --namespace default -l "app=coherence,release=hello-example" -o jsonpath="{.items[0].metadata.name}")
+$ export POD_NAME=$(kubectl get pods --namespace default -l \
+   "app=coherence,release=hello-example" -o jsonpath="{.items[0].metadata.name}")
 $ kubectl --namespace default port-forward $POD_NAME 20000:20000
 ```
 

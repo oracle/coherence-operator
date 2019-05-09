@@ -92,7 +92,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    ```bash
    snapshot create test-snapshot
-   Issuing createSnapshot for service PartitionedCache and snapshot empty-service
+   Issuing createSnapshot for service PartitionedCache and snapshot test-snapshot
    Success
    ```
    
@@ -176,6 +176,8 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```bash
    snapshot recover test-snapshot
    ```
+   
+   The size of the cache should now be 50000.
     
    Then type `bye` to exit the `console`.
 
