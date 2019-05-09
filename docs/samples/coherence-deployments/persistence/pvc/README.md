@@ -216,7 +216,8 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```bash
    snapshot recover test-snapshot
    ```
-
+   
+   The size of the cache should now be 100000.
     
    Then type `bye` to exit the `console`.   
 

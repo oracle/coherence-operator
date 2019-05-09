@@ -34,7 +34,7 @@ data to ensure its stored as uppercase.
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](here).
+Ensure you have already installed the Coherence Operator by using the instructions [here](../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
