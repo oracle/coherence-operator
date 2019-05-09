@@ -33,7 +33,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.
@@ -64,13 +64,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster.
 
    ```sql
-   CohQL> insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-1') value('value-1');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
 
-   CohQL> select count() from 'test';
+   select count() from 'test';
    Results
    1
    ```

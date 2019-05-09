@@ -16,7 +16,6 @@ the given sample works, and then customize it to suit your needs.
    1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
    1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
    1. [Create the sample namespace](#create-the-sample-namespace)
-   1. [Add the helm repository](#add-the-helm-repository)
    1. [Clone the GitHub Repository](#clone-the-github-repository)
    1. [Install the Coherence Operator](#install-the-coherence-operator)
 1. [List of Samples](#list-of-samples)
@@ -34,7 +33,6 @@ If you have never setup Coherence Operator before, please carry out the followin
 1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
 1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
 1. [Create the sample namespace](#create-the-sample-namespace)
-1. [Add the helm repository](#add-the-helm-repository)
 1. [Clone the GitHub Repository](#clone-the-github-repository)
 1. [Install the Coherence Operator](#install-the-coherence-operator)
 
@@ -46,10 +44,20 @@ please ensure you change any references to this namespace to match your selected
 
 ## Confirm Quickstart Runtime Prerequisites
 
-Confirm the following section only, from the Quick start guide before continuing:
+Confirm you have completed the following sections from the `Quick Start Guide` before continuing:
 
-* [Runtime Environment Prerequisites](../quickstart.md#prerequisites)
+* Runtime Environment Prerequisites
+  
+  * [Software and Version Prerequisites](../quickstart.md#software-and-version-prerequisites) - Helm and Kubernetes versions
+  
+  * [Runtime Environment Prerequisites](../quickstart.md#runtime-environment-prerequisites) - Helm & Kubernetes configuration
+  
+* Environment Configuration
 
+  * [Add the Helm repository for Coherence](../quickstart.md#add-the-helm-repository-for-coherence)
+  
+  * [Obtain the Coherence Docker Image](../quickstart.md#obtain-the-coherence-docker-image)
+  
 ## Ensure you have JDK11 and Maven Installed
 
 Ensure you have the following installed:
@@ -115,17 +123,9 @@ run any of the samples.
   sample-coherence-secret   kubernetes.io/dockerconfigjson   1      18s
   ```
 
-### Add the Helm repository
-
-Issue the following to create a `coherence-community` helm repository:
-
-```bash
-$ helm repo add coherence-community https://oracle.github.io/coherence-operator/charts
-```
-
 ## Clone the GitHub Repository
 
-The samples exist in the `hg-pages` branch of the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
+The samples exist in the `gh-pages` branch of the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
 
 Issue the following to clone the repository and switch to the `gh-pages` branch.
 
@@ -147,7 +147,6 @@ Issue the following to ensure all the projects with source code build ok.
 ```bash
 $ mvn clean install
 ```
-
 
 ## Install the Coherence Operator
 
@@ -176,7 +175,7 @@ $ helm install \
    --set imagePullSecrets=sample-coherence-secret \
    --name coherence-operator \
    --set "targetNamespaces={sample-coherence-ns}" \
-   --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+   coherence-community/coherence-operator
 ```
 
 The above will install the `coherence-operator` without Prometheus or log capture enabled.
@@ -200,7 +199,7 @@ $ helm install \
      --set prometheusoperator.enabled=true \
      --set prometheusoperator.prometheusOperator.createCustomResource=false \
      --set "targetNamespaces={sample-coherence-ns}" \
-     --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+     coherence-community/coherence-operator
 ```
 
 > Note: The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
@@ -222,7 +221,7 @@ $ helm install \
     --name coherence-operator \
     --set logCaptureEnabled=true \
     --set "targetNamespaces={sample-coherence-ns}" \
-    --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+    coherence-community/coherence-operator
   ```
 
 ## Enabling Prometheus and log Capture
@@ -282,9 +281,9 @@ Samples legend:
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
       1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
       1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
-      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2718;
-         1. [Enable SSL in Coherence 12.2.1.3.X](coherence-deployments/extend/ssl/12213)
-         1. [Enable SSL in Coherence 12.2.1.4.X and above](coherence-deployments/extend/ssl/12214)
+      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) 
+         1. [Enable SSL in Coherence 12.2.1.3.X](coherence-deployments/extend/ssl/12213) &#x2714;
+         1. [Enable SSL in Coherence 12.2.1.4.X and above](coherence-deployments/extend/ssl/12214) &#x2718;
       1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;

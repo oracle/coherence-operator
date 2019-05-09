@@ -69,7 +69,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=proxy-ssl-sample-12213:1.0.0-SNAPSHOT \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -99,9 +99,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster.
 
    ```sql
-   CohQL> insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-1') value('value-1');
+   ```
    
-   ...
+   ```bash
    2019-05-06 10:58:49.752/5.105 Oracle Coherence GE 12.2.1.3.2 <D5> (thread=com.tangosol.coherence.dslquery.QueryPlus.main(), member=n/a): instantiated SSLSocketProviderDependencies: SSLSocketProvider(auth=two-way, \
        identity=SunX509/file:conf/certs/groot.jks, trust=SunX509/file:conf/certs/truststore-all.jks)
    ```
@@ -109,11 +110,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
    You should notice above that there should be a message indicating the Coherence*Extend client is using a `SSLSocketProvider` with 2-way auth. 
 
    ```sql
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
 
-   CohQL> select count() from 'test';
+   select count() from 'test';
    Results
    1
    ```

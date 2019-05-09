@@ -59,7 +59,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -103,13 +103,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
      --set store.cacheConfig=proxy-cache-config.xml \
      --set prometheusoperator.enabled=false \
      --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
-     --version 1.0.0-SNAPSHOT coherence-community/coherence
+     coherence-community/coherence
    ```
    
    To confirm the proxy-tier has joined the cluster you can look at the logs using:
 
    ```bash
-   $ kubectl logs proxy-tier-coherence-0  -n sample-coherence-ns | grep ActualMemberSet
+   $ kubectl logs proxy-tier-coherence-0 -n sample-coherence-ns | grep ActualMemberSet
    ```
 
    This should return the following, which indicates there are now 4 members:
@@ -146,13 +146,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster.
 
    ```sql
-   CohQL> insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-1') value('value-1');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
 
-   CohQL> select count() from 'test';
+   select count() from 'test';
    Results
    1
    ```

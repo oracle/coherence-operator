@@ -30,7 +30,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.snapshot.enabled=true \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    You may also change the size of the default directories 
@@ -65,7 +65,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    snapshot-volume-storage-coherence-0      Bound    pvc-a3fb2172-6588-11e9-bad6-025000000001   2Gi        RWO            hostpath       44m
    snapshot-volume-storage-coherence-1      Bound    pvc-d2f89ce9-6588-11e9-bad6-025000000001   2Gi        RWO            hostpath       43m
    snapshot-volume-storage-coherence-2      Bound    pvc-fc13ae4b-6588-11e9-bad6-025000000001   2Gi        RWO            hostpath       41m
-   ``` 
+   ```
    
 1. Add data to the cluster
 
@@ -77,20 +77,32 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    At the `Map (?):` prompt, type `cache test`.  This will create a cache in the service `PartitionedCache`.
    
-   Use the following to add 100,000 objects of size 1024 bytes, starting at index 0 and using batches of 100.
+   Use the following to add 50,000 objects of size 1024 bytes, starting at index 0 and using batches of 100.
    
    ```bash
-   bulkput 100000 1024 0 100
+   bulkput 50000 1024 0 100
 
-   Mon Apr 15 07:37:03 GMT 2019: adding 100000 items (starting with #0) each 1024 bytes ...
+   Mon Apr 15 07:37:03 GMT 2019: adding 500000 items (starting with #0) each 1024 bytes ...
    Mon Apr 15 07:37:15 GMT 2019: done putting (11578ms, 8878KB/sec, 8637 items/sec)
    ```
    
-   At the prompt, type `size` and it should show 100000.
+   At the prompt, type `size` and it should show 50000.
    
-   **TODO** - Add in create snapshot command
+   Create a snapshot of the `PartitionedCache` service which contains the cache `test`. We will use this later on.
    
-   Then type `bye` to exit the `console`.
+   ```bash
+   snapshot create test-snapshot
+   Issuing createSnapshot for service PartitionedCache and snapshot empty-service
+   Success
+   ```
+   
+   ```bash
+   snapshot list
+    Snapshots for service PartitionedCache
+       test-snapshot
+   ```
+   
+   Then type `bye` or CTRL-C to exit the `console`.
    
 1. Delete the Coherence cluster
 
@@ -135,7 +147,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.snapshot.enabled=true \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```   
    
    Wait until all three pods are running before you continue to the next step.
@@ -150,9 +162,20 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    At the `Map (?):` prompt, type `cache test`.  This will create/use a cache in the service `PartitionedCache`.
    
-   At the prompt, type `size` and it should show 100000. 
+   At the prompt, type `size` and it should show 50000. 
    
    > This shows that the previous data entered has automatically been recovered due the PVC being honoured.
+   
+   > Note: There is currently an bug with default /persistence mount not being created on Docker for Mac environments, 
+   > and therefore the size may show zero.  
+ 
+   Clear the cache using `clear` command and confirm the cache size is zero.
+   
+   Recover the `test-snapshot` using:
+   
+   ```bash
+   snapshot recover test-snapshot
+   ```
     
    Then type `bye` to exit the `console`.
 

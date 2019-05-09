@@ -25,7 +25,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    environment set for JDK11 and build the project.
 
    ```bash
-   mvn clean install -P docker
+   $ mvn clean install -P docker
    ```
 
 1. The result of the above is the docker image will be built with the cache configuration files
@@ -54,7 +54,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=elastic-data-sample-default:1.0.0-SNAPSHOT \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.
@@ -93,7 +93,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    Then type `bye` to exit the `console`.
    
-1. Inspect the Elastic Data FlashJournal files  
+1. EnsureElastic Data FlashJournal files exist 
 
    Issue the following to exec into one of the Coherence pods and list the files used by Elastic Data.
    
@@ -104,9 +104,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
    -rw-r--r-- 1 root root 86769664 Apr 15 07:37 coh1781907747204398478.tmp
    drwxr-xr-x 2 root root     4096 Apr 15 07:49 hsperfdata_root
    ```
-  
-   The contents of the `coh*` file(s) are not important, just the fact that they are using
-   the default location.
    
    Type `exit` to leave the `exec` session.
 

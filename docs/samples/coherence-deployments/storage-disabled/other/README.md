@@ -11,7 +11,7 @@ cluster, the following needs be done for the custom container:
 
 * Ensure local storage is disabled via `-Dcoherence.distributed.localstorage=false`
 
-Below is an example of a (Helidon)[https://helidon.io/#/] web application which exposes a `/query` endpoint
+This sample shows how a (Helidon)[https://helidon.io/#/] web application exposes a `/query` endpoint
 allowing for CohQL commands to be passed in and executed against a Coherence cluster.
 
 
@@ -41,7 +41,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    environment set for JDK11 and build the project.
 
    ```bash
-   $ mvn clean install
+   $ mvn clean install -P docker
    ```
    
 1. The result of the above is the docker image will be built with the cache configuration files
@@ -58,12 +58,12 @@ Ensure you have already installed the Coherence Operator by using the instructio
    $ helm install \
       --namespace sample-coherence-ns \
       --name storage \
-      --set clusterSize=2 \
+      --set clusterSize=3 \
       --set cluster=helidon-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=true \
       --set logCaptureEnabled=false \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.

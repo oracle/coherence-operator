@@ -12,7 +12,7 @@ version of your application classes with a different one. Kubernetes does not ca
 version is "newer" or "older", as long as it has a docker tag and can be pulled by the cluster, 
 that is all Kubernetes needs to know. The operator will ensure this is done without data loss or interruption of service.
 
-This sample we will initially deploy version 1.0.0 of our sidecar and then do a rolling upgrade to
+This sample will initially deploy version 1.0.0 of our sidecar and then do a rolling upgrade to
 version 2.0.0 of the sidecar which introduces a server side Interceptor to modify 
 data to ensure its stored as uppercase. 
 
@@ -62,7 +62,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image as a sidecar.
 
    ```bash
-   helm install \
+   $ helm install \
       --namespace sample-coherence-ns \
       --name storage \
       --set clusterSize=3 \
@@ -72,7 +72,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=rolling-upgrade-sample:1.0.0 \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -102,10 +102,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Run the following CohQL commands to insert data into the cluster.
 
    ```sql
-   CohQL> insert into 'test' key('key-1') value('value-1');
-   CohQL> insert into 'test' key('key-2') value('value-2');
+   insert into 'test' key('key-1') value('value-1');
+   insert into 'test' key('key-2') value('value-2');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]   
    ["key-2", "value-2"]
@@ -122,13 +122,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
    * `--set userArtifacts.image=rolling-upgrade-sample:2.0.0` - the new artifact version
 
    ```bash
-   helm upgrade storage coherence-community/coherence \
+   $ helm upgrade storage coherence-community/coherence \
       --namespace sample-coherence-ns \
       --reuse-values \
       --set imagePullSecrets=sample-coherence-secret \
-      --version 1.0.0-SNAPSHOT \
-      --set userArtifacts.image=rolling-upgrade-sample:2.0.0   
-     
+      --set userArtifacts.image=rolling-upgrade-sample:2.0.0
    ```
    
    While the upgrade is running you can issue the following in your `CohQL` session:
@@ -139,8 +137,8 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    You will notice that the data always remains the same.
    
-   *Note*: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
-   stop and restart it.  
+   > *Note*: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
+   > stop and restart it.  
    
    In an environment where you have configured a load balancer, then the 
    Coherence*Extend session will automatically reconnect for you when it detects a disconnect.
@@ -158,14 +156,14 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    When all of the pods have status of `Running` and `1/1` for Ready, you can continue.
    
-   *Note*: The above shows not all pods are finished restarting.
+   > *Note*: The above shows not all pods are finished restarting.
    
 1. Add more data via CohQL commands
 
    ```sql
-   CohQL> insert into 'test' key('key-3') value('value-3');
+   insert into 'test' key('key-3') value('value-3');
 
-   CohQL> select key(), value() from 'test';
+   select key(), value() from 'test';
    Results
    ["key-1", "value-1"]
    ["key-3", "VALUE-3"]

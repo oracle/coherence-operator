@@ -42,7 +42,7 @@ This sample shows you how to scale-up a statefulset using `kubectl` as well as s
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
 1. Ensure both of the pods are running:
@@ -88,11 +88,11 @@ This sample shows you how to scale-up a statefulset using `kubectl` as well as s
    
    ```bash
    $ kubectl get pods -n sample-coherence-ns
-   NAME                                  READY   STATUS    RESTARTS   AGE 
-   storage-coherence-0                   1/1     Running   0          10m
-   storage-coherence-1                   1/1     Running   0          9m
-   storage-coherence-2                   1/1     Running   0          3m
-   storage-coherence-3                   1/1     Running   0          1m
+   NAME                  READY   STATUS    RESTARTS   AGE 
+   storage-coherence-0   1/1     Running   0          10m
+   storage-coherence-1   1/1     Running   0          9m
+   storage-coherence-2   1/1     Running   0          3m
+   storage-coherence-3   1/1     Running   0          1m
    ```
    
    Wait for the number of `coherence-storage` pods to be 4 and all of them to be ready.

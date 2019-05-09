@@ -22,6 +22,9 @@ is installed and correctly configured.
 
    Issue the following command to install `coherence-operator` with log capture enabled:
    
+   > Note: If you already have the `coherence-operator` installed without log capture enabled, you
+   > must delete it via `helm delete coherence-operator --purge`, before continuing.
+   
    ```bash
    $ helm install \
       --namespace sample-coherence-ns \
@@ -29,7 +32,7 @@ is installed and correctly configured.
       --name coherence-operator \
       --set logCaptureEnabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence-operator
+      coherence-community/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -53,7 +56,7 @@ is installed and correctly configured.
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set logCaptureEnabled=true \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    Once the install has completed issue the following command to list the pods:

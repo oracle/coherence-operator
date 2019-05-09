@@ -11,7 +11,9 @@ Once familiar with JMX, [the Coherence documentation](https://docs.oracle.com/mi
 has complete coverage of [how to use JMX with Coherence](https://docs.oracle.com/middleware/12213/coherence/COHMG/using-jmx-manage-oracle-coherence.htm#COHMG239).
 
 All of the capabilities of JMX with Coherence are also present with the
-operator. To enable connecting to a Coherence JMX MBean Server when using the Coherence Operator, you can use the `--set store.jmx.enabled=true`
+operator. 
+
+This sample shows how to connecting to a Coherence JMX MBean Server when using the Coherence Operator. You use the `--set store.jmx.enabled=true`
 option which will create an MBean Server Pod from which you can connect to.
 
 By default there will be one replica for the MBean Server. You can create more MBean server pods by setting 
@@ -64,7 +66,7 @@ See [Here](../../management/rest/) for information on connecting to Management o
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
    *Note*: There are many other `store.jmx.*` options which control other aspects of the MBean Server node.

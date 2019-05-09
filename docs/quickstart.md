@@ -54,18 +54,63 @@ see the [User Guide](user-guide.md).
   
 ## 1. Environment Configuration
 
-### Set up Helm repository for Coherence
+### Add the Helm repository for Coherence
 
-In the absence of a Helm repository, execute the steps in the [Developer Guide](developer.md) and derive the correct value for `HELM_PREFIX`.
+Issue the following to create a `coherence-community` helm repository:
 
-Whenever `HELM_PREFIX` appears in this document or the
-[user-guide](user-guide.md), replace it with the value from the
-[Developer Guide](developer.md).
+```bash
+$ helm repo add coherence-community https://oracle.github.io/coherence-operator/charts
 
-Whenever `OPERATOR_VERSION` appears in this document or the
-[user-guide](user-guide.md), replace it with the value from the
-[Developer Guide](developer.md).
+$ helm repo update
 
+Hang tight while we grab the latest from your chart repositories...
+...Skip local chart repository
+...Successfully got an update from the "coherence-community" chart repository
+```
+
+> **Note**: For all helm install commands you can leave the `--version` option off and the
+> latest version of the chart will be retrieved. 
+> If you wanted to use a specific version, such as `0.9.3`, add `--version 0.9.3` to all installs for the `coherence-operator` and 
+> `coherence` charts.
+
+If you wish to build the Coherence Operator from source, please refer to the 
+[Developer Guide](developer.md) and ensure you replace `coherence-community` 
+Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
+
+### Obtain the Coherence Docker Image
+
+> Note: we are assuming Coherence version 12.2.1.3 (which is the currently supported version).
+
+You must follow the instructions below to obtain the relevant Coherence Docker image.
+
+1. Go to to [store.docker.com](https://store.docker.com/)
+
+1. Search for "Oracle Coherence".
+
+1. Choose "Developer Plan (12.2.1.3)".
+
+1. Choose "Proceed to Checkout".
+
+1. Create a Docker Id, or log in with it if you have one already.
+
+1. Check the `I agree that my use of each program in this Content,
+   including any subsequent updates or upgrades...` box.
+
+1. Check the `I acknowledge and allow Docker to share my personal
+   information linked to my Docker ID with this Publisher.` box.
+
+1. Consider whether or not you want to check the `Please keep me
+   informed of products, services and solutions from this Publisher` box.
+
+1. At the command line, do `docker login` with your Docker store credentials.
+
+1. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
+     
+1. Provide a tag that effectively removes the `store` prefix: 
+   
+   ```bash
+   $ docker tag store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3
+   ```
 
 ## 2. Use Helm to install the Coherence Operator
 
@@ -74,8 +119,8 @@ You may like to customize the value of the of the `--name` and
 may also like to customize `targetNamespaces` which the operator manages
 and `imagePullSecrets` (if it is necessary).
 
-```
-$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence-operator \
+```bash
+$ helm --debug install coherence-community/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
@@ -101,6 +146,15 @@ NOTES:
   then access the http endpoint at http://127.0.0.1:8000
 ```
 
+Use `helm ls` to view the installed releases.
+
+```bash
+$ helm ls
+
+NAME                     	REVISION	UPDATED                 	STATUS  	CHART                   	APP VERSION	NAMESPACE
+sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.3	0.9.3      	default  
+```
+
 You can also query the status with `helm status`:
 
 ```
@@ -123,14 +177,14 @@ Install the `coherence` helm chart.  You may want to customize the values
 for the `--name`, `--namespace` and `imagePullSecrets` options.
 
 ```
-$ helm --debug install --version OPERATOR_VERSION HELM_PREFIX/coherence \
+$ helm --debug install coherence-community/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
 
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
-> HELM_PREFIX/coherence` will print out the `README.md` for the operator
+> coherence-community/coherence` will print out the `README.md` for the operator
 > chart.  This includes documentation on all the possible values that
 > can be configured with `--set` options to `helm`.  In particular, look
 > at the *Configuration* section of the `README.md`.
@@ -180,9 +234,9 @@ port 20000 in the cluster.  As the chart notes explain, you must
 Kubernetes "pod" that is running Coherence.  Thankfully, the chart notes
 say exactly how to do this:
 
-```
-export POD_NAME=$(kubectl get pods -l "app=coherence,release=sample-coherence" -o jsonpath="{.items[0].metadata.name}")
-kubectl port-forward $POD_NAME 20000:20000
+```bash
+$ export POD_NAME=$(kubectl get pods -l "app=coherence,release=sample-coherence" -o jsonpath="{.items[0].metadata.name}")
+$ kubectl port-forward $POD_NAME 20000:20000
 ```
 
 The first command queries the Kubernetes cluster to get the name of the

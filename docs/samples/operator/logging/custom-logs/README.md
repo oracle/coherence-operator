@@ -82,7 +82,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
       --set store.logging.configFile=custom-logging.properties \
       --set fluentd.application.configFile=/conf/fluentd-cloud.conf \
       --set fluentd.application.tag=cloud \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
 
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -177,7 +177,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 Carry out the following commands to delete chart installed in this sample.
 
 ```bash
-helm delete storage --purge
+$ helm delete storage --purge
 ```
 
 Before starting another sample, ensure that all the pods are gone from previous sample.

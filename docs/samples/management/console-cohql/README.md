@@ -27,7 +27,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
-      --version 1.0.0-SNAPSHOT coherence-community/coherence
+      coherence-community/coherence
    ```
    
 1. Ensure the pods are running:
@@ -76,22 +76,22 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Use the following at the `CohQL>` prompt to view and manipulate data:
    
    ```bash
-   CohQL> select count() from 'test';
+   select count() from 'test';
 
    ... Cluster and service join messages here
 
    Results
    50000
 
-   CohQL> select value() from 'test' where key() = 0
+   select value() from 'test' where key() = 0
    Results
    [B@63a5e46c
 
-   CohQL> insert into 'test' key(1) value('value 1');
+   insert into 'test' key(1) value('value 1');
    Results
    [B@7a34b7b8
 
-   CohQL> select value() from 'test' where key() = 1
+   select value() from 'test' where key() = 1
    Results
    "value 1"
    ```
