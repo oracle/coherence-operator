@@ -6,6 +6,23 @@ http://oss.oracle.com/licenses/upl.
 
 -->
 
+---------
+
+## Join our Public Slack Channel
+
+We have a **public Slack channel** where you can get in touch with us to
+ask questions about using the operator or give us feedback or
+suggestions about what features and improvements you would like to see.
+We would love to hear from you. To join our channel, please [visit this
+site to get an
+invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
+invitation email will include details of how to access our Slack
+workspace.  After you are logged in, please come to `#operator` and say,
+"hello!"
+
+--------
+
+
 Oracle is finding ways for organizations using Oracle Coherence to move
 their important workloads into the cloud. By certifying on industry
 standards, such as Docker and Kubernetes, Coherence now runs in a cloud
@@ -94,16 +111,6 @@ Please refer to our [samples](docs/samples/README.md) for
 information about the available sample code.
 
 Need more help? Have a suggestion? Come and say "Hello!"
-
-We have a **public Slack channel** where you can get in touch with us to
-ask questions about using the operator or give us feedback or
-suggestions about what features and improvements you would like to see.
-We would love to hear from you. To join our channel, please [visit this
-site to get an
-invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
-invitation email will include details of how to access our Slack
-workspace.  After you are logged in, please come to `#operator` and say,
-"hello!"
 
 # Things to Keep In Mind for Existing Coherence Users
 
