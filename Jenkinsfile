@@ -151,6 +151,7 @@ pipeline {
                            --docker-username=$PULL_SECRET_USERNAME \
                            --docker-password="$PULL_SECRET_PASSWORD" \
                            --docker-email=$PULL_SECRET_EMAIL || true
+                        ls -la $HELM_TILLER_LOGS_DIR_DIRECTORY
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
