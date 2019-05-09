@@ -3,8 +3,13 @@
 By default when the Coherence chart is installed the Management over REST endpoint will be exposed
 as port 30000 on each of the Pods. 
 
-This sample shows how you can access the Management of REST endpoint via the following URL
-`http://host:300000`/management/coherence/cluster`.
+This sample shows how you can access the Management of REST endpoint via the following URL:
+
+* `http://host:300000`/management/coherence/cluster`.
+
+The Swagger document is available via the following URL:  
+
+* `http://host:300000`/management/coherence/cluster/metadata-catalog`.
 
 > Note, use of Management over REST is only available when using the
 > operator with Coherence 12.2.1.4.
