@@ -166,7 +166,7 @@ pipeline {
                         '''
                     }
                 }
-                archiveArtifacts '$HELM_TILLER_LOGS_DIR'
+                archiveArtifacts 'operator/target/helm-tiller-logs/tiller.logs'
             }
             post {
                 always {
