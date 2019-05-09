@@ -30,6 +30,7 @@ chmod 0777 /snapshot
 if [ ! -d /persistence ]; then
     mkdir /persistence
 fi
+chmod 0777 /persistence
 
 if [ ! -d /persistence/active ]; then
     mkdir /persistence/active
