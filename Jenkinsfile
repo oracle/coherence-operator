@@ -171,6 +171,7 @@ pipeline {
             post {
                 always {
                     sh '''
+                        helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                         kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                         kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                         kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
