@@ -129,6 +129,14 @@ pipeline {
                             unset NO_PROXY
                         fi
                         helm init --client-only
+                        export HELM_TILLER_LOGS=true
+                        export HELM_TILLER_LOGS_DIR_DIRECTORY=$PWD/operator/target/helm-tiller-logs
+                        rm -rf $HELM_TILLER_LOGS_DIR_DIRECTORY
+                        mkdir -p $HELM_TILLER_LOGS_DIR_DIRECTORY
+                        export HELM_TILLER_LOGS_DIR=$HELM_TILLER_LOGS_DIR_DIRECTORY/tiller.logs
+                        helm tiller start-ci test-cop-$BUILD_NUMBER
+                        export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
+                        export HELM_HOST=:44134
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
                         kubectl create namespace test-cop2-$BUILD_NUMBER || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
@@ -143,6 +151,7 @@ pipeline {
                            --docker-username=$PULL_SECRET_USERNAME \
                            --docker-password="$PULL_SECRET_PASSWORD" \
                            --docker-email=$PULL_SECRET_EMAIL || true
+                        ls -la $HELM_TILLER_LOGS_DIR_DIRECTORY
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
@@ -158,6 +167,7 @@ pipeline {
                         '''
                     }
                 }
+                archiveArtifacts 'operator/target/helm-tiller-logs/tiller.logs'
             }
             post {
                 always {
@@ -169,6 +179,7 @@ pipeline {
                         kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
                         kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
                         kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
+                        helm tiller stop || true
                     '''
                     deleteDir()
                 }
