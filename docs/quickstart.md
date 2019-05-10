@@ -1,25 +1,26 @@
 # Quick Start guide
 
-The Oracle Coherence Operator manages Coherence on Kubernetes,
-monitoring data through Prometheus, and logging data through
+The Coherence Kubernetes Operator manages Coherence through Kubernetes,
+monitoring MBean attributes through Prometheus and server logs through
 ElasticSearch and Kibana.
 
 > Note, use of Prometheus and Grafana is only available when using the
 > operator with Coherence version 12.2.1.4.
 
 Use this quick start guide to deploy Coherence applications in a
-Kubernetes cluster managed by the Coherence Operator. Please note that
-this walk-through is for demonstration purposes only, not for use in
-production.  These instructions assume that you are already familiar with
-Kubernetes and Helm.  If you need to learn more about these two
-important and complimentary technologies, please refer to the
-[Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational) and 
-[Helm](https://helm.sh/docs/) documentation.
+Kubernetes cluster managed by the Coherence Kubernetes Operator. Please
+note that this quick start guide is for illustrative purposes only, and
+not sufficiently prescriptive or thorough for a production environment.
+These instructions assume that you are already familiar with Kubernetes
+and Helm.  If you need to learn more about these two important and
+complimentary technologies, please refer to the
+[Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational)
+and [Helm](https://helm.sh/docs/) documentation.
 
 ## More Advanced Actions
 
-For more advanced actions, such as accessing Kibana for viewing logs,
-see the [User Guide](user-guide.md).
+For more advanced actions, such as accessing Kibana for viewing server
+logs, see the [User Guide](user-guide.md).
 
 > If you have an old version of the operator installed on your cluster
 > you must remove it before installing any of the charts by using the
@@ -29,8 +30,11 @@ see the [User Guide](user-guide.md).
 
 ### Software and Version Prerequisites
 
-* Kubernetes 1.10.3 or above (and all of its prerequisites, including Docker)
+* Kubernetes 1.11.5+, 1.12.3+, 1.13.0+ (check with `kubectl version`)
+* Docker 18.03.1-ce (check with `docker version`)
+* Flannel networking v0.10.0-amd64 (check with `docker images | grep flannel`)
 * Helm 2.12.3 or above (and all of its prerequisites)
+* Oracle Coherence 12.2.1.3
 
 ### Runtime Environment Prerequisites
 
@@ -130,8 +134,7 @@ $ helm --debug install coherence/coherence-operator \
 output.  Please consult the `values.yaml` in the chart for important
 information regarding the `--set targetNamespaces` argument.
 
-If the operation completes successfully, you should see output similar
-to the following.
+If the operation completes successfully, you should see output similar to the following.
 
 ```
 NOTES:
@@ -227,12 +230,12 @@ Running `helm install` creates what is called a "helm release".  See the
 ## 4. Access the Coherence running within Kubernetes using the default Coherence*Extend feature
 
 When starting Coherence with no options, as in the preceding section,
-the cluster created has three nodes and exposes a Coherence*Extend on
-port 20000 in the cluster.  As the chart notes explain, you must
-"forward" this port so that it is available outside the cluster.  The
-`kubectl` command can do this, but you must supply the name of the
-Kubernetes "pod" that is running Coherence.  Thankfully, the chart notes
-say exactly how to do this:
+the Coherence cluster created has three nodes, and exposes a
+Coherence*Extend proxy server on port 20000 in the cluster.  As the
+chart notes explain, you must "forward" this port so that it is
+available outside the cluster.  The `kubectl` command can do this, but
+you must supply the name of the Kubernetes "pod" that is running
+Coherence.  Thankfully, the chart notes say exactly how to do this:
 
 ```bash
 $ export POD_NAME=$(kubectl get pods -l "app=coherence,release=sample-coherence" -o jsonpath="{.items[0].metadata.name}")
@@ -244,7 +247,7 @@ first of the three nodes in the Coherence cluster.  It may be something
 like `sample-coherence-65f558c987-5bdxr`.  The second command tells
 Kubernetes to map port 20000 inside the cluster to port 20000 outside
 the cluster.  With this information, it is possible to write a
-Coherence*Extend client config that accesses the cluster.  Save the
+Coherence*Extend client configuration to access the cluster.  Save the
 following XML in a file called `example-client-config.xml`:
 
 ```xml
@@ -305,8 +308,7 @@ next:
 ```
 $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloCoherence.java
 $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
-       -Dcoherence.cacheconfig=$PWD/example-client-config.xml 
-       -Dcoherence.log.level=1 HelloCoherence
+       -Dcoherence.cacheconfig=$PWD/example-client-config.xml HelloCoherence
 ```
 
 This should produce output similar to the following:

@@ -86,6 +86,7 @@
         </executions>
         <configuration>
           <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
           <systemProperties>
             <systemProperty>
               <key>coherence.distributed.localstorage</key>

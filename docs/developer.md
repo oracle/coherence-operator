@@ -19,18 +19,15 @@ and [user-guide](user-guide.md).
 
 ## Prerequisites
 
-* Ensure the prerequisites [listed in the quickstart](quickstart.md#prerequisites) are all met.
+* Ensure the prerequisites [listed in the quickstart](./quickstart.md#prerequisites) are all met.
 
 These instructions have been validated with the following software and
 versions.
 
 * Mac OS 10.13.6
-
 * Docker Desktop 2.0.0.3 (31259).  Channel: stable, 8858db33c8, with Kubernetes
   v1.10.11.
-
 * Oracle JDK 11.0.1 2018-10-16 LTS
-
 * Apache Maven 3.5.4
 
 > You will need to make the necessary adjustments to execute the steps in

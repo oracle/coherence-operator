@@ -499,7 +499,7 @@ We must now package the XML file within the sidecar Docker image.
 
 4. Push your image to the docker registry which the Kubernetes cluster
    can reach.  See [the
-   quickstart](./quickstart.md#prepare-the-namespace-and-docker-registry-access) to learn how
+   quickstart](./quickstart.md) to learn how
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
@@ -812,7 +812,7 @@ The following invocation installs and starts Coherence with specific
 values to be passed to the JVM.
 
 ```bash
-$ helm --debug install coherence/community/coherence --name hello-example \
+$ helm --debug install coherence/coherence --name hello-example \
      --set store.maxHeap="8g" \
      --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp" \
      --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \
@@ -901,18 +901,18 @@ operator.
 This use-case is covered [in the samples](samples/coherence-deployments/multiple-clusters/).
 
 ```bash
-$ helm --debug install coherence-community/coherence-operator \
+$ helm --debug install coherence/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
 
-$ helm --debug install coherence-community/coherence \
+$ helm --debug install coherence/coherence \
      --set cluster=revenue-management \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=revenue-app:2.0.1 \
      --name revenue-management
 
-$ helm --debug install coherence-community/coherence \
+$ helm --debug install coherencey/coherence \
      --set cluster=charging \
      --set imagePullSecrets=sample-coherence-secret \
      --set userArtifacts.image=charging-app:2.0.1 \
@@ -925,7 +925,7 @@ all namespaces for Coherence clusters.
 
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
-> coherence-community/coherence-operator` will print out the `README.md` for the
+> coherence/coherence-operator` will print out the `README.md` for the
 > operator chart.  This includes documentation on all the possible
 > values that can be configured with `--set` options to `helm`.
 
@@ -1008,7 +1008,7 @@ Coherence management over REST:
   c) Install the Coherence helm chart using the YAML file created in step b):
 
   ```bash
-  helm install coherence-community/coherence \
+  helm install coherence/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
@@ -1069,7 +1069,7 @@ ii) Configuring SSL for metrics publishing for Prometheus <p />
  c) Install the Coherence helm chart using the YAML created in step b): <p />
 
   ```bash
-  helm install coherence-community/coherence \
+  helm install coherence/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
@@ -1113,7 +1113,7 @@ ii) Configuring SSL for metrics publishing for Prometheus <p />
   Coherence chart with both YAML files:
 
   ```bash
-    helm --debug install coherence-community/coherence \
+    helm --debug install coherence/coherence \
       --name coherence \
       --namespace myNamespace \
       --set imagePullSecrets=my-imagePull-secret \

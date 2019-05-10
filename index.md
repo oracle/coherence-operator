@@ -23,23 +23,23 @@ workspace.  After you are logged in, please come to `#operator` and say,
 --------
 
 
-Oracle is finding ways for organizations using Oracle Coherence to move
-their important workloads into the cloud. By certifying on industry
-standards, such as Docker and Kubernetes, Coherence now runs in a cloud
-neutral infrastructure. In addition, we've provided an open-source
-Oracle Coherence Operator (the “operator”) which has several key
-features to assist you with deploying and managing Coherence clusters in
-a Kubernetes environment. You can:
+Oracle enables organizations using Coherence to move their clusters
+into the cloud. By supporting de facto standards such as Docker and
+Kubernetes, Oracle facilitates running Coherence on cloud-neutral
+infrastructure. In particular, Oracle provides an open-source
+Coherence Kubernetes Operator, which implements features to assist
+with deploying and managing Coherence clusters in a Kubernetes
+environment. You can:
 
-* Run the Coherence you know and love on the industry standard
-  Kubernetes container orchestration framework, using Docker containers
-  for the system elements of Coherence.
+* Run Coherence within the de facto standard Kubernetes container
+  orchestration framework, using Docker containers for the members of a
+  Coherence cluster.
 
 * Use popular industry standard tools such as
   [Grafana](https://grafana.com/),
-  [EFK](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-elasticsearch-fluentd-and-kibana-efk-logging-stack-on-kubernetes), and
-  [Prometheus](https://prometheus.io/) to monitor the performance,
-  logs and health from your clusters.
+  [ELK](https://www.elastic.co/elk-stack) (or more specifically the EFK stack including Fluentd), and
+  [Prometheus](https://prometheus.io/)
+  to monitor the performance, logs and and health of your clusters.
 
 * Flexibly override and customize cluster configuration.
 
@@ -52,8 +52,8 @@ a Kubernetes environment. You can:
 * Start clusters based on declarative startup parameters and desired
   states.
 
-* Use Kubernetes persistent volumes to provide the storage for "storage
-enabled" cluster nodes.
+* Use Kubernetes persistent volumes when using Coherence's disk-based
+  storage features Elastic Data or Persistence.
 
 * Deploy custom code for your `EntryProcessor` classes and other
 server-side Coherence constructs.
