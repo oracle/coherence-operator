@@ -29,7 +29,7 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       --set imagePullSecrets=sample-coherence-secret \
       --name coherence-operator \
       --set prometheusoperator.enabled=false \
-      coherence-community/coherence-operator
+      coherence/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -52,7 +52,7 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Once the install has completed issue the following command to list the pods:

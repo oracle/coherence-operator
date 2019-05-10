@@ -56,16 +56,16 @@ see the [User Guide](user-guide.md).
 
 ### Add the Helm repository for Coherence
 
-Issue the following to create a `coherence-community` helm repository:
+Issue the following to create a `coherence` helm repository:
 
 ```bash
-$ helm repo add coherence-community https://oracle.github.io/coherence-operator/charts
+$ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 
 $ helm repo update
 
 Hang tight while we grab the latest from your chart repositories...
 ...Skip local chart repository
-...Successfully got an update from the "coherence-community" chart repository
+...Successfully got an update from the "coherence" chart repository
 ```
 
 > **Note**: For all helm install commands you can leave the `--version` option off and the
@@ -74,7 +74,7 @@ Hang tight while we grab the latest from your chart repositories...
 > `coherence` charts.
 
 If you wish to build the Coherence Operator from source, please refer to the 
-[Developer Guide](developer.md) and ensure you replace `coherence-community` 
+[Developer Guide](developer.md) and ensure you replace `coherence` 
 Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
 
 ### Obtain the Coherence Docker Image
@@ -120,7 +120,7 @@ may also like to customize `targetNamespaces` which the operator manages
 and `imagePullSecrets` (if it is necessary).
 
 ```bash
-$ helm --debug install coherence-community/coherence-operator \
+$ helm --debug install coherence/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
@@ -177,14 +177,14 @@ Install the `coherence` helm chart.  You may want to customize the values
 for the `--name`, `--namespace` and `imagePullSecrets` options.
 
 ```
-$ helm --debug install coherence-community/coherence \
+$ helm --debug install coherence/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
 
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
-> coherence-community/coherence` will print out the `README.md` for the operator
+> coherence/coherence` will print out the `README.md` for the operator
 > chart.  This includes documentation on all the possible values that
 > can be configured with `--set` options to `helm`.  In particular, look
 > at the *Configuration* section of the `README.md`.

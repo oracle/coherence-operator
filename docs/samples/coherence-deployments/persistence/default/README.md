@@ -30,7 +30,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.snapshot.enabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    You may also change the size of the default directories 
@@ -147,7 +147,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.snapshot.enabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```   
    
    Wait until all three pods are running before you continue to the next step.

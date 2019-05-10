@@ -42,7 +42,7 @@ This sample shows you how to scale-up a statefulset using `kubectl` as well as s
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
 1. Ensure both of the pods are running:

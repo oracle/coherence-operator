@@ -291,9 +291,9 @@ Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVir
    If you are using the image build from above, whenn executing the steps in the [quickstart](quickstart.md) and
    [user-guide](user-guide.md), replace the following will the respective full qualified path.
     
-   * `coherence-community/coherence` - /Users/username/workareas/coherence-operator/target/coherence-1.0.0-SNAPSHOT-helm/coherence
+   * `coherence/coherence` - /Users/username/workareas/coherence-operator/target/coherence-1.0.0-SNAPSHOT-helm/coherence
    
-   * `coherence-community/coherence-operator` - /Users/username/workareas/coherence-operator/target/coherence-operator-1.0.0-SNAPSHOT-helm/coherence-operator
+   * `coherence/coherence-operator` - /Users/username/workareas/coherence-operator/target/coherence-operator-1.0.0-SNAPSHOT-helm/coherence-operator
 
    > Note: we are assuming we have built the Coherence Operator within `/Users/username/workareas/coherence-operator`
   

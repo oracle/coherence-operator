@@ -22,7 +22,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 ## Installation Steps
 
 1. Change to the `samples/coherence-deployments/elastic-data/default` directory and ensure you have your maven build     
-   environment set for JDK11 and build the project.
+   environment set for JDK8 and build the project.
 
    ```bash
    $ mvn clean install -P docker
@@ -54,7 +54,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=elastic-data-sample-default:1.0.0-SNAPSHOT \
-      coherence-community/coherence
+      coherence/coherence
    ```
 
    Because we use stateful sets, the coherence cluster will start one pod at a time.

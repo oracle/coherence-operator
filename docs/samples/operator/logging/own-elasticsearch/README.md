@@ -40,7 +40,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       --set elasticsearchEndpoint.host=my-elastic-host \
       --set elasticsearchEndpoint.port=my-elastic-port \
       --set "targetNamespaces={sample-coherence-ns}" \
-      coherence-community/coherence-operator
+      coherence/coherence-operator
    ```
 
 1. Confirm the Elasticsearch endpoint is set
@@ -77,7 +77,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set logCaptureEnabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Once the install has completed issue the following command to list the pods:

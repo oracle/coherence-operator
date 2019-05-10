@@ -29,7 +29,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 ## Installation Steps
 
 1. Change to the `samples/coherence-deployments/extend/ssl/12213` directory and ensure you have your 
-   maven build environment set for JDK11 and build the project.
+   maven build environment set for JDK8 and build the project.
    
    > Note: This sample uses self-signed certificates and simple passwords. They are for sample
    > purposes only and should **NOT** use these in a production environment.
@@ -69,7 +69,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=proxy-ssl-sample-12213:1.0.0-SNAPSHOT \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
