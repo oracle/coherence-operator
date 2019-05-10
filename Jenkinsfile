@@ -129,10 +129,7 @@ pipeline {
                             unset NO_PROXY
                         fi
                         helm init --client-only
-                        export HELM_TILLER_LOGS_DIR_DIRECTORY=helm-tiller-logs
-                        rm -rf $HELM_TILLER_LOGS_DIR_DIRECTORY
-                        mkdir -p $HELM_TILLER_LOGS_DIR_DIRECTORY
-                        export HELM_TILLER_LOGS_DIR=$HELM_TILLER_LOGS_DIR_DIRECTORY/tiller.logs
+                        export HELM_TILLER_LOGS=false
                         helm tiller start-ci test-cop-$BUILD_NUMBER
                         export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
                         export HELM_HOST=:44134
@@ -150,7 +147,6 @@ pipeline {
                            --docker-username=$PULL_SECRET_USERNAME \
                            --docker-password="$PULL_SECRET_PASSWORD" \
                            --docker-email=$PULL_SECRET_EMAIL || true
-                        ls -la $HELM_TILLER_LOGS_DIR_DIRECTORY
                     '''
                     withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
@@ -166,7 +162,6 @@ pipeline {
                         '''
                     }
                 }
-                archiveArtifacts 'helm-tiller-logs/**/*.logs'
             }
             post {
                 always {
