@@ -526,7 +526,7 @@ coherence:
   # coherence.image is the name of the Coherence image to be used
   #   NOTE: This is a required value and if this value is set to null then installing the
   #   chart will result in a missing required value error
-  image: "${release.image.prefix}oracle/coherence:${coherence.docker.version}"
+  image: "${release.image.prefix}store/oracle/coherence:${coherence.docker.version}"
   # coherence.imagePullPolicy controls the K8s Coherence container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
