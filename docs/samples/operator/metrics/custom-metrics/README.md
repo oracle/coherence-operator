@@ -118,7 +118,7 @@ for scraping by Prometheus.
       --set prometheusoperator.enabled=true \
       --set userArtifacts.image=custom-metrics-sample:1.0.0-SNAPSHOT \
       --set store.ports.custom-port=8200 \
-      coherence-community/coherence 2>&1 | tee /tmp/tim.out
+      coherence/coherence 2>&1 | tee /tmp/tim.out
    ```
     
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
