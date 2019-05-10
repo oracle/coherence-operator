@@ -129,7 +129,6 @@ pipeline {
                             unset NO_PROXY
                         fi
                         helm init --client-only
-                        export HELM_TILLER_LOGS=true
                         export HELM_TILLER_LOGS_DIR_DIRECTORY=helm-tiller-logs
                         rm -rf $HELM_TILLER_LOGS_DIR_DIRECTORY
                         mkdir -p $HELM_TILLER_LOGS_DIR_DIRECTORY
