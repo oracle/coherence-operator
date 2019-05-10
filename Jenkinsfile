@@ -167,7 +167,7 @@ pipeline {
                         '''
                     }
                 }
-                archiveArtifacts 'helm-tiller-logs/tiller.logs'
+                archiveArtifacts 'helm-tiller-logs/**/*.logs'
             }
             post {
                 always {
