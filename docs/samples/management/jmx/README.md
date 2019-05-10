@@ -66,7 +66,7 @@ See [Here](../../management/rest/) for information on connecting to Management o
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    *Note*: There are many other `store.jmx.*` options which control other aspects of the MBean Server node.

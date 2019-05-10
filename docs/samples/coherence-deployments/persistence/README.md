@@ -9,6 +9,5 @@ more information about Persistence.
 
 1. [Use default persistent volume claim](default)
 1. [Use specific persistent volumes](pvc)
-1. [Specifying a snapshot archiver](archiver)
 
 [Return to Coherence Deployments samples](../) / [Return to samples](../../README.md#list-of-samples)

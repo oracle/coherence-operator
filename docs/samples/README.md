@@ -13,7 +13,7 @@ the given sample works, and then customize it to suit your needs.
 
 1. [Start Here](#start-here)
    1. [Confirm Quickstart Runtime Prerequisites](#confirm-quickstart-runtime-prerequisites)
-   1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
+   1. [Ensure you have JDK8 and Maven Installed](#ensure-you-have-jdk8-and-maven-installed)
    1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
    1. [Create the sample namespace](#create-the-sample-namespace)
    1. [Clone the GitHub Repository](#clone-the-github-repository)
@@ -30,7 +30,7 @@ the given sample works, and then customize it to suit your needs.
 If you have never setup Coherence Operator before, please carry out the following:
 
 1. [Confirm Quickstart Runtime Prerequisites](#confirm-quickstart-runtime-prerequisites)
-1. [Ensure you have JDK11 and Maven Installed](#ensure-you-have-jdk11-and-maven-installed)
+1. [Ensure you have JDK8 and Maven Installed](#ensure-you-have-jdk8-and-maven-installed)
 1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
 1. [Create the sample namespace](#create-the-sample-namespace)
 1. [Clone the GitHub Repository](#clone-the-github-repository)
@@ -63,12 +63,15 @@ Confirm you have completed the following sections from the `Quick Start Guide` b
 > and the latest version of the chart will be retrieved. If you wanted 
 > to use a specific version, such as 0.9.3, add --version 0.9.3 to all installs for the coherence-operator and coherence charts.  
 
-## Ensure you have JDK11 and Maven Installed
+## Ensure you have JDK8 and Maven Installed
 
 Ensure you have the following installed:
 
-* JDK 11+
+* JDK 8+
+
 * Maven 3.5.4+
+
+> Note: You may use a later version od Java, e.g. JDK11 as the maven.compiler.source and target are set to 8.
 
 ## Ensure you install Coherence into your local Maven repository
 
@@ -178,7 +181,7 @@ $ helm install \
    --set imagePullSecrets=sample-coherence-secret \
    --name coherence-operator \
    --set "targetNamespaces={sample-coherence-ns}" \
-   coherence-community/coherence-operator
+   coherence/coherence-operator
 ```
 
 The above will install the `coherence-operator` without Prometheus or log capture enabled.
@@ -205,7 +208,7 @@ $ helm install \
      --set prometheusoperator.enabled=true \
      --set prometheusoperator.prometheusOperator.createCustomResource=false \
      --set "targetNamespaces={sample-coherence-ns}" \
-     coherence-community/coherence-operator
+     coherence/coherence-operator
 ```
 
 > Note: The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
@@ -227,7 +230,7 @@ $ helm install \
     --name coherence-operator \
     --set logCaptureEnabled=true \
     --set "targetNamespaces={sample-coherence-ns}" \
-    coherence-community/coherence-operator
+    coherence/coherence-operator
   ```
 
 ## Enabling Prometheus and log Capture
@@ -300,7 +303,6 @@ Samples legend:
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
       1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
-      1. [Specifying an archiver](coherence-deployments/persistence/archiver) &#x2718;
    1. [Elastic Data](coherence-deployments/elastic-data)
       1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
       1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/external) &#x2714;

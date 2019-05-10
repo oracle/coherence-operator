@@ -39,21 +39,19 @@ Ensure you have already installed the Coherence Operator by using the instructio
 ## Installation Steps
 
 1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your maven build     
-   environment set for JDK11 and build the project.
+   environment set for JDK8 and build the project.
 
    ```bash
-   mvn clean install -P docker-v1
+   $ mvn clean install -P docker-v1,docker-v2
    ```
 
-   The above will build the v1 Docker image called `rolling-upgrade-sample:1.0.0`. This will be the initial image installed 
-   to the storage server.
+   The above will build the v1 & v2 Docker images called:
+    
+   * `rolling-upgrade-sample:1.0.0`
+    
+   * `rolling-upgrade-sample:2.0.0` 
    
-   ```bash
-   mvn clean install -P docker-v2
-   ```
-
-   The above will build the v2 Docker image called `rolling-upgrade-sample:2.0.0`. This will be the image we upgrade
-   the deployment with.
+   Version 1.0.0  will be the initial image installed in the chart.
 
    > Note: If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
@@ -72,7 +70,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=rolling-upgrade-sample:1.0.0 \
-      coherence-community/coherence
+      coherence/coherence
    ```
 
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -122,7 +120,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    * `--set userArtifacts.image=rolling-upgrade-sample:2.0.0` - the new artifact version
 
    ```bash
-   $ helm upgrade storage coherence-community/coherence \
+   $ helm upgrade storage coherence/coherence \
       --namespace sample-coherence-ns \
       --reuse-values \
       --set imagePullSecrets=sample-coherence-secret \

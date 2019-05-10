@@ -88,7 +88,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \
       --set store.persistence.selector.matchLabels.coherenceCluster=persistence-cluster \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Check the pods are running using:
@@ -190,7 +190,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \
       --set store.persistence.selector.matchLabels.coherenceCluster=persistence-cluster \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
   Wait until all three pods are running before you continue to the next step.

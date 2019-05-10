@@ -30,7 +30,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 ## Installation Steps
 
 1. Change to the `samples/operator/logging/custom-logs` directory and ensure you have your maven build     
-   environment set for JDK11 and build the project.
+   environment set for JDK8 and build the project.
 
    ```bash
    mvn clean install -P docker
@@ -82,7 +82,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
       --set store.logging.configFile=custom-logging.properties \
       --set fluentd.application.configFile=/conf/fluentd-cloud.conf \
       --set fluentd.application.tag=cloud \
-      coherence-community/coherence
+      coherence/coherence
    ```
 
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.

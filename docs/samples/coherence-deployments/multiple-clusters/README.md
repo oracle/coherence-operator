@@ -21,7 +21,7 @@ how you can see the logs from both clusters using Kibana.
       --name coherence-operator \
       --set logCaptureEnabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
-      coherence-community/coherence-operator  
+      coherence/coherence-operator  
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -49,7 +49,7 @@ how you can see the logs from both clusters using Kibana.
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
 1. Install second Coherence cluster `cluster-b`
@@ -65,7 +65,7 @@ how you can see the logs from both clusters using Kibana.
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```
 
 ## Access Kibana

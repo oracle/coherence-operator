@@ -32,7 +32,7 @@ is installed and correctly configured.
       --name coherence-operator \
       --set logCaptureEnabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
-      coherence-community/coherence-operator
+      coherence/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -56,7 +56,7 @@ is installed and correctly configured.
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set logCaptureEnabled=true \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Once the install has completed issue the following command to list the pods:

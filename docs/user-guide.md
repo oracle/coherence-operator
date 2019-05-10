@@ -210,7 +210,7 @@ We must now package the jar file within the sidecar Docker image.
 ##### 4. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
 ```bash
-$ helm --debug install coherence-community/coherence --name hello-example \
+$ helm --debug install coherence/coherence --name hello-example \
      --set userArtifacts.image=hello-example-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret
 ```
@@ -511,7 +511,7 @@ We must now package the XML file within the sidecar Docker image.
 ##### 5. Install the Helm chart, passing the arguments to make the chart aware of the sidecar image
    
 ```bash
-$ helm --debug install coherence-community/coherence --name hello-server-config \
+$ helm --debug install coherence/coherence --name hello-server-config \
      --set userArtifacts.image=hello-server-config-sidecar:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=hello-server-config.xml
@@ -601,7 +601,7 @@ supplied to coherence, as well as all the java classes in the jar file
 being in the Coherence classpath.
 
 ```
-$ helm --debug install coherence-community/coherence --name hello-server-config \
+$ helm --debug install coherence/coherence --name hello-server-config \
      --set userArtifacts.image=coherence-operator-hello-server-config:1.0.0-SNAPSHOT \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=cache-config.xml \
@@ -706,7 +706,7 @@ quickstart](./quickstart.md#2-install-the-coherence-operator), install
 Coherence with the following Helm invocation.
 
 ```bash
-$ helm --debug install coherence-community/coherence --name hello-example \
+$ helm --debug install coherence/coherence --name hello-example \
      --set userArtifacts.image=coherence-demo-app:1.0 \
      --set store.jmx.enabled=true \
      --set imagePullSecrets=sample-coherence-secret
@@ -882,7 +882,7 @@ instruct the operator to upgrade from
 `hello-example-sidecar:1.0.1`.
 
 ```bash
-$ helm --debug upgrade coherence-community/coherence --name hello-example --reuse-values \
+$ helm --debug upgrade coherence/coherence --name hello-example --reuse-values \
      --set userArtifacts.image=hello-example-sidecar:1.0.1 --wait \
      --set imagePullSecrets=sample-coherence-secret
 ```

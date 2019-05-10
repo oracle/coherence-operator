@@ -35,7 +35,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` and wait until all 3 pods are running.

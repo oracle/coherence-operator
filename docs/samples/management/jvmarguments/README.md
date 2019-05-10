@@ -53,7 +53,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp"  \
       --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \
       --set store.maxHeap=1g \
-      coherence-community/coherence
+      coherence/coherence
    ```
 
 1. Ensure the pods are running:

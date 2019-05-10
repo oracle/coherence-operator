@@ -46,7 +46,7 @@ for scraping by Prometheus.
       --set prometheusoperator.enabled=true \
       --set prometheusoperator.prometheusOperator.createCustomResource=false \
       --set "targetNamespaces={sample-coherence-ns}" \
-      coherence-community/coherence-operator
+      coherence/coherence-operator
    ```
    
    Once the install has completed issue the following command to list the pods:
@@ -64,7 +64,7 @@ for scraping by Prometheus.
    Along with the `coherence-operator`, you should also see `grafana` and other `promethues` related pods.
    
 1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your maven build     
-   environment set for JDK11 and build the project.
+   environment set for JDK8 and build the project.
 
    ```bash
    $ mvn clean install -P docker 

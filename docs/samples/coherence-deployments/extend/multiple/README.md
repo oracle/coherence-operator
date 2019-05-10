@@ -22,7 +22,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 ## Installation Steps
 
 1. Change to the `samples/coherence-deployments/extend/multiple` directory and ensure you have your maven build     
-   environment set for JDK11 and build the project.
+   environment set for JDK8 and build the project.
 
    ```bash
    $ mvn clean install -P docker
@@ -62,7 +62,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set userArtifacts.image=multiple-proxy-sample:1.0.0-SNAPSHOT \
       --set store.javaOpts="-Dcoherence.extend.port2=20001" \
       --set store.ports.custom-port=20001 \
-      coherence-community/coherence
+      coherence/coherence
    ```
    
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
