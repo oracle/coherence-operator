@@ -130,7 +130,7 @@ pipeline {
                         fi
                         helm init --client-only
                         export HELM_TILLER_LOGS=true
-                        export HELM_TILLER_LOGS_DIR_DIRECTORY=$PWD/operator/target/helm-tiller-logs
+                        export HELM_TILLER_LOGS_DIR_DIRECTORY=helm-tiller-logs
                         rm -rf $HELM_TILLER_LOGS_DIR_DIRECTORY
                         mkdir -p $HELM_TILLER_LOGS_DIR_DIRECTORY
                         export HELM_TILLER_LOGS_DIR=$HELM_TILLER_LOGS_DIR_DIRECTORY/tiller.logs
@@ -167,7 +167,7 @@ pipeline {
                         '''
                     }
                 }
-                archiveArtifacts 'operator/target/helm-tiller-logs/tiller.logs'
+                archiveArtifacts 'helm-tiller-logs/**/*.logs'
             }
             post {
                 always {
