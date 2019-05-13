@@ -1,10 +1,10 @@
-# Docker Images for Oracle Coherence Kubernetes Operator
+# Docker Images for Oracle Coherence Operator
 
-Oracle enables organizations using Coherence to move their clusters
+Oracle enables organizations using [Coherence](https://www.oracle.com/technetwork/middleware/coherence/overview/index.html) to move their clusters
 into the cloud. By supporting de facto standards such as Docker and
 Kubernetes, Oracle facilitates running Coherence on cloud-neutral
 infrastructure. In particular, Oracle provides an open-source
-Coherence Kubernetes Operator, which implements features to assist
+Coherence Operator, which implements features to assist
 with deploying and managing Coherence clusters in a Kubernetes
 environment. You can:
 
