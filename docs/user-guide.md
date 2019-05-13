@@ -842,17 +842,25 @@ This use-case is covered [in the samples](samples/operator/scaling/).
 Assume the Coherence helm chart has been run with the default options
 and a [Helm release](https://helm.sh/docs/glossary/#release) by the name of
 `coherence-deploy` has been created and is successfully running, the
-following command will increase the number of Coherence cluster nodes
-from the default to the new value of `4`.
+following commands will increase the number of Coherence cluster nodes
+from the current value of `2` to the new value of `4`.
+
+```bash
+$ kubectl scale statefulsets coherence-deploy --replicas=3
+```
+
+Monitor the progress of the cluster as Kubernetes adjusts to the new
+intent.  Kubernetes will show the number of pods being adjusted and the
+status of each pod progressing through the various stages to end up at
+`Running` status.  Also ensure the Coherence cluster completes
+re-balancing before continuing to increment.
 
 ```bash
 $ kubectl scale statefulsets coherence-deploy --replicas=4
 ```
 
-Monitoring the progress of the cluster as Kubernetes adjusts to the new
-intent will show the number of pods being adjusted and the status of
-each pod progressing through the various stages to end up at `Running`
-status.
+The same "one at a time" rule applies when you are scaling down the
+cluster.
 
 ### Perform a Safe Rolling Upgrade
 
