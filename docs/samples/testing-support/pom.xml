@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>samples-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>samples-testing-support</artifactId>
+  <name>Samples Testing Support</name>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <ci.build>${env.CI_BUILD_ID}</ci.build>
+    <!-- Set the namespace from the CI build id to ensure tests use a unique namespace -->
+    <k8s.namespace>test-samples-${ci.build}</k8s.namespace>
+    <!-- Set the target namespaces for coherence -->
+    <k8s.target.namespaces>test-samples-${ci.build}</k8s.target.namespaces>
+    <!-- the k8s configuration file to use (default to ~/.kube/config) -->
+    <k8s.config/>
+    <!-- the k8s context to use (defaults to the current context) -->
+    <k8s.context/>
+    <!-- the k8s docker-registry secret name continuing the image pull credentials -->
+    <k8s.image.pull.secret/>
+    <!--&lt;!&ndash; flag indicating whether to create the pull secrets &ndash;&gt;-->
+    <k8s.create.secret>false</k8s.create.secret>
+    <!-- the username to use when creating pull secrets -->
+    <k8s.secret.user/>
+    <!-- the email to use when creating pull secrets -->
+    <k8s.secret.email/>
+    <!-- the location of the Kubernetes CLI (default to /usr/local/bin/kubectl in Bedrock) -->
+    <k8s.kubectl/>
+    <!-- the credentials (wcr token) to use when creating pull secrets -->
+    <k8s.secret.credentials/>
+    <!-- flag indicating whether to create and destroy the k8s namespace used for testing -->
+    <k8s.create.namespace>true</k8s.create.namespace>
+    <!-- minimiun port used for k8s port forward, note that by default k8s uses 30000-32767 for node port -->
+    <k8s.min.forward.port>40000</k8s.min.forward.port>
+    <!-- the timeout for Helm commands (in seconds) -->
+    <helm.timeout>300</helm.timeout>
+    <!-- location of the Helm config (default "~/.helm") -->
+    <helm.home/>
+    <!-- the address of Tiller. -->
+    <helm.tiller.host/>
+    <!-- The k8s namespace that Tiller is running in -->
+    <helm.tiller.namespace/>
+    <!-- the name of the Helm chart package containing the chart to test -->
+    <operator.helm.chart.name>coherence-operator</operator.helm.chart.name>
+    <!-- the name of the Coherence Helm chart to test -->
+    <coherence.helm.chart.name>coherence</coherence.helm.chart.name>
+    <!-- the location of the Helm CLI (default to /usr/local/bin/helm) -->
+    <bedrock.helm>/usr/local/bin/helm</bedrock.helm>
+    <!-- the image pull policy for Coherence Operator -->
+    <op.image.pull.policy/>
+    <user.artifacts.image>${test.image.prefix}user-artifacts</user.artifacts.image>
+    <user.artifacts.image.v1>1.0</user.artifacts.image.v1>
+    <user.artifacts.image.v2>2.0</user.artifacts.image.v2>
+    <user.test.image>${test.image.prefix}coh-client</user.test.image>
+    <user.test.image.version>2.0</user.test.image.version>
+    <user.fluentd.image>${test.image.prefix}fluentd</user.fluentd.image>
+    <user.fluentd.image.version>2.0</user.fluentd.image.version>
+    <javax.ws.rs.version>2.0.1</javax.ws.rs.version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>${javax.ws.rs.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.external</groupId>
+      <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-docker</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-k8s</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence-rest</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.activation</groupId>
+      <artifactId>javax.activation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.kubernetes</groupId>
+      <artifactId>coherence-utils</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+  </dependencies>
+  
+</project>
