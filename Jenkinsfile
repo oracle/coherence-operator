@@ -34,14 +34,6 @@ pipeline {
             }
             steps {
                 echo 'Docker Build'
-                sh '''
-                    if [ -z "$HTTP_PROXY" ]; then
-                        unset HTTP_PROXY
-                        unset HTTPS_PROXY
-                        unset NO_PROXY
-                    fi
-                    helm init --client-only
-                '''
                 sh 'docker swarm leave --force || true'
                 sh 'docker swarm init'
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
