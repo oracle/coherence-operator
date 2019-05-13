@@ -16,6 +16,11 @@
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+
+    <!-- Proxy properties -->
+    <proxyHost>${env.http_proxy_host}</proxyHost>
+    <proxyPort>${env.http_proxy_port}</proxyPort>
+    <nonProxyHosts>${env.http_no_proxy}</nonProxyHosts>
   </properties>
 
   <dependencies>

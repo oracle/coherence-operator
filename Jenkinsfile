@@ -37,6 +37,13 @@ pipeline {
                 sh 'docker swarm leave --force || true'
                 sh 'docker swarm init'
                 sh 'env'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh 'cd docs/samples && mvn -Pdocker,docker-v1,docker-v2 clean install'
                 }
