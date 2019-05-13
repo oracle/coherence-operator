@@ -56,7 +56,7 @@ pipeline {
             }
             steps {
                 echo 'Kubernetes Tests - SKIP'
-		sh 'helm repo add coherence https://oracle.github.io/coherence-operator/charts`
+		sh 'helm repo add coherence https://oracle.github.io/coherence-operator/charts'
 		sh 'helm repo update'
             }
             post {
