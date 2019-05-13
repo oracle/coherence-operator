@@ -22,6 +22,7 @@
   <name>Samples Parent</name>
 
   <modules>
+    <module>functional-tests</module>
     <module>coherence-deployments/extend/proxy-tier</module>
     <module>coherence-deployments/extend/multiple</module>
     <module>coherence-deployments/extend/default</module>
