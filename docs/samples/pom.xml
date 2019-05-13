@@ -264,7 +264,13 @@
               </goals>
             </execution>
           </executions>
-         </plugin>
+        </plugin>
+
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${maven.jib.plugin.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     
