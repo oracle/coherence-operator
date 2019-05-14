@@ -333,6 +333,14 @@ Running the program again should produce:
 The value of the key is 2
 ```
 
+> **Note**: If you are using JDK 11 or newer, you can omit the `javac`
+> step and simply run the program as shown next.
+
+```
+$ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
+  -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
+```
+
 ## 5. Use Helm to delete Coherence and the Operator
 
 Remove the `coherence` release:
