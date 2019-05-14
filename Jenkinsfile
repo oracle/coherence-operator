@@ -43,9 +43,9 @@ pipeline {
                         unset NO_PROXY
                     fi
 		    export http_proxy_host=`echo $HTTP_PROXY | sed -e 's,http://,,' | cut -d : -f1`
-		    export http_proxy_port=`echo $HTTP_PROXY | sed -e 's,http://,,' | cut -d : -f2`
+		    export http_proxy_port=`echo $HTTP_PROXY | sed  -e 's,/$,,' -e 's,http://,,' | cut -d : -f2`
 		    export https_proxy_host=`echo $HTTPS_PROXY | sed -e 's,http.*://,,' | cut -d : -f1`
-		    export https_proxy_port=`echo $HTTPS_PROXY | sed -e 's,http.*://,,' | cut -d : -f2`
+		    export https_proxy_port=`echo $HTTPS_PROXY | sed -e 's,/$,,' -e 's,http.*://,,' | cut -d : -f2`
 		    env
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
