@@ -71,7 +71,9 @@ Ensure you have the following installed:
 
 * Maven 3.5.4+
 
-> Note: You may use a later version od Java, e.g. JDK11 as the maven.compiler.source and target are set to 8.
+> Note: You may use a later version of Java, e.g. JDK11 as the
+> `maven.compiler.source` and `target` are set to 8 in the sample
+> `pom.xml` files.
 
 ## Ensure you install Coherence into your local Maven repository
 
@@ -96,13 +98,6 @@ If you are not running samples that have a Maven project, then you can skip this
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
    ```   
 
-1. Ensure that the [samples top level pom.xml](pom.xml) has the Coherence version set to the version you
-   are using:  E.g. if you have Coherence 12.2.1.3.2 then `coherence.version` should be:
-
-   ```xml
-    <coherence.version>12.2.1-3-2</coherence.version>
-   ```
-
 ## Create the sample namespace
 
 You should only need to carry out the following the first time you
@@ -116,10 +111,15 @@ run any of the samples.
   namespace/sample-coherence-ns created
   ```
 
-* Create a secret for pulling images from private repositories
+* Enable Kubernetes to pull docker images from private docker
+  repositories by creating a "secret"
 
-  If you are pulling images from private repositories, you must create a secret
-  which will be used for this. In these samples we are assuming you have created a secret called `sample-coherence-secret` in your namespace `sample-coherence-ns`.
+  If you must enable your Kubernetes cluster to pull images from private
+  repositories, you must create a "secret" to convey the docker
+  credentials to Kubernetes. In these samples we are assuming you have
+  created a secret called `sample-coherence-secret` in your namespace
+  `sample-coherence-ns`.  If all of your images can be pulled from
+  public repositories, this step is not required.
 
   See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for more information.
 
@@ -147,10 +147,21 @@ $ git checkout gh-pages
 $ cd docs/samples
 ```
 
+1. Ensure that the [samples top level pom.xml](pom.xml) has the
+   Coherence version set to the version you are actaully using: E.g. if
+   you have Coherence 12.2.1.3.0 then `coherence.version` should be:
+
+   ```xml
+    <coherence.version>12.2.1-3-0</coherence.version>
+   ```
+
+> **Note**: Note, if the version of 
+
 Issue the following to ensure all the projects with source code build ok. 
 
-> Note: Any compilation errors will most likely indicate that the Coherence JAR's 
-> are not properly installed or you have not set your JDK.
+> **Note**: Any compilation errors will most likely indicate that the
+> Coherence JAR's are not properly installed or you have not set your
+> JDK.
 
 ```bash
 $ mvn clean install
@@ -166,7 +177,7 @@ When you install the `coherence-operator` you can optionally enable the followin
 1. Prometheus integration to capture metrics and display in Grafana. (Only available from Coherence 12.2.1.4.0 and above)
 
 1. Log capture which will use Fluentd to send logs to Elasticsearch where
-   they key be vied in Kiabana.
+   they key be viewed in Kiabana.
 
 Enabling both Prometheus and log capture will require considerable extra system resources.
 
