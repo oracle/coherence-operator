@@ -39,7 +39,6 @@ import static org.junit.Assert.assertTrue;
  * @author jf
  * @author sc
  */
-@Ignore
 public class PrometheusOperatorHelmSubChartIT
     extends BaseHelmChartTest
     {
