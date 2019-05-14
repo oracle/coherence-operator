@@ -170,7 +170,7 @@ store:
   #   be useful for faster cluster start-up in certain scenarios such as testing but could
   #   cause data loss if multiple Pods are stopped in parallel so the default should be
   #   used in production.
-  podManagementPolicy: OrderedReady
+  podManagementPolicy: Parallel
 
   # store.revisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades.
   #   The default value if not set is 3.
