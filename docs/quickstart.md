@@ -347,6 +347,5 @@ Remove the `coherence` release:
 
 ```
 $ helm delete --purge sample-coherence sample-coherence-operator
-$ kubectl delete configmap coherence-internal-config
 ```
 
