@@ -106,11 +106,11 @@
     <!-- The k8s namespace that Tiller is running in -->
     <helm.tiller.namespace/>
     <!-- the name of the Helm chart package containing the chart to test -->
-    <operator.helm.chart.package>https://oracle.github.io/coherence-operator/charts/</operator.helm.chart.package>
+    <operator.helm.chart.package></operator.helm.chart.package>
     <!-- the name of the Operator Helm chart to test -->
     <operator.helm.chart.name>coherence-operator</operator.helm.chart.name>
     <!-- the name of the Helm chart package containing the chart to test -->
-    <coherence.helm.chart.package>.https://oracle.github.io/coherence-operator/charts/</coherence.helm.chart.package>
+    <coherence.helm.chart.package></coherence.helm.chart.package>
     <!-- the name of the Coherence Helm chart to test -->
     <coherence.helm.chart.name>coherence</coherence.helm.chart.name>
     <!-- the location of the Helm CLI (default to /usr/local/bin/helm) -->
@@ -334,6 +334,75 @@
        </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- The Helm testing profile -->
+      <id>helm-test</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <failIfNoTests>false</failIfNoTests>
+              <useSystemClassLoader>true</useSystemClassLoader>
+              <useManifestOnlyJar>false</useManifestOnlyJar>
+              <systemProperties>
+                <k8s.namespace>${k8s.namespace}</k8s.namespace>
+                <k8s.target.namespaces>${k8s.target.namespaces}</k8s.target.namespaces>
+                <k8s.config>${k8s.config}</k8s.config>
+                <k8s.context>${k8s.context}</k8s.context>
+                <k8s.image.pull.secret>${k8s.image.pull.secret}</k8s.image.pull.secret>
+                <k8s.create.namespace>${k8s.create.namespace}</k8s.create.namespace>
+                <k8s.create.secret>${k8s.create.secret}</k8s.create.secret>
+                <k8s.kubectl>${k8s.kubectl}</k8s.kubectl>
+                <k8s.secret.user>${k8s.secret.user}</k8s.secret.user>
+                <k8s.secret.credentials>${k8s.secret.credentials}</k8s.secret.credentials>
+                <k8s.secret.email>${k8s.secret.email}</k8s.secret.email>
+                <k8s.min.forward.port>${k8s.min.forward.port}</k8s.min.forward.port>
+                <helm.timeout>${helm.timeout}</helm.timeout>
+                <helm.home>${helm.home}</helm.home>
+                <helm.tiller.host>${helm.tiller.host}</helm.tiller.host>
+                <helm.tiller.namespace>${helm.tiller.namespace}</helm.tiller.namespace>
+                <operator.helm.chart.package>${operator.helm.chart.package}</operator.helm.chart.package>
+                <operator.helm.chart.name>${operator.helm.chart.name}</operator.helm.chart.name>
+                <coherence.helm.chart.package>${coherence.helm.chart.package}</coherence.helm.chart.package>
+                <coherence.helm.chart.name>${coherence.helm.chart.name}</coherence.helm.chart.name>
+                <bedrock.helm>${bedrock.helm}</bedrock.helm>
+                <op.image.pull.policy>${op.image.pull.policy}</op.image.pull.policy>
+                <project.build.directory>${project.build.directory}</project.build.directory>
+                <docker.repo>${test.image.prefix}</docker.repo>
+                <test.image.prefix>${test.image.prefix}</test.image.prefix>
+
+                <http.proxyHost>${proxyHost}</http.proxyHost>
+                <http.proxyPort>${proxyPort}</http.proxyPort>
+                <http.nonProxyHosts>${nonProxyHosts}</http.nonProxyHosts>
+                <https.proxyHost>${proxyHost}</https.proxyHost>
+                <https.proxyPort>${proxyPort}</https.proxyPort>
+                <https.nonProxyHosts>${nonProxyHosts}</https.nonProxyHosts>
+              </systemProperties>
+              <includes>
+                <include>/**/*IT.java</include>
+              </includes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <developers>
     <developer>

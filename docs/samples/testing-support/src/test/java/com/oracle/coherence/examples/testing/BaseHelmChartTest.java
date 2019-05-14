@@ -1606,6 +1606,7 @@ public abstract class BaseHelmChartTest
      * Install coherence with given helm values and target namespace.
      *
      * @param cluster       the k8s cluster
+     * @param urlCoherenceChart URL for Coherence chart
      * @param sNamespace    the namespace to install into
      * @param sHelmValues   Helm values file
      *
@@ -1614,10 +1615,11 @@ public abstract class BaseHelmChartTest
      * @throws Exception if installation fails
      */
     protected static String installCoherence(K8sCluster cluster,
+                                      URL        urlCoherenceChart,
                                       String     sNamespace,
                                       String     sHelmValues) throws Exception
         {
-        String[] asReleases = installCoherence(cluster, new String[]{sNamespace}, sHelmValues);
+        String[] asReleases = installCoherence(cluster, urlCoherenceChart, new String[]{sNamespace}, sHelmValues);
         return asReleases[0];
         }
 
@@ -1625,6 +1627,7 @@ public abstract class BaseHelmChartTest
      * Install coherence with given helm values and target namespace.
      *
      * @param cluster      the k8s cluster
+     * @param urlCoherenceChart URL for Coherence chart
      * @param sNamespace   the namespace to install into
      * @param sHelmValues  the Helm values file
      * @param asSetValues  the array of Helm set values
@@ -1634,34 +1637,38 @@ public abstract class BaseHelmChartTest
      * @throws Exception if installation fails
      */
     protected static String installCoherence(K8sCluster cluster,
+                                      URL        urlCoherenceChart,
                                       String     sNamespace,
                                       String     sHelmValues,
                                       String...  asSetValues) throws Exception
         {
-        String[] asReleases = installCoherence(cluster, new String[]{sNamespace}, sHelmValues, asSetValues);
+        String[] asReleases = installCoherence(cluster, urlCoherenceChart, new String[]{sNamespace}, sHelmValues, asSetValues);
         return asReleases[0];
         }
 
     /**
      * Install coherence with given helm values and target namespaces.
      *
-     * @param cluster          the k8s cluster
-     * @param asCohNamespaces  an array of namespace for installing coherence
-     * @param sHelmValues      Helm values file
+     * @param cluster           the k8s cluster
+     * @param urlCoherenceChart URL for Coherence chart
+     * @param asCohNamespaces   an array of namespace for installing coherence
+     * @param sHelmValues       Helm values file
      *
      * @return an array of release names
      */
     protected static String[] installCoherence(K8sCluster cluster,
+                                        URL        urlCoherenceChart,
                                         String[]   asCohNamespaces,
                                         String     sHelmValues) throws Exception
         {
-        return installCoherence(cluster, asCohNamespaces, sHelmValues, new String[0]);
+        return installCoherence(cluster, urlCoherenceChart, asCohNamespaces, sHelmValues, new String[0]);
         }
 
     /**
      * Install coherence with given helm values and target namespaces.
      *
      * @param cluster          the k8s cluster
+     * @param urlCoherenceChart URL for Coherence chart            
      * @param asCohNamespaces  an array of namespace for installing coherence
      * @param sHelmValues      Helm values file
      * @param asSetValues      the array of Helm set values
@@ -1669,6 +1676,7 @@ public abstract class BaseHelmChartTest
      * @return an array of release names
      */
     protected static String[] installCoherence(K8sCluster cluster,
+                                        URL        urlCoherenceChart,
                                         String[]   asCohNamespaces,
                                         String     sHelmValues,
                                         String...  asSetValues) throws Exception
@@ -1693,7 +1701,7 @@ public abstract class BaseHelmChartTest
                                               .toArray(String[]::new);
                     }
 
-                asReleases[i] = installChart(cluster, COHERENCE_HELM_CHART_NAME, COHERENCE_HELM_CHART_URL, sNamespace, sHelmValues, asActualSetValues);
+                asReleases[i] = installChart(cluster, COHERENCE_HELM_CHART_NAME, urlCoherenceChart, sNamespace, sHelmValues, asActualSetValues);
                 }
             catch(Throwable throwable)
                 {
@@ -2353,12 +2361,7 @@ public abstract class BaseHelmChartTest
     /**
      * The name of the Operator Helm chart package being tested.
      */
-    private static final String OPERATOR_HELM_CHART_PACKAGE = System.getProperty(PROP_OPERATOR_HELM_PACKAGE);
-
-    /**
-     * The URL of the Operator Helm chart package.
-     */
-    protected static final URL OPERATOR_HELM_CHART_URL = getURL(OPERATOR_HELM_CHART_PACKAGE);
+    protected static final String OPERATOR_HELM_CHART_PACKAGE = System.getProperty(PROP_OPERATOR_HELM_PACKAGE);
 
     /**
      * The name of the Helm chart to test.
@@ -2368,12 +2371,7 @@ public abstract class BaseHelmChartTest
     /**
      * The name of the Coherence Helm chart package being tested.
      */
-    private static final String COHERENCE_HELM_CHART_PACKAGE = System.getProperty(PROP_COHERENCE_HELM_PACKAGE);
-
-    /**
-     * The URL of the Coherence Helm chart package.
-     */
-    protected static final URL COHERENCE_HELM_CHART_URL = getURL(COHERENCE_HELM_CHART_PACKAGE);
+    protected static final String COHERENCE_HELM_CHART_PACKAGE = System.getProperty(PROP_COHERENCE_HELM_PACKAGE);
 
     /**
      * The name of the Helm chart to test.
