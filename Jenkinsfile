@@ -129,6 +129,10 @@ pipeline {
                             unset NO_PROXY
                         fi
                         helm init --client-only
+                        export HELM_TILLER_LOGS=false
+                        helm tiller start-ci test-cop-$BUILD_NUMBER
+                        export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
+                        export HELM_HOST=:44134
                         kubectl create namespace test-cop-$BUILD_NUMBER  || true
                         kubectl create namespace test-cop2-$BUILD_NUMBER || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
@@ -162,12 +166,14 @@ pipeline {
             post {
                 always {
                     sh '''
+                        helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                         kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                         kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                         kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
                         kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
                         kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
                         kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
+                        helm tiller stop || true
                     '''
                     deleteDir()
                 }
