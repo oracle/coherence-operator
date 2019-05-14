@@ -26,6 +26,13 @@
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+
+    <!-- test properties -->
+    <k8s.namespace></k8s.namespace>
+    <operator.helm.chart.package></operator.helm.chart.package>
+    <operator.helm.chart.name></operator.helm.chart.name>
+    <coherence.helm.chart.package></coherence.helm.chart.package>
+    <coherence.helm.chart.name></coherence.helm.chart.name>
   </properties>
 
   <dependencies>
@@ -38,6 +45,41 @@
     <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>com.oracle.coherence.kubernetes</groupId>
+      <artifactId>samples-testing-support</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-k8s</artifactId>
+      <version>${bedrock.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

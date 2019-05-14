@@ -49,6 +49,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -1120,6 +1121,25 @@ public abstract class BaseHelmChartTest
     static URL toURL(String sResource)
         {
         return Resources.findFileOrResource(sResource, null);
+        }
+
+    /**
+     * Obtain the {@link URL} of the specified URL this.
+     *
+     * @param sUrl  the String to covert to URL
+     *
+     * @return  the {@link URL} of the resource
+     */
+    static URL getURL(String sUrl)
+        {
+        try
+            {
+            return new URL(sUrl);
+            }
+        catch (MalformedURLException e)
+            {
+            return null;
+            }
         }
 
     /**
@@ -2338,7 +2358,7 @@ public abstract class BaseHelmChartTest
     /**
      * The URL of the Operator Helm chart package.
      */
-    protected static final URL OPERATOR_HELM_CHART_URL = toURL(OPERATOR_HELM_CHART_PACKAGE);
+    protected static final URL OPERATOR_HELM_CHART_URL = getURL(OPERATOR_HELM_CHART_PACKAGE);
 
     /**
      * The name of the Helm chart to test.
@@ -2353,7 +2373,7 @@ public abstract class BaseHelmChartTest
     /**
      * The URL of the Coherence Helm chart package.
      */
-    protected static final URL COHERENCE_HELM_CHART_URL = toURL(COHERENCE_HELM_CHART_PACKAGE);
+    protected static final URL COHERENCE_HELM_CHART_URL = getURL(COHERENCE_HELM_CHART_PACKAGE);
 
     /**
      * The name of the Helm chart to test.

@@ -24,47 +24,6 @@
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
-    <ci.build>${env.CI_BUILD_ID}</ci.build>
-    <!-- Set the namespace from the CI build id to ensure tests use a unique namespace -->
-    <k8s.namespace>test-samples-${ci.build}</k8s.namespace>
-    <!-- Set the target namespaces for coherence -->
-    <k8s.target.namespaces>test-samples-${ci.build}</k8s.target.namespaces>
-    <!-- the k8s configuration file to use (default to ~/.kube/config) -->
-    <k8s.config/>
-    <!-- the k8s context to use (defaults to the current context) -->
-    <k8s.context/>
-    <!-- the k8s docker-registry secret name continuing the image pull credentials -->
-    <k8s.image.pull.secret/>
-    <!--&lt;!&ndash; flag indicating whether to create the pull secrets &ndash;&gt;-->
-    <k8s.create.secret>false</k8s.create.secret>
-    <!-- the username to use when creating pull secrets -->
-    <k8s.secret.user/>
-    <!-- the email to use when creating pull secrets -->
-    <k8s.secret.email/>
-    <!-- the location of the Kubernetes CLI (default to /usr/local/bin/kubectl in Bedrock) -->
-    <k8s.kubectl/>
-    <!-- the credentials (wcr token) to use when creating pull secrets -->
-    <k8s.secret.credentials/>
-    <!-- flag indicating whether to create and destroy the k8s namespace used for testing -->
-    <k8s.create.namespace>true</k8s.create.namespace>
-    <!-- minimiun port used for k8s port forward, note that by default k8s uses 30000-32767 for node port -->
-    <k8s.min.forward.port>40000</k8s.min.forward.port>
-    <!-- the timeout for Helm commands (in seconds) -->
-    <helm.timeout>300</helm.timeout>
-    <!-- location of the Helm config (default "~/.helm") -->
-    <helm.home/>
-    <!-- the address of Tiller. -->
-    <helm.tiller.host/>
-    <!-- The k8s namespace that Tiller is running in -->
-    <helm.tiller.namespace/>
-    <!-- the name of the Helm chart package containing the chart to test -->
-    <operator.helm.chart.name>coherence-operator</operator.helm.chart.name>
-    <!-- the name of the Coherence Helm chart to test -->
-    <coherence.helm.chart.name>coherence</coherence.helm.chart.name>
-    <!-- the location of the Helm CLI (default to /usr/local/bin/helm) -->
-    <bedrock.helm>/usr/local/bin/helm</bedrock.helm>
-    <!-- the image pull policy for Coherence Operator -->
-    <op.image.pull.policy/>
     <user.artifacts.image>${test.image.prefix}user-artifacts</user.artifacts.image>
     <user.artifacts.image.v1>1.0</user.artifacts.image.v1>
     <user.artifacts.image.v2>2.0</user.artifacts.image.v2>
@@ -177,5 +136,23 @@
     </dependency>
 
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jar.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   
 </project>

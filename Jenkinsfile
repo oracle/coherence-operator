@@ -45,7 +45,7 @@ pipeline {
                     fi
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    sh 'cd docs/samples && mvn  -Djava.util.logging.config.file=/scratch/cohbld/hudson/workspace/coherence-operator_PR-121/logging.properties -DjibSerialize=true  -Pdocker,docker-v1,docker-v2 clean install '
+                    sh 'cd docs/samples && mvn -Dhttp.proxyHost=www-proxy-hqdc.us.oracle.com -Dhttps.proxyHost=www-proxy-hqdc.us.oracle.com -Dhttp.proxyPort=80 -Dhttps.proxyPort=80 -Pdocker,docker-v1,docker-v2 clean install '
                 }
             }
         }
