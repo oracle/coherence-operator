@@ -24,7 +24,7 @@ pipeline {
                     helm init --client-only --skip-refresh
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                   sh 'cd docs/samples && mvn clean install'
+                   sh 'cd docs/samples ; mvn clean install'
                 }
             }
         }
@@ -44,7 +44,7 @@ pipeline {
                     fi
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    sh 'cd docs/samples && mvn -Pdocker,docker-v1,docker-v2 clean install'
+                    sh 'cd docs/samples ; mvn -Pdocker,docker-v1,docker-v2 clean install'
                 }
             }
         }
