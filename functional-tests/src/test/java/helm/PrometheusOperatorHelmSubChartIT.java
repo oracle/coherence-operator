@@ -107,6 +107,9 @@ public class PrometheusOperatorHelmSubChartIT
      * Test with user supplied prometheus_io annotations with coherence-service-monitor disabled.
      * @throws Exception
      */
+    // Ignore while hitting intermittent failure described by https://github.com/coreos/prometheus-operator/issues/2409
+    // Unable to run rules-configmap-reloader due to 10Mi limit.  Working on upgrading to prometheus-operator version with fix.
+    @Ignore
     @Test
     public void testPrometheusOperatorSubchartWithUserSuppliedAdditionalScrapeConfig()
         throws Exception
