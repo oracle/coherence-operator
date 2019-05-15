@@ -38,6 +38,7 @@ import com.oracle.coherence.k8s.CoherenceVersion;
 
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
+import com.tangosol.util.WrapperException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matcher;
@@ -2073,7 +2074,7 @@ public abstract class BaseHelmChartTest
     protected static Application portForward(K8sCluster k8sCluster, String sNamespace, String sSelector, int nPort) throws Exception
         {
         // Workaround intermittent kubectl port-forward failure by retrying
-        Exception lastException = null;
+        Throwable lastThrowable = null;
         final int MAX_RETRY     = 8;
         for (int i = 0; i < MAX_RETRY; i++)
             {
@@ -2081,9 +2082,9 @@ public abstract class BaseHelmChartTest
                 {
                 return internalPortForward(k8sCluster, sNamespace, sSelector, nPort);
                 }
-            catch (Exception e)
+            catch (Throwable t)
                 {
-                lastException = e;
+                lastThrowable = t;
                 try
                     {
                     // backoff before retry
@@ -2094,7 +2095,7 @@ public abstract class BaseHelmChartTest
                     }
                 }
             }
-        throw lastException;
+        throw new WrapperException(lastThrowable);
         }
 
     /**

@@ -120,7 +120,7 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
         String sNamespace      = getK8sNamespace();
         String sValuesOriginal = "values/helm-values-coh-user-artifacts.yaml";
         String sValuesUpgrade  = "values/helm-values-coh-user-artifacts-upgrade.yaml";
-        String sCoherenceImage = COHERENCE_IMAGE_PREFIX + m_sCoherenceTag;
+        String sCoherenceImage = COHERENCE_IMAGE +  ":" + m_sCoherenceTag;
 
         m_sRelease = installCoherence(s_k8sCluster,
                                       sNamespace,
@@ -337,11 +337,6 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
     private static boolean        PERSISTENCE  = false;
 
     /**
-     * The Docker registry name to use to pull Coherence images.
-     */
-    public static final String DOCKER_REGISTRY = System.getProperty("docker.repo");
-
-    /**
      * The version (tag) for the latest Coherence image version.
      */
     public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
@@ -349,7 +344,7 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
     /**
      * The base Coherence image name without a tag.
      */
-    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "oracle/coherence:";
+    public static final String COHERENCE_IMAGE = System.getProperty("coherence.image.prefix") + "coherence";
 
     /**
      * The tag to use when pulling the Coherence image for this test.

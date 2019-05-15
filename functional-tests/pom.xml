@@ -351,6 +351,7 @@
                 <docker.repo>${test.image.prefix}</docker.repo>
                 <test.image.prefix>${test.image.prefix}</test.image.prefix>
                 <coherence.docker.version>${coherence.docker.version}</coherence.docker.version>
+                <coherence.image.prefix>${coherence.image.prefix}</coherence.image.prefix>
                 <test.image.prefix>${test.image.prefix}</test.image.prefix>
                 
                 <http.proxyHost>${proxyHost}</http.proxyHost>

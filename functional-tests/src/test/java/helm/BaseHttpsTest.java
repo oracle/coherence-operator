@@ -42,7 +42,7 @@ public abstract class BaseHttpsTest
         // create the SSL k8s secret (delete it first to ensure the secret is correct)
         String sSecret         = "ssl-secret";
         String sNamespace      = getK8sNamespace();
-        String sCoherenceImage = COHERENCE_IMAGE_PREFIX + sCoherenceVersion;
+        String sCoherenceImage = COHERENCE_IMAGE + ":" + sCoherenceVersion;
         String sImageName      = "coherenceImage.name=" + sCoherenceImage;
 
         createSecret(sSecret, sNamespace);
@@ -179,11 +179,6 @@ public abstract class BaseHttpsTest
     protected static HttpTestHelper s_clientHelper;
 
     /**
-     * The Docker registry name to use to pull Coherence images.
-     */
-    public static final String DOCKER_REGISTRY = System.getProperty("docker.repo");
-
-    /**
      * The version (tag) for the latest Coherence image version.
      */
     public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
@@ -191,5 +186,5 @@ public abstract class BaseHttpsTest
     /**
      * The base Coherence image name without a tag.
      */
-    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "coherence:";
+    public static final String COHERENCE_IMAGE = System.getProperty("coherence.image.prefix") + "coherence";
     }
