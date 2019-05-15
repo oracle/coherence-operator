@@ -24,7 +24,10 @@ pipeline {
                     helm init --client-only --skip-refresh
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                   sh 'cd docs/samples ; mvn clean install'
+                   sh '''
+		       cd docs/samples 
+		       mvn clean install
+		   '''
                 }
             }
         }
@@ -34,9 +37,9 @@ pipeline {
             }
             steps {
                 echo 'Docker Build'
-                sh 'docker swarm leave --force || true'
-                sh 'docker swarm init'
                 sh '''
+		    docker swarm leave --force || true
+                    docker swarm init
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
@@ -44,7 +47,10 @@ pipeline {
                     fi
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    sh 'cd docs/samples ; mvn -Pdocker,docker-v1,docker-v2 clean install'
+                    sh '''
+                        cd docs/samples 
+		        mvn -Pdocker,docker-v1,docker-v2 clean install
+		    '''
                 }
             }
         }
@@ -62,8 +68,10 @@ pipeline {
             }
             steps {
                 echo 'Kubernetes Tests - SKIP'
-		sh 'helm repo add coherence https://oracle.github.io/coherence-operator/charts'
-		sh 'helm repo update'
+		sh '''
+		    helm repo add coherence https://oracle.github.io/coherence-operator/charts
+		    helm repo update
+		'''
             }
             post {
                 always {
