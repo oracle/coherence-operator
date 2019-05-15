@@ -147,6 +147,7 @@ $ git checkout gh-pages
 $ cd docs/samples
 ```
 
+<<<<<<< HEAD
 1. Inspect the [samples top level pom.xml](pom.xml) to see if you must
    override the specified `coherence.version` property so that its value
    matches the version you are actaully using: E.g. if you have
@@ -158,6 +159,14 @@ $ cd docs/samples
 
    Then you must provide `-Dcoherence.version=12.2.1-3-2` to every
    invocation of `mvn`.
+=======
+1. Inspect the [samples top level pom.xml](pom.xml) and verify that the
+   value of the `coherence.version` property matches the version of
+   Coherence you are actaully using. For example if you have Coherence
+   12.2.1.3.0 then the value of `coherence.version` must be
+   `12.2.1-3-0`.  If this value needs ajustment, use the
+   `-Dcoherence.version=` argument to all invocations of `mvn`.
+>>>>>>> #126 Address comments from Manfred and Tim.
 
 Issue the following to ensure all the projects with source code build ok. 
 
@@ -176,10 +185,11 @@ This can be done once and can keep running for all the samples.
 
 When you install the `coherence-operator` you can optionally enable the following:
 
-1. Prometheus integration to capture metrics and display in Grafana. (Only available from Coherence 12.2.1.4.0 and above)
+1. Prometheus integration: to capture metrics and display in
+   Grafana. (Only available from Coherence 12.2.1.4.0 and above)
 
-1. Log capture which will use Fluentd to send logs to Elasticsearch where
-   they key be viewed in Kiabana.
+1. Log capture: to use Fluentd to send logs to Elasticsearch where they
+   can be viewed in Kiabana.
 
 Enabling both Prometheus and log capture will require considerable extra system resources.
 
