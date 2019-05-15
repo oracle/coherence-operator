@@ -6,7 +6,9 @@ pipeline {
         NO_PROXY    = credentials('coherence-operator-no-proxy')
     }
     options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
         lock('kubernetes-stage1')
+        timeout(time: 4, unit: 'HOURS')
     }
     stages {
         stage('maven-build') {
