@@ -227,7 +227,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>-tag-for-push</id>
+                <id>tag-for-push</id>
                 <phase>install</phase>
                 <configuration>
                   <executable>docker</executable>
@@ -235,7 +235,7 @@
                   <arguments>
                     <argument>tag</argument>
                     <argument>${project.artifactId}:${project.version}</argument>
-                    <argument>${docker.push.tag}</argument>
+                    <argument>${docker.push.tag.prefix}${project.artifactId}:${project.version}</argument>
                   </arguments>
                 </configuration>
                 <goals>
@@ -250,7 +250,7 @@
                   <workingDirectory>${project.build.directory}/docker</workingDirectory>
                   <arguments>
                     <argument>push</argument>
-                    <argument>${docker.push.tag}</argument>
+                    <argument>${docker.push.tag.prefix}${project.artifactId}:${project.version}</argument>
                   </arguments>
                 </configuration>
                 <goals>
