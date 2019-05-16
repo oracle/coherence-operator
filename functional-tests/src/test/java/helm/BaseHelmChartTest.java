@@ -199,23 +199,42 @@ public abstract class BaseHelmChartTest
         // helm install dry run and get the release name used for the dry-run
         String sRelease = installDryRun(fileChartDir, sHelmChartName, sNamespace, aURLValues, asSetValues);
 
-        // helm install real using the release name from the dry-run
-        int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
-
-        if (nExitCode != 0)
+        try
             {
+            // helm install real using the release name from the dry-run
+            int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
+
+            if (nExitCode != 0)
+                {
+                try
+                    {
+                    System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
+                    cleanupHelmReleases(sRelease);
+                    cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
+                    }
+                catch (Throwable t)
+                    {
+                    System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+                    }
+                throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
+                }
+            }
+        catch (Throwable t)
+            {
+            // cleanup helm release artifacts when an exception is thrown during helm install.
+            System.err.println("Handled exception " + t.getClass().getName() + " during helm install " + sHelmChartName + " namespace=" + sNamespace + " release=" + sRelease);
             try
                 {
-                System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
+                System.err.println("Clean up Helm install '" + sRelease + "' after handled exception: " + t);
+                t.printStackTrace();
                 cleanupHelmReleases(sRelease);
                 cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
                 }
-            catch(Throwable t)
+            catch (Throwable t1)
                 {
-                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t1);
                 }
-
-            throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
+            throw new Exception("Helm install '" + sRelease + "' failed with exception: " + t);
             }
 
         // Wait for the StatefulSet to be ready
@@ -918,7 +937,7 @@ public abstract class BaseHelmChartTest
      * @param cluster  the k8s cluster
      * @param sName    CRD name
      */
-    public static void deleteCRD( K8sCluster cluster, String sName)
+    public static void deleteCRD(K8sCluster cluster, String sName)
         {
         int nExitCode = cluster.kubectlAndWait(Arguments.of("delete", "crd", "--ignore-not-found=true", sName));
 
