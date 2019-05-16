@@ -26,7 +26,7 @@
 
   <properties>
     <!-- version below must one specified in requirements.yaml -->
-    <prometheus.operator.helmchart.version>1.5.2</prometheus.operator.helmchart.version>
+    <prometheus.operator.helmchart.version>5.7.0</prometheus.operator.helmchart.version>
 
     <!-- operator image  -->
     <operator.image>${release.image.prefix}oracle/${project.artifactId}</operator.image>

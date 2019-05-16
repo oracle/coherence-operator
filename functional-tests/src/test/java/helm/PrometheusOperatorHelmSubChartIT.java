@@ -39,7 +39,6 @@ import static org.junit.Assert.assertTrue;
  * @author jf
  * @author sc
  */
-@Ignore
 public class PrometheusOperatorHelmSubChartIT
     extends BaseHelmChartTest
     {
@@ -108,6 +107,8 @@ public class PrometheusOperatorHelmSubChartIT
      * Test with user supplied prometheus_io annotations with coherence-service-monitor disabled.
      * @throws Exception
      */
+    // Work on making coherence-operator uninstall more stable. Only uninstall at end of test.
+    @Ignore
     @Test
     public void testPrometheusOperatorSubchartWithUserSuppliedAdditionalScrapeConfig()
         throws Exception
@@ -125,28 +126,38 @@ public class PrometheusOperatorHelmSubChartIT
     private void testPrometheusOperatorSubchart(String sOperatorValuesFile)
         throws Exception
         {
+        int    MAX_RETRY                = 3;
         String sNamespace               = getK8sNamespace();
-        String sSetValueSkipInstallCrd  = hasPrometheusOperatorCRD(s_k8sCluster) ?
-            "prometheusoperator.prometheusOperator.createCustomResource=false" : null;
+
 
         System.err.println("Deploying " + OPERATOR_HELM_CHART_NAME + " with " + sOperatorValuesFile + " in namespace " + sNamespace);
 
-        try
+        for (int i=1; i <= MAX_RETRY; i++)
             {
-            m_sRelease = installChart(s_k8sCluster,
-                OPERATOR_HELM_CHART_NAME,
-                OPERATOR_HELM_CHART_URL,
-                sNamespace,
-                sOperatorValuesFile,
-                withDefaultHelmSetValues(sSetValueSkipInstallCrd));
-            }
-        catch (Throwable t)
-            {
-            System.err.println("failed installing " + OPERATOR_HELM_CHART_NAME);
-            t.printStackTrace();
-            throw t;
-            }
+            try
+                {
+                String sSetValueSkipInstallCrd  = hasPrometheusOperatorCRD(s_k8sCluster) ?
+                    "prometheusoperator.prometheusOperator.createCustomResource=false" : null;
 
+                m_sRelease = installChart(s_k8sCluster,
+                    OPERATOR_HELM_CHART_NAME,
+                    OPERATOR_HELM_CHART_URL,
+                    sNamespace,
+                    sOperatorValuesFile,
+                    withDefaultHelmSetValues(sSetValueSkipInstallCrd));
+                break;
+                }
+            catch (Throwable t)
+                {
+                System.err.println("failed installing " + OPERATOR_HELM_CHART_NAME + " retrying after " + i + " previous tries");
+                if (i == MAX_RETRY)
+                    {
+                    System.err.println("Giving up after " + MAX_RETRY + " retries of helm install of coherence-operator with prometheusoperator.enabled");
+                    t.printStackTrace();
+                    throw t;
+                    }
+                }
+            }
         assertDeploymentReady(s_k8sCluster, sNamespace, getCoherenceOperatorSelector(m_sRelease), true);
 
         // override values extracted from this test's value file, resources/values/helm-values-coh-metrics.yaml
