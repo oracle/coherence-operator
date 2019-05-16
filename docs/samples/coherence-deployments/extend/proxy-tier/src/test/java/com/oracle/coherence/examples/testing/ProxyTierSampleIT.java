@@ -76,7 +76,7 @@ public class ProxyTierSampleIT
             s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(m_sOperatorChartURL));
 
             // install Coherence chart
-            String[] asCohNamespaces = getTargetNamespaces();
+            String sCohNamespace = getTargetNamespaces()[0];
 
             String sTag = System.getProperty("docker.push.tag.prefix") + System.getProperty("project.artifactId") + ":" +
                           System.getProperty("project.version");
@@ -85,18 +85,17 @@ public class ProxyTierSampleIT
             String sProcessedCoherenceYaml = getProcessedYamlFile("coherence.yaml", sTag, null);
             assertThat(sProcessedCoherenceYaml, is(notNullValue()));
 
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces, sProcessedCoherenceYaml);
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
-            String sClusterRelease = m_asReleases[0];
+            String sClusterRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedCoherenceYaml);
+            assertCoherence(s_k8sCluster, new String[] { sCohNamespace } , m_asReleases);
 
             // process yaml file for proxy tier
             String sProcessedProxyYaml = getProcessedYamlFile("coherence-proxy-tier.yaml", sTag, m_asReleases[0]);
             assertThat(sProcessedProxyYaml, is(notNullValue()));
 
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces, sProcessedProxyYaml);
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+            String sProxyRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedProxyYaml);
+            assertCoherence(s_k8sCluster, new String[] { sCohNamespace }, m_asReleases);
 
-            m_asReleases = new String[] { sClusterRelease, m_asReleases[0] };
+            m_asReleases = new String[] { sClusterRelease, sProxyRelease };
             }
         }
 

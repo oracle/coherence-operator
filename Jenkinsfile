@@ -45,6 +45,7 @@ pipeline {
                         unset HTTPS_PROXY
                         unset NO_PROXY
                     fi
+                    helm init --client-only
                 '''
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
@@ -61,8 +62,6 @@ pipeline {
             steps {
                 echo 'Docker Push'
                 sh '''
-                    docker swarm leave --force || true
-                    docker swarm init
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
                         unset HTTPS_PROXY
@@ -94,8 +93,6 @@ pipeline {
                             unset HTTPS_PROXY
                             unset NO_PROXY
                         fi
-                        helm repo add coherence https://oracle.github.io/coherence-operator/charts
-		        helm repo update
 
                         helm init --client-only
                         export HELM_TILLER_LOGS=false
@@ -103,6 +100,8 @@ pipeline {
                         helm tiller start-ci $NS
                         export TILLER_NAMESPACE=$NS
                         export HELM_HOST=:44134
+                        helm repo add coherence https://oracle.github.io/coherence-operator/charts
+		        helm repo update
                         kubectl create namespace $NS || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
                            --namespace $NS \
