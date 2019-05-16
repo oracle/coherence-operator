@@ -121,6 +121,7 @@ pipeline {
                         sh '''
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
+		            cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
