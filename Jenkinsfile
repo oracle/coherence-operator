@@ -101,7 +101,7 @@ pipeline {
                         export HELM_TILLER_LOGS=false
 			export NS=test-sample-${BUILD_NUMBER}
                         helm tiller start-ci $NS
-                        export TILLER_NAMESPACE=$N
+                        export TILLER_NAMESPACE=$NS
                         export HELM_HOST=:44134
                         kubectl create namespace $NS || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
