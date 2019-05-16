@@ -3,7 +3,13 @@
 
 clusterSize: 3
 
-cluster: storage-tier-cluster
+cluster: proxy-tier-cluster
+
+store:
+  cacheConfig: storage-cache-config.xml
+
+userArtifacts:
+  image: %%USER_ARTIFACTS_IMAGE%%
 
 imagePullSecrets: sample-coherence-secret
 

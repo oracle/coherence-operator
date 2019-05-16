@@ -26,13 +26,6 @@
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
-
-    <!-- test properties -->
-    <k8s.namespace></k8s.namespace>
-    <operator.helm.chart.package></operator.helm.chart.package>
-    <operator.helm.chart.name></operator.helm.chart.name>
-    <coherence.helm.chart.package></coherence.helm.chart.package>
-    <coherence.helm.chart.name></coherence.helm.chart.name>
   </properties>
 
   <dependencies>
@@ -60,7 +53,6 @@
     <dependency>
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime-k8s</artifactId>
-      <version>${bedrock.version}</version>
       <scope>test</scope>
     </dependency>
 

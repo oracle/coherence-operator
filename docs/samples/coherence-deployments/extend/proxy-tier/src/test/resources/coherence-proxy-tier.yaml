@@ -1,9 +1,17 @@
 # Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
 # Any changes in the helm install commands in README must be changed here
 
-clusterSize: 3
+clusterSize: 1
 
-cluster: storage-tier-cluster
+cluster: proxy-tier-cluster
+
+store:
+  cacheConfig: proxy-cache-config.xml
+  storageEnabled: false
+  wka: %%RELEASE_NAME%%-coherence-headless
+
+userArtifacts:
+  image: %%USER_ARTIFACTS_IMAGE%%
 
 imagePullSecrets: sample-coherence-secret
 

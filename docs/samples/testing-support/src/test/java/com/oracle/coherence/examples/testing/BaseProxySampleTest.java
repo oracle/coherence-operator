@@ -8,13 +8,19 @@ package com.oracle.coherence.examples.testing;
 
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.NamedCache;
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import java.net.URL;
+
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Base test class for Proxy samples.
@@ -24,6 +30,28 @@ import java.net.URL;
 public class BaseProxySampleTest
         extends BaseHelmChartTest
     {
+
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * No-args constructor.
+     */
+    public BaseProxySampleTest()
+        {
+        }
+
+    /**
+     * Constructor for Parameterized test
+     *
+     * @param sOperatorChartURL   Operator chart URL
+     * @param sCoherenceChartURL  Coherence chart URL
+     */
+    public BaseProxySampleTest(String sOperatorChartURL, String sCoherenceChartURL)
+        {
+        m_sOperatorChartURL  = sOperatorChartURL;
+        m_sCoherenceChartURL = sCoherenceChartURL;
+        System.err.println("Operator Chart:   " + m_sOperatorChartURL + "\nCoherence Chart: " + m_sCoherenceChartURL);
+        }
 
     // ----- test lifecycle -------------------------------------------------
     
@@ -90,7 +118,7 @@ public class BaseProxySampleTest
      *
      * @param sValuesFile  values file for additional chart values
      * @param urlOperator  URL of Coherence Operator to install
-     *                     
+     *
      * @return the release name
      *
      * @throws Exception
@@ -115,7 +143,43 @@ public class BaseProxySampleTest
         }
 
     // ----- helpers --------------------------------------------------------
-    
+
+    /**
+     * Test a given Proxy connection to a release.
+     *
+     * @param sRelease  release to connect to
+     *
+     * @throws Exception
+     */
+    protected void testProxyConnection(String sRelease) throws Exception
+        {
+        try (Application application = portForwardExtend(sRelease))
+            {
+            PortMapping              portMapping = application.get(PortMapping.class);
+            int                      nPort       = portMapping.getPort().getActualPort();
+            ConfigurableCacheFactory ccf         = getCacheFactory("client-cache-config.xml", nPort);
+
+            Eventually.assertThat(invoking(ccf).ensureCache("test", null), is(notNullValue()));
+
+            NamedCache nc = ccf.ensureCache("test", null);
+            nc.put("key-1", "value-1");
+            assertThat(nc.get("key-1"), is("value-1"));
+            ccf.dispose();
+            }
+        }
+    /**
+     * Indicates if a particular instance of a test should be run. The case
+     * where it does not run is when the OPERATOR_HELM_CHART_URL and
+     * COHERENCE_HELM_CHART_URL are both null.
+     *
+     * @return true if a test should be run
+     */
+    protected boolean testShouldRun()
+        {
+        return m_sCoherenceChartURL != null && m_sCoherenceChartURL.length() > 0 &&
+               m_sOperatorChartURL  != null && m_sOperatorChartURL.length() > 0;
+        }
+
     /**
      * Port forward to a Coherence pod.
      *
@@ -147,6 +211,19 @@ public class BaseProxySampleTest
 
         return new ExtensibleConfigurableCacheFactory(deps);
         }
+
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * Operator chart to run test with.
+     */
+    protected String m_sOperatorChartURL;
+
+    /**
+     * Coherence chart to run test with.
+     */
+    protected String m_sCoherenceChartURL;
 
     // ----- constants ------------------------------------------------------
 

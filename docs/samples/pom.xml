@@ -102,18 +102,21 @@
     <helm.tiller.host/>
     <!-- The k8s namespace that Tiller is running in -->
     <helm.tiller.namespace/>
-    <!-- the name of the Helm chart package containing the chart to test -->
-    <operator.helm.chart.package></operator.helm.chart.package>
     <!-- the name of the Operator Helm chart to test -->
     <operator.helm.chart.name>coherence-operator</operator.helm.chart.name>
-    <!-- the name of the Helm chart package containing the chart to test -->
-    <coherence.helm.chart.package></coherence.helm.chart.package>
     <!-- the name of the Coherence Helm chart to test -->
     <coherence.helm.chart.name>coherence</coherence.helm.chart.name>
+    <!-- the helm chart repository base to test-->
+    <k8s.coherence.chart.repo></k8s.coherence.chart.repo>
+    <!-- the helm chart versions to test -->
+    <k8s.chart.test.versions></k8s.chart.test.versions>
     <!-- the location of the Helm CLI (default to /usr/local/bin/helm) -->
     <bedrock.helm>/usr/local/bin/helm</bedrock.helm>
     <!-- the image pull policy for Coherence Operator -->
     <op.image.pull.policy/>
+
+    <release.image.prefix>${test.image.prefix}</release.image.prefix>
+    <docker.push.tag.prefix>${release.image.prefix}oracle/</docker.push.tag.prefix>
   </properties>
 
   <dependencyManagement>
@@ -375,6 +378,14 @@
                 <project.build.directory>${project.build.directory}</project.build.directory>
                 <docker.repo>${test.image.prefix}</docker.repo>
                 <test.image.prefix>${test.image.prefix}</test.image.prefix>
+                <http.proxyHost>${settings.proxies[0].host}</http.proxyHost>
+                <https.proxyHost>${settings.proxies[0].host}</https.proxyHost>
+                <http.proxyPort>${settings.proxies[0].port}</http.proxyPort>
+                <https.proxyPort>${settings.proxies[0].port}</https.proxyPort>
+                <http.nonProxyHosts>${settings.proxies[0].nonProxyHosts}</http.nonProxyHosts>
+                <docker.push.tag.prefix>${docker.push.tag.prefix}</docker.push.tag.prefix>
+                <project.artifactId>${project.artifactId}</project.artifactId>
+                <project.version>${project.version}</project.version>
               </systemProperties>
               <includes>
                 <include>/**/*IT.java</include>

@@ -52,8 +52,10 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +101,80 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- helper methods -------------------------------------------------
+
+       /**
+     * Return a new yaml file with the %%NAME%% tokens replaced.
+     *
+     * @param sValuesFile         values file to process
+     * @param sUserArtifactImage  user artifact image
+     * @param sReleaseName        release name
+     *
+     * @return a new file path
+     */
+    protected String getProcessedYamlFile(String sValuesFile, String sUserArtifactImage, String sReleaseName)
+        {
+        String sYamlFile = Resources.findFileOrResource(sValuesFile, null).getPath();
+
+        assertThat(sYamlFile, is(notNullValue()));
+
+        File fileTemp = null;
+        try
+            {
+            fileTemp            = File.createTempFile("processed",".yaml");
+            String sYamlContent = new String(Files.readAllBytes(Paths.get(sYamlFile)));
+            if (sReleaseName != null)
+                {
+                sYamlContent = sYamlContent.replaceAll(RELEASE_NAME_REGEX, sReleaseName);
+                }
+            if (sUserArtifactImage != null)
+                {
+                sYamlContent = sYamlContent.replaceAll(USER_ARTIFACTS_IMAGE_REGEX, sUserArtifactImage);
+                }
+            Files.write(Paths.get(fileTemp.getPath()), sYamlContent.getBytes());
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+
+        return fileTemp.getPath();
+        }
+
+    /**
+     * Build a {@link Collection} of operator and Coherence charts to test the samples with.<br/>
+     * Setting -Dk8s.chart.test.versions=0.9.3,0.9.4 would run the tests for the samples against
+     * the two versions.
+     *
+     * @return a {@link Collection} of operator and Coherence charts to test the samples with
+     */
+    protected static Collection buildTestParameters()
+        {
+        String   sCoherenceChartRepo = getCoherenceCharRepository();
+        String[] asChartTestVersions = getChartTestVersions();
+        Object[] aoDiskCharts        = new Object[] { OPERATOR_HELM_CHART_PACKAGE, COHERENCE_HELM_CHART_PACKAGE };
+
+        if (asChartTestVersions == null || asChartTestVersions.length == 0)
+            {
+            // only include the directory based packages
+            return Arrays.asList(new Object[][] { aoDiskCharts });
+            }
+        else
+            {
+            Object[] aoList = new Object[asChartTestVersions.length + 1];
+            // build list of charts to test
+            for (int i = 0; i < asChartTestVersions.length; i++)
+                {
+                aoList[i] = new Object[] {
+                        sCoherenceChartRepo + "/" + OPERATOR_HELM_CHART_NAME  + "-" + asChartTestVersions[i] + ".tgz",
+                        sCoherenceChartRepo + "/" + COHERENCE_HELM_CHART_NAME + "-" + asChartTestVersions[i] + ".tgz"
+                };
+                }
+            // add on the disk based sources, which could be null
+            aoList[asChartTestVersions.length] = aoDiskCharts;
+
+            return Arrays.asList(aoList);
+            }
+        }
 
     /**
      * Install the Helm chart.
@@ -1415,6 +1491,44 @@ public abstract class BaseHelmChartTest
         }
 
     /**
+     * Obtain the Coherence Chart Repository to use for the test.
+     *
+     * @return the Coherence Chart Repository to use for the test
+     */
+    protected static String getCoherenceCharRepository()
+        {
+        String sChartRepository = getPropertyOrNull("k8s.coherence.chart.repo");
+
+        if (sChartRepository == null)
+            {
+            sChartRepository = System.getenv("K8S_COHERENCE_CHART_REPO");
+            }
+        return sChartRepository == null || sChartRepository.trim().length() == 0 ?
+               DEFAULT_COHERENCE_CHART_REPO : sChartRepository.trim();
+        }
+
+    /**
+     * Obtain the chart versions to test. This is a comma delimited list of versions
+     *
+     * @return the chart versions to test
+     */
+    protected static String[] getChartTestVersions()
+        {
+        // chart versions to
+        String asChartTestVersions = getPropertyOrNull("k8s.chart.test.versions");
+        if (asChartTestVersions == null)
+            {
+            asChartTestVersions = System.getenv("K8S_CHART_TEST_VERSIONS");
+            }
+        if (asChartTestVersions == null)
+            {
+            return EMPTY_TEST_VERSIONS;
+            }
+        String[] sVersions = asChartTestVersions.split(",");
+        return sVersions == null || sVersions.length == 0 ? EMPTY_TEST_VERSIONS : sVersions;
+        }
+
+    /**
      * Obtain the namespaces for coherence.
      *
      * @return an array of target namespaces
@@ -2282,6 +2396,26 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Release name Regex.
+     */
+    protected final String RELEASE_NAME_REGEX = "%%RELEASE_NAME%%";
+
+    /**
+     * User artifacts Regex.
+     */
+    protected final String USER_ARTIFACTS_IMAGE_REGEX = "%%USER_ARTIFACTS_IMAGE%%";
+
+    /**
+     * Empty list of test versions.
+     */
+    private static final String[] EMPTY_TEST_VERSIONS = new String[0];
+
+    /**
+     * Default Coherence chart repository.
+     */
+    private static final String DEFAULT_COHERENCE_CHART_REPO = "https://oracle.github.io/coherence-operator/charts";
 
     /**
      * The default name for the Coherence Operator Helm chart to test.
