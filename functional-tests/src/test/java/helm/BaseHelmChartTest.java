@@ -50,6 +50,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import util.Kubernetes;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -1215,7 +1216,7 @@ public abstract class BaseHelmChartTest
         File   fileConfig  = sConfig == null ? null : new File(sConfig);
         File   fileKubectl = KUBECTL == null ? null : new File(KUBECTL);
 
-        return new K8sCluster()
+        return new Kubernetes()
                 .withKubectlAt(fileKubectl)
                 .withKubectlConfig(fileConfig)
                 .withKubectlContext(getPropertyOrNull("k8s.context"))
