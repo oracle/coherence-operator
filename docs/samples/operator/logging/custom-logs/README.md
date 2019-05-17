@@ -38,9 +38,15 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
    The above will build the Docker image with the cache and login configuration as well as compiled Java classes
    
-   > Note: If you are running against a remote Kubernetes cluster you will need to
-   > push the above image to your repository accessible to that cluster. You will also need to 
-   > prefix the image name in your `helm` command below.
+   > Note: If you are running against a remote Kubernetes cluster you
+   > will need to push the above image to your repository accessible to
+   > that cluster. You will also need to prefix the image name in your
+   > `helm` command below.
+   
+   > Look something that looks like the string `Successfully tagged
+   > custom-logger-sample:1.0.0-SNAPSHOT` 
+   
+   
 
 1. The result of the above is the docker image will be built with the cache configuration files
    and compiled Java classes with the name in the format custom-logger-sample:{version}.

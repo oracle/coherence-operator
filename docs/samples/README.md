@@ -111,6 +111,8 @@ run any of the samples.
   namespace/sample-coherence-ns created
   ```
 
+## Docker Images: Create an imagePullSecret
+
 * Enable Kubernetes to pull docker images from private docker
   repositories by creating a "secret"
 
@@ -130,6 +132,79 @@ run any of the samples.
   NAME                      TYPE                             DATA   AGE
   sample-coherence-secret   kubernetes.io/dockerconfigjson   1      18s
   ```
+
+### Using DockerHub For Your Images
+
+It is frequently convenient to pull docker images from one repository,
+modify, re-tag, and then push the images to repositories under your own
+control, such as repositories you can create on `hub.docker.com`.  Such
+repositories are public by default, but can also be private.
+
+#### Providing an imagePullSecret to Kubernetes for a repository on Docker Hub
+
+In this example, we pull the Coherence 12.2.1.3 docker image from the
+Docker Store, re-tag it, and push it to a freshly created docker
+repository within your Docker Hub account.  We then create an
+imagePullSecret to allow Kubernetes to pull that image.  This approach
+can also be used when pushing "sidecar images", as several samples
+require.
+
+1. Sign in to your accont on [Docker Hub](https://hub.docker.com/).
+   Upon login, you are taken to your list of repositories.  For
+   discussion, let's say your docker ID is `mydockerid`.
+
+1. Create a new repository by clicking the `Create Repository +` button.
+   This takes you to the `Create Repository` page.  You will see a
+   dropdown with `mydockerid` followed by a blank field where you are to
+   type the "Name".  Type `coherence` for the name.  Type "Re-tags of
+   Official Coherence Image" as the description.
+   
+1. Choose whether to make the repository public or private, then click
+   create.  This example assumes private, but either will work.
+   
+1. Click the `Create` button at the bottom of the page.  Note the value
+   of the "To push a new tag to this repository," box.  The value after
+   `docker push` will be `mydockerid/coherence:tagname`.  This whole
+   value is called the "docker tag"
+   
+1. Follow the steps in [the developer guide](/docs/developer/#how-to-build-the-operator-without-running-any-testssamples)
+   in the section "Obtain a Coherence 12.2.1.3.* Docker image and tag it
+   correctly", up to and including the `docker pull` command.
+   
+1. Re-tag the Coherence 12.2.1.3 docker image with your repository and tag name: 
+
+   `docker tag store/oracle/coherence:12.2.1.3 mydockerid/coherence:12.2.1.3`
+   
+1. At the command line, login to your docker hub account.
+
+   `docker login`
+   
+   Enter your docker userid and password as requested.
+   
+1. Push the re-tagged image to your docker repository.
+
+   `docker push mydockerid/coherence:12.2.1.3`
+   
+   Note the value of the `The push refers to repository` statement.  The
+   first part of that is necessary to create the secret for Kubernetes.
+   In this case, it should be something like `docker.io/mydockerid/coherence`.
+   
+1. Create the secret within your namespace.
+
+   ```
+   kubectl create secret docker-registry sample-coherence-secret \
+    --namespace sample-coherence-ns --docker-server=hub.docker.com \
+    --docker-username=docker.io/mydockerid --docker-password="your docker password" \
+    --docker-email="the email address of your docker account"
+   ```
+   
+When invoking `helm` you may specify one or more imagePullSecrets by
+enclosing them within a comma separated list inside the curly braces of
+a `--set imagePullSecrets` option.
+
+   ```
+   --set "imagePullSecrets{sample-coherence-secret}"
+   ```
 
 ## Clone the GitHub Repository
 
