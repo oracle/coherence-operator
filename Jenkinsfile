@@ -146,7 +146,7 @@ pipeline {
                         kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
                         kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
                         helm tiller stop || true
-			helm repo remove oracle
+			helm repo remove coherence
                     '''
                     deleteDir()
                 }
