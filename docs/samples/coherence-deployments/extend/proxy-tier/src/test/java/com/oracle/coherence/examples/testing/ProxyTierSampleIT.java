@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 
 import java.util.Collection;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,7 +61,7 @@ public class ProxyTierSampleIT
         return buildTestParameters();
         }
 
- /**
+    /**
      * Install the charts required for the test.
      *
      * @throws Exception
@@ -99,7 +98,7 @@ public class ProxyTierSampleIT
             }
         }
 
-        // ----- tests ----------------------------------------------------------
+    // ----- tests ----------------------------------------------------------
 
     /**
      * Test the proxy tier sample.
