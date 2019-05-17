@@ -86,14 +86,14 @@ public class ProxyTierSampleIT
             assertThat(sProcessedCoherenceYaml, is(notNullValue()));
 
             String sClusterRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedCoherenceYaml);
-            assertCoherence(s_k8sCluster, new String[] { sCohNamespace } , m_asReleases);
+            assertCoherence(s_k8sCluster, new String[] { sCohNamespace } , new String[] { sClusterRelease });
 
             // process yaml file for proxy tier
             String sProcessedProxyYaml = getProcessedYamlFile("coherence-proxy-tier.yaml", sTag, m_asReleases[0]);
             assertThat(sProcessedProxyYaml, is(notNullValue()));
 
             String sProxyRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedProxyYaml);
-            assertCoherence(s_k8sCluster, new String[] { sCohNamespace }, m_asReleases);
+            assertCoherence(s_k8sCluster, new String[] { sCohNamespace }, new String[] { sProxyRelease });
 
             m_asReleases = new String[] { sClusterRelease, sProxyRelease };
             }
