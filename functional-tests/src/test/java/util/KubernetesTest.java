@@ -9,6 +9,7 @@ package util;
 
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.runtime.Application;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -41,7 +42,7 @@ public class KubernetesTest
         }
 
     @Test
-    public void shouldNotRetryByDefault()
+    public void shouldRetryFiveTimesByDefault()
         {
         Kubernetes  kubernetes  = spy(new Kubernetes());
         Application application = mock(Application.class);
@@ -53,7 +54,7 @@ public class KubernetesTest
         int nExitCode = kubernetes.kubectlAndWait(options);
 
         assertThat(nExitCode, is(1));
-        verify(kubernetes, times(1)).kubectl(any());
+        verify(kubernetes, times(6)).kubectl(any());
         }
 
     @Test
@@ -77,7 +78,7 @@ public class KubernetesTest
         {
         Kubernetes  kubernetes  = spy(new Kubernetes());
         Application application = mock(Application.class);
-        Option[]    options     = new Option[]{MaxRetries.of(5)};
+        Option[]    options     = new Option[]{MaxRetries.of(3)};
 
         doReturn(application).when(kubernetes).kubectl(any());
         when(application.waitFor(any())).thenReturn(1);
@@ -85,7 +86,7 @@ public class KubernetesTest
         int nExitCode = kubernetes.kubectlAndWait(options);
 
         assertThat(nExitCode, is(1));
-        verify(kubernetes, times(6)).kubectl(any());
+        verify(kubernetes, times(4)).kubectl(any());
         }
 
     @Test
@@ -103,6 +104,4 @@ public class KubernetesTest
         assertThat(nExitCode, is(1));
         verify(kubernetes, times(1)).kubectl(any());
         }
-
-
     }

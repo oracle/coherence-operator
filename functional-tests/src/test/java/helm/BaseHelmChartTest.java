@@ -1217,6 +1217,7 @@ public abstract class BaseHelmChartTest
         File   fileKubectl = KUBECTL == null ? null : new File(KUBECTL);
 
         return new Kubernetes()
+                .logRetries(s_k8sTestName)
                 .withKubectlAt(fileKubectl)
                 .withKubectlConfig(fileConfig)
                 .withKubectlContext(getPropertyOrNull("k8s.context"))
@@ -2530,6 +2531,10 @@ public abstract class BaseHelmChartTest
     @ClassRule
     @Rule
     public static final TestLogs s_testLogs = new TestLogs();
+
+    @ClassRule
+    @Rule
+    public static final Kubernetes.TestName s_k8sTestName = new Kubernetes.TestName();
 
     /**
      * The Helm command template.
