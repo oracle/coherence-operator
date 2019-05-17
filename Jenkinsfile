@@ -102,6 +102,7 @@ pipeline {
                         export HELM_HOST=:44134
                         helm repo add coherence https://oracle.github.io/coherence-operator/charts
 		        helm repo update
+			kubectl config current-context
                         kubectl create namespace $NS || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
                            --namespace $NS \
