@@ -115,6 +115,9 @@
     <!-- the image pull policy for Coherence Operator -->
     <op.image.pull.policy/>
 
+    <coherence.image.prefix></coherence.image.prefix>
+    <!-- interim version until chart version is corectly pullable -->
+    <coherence.docker.version>12.2.1.3</coherence.docker.version>
     <release.image.prefix>${test.image.prefix}</release.image.prefix>
     <docker.push.tag.prefix>${release.image.prefix}oracle/</docker.push.tag.prefix>
   </properties>

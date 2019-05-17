@@ -20,4 +20,4 @@ prometheusoperator:
 
 # Temporary until 0.9.5 released
 coherence:
-  image: store/oracle/coherence:12.2.1.3
+  image: ${coherence.image.prefix}coherence:${coherence.docker.version}

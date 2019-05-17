@@ -128,9 +128,8 @@ public class BaseProxySampleTest
         {
         System.err.println("Deploying " + OPERATOR_HELM_CHART_NAME + " with " + sValuesFile);
 
-        String sNamespace   = getK8sNamespace();
-
-        String sRelease = installChart(s_k8sCluster,
+        String sNamespace = getK8sNamespace();
+        String sRelease   = installChart(s_k8sCluster,
                                           OPERATOR_HELM_CHART_NAME,
                                           urlOperator,
                                           sNamespace,

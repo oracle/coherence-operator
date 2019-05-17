@@ -26,7 +26,8 @@ pipeline {
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh '''
 		       cd docs/samples 
-		       mvn clean install
+		       # Specify temporary version until chart supplies correct one
+		       mvn clean install -Dcoherence.docker.version=12.2.1.3.1
 		   '''
                 }
             }
@@ -50,7 +51,7 @@ pipeline {
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd docs/samples 
-		        mvn -P docker,docker-v1,docker-v2 clean install
+		        mvn -Dcoherence.docker.version=12.2.1.3.1 -P docker,docker-v1,docker-v2 clean install
 		    '''
                 }
             }
@@ -102,7 +103,6 @@ pipeline {
                         export HELM_HOST=:44134
                         helm repo add coherence https://oracle.github.io/coherence-operator/charts
 		        helm repo update
-			kubectl config current-context
                         kubectl create namespace $NS || true
                         kubectl create secret docker-registry coherence-k8s-operator-development-secret \
                            --namespace $NS \
@@ -121,11 +121,13 @@ pipeline {
                         sh '''
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
+                            export NS=test-sample-${BUILD_NUMBER}
 		            cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
+				-Dcoherence.docker.version=12.2.1.3.1 \
                                 -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret \
                                 -Dk8s.create.namespace=false \
 				-Dk8s.chart.test.versions=0.9.4 \
