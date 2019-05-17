@@ -51,6 +51,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import util.Kubernetes;
+import util.MaxRetries;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -1093,7 +1094,7 @@ public abstract class BaseHelmChartTest
                     arguments = arguments.with(sContainer);
                     }
 
-                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console));
+                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console), MaxRetries.none());
 
                 if (nExitCode != 0)
                     {
