@@ -36,29 +36,22 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    mvn clean install -P docker
    ```
 
-   The above will build the Docker image with the cache and login configuration as well as compiled Java classes
+   The above will build the Docker image with the cache and logging
+   configuration as well as compiled Java classes.
    
    > Note: If you are running against a remote Kubernetes cluster you
    > will need to push the above image to your repository accessible to
    > that cluster. You will also need to prefix the image name in your
    > `helm` command below.
    
-   > Look something that looks like the string `Successfully tagged
-   > custom-logger-sample:1.0.0-SNAPSHOT` 
+   > In the build output, look for something that looks like `Successfully tagged
+   > custom-logger-sample:1.0.0-SNAPSHOT`.  Refer to the steps in [the top level README of the samples](../../../README.md#using-dockerhub-for-your-images).
+   > Create a repository within your DockerHub account called
+   > `custom-logger-samples`.  Retag your image as
    
+   > `docker tag custom-logger-sample:1.0.0-SNAPSHOT mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`
    
-
-1. The result of the above is the docker image will be built with the cache configuration files
-   and compiled Java classes with the name in the format custom-logger-sample:{version}.
-
-   For Example:
-
-   ```bash
-   custom-logger-sample:1.0.0-SNAPSHOT
-   ```
-
-   **Note:** If you are running against a remote Kubernetes cluster you will need to
-   push the above image to your repository accessible to that cluster.
+   > Then push it with `docker push mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`.
 
 1. Install the Coherence cluster
 
@@ -66,7 +59,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    
    * `--set logCaptureEnabled=true` - enable log catpure
    
-   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - custom image with config and classes
+   * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - custom image with config and classes.  If you are using a remote Kubernetes cluster, the value of this option must be the Docker image that can be pulled by the cluster.  For example, `mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`.
    
    * `--set store.logging.configFile=custom-logging.properties` - configure custom logger
    
@@ -104,7 +97,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    storage-coherence-2                   2/2     Running   0          1m
    ```
           
-1. Port forward the proxy port on the storage-coherence-0 pod.
+1. Port forward the Coherence proxy port on the storage-coherence-0 pod.
 
    ```bash
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
@@ -162,7 +155,8 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
    * After logging in, click on `Management`, `Index Patterns` the `Create index pattern`.
    
-   * Set the name to `cloud-*`. This show that this matches 1 index such as `cloud-2019.04.29`.
+   * Set the name to `cloud-*`. This will show that this matches 1 index
+     such as `cloud-2019.04.29`.
    
    * Click `Next Step` and select the `@timestamp` field and click on `Create index pattern`.
    
