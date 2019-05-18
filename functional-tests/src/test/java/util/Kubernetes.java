@@ -16,11 +16,13 @@ import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.ApplicationConsoleBuilder;
 
+import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.EventsApplicationConsole;
 import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 
+import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 
 import com.oracle.bedrock.util.Duration;
@@ -94,19 +96,21 @@ public class Kubernetes
     @Override
     public int kubectlAndWait(Timeout timeout, Option... options)
         {
-        OptionsByType             opts              = OptionsByType.of(options);
-        RetryFrequency            defaultFrequency  = RetryFrequency.fibonacci();
-        Iterator<Duration>        retryFrequency    = opts.getOrDefault(RetryFrequency.class, defaultFrequency)
-                                                          .get().iterator();
-        MaxRetries                defaultRetries    = MaxRetries.of(5);
-        int                       nMaxRetries       = opts.getOrDefault(MaxRetries.class, defaultRetries)
-                                                          .getMaxRetryCount();
-        ApplicationConsoleBuilder appConsoleBuilder = opts.getOrDefault(ApplicationConsoleBuilder.class,
-                                                                        SystemApplicationConsole.builder());
-        ConsoleBuilder            consoleBuilder    = new ConsoleBuilder(appConsoleBuilder);
+        OptionsByType               opts              = OptionsByType.of(options);
+        RetryFrequency              defaultFrequency  = RetryFrequency.fibonacci();
+        Iterator<Duration>          retryFrequency    = opts.getOrDefault(RetryFrequency.class, defaultFrequency)
+                                                            .get().iterator();
+        MaxRetries                  defaultRetries    = MaxRetries.of(5);
+        int                         nMaxRetries       = opts.getOrDefault(MaxRetries.class, defaultRetries)
+                                                            .getMaxRetryCount();
+        CapturingApplicationConsole console           = new CapturingApplicationConsole();
+        ApplicationConsoleBuilder   appConsoleBuilder = opts.getOrDefault(ApplicationConsoleBuilder.class,
+                                                                          SystemApplicationConsole.builder());
+
+
 
         opts.remove(ApplicationConsoleBuilder.class);
-        opts.add(consoleBuilder);
+        opts.add(MultiplexingApplicationConsole.builder(appConsoleBuilder, Console.of(console)));
 
         int nExitCode = super.kubectlAndWait(timeout, opts.asArray());
 
@@ -125,12 +129,10 @@ public class Kubernetes
                             .append("Test: ").append(m_testName.getName()).append("\n")
                             .append("Kubectl returned a non-zero exit code (").append(nExitCode).append(")\n");
 
-                    Console console = consoleBuilder.getConsole();
-                    if (console != null)
-                        {
-                        console.getLines()
-                               .forEach(sLine -> sMessage.append(sLine).append("\n"));
-                        }
+                    console.getCapturedOutputLines()
+                           .forEach(sLine -> sMessage.append(sLine).append("\n"));
+                    console.getCapturedErrorLines()
+                           .forEach(sLine -> sMessage.append(sLine).append("\n"));
 
                     Files.write(m_fileLog.toPath(),
                                 sMessage.toString().getBytes(),
@@ -192,109 +194,6 @@ public class Kubernetes
          *  The name of the current test
          */
         private String m_sName;
-        }
-
-    // ----- inner class: Console -------------------------------------------
-
-    /**
-     * A custom {@link ApplicationConsole} that both captures log lines and
-     * forwards them on to a wrapped {@link ApplicationConsole}.
-     */
-    public static class Console
-            extends EventsApplicationConsole
-        {
-        /**
-         * Create a {@link Console}.
-         *
-         * @param console  the wrapped {@link ApplicationConsole}
-         */
-        Console(ApplicationConsole console)
-            {
-            m_lines = new ConcurrentLinkedQueue<>();
-            withStdOutListener(new ConsoleListener(console.getOutputWriter()));
-            withStdErrListener(new ConsoleListener(console.getErrorWriter()));
-            withStdOutListener(m_lines::offer);
-            withStdErrListener(m_lines::offer);
-            }
-
-        /**
-         * Obtain the captured log lines.
-         *
-         * @return  the captured log lines
-         */
-        public ConcurrentLinkedQueue<String> getLines()
-            {
-            return m_lines;
-            }
-
-        /**
-         * The captured log lines.
-         */
-        private final ConcurrentLinkedQueue<String> m_lines;
-        }
-
-    // ----- inner class: Console -------------------------------------------
-
-    /**
-     * A custom {@link ApplicationConsoleBuilder} to build instances
-     * ot the custom {@link Console}.
-     */
-    public static class ConsoleBuilder
-            implements ApplicationConsoleBuilder
-        {
-        public ConsoleBuilder(ApplicationConsoleBuilder builder)
-            {
-            m_builder = builder;
-            }
-
-        public Console getConsole()
-            {
-            return m_console;
-            }
-
-        @Override
-        public ApplicationConsole build(String sName)
-            {
-            ApplicationConsole console = m_builder.build(sName);
-            m_console = new Console(console);
-
-            return m_console;
-            }
-
-        private final ApplicationConsoleBuilder m_builder;
-
-        private Console m_console;
-        }
-
-    // ----- inner class: ConsoleListener -------------------------------------------
-
-    /**
-     * A {@link EventsApplicationConsole.Listener} that forwards
-     * log loines to a {@link PrintWriter}.
-     */
-    public static class ConsoleListener
-            implements EventsApplicationConsole.Listener
-        {
-        /**
-         * Create a {@link ConsoleListener}.
-         *
-         * @param writer  the {@link PrintWriter} to forward log lines to
-         */
-        ConsoleListener(PrintWriter writer)
-            {
-            m_writer = writer;
-            }
-
-        @Override
-        public void onOutput(String sLogLine)
-            {
-            m_writer.println(sLogLine);
-            }
-
-        /**
-         * The {@link PrintWriter} to forward log lines to.
-         */
-        private final PrintWriter m_writer;
         }
 
     // ----- data members ---------------------------------------------------
