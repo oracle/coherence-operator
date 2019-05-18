@@ -17,12 +17,10 @@ import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.ApplicationConsoleBuilder;
 
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
-import com.oracle.bedrock.runtime.console.EventsApplicationConsole;
 import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 
-import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 
 import com.oracle.bedrock.util.Duration;
@@ -40,7 +38,6 @@ import java.nio.file.StandardOpenOption;
 
 import java.util.Iterator;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 
@@ -103,14 +100,13 @@ public class Kubernetes
         MaxRetries                  defaultRetries    = MaxRetries.of(5);
         int                         nMaxRetries       = opts.getOrDefault(MaxRetries.class, defaultRetries)
                                                             .getMaxRetryCount();
-        CapturingApplicationConsole console           = new CapturingApplicationConsole();
-        ApplicationConsoleBuilder   appConsoleBuilder = opts.getOrDefault(ApplicationConsoleBuilder.class,
+        ApplicationConsoleBuilder   builderOriginal   = opts.getOrDefault(ApplicationConsoleBuilder.class,
                                                                           SystemApplicationConsole.builder());
-
+        ConsoleBuilder              builder           = new ConsoleBuilder();
 
 
         opts.remove(ApplicationConsoleBuilder.class);
-        opts.add(MultiplexingApplicationConsole.builder(appConsoleBuilder, Console.of(console)));
+        opts.add(builder);
 
         int nExitCode = super.kubectlAndWait(timeout, opts.asArray());
 
@@ -129,10 +125,14 @@ public class Kubernetes
                             .append("Test: ").append(m_testName.getName()).append("\n")
                             .append("Kubectl returned a non-zero exit code (").append(nExitCode).append(")\n");
 
-                    console.getCapturedOutputLines()
-                           .forEach(sLine -> sMessage.append(sLine).append("\n"));
-                    console.getCapturedErrorLines()
-                           .forEach(sLine -> sMessage.append(sLine).append("\n"));
+                    CapturingApplicationConsole console = builder.getConsole();
+                    if (console != null)
+                        {
+                        console.getCapturedOutputLines()
+                                .forEach(sLine -> sMessage.append(sLine).append("\n"));
+                        console.getCapturedErrorLines()
+                                .forEach(sLine -> sMessage.append(sLine).append("\n"));
+                        }
 
                     Files.write(m_fileLog.toPath(),
                                 sMessage.toString().getBytes(),
@@ -159,12 +159,56 @@ public class Kubernetes
                 break;
                 }
 
+            CapturingApplicationConsole console = builder.getConsole();
+            if (console != null)
+                {
+                try(ApplicationConsole consoleOrignal = builderOriginal.build(builder.getName()))
+                    {
+                    PrintWriter out = consoleOrignal.getOutputWriter();
+                    PrintWriter err = consoleOrignal.getErrorWriter();
+                    console.getCapturedOutputLines().forEach(out::println);
+                    console.getCapturedErrorLines().forEach(err::println);
+                    }
+                }
+
             nExitCode = super.kubectlAndWait(timeout, options);
             }
 
         return nExitCode;
         }
 
+
+    // ----- inner class: ConsoleBuilder ------------------------------------
+
+    private class ConsoleBuilder
+            implements ApplicationConsoleBuilder
+        {
+        public ConsoleBuilder()
+            {
+            }
+
+        public String getName()
+            {
+            return m_sName;
+            }
+
+        public CapturingApplicationConsole getConsole()
+            {
+            return m_console;
+            }
+
+        @Override
+        public ApplicationConsole build(String s)
+            {
+            m_sName = s;
+            m_console = new CapturingApplicationConsole();
+            return m_console;
+            }
+
+        private CapturingApplicationConsole m_console;
+
+        private String m_sName;
+        }
 
     // ----- inner class: TestName ------------------------------------------
 
