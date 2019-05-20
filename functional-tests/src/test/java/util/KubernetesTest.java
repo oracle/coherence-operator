@@ -10,6 +10,7 @@ package util;
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.runtime.Application;
 
+import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -32,7 +33,7 @@ public class KubernetesTest
         {
         Kubernetes  kubernetes  = spy(new Kubernetes());
         Application application = mock(Application.class);
-        Option[]    options     = new Option[0];
+        Option[]    options     = new Option[]{SystemApplicationConsole.builder()};
 
         doReturn(application).when(kubernetes).kubectl(any());
         when(application.waitFor(any())).thenReturn(0);

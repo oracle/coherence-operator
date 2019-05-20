@@ -159,19 +159,20 @@ public class Kubernetes
                 break;
                 }
 
-            CapturingApplicationConsole console = builder.getConsole();
-            if (console != null)
-                {
-                try(ApplicationConsole consoleOrignal = builderOriginal.build(builder.getName()))
-                    {
-                    PrintWriter out = consoleOrignal.getOutputWriter();
-                    PrintWriter err = consoleOrignal.getErrorWriter();
-                    console.getCapturedOutputLines().forEach(out::println);
-                    console.getCapturedErrorLines().forEach(err::println);
-                    }
-                }
-
             nExitCode = super.kubectlAndWait(timeout, options);
+            }
+
+        // Send the captured output to the actual console that was specified in the options.
+        CapturingApplicationConsole console = builder.getConsole();
+        if (console != null)
+            {
+            try(ApplicationConsole consoleOriginal = builderOriginal.build(builder.getName()))
+                {
+                PrintWriter out = consoleOriginal.getOutputWriter();
+                PrintWriter err = consoleOriginal.getErrorWriter();
+                console.getCapturedOutputLines().forEach(out::println);
+                console.getCapturedErrorLines().forEach(err::println);
+                }
             }
 
         return nExitCode;
