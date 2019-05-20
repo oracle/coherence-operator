@@ -15,7 +15,7 @@ import com.oracle.bedrock.OptionsByType;
  * <p>
  * The default value for this option is zero (no retry attempts).
  *
- * @author jk  2019.05.16
+ * @author jk
  */
 public class MaxRetries
         implements Option

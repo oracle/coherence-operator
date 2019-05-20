@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * of failed kubectl commands when calling the {@link #kubectlAndWait(Option...)}
  * or {@link #kubectlAndWait(Timeout, Option...)} methods.
  *
- * @author jk  2019.05.16
+ * @author jk
  */
 public class Kubernetes
         extends K8sCluster<Kubernetes>

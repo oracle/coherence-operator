@@ -1332,6 +1332,7 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "namespace");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
+                                                                       MaxRetries.none(),
                                                                        LaunchLogging.disabled());
 
         if (nExitCode == 0)
@@ -1357,6 +1358,7 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "crd");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
+                                                                       MaxRetries.none(),
                                                                        LaunchLogging.enabled());
         if (nExitCode == 0)
             {

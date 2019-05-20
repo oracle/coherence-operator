@@ -163,6 +163,7 @@ pipeline {
                                 -P pushTestImage -P helm-test clean install
                         '''
                     }
+                    archiveArtifacts '**/target/test-output/**/*'
                 }
             }
             post {

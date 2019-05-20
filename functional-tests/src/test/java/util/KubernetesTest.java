@@ -9,12 +9,14 @@ package util;
 
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.runtime.Application;
-import org.junit.Rule;
+
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
