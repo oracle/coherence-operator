@@ -6,19 +6,27 @@
 
 package com.oracle.coherence.examples.testing;
 
+import com.oracle.bedrock.deferred.options.InitialDelay;
+import com.oracle.bedrock.options.Timeout;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.coherence.examples.testing.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Test the proxy-tier-sample.
+ * Test the interceptor-sample.
  *
  * Any changes to the arguments of the helm install commands in the README.md, should be
  * also made to the corresponding yaml files in test/resources.
@@ -26,8 +34,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author tam  2019.05.14
  */
 @RunWith(Parameterized.class)
-public class ProxyTierSampleIT
-        extends BaseSampleTest
+public class InterceptorSampleIT
+      extends BaseSampleTest
     {
     // ----- constructor ----------------------------------------------------
 
@@ -37,11 +45,11 @@ public class ProxyTierSampleIT
      * @param sOperatorChartURL   Operator chart URL
      * @param sCoherenceChartURL  Coherence chart URL
      */
-    public ProxyTierSampleIT(String sOperatorChartURL, String sCoherenceChartURL)
+    public InterceptorSampleIT(String sOperatorChartURL, String sCoherenceChartURL)
         {
         super(sOperatorChartURL, sCoherenceChartURL);
         }
-    
+
     // ----- test lifecycle -------------------------------------------------
 
     @Parameterized.Parameters
@@ -76,14 +84,14 @@ public class ProxyTierSampleIT
             String sClusterRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedCoherenceYaml);
             assertCoherence(s_k8sCluster, sCohNamespace, sClusterRelease);
 
-            // process yaml file for proxy tier
-            String sProcessedProxyYaml = getProcessedYamlFile("coherence-proxy-tier.yaml", sTag, sClusterRelease);
+            // process yaml file for storage-disabled client tier
+            String sProcessedProxyYaml = getProcessedYamlFile("coherence-client-tier.yaml", sTag, sClusterRelease);
             assertThat(sProcessedProxyYaml, is(notNullValue()));
 
-            String sProxyRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedProxyYaml);
-            assertCoherence(s_k8sCluster,sCohNamespace, sProxyRelease);
+            String sClientTierRelease = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), sCohNamespace, sProcessedProxyYaml);
+            assertCoherence(s_k8sCluster,sCohNamespace, sClientTierRelease);
 
-            m_asReleases = new String[] { sClusterRelease, sProxyRelease };
+            m_asReleases = new String[] { sClusterRelease, sClientTierRelease };
             }
         }
 
@@ -99,8 +107,19 @@ public class ProxyTierSampleIT
         {
         if (testShouldRun())
             {
-            // connect to proxy tier - m_asReleases[1]
-            testProxyConnection(m_asReleases[1]);
+            // retrieve the client tier release pod
+            String sNamespace         = getTargetNamespaces()[0];
+            String sCoherenceSelector = getCoherencePodSelector(m_asReleases[1]);
+            List<String> listPods     = getPods(s_k8sCluster, getTargetNamespaces()[0], sCoherenceSelector);
+
+            assertThat(listPods.size(), is(1));
+            String sCoherencePod = listPods.get(0);
+
+            // wait for the following message to appear, which indicates the interceptor is running
+            // Inserted key=40, value=08:33:43
+            Eventually.assertThat(invoking(this).hasLogMessageAppeared(s_k8sCluster, sNamespace, sCoherencePod, "Inserted key"),
+                    is(true), Timeout.after(120, TimeUnit.SECONDS), InitialDelay.of(3, TimeUnit.SECONDS));
+
             }
         }
     }

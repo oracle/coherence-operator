@@ -16,6 +16,11 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Storage-disabled client (as {@link EventInterceptor}) to insert data into cluster.
+ *
+ * @author tam 2019.05.21
+ */
 public class DemoInterceptor implements EventInterceptor<LifecycleEvent>
 {
     @Override

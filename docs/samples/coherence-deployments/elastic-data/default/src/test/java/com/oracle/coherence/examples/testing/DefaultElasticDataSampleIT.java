@@ -14,15 +14,15 @@ import org.junit.runners.Parameterized;
 import java.util.Collection;
 
 /**
- * Test the default-proxy-sample.
+ * Test the elastic-data-sample-default.
  *
  * Any changes to the arguments of the helm install commands in the README.md, should be
  * also made to the corresponding yaml files in test/resources.
  *
- * @author tam  2019.05.14
+ * @author tam  2019.05.21
  */
 @RunWith(Parameterized.class)
-public class DefaultProxySampleIT
+public class DefaultElasticDataSampleIT
         extends BaseSampleTest
     {
     // ----- constructor ----------------------------------------------------
@@ -33,7 +33,7 @@ public class DefaultProxySampleIT
      * @param sOperatorChartURL   Operator chart URL
      * @param sCoherenceChartURL  Coherence chart URL
      */
-    public DefaultProxySampleIT(String sOperatorChartURL, String sCoherenceChartURL)
+    public DefaultElasticDataSampleIT(String sOperatorChartURL, String sCoherenceChartURL)
         {
         super(sOperatorChartURL, sCoherenceChartURL);
         }
@@ -45,10 +45,10 @@ public class DefaultProxySampleIT
         {
         return buildTestParameters();
         }
-    
+
     /**
      * Install the charts required for the test.
-     * 
+     *
      * @throws Exception
      */
     @Before
@@ -56,32 +56,25 @@ public class DefaultProxySampleIT
         {
         if (testShouldRun())
             {
-            // install Coherence Operator chart
-            s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(m_sOperatorChartURL));
-
-            // install Coherence chart
-            String[] asCohNamespaces = getTargetNamespaces();
-
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces,"coherence.yaml");
-
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+            installChartsSingleTier(m_sOperatorChartURL, m_sCoherenceChartURL);
             }
         }
 
     // ----- tests ----------------------------------------------------------
 
-    /**
-     * Test the default proxy sample.
-     * 
+        /**
+     * Test the proxy tier sample.
+     *
      * @throws Exception
      */
     @Test
-    public void testDefaultProxySample() throws Exception
+    public void testMultipleProxiesSample() throws Exception
         {
         if (testShouldRun())
             {
-            // test proxy connection to coherence pod
-            testProxyConnection(m_asReleases[0]);
+            // connect to proxy tier - m_asReleases[1] and test both proxy ports
+            testProxyConnection(m_asReleases[0], 20000, "flash-01");
             }
         }
     }
+

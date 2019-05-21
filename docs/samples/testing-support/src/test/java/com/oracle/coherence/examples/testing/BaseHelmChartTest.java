@@ -1,10 +1,10 @@
-package com.oracle.coherence.examples.testing;
-
 /*
  * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
+
+package com.oracle.coherence.examples.testing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
@@ -813,6 +813,29 @@ public abstract class BaseHelmChartTest
             {
             Queue<String> sLogs = getPodLog(cluster, sNamespace, sPod);
             return sLogs.stream().anyMatch(l -> l.contains("Started DefaultCacheServer"));
+            }
+        catch (Exception ex)
+            {
+            return false;
+            }
+        }
+
+    /**
+     * Determine whether the correct messages are displayed in the log.
+     *
+     * param cluster      the k8s cluster
+     * @param sNamespace  the namespace of coherence
+     * @param sPod        the pod name of coherence
+     *
+     * @return  {@code true} if the Logstash is ready
+     */
+    // must be public - used in Eventually.assertThat call.
+    public boolean hasLogMessageAppeared(K8sCluster cluster, String sNamespace, String sPod, String sMessage)
+        {
+        try
+            {
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sPod);
+            return sLogs.stream().anyMatch(l -> l.contains(sMessage));
             }
         catch (Exception ex)
             {

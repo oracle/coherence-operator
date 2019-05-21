@@ -23,11 +23,11 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Base test class for Proxy samples.
+ * Base test class for samples.
  *
  * @author  tam 2019.05.14
  */
-public class BaseProxySampleTest
+public class BaseSampleTest
         extends BaseHelmChartTest
     {
 
@@ -36,7 +36,7 @@ public class BaseProxySampleTest
     /**
      * No-args constructor.
      */
-    public BaseProxySampleTest()
+    public BaseSampleTest()
         {
         }
 
@@ -46,7 +46,7 @@ public class BaseProxySampleTest
      * @param sOperatorChartURL   Operator chart URL
      * @param sCoherenceChartURL  Coherence chart URL
      */
-    public BaseProxySampleTest(String sOperatorChartURL, String sCoherenceChartURL)
+    public BaseSampleTest(String sOperatorChartURL, String sCoherenceChartURL)
         {
         m_sOperatorChartURL  = sOperatorChartURL;
         m_sCoherenceChartURL = sCoherenceChartURL;
@@ -144,7 +144,31 @@ public class BaseProxySampleTest
     // ----- helpers --------------------------------------------------------
 
     /**
-     * Test a given Proxy connection to a release.
+     * Install operator and Coherence charts for a single tier install.
+     */
+    protected void installChartsSingleTier(String sOperatorChartURL, String sCoherenceChartURL) throws Exception
+        {
+        // install Coherence Operator chart
+        s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(sOperatorChartURL));
+
+        // install Coherence chart
+        String sCohNamespace = getTargetNamespaces()[0];
+
+        String sTag = System.getProperty("docker.push.tag.prefix") + System.getProperty("project.artifactId") + ":" +
+                      System.getProperty("project.version");
+
+        // process yaml file to replace user artifacts image
+        String sProcessedCoherenceYaml = getProcessedYamlFile("coherence.yaml", sTag, null);
+        assertThat(sProcessedCoherenceYaml, is(notNullValue()));
+
+        String sClusterRelease = installCoherence(s_k8sCluster, toURL(sCoherenceChartURL), sCohNamespace, sProcessedCoherenceYaml);
+        assertCoherence(s_k8sCluster, sCohNamespace, sClusterRelease);
+
+        m_asReleases = new String[] { sClusterRelease };
+    }
+
+    /**
+     * Test a given Proxy connection to a release and default port and cache name.
      *
      * @param sRelease  release to connect to
      *
@@ -152,15 +176,41 @@ public class BaseProxySampleTest
      */
     protected void testProxyConnection(String sRelease) throws Exception
         {
-        try (Application application = portForwardExtend(sRelease))
+        testProxyConnection(sRelease, 20000, "test");
+        }
+
+    /**
+     * Test a given Proxy connection to a release, default cache name and a port.
+     *
+     * @param sRelease  release to connect to
+     *
+     * @throws Exception
+     */
+    protected void testProxyConnection(String sRelease, int nPort) throws Exception
+        {
+        testProxyConnection(sRelease, nPort, "test");
+        }
+    
+    /**
+     * Test a given Proxy connection to a release and specific port.
+     *
+     * @param sRelease  release to connect to
+     * @param nPort     port to connect to
+     * @param sCache    cache to create
+     *
+     * @throws Exception
+     */
+    protected void testProxyConnection(String sRelease, int nPort, String sCache) throws Exception
+        {
+        try (Application application = portForwardExtend(sRelease, nPort))
             {
             PortMapping              portMapping = application.get(PortMapping.class);
-            int                      nPort       = portMapping.getPort().getActualPort();
-            ConfigurableCacheFactory ccf         = getCacheFactory("client-cache-config.xml", nPort);
+            int                      nActualPort = portMapping.getPort().getActualPort();
+            ConfigurableCacheFactory ccf         = getCacheFactory("client-cache-config.xml", nActualPort);
 
-            Eventually.assertThat(invoking(ccf).ensureCache("test", null), is(notNullValue()));
+            Eventually.assertThat(invoking(ccf).ensureCache(sCache, null), is(notNullValue()));
 
-            NamedCache nc = ccf.ensureCache("test", null);
+            NamedCache nc = ccf.ensureCache(sCache, null);
             nc.put("key-1", "value-1");
             assertThat(nc.get("key-1"), is("value-1"));
             ccf.dispose();
@@ -180,16 +230,30 @@ public class BaseProxySampleTest
         }
 
     /**
-     * Port forward to a Coherence pod.
+     * Port forward to a Coherence pod on the default extend port.
      *
      * @param sCoherenceRelease release name
      *                          
-     * @return
+     * @return the {@link Application} to use
      * @throws Exception
      */
     protected Application portForwardExtend(String sCoherenceRelease) throws Exception
         {
         return portForwardCoherencePod(s_k8sCluster, getK8sNamespace(), sCoherenceRelease, 20000);
+        }
+
+    /**
+     * Port forward to a Coherence pod on a specific port.
+     *
+     * @param sCoherenceRelease release name
+     * @param nPort             port
+     *
+     * @return the {@link Application} to use
+     * @throws Exception
+     */
+    protected Application portForwardExtend(String sCoherenceRelease, int nPort) throws Exception
+        {
+        return portForwardCoherencePod(s_k8sCluster, getK8sNamespace(), sCoherenceRelease, nPort);
         }
 
     /**

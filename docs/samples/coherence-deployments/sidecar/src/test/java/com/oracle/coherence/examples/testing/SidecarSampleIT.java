@@ -6,6 +6,10 @@
 
 package com.oracle.coherence.examples.testing;
 
+import com.oracle.bedrock.runtime.Application;
+
+import com.oracle.coherence.examples.SampleClient;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +18,7 @@ import org.junit.runners.Parameterized;
 import java.util.Collection;
 
 /**
- * Test the default-proxy-sample.
+ * Test the sidecar-sample.
  *
  * Any changes to the arguments of the helm install commands in the README.md, should be
  * also made to the corresponding yaml files in test/resources.
@@ -22,10 +26,10 @@ import java.util.Collection;
  * @author tam  2019.05.14
  */
 @RunWith(Parameterized.class)
-public class DefaultProxySampleIT
-        extends BaseSampleTest
+public class SidecarSampleIT
+    extends BaseSampleTest
     {
-    // ----- constructor ----------------------------------------------------
+     // ----- constructor ----------------------------------------------------
 
     /**
      * Constructor for Parameterized test
@@ -33,7 +37,7 @@ public class DefaultProxySampleIT
      * @param sOperatorChartURL   Operator chart URL
      * @param sCoherenceChartURL  Coherence chart URL
      */
-    public DefaultProxySampleIT(String sOperatorChartURL, String sCoherenceChartURL)
+    public SidecarSampleIT(String sOperatorChartURL, String sCoherenceChartURL)
         {
         super(sOperatorChartURL, sCoherenceChartURL);
         }
@@ -45,10 +49,10 @@ public class DefaultProxySampleIT
         {
         return buildTestParameters();
         }
-    
+
     /**
      * Install the charts required for the test.
-     * 
+     *
      * @throws Exception
      */
     @Before
@@ -56,32 +60,37 @@ public class DefaultProxySampleIT
         {
         if (testShouldRun())
             {
-            // install Coherence Operator chart
-            s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(m_sOperatorChartURL));
-
-            // install Coherence chart
-            String[] asCohNamespaces = getTargetNamespaces();
-
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces,"coherence.yaml");
-
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+            installChartsSingleTier(m_sOperatorChartURL, m_sCoherenceChartURL);
             }
         }
 
     // ----- tests ----------------------------------------------------------
 
-    /**
-     * Test the default proxy sample.
-     * 
-     * @throws Exception
-     */
     @Test
-    public void testDefaultProxySample() throws Exception
+    public void testSidecarSample()
         {
         if (testShouldRun())
             {
-            // test proxy connection to coherence pod
-            testProxyConnection(m_asReleases[0]);
+            try (Application application = portForwardExtend(m_asReleases[0], 20000))
+                {
+                PortMapping portMapping = application.get(PortMapping.class);
+                int         nActualPort = portMapping.getPort().getActualPort();
+
+                System.err.println("Started: " + application.getName());
+
+                System.setProperty("proxy.address", "127.0.0.1");
+                System.setProperty("proxy.port", Integer.toString(nActualPort));
+                System.setProperty("coherence.pof.config", "conf/storage-pof-config.xml");
+                System.setProperty("coherence.cacheconfig", "client-cache-config.xml");
+                System.setProperty("coherence.tcmpenabled", "false");
+                System.setProperty("coherence.distributed.localstorage", "false");
+                
+                SampleClient.main();
+                }
+            catch (Exception e)
+                {
+                e.printStackTrace();
+                }
             }
         }
     }
