@@ -317,9 +317,22 @@ public abstract class BaseHelmChartTest
 
         if (nExitCode != 0)
             {
-            HelmUtils.logConsoleOutput("helm-install", consoleInstall);
+            System.err.println("Helm dry-run install of \"%s\" failed with non-zero exit code."
+                    + " Helm dry-run install will be retried.");
+
+            for (int i = 0 ; i < Integer.parseInt(HELM_INSTALL_MAX_RETRY); i++)
+                {
+                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+
+                if (nExitCode == 0)
+                    {
+                    System.err.println(String.format("Helm dry-run install successful with retry attempt: %d", i + 1));
+                    break;
+                    }
+                }
             }
 
+        HelmUtils.logConsoleOutput("helm-install", consoleInstall);
         String reason = "Install dry-run failed for helm chart " + sHelmChartName + " namespace " + sNamespace;
         assertThat(reason, nExitCode, is(0));
 
@@ -371,7 +384,40 @@ public abstract class BaseHelmChartTest
                                     .timeout(HELM_TIMEOUT)
                                     .name(sRelease);
 
-        return install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
+        int nExitCode = install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
+
+        if (nExitCode != 0)
+            {
+            System.err.println(String.format("Helm install of \"%s\" failed with non-zero exit code."
+                               + "Helm install of \"%s\" will be retried.", sRelease, sRelease));
+
+            for (int i = 0 ; i < Integer.parseInt(HELM_INSTALL_MAX_RETRY); i++)
+                {
+                try
+                    {
+                    System.err.println("Clean up resources before retrying install of release: '" + sRelease);
+                    cleanupHelmReleases(sRelease);
+                    cleanupPersistentVolumeClaims(getDefaultCluster(), sRelease, sNamespace);
+                    System.err.println(String.format("Finish cleaning existing release \"%s\" before retry attempt: %d",
+                            sRelease, i + 1));
+                    }
+                catch (Throwable t)
+                    {
+                    System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+                    }
+
+                nExitCode = install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
+
+                if (nExitCode == 0)
+                    {
+                    System.err.println(String.format("Helm install of \"%s\" successful with retry attempt: %d",
+                            sRelease, i + 1));
+                    break;
+                    }
+                }
+            }
+
+        return nExitCode;
         }
 
     /**
@@ -384,7 +430,7 @@ public abstract class BaseHelmChartTest
      *
      * @throws Exception if an error occurs during install
      */
-    protected static int install(HelmInstall install, String sNamespace, ApplicationConsoleBuilder console, URL... aURLValues) throws Exception
+    private static int install(HelmInstall install, String sNamespace, ApplicationConsoleBuilder console, URL... aURLValues) throws Exception
         {
         if (aURLValues != null && aURLValues.length > 0)
             {
@@ -2289,6 +2335,11 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The property for helm install max retry attempt. Default to 3.
+     */
+    public static final String HELM_INSTALL_MAX_RETRY = System.getProperty("helm.install.maxRetry", "3");
 
     /**
      * The default name for the Coherence Operator Helm chart to test.
