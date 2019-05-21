@@ -317,8 +317,7 @@ public abstract class BaseHelmChartTest
 
         if (nExitCode != 0)
             {
-            System.err.println("Helm dry-run install of \"%s\" failed with non-zero exit code."
-                    + " Helm dry-run install will be retried.");
+            System.err.println("Helm dry-run install failed with non-zero exit code. Helm dry-run install will be retried.");
 
             for (int i = 0 ; i < Integer.parseInt(HELM_INSTALL_MAX_RETRY); i++)
                 {
