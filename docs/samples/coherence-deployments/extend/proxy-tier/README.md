@@ -97,7 +97,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
      --set clusterSize=1 \
      --set store.storageEnabled=false \
      --set store.wka=storage-coherence-headless \
-     --set prometheusoperator.enabled=true \
+     --set prometheusoperator.enabled=false \
      --name proxy-tier \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=proxy-cache-config.xml \
