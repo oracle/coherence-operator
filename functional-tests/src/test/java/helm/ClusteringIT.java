@@ -297,7 +297,7 @@ public class ClusteringIT
             }
 
         // delete the service first to make sure that it does not exist
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sServiceName));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sServiceName, "--ignore-not-found=true"));
 
         // create the service
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "-f", file.getCanonicalPath()));

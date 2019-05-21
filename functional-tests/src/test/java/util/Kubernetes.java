@@ -21,6 +21,8 @@ import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
 
+import com.oracle.bedrock.runtime.options.Argument;
+import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 
 import com.oracle.bedrock.util.Duration;
@@ -39,6 +41,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -103,7 +106,10 @@ public class Kubernetes
         ApplicationConsoleBuilder   builderOriginal   = opts.getOrDefault(ApplicationConsoleBuilder.class,
                                                                           SystemApplicationConsole.builder());
         ConsoleBuilder              builder           = new ConsoleBuilder();
-
+        Arguments                   args              = opts.getOrDefault(Arguments.class, Arguments.empty());
+        String                      sArgLine          = args.stream()
+                                                            .map(Argument::toString)
+                                                            .collect(Collectors.joining(" "));
 
         opts.remove(ApplicationConsoleBuilder.class);
         opts.add(builder);
@@ -123,6 +129,7 @@ public class Kubernetes
 
                     sMessage.append("------------------------------------------------------------------------\n")
                             .append("Test: ").append(m_testName.getName()).append("\n")
+                            .append("kubectl ").append(sArgLine).append("\n")
                             .append("Kubectl returned a non-zero exit code (").append(nExitCode).append(")\n");
 
                     CapturingApplicationConsole console = builder.getConsole();
