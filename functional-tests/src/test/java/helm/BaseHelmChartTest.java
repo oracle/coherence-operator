@@ -482,7 +482,7 @@ public abstract class BaseHelmChartTest
             CapturingApplicationConsole consoleContainers = new CapturingApplicationConsole();
             int                         nExitCode;
 
-            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "--all-namespaces=true", "--selector", "release=" + sRelease,  "-o", "name"),
+            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "-n", sNamespace, "--selector", "release=" + sRelease,  "-o", "name"),
                                                Console.of(consolePods),
                                                LaunchLogging.disabled());
 
@@ -501,7 +501,7 @@ public abstract class BaseHelmChartTest
                     continue;
                     }
 
-                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "--all-namespaces=true", "-o", "jsonpath={.spec.containers[*].name}"),
+                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "-n", sNamespace, "-o", "jsonpath={.spec.containers[*].name}"),
                                                    Console.of(consoleContainers),
                                                    LaunchLogging.disabled());
 
