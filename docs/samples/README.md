@@ -222,26 +222,12 @@ $ git checkout gh-pages
 $ cd docs/samples
 ```
 
-<<<<<<< HEAD
-1. Inspect the [samples top level pom.xml](pom.xml) to see if you must
-   override the specified `coherence.version` property so that its value
-   matches the version you are actaully using: E.g. if you have
-   Coherence 12.2.1.3.2, but the `pom.xml` has:
-
-   ```xml
-    <coherence.version>12.2.1-3-0</coherence.version>
-   ```
-
-   Then you must provide `-Dcoherence.version=12.2.1-3-2` to every
-   invocation of `mvn`.
-=======
 1. Inspect the [samples top level pom.xml](pom.xml) and verify that the
    value of the `coherence.version` property matches the version of
    Coherence you are actaully using. For example if you have Coherence
    12.2.1.3.0 then the value of `coherence.version` must be
    `12.2.1-3-0`.  If this value needs ajustment, use the
    `-Dcoherence.version=` argument to all invocations of `mvn`.
->>>>>>> #126 Address comments from Manfred and Tim.
 
 Issue the following to ensure all the projects with source code build ok. 
 
@@ -255,8 +241,9 @@ $ mvn clean install
 
 ## Install the Coherence Operator
 
-Before you attempt any of the samples below, you should install the `coherence-operator` chart.  
-This can be done once and can keep running for all the samples.
+Before you attempt any of the samples below, you should install the
+`coherence-operator` chart.This can be done once and can keep running
+for all the samples.
 
 When you install the `coherence-operator` you can optionally enable the following:
 
