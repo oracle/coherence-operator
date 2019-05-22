@@ -393,7 +393,7 @@ public abstract class BaseHelmChartTest
 
         int nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
 
-        if (nExitCode < 0)
+        if (nExitCode != 0)
             {
             int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
             for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
