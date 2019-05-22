@@ -122,7 +122,7 @@ public class CustomMetricsSampleIT
      * @throws Exception
      */
     @Test
-    public void testProxyTierSample() throws Exception
+    public void testCustomMetricsSample() throws Exception
         {
         if (testShouldRun())
             {

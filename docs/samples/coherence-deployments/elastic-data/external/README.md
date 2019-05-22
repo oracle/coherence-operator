@@ -68,7 +68,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --namespace sample-coherence-ns \
       --name storage \
       --set store.javaOpts="-Dcoherence.flashjournal.dir=/elastic-data" \
-      --set clusterSize=3 \
+      --set clusterSize=1 \
       --set cluster=elastic-data-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=elastic-data-cache-config.xml \

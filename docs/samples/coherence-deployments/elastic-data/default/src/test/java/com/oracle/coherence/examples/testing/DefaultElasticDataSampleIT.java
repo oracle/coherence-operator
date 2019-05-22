@@ -68,11 +68,11 @@ public class DefaultElasticDataSampleIT
      * @throws Exception
      */
     @Test
-    public void testMultipleProxiesSample() throws Exception
+    public void testDefaultElasticDataSample() throws Exception
         {
         if (testShouldRun())
             {
-            // connect to proxy tier - m_asReleases[1] and test both proxy ports
+            // connect to proxy tier - m_asReleases[1]
             testProxyConnection(m_asReleases[0], 20000, "flash-01");
             }
         }

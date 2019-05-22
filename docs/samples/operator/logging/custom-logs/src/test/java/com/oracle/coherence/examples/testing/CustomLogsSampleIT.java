@@ -118,7 +118,7 @@ public class CustomLogsSampleIT
      * @throws Exception
      */
     @Test
-    public void testDefaultProxySample() throws Exception
+    public void testCustomLogsSample() throws Exception
         {
         if (testShouldRun())
             {
@@ -231,7 +231,14 @@ public class CustomLogsSampleIT
 
     // ----- constants ------------------------------------------------------
 
+    /**
+     * Kibana pod.
+     */
     private static String s_sKibanaPod;
+
+    /**
+     * Elastic search pod.
+     */
     private static String s_sElasticsearchPod;
 
     /**

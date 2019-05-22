@@ -68,7 +68,7 @@ public class SSLProxySample12213IT
      * @throws Exception
      */
     @Test
-    public void testMultipleProxiesSample() throws Exception
+    public void testSSLProxySample12213() throws Exception
         {
         if (testShouldRun())
             {
