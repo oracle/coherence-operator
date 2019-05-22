@@ -152,7 +152,7 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
-                <id>docker</id>
+                <id>docker-v1-build</id>
                 <phase>package</phase>
                 <goals>
                   <goal>single</goal>
@@ -172,7 +172,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>build-utils-docker-image</id>
+                <id>build-utils-docker-image-v1</id>
                 <phase>package</phase>
                 <configuration>
                   <executable>docker</executable>
@@ -213,7 +213,7 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
-                <id>docker</id>
+                <id>docker-v2-build</id>
                 <phase>package</phase>
                 <goals>
                   <goal>single</goal>
@@ -233,7 +233,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>build-utils-docker-image</id>
+                <id>build-utils-docker-image-v2</id>
                 <phase>package</phase>
                 <configuration>
                   <executable>docker</executable>
