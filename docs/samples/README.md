@@ -71,7 +71,9 @@ Ensure you have the following installed:
 
 * Maven 3.5.4+
 
-> Note: You may use a later version od Java, e.g. JDK11 as the maven.compiler.source and target are set to 8.
+> Note: You may use a later version of Java, e.g. JDK11 as the
+> `maven.compiler.source` and `target` are set to 8 in the sample
+> `pom.xml` files.
 
 ## Ensure you install Coherence into your local Maven repository
 
@@ -96,13 +98,6 @@ If you are not running samples that have a Maven project, then you can skip this
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
    ```   
 
-1. Ensure that the [samples top level pom.xml](pom.xml) has the Coherence version set to the version you
-   are using:  E.g. if you have Coherence 12.2.1.3.2 then `coherence.version` should be:
-
-   ```xml
-    <coherence.version>12.2.1-3-2</coherence.version>
-   ```
-
 ## Create the sample namespace
 
 You should only need to carry out the following the first time you
@@ -116,10 +111,17 @@ run any of the samples.
   namespace/sample-coherence-ns created
   ```
 
-* Create a secret for pulling images from private repositories
+## Docker Images: Create an imagePullSecret
 
-  If you are pulling images from private repositories, you must create a secret
-  which will be used for this. In these samples we are assuming you have created a secret called `sample-coherence-secret` in your namespace `sample-coherence-ns`.
+* Enable Kubernetes to pull docker images from private docker
+  repositories by creating a "secret"
+
+  If you must enable your Kubernetes cluster to pull images from private
+  repositories, you must create a "secret" to convey the docker
+  credentials to Kubernetes. In these samples we are assuming you have
+  created a secret called `sample-coherence-secret` in your namespace
+  `sample-coherence-ns`.  If all of your images can be pulled from
+  public repositories, this step is not required.
 
   See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for more information.
 
@@ -130,6 +132,79 @@ run any of the samples.
   NAME                      TYPE                             DATA   AGE
   sample-coherence-secret   kubernetes.io/dockerconfigjson   1      18s
   ```
+
+### Using DockerHub For Your Images
+
+It is frequently convenient to pull docker images from one repository,
+modify, re-tag, and then push the images to repositories under your own
+control, such as repositories you can create on `hub.docker.com`.  Such
+repositories are public by default, but can also be private.
+
+#### Providing an imagePullSecret to Kubernetes for a repository on Docker Hub
+
+In this example, we pull the Coherence 12.2.1.3 docker image from the
+Docker Store, re-tag it, and push it to a freshly created docker
+repository within your Docker Hub account.  We then create an
+imagePullSecret to allow Kubernetes to pull that image.  This approach
+can also be used when pushing "sidecar images", as several samples
+require.
+
+1. Sign in to your accont on [Docker Hub](https://hub.docker.com/).
+   Upon login, you are taken to your list of repositories.  For
+   discussion, let's say your docker ID is `mydockerid`.
+
+1. Create a new repository by clicking the `Create Repository +` button.
+   This takes you to the `Create Repository` page.  You will see a
+   dropdown with `mydockerid` followed by a blank field where you are to
+   type the "Name".  Type `coherence` for the name.  Type "Re-tags of
+   Official Coherence Image" as the description.
+   
+1. Choose whether to make the repository public or private, then click
+   create.  This example assumes private, but either will work.
+   
+1. Click the `Create` button at the bottom of the page.  Note the value
+   of the "To push a new tag to this repository," box.  The value after
+   `docker push` will be `mydockerid/coherence:tagname`.  This whole
+   value is called the "docker tag"
+   
+1. Follow the steps in [the developer guide](/docs/developer/#how-to-build-the-operator-without-running-any-testssamples)
+   in the section "Obtain a Coherence 12.2.1.3.* Docker image and tag it
+   correctly", up to and including the `docker pull` command.
+   
+1. Re-tag the Coherence 12.2.1.3 docker image with your repository and tag name: 
+
+   `docker tag store/oracle/coherence:12.2.1.3 mydockerid/coherence:12.2.1.3`
+   
+1. At the command line, login to your docker hub account.
+
+   `docker login`
+   
+   Enter your docker userid and password as requested.
+   
+1. Push the re-tagged image to your docker repository.
+
+   `docker push mydockerid/coherence:12.2.1.3`
+   
+   Note the value of the `The push refers to repository` statement.  The
+   first part of that is necessary to create the secret for Kubernetes.
+   In this case, it should be something like `docker.io/mydockerid/coherence`.
+   
+1. Create the secret within your namespace.
+
+   ```
+   kubectl create secret docker-registry sample-coherence-secret \
+    --namespace sample-coherence-ns --docker-server=hub.docker.com \
+    --docker-username=docker.io/mydockerid --docker-password="your docker password" \
+    --docker-email="the email address of your docker account"
+   ```
+   
+When invoking `helm` you may specify one or more imagePullSecrets by
+enclosing them within a comma separated list inside the curly braces of
+a `--set imagePullSecrets` option.
+
+   ```
+   --set "imagePullSecrets{sample-coherence-secret}"
+   ```
 
 ## Clone the GitHub Repository
 
@@ -147,10 +222,18 @@ $ git checkout gh-pages
 $ cd docs/samples
 ```
 
+1. Inspect the [samples top level pom.xml](pom.xml) and verify that the
+   value of the `coherence.version` property matches the version of
+   Coherence you are actaully using. For example if you have Coherence
+   12.2.1.3.0 then the value of `coherence.version` must be
+   `12.2.1-3-0`.  If this value needs ajustment, use the
+   `-Dcoherence.version=` argument to all invocations of `mvn`.
+
 Issue the following to ensure all the projects with source code build ok. 
 
-> Note: Any compilation errors will most likely indicate that the Coherence JAR's 
-> are not properly installed or you have not set your JDK.
+> **Note**: Any compilation errors will most likely indicate that the
+> Coherence JAR's are not properly installed or you have not set your
+> JDK.
 
 ```bash
 $ mvn clean install
@@ -158,15 +241,17 @@ $ mvn clean install
 
 ## Install the Coherence Operator
 
-Before you attempt any of the samples below, you should install the `coherence-operator` chart.  
-This can be done once and can keep running for all the samples.
+Before you attempt any of the samples below, you should install the
+`coherence-operator` chart.This can be done once and can keep running
+for all the samples.
 
 When you install the `coherence-operator` you can optionally enable the following:
 
-1. Prometheus integration to capture metrics and display in Grafana. (Only available from Coherence 12.2.1.4.0 and above)
+1. Prometheus integration: to capture metrics and display in
+   Grafana. (Only available from Coherence 12.2.1.4.0 and above)
 
-1. Log capture which will use Fluentd to send logs to Elasticsearch where
-   they key be vied in Kiabana.
+1. Log capture: to use Fluentd to send logs to Elasticsearch where they
+   can be viewed in Kiabana.
 
 Enabling both Prometheus and log capture will require considerable extra system resources.
 

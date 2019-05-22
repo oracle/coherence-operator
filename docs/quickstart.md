@@ -4,7 +4,7 @@ The Coherence Kubernetes Operator manages Coherence through Kubernetes,
 monitoring MBean attributes through Prometheus and server logs through
 ElasticSearch and Kibana.
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note**: use of Prometheus and Grafana is only available when using the
 > operator with Coherence version 12.2.1.4.
 
 Use this quick start guide to deploy Coherence applications in a
@@ -72,10 +72,11 @@ Hang tight while we grab the latest from your chart repositories...
 ...Successfully got an update from the "coherence" chart repository
 ```
 
-> **Note**: For all helm install commands you can leave the `--version` option off and the
-> latest version of the chart will be retrieved. 
-> If you wanted to use a specific version, such as `0.9.3`, add `--version 0.9.3` to all installs for the `coherence-operator` and 
-> `coherence` charts.
+> **Note**: For all helm install commands you can leave the `--version`
+> option off and the latest version of the chart will be retrieved.  If
+> you wanted to use a specific version, such as `0.9.3`, add `--version
+> 0.9.3` to all installs for the `coherence-operator` and `coherence`
+> charts.
 
 If you wish to build the Coherence Operator from source, please refer to the 
 [Developer Guide](developer.md) and ensure you replace `coherence` 
@@ -83,7 +84,8 @@ Helm repository prefix in all samples with the full qualified directory as descr
 
 ### Obtain the Coherence Docker Image
 
-> Note: we are assuming Coherence version 12.2.1.3 (which is the currently supported version).
+> **Note**: we are assuming Coherence version 12.2.1.3 (which is the
+> currently supported version).
 
 You must follow the instructions below to obtain the relevant Coherence Docker image.
 
@@ -105,6 +107,8 @@ You must follow the instructions below to obtain the relevant Coherence Docker i
 
 1. Consider whether or not you want to check the `Please keep me
    informed of products, services and solutions from this Publisher` box.
+   
+1. Click "Get Content"
 
 1. At the command line, do `docker login` with your Docker store credentials.
 
@@ -130,9 +134,9 @@ $ helm --debug install coherence/coherence-operator \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
 
-**Note**: Remove the `--debug` option if you do not want very verbose
-output.  Please consult the `values.yaml` in the chart for important
-information regarding the `--set targetNamespaces` argument.
+> **Note**: Remove the `--debug` option if you do not want very verbose
+> output.  Please consult the `values.yaml` in the chart for important
+> information regarding the `--set targetNamespaces` argument.
 
 If the operation completes successfully, you should see output similar to the following.
 
@@ -184,6 +188,12 @@ $ helm --debug install coherence/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
 ``` 
+
+> **Note**: If you want to use a different version of Coherence than the
+> one specified in the `coherence` helm chart, supply a `--set` argument
+> for the `coherence.image` value, as shown next.
+
+> `--set coherence.image="store/oracle/coherence:12.2.1.3.2"`
 
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
@@ -323,12 +333,19 @@ Running the program again should produce:
 The value of the key is 2
 ```
 
+> **Note**: If you are using JDK 11 or newer, you can omit the `javac`
+> step and simply run the program as shown next.
+
+```
+$ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
+  -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
+```
+
 ## 5. Use Helm to delete Coherence and the Operator
 
 Remove the `coherence` release:
 
 ```
 $ helm delete --purge sample-coherence sample-coherence-operator
-$ kubectl delete configmap coherence-internal-config
 ```
 

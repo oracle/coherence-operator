@@ -110,9 +110,9 @@ Use the `port-forward-kibana.sh` script in the
    
    >Note: It may take up to 5 minutes for the data to reach the elasticsearch instance.   
    
-## Default Dashboards
+## Default Kibana Dashboards
 
-There are a number of dashboard created via the import process.
+There are a number of Kibana dashboards created via the import process.
 
 **Coherence Operator**
 
