@@ -64,7 +64,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --namespace sample-coherence-ns \
       --name storage \
       --set clusterSize=3 \
-      --set cluster=interceptor-cluster \
+      --set cluster=rolling-upgrade-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
       --set prometheusoperator.enabled=false \

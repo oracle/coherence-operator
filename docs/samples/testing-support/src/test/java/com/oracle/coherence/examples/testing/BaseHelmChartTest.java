@@ -177,7 +177,9 @@ public abstract class BaseHelmChartTest
     /**
      * Build a {@link Collection} of operator and Coherence charts to test the samples with.<br/>
      * Setting -Dk8s.chart.test.versions=0.9.3,0.9.4 would run the tests for the samples against
-     * the two versions.
+     * the two versions.<br/>
+     * Additionally operator.helm.chart.package and coherence.helm.chart.package properties can be
+     * set to point to .tgz files on disk to tests against a specific version of charts.
      *
      * @return a {@link Collection} of operator and Coherence charts to test the samples with
      */

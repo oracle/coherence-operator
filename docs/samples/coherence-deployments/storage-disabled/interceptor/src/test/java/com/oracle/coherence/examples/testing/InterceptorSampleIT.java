@@ -103,7 +103,7 @@ public class InterceptorSampleIT
      * @throws Exception
      */
     @Test
-    public void testInterceptorSampleSample() throws Exception
+    public void testInterceptorSample() throws Exception
         {
         if (testShouldRun())
             {

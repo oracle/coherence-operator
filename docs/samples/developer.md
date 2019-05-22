@@ -48,3 +48,6 @@ Please ensure that you have met all the prerequisites as described in the
    
    > Note: You can also specify multiple versions of the chart to test: e.g. 
    > `-Dk8s.chart.test.versions=0.9.4,1.0.0`. 
+   
+   > Note: You can set the `operator.helm.chart.package` and `coherence.helm.chart.package`
+   > properties to run against operator charts that have been built on disk.

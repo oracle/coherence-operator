@@ -1,0 +1,23 @@
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Any changes in the helm install commands in README must be changed here
+
+clusterSize: 2
+
+cluster: rolling-upgrade-cluster
+
+store:
+  cacheConfig: storage-cache-config.xml
+
+userArtifacts:
+  image: %%USER_ARTIFACTS_IMAGE%%
+
+imagePullSecrets: sample-coherence-secret
+
+logCaptureEnabled: false
+
+prometheusoperator:
+  enabled: false
+
+# Temporary until 0.9.5 released
+coherence:
+  image: ${coherence.image.prefix}coherence:${coherence.docker.version}
