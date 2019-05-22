@@ -54,7 +54,11 @@ public class BaseSampleTest
         }
 
     // ----- test lifecycle -------------------------------------------------
-    
+
+    protected static void cleanupExtra(K8sCluster cluster)
+        {
+        }
+
     /**
      * Ensure Kubernetes cluster and namespaces are setup.
      *
@@ -106,6 +110,8 @@ public class BaseSampleTest
 
         cleanupPullSecrets(s_k8sCluster);
         cleanupNamespace(s_k8sCluster);
+
+        cleanupExtra(s_k8sCluster);
 
         for (String sNamespace : getTargetNamespaces())
             {
@@ -165,7 +171,7 @@ public class BaseSampleTest
         assertCoherence(s_k8sCluster, sCohNamespace, sClusterRelease);
 
         m_asReleases = new String[] { sClusterRelease };
-    }
+        }
 
     /**
      * Test a given Proxy connection to a release and default port and cache name.

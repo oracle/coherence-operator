@@ -31,7 +31,9 @@ import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -102,7 +104,7 @@ public abstract class BaseHelmChartTest
 
     // ----- helper methods -------------------------------------------------
 
-       /**
+    /**
      * Return a new yaml file with the %%NAME%% tokens replaced.
      *
      * @param sValuesFile         values file to process
@@ -130,6 +132,38 @@ public abstract class BaseHelmChartTest
                 {
                 sYamlContent = sYamlContent.replaceAll(USER_ARTIFACTS_IMAGE_REGEX, sUserArtifactImage);
                 }
+            Files.write(Paths.get(fileTemp.getPath()), sYamlContent.getBytes());
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+
+        return fileTemp.getPath();
+        }
+    
+    /**
+     * Return a new yaml file with the sample-coherence-ns replaced with the given namespace.
+     *
+     * @param sValuesFile values file to process
+     * @param sNamespace  namespace to replace with
+     * @param sOperatorRelease operator release
+     *
+     * @return a new file path
+     */
+    protected String getProcessedYamlInstallFile(String sValuesFile, String sNamespace, String sOperatorRelease)
+        {
+        String sYamlFile = Resources.findFileOrResource(sValuesFile, null).getPath();
+        MatcherAssert.assertThat(sYamlFile, is(CoreMatchers.notNullValue()));
+
+        File fileTemp = null;
+        try
+            {
+            fileTemp            = File.createTempFile("processed",".yaml");
+            String sYamlContent = new String(Files.readAllBytes(Paths.get(sYamlFile)))
+                    .replaceAll("sample-coherence-ns", sNamespace)
+                    .replaceAll("coherence-operator", sOperatorRelease);
+
             Files.write(Paths.get(fileTemp.getPath()), sYamlContent.getBytes());
             }
         catch (IOException e)

@@ -56,15 +56,7 @@ public class DefaultProxySampleIT
         {
         if (testShouldRun())
             {
-            // install Coherence Operator chart
-            s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(m_sOperatorChartURL));
-
-            // install Coherence chart
-            String[] asCohNamespaces = getTargetNamespaces();
-
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces,"coherence.yaml");
-
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+            installChartsSingleTier(m_sOperatorChartURL, m_sCoherenceChartURL);
             }
         }
 
