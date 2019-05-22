@@ -88,7 +88,7 @@ public abstract class BaseHttpsTest
         URL  urlTrustStore  = Resources.findFileOrResource(HttpTestHelper.TRUSTSTORE_GUARDIANS, null);
         File fileTrustStore = new File(urlTrustStore.toURI());
 
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "secret", sSecret));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "secret", sSecret, "--ignore-not-found=true"));
 
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "secret", "generic", sSecret,
                                                                  "--from-file", fileKeyStore.getCanonicalPath(),

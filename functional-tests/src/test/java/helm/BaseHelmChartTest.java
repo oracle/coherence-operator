@@ -7,6 +7,7 @@
 package helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.options.Timeout;
@@ -15,6 +16,7 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.ApplicationConsoleBuilder;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.EventsApplicationConsole;
 import com.oracle.bedrock.runtime.console.FileWriterApplicationConsole;
@@ -26,10 +28,12 @@ import com.oracle.bedrock.runtime.k8s.helm.Helm;
 import com.oracle.bedrock.runtime.k8s.helm.HelmCommand;
 import com.oracle.bedrock.runtime.k8s.helm.HelmInstall;
 
+import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -50,6 +54,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import util.Kubernetes;
+import util.MaxRetries;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -65,6 +71,7 @@ import java.net.URL;
 
 import java.nio.file.Files;
 
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -317,17 +324,16 @@ public abstract class BaseHelmChartTest
 
         if (nExitCode != 0)
             {
-            System.err.println("Helm dry-run install failed with non-zero exit code. Helm dry-run install will be retried.");
-
-            for (int i = 0 ; i < Integer.parseInt(HELM_INSTALL_MAX_RETRY); i++)
+            int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
+            for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
                 {
-                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+                System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
+                                           + i + " attempts remaining");
 
-                if (nExitCode == 0)
-                    {
-                    System.err.println(String.format("Helm dry-run install successful with retry attempt: %d", i + 1));
-                    break;
-                    }
+                logInstallFailure(install, nExitCode, consoleInstall);
+
+                consoleInstall = new CapturingApplicationConsole();
+                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
                 }
             }
 
@@ -383,38 +389,30 @@ public abstract class BaseHelmChartTest
                                     .timeout(HELM_TIMEOUT)
                                     .name(sRelease);
 
-        int nExitCode = install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
+        CapturingApplicationConsole console = new CapturingApplicationConsole();
+
+        int nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
 
         if (nExitCode != 0)
             {
-            System.err.println(String.format("Helm install of \"%s\" failed with non-zero exit code."
-                               + "Helm install of \"%s\" will be retried.", sRelease, sRelease));
-
-            for (int i = 0 ; i < Integer.parseInt(HELM_INSTALL_MAX_RETRY); i++)
+            int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
+            for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
                 {
-                try
-                    {
-                    System.err.println("Clean up resources before retrying install of release: '" + sRelease);
-                    cleanupHelmReleases(sRelease);
-                    cleanupPersistentVolumeClaims(getDefaultCluster(), sRelease, sNamespace);
-                    System.err.println(String.format("Finish cleaning existing release \"%s\" before retry attempt: %d",
-                            sRelease, i + 1));
-                    }
-                catch (Throwable t)
-                    {
-                    System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
-                    }
+                System.err.println("Helm install failed with exit code " + nExitCode + " - will retry. "
+                                           + i + " attempts remaining");
 
-                nExitCode = install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
+                logInstallFailure(install, nExitCode, console);
+                cleanupHelmInstall(sNamespace, sRelease);
 
-                if (nExitCode == 0)
-                    {
-                    System.err.println(String.format("Helm install of \"%s\" successful with retry attempt: %d",
-                            sRelease, i + 1));
-                    break;
-                    }
+                console   = new CapturingApplicationConsole();
+                nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
                 }
             }
+
+        console.getCapturedOutputLines()
+                .forEach(System.out::println);
+        console.getCapturedErrorLines()
+                .forEach(System.err::println);
 
         return nExitCode;
         }
@@ -472,6 +470,61 @@ public abstract class BaseHelmChartTest
         return install.executeAndWait(console);
         }
 
+    private static void cleanupHelmInstall(String sNamespace, String sRelease)
+        {
+        try
+            {
+            System.err.println("Clean up resources before retrying install of release: '" + sRelease);
+            cleanupHelmReleases(sRelease);
+            cleanupPersistentVolumeClaims(getDefaultCluster(), sRelease, sNamespace);
+            System.err.println(String.format("Finish cleaning existing release \"%s\"", sRelease));
+            }
+        catch (Throwable t)
+            {
+            System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+            }
+        }
+
+    private static void logInstallFailure(HelmInstall install, int nExitCode, CapturingApplicationConsole console)
+        {
+        try
+            {
+            OptionsByType opts = OptionsByType.of();
+
+            install.onLaunching(LocalPlatform.get(), opts);
+
+            String sArgLine = opts.getOrDefault(Arguments.class, Arguments.empty())
+                                  .stream()
+                                  .map(Argument::toString)
+                                  .collect(Collectors.joining(" "));
+
+            StringBuilder sMessage = new StringBuilder();
+
+            sMessage.append("------------------------------------------------------------------------\n")
+                    .append("Test: ").append(s_k8sTestName.getName()).append("\n")
+                    .append("helm ").append(sArgLine).append("\n")
+                    .append("Helm returned a non-zero exit code (").append(nExitCode).append(")\n");
+
+            console.getCapturedOutputLines()
+                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
+            console.getCapturedErrorLines()
+                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
+
+            File fileDir = MavenProjectFileUtils.ensureTestOutputBaseFolder(Kubernetes.class);
+            fileDir.mkdirs();
+            File fileLog = new File(fileDir, "kubectl-retries.log");
+
+            Files.write(fileLog.toPath(),
+                        sMessage.toString().getBytes(),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND);
+            }
+        catch (IOException e)
+            {
+            System.err.println("Could not write retry log: " + e.getMessage());
+            }
+        }
+
     public static void captureInstalledPodLogs(K8sCluster cluster, String sNamespace, String sRelease)
         {
         try
@@ -480,7 +533,7 @@ public abstract class BaseHelmChartTest
             CapturingApplicationConsole consoleContainers = new CapturingApplicationConsole();
             int                         nExitCode;
 
-            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "--all-namespaces=true", "--selector", "release=" + sRelease,  "-o", "name"),
+            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "-n", sNamespace, "--selector", "release=" + sRelease,  "-o", "name"),
                                                Console.of(consolePods),
                                                LaunchLogging.disabled());
 
@@ -499,7 +552,7 @@ public abstract class BaseHelmChartTest
                     continue;
                     }
 
-                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "--all-namespaces=true", "-o", "jsonpath={.spec.containers[*].name}"),
+                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "-n", sNamespace, "-o", "jsonpath={.spec.containers[*].name}"),
                                                    Console.of(consoleContainers),
                                                    LaunchLogging.disabled());
 
@@ -1092,7 +1145,7 @@ public abstract class BaseHelmChartTest
                     arguments = arguments.with(sContainer);
                     }
 
-                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console));
+                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console), MaxRetries.none());
 
                 if (nExitCode != 0)
                     {
@@ -1215,7 +1268,8 @@ public abstract class BaseHelmChartTest
         File   fileConfig  = sConfig == null ? null : new File(sConfig);
         File   fileKubectl = KUBECTL == null ? null : new File(KUBECTL);
 
-        return new K8sCluster()
+        return new Kubernetes()
+                .logRetries(s_k8sTestName)
                 .withKubectlAt(fileKubectl)
                 .withKubectlConfig(fileConfig)
                 .withKubectlContext(getPropertyOrNull("k8s.context"))
@@ -1329,6 +1383,7 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "namespace");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
+                                                                       MaxRetries.none(),
                                                                        LaunchLogging.disabled());
 
         if (nExitCode == 0)
@@ -1354,6 +1409,7 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "crd");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
+                                                                       MaxRetries.none(),
                                                                        LaunchLogging.enabled());
         if (nExitCode == 0)
             {
@@ -2529,6 +2585,10 @@ public abstract class BaseHelmChartTest
     @ClassRule
     @Rule
     public static final TestLogs s_testLogs = new TestLogs();
+
+    @ClassRule
+    @Rule
+    public static final Kubernetes.TestName s_k8sTestName = new Kubernetes.TestName();
 
     /**
      * The Helm command template.
