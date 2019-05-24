@@ -1,6 +1,6 @@
 clusterSize:
 
-imagePullSecrets: []
+imagePullSecrets: [sample-coherence-secret]
 
 role: WebServer
 
