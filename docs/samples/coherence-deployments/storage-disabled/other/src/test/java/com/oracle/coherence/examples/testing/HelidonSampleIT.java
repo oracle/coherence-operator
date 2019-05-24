@@ -99,6 +99,7 @@ public class HelidonSampleIT
             MatcherAssert.assertThat(listPods.size(), is(2));
             String sCoherencePod = listPods.get(0);
 
+            System.err.println("Waiting for Helidon web app to join the cluster...");
             // wait for the following message to appear, which indicates the helidon web app has joined the cluster
             // Role=OracleCoherenceExamplesMain
             Eventually.assertThat(invoking(this).hasLogMessageAppeared(s_k8sCluster, sNamespace, sCoherencePod,

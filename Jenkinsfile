@@ -122,9 +122,7 @@ pipeline {
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
-			    # temporary
-		            cd docs/samples/coherence-deployments/storage-disabled/other
-		            #cd docs/samples 
+		            cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
