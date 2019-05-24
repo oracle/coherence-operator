@@ -123,7 +123,7 @@ pipeline {
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
 			    # temporary
-		            cd docs/samples/operator/rolling-upgrade
+		            cd docs/samples/coherence-deployments/storage-disabled/other
 		            #cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
