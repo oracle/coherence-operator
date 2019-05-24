@@ -131,6 +131,7 @@ public class RollingUpgradeSampleIT
             String sTag = System.getProperty("docker.push.tag.prefix") + System.getProperty("project.artifactId") + ":2.0.0";
 
             File fileChartDir = extractChart("coherence", toURL(m_sCoherenceChartURL));
+            
             int nExitCode = s_helm.upgrade(sCoherenceRelease, fileChartDir.getPath() + "/coherence")
                         .namespace(sCohNamespace)
                         .withFlags("--reuse-values")
@@ -158,10 +159,12 @@ public class RollingUpgradeSampleIT
         {
         try (Application application = portForwardExtend(sCoherenceRelease, 20000))
             {
-            PortMapping              portMapping = application.get(PortMapping.class);
-            int                      nActualPort = portMapping.getPort().getActualPort();
-            ConfigurableCacheFactory ccf         = getCacheFactory("client-cache-config.xml", nActualPort);
+            PortMapping portMapping = application.get(PortMapping.class);
+            int         nActualPort = portMapping.getPort().getActualPort();
+            
+            ConfigurableCacheFactory ccf  = getCacheFactory("client-cache-config.xml", nActualPort);
             Eventually.assertThat(invoking(ccf).ensureCache("test", null), is(notNullValue()));
+            
             NamedCache nc = ccf.ensureCache("test", null);
 
             // this should always succeed
@@ -169,6 +172,7 @@ public class RollingUpgradeSampleIT
             
             nc.put("key-2", "value-2");
             boolean fResult = "VALUE-2".equals(nc.get("key-2"));
+            System.err.println("value for key-2 is " + nc.get("key-2"));
 
             ccf.dispose();
 
@@ -177,6 +181,8 @@ public class RollingUpgradeSampleIT
         catch (Exception e)
             {
             // ignore exceptions as they may be because a pod is gone.
+            System.err.println("Unable to run portForward");
+            e.printStackTrace();
             return false;
             }
         }

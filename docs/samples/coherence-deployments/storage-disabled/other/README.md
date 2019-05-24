@@ -61,7 +61,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set clusterSize=3 \
       --set cluster=helidon-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=true \
+      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       coherence/coherence
    ```
@@ -73,10 +73,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
    ```bash
-   NAME                                                     READY   STATUS    RESTARTS   AGE
-   storage-coherence-0                                      1/1     Running   0          4m
-   storage-coherence-1                                      1/1     Running   0          2m   
-   storage-coherence-2                                      1/1     Running   0          2m
+   NAME                    READY   STATUS    RESTARTS   AGE
+   storage-coherence-0     1/1     Running   0          4m
+   storage-coherence-1     1/1     Running   0          2m   
+   storage-coherence-2     1/1     Running   0          2m
    ```
    
 1. Install the Helidon web application

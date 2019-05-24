@@ -27,7 +27,7 @@ pipeline {
                    sh '''
 		       cd docs/samples 
 		       # Specify temporary version until chart supplies correct one
-		       mvn clean install -Dcoherence.docker.version=12.2.1.3.1
+		       mvn clean install -Dcoherence.docker.version=12.2.1.3.2
 		   '''
                 }
             }
@@ -122,7 +122,9 @@ pipeline {
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
-		            cd docs/samples 
+			    # temporary
+		            cd docs/samples/operator/rolling-upgrade
+		            #cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \

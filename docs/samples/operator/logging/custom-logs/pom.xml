@@ -39,8 +39,7 @@
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
     </dependency>
-
-
+    
     <!-- test dependencies -->
     <dependency>
       <groupId>com.oracle.coherence.kubernetes</groupId>
