@@ -100,9 +100,9 @@ public class HelidonSampleIT
             String sCoherencePod = listPods.get(0);
 
             // wait for the following message to appear, which indicates the helidon web app has joined the cluster
-            // Location=machine:helidon-web-app-webserver
+            // Role=OracleCoherenceExamplesMain
             Eventually.assertThat(invoking(this).hasLogMessageAppeared(s_k8sCluster, sNamespace, sCoherencePod,
-                    "Location=machine:helidon-web-app-webserver"),
+                    "Role=OracleCoherenceExamplesMain"),
                     is(true), Timeout.after(300, TimeUnit.SECONDS), InitialDelay.of(20, TimeUnit.SECONDS));
             }
         }
