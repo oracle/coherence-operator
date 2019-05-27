@@ -116,6 +116,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
      --name interceptor-client-tier \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=interceptor-cache-config.xml \
+     --set store.storageEnabled=false \
      --set prometheusoperator.enabled=false \
      --set logCaptureEnabled=false \
      --set userArtifacts.image=interceptor-sample:1.0.0-SNAPSHOT \

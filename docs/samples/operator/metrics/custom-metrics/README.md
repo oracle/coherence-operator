@@ -70,7 +70,7 @@ for scraping by Prometheus.
    $ mvn clean install -P docker 
    ```
 
-   The above will build the v1 Docker image called `custom-metrics-sample:1.0.0-SNAPSHOT`. 
+   The above will build the Docker image called `custom-metrics-sample:1.0.0-SNAPSHOT`. 
    
    > Note: If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
@@ -105,10 +105,11 @@ for scraping by Prometheus.
    
    * `--set store.ports.custom-port=8200` - custom metrics port
    
-   * `--name custom-coherence-metrics` - matches spec.selector.matchLabels in (servicemonitoring.yaml)[src/main/yaml/servicemonitoring.yaml]
+   * `--name custom-coherence-metrics` 
    
+   * `--set cluster=metrics-cluster` - matches spec.selector.matchLabels in [servicemonitoring.yaml](src/main/yaml/servicemonitoring.yaml)
    ```bash
-   $ helm install --debug \
+   $ helm install \
       --namespace sample-coherence-ns \
       --name custom-coherence-metrics \
       --set clusterSize=3 \
@@ -118,7 +119,7 @@ for scraping by Prometheus.
       --set prometheusoperator.enabled=true \
       --set userArtifacts.image=custom-metrics-sample:1.0.0-SNAPSHOT \
       --set store.ports.custom-port=8200 \
-      coherence/coherence 2>&1 | tee /tmp/tim.out
+      coherence/coherence
    ```
     
    Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
@@ -134,7 +135,7 @@ for scraping by Prometheus.
 1. Port forward the proxy port on the storage-coherence-0 pod.
 
    ```bash
-   $ kubectl port-forward -n sample-coherence-ns custom-coherence-metrics-0  20000:20000
+   $ kubectl port-forward -n sample-coherence-ns custom-coherence-metrics-0 20000:20000
    ```
    
 1. Port forward Prometheus
@@ -212,7 +213,6 @@ for scraping by Prometheus.
    You should see a screen similar to the following indicating that the data is present.
    
    ![Custom Prometheus Metrics](img/custom-metrics.png) 
-   
    
    
 ## Uninstalling the Charts

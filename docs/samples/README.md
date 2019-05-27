@@ -500,3 +500,8 @@ If you have enabled Prometheus then you can use the `port-forward-prometheus.sh`
 1. Access Prometheus using the following URL:
 
    [http://127.0.0.1:9090/](http://127.0.0.1:9090/)
+
+# Running the samples integration tests
+
+Please see [developer.md](developer.md) for instructions how to run the 
+samples integration tests.

@@ -1,6 +1,6 @@
 clusterSize:
 
-imagePullSecrets: []
+imagePullSecrets: [sample-coherence-secret]
 
 role: WebServer
 
@@ -8,7 +8,7 @@ clusterName:
 
 wka:
 
-image: "${project.artifactId}:${project.version}"
+image: "${docker.push.tag.prefix}${project.artifactId}:${project.version}"
 
 imagePullPolicy:
 

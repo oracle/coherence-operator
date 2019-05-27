@@ -44,8 +44,7 @@ public class SampleClient
         catch (Exception e)
             {
             System.err.println("Exception: " + e.getMessage());
+            System.exit(1);  // will ensure IT test fails
             }
-
-        System.exit(1);
         }
     }

@@ -28,6 +28,16 @@
       <artifactId>helidon-bundles-webserver</artifactId>
     </dependency>
 
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>com.oracle.coherence.kubernetes</groupId>
+      <artifactId>samples-testing-support</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+    
     <dependency>
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime</artifactId>
@@ -61,9 +71,26 @@
       <artifactId>hamcrest-all</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <testResources>
+      <!-- process values/*.yaml test resources with filtering -->
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+        <includes>
+          <include>*.yaml</include>
+        </includes>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+    
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -88,7 +115,7 @@
       </plugin>
     </plugins>
   </build>
-
+  
   <profiles>
     <profile>
       <id>docker</id>
@@ -124,7 +151,7 @@
                   <jmxFlag>-XX:MaxRAMFraction=2</jmxFlag>
                   <jmxFlag>-XX:+UseG1GC</jmxFlag>
                 </jvmFlags>
-                <mainClass>com.oracle.coherence.samples.Main</mainClass>
+                <mainClass>com.oracle.coherence.examples.Main</mainClass>
                 <ports>
                   <port>8080</port>
                 </ports>
@@ -142,6 +169,57 @@
         </plugins>
       </build>
     </profile>
+
+    <!-- used for integration tests only -->
+    
+    <profile>
+      <id>dockerPush</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>tag-for-push</id>
+                <phase>install</phase>
+                <configuration>
+                  <executable>docker</executable>
+                  <workingDirectory>${project.build.directory}/docker</workingDirectory>
+                  <arguments>
+                    <argument>tag</argument>
+                    <argument>${project.artifactId}:${project.version}</argument>
+                    <argument>${docker.push.tag.prefix}${project.artifactId}:${project.version}</argument>
+                  </arguments>
+                </configuration>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>docker-push-explicit-version</id>
+                <phase>install</phase>
+                <configuration>
+                  <executable>docker</executable>
+                  <workingDirectory>${project.build.directory}/docker</workingDirectory>
+                  <arguments>
+                    <argument>push</argument>
+                    <argument>${docker.push.tag.prefix}${project.artifactId}:${project.version}</argument>
+                  </arguments>
+                </configuration>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
   </profiles>
   
 </project>

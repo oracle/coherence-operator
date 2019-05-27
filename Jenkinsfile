@@ -27,7 +27,7 @@ pipeline {
                    sh '''
 		       cd docs/samples 
 		       # Specify temporary version until chart supplies correct one
-		       mvn clean install -Dcoherence.docker.version=12.2.1.3.1
+		       mvn clean install -Dcoherence.docker.version=12.2.1.3.2
 		   '''
                 }
             }

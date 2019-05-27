@@ -6,20 +6,10 @@
 
 package com.oracle.coherence.examples.testing;
 
-import com.oracle.bedrock.runtime.Application;
-import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.NamedCache;
-import com.tangosol.util.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import java.util.Collection;
 
@@ -31,15 +21,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Test the proxy-tier-sample.
  *
  * Any changes to the arguments of the helm install commands in the README.md, should be
- * also made to the coherence.yaml file.
+ * also made to the corresponding yaml files in test/resources.
  *
  * @author tam  2019.05.14
  */
 @RunWith(Parameterized.class)
 public class ProxyTierSampleIT
-        extends BaseProxySampleTest
+        extends BaseSampleTest
     {
-
     // ----- constructor ----------------------------------------------------
 
     /**

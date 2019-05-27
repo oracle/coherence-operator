@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       component: coherence-service
-      release: custom-coherence-metrics
+      coherenceCluster: metrics-cluster
   namespaceSelector:
     any: false
     matchNames: [sample-coherence-ns]

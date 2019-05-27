@@ -6,32 +6,25 @@
 
 package com.oracle.coherence.examples.testing;
 
-import com.oracle.bedrock.runtime.Application;
-
-import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.NamedCache;
-
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Collection;
+
 /**
  * Test the default-proxy-sample.
  *
  * Any changes to the arguments of the helm install commands in the README.md, should be
- * also made to the coherence.yaml file.
+ * also made to the corresponding yaml files in test/resources.
  *
  * @author tam  2019.05.14
  */
 @RunWith(Parameterized.class)
 public class DefaultProxySampleIT
-        extends BaseProxySampleTest
+        extends BaseSampleTest
     {
-
     // ----- constructor ----------------------------------------------------
 
     /**
@@ -63,15 +56,7 @@ public class DefaultProxySampleIT
         {
         if (testShouldRun())
             {
-            // install Coherence Operator chart
-            s_sOperatorRelease = installOperator("coherence-operator.yaml",toURL(m_sOperatorChartURL));
-
-            // install Coherence chart
-            String[] asCohNamespaces = getTargetNamespaces();
-
-            m_asReleases = installCoherence(s_k8sCluster, toURL(m_sCoherenceChartURL), asCohNamespaces,"coherence.yaml");
-
-            assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+            installChartsSingleTier(m_sOperatorChartURL, m_sCoherenceChartURL);
             }
         }
 

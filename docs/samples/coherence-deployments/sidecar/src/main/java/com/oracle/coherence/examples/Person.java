@@ -29,6 +29,13 @@ public class Person
         {
         }
 
+    /**
+     * Create a Person.
+     *
+     * @param nId       id of the Person
+     * @param sName     name of the Person
+     * @param sAddress  address of the Person
+     */
     public Person(int nId, String sName, String sAddress)
         {
         m_id       = nId;
@@ -38,35 +45,66 @@ public class Person
 
     // ----- accessors ---------------------------------------------------
 
+    /**
+     * Returns the id of the Person.
+     *
+     * @return the id of the Person
+     */
     public int getId()
         {
         return m_id;
         }
 
+    /**
+     * Sets the id of the Person.
+     *
+     * @param nId  the id of the Person
+     */
     public void setId(int nId)
         {
         m_id = nId;
         }
 
-    public void setName(String sName)
-        {
-        m_sName = sName;
-        }
-
+    /**
+     * Returns the name of the Person.
+     *
+     * @return the name of the Person
+     */
     public String getName()
         {
         return m_sName;
         }
 
+    /**
+     * Sets the name of the Person.
+     *
+     * @param sName the name of the Person
+     */
+    public void setName(String sName)
+        {
+        m_sName = sName;
+        }
+
+    /**
+     * Returns the address of the Person.
+     *
+     * @return the address of the Person
+     */
+    public String getAddress()
+        {
+        return m_sAddress;
+        }
+
+    /**
+     * Sets the address of the Person.
+     *
+     * @param sAddress the address of the Person
+     */
     public void setAddress(String sAddress)
         {
         m_sAddress = sAddress;
         }
 
-    public String getAddress()
-        {
-        return m_sAddress;
-        }
 
     // ----- Object methods -------------------------------------------------
     
