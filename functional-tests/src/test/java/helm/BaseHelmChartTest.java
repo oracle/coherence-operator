@@ -75,10 +75,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import java.util.function.Predicate;
@@ -462,9 +464,21 @@ public abstract class BaseHelmChartTest
             install = install.namespace(sNamespace.trim());
             }
 
+        Set<String> setSecrets = new HashSet<>();
+
         if (K8S_IMAGE_PULL_SECRET != null && K8S_IMAGE_PULL_SECRET.trim().length() > 0)
             {
-            install = install.set("imagePullSecrets={" + K8S_IMAGE_PULL_SECRET + "}");
+            setSecrets.add(K8S_IMAGE_PULL_SECRET);
+            }
+
+        if (K8S_COHERENCE_IMAGE_PULL_SECRET != null && K8S_COHERENCE_IMAGE_PULL_SECRET.trim().length() > 0)
+            {
+            setSecrets.add(K8S_COHERENCE_IMAGE_PULL_SECRET);
+            }
+
+        if (setSecrets.size() > 0)
+            {
+            install = install.set("imagePullSecrets={" + String.join(",", setSecrets) + "}");
             }
 
         return install.executeAndWait(console);
@@ -2364,7 +2378,7 @@ public abstract class BaseHelmChartTest
      */
     protected boolean versionCheck(String sMinimalVersion)
         {
-        return versionCheck(COHERENCE_VERSION, sMinimalVersion);
+        return versionCheck(COHERENCE_IMAGE, sMinimalVersion);
         }
 
     /**
@@ -2430,6 +2444,11 @@ public abstract class BaseHelmChartTest
      * The System property to use to obtain the name of the optional k8s docker-registry secret.
      */
     public static final String PROP_K8S_PULL_SECRET = "k8s.image.pull.secret";
+
+    /**
+     * The System property to use to obtain the name of the optional k8s docker-registry secret for pulling Coherence.
+     */
+    public static final String PROP_COHERENCE_K8S_PULL_SECRET = "k8s.coherence.image.pull.secret";
 
     /**
      * The name of the System property to use to determine whether to create and destroy the k8s test namespace.
@@ -2512,6 +2531,11 @@ public abstract class BaseHelmChartTest
     protected static final String K8S_IMAGE_PULL_SECRET = getPropertyOrNull(PROP_K8S_PULL_SECRET);
 
     /**
+     * The name of the optional k8s Coherence docker-registry secret.
+     */
+    protected static final String K8S_COHERENCE_IMAGE_PULL_SECRET = getPropertyOrNull(PROP_COHERENCE_K8S_PULL_SECRET);
+
+    /**
      * Flag indicating whether to create and destroy the test namespace.
      */
     public static final boolean CREATE_NAMESPACE = Boolean.getBoolean(PROP_CREATE_NAMESPACE);
@@ -2547,9 +2571,9 @@ public abstract class BaseHelmChartTest
     public static final String[] EMPTY_JMX_SIGNATURE = new String[0];
 
     /**
-     * The version (tag) for the latest Coherence image version being tested.
+     * The full Coherence image name to use.
      */
-    public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
+    public static final String COHERENCE_IMAGE = System.getProperty("test.coherence.image");
 
     /**
      * A JUnit class rule to create temporary files and folders.

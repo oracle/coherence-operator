@@ -62,10 +62,15 @@
 
     <coherence.version>12.2.1-4-0-74024</coherence.version>
     <coherence.image.prefix>SET coherence.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</coherence.image.prefix>
-    <coherence.docker.version>12.2.1.4.0-b74024</coherence.docker.version>
 
     <test.image.prefix>SET test.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</test.image.prefix>
     <release.image.prefix>${test.image.prefix}</release.image.prefix>
+
+    <!-- the Coherence image to use when running functional tests -->
+    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74024</test.coherence.image>
+
+    <!-- default values injected into Helm chart values files -->
+    <helm.chart.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74024</helm.chart.coherence.image>
   </properties>
 
   <dependencyManagement>

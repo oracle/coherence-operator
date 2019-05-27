@@ -22,9 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import com.tangosol.util.Resources;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.oracle.bedrock.options.Timeout;
@@ -44,27 +44,9 @@ import static org.hamcrest.CoreMatchers.is;
 /**
  * @author cp
  */
-@RunWith(Parameterized.class)
-@Parameterized.UseParametersRunnerFactory(CustomParameterizedRunner.Factory.class)
 public class CustomJarInClasspathIT extends BaseHelmChartTest
     {
     // ----- test lifecycle --------------------------------------------------
-
-    /**
-     * Create the test parameters (the versions of the Coherence image to test).
-     *
-     * @return  the test parameters
-     */
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> parameters()
-        {
-        return Arrays.asList(new Object[][] {
-                {COHERENCE_VERSION},
-                {"12.2.1.1"},
-                {"12.2.1.2"},
-                {"12.2.1.3"}
-            });
-        }
 
     @BeforeClass
     public static void setup()
@@ -86,25 +68,13 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             }
         }
 
-    @CustomParameterizedRunner.AfterParmeterizedRun
+    @After
     public void cleanUpCoherence()
         {
         if (m_sRelease != null)
             {
             deleteCoherence(s_k8sCluster, getK8sNamespace(), m_sRelease, PERSISTENCE);
             }
-        }
-
-    // ----- constructors ---------------------------------------------------
-
-    /**
-     * Create a test class instance.
-     *
-     * @param sCoherenceTag  the tag to use when pulling the Coherence image for this test
-     */
-    public CustomJarInClasspathIT(String sCoherenceTag)
-        {
-        m_sCoherenceTag = sCoherenceTag;
         }
 
     // ----- test methods ---------------------------------------------------
@@ -120,12 +90,11 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
         String sNamespace      = getK8sNamespace();
         String sValuesOriginal = "values/helm-values-coh-user-artifacts.yaml";
         String sValuesUpgrade  = "values/helm-values-coh-user-artifacts-upgrade.yaml";
-        String sCoherenceImage = COHERENCE_IMAGE +  ":" + m_sCoherenceTag;
 
         m_sRelease = installCoherence(s_k8sCluster,
                                       sNamespace,
                                       sValuesOriginal,
-                                      "coherence.image=" + sCoherenceImage);
+                                      "coherence.image=" + COHERENCE_IMAGE);
 
         assertCoherence(s_k8sCluster, sNamespace, m_sRelease);
 
@@ -337,19 +306,9 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
     private static boolean        PERSISTENCE  = false;
 
     /**
-     * The version (tag) for the latest Coherence image version.
+     * The full Coherence image name to use.
      */
-    public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
-
-    /**
-     * The base Coherence image name without a tag.
-     */
-    public static final String COHERENCE_IMAGE = System.getProperty("coherence.image.prefix") + "coherence";
-
-    /**
-     * The tag to use when pulling the Coherence image for this test.
-     */
-    private String m_sCoherenceTag;
+    public static final String COHERENCE_IMAGE = System.getProperty("test.coherence.image");
 
     /**
      * The name of the deployed Coherence Helm release.
