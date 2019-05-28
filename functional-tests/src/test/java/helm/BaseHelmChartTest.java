@@ -1647,9 +1647,16 @@ public abstract class BaseHelmChartTest
      */
     static void ensureSecret(K8sCluster cluster, String sNamespace)
         {
-        String sSecretName = getPropertyOrNull(PROP_K8S_PULL_SECRET);
+        String sSecrets = getPropertyOrNull(PROP_K8S_PULL_SECRET);
 
-        ensureSecret(cluster, sNamespace, sSecretName);
+        if (sSecrets != null && !sSecrets.trim().isEmpty())
+            {
+            for (String sSecretName : sSecrets.trim().split(","))
+                {
+                ensureSecret(cluster, sNamespace, sSecretName);
+                }
+            }
+
         }
 
     /**
