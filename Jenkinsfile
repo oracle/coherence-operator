@@ -158,7 +158,7 @@ pipeline {
                            --docker-server=$OCR_PULL_SECRET_SERVER \
                            --docker-username=$OCR_PULL_SECRET_USERNAME \
                            --docker-password="$OCR_PULL_SECRET_PASSWORD" \
-                           --docker-email=$OCR_PULL_SECRET_EMAIL || true
+                           --docker-email=$OCR_PULL_SECRET_EMAIL || true \
                         kubectl create secret docker-registry ocr-k8s-operator-development-secret \
                            --namespace test-cop2-$BUILD_NUMBER \
                            --docker-server=$OCR_PULL_SECRET_SERVER \

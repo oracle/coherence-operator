@@ -1686,7 +1686,7 @@ public abstract class BaseHelmChartTest
 
         arguments = arguments.with("get", "secret", sSecretName);
 
-        int nExitCode = cluster.kubectlAndWait(arguments);
+        int nExitCode = cluster.kubectlAndWait(arguments, MaxRetries.none());
 
         if (nExitCode != 0 && CREATE_SECRET)
             {
