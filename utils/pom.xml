@@ -187,7 +187,7 @@
                   <arguments>
                     <argument>build</argument>
                     <argument>-t</argument>
-                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
+                    <argument>${operator.utils.image}</argument>
                     <argument>--no-cache</argument>
                     <argument>.</argument>
                   </arguments>
@@ -221,7 +221,7 @@
                   <workingDirectory>${project.build.directory}/docker</workingDirectory>
                   <arguments>
                     <argument>push</argument>
-                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
+                    <argument>${operator.utils.image}</argument>
                   </arguments>
                 </configuration>
                 <goals>

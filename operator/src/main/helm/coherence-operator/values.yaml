@@ -56,7 +56,7 @@ service:
 # Image groups the values used to configure the image used
 coherenceOperator:
   # docker image pull the image from
-  image: "${operator.image}:${operator.image.version}"
+  image: "${operator.image}"
   # imagePullPolicy controls the K8s container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy: "${operator.image.pullPolicy}"

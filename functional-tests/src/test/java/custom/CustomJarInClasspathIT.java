@@ -14,8 +14,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
@@ -35,11 +33,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import helm.BaseHelmChartTest;
 import helm.HelmUtils;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import util.CustomParameterizedRunner;
-
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author cp

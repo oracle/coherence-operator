@@ -74,6 +74,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -123,6 +124,26 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Install the Helm chart.
+     *
+     * @param cluster         the k8s cluster to use
+     * @param sHelmChartName  the Helm chart name
+     * @param sNamespace      the k8s namespace being used
+     *
+     * @return  the name of the Helm release
+     *
+     * @throws Exception if there is an error
+     */
+    public static String installChart(K8sCluster cluster,
+                                      String     sHelmChartName,
+                                      URL        urlChartPackage,
+                                      String     sNamespace) throws Exception
+        {
+        String[] asEmpty = new String[0];
+        return installChart(cluster, sHelmChartName, urlChartPackage, sNamespace, asEmpty, asEmpty);
+        }
 
     /**
      * Install the Helm chart.
@@ -468,7 +489,8 @@ public abstract class BaseHelmChartTest
 
         if (K8S_IMAGE_PULL_SECRET != null && K8S_IMAGE_PULL_SECRET.trim().length() > 0)
             {
-            setSecrets.add(K8S_IMAGE_PULL_SECRET);
+            String[] asSecret = K8S_IMAGE_PULL_SECRET.trim().split(",");
+            Collections.addAll(setSecrets, asSecret);
             }
 
         if (K8S_COHERENCE_IMAGE_PULL_SECRET != null && K8S_COHERENCE_IMAGE_PULL_SECRET.trim().length() > 0)
@@ -1823,7 +1845,16 @@ public abstract class BaseHelmChartTest
                                               .toArray(String[]::new);
                     }
 
-                asReleases[i] = installChart(cluster, COHERENCE_HELM_CHART_NAME, COHERENCE_HELM_CHART_URL, sNamespace, sHelmValues, asActualSetValues);
+                String[] asValue = (sHelmValues == null)
+                        ? new String[] { "values/helm-values-coherence-image.yaml" }
+                        : new String[] { "values/helm-values-coherence-image.yaml", sHelmValues };
+
+                asReleases[i] = installChart(cluster,
+                                             COHERENCE_HELM_CHART_NAME,
+                                             COHERENCE_HELM_CHART_URL,
+                                             sNamespace,
+                                             asValue,
+                                             asActualSetValues);
                 }
             catch(Throwable throwable)
                 {
