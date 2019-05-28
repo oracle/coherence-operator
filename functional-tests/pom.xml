@@ -15,7 +15,7 @@
   <parent>
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>operator-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.9.5</version>
   </parent>
 
   <artifactId>coherence-operator-tests</artifactId>
@@ -184,7 +184,7 @@
     <dependency>
       <groupId>com.oracle.coherence.kubernetes</groupId>
       <artifactId>coherence-utils</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>0.9.5</version>
       <scope>test</scope>
     </dependency>
 
