@@ -68,6 +68,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URL;
 
 import java.nio.file.Files;
@@ -433,10 +434,14 @@ public abstract class BaseHelmChartTest
                 }
             }
 
-        console.getCapturedOutputLines()
-                .forEach(System.out::println);
-        console.getCapturedErrorLines()
-                .forEach(System.err::println);
+        File file = new File(s_testLogs.getOutputFolder(), "helm-install-" + sRelease + ".log");
+        System.err.printf("Logging Helm install output for release %s to file %s ", sRelease, file);
+
+        try (PrintWriter writer = new PrintWriter(file))
+            {
+            console.getCapturedOutputLines().forEach(writer::println);
+            console.getCapturedErrorLines().forEach(writer::println);
+            }
 
         return nExitCode;
         }
@@ -989,7 +994,7 @@ public abstract class BaseHelmChartTest
     /**
      * Obtain the yaml to use to install a client.
      *
-     * @param name          the client name
+     * @param sName          the client name
      * @param sRelease      the Helm release name
      * @param sClusterName  the cluster name
      *
@@ -997,12 +1002,12 @@ public abstract class BaseHelmChartTest
      *
      * @throws IOException if there is an error creating the template
      */
-    protected String getClientYaml(String name, String sRelease, String sClusterName) throws IOException
+    protected String getClientYaml(String sName, String sRelease, String sClusterName) throws IOException
         {
         final Map<String, String> templateParams = new HashMap<>();
 
         templateParams.put("%%TEST_REGISTRY_PREFIX%%", System.getProperty("test.image.prefix"));
-        templateParams.put("%%NAME%%", name);
+        templateParams.put("%%NAME%%", sName);
         templateParams.put("%%NAMESPACE%%", getK8sNamespace());
         templateParams.put("%%WKA%%", sRelease + "-coherence-headless");
         templateParams.put("%%LISTEN_PORT%%", "20000");
@@ -1025,9 +1030,11 @@ public abstract class BaseHelmChartTest
             clientYamlContents = clientYamlContents.replaceAll(entry.getKey(), sValue);
             }
 
-        File clientYaml = new File(clientTemplateFile.substring(0, clientTemplateFile.lastIndexOf("/")), name);
+        File clientYaml = new File(clientTemplateFile.substring(0, clientTemplateFile.lastIndexOf("/")), sName);
 
         FileUtils.writeStringToFile(clientYaml, clientYamlContents, "UTF-8");
+
+        System.err.printf("Created client yaml file: %s\n%s", sName, clientYamlContents);
 
         return clientYaml.getPath();
         }
@@ -1048,7 +1055,7 @@ public abstract class BaseHelmChartTest
         {
         try
             {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null, false);
 
             return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
                         && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
