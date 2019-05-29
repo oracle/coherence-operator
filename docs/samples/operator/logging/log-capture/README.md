@@ -147,6 +147,12 @@ Carry out the following commands to delete the chart installed in this sample.
 $ helm delete storage --purge
 ```
 
+> **Note**: If you are using a Kubernetes version below 1.13.0 then you may hit an issue where
+> you cannot delete the pods. This is an known issue and you will need to 
+> add the options `--force --grace-period=0` to force deletion of the pods.
+>
+> Refer to [https://github.com/kubernetes/kubernetes/issues/45688](https://github.com/kubernetes/kubernetes/issues/45688).
+
 Before starting another sample, ensure that all the pods are gone from previous sample.
 
 If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
