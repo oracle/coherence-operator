@@ -100,6 +100,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.fail;
 
 /**
  * A base class for executing Helm chart tests.
@@ -362,9 +363,13 @@ public abstract class BaseHelmChartTest
                 }
             }
 
-        HelmUtils.logConsoleOutput("helm-install", consoleInstall);
-        String reason = "Install dry-run failed for helm chart " + sHelmChartName + " namespace " + sNamespace;
-        assertThat(reason, nExitCode, is(0));
+        if (nExitCode != 0)
+            {
+            HelmUtils.logConsoleOutput("helm-install", consoleInstall);
+            String reason = "Install dry-run failed for helm chart " + sHelmChartName
+                    + " namespace " + sNamespace + " failed with exit code " + nExitCode;
+            fail(reason);
+            }
 
         List<String> listLines = new ArrayList<>(consoleInstall.getCapturedOutputLines());
 
@@ -1013,7 +1018,25 @@ public abstract class BaseHelmChartTest
         templateParams.put("%%LISTEN_PORT%%", "20000");
         templateParams.put("%%CLUSTER%%", sClusterName);
         templateParams.put("%%IMAGE_PULL_POLICY%%", (OP_IMAGE_PULL_POLICY == null) ? "IfNotPresent" : OP_IMAGE_PULL_POLICY);
-        templateParams.put("%%IMAGE_PULL_SECRETS%%", K8S_IMAGE_PULL_SECRET);
+
+        Stream<String> streamSecrets    = Stream.empty();
+        Stream<String> streamCohSecrets = Stream.empty();
+
+        if (K8S_IMAGE_PULL_SECRET != null && !K8S_IMAGE_PULL_SECRET.trim().isEmpty())
+            {
+            streamSecrets = Arrays.stream(K8S_IMAGE_PULL_SECRET.split(","));
+            }
+
+        if (K8S_COHERENCE_IMAGE_PULL_SECRET != null && !K8S_COHERENCE_IMAGE_PULL_SECRET.trim().isEmpty())
+            {
+            streamCohSecrets = Arrays.stream(K8S_COHERENCE_IMAGE_PULL_SECRET.split(","));
+            }
+
+        String sSecrets = Stream.concat(streamSecrets, streamCohSecrets)
+                                .map(s -> "  - name: " + s)
+                                .collect(Collectors.joining("\n"));
+
+        templateParams.put("%%IMAGE_PULL_SECRETS%%", sSecrets);
 
         String clientTemplateFile = Resources.findFileOrResource("coh-client-template.yaml", null).getPath();
         String clientYamlContents = IOUtils.toString(new FileInputStream(clientTemplateFile), "UTF-8");
