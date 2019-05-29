@@ -7,6 +7,7 @@
 package custom;
 
 import com.oracle.bedrock.deferred.options.InitialDelay;
+import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.k8s.K8sCluster;
@@ -29,6 +30,7 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
 import static helm.HelmUtils.HELM_TIMEOUT;
 import static helm.HelmUtils.getPods;
 import static org.hamcrest.CoreMatchers.is;
@@ -121,14 +123,14 @@ public class MetricsUsingCustomJarInClasspathIT
 
         try
             {
-            installClient(s_k8sCluster, CLIENT1, sNamespace, m_sRelease);
-
-            installClient(s_k8sCluster, CLIENT2, sNamespace, m_sRelease);
+            installClient(s_k8sCluster, CLIENT1, sNamespace, m_sRelease, CLUSTER1);
+            installClient(s_k8sCluster, CLIENT2, sNamespace, m_sRelease, CLUSTER1);
 
             System.err.println("Waiting for Client-1 initial state...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+                                  within(TIMEOUT, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
             // validate metrics ports
             for (String sPod : listPods)
@@ -138,11 +140,15 @@ public class MetricsUsingCustomJarInClasspathIT
                 System.err.println("Metrics scrape from pod " + sPod + metricsScrape.poll() + "\n" + metricsScrape.poll() + "...");
                 }
 
-            Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1), is(true),
-                Eventually.within(120, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
+                                  is(true),
+                                  within(120, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
-            Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT2), is(true),
-                Eventually.within(120, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT2),
+                                  is(true),
+                                  within(120, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
             for (int i = 0; i < 6; i++)
                 {
@@ -211,69 +217,6 @@ public class MetricsUsingCustomJarInClasspathIT
                 }
             }
         return "metricName " + sMetricName + " not found";
-        }
-
-    /**
-     * Check for required client state.
-     *
-     * @param cluster     cluster name
-     * @param sNamespace  namespace
-     * @param sClientPod  coherence client pod
-     *
-     * @return {@code true} if required client state is reached.
-     */
-    public boolean isRequiredClientStateReached(K8sCluster cluster, String sNamespace, String sClientPod)
-        {
-        try
-            {
-            boolean success = false;
-            long totalDelay = 0;
-            while (!success)
-                {
-                Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
-                System.err.println("client log: " + sLogs);
-                success = sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
-                        && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
-                if (success)
-                    {
-                    return success;
-                    } else
-                    {
-                    if (totalDelay > TIMEOUT)
-                        {
-                        return false;
-                        }
-                    InitialDelay delay = Eventually.delayedBy(10, TimeUnit.SECONDS);
-                    totalDelay = totalDelay + delay.getDuration().getAmount();
-                    Thread.sleep(delay.to(TimeUnit.SECONDS) * 1000);
-                    }
-                }
-            return success;
-            }
-        catch (Exception ex)
-            {
-            return false;
-            }
-        }
-
-    private Queue<String> installClient(K8sCluster cluster, String name, String sNamespace, String sRelease)
-            throws Exception
-        {
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-
-        Arguments arguments = Arguments.empty();
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("apply");
-            }
-        arguments = arguments.with("-f", getClientYaml(name, sRelease, CLUSTER1));
-
-        int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console));
-        if (nExitCode != 0)
-            {
-            throw new IllegalStateException("kubectl create coherence client pod returned non-zero exit code.");
-            }
-        return console.getCapturedOutputLines();
         }
 
     /**

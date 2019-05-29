@@ -8,6 +8,7 @@ package helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.deferred.options.InitialDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.options.Timeout;
@@ -960,6 +961,31 @@ public abstract class BaseHelmChartTest
         return null;
         }
 
+    protected void installClient(K8sCluster cluster,
+                                 String     sName,
+                                 String     sNamespace,
+                                 String     sRelease,
+                                 String     sClusterName) throws Exception
+        {
+        Arguments arguments = Arguments.of("apply");
+
+        if (sNamespace != null)
+            {
+            arguments = arguments.with("--namespace", sNamespace);
+            }
+
+        String sYaml = getClientYaml(sName, sRelease, sClusterName);
+
+        arguments = arguments.with("-f", sYaml);
+
+        System.err.printf("Installing client '%s' into namespace '%s' yaml:\n%s",
+                          sName, sNamespace, sYaml);
+
+        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
+
+        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
+        }
+
     /**
      * Obtain the yaml to use to install a client.
      *
@@ -1004,6 +1030,33 @@ public abstract class BaseHelmChartTest
         FileUtils.writeStringToFile(clientYaml, clientYamlContents, "UTF-8");
 
         return clientYaml.getPath();
+        }
+
+    /**
+     * Check for required client state.
+     *
+     * @param cluster     the k8s cluster
+     * @param sNamespace  the namespace name
+     * @param sClientPod  the pod name
+     *
+     * @return {@code true} if required client state is reached.
+     */
+    // MUST BE PUBLIC - used in Eventually.assertThat
+    public boolean isRequiredClientStateReached(K8sCluster cluster,
+                                                String     sNamespace,
+                                                String     sClientPod)
+        {
+        try
+            {
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
+
+            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
+                        && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
+            }
+        catch (Exception ex)
+            {
+            return false;
+            }
         }
 
     /**
@@ -1221,9 +1274,18 @@ public abstract class BaseHelmChartTest
 
     protected static Queue<String> getPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer)
         {
+        return getPodLog(cluster, sNamespace, sPod, sContainer, true);
+        }
+
+    protected static Queue<String> getPodLog(K8sCluster cluster,
+                                             String     sNamespace,
+                                             String     sPod,
+                                             String     sContainer,
+                                             boolean    fAllowRetry)
+        {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        getPodLog(cluster, sNamespace, sPod, sContainer, console);
+        getPodLog(cluster, sNamespace, sPod, sContainer, console, fAllowRetry);
 
         return console.getCapturedOutputLines();
         }
@@ -1232,7 +1294,8 @@ public abstract class BaseHelmChartTest
                                   String             sNamespace,
                                   String             sPod,
                                   String             sContainer,
-                                  ApplicationConsole console)
+                                  ApplicationConsole console,
+                                  boolean            fAllowRetry)
         {
         Arguments arguments = Arguments.empty();
 
@@ -1248,7 +1311,9 @@ public abstract class BaseHelmChartTest
             arguments = arguments.with("-c", sContainer);
             }
 
-        cluster.kubectlAndWait(arguments, Console.of(console), LaunchLogging.disabled());
+        MaxRetries maxRetries = fAllowRetry ? MaxRetries.of(5) : MaxRetries.none();
+
+        cluster.kubectlAndWait(arguments, Console.of(console), LaunchLogging.disabled(), maxRetries);
         }
 
     protected static void dumpPodLog(K8sCluster cluster, String sNamespace, String sPod)

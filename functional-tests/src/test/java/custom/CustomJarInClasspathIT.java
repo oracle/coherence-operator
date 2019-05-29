@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import com.tangosol.util.Resources;
 import org.junit.After;
@@ -111,14 +112,14 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
 
         try
             {
-            installClient(s_k8sCluster, CLIENT1, sNamespace, m_sRelease);
-
-            installClient(s_k8sCluster, CLIENT2, sNamespace, m_sRelease);
+            installClient(s_k8sCluster, CLIENT1, sNamespace, m_sRelease, CLUSTER1);
+            installClient(s_k8sCluster, CLIENT2, sNamespace, m_sRelease, CLUSTER1);
 
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
             System.err.println("****************************************************************");
             System.err.println("********[STARTING UPGRADE OF " + m_sRelease + "]***********");
@@ -131,7 +132,8 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             System.err.println("Waiting for required Client-1 state after upgrade ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReachedAfterUpgrade(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
             }
         finally
             {
@@ -185,11 +187,12 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
      *
      * @return {@code true} if required client state is reached.
      */
+    // MUST BE PUBLIC - used in Eventually.assertThat
     public boolean isRequiredClientStateReachedAfterUpgrade(K8sCluster cluster, String sNamespace, String sClientPod)
         {
         try
             {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
+            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null, false);
             return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
                     && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: OCI"));
             }
@@ -197,46 +200,6 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             {
             return false;
             }
-        }
-
-    /**
-     * Check for required client state.
-     *
-     * @param cluster     the k8s cluster
-     * @param sNamespace  the namespace name
-     * @param sClientPod  the pod name
-     *
-     * @return {@code true} if required client state is reached.
-     */
-    public boolean isRequiredClientStateReached(K8sCluster cluster, String sNamespace, String sClientPod)
-        {
-        try
-            {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
-
-            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
-                        && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
-            }
-        catch (Exception ex)
-            {
-            return false;
-            }
-        }
-
-    private void installClient(K8sCluster cluster, String name, String sNamespace, String sRelease) throws Exception
-        {
-        Arguments arguments = Arguments.of("apply");
-
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-
-        arguments = arguments.with("-f", getClientYaml(name, sRelease, CLUSTER1));
-
-        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
-
-        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
         }
 
     /**

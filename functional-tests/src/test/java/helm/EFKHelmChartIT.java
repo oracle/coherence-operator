@@ -254,13 +254,14 @@ public class EFKHelmChartIT
 
         try
             {
-            installClient(s_k8sCluster, CLIENT1, sNamespace, sRelease);
-            installClient(s_k8sCluster, CLIENT2, sNamespace, sRelease);
+            installClient(s_k8sCluster, CLIENT1, sNamespace, sRelease, CLUSTER1);
+            installClient(s_k8sCluster, CLIENT2, sNamespace, sRelease, CLUSTER1);
 
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
-                is(true),
-                Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS));
+                                  is(true),
+                                  Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
             Eventually.assertThat("cloud- index-pattern is null or empty",
                     invoking(this).isCloudApplicationESIndexReady(), is(true),
@@ -455,12 +456,14 @@ public class EFKHelmChartIT
             String      sPath       = "/api/saved_objects/index-pattern/cloud-*";
             PortMapping portMapping = application.get(PortMapping.class);
             int         nPort       = portMapping.getPort().getActualPort();
-            URI         uri     = URI.create("http://127.0.0.1:" + nPort + sPath);
-            HttpClient  client  = HttpClient.newBuilder().proxy(ProxySelector.of(null)).version(Version.HTTP_1_1).build();
-            HttpRequest request = HttpRequest.newBuilder().uri(uri).
-                header("Content-Type", "application/json").
-                header("kbn-xsrf", "true").
-                POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
+            URI         uri         = URI.create("http://127.0.0.1:" + nPort + sPath);
+            HttpClient  client      = HttpClient.newBuilder().proxy(ProxySelector.of(null)).version(Version.HTTP_1_1).build();
+
+            HttpRequest request     = HttpRequest.newBuilder()
+                                                 .uri(uri)
+                                                 .header("Content-Type", "application/json")
+                                                 .header("kbn-xsrf", "true")
+                                                 .POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
             
             try
                 {
@@ -512,46 +515,6 @@ public class EFKHelmChartIT
             }
 
         return Arrays.asList(sList.split(" "));
-        }
-
-    /**
-     * Check for required client state.
-     *
-     * @param cluster     the k8s cluster
-     * @param sNamespace  the namespace name
-     * @param sClientPod  the pod name
-     *
-     * @return {@code true} if required client state is reached.
-     */
-    public boolean isRequiredClientStateReached(K8sCluster cluster, String sNamespace, String sClientPod)
-        {
-        try
-            {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
-
-            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
-                && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
-            }
-        catch (Exception ex)
-            {
-            return false;
-            }
-        }
-
-    private void installClient(K8sCluster cluster, String name, String sNamespace, String sRelease) throws Exception
-        {
-        Arguments arguments = Arguments.of("apply");
-
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-
-        arguments = arguments.with("-f", getClientYaml(name, sRelease, CLUSTER1));
-
-        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
-
-        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
         }
 
     /**
