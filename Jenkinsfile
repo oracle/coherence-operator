@@ -26,8 +26,7 @@ pipeline {
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh '''
 		       cd docs/samples 
-		       # Specify temporary version until chart supplies correct one
-		       mvn clean install -Dcoherence.docker.version=12.2.1.3.2
+		       mvn clean install
 		   '''
                 }
             }
@@ -51,7 +50,7 @@ pipeline {
                 withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd docs/samples 
-		        mvn -Dcoherence.docker.version=12.2.1.3.1 -P docker,docker-v1,docker-v2 clean install
+		        mvn -P docker,docker-v1,docker-v2 clean install
 		    '''
                 }
             }
@@ -127,10 +126,9 @@ pipeline {
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
-				-Dcoherence.docker.version=12.2.1.3.1 \
                                 -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret \
                                 -Dk8s.create.namespace=false \
-				-Dk8s.chart.test.versions=0.9.4 \
+				-Dk8s.chart.test.versions=0.9.7 \
 				-Dk8s.namespace=$NS \
                                 -P helm-test clean install
                         '''
