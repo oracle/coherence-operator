@@ -121,9 +121,7 @@ pipeline {
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
-		            #cd docs/samples 
-			    # temp
-			    cd docs/samples/coherence-deployments/extend/proxy-tier
+		            cd docs/samples 
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \

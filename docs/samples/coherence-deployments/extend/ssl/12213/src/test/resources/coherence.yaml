@@ -17,3 +17,7 @@ logCaptureEnabled: false
 
 prometheusoperator:
   enabled: false
+
+# Temporary until 0.9.5 released
+coherence:
+  image: ${coherence.image.prefix}coherence:${coherence.docker.version}
