@@ -30,6 +30,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
@@ -212,6 +214,38 @@ public class EFKHelmChartIT
         }
 
     /**
+     * Test that logs can be queried per-member and that they can be made to look like
+     * regular Coherence logs.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPerMemberLogs() throws Exception
+        {
+        String[] asCohNamespaces = getTargetNamespaces();
+        m_asReleases = installCoherence(s_k8sCluster, asCohNamespaces,
+                                        "values/helm-values-coh-efk-single-member-log-extract.yaml");
+
+        assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+
+        Eventually.assertThat("coherence-cluster- index-pattern is null or empty",
+                              invoking(this).isCoherenceESIndexReady(), is(true),
+                              MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                              RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                              Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
+
+        for (int i = 0; i < m_asReleases.length; i++)
+            {
+            String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
+            List<String> podNames = getPodNames(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+
+            assertThat(podNames.size(), is(2));
+            verifyNoneMatchEFKData(podNames.get(0), podNames.get(1));
+            }
+
+        }
+
+    /**
      * Validate the configuration of application logging and including it in elastic search.
      *
      * @throws Exception  if the test fails
@@ -357,6 +391,49 @@ public class EFKHelmChartIT
             }).collect(Collectors.toList());
         }
 
+    // must be public - used in Eventually.assertThat call.
+    public boolean verifyNoneMatchEFKData(String sHostMatch, String sHostNoneMatch) throws IOException
+        {
+        List<String> perHostLogMessages = getPerHostLogMessages(sHostMatch);
+
+        boolean fResult = perHostLogMessages.stream().noneMatch(l -> l.contains(sHostNoneMatch));
+
+        return fResult;
+        }
+
+    List<String> getPerHostLogMessages(String sHost) throws IOException
+        {
+        Queue<String> queueLogs = processElasticsearchQuery(
+                "/coherence-cluster-*/_search?size=9999&q=host%3A%22" +
+                sHost + "%22sort=@timestamp");
+
+        Map<String, ?> map = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
+
+        Map<String, List<Map<String, ?>>> mapHits = (Map<String, List<Map<String, ?>>>) map.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        List<Map<String, ?>> list = mapHits.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        return list.stream().map(m -> {
+                Map<String, ?> mapSource = (Map<String, ?>) m.get("_source");
+                assertThat(mapSource.containsKey("@timestamp") &&
+                           mapSource.containsKey("product") &&
+                           mapSource.containsKey("level") &&
+                           mapSource.containsKey("thread") &&
+                           mapSource.containsKey("member") &&
+                           mapSource.containsKey("log"), is(true));
+                String logMessage = String.format("%s %s <%s> (thread=%s, member=%s): %s",
+                                     mapSource.get("@timestamp"),
+                                     mapSource.get("product"),
+                                     mapSource.get("level"),
+                                     mapSource.get("thread"),
+                                     mapSource.get("member"),
+                                     mapSource.get("log"));
+                return logMessage;
+            }).collect(Collectors.toList());
+        }
+
     void assertEFKApplicationData(String sRelease, String sFieldName, String sKeyWord) throws IOException
         {
         Eventually.assertThat(invoking(this).verifyEFKApplicationData(sRelease, sFieldName, sKeyWord), is(true),
@@ -483,6 +560,16 @@ public class EFKHelmChartIT
 
     List<String> getPodUids(K8sCluster cluster, String sNamespace, String sSelector)
         {
+        return getPodMetadataValues(cluster, sNamespace, "uid", sSelector);
+        }
+
+    List<String> getPodNames(K8sCluster cluster, String sNamespace, String sSelector)
+        {
+        return getPodMetadataValues(cluster, sNamespace, "name", sSelector);
+        }
+
+    List<String> getPodMetadataValues(K8sCluster cluster, String sNamespace, String metadataKey, String sSelector)
+        {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
         Arguments args = Arguments.of("get", "pods");
@@ -492,11 +579,11 @@ public class EFKHelmChartIT
             args = args.with("--namespace", sNamespace);
             }
 
-        args = args.with("-o", "jsonpath=\"{.items[*].metadata.uid}\"", "-l", sSelector);
+        args = args.with("-o", "jsonpath=\"{.items[*].metadata." + metadataKey + "}\"", "-l", sSelector);
 
         int nExitCode = cluster.kubectlAndWait(args, Console.of(console));
 
-        HelmUtils.logConsoleOutput("get-pods-uid", console);
+        HelmUtils.logConsoleOutput("get-pods-" + metadataKey, console);
 
         assertThat("kubectl returned non-zero exit code", nExitCode, is(0));
 
