@@ -292,6 +292,6 @@ Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVir
    
    * `coherence/coherence-operator` - /Users/username/workareas/coherence-operator/target/coherence-operator-1.0.0-SNAPSHOT-helm/coherence-operator
 
-   > Note: we are assuming we have built the Coherence Operator within `/Users/username/workareas/coherence-operator`
+   > **Note:** we are assuming we have built the Coherence Operator within `/Users/username/workareas/coherence-operator`
   
    Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.

@@ -38,8 +38,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Installation Steps
 
-1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your maven build     
-   environment set for JDK8 and build the project.
+1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your maven build environment set for JDK8 and build the project.
 
    ```bash
    $ mvn clean install -P docker-v1,docker-v2
@@ -53,7 +52,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    Version 1.0.0  will be the initial image installed in the chart.
 
-   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > **Note**: If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
    > prefix the image name in your `helm` command below.
 
@@ -72,16 +71,18 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set userArtifacts.image=rolling-upgrade-sample:1.0.0 \
       coherence/coherence
    ```
-
-   Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
-
+   
+   Once the install has completed, issue the following command to list the pods:
+   
    ```bash
+   $ kubectl get pods -n sample-coherence-ns
    NAME                   READY   STATUS    RESTARTS   AGE
    storage-coherence-0    1/1     Running   0          4m
    storage-coherence-1    1/1     Running   0          2m
    storage-coherence-2    1/1     Running   0          1m
    ```
+   
+   All 3 storage-coherence-0/1/2 pods should be running and ready, as shown above.
    
 1. Port forward the proxy port on the storage-coherence-0 pod.
 
@@ -135,7 +136,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    You will notice that the data always remains the same.
    
-   > *Note*: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
+   > **Note**: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
    > stop and restart it.  
    
    In an environment where you have configured a load balancer, then the 
@@ -154,7 +155,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    When all of the pods have status of `Running` and `1/1` for Ready, you can continue.
    
-   > *Note*: The above shows not all pods are finished restarting.
+   > **Note**: The above shows not all pods are finished restarting.
    
 1. Add more data via CohQL commands
 

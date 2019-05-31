@@ -59,9 +59,9 @@ Confirm you have completed the following sections from the `Quick Start Guide` b
   * [Obtain the Coherence Docker Image](../quickstart.md#obtain-the-coherence-docker-image)
   
   
-> Note: For all helm install commands you can leave the --version option off 
+> **Note:** For all helm install commands you can leave the --version option off 
 > and the latest version of the chart will be retrieved. If you wanted 
-> to use a specific version, such as 0.9.3, add --version 0.9.3 to all installs for the coherence-operator and coherence charts.  
+> to use a specific version, such as 0.9.7, add --version 0.9.7 to all installs for the coherence-operator and coherence charts.  
 
 ## Ensure you have JDK8 and Maven Installed
 
@@ -71,7 +71,7 @@ Ensure you have the following installed:
 
 * Maven 3.5.4+
 
-> Note: You may use a later version of Java, e.g. JDK11 as the
+> **Note:** You may use a later version of Java, e.g. JDK11 as the
 > `maven.compiler.source` and `target` are set to 8 in the sample
 > `pom.xml` files.
 
@@ -96,6 +96,7 @@ If you are not running samples that have a Maven project, then you can skip this
    ```bash
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-rest.jar \
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
+   $PromInterceptor.java:
    ```   
 
 ## Create the sample namespace
@@ -255,7 +256,7 @@ When you install the `coherence-operator` you can optionally enable the followin
 
 Enabling both Prometheus and log capture will require considerable extra system resources.
 
-> Note: when running locally, (e.g. on Docker for Mac), you should allocate sufficient memory
+> **Note:** when running locally, (e.g. on Docker for Mac), you should allocate sufficient memory
 > to you Docker for Mac process. The minimum recommended to run is 8G.
 
 ### Install the Coherence Operator (no Prometheus or log capture)
@@ -273,7 +274,7 @@ The above will install the `coherence-operator` without Prometheus or log captur
 
 ### Enabling Prometheus
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 To enable Prometheus, add the following options to the above command:
@@ -296,7 +297,7 @@ $ helm install \
      coherence/coherence-operator
 ```
 
-> Note: The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
+> **Note:** The first time you install prometheusOperator, you should set the above `createCustomResource=true`. All subsequent `coherence-operator` installs should set this to `false`.
 
 ### Enabling log Capture
 
@@ -436,11 +437,40 @@ the `--targetNamespaces` option when installing the `coherence-operator`.
 Error: configmaps "coherence-internal-config" not found
 ```
 
+## Unable to delete pods when using log capture
+
+If you are using a Kubernetes version below 1.13.0 then you may hit an issue where
+you cannot delete pods when you have enabled log capture. This is an known issue (specifically with fluentd)
+and you will need to add the options `--force --grace-period=0` to force deletion of the pods.
+
+Refer to [https://github.com/kubernetes/kubernetes/issues/45688](https://github.com/kubernetes/kubernetes/issues/45688).
+
+## Receive Error 'no matches for kind "Prometheus"'
+
+If you are enabling metrics, and you see the following error after attempting to install the
+Coherence Operator:
+
+```bash
+Error: validation failed: [unable to recognize "": no matches for kind "Prometheus" in 
+version "monitoring.coreos.com/v1", unable to recognize "": no matches for kind "PrometheusRule" in 
+version "monitoring.coreos.com/v1", unable to recognize "": no
+...
+```
+
+Ensure that you have set the following, as you may not have installed with prometheus operator enabled before:
+
+```bash
+   --set prometheusoperator.prometheusOperator.createCustomResource=true
+
+```
+
+This is only required when you first install prometheus operator into a namespace. 
+
 # Accessing UI endpoints
 
 ## Access Grafana
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 If you have enabled Prometheus then you can use the `port-forward-grafana.sh` script in the
@@ -483,7 +513,7 @@ If you have enabled log capture then you can use the `port-forward-kibana.sh` sc
 ## Access Prometheus
 
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 If you have enabled Prometheus then you can use the `port-forward-prometheus.sh` script in the

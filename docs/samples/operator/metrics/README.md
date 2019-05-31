@@ -1,6 +1,6 @@
 # Metrics
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 # Table of Contents

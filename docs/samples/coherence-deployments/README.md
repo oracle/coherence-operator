@@ -19,8 +19,6 @@
 1. [Persistence](persistence)
    1. [Use default persistent volume claim](persistence/default)
    1. [Use a specific persistent volume](persistence/pvc)
-   1. [Specify a separate snapshot location for active persistence](persistence/snapshot)
-   1. [Specifying an archiver](persistence/archiver)
 1. [Elastic Data](elastic-data)
    1. [Deploy using default FlashJournal locations](elastic-data/default)
    1. [Deploy using external volume mapped to the host](elastic-data/external)

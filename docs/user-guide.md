@@ -205,7 +205,7 @@ We must now package the jar file within the sidecar Docker image.
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
-   > Note: If you are using a local Kubernetes, you can omit this step, since
+   > **Note:** If you are using a local Kubernetes, you can omit this step, since
    > the Kubernetes pulls from the same Docker server as the one to which
    > the local build command built the image.
    
@@ -217,7 +217,7 @@ $ helm --debug install coherence/coherence --name hello-example \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
-> Note: If your jar files are in a different location within the sidecar Docker
+> **Note:** If your jar files are in a different location within the sidecar Docker
 > image, use the `--set userArtifacts.libDir=<absolute path within
 > docker image>` argument to `helm install` to configure the correct location.
 
@@ -505,7 +505,7 @@ We must now package the XML file within the sidecar Docker image.
    to make the Kubernetes cluster aware of the Docker credentials so it
    can pull down images.
    
-   > Note: If you are using a local Kubernetes, you can omit this step, since
+   > **Note:** If you are using a local Kubernetes, you can omit this step, since
    > the Kubernetes pulls from the same Docker server as the one to which
    > the local build command built the image.
 
@@ -519,7 +519,7 @@ $ helm --debug install coherence/coherence --name hello-server-config \
      --set store.cacheConfig=hello-server-config.xml
 ```
 
-> Note: If your XML files are in a different location within the sidecar Docker
+> **Note:** If your XML files are in a different location within the sidecar Docker
 > image, use the `--set userArtifacts.configDir=<absolute path within
 > docker image>` argument to `helm install` to configure the correct
 > location.
@@ -992,7 +992,7 @@ Coherence clusters to not merge and form one cluster.
 
 ## Monitoring Performance and Logging
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note**: use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 * [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
@@ -1001,7 +1001,7 @@ Coherence clusters to not merge and form one cluster.
 
 ### Configuring SSL endpoints for management over REST and metrics publishing
 
-> Note: SSL and Management over REST and metrics publishing will be
+> **Note:** SSL and Management over REST and metrics publishing will be
 > available in Coherence 12.2.1.4.
 
 This section describes how to configure SSL for management over REST and Prometheus metrics through two examples.

@@ -3,7 +3,7 @@
 This sample shows how an end-user can include their own custom metrics 
 for scraping by Prometheus.
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -49,7 +49,8 @@ for scraping by Prometheus.
       coherence/coherence-operator
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
+   
    ```bash
    $ kubectl get pods -n sample-coherence-ns
    NAME                                                     READY   STATUS    RESTARTS   AGE
@@ -63,16 +64,15 @@ for scraping by Prometheus.
    
    Along with the `coherence-operator`, you should also see `grafana` and other `promethues` related pods.
    
-1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your maven build     
-   environment set for JDK8 and build the project.
+1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your maven build environment set for JDK8 and build the project.
 
    ```bash
-   $ mvn clean install -P docker 
+   $ mvn clean install -P docker,coherence12214 -P coherence.version=12.2.1-4-0 
    ```
 
    The above will build the Docker image called `custom-metrics-sample:1.0.0-SNAPSHOT`. 
    
-   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > **Note:** If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
    > prefix the image name in your `helm` command below.
    
@@ -122,10 +122,10 @@ for scraping by Prometheus.
       coherence/coherence
    ```
     
-   Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
+   $ kubectl get pods -n sample-coherence-ns
    NAME                         READY   STATUS    RESTARTS   AGE
    custom-coherence-metrics-0   1/1     Running   0          4m
    custom-coherence-metrics-1   1/1     Running   0          3m
@@ -146,7 +146,7 @@ for scraping by Prometheus.
 
    Access the following URL to check that the new targets were discovered:
    
-   ```
+   ```bash
    http://127.0.0.1:9090/targets
    ```  
    

@@ -11,7 +11,7 @@ The Swagger document is available via the following URL:
 
 * `http://host:300000`/management/coherence/cluster/metadata-catalog`.
 
-> Note, use of Management over REST is only available when using the
+> **Note**: Use of Management over REST is only available when using the
 > operator with Coherence 12.2.1.4.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -38,7 +38,15 @@ Ensure you have already installed the Coherence Operator by using the instructio
       coherence/coherence
    ```
    
-   Use `kubectl get pods -n sample-coherence-ns` and wait until all 3 pods are running.
+   Once the install has completed, issue the following command to list the pods:
+   
+   ```bash
+   $ kubectl get pods -n sample-coherence-ns
+   NAME                   READY   STATUS    RESTARTS   AGE
+   storage-coherence-0    1/1     Running   0          4m
+   storage-coherence-1    1/1     Running   0          2m   
+   storage-coherence-2    1/1     Running   0          2m
+   ```
    
 1. Port-Forward the Management over REST port
 
@@ -53,10 +61,10 @@ Ensure you have already installed the Coherence Operator by using the instructio
    Using `curl`, issue the following command to access the endpoint
    
    ```bash
-   $ curl http://127.0.0.1:30000/management/coherence/cluster
+   $ curl --noproxy http://127.0.0.1:30000/management/coherence/cluster
    ```
    
-   This will return the top-level JSON.  You can access the Swagger endpoint via `http://127.0.0.1:30000/api-docs`.
+   This will return the top-level JSON.  You can access the Swagger endpoint via `http://127.0.0.1:30000/management/coherence/cluster/metadata-catalog`.
    
    You can specify individual attributes via the following:
    

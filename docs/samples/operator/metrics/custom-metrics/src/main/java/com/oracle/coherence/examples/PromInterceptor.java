@@ -4,7 +4,7 @@ import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
-import com.tangosol.coherence.rest.internal.metrics.MetricSet;
+import com.tangosol.coherence.metrics.MetricSet;
 
 import java.io.IOException;
 import java.io.OutputStream;

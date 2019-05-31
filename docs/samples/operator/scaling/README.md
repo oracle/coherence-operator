@@ -10,14 +10,14 @@ the cluster data to ensure no data is lost.
 This sample shows you how to scale-up a statefulset using `kubectl` as well as scaling-down
 1 Pod at a time and checking StatusHA via JVisualVM.
 
-> Note: In a future version of the Coherence Operator, this manual `HAStatus` check will not be required.
+> **Note:** In a future version of the Coherence Operator, this manual `HAStatus` check will not be required.
 
 [Return to Coherence Operator samples](../) / [Return to samples](../../README.md#list-of-samples)
 
 ## Prerequisites
 
 1. Install Coherence Operator
-   Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+   Ensure you have already installed the Coherence Operator by using the instructions [here](../../README.md#install-the-coherence-operator).
 
 1. Download the JMXMP connector jar
 
@@ -114,7 +114,7 @@ This sample shows you how to scale-up a statefulset using `kubectl` as well as s
    
 1. Check `HAStatus` of `PartitionedCache` service
 
-   > Note: We are using JVisualVM in this sample.
+   > **Note:** We are using JVisualVM in this sample.
    
    Connect to the Mbean tab in JVisualVM and expand `Coherence`->`PartitionAssignment`->`PartitionedCache`->
    `DistributionCoordinator`.

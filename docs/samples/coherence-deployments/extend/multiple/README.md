@@ -21,8 +21,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/extend/multiple` directory and ensure you have your maven build     
-   environment set for JDK8 and build the project.
+1. Change to the `samples/coherence-deployments/extend/multiple` directory and ensure you have your maven build environment set for JDK8 and build the project.
 
    ```bash
    $ mvn clean install -P docker
@@ -37,7 +36,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    multiple-proxy-sample:1.0.0-SNAPSHOT
    ```
 
-   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > **Note** If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
    > prefix the image name in your `helm` command below.
 
@@ -64,11 +63,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set store.ports.custom-port=20001 \
       coherence/coherence
    ```
+              
+   Once the install has completed, issue the following command to list the pods:
    
-   Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
-
    ```bash
+   $ kubectl get pods -n sample-coherence-ns
    NAME                   READY   STATUS    RESTARTS   AGE
    storage-coherence-0    1/1     Running   0          4m
    storage-coherence-1    1/1     Running   0          2m   

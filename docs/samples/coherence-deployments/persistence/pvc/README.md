@@ -4,8 +4,7 @@ This sample shows how to use specific Persistent Volumes (PV) for Coherence when
 using `active` Persistence mode. Local storage is the recommended storage type for achieving best  
 performance for `active` Persistence, but this sample can be modified to use any storage class.
 
-> Note: We only show how to set `store.persistence.*` chart values which apply for `active` persistence (/persistence mount point) only.
-> 
+> **Note:** We only show how to set `store.persistence.*` chart values which apply for `active` persistence (/persistence mount point) only.
 > It is equally applicable to `store.snapshot.*` chart values with apply to the `/snapshot` volume.
   
 [Return to Persistence samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -43,7 +42,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 1. Create the Persistent Volumes (PV)
 
-   > Note: the PV have a label of `coherenceCluster=persistence-cluster` which will
+   > **Note:** the PV have a label of `coherenceCluster=persistence-cluster` which will
    > be used by a nodeSelector to match PV with Coherence clusters.
 
    ```bash
@@ -63,7 +62,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    mylocal-pv2   2Gi        RWO            Retain           Available           mylocalsc               9s
    ```
 
-   > Note: The number of Persistent Volumes created need to be the same as Coherence cluster size.
+   > **Note:** The number of Persistent Volumes created need to be the same as Coherence cluster size.
    > For this example whe have assumed a cluster size of three.
     
     
@@ -232,7 +231,8 @@ $ helm delete storage --purge
 Once the pods are deleted, issue the following to delete the PVC.:
 
 ```bash
-$ kubectl delete pvc persistence-volume-storage-coherence-0 persistence-volume-storage-coherence-1 persistence-volume-storage-coherence-2 -n sample-coherence-ns
+$ kubectl delete pvc persistence-volume-storage-coherence-0 persistence-volume-storage-coherence-1 \
+                     persistence-volume-storage-coherence-2 -n sample-coherence-ns
 persistentvolumeclaim "snapshot-volume-storage-coherence-0" deleted
 persistentvolumeclaim "snapshot-volume-storage-coherence-1" deleted
 persistentvolumeclaim "snapshot-volume-storage-coherence-2" deleted
