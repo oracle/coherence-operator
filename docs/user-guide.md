@@ -36,6 +36,8 @@ before any of the steps in this guide.
    * [Supply a Configuration File and/or Application Classes In a Jar File](#finally-lets-combine-the-preceding-two-use-cases-and-deploy-a-jar-containing-both-application-classes-and-configuration-files)
    
 * [Extract Heap Dump Files from Kubernetes](#extract-heap-dump-files-from-a-kubernetes-coherence-pod)
+
+* [Extract Coherence Log Files from Kubernetes](#extract-coherence-log-files-from-kubernetes)
    
 * [Use JMX to Inspect and Manage Coherence](#use-jmx-to-inspect-and-manage-coherence)
 
@@ -674,6 +676,51 @@ Heap dump file created
 ```
 
 output from `jcmd` from showing up in the heap dump file.
+
+### Extract Coherence Log Files from Kubernetes
+
+The operator and Coherence must be installed with log capture enabled as
+described [in this sample](samples/operator/logging/log-capture/).  With
+log capture enabled, every log message from every Coherence cluster
+member will be captured to ElasticSearch, stored with Fluentd, and
+exposed for easy analysis in Kibana.  This includes cluster members that
+are no longer running.  The persistence of the stored log messages
+depends on how Fluentd is configured and is beyond the scope of this
+documentation.  This use-case describes how to "reconstitute" the
+familiar per-Coherence cluster member log by querying ElasticSearch with
+`curl` and manipulating the result with
+[jq](https://stedolan.github.io/jq/). to produce output equivalent to a
+regular Coherence log file.
+
+#### 1. Query ElasticSearch
+
+You must make it so a `curl` command can reach the ElasticSearch endpoint.
+The specific details of this process are entirely dependent on
+Kubernetes, but the simplest approach is to use port-forwarding.  Use
+the steps [elsewhere in this document](#4-install-the-helm-chart-passing-the-arguments-to-make-the-chart-aware-of-the-sidecar-image)
+as a guide, but you must use the ElasticSearch pod name (it may have a
+name similar to `elasticsearch-f7dc5497d-cmlvn`) and port (usually 9200)
+instead of the values in that section.  For discussion we assume `curl` can reach the
+ElasticSearch running on `ES_HOST:ES_PORT`.
+
+Next you need to determine the name of each Coherence cluster member
+from which you wish to extract the log.  This is dependent on how you
+installed the Coherence helm chart.  For discussion, let's say we want
+the logs for member `my-storage-coherence-0`.
+
+The following `curl` command will extract the log for that member from
+ElasticSearch and save it to the local file `coherence-0.json`.
+
+```
+curl -s --output coherence-0.json http://ES_HOST:ES_PORT/coherence-cluster-*/_search?size=9999&q=host%3A%22my-20190514-storage-coherence-1%22&sort=@timestamp
+```
+
+Once the file `coherence-0.json` has been written, the following `jq`
+program will re-format it to look like a Coherence log file.
+
+```
+jq -j '.["hits"] | .["hits"] | .[] | .["_source"] | .["@timestamp"]," ", .["product"]," <", .["level"], "> (thread=", .["thread"], ", member=", .["member"], "):", .["log"], "newline"' coherence-0.json | sed -e $'s/newline/\\\n/g' > coherence-0.log
+```
 
 ### Use JMX to Inspect and Manage Coherence
 
