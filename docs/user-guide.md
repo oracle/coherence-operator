@@ -679,18 +679,25 @@ output from `jcmd` from showing up in the heap dump file.
 
 ### Extract Coherence Log Files from Kubernetes
 
-The operator and Coherence must be installed with log capture enabled as
-described [in this sample](samples/operator/logging/log-capture/).  With
-log capture enabled, every log message from every Coherence cluster
+The practice of examining individual Coherence cluster node log files
+for errors is less common when running Coherence in Kubernetes.  The
+more common practice is to capture all the log messages from all of the
+Coherence cluster nodes into a log aggregator and use a tool to examine
+the aggregate logs.  This practice is well supported by the operator when
+the operator and Coherence are installed with log capture enabled as
+described [in this sample](samples/operator/logging/log-capture/).  
+
+With log capture enabled, every log message from every Coherence cluster
 member will be captured to ElasticSearch, stored with Fluentd, and
 exposed for easy analysis in Kibana.  This includes cluster members that
 are no longer running.  The persistence of the stored log messages
 depends on how Fluentd is configured and is beyond the scope of this
-documentation.  This use-case describes how to "reconstitute" the
-familiar per-Coherence cluster member log by querying ElasticSearch with
-`curl` and manipulating the result with
-[jq](https://stedolan.github.io/jq/). to produce output equivalent to a
-regular Coherence log file.
+documentation.  
+
+However, it is possible to "reconstitute" the familiar per-Coherence
+cluster member log by querying ElasticSearch with `curl` and
+manipulating the result with [jq](https://stedolan.github.io/jq/) to
+produce output equivalent to a regular Coherence log file.
 
 #### 1. Query ElasticSearch
 
