@@ -5,7 +5,7 @@ included prometheus and Grafana.
 
 This sample shows you how to scrape metrics from your own Prometheus instance.
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -32,7 +32,8 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       coherence/coherence-operator
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
+   
    ```bash
    $ kubectl get pods -n sample-coherence-ns
    NAME                                  READY   STATUS    RESTARTS   AGE
@@ -55,7 +56,7 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       coherence/coherence
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns

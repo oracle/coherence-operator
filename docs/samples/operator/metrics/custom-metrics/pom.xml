@@ -163,6 +163,23 @@
 
   <profiles>
     <profile>
+      <id>coherence12214</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle.coherence</groupId>
+          <artifactId>coherence-metrics</artifactId>
+          <version>${coherence.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    
+    <profile>
       <id>docker</id>
       <activation>
         <activeByDefault>false</activeByDefault>

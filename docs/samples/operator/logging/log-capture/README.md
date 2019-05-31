@@ -22,7 +22,7 @@ is installed and correctly configured.
 
    Issue the following command to install `coherence-operator` with log capture enabled:
    
-   > Note: If you already have the `coherence-operator` installed without log capture enabled, you
+   > **Note:** If you already have the `coherence-operator` installed without log capture enabled, you
    > must delete it via `helm delete coherence-operator --purge`, before continuing.
    
    ```bash
@@ -35,7 +35,7 @@ is installed and correctly configured.
       coherence/coherence-operator
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
    ```bash
    $ kubectl get pods -n sample-coherence-ns
    NAME                                  READY   STATUS    RESTARTS   AGE
@@ -59,7 +59,7 @@ is installed and correctly configured.
       coherence/coherence
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
@@ -108,7 +108,7 @@ Use the `port-forward-kibana.sh` script in the
 
    [http://127.0.0.1:5601/](http://127.0.0.1:5601/)
    
-   >Note: It may take up to 5 minutes for the data to reach the elasticsearch instance.   
+   > **Note:** It may take up to 5 minutes for the data to reach the elasticsearch instance.   
    
 ## Default Kibana Dashboards
 

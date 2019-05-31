@@ -131,6 +131,7 @@
         </executions>
         <configuration>
           <mainClass>com.oracle.coherence.examples.SampleClient</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
           <systemProperties>
             <systemProperty>
               <key>coherence.distributed.localstorage</key>

@@ -5,7 +5,7 @@ The Oracle Coherence Operator includes the Prometheus Operator as an optional su
 This sample shows you how configure the Prometheus Operator and monitor Coherence services via 
 Grafana dashboards, please follow the instructions below.
 
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:**: Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
@@ -38,7 +38,8 @@ Grafana dashboards, please follow the instructions below.
       coherence/coherence-operator
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
+   
    ```bash
    $ kubectl get pods -n sample-coherence-ns
    NAME                                                     READY   STATUS    RESTARTS   AGE
@@ -66,7 +67,10 @@ Grafana dashboards, please follow the instructions below.
       coherence/coherence
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   > **Note:** If the Coherence Operator chart version does not have the default
+   > Coherence image as 12.2.1.4, then you will need to set this via `--set coherence.image=your-12.2.1.4-image`.
+   
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns

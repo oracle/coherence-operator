@@ -5,7 +5,7 @@ arguments for maximum performance, and Coherence is no exception.  This
 use-case explains how to convey JVM arguments to Coherence running
 inside Kubernetes.
 
-Please see [the Coherence Performance Tuning
+Please see the [Coherence Performance Tuning
 documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB)
 for authoritative information on this topic.
 
@@ -27,7 +27,7 @@ the following.
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure you have already installed the Coherence Operator by using the instructions [here](../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
                     

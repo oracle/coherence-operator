@@ -6,7 +6,7 @@ Operator with Coherence 12.2.1.3.X.
 Please see the [Coherence Documentation](https://docs.oracle.com/middleware/12213/coherence/secure/securing-extend-client-connections.htm)
 for more information on using SSL with Coherence.
 
-> Note: If you are using Coherence 12.2.1.4, the instructions are slightly different and
+> **Note:** If you are using Coherence 12.2.1.4, the instructions are slightly different and
 > you should refer to them [here](../12214/).
 
 [Return to Coherence*Extend SSL samples](../) / [Return to Coherence*Extend samples](../../) / [Return to Coherence Deployments samples](../../../) / [Return to samples](../../../../README.md#list-of-samples)
@@ -28,10 +28,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/extend/ssl/12213` directory and ensure you have your 
-   maven build environment set for JDK8 and build the project.
+1. Change to the `samples/coherence-deployments/extend/ssl/12213` directory and ensure you have your maven build environment set for JDK8 and build the project.
    
-   > Note: This sample uses self-signed certificates and simple passwords. They are for sample
+   > **Note**: This sample uses self-signed certificates and simple passwords. They are for sample
    > purposes only and should **NOT** use these in a production environment.
    > You should use and generate proper certificates with appropriate passwords.
 
@@ -48,7 +47,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    proxy-ssl-sample-12213:1.0.0-SNAPSHOT
    ```
 
-   > Note: If you are running against a remote Kubernetes cluster you will need to
+   > **Note:** If you are running against a remote Kubernetes cluster you will need to
    > push the above image to your repository accessible to that cluster. You will also need to 
    > prefix the image name in your `helm` command below.
    
@@ -71,11 +70,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set userArtifacts.image=proxy-ssl-sample-12213:1.0.0-SNAPSHOT \
       coherence/coherence
    ```
-   
-   Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
 
+   Once the install has completed, issue the following command to list the pods:
+   
    ```bash
+   $ kubectl get pods -n sample-coherence-ns
    NAME                   READY   STATUS    RESTARTS   AGE
    storage-coherence-0    1/1     Running   0          4m
    storage-coherence-1    1/1     Running   0          2m   

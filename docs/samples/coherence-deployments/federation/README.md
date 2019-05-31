@@ -1,6 +1,6 @@
 # Federation
 
-> Note, use of Coherence Federation is only available when using the
+> **Note:** Use of Coherence Federation is only available when using the
 > operator with Coherence 12.2.1.4.
 
 # Table of Contents

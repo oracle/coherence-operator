@@ -8,9 +8,8 @@ file or by using system properties.  This approach is valid for all versions of 
 This sample is concerned with accessing and managing the reporter over REST, which is only available
 in Coherence 12.2.1.4.0 and later. 
 
-**Note**: 
-For enabling the Coherence Reporter using system properties, please refer to the section on how to
-[provide arguments to the JVM that runs Coherence](../../jvmarguments/) using `store.javaOpts`.
+> **Note**: For enabling the Coherence Reporter using system properties, please refer to the section on how to
+> [provide arguments to the JVM that runs Coherence](../../jvmarguments/) using `store.javaOpts`.
 
 The [Oracle Reporter documentation](
 https://docs.oracle.com/middleware/1221/coherence/manage/reporter.htm#COHMG4885) explains how to set System propertites.
@@ -19,7 +18,7 @@ https://docs.oracle.com/middleware/1221/coherence/manage/reporter.htm#COHMG4885)
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure you have already installed the Coherence Operator by using the instructions [here](../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
@@ -173,7 +172,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ```bash
    $ kubectl exec -it -n sample-coherence-ns storage-coherence-0 bash
 
-   # ls -l /tmp/*.txt
+   $ ls -l /tmp/*.txt
    -rw-r--r-- 1 root root  618 Apr 26 09:15 /tmp/2019042609-Management.txt
    -rw-r--r-- 1 root root 1653 Apr 26 09:15 /tmp/2019042609-memory-status.txt
    -rw-r--r-- 1 root root 1089 Apr 26 09:15 /tmp/2019042609-network-health-detail.txt
@@ -199,6 +198,7 @@ Carry out the following commands to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge
+```
 
 Before starting another sample, ensure that all the pods are gone from previous sample.
 

@@ -39,19 +39,10 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    The above will build the Docker image with the cache and logging
    configuration as well as compiled Java classes.
    
-   > Note: If you are running against a remote Kubernetes cluster you
+   > **Note:** If you are running against a remote Kubernetes cluster you
    > will need to push the above image to your repository accessible to
    > that cluster. You will also need to prefix the image name in your
    > `helm` command below.
-   
-   > In the build output, look for something that looks like `Successfully tagged
-   > custom-logger-sample:1.0.0-SNAPSHOT`.  Refer to the steps in [the top level README of the samples](../../../README.md#using-dockerhub-for-your-images).
-   > Create a repository within your DockerHub account called
-   > `custom-logger-samples`.  Retag your image as
-   
-   > `docker tag custom-logger-sample:1.0.0-SNAPSHOT mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`
-   
-   > Then push it with `docker push mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`.
 
 1. Install the Coherence cluster
 
@@ -84,10 +75,10 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
       coherence/coherence
    ```
 
-   Use `kubectl get pods -n sample-coherence-ns` to ensure that all pods are running.
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as below:
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
+   $ kubectl get pods -n sample-coherence-ns
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-7f596c6796-9v5m4   2/2     Running   0          58m
    elasticsearch-5b5474865c-glrl8        1/1     Running   0          58m
@@ -96,6 +87,8 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    storage-coherence-1                   2/2     Running   0          1m
    storage-coherence-2                   2/2     Running   0          1m
    ```
+   
+   Ensure that all pods (storage-coherence-0/1/2) are running and ready, as shown above.
           
 1. Port forward the Coherence proxy port on the storage-coherence-0 pod.
 
@@ -143,7 +136,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    2019-04-29 04:45:03 Cloud 1.0 <INFO> (cluster=custom-logger-cluster, member=storage-coherence-0, thread=PartitionedCacheWorker:0x0000:5): Changed key=key-4 to value=VALUE-4
    ``` 
    
-   *Note*: Depending upon the data distribution, not all members will show the messages.
+   > **Note**: Depending upon the data distribution, not all members will show the messages.
    
 ## Verifying Kibana Logs
 
@@ -160,7 +153,7 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    
    * Click `Next Step` and select the `@timestamp` field and click on `Create index pattern`.
    
-   >Note: It may take up to 5 minutes for the data to reach the elasticsearch instance.
+   > **Note:** It may take up to 5 minutes for the data to reach the elasticsearch instance.
    
 1. View data from the `cloud-*` index pattern
 

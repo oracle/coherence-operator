@@ -22,7 +22,7 @@ and [Helm](https://helm.sh/docs/) documentation.
 For more advanced actions, such as accessing Kibana for viewing server
 logs, see the [User Guide](user-guide.md).
 
-> If you have an old version of the operator installed on your cluster
+> **Note**: If you have an old version of the operator installed on your cluster
 > you must remove it before installing any of the charts by using the
 > `helm delete --purge` command.
 
@@ -74,8 +74,8 @@ Hang tight while we grab the latest from your chart repositories...
 
 > **Note**: For all helm install commands you can leave the `--version`
 > option off and the latest version of the chart will be retrieved.  If
-> you wanted to use a specific version, such as `0.9.3`, add `--version
-> 0.9.3` to all installs for the `coherence-operator` and `coherence`
+> you wanted to use a specific version, such as `0.9.7`, add `--version
+> 0.9.7` to all installs for the `coherence-operator` and `coherence`
 > charts.
 
 If you wish to build the Coherence Operator from source, please refer to the 
@@ -140,7 +140,7 @@ $ helm --debug install coherence/coherence-operator \
 
 If the operation completes successfully, you should see output similar to the following.
 
-```
+```bash
 NOTES:
 1. Get the application URLs by running these commands:
 
@@ -159,19 +159,19 @@ Use `helm ls` to view the installed releases.
 $ helm ls
 
 NAME                     	REVISION	UPDATED                 	STATUS  	CHART                   	APP VERSION	NAMESPACE
-sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.3	0.9.3      	default  
+sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.7	0.9.3      	default  
 ```
 
 You can also query the status with `helm status`:
 
-```
+```bash
 $ helm status sample-coherence-operator
 ```
 
 If the deployment was successful, the output should include output
 similar to the following (abbreviated):
 
-```
+```bash
 LAST DEPLOYED: Thu Feb  7 14:11:17 2019
 STATUS: DEPLOYED
 
@@ -183,7 +183,7 @@ STATUS: DEPLOYED
 Install the `coherence` helm chart.  You may want to customize the values
 for the `--name`, `--namespace` and `imagePullSecrets` options.
 
-```
+```bash
 $ helm --debug install coherence/coherence \
     --name sample-coherence \
     --set imagePullSecrets=sample-coherence-secret
@@ -192,9 +192,7 @@ $ helm --debug install coherence/coherence \
 > **Note**: If you want to use a different version of Coherence than the
 > one specified in the `coherence` helm chart, supply a `--set` argument
 > for the `coherence.image` value, as shown next.
-
 > `--set coherence.image="store/oracle/coherence:12.2.1.3.2"`
-
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
 > coherence/coherence` will print out the `README.md` for the operator
@@ -205,7 +203,7 @@ $ helm --debug install coherence/coherence \
 If the operation completes successfully, you should see output similar
 to the following.
 
-```
+```bash
 NOTES:
 1. Get the application URLs by running these commands:
 
@@ -226,7 +224,7 @@ NOTES:
 
 You can also query the status with `helm status`:
 
-```
+```bash
 $ helm status sample-coherence
 LAST DEPLOYED: Wed Feb 13 14:51:38 2019
 STATUS: DEPLOYED
@@ -315,7 +313,7 @@ and that the correct `coherence.jar` is available at
 `${COHERENCE_HOME}/lib/coherence.jar`, compile and run the program as shown
 next:
 
-```
+```bash
 $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloCoherence.java
 $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
        -Dcoherence.cacheconfig=$PWD/example-client-config.xml HelloCoherence
@@ -323,20 +321,20 @@ $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
 
 This should produce output similar to the following:
 
-```
+```bash
 The value of the key is 1
 ```
 
 Running the program again should produce:
 
-```
+```bash
 The value of the key is 2
 ```
 
 > **Note**: If you are using JDK 11 or newer, you can omit the `javac`
 > step and simply run the program as shown next.
 
-```
+```bash
 $ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
   -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
 ```
@@ -345,7 +343,7 @@ $ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
 
 Remove the `coherence` release:
 
-```
+```bash
 $ helm delete --purge sample-coherence sample-coherence-operator
 ```
 

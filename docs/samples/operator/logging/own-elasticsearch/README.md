@@ -67,7 +67,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
    * `--set logCaptureEnabled=true` - this will then use the configuration of the operator 
      for the elasticsearch endpoint for fluentd.
 
-   *Note*: The Coherence Operator will provide the Elasticsearch host and port values to the Coherence install.
+   > **Note**: The Coherence Operator will provide the Elasticsearch host and port values to the Coherence install.
    
    ```bash
    $ helm install \
@@ -80,7 +80,7 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       coherence/coherence
    ```
    
-   Once the install has completed issue the following command to list the pods:
+   Once the install has completed, issue the following command to list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns

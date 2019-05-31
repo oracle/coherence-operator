@@ -166,7 +166,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    
    > This shows that the previous data entered has automatically been recovered due the PVC being honoured.
    
-   > Note: There is currently an bug with default /persistence mount not being created on Docker for Mac environments, 
+   > **Note:** There is currently an bug with default /persistence mount not being created on Docker for Mac environments, 
    > and therefore the size may show zero.  
  
    Clear the cache using `clear` command and confirm the cache size is zero.

@@ -1,4 +1,4 @@
-> Note, use of Prometheus and Grafana is only available when using the
+> **Note:** Use of Prometheus and Grafana is only available when using the
 > operator with Coherence 12.2.1.4.
 
 
@@ -39,7 +39,7 @@ do
 done
 ```
 
-> Note: We add place the port-forward in a while to ensure it restarts any time it exists as 
+> **Note:** We add place the port-forward in a while to ensure it restarts any time it exists as 
 > port-forwarding is sometimes unreliable and should only be used as a development tool. 
 
 ## Login to Grafana

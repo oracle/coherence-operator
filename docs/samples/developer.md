@@ -32,7 +32,7 @@ Please ensure that you have met all the prerequisites as described in the
         --docker-password='your-docker-password'   
    ```
    
-   > Note: You must have push permissions for this repository if you not running Kubernetes 
+   > **Note:** You must have push permissions for this repository if you not running Kubernetes 
    > locally.
    
 1. Run the tests
@@ -43,11 +43,11 @@ Please ensure that you have met all the prerequisites as described in the
        -Dk8s.namespace=$NS -Dk8s.create.namespace=false -P docker,helm-test clean verify
    ```   
    
-   > Note: If you are running against a remote Kubernetes cluster, you must also specify
+   > **Note:** If you are running against a remote Kubernetes cluster, you must also specify
    > the profile `dockerPush`
    
-   > Note: You can also specify multiple versions of the chart to test: e.g. 
+   > **Note:** You can also specify multiple versions of the chart to test: e.g. 
    > `-Dk8s.chart.test.versions=0.9.4,1.0.0`. 
    
-   > Note: You can set the `operator.helm.chart.package` and `coherence.helm.chart.package`
+   > **Note:** You can set the `operator.helm.chart.package` and `coherence.helm.chart.package`
    > properties to run against operator charts that have been built on disk.
