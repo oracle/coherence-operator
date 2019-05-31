@@ -60,12 +60,24 @@
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
 
+    <!--  The Coherence jar version (compile time dependency) -->
     <coherence.version>12.2.1-4-0-74024</coherence.version>
-    <coherence.image.prefix>SET coherence.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</coherence.image.prefix>
-    <coherence.docker.version>12.2.1.4.0-b74024</coherence.docker.version>
 
+    <!-- Image prefix used to differentiate builds during CI/CD -->
     <test.image.prefix>SET test.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</test.image.prefix>
+    <!-- Image prefix used for release builds -->
     <release.image.prefix>${test.image.prefix}</release.image.prefix>
+
+    <!-- operator images  -->
+    <operator.image>${release.image.prefix}oracle/${project.artifactId}:${project.version}</operator.image>
+    <operator.utils.image>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</operator.utils.image>
+
+    <!-- default image injected into Helm chart values files -->
+    <helm.chart.coherence.image>container-registry.oracle.com/middleware/coherence:12.2.1.3.2</helm.chart.coherence.image>
+
+    <!-- the Coherence image to use when running functional tests -->
+    <coherence.image.prefix>container-registry.oracle.com/middleware/</coherence.image.prefix>
+    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74024</test.coherence.image>
   </properties>
 
   <dependencyManagement>
