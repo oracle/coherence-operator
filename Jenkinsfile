@@ -158,6 +158,7 @@ pipeline {
                                         -Dci.build=$BUILD_NUMBER \
                                         -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                                         -Dk8s.create.namespace=false \
+                                        -P testLatestCoherenceReleasedImage \
                                         -P pushTestImage -P helm-test clean install
                                 '''
                             }
