@@ -84,19 +84,14 @@ If you are not running samples that have a Maven project, then you can skip this
 1. Make sure COHERENCE_HOME environment variable is set to point to your `coherence` directory under your install location.
    I.e. the directory containing the bin, lib, doc directories. This is only required for the Maven install-file commands.
 
-1. Use the following to install Coherence into your local repository:
+1. Use the following to install Coherence and Coherence REST support into your local repository:
 
    ```bash
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar   \
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/12.2.1/coherence.12.2.1.pom
-   ```
-   
-   If you are using Coherence 12.2.1.4.0 or above you also need to install Coherence REST.
-   
-   ```bash
+
    $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-rest.jar \
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
-   $PromInterceptor.java:
    ```   
 
 ## Create the sample namespace
