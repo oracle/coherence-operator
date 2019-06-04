@@ -134,12 +134,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.oracle.coherence</groupId>
-        <artifactId>coherence-rest</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>jline</groupId>
         <artifactId>jline</artifactId>
         <version>${jline.version}</version>
