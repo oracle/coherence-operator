@@ -29,9 +29,8 @@ import static org.junit.Assert.fail;
 
 public class RetryingWkaAddressProviderTest
     {
-    @Test(expected = UnknownHostException.class)
+    @Test
     public void testShouldTimeoutOnNonExistentDnsReference()
-        throws UnknownHostException
         {
         final long FREQUENCY_MS = 500;
         final long TIMEOUT_MS   = 5000;
@@ -52,6 +51,10 @@ public class RetryingWkaAddressProviderTest
             provider.eventuallyResolve();
             fail("should throw exception");
             }
+        catch (UnknownHostException e)
+            {
+            // expected result.
+            }
         finally
             {
             long ldtTimeoutDuration = Base.getLastSafeTimeMillis() - ldtStart;
@@ -59,7 +62,7 @@ public class RetryingWkaAddressProviderTest
             assertThat("validate reresolve happened over specified minimum timeout",
                 ldtTimeoutDuration, greaterThanOrEqualTo(TIMEOUT_MS));
             assertThat("validate lower bound of reresolve count" ,
-                provider.m_nLastReresolveCount, greaterThanOrEqualTo(3));
+                provider.m_nLastReresolveCount, greaterThanOrEqualTo(1));
             assertThat("validate upper bound of reresolve count" ,
                 provider.m_nLastReresolveCount, lessThanOrEqualTo((int)(TIMEOUT_MS / FREQUENCY_MS)));
             }

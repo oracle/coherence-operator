@@ -30,6 +30,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
@@ -46,7 +48,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test ELK log aspects of the Helm chart values file.
@@ -183,17 +184,22 @@ public class EFKHelmChartIT
 
         assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
 
+        Eventually.assertThat("coherence-cluster- index-pattern is null or empty",
+                invoking(this).isCoherenceESIndexReady(), is(true),
+                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
+
         // verify the role, cluster and uid are set for each coherence
         for (int i = 0; i < m_asReleases.length; i++)
             {
             String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
 
-            assertEFKData(m_asReleases[i], "log", new String[] {"Role=myrole", "Role=OracleCoherenceK8sCoherenceClusterProbe"});
+            assertEFKData(m_asReleases[i], "log", "Role=myrole");
             assertEFKData(m_asReleases[i], "log", "Started cluster Name=mycluster");
 
             assertThat(verifyEFKData(m_asReleases[i], "cluster", "mycluster"), is(true));
-            assertThat(verifyEFKData(m_asReleases[i], "role", new String[] { "myrole", "OracleCoherenceK8sCoherenceClusterProbe" }),
-                    is(true));
+            assertThat(verifyEFKData(m_asReleases[i], "role", "myrole"), is(true));
             assertEFKData(m_asReleases[i], "log", "Started DefaultCacheServer");
 
             List<String> listUids = getPodUids(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
@@ -205,6 +211,38 @@ public class EFKHelmChartIT
         // load the kibana-dashboard-data.json has been loaded
         validateIndexPatternExists(COHERENCE_CLUSTER_INDEX_PATTERN);
         validateIndexPatternExists(COHERENCE_OPERATOR_INDEX_PATTERN);
+        }
+
+    /**
+     * Test that logs can be queried per-member and that they can be made to look like
+     * regular Coherence logs.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPerMemberLogs() throws Exception
+        {
+        String[] asCohNamespaces = getTargetNamespaces();
+        m_asReleases = installCoherence(s_k8sCluster, asCohNamespaces,
+                                        "values/helm-values-coh-efk-single-member-log-extract.yaml");
+
+        assertCoherence(s_k8sCluster, asCohNamespaces, m_asReleases);
+
+        Eventually.assertThat("coherence-cluster- index-pattern is null or empty",
+                              invoking(this).isCoherenceESIndexReady(), is(true),
+                              MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                              RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                              Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
+
+        for (int i = 0; i < m_asReleases.length; i++)
+            {
+            String sCoherenceSelector = getCoherencePodSelector(m_asReleases[i]);
+            List<String> podNames = getPodNames(s_k8sCluster, asCohNamespaces[i], sCoherenceSelector);
+
+            assertThat(podNames.size(), is(2));
+            verifyNoneMatchEFKData(podNames.get(0), podNames.get(1));
+            }
+
         }
 
     /**
@@ -250,21 +288,26 @@ public class EFKHelmChartIT
 
         try
             {
-            installClient(s_k8sCluster, CLIENT1, sNamespace, sRelease);
-            installClient(s_k8sCluster, CLIENT2, sNamespace, sRelease);
+            installClient(s_k8sCluster, CLIENT1, sNamespace, sRelease, CLUSTER1);
+            installClient(s_k8sCluster, CLIENT2, sNamespace, sRelease, CLUSTER1);
 
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
-                is(true),
-                Eventually.within(TIMEOUT, TimeUnit.SECONDS));
+                                  is(true),
+                                  Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS),
+                                  RetryFrequency.fibonacci());
 
-            Eventually.assertThat("cloud-* index is not null", invoking(this).getCloudApplicationESIndex(),
-                notNullValue(), RetryFrequency.every(10, TimeUnit.SECONDS), Timeout.after(3, TimeUnit.MINUTES));
+            Eventually.assertThat("cloud- index-pattern is null or empty",
+                    invoking(this).isCloudApplicationESIndexReady(), is(true),
+                    MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                    RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                    Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
 
-            assertThat(verifyEFKApplicationData(m_asReleases[0], "cluster", CLUSTER1), is(true));
-            assertThat(verifyEFKApplicationData(m_asReleases[0], "product", "Cloud 1.0"), is(true));
+            assertEFKApplicationData(m_asReleases[0], "cluster", CLUSTER1);
+            assertEFKApplicationData(m_asReleases[0], "product", "Cloud 1.0");
+            assertEFKApplicationData(m_asReleases[0], "log", "GCP");
+
             assertThat(verifyEFKApplicationData(m_asReleases[0], "log", "AWS"), is(true));
-            assertThat(verifyEFKApplicationData(m_asReleases[0], "log", "GCP"), is(true));
             }
         finally
             {
@@ -305,14 +348,6 @@ public class EFKHelmChartIT
         return nExitCode == 0;
         }
 
-    void assertEFKData(String sRelease, String sFieldName, String[] sKeyWord) throws IOException
-        {
-        Eventually.assertThat(invoking(this).verifyEFKData(sRelease, sFieldName, sKeyWord), is(true),
-                Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS),
-                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
-                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS));
-        }
-
     void assertEFKData(String sRelease, String sFieldName, String sKeyWord) throws IOException
         {
         Eventually.assertThat(invoking(this).verifyEFKData(sRelease, sFieldName, sKeyWord), is(true),
@@ -324,46 +359,23 @@ public class EFKHelmChartIT
     // must be public - used in Eventually.assertThat call.
     public boolean verifyEFKData(String sRelease, String sFieldName, String sKeyWord) throws IOException
         {
-        return verifyEFKData(sRelease, sFieldName, new String[] {sKeyWord});
-        }
+        String       sName       = sRelease + "-" + COHERENCE_CONTAINER_NAME;
+        List<String> listEfkLogs = getEFKData(sName, sFieldName, sKeyWord);
 
-    // must be public - used in Eventually.assertThat call.
-    public boolean verifyEFKData(String sRelease, String sFieldName, String[] sKeyWord) throws IOException
-        {
-        String       sName   = sRelease + "-" + COHERENCE_CONTAINER_NAME;
-        List<String> efkLogs = getEFKData(sName, sFieldName, sKeyWord);
+        boolean fResult = listEfkLogs.stream().anyMatch(l -> l.contains(sName) && l.contains(sKeyWord));
 
-        boolean fResult = false;
-
-        assertTrue(sKeyWord.length > 0);
-        if (sKeyWord.length == 1)
-            {
-            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && l.contains(sKeyWord[0]));
-            }
-        else
-            {
-            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && (l.contains(sKeyWord[0])
-                    || l.contains(sKeyWord[1])));
-            }
-
-        System.err.printf("Verify release %s - %s: %b%n", sRelease, Arrays.toString(sKeyWord), fResult);
+        System.err.printf("Verify release %s - %s: %b%n", sRelease, sKeyWord, fResult);
 
         return fResult;
         }
 
-    List<String> getEFKData(String sHostPrefix, String sFieldName, String[] sKeyWords) throws IOException
+    List<String> getEFKData(String sHostPrefix, String sFieldName, String sKeyWord) throws IOException
         {
-        String sIndexName = getESIndex();
-
-        Queue<String> queueLogs = new ConcurrentLinkedQueue<>();
-        for (String sKeyWord : sKeyWords)
-            {
-            queueLogs.addAll(processElasticsearchQuery(
-                    "/" + sIndexName + "/_search?q=" +
-                        sFieldName + "%3A" + sKeyWord.replace(" ", "%20") +
-                        "%20AND%20" +
-                        "host" + "%3A" + sHostPrefix));
-            }
+        Queue<String> queueLogs = processElasticsearchQuery(
+                    "/coherence-cluster-*/_search?q=" +
+                        sFieldName + "%3A%22" + sKeyWord.replace(" ", "%20") +
+                        "%22%20AND%20" +
+                        "host" + "%3A%22" + sHostPrefix + "%22");
 
         Map<String, ?> map = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
 
@@ -379,47 +391,77 @@ public class EFKHelmChartIT
             }).collect(Collectors.toList());
         }
 
-    boolean verifyEFKApplicationData(String sRelease, String sFieldName, String sKeyWord) throws IOException
+    // must be public - used in Eventually.assertThat call.
+    public boolean verifyNoneMatchEFKData(String sHostMatch, String sHostNoneMatch) throws IOException
         {
-        return verifyEFKApplicationData(sRelease, sFieldName, new String[] {sKeyWord});
-        }
+        List<String> perHostLogMessages = getPerHostLogMessages(sHostMatch);
 
-    boolean verifyEFKApplicationData(String sRelease, String sFieldName, String[] sKeyWord) throws IOException
-        {
-        String       sName   = sRelease + "-" + COHERENCE_CONTAINER_NAME;
-        List<String> efkLogs = getEFKApplicationData(sName, sFieldName, sKeyWord);
-
-        boolean fResult = false;
-
-        assertTrue(sKeyWord.length > 0);
-        if (sKeyWord.length == 1)
-            {
-            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && l.contains(sKeyWord[0]));
-            }
-        else
-            {
-            fResult = efkLogs.stream().anyMatch(l -> l.contains(sName) && (l.contains(sKeyWord[0])
-                || l.contains(sKeyWord[1])));
-            }
-
-        System.err.printf("Verify release %s - %s: %b%n", sRelease, Arrays.toString(sKeyWord), fResult);
+        boolean fResult = perHostLogMessages.stream().noneMatch(l -> l.contains(sHostNoneMatch));
 
         return fResult;
         }
 
-    List<String> getEFKApplicationData(String sHostPrefix, String sFieldName, String[] sKeyWords) throws IOException
+    List<String> getPerHostLogMessages(String sHost) throws IOException
         {
-        String sIndexName = getCloudApplicationESIndex();
+        Queue<String> queueLogs = processElasticsearchQuery(
+                "/coherence-cluster-*/_search?size=9999&q=host%3A%22" +
+                sHost + "%22sort=@timestamp");
 
-        Queue<String> queueLogs = new ConcurrentLinkedQueue<>();
-        for (String sKeyWord : sKeyWords)
-            {
-            queueLogs.addAll(processElasticsearchQuery(
-                "/" + sIndexName + "/_search?q=" +
-                    sFieldName + "%3A" + sKeyWord.replace(" ", "%20") +
-                    "%20AND%20" +
-                    "member" + "%3A" + sHostPrefix));
-            }
+        Map<String, ?> map = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
+
+        Map<String, List<Map<String, ?>>> mapHits = (Map<String, List<Map<String, ?>>>) map.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        List<Map<String, ?>> list = mapHits.get("hits");
+        assertThat(mapHits, notNullValue());
+
+        return list.stream().map(m -> {
+                Map<String, ?> mapSource = (Map<String, ?>) m.get("_source");
+                assertThat(mapSource.containsKey("@timestamp") &&
+                           mapSource.containsKey("product") &&
+                           mapSource.containsKey("level") &&
+                           mapSource.containsKey("thread") &&
+                           mapSource.containsKey("member") &&
+                           mapSource.containsKey("log"), is(true));
+                String logMessage = String.format("%s %s <%s> (thread=%s, member=%s): %s",
+                                     mapSource.get("@timestamp"),
+                                     mapSource.get("product"),
+                                     mapSource.get("level"),
+                                     mapSource.get("thread"),
+                                     mapSource.get("member"),
+                                     mapSource.get("log"));
+                return logMessage;
+            }).collect(Collectors.toList());
+        }
+
+    void assertEFKApplicationData(String sRelease, String sFieldName, String sKeyWord) throws IOException
+        {
+        Eventually.assertThat(invoking(this).verifyEFKApplicationData(sRelease, sFieldName, sKeyWord), is(true),
+                Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS),
+                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS));
+        }
+
+    // must be public - used in Eventually.assertThat call.
+    public boolean verifyEFKApplicationData(String sRelease, String sFieldName, String sKeyWord) throws IOException
+        {
+        String       sName       = sRelease + "-" + COHERENCE_CONTAINER_NAME;
+        List<String> listEfkLogs = getEFKApplicationData(sName, sFieldName, sKeyWord);
+
+        boolean      fResult     = listEfkLogs.stream().anyMatch(l -> l.contains(sName) && l.contains(sKeyWord));
+
+        System.err.printf("Verify release %s - %s: %b%n", sRelease, sKeyWord, fResult);
+
+        return fResult;
+        }
+
+    List<String> getEFKApplicationData(String sHostPrefix, String sFieldName, String sKeyWord) throws IOException
+        {
+        Queue<String> queueLogs = processElasticsearchQuery(
+                "/cloud-*/_search?q=" +
+                    sFieldName + "%3A%22" + sKeyWord.replace(" ", "%20") +
+                    "%22%20AND%20" +
+                    "member" + "%3A%22" + sHostPrefix + "%22");
 
         Map<String, ?> map = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
 
@@ -448,37 +490,18 @@ public class EFKHelmChartIT
         assertThat(sIndexPatternId, is(sIndexPattern));
         }
 
-    String getESIndex()
+    // must be public - used in Eventually.assertThat call.
+    public boolean isCoherenceESIndexReady()
         {
-        if (m_sElasticsearchIndex == null)
-            {
-            Queue<String>  queueIndices = processElasticsearchQuery("/_cat/indices");
-            String         sIndexName   = queueIndices.stream().filter(s -> s.contains("coherence-cluster-"))
-                    .map(s -> s.split(" ")[2]).findFirst().orElse(null);
-
-            assertThat(sIndexName, notNullValue());
-
-            m_sElasticsearchIndex = sIndexName;
-            System.out.println("getESIndex: " + sIndexName);
-            }
-
-        return m_sElasticsearchIndex;
+        Queue<String> queueLines = processElasticsearchQuery("/_cat/indices");
+        return queueLines.stream().anyMatch(s -> s.contains("coherence-cluster-"));
         }
 
-    public String getCloudApplicationESIndex()
+    // must be public - used in Eventually.assertThat call.
+    public boolean isCloudApplicationESIndexReady()
         {
-        if (m_sCloudElasticsearchIndex == null)
-            {
-            Queue<String>  queueIndices = processElasticsearchQuery("/_cat/indices");
-            String sIndexName = queueIndices.stream().filter(s -> s.contains("cloud"))
-                .map(s -> s.split(" ")[2]).findFirst().orElse(null);
-
-            assertThat("expected an index name for cloud-", sIndexName, notNullValue());
-
-            m_sCloudElasticsearchIndex = sIndexName;
-            }
-
-        return m_sCloudElasticsearchIndex;
+        Queue<String> queueLines = processElasticsearchQuery("/_cat/indices");
+        return queueLines.stream().anyMatch(s -> s.contains("cloud-"));
         }
 
     Queue<String> processElasticsearchQuery(String sPath)
@@ -510,12 +533,14 @@ public class EFKHelmChartIT
             String      sPath       = "/api/saved_objects/index-pattern/cloud-*";
             PortMapping portMapping = application.get(PortMapping.class);
             int         nPort       = portMapping.getPort().getActualPort();
-            URI         uri     = URI.create("http://127.0.0.1:" + nPort + sPath);
-            HttpClient  client  = HttpClient.newBuilder().proxy(ProxySelector.of(null)).version(Version.HTTP_1_1).build();
-            HttpRequest request = HttpRequest.newBuilder().uri(uri).
-                header("Content-Type", "application/json").
-                header("kbn-xsrf", "true").
-                POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
+            URI         uri         = URI.create("http://127.0.0.1:" + nPort + sPath);
+            HttpClient  client      = HttpClient.newBuilder().proxy(ProxySelector.of(null)).version(Version.HTTP_1_1).build();
+
+            HttpRequest request     = HttpRequest.newBuilder()
+                                                 .uri(uri)
+                                                 .header("Content-Type", "application/json")
+                                                 .header("kbn-xsrf", "true")
+                                                 .POST(BodyPublishers.ofFile(Paths.get(sFilePath))).build();
             
             try
                 {
@@ -535,6 +560,16 @@ public class EFKHelmChartIT
 
     List<String> getPodUids(K8sCluster cluster, String sNamespace, String sSelector)
         {
+        return getPodMetadataValues(cluster, sNamespace, "uid", sSelector);
+        }
+
+    List<String> getPodNames(K8sCluster cluster, String sNamespace, String sSelector)
+        {
+        return getPodMetadataValues(cluster, sNamespace, "name", sSelector);
+        }
+
+    List<String> getPodMetadataValues(K8sCluster cluster, String sNamespace, String metadataKey, String sSelector)
+        {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
         Arguments args = Arguments.of("get", "pods");
@@ -544,11 +579,11 @@ public class EFKHelmChartIT
             args = args.with("--namespace", sNamespace);
             }
 
-        args = args.with("-o", "jsonpath=\"{.items[*].metadata.uid}\"", "-l", sSelector);
+        args = args.with("-o", "jsonpath=\"{.items[*].metadata." + metadataKey + "}\"", "-l", sSelector);
 
         int nExitCode = cluster.kubectlAndWait(args, Console.of(console));
 
-        HelmUtils.logConsoleOutput("get-pods-uid", console);
+        HelmUtils.logConsoleOutput("get-pods-" + metadataKey, console);
 
         assertThat("kubectl returned non-zero exit code", nExitCode, is(0));
 
@@ -567,46 +602,6 @@ public class EFKHelmChartIT
             }
 
         return Arrays.asList(sList.split(" "));
-        }
-
-    /**
-     * Check for required client state.
-     *
-     * @param cluster     the k8s cluster
-     * @param sNamespace  the namespace name
-     * @param sClientPod  the pod name
-     *
-     * @return {@code true} if required client state is reached.
-     */
-    public boolean isRequiredClientStateReached(K8sCluster cluster, String sNamespace, String sClientPod)
-        {
-        try
-            {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null);
-
-            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
-                && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
-            }
-        catch (Exception ex)
-            {
-            return false;
-            }
-        }
-
-    private void installClient(K8sCluster cluster, String name, String sNamespace, String sRelease) throws Exception
-        {
-        Arguments arguments = Arguments.of("apply");
-
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-
-        arguments = arguments.with("-f", getClientYaml(name, sRelease, CLUSTER1));
-
-        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
-
-        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
         }
 
     /**
@@ -695,24 +690,9 @@ public class EFKHelmChartIT
     private static final EFKHelmChartIT STUB = new EFKHelmChartIT();
 
     /**
-     * The Elasticsearch index.
-     */
-    private String m_sElasticsearchIndex;
-
-    /**
-     * The Cloud application Elasticsearch index.
-     */
-    private String m_sCloudElasticsearchIndex;
-
-    /**
      * The name of the deployed Coherence Helm releases.
      */
     private String[] m_asReleases;
-
-    /**
-     * Time out value for checking the required condition.
-    */
-    private static final int      TIMEOUT      = 300;
 
     private static final String   CLIENT1  = "coh-client-1";
 

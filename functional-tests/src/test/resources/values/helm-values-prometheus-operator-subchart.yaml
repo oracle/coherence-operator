@@ -2,8 +2,6 @@
 
 targetNamespaces: [ ${k8s.target.namespaces} ]
 
-serviceAccount: my-coh-operator
-
 prometheusoperator:
   enabled: true
   prometheus:
