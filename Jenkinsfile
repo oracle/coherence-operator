@@ -170,13 +170,10 @@ pipeline {
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                                kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
-                                kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
-                                kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
-                                kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
                                 helm tiller stop || true
                             '''
-                            deleteDir()
+                            // Since there is another stage, do not deleteDir() here.
+                            //deleteDir()
                         }
                     }
                 }
@@ -247,10 +244,6 @@ pipeline {
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                                kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
-                                kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
-                                kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
-                                kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
                                 helm tiller stop || true
                             '''
                             deleteDir()
