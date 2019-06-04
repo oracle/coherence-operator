@@ -80,7 +80,7 @@ public class ClusteringIT
 
         if (m_headlessService != null)
             {
-            s_k8sCluster.kubectlAndWait(Arguments.of("-n", getK8sNamespace(), "delete", "svc", m_headlessService));
+            s_k8sCluster.kubectlAndWait(Arguments.of("-n", getK8sNamespace(), "delete", "svc", m_headlessService, "--ignore-not-found=true"));
             }
         }
 
@@ -161,7 +161,7 @@ public class ClusteringIT
         listPodsInService = getPodsInService(sNamespace, sWkaService);
 
         assertThat(listPodsInService, is(listPod));
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", "--ignore-not-found=true", sWkaService));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sWkaService, "--ignore-not-found=true"));
         }
 
     // Integration test for RetryingWkaAddressProvider that waits for wka dns entry to come up
@@ -297,7 +297,7 @@ public class ClusteringIT
             }
 
         // delete the service first to make sure that it does not exist
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sServiceName));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "svc", sServiceName, "--ignore-not-found=true"));
 
         // create the service
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "-f", file.getCanonicalPath()));

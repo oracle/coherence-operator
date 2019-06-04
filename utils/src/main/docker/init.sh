@@ -37,7 +37,11 @@ fi
 if [ ! -d /persistence/trash ]; then
     mkdir /persistence/trash
 fi
+if [ ! -d /persistence/snapshots ]; then
+    mkdir /persistence/snapshots
+fi
 chmod 0777 /persistence/active
 chmod 0777 /persistence/trash
+chmod 0777 /persistence/snapshots
 
 echo "Finished init script"

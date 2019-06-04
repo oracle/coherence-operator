@@ -12,7 +12,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import org.junit.After;
-import org.junit.Ignore;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.HttpURLConnection;
@@ -33,12 +34,32 @@ import static org.junit.Assume.assumeThat;
 public class BasicConnectivityIT
         extends BaseHelmChartTest
     {
+    @BeforeClass
+    public static void setup()
+        {
+        assertPreconditions(s_k8sCluster);
+        ensureNamespace(s_k8sCluster);
+        ensureSecret(s_k8sCluster);
+        }
+
+    @AfterClass
+    public static void cleanup()
+        {
+        cleanupPullSecrets(s_k8sCluster);
+        cleanupNamespace(s_k8sCluster);
+
+        for (String sNamespace : getTargetNamespaces())
+            {
+            cleanupNamespace(s_k8sCluster, sNamespace);
+            }
+        }
+
     @After
     public void cleanUpCoherence()
         {
         if (m_sRelease != null)
             {
-            deleteCoherence(m_k8sCluster, m_sNamespace, m_sRelease, false);
+            deleteCoherence(s_k8sCluster, m_sNamespace, m_sRelease, false);
             }
         }
 
@@ -47,9 +68,9 @@ public class BasicConnectivityIT
         {
         assumeThat(versionCheck("12.2.1.4.0"), is(true));
 
-        m_sRelease = installCoherence(m_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
+        m_sRelease = installCoherence(s_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
 
-        assertCoherence(m_k8sCluster, m_sNamespace, m_sRelease);
+        assertCoherence(s_k8sCluster, m_sNamespace, m_sRelease);
 
         try (Application application = portForwardManagement())
             {
@@ -66,9 +87,9 @@ public class BasicConnectivityIT
         {
         assumeThat(versionCheck("12.2.1.4.0"), is(true));
 
-        m_sRelease = installCoherence(m_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
+        m_sRelease = installCoherence(s_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
 
-        assertCoherence(m_k8sCluster, m_sNamespace, m_sRelease);
+        assertCoherence(s_k8sCluster, m_sNamespace, m_sRelease);
 
         try (Application application = portForwardMetrics())
             {
@@ -83,9 +104,9 @@ public class BasicConnectivityIT
     @Test
     public void shouldConnectToExtendPort() throws Exception
         {
-        m_sRelease = installCoherence(m_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
+        m_sRelease = installCoherence(s_k8sCluster, m_sNamespace, DEFAULT_VALUES_YAML);
 
-        assertCoherence(m_k8sCluster, m_sNamespace, m_sRelease);
+        assertCoherence(s_k8sCluster, m_sNamespace, m_sRelease);
 
         try (Application application = portForwardExtend())
             {
@@ -101,25 +122,25 @@ public class BasicConnectivityIT
     @Test
     public void shouldConnectToJmxPort() throws Exception
         {
-        m_sRelease = installCoherence(m_k8sCluster,
+        m_sRelease = installCoherence(s_k8sCluster,
                                       m_sNamespace,
                                       DEFAULT_VALUES_YAML,
                                       "store.jmx.enabled=true");
 
-        assertCoherence(m_k8sCluster, m_sNamespace, m_sRelease);
+        assertCoherence(s_k8sCluster, m_sNamespace, m_sRelease);
 
         // assert that the JMX nodes have been deployed in their own k8s Deployment
-        assertCoherenceJMX(m_k8sCluster, m_sNamespace, m_sRelease);
+        assertCoherenceJMX(s_k8sCluster, m_sNamespace, m_sRelease);
 
         // Custer size should be at least two - one Coherence storage member and one JMX member. Cluster probe could be a third member.
         Eventually.assertThat(invoking(this).getClusterSizeViaJMX(), greaterThanOrEqualTo(2));
 
         // get local member Id via JMX
-        int    nNode      = jmxQuery(m_k8sCluster, m_sNamespace, m_sRelease, "Coherence:type=Cluster", "LocalMemberId");
+        int    nNode      = jmxQuery(s_k8sCluster, m_sNamespace, m_sRelease, "Coherence:type=Cluster", "LocalMemberId");
         String sNodeMBean = "Coherence:type=Node,nodeId=" + nNode;
 
         // invoke the "reportNodeState" MBean operation
-        String sState = jmxInvoke(m_k8sCluster, m_sNamespace, m_sRelease,
+        String sState = jmxInvoke(s_k8sCluster, m_sNamespace, m_sRelease,
                                   sNodeMBean, "reportNodeState",
                                   NO_JMX_PARAMS, EMPTY_JMX_SIGNATURE);
 
@@ -132,7 +153,7 @@ public class BasicConnectivityIT
         {
         String sClusterMBean = "Coherence:type=Cluster";
         String sAttribute = "ClusterSize";
-        return jmxQuery(m_k8sCluster, m_sNamespace, m_sRelease, sClusterMBean, sAttribute);
+        return jmxQuery(s_k8sCluster, m_sNamespace, m_sRelease, sClusterMBean, sAttribute);
         }
 
     public boolean canConnect(URI uri) throws Exception
@@ -144,17 +165,17 @@ public class BasicConnectivityIT
 
     private Application portForwardExtend() throws Exception
         {
-        return portForwardCoherencePod(m_k8sCluster, m_sNamespace, m_sRelease, 20000);
+        return portForwardCoherencePod(s_k8sCluster, m_sNamespace, m_sRelease, 20000);
         }
 
     private Application portForwardManagement() throws Exception
         {
-        return portForwardCoherencePod(m_k8sCluster, m_sNamespace, m_sRelease, 30000);
+        return portForwardCoherencePod(s_k8sCluster, m_sNamespace, m_sRelease, 30000);
         }
 
     private Application portForwardMetrics() throws Exception
         {
-        return portForwardCoherencePod(m_k8sCluster, m_sNamespace, m_sRelease, 9095);
+        return portForwardCoherencePod(s_k8sCluster, m_sNamespace, m_sRelease, 9095);
         }
 
     private ConfigurableCacheFactory getCacheFactory(int nPort)
@@ -175,7 +196,7 @@ public class BasicConnectivityIT
 
     // ----- data members ---------------------------------------------------
 
-    private K8sCluster m_k8sCluster = getDefaultCluster();
+    private static K8sCluster s_k8sCluster = getDefaultCluster();
 
     private String m_sNamespace = getK8sNamespace();
 

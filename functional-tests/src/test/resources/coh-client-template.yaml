@@ -16,4 +16,5 @@ spec:
     - name: CLUSTER
       value: "%%CLUSTER%%"
   imagePullSecrets:
-  - name: %%IMAGE_PULL_SECRETS%%
+%%IMAGE_PULL_SECRETS%%
+

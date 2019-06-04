@@ -164,7 +164,12 @@ public class LoggingConfigIT
         File   file        = new File(url.toURI());
 
         // ensure that the ConfigMap does not exist
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "configmap", sConfigMap));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n",
+                                                 sNamespace,
+                                                 "delete",
+                                                 "configmap",
+                                                 sConfigMap,
+                                                 "--ignore-not-found=true"));
 
         // Create the config map containing the logging config
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n",
