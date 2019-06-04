@@ -178,6 +178,12 @@ pipeline {
                             '''
                             deleteDir()
                         }
+                        success {
+                            setBuildStatus("Build succeeded", "SUCCESS");
+                        }
+                        failure {
+                            setBuildStatus("Build failed", "FAILURE");
+                        }
                     }
                 }
             }
