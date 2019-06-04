@@ -172,8 +172,6 @@ pipeline {
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                                 helm tiller stop || true
                             '''
-                            // Since there is another stage, do not deleteDir() here.
-                            //deleteDir()
                         }
                     }
                 }
@@ -246,10 +244,14 @@ pipeline {
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                                 helm tiller stop || true
                             '''
-                            deleteDir()
                         }
                     }
                 }
+            }
+        }
+        post {
+            always {
+                deleteDir()
             }
         }
     }
