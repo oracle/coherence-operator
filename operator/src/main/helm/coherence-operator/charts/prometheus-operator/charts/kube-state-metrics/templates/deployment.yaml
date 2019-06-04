@@ -8,7 +8,7 @@ metadata:
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
-  replicas: {{ .Values.replicas }}
+  replicas: 1
   template:
     metadata:
       labels:
@@ -19,7 +19,7 @@ spec:
 {{ toYaml .Values.podAnnotations | indent 8 }}
 {{- end }}
     spec:
-      serviceAccountName: {{ template "kube-state-metrics.serviceAccountName" . }}
+      serviceAccountName: {{ if .Values.rbac.create }}{{ template "kube-state-metrics.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
       {{- if .Values.securityContext.enabled }}
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
@@ -31,9 +31,6 @@ spec:
       containers:
       - name: {{ .Chart.Name }}
         args:
-{{  if .Values.collectors.configmaps  }}
-        - --collectors=configmaps
-{{  end  }}
 {{  if .Values.collectors.cronjobs  }}
         - --collectors=cronjobs
 {{  end  }}
@@ -67,9 +64,6 @@ spec:
 {{  if .Values.collectors.persistentvolumes  }}
         - --collectors=persistentvolumes
 {{  end  }}
-{{  if .Values.collectors.poddisruptionbudgets  }}
-        - --collectors=poddisruptionbudgets
-{{  end  }}
 {{  if .Values.collectors.pods  }}
         - --collectors=pods
 {{  end  }}
@@ -81,9 +75,6 @@ spec:
 {{  end  }}
 {{  if .Values.collectors.resourcequotas  }}
         - --collectors=resourcequotas
-{{  end  }}
-{{  if .Values.collectors.secrets  }}
-        - --collectors=secrets
 {{  end  }}
 {{  if .Values.collectors.services  }}
         - --collectors=services

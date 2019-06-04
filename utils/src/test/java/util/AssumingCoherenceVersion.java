@@ -29,14 +29,7 @@ public class AssumingCoherenceVersion
      */
     public AssumingCoherenceVersion(String sCoherenceVersion, String sMinimalCoherenceVersion)
         {
-        if (sCoherenceVersion.contains(":"))
-            {
-            f_sCoherenceVersion = sCoherenceVersion.substring(sCoherenceVersion.indexOf(":") + 1);
-            }
-        else
-            {
-            f_sCoherenceVersion        = sCoherenceVersion;
-            }
+        f_sCoherenceVersion        = sCoherenceVersion;
         f_sMinimalCoherenceVersion = sMinimalCoherenceVersion;
         }
 

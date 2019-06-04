@@ -7,8 +7,6 @@
 package helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oracle.bedrock.OptionsByType;
-import com.oracle.bedrock.deferred.options.InitialDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.options.Timeout;
@@ -17,7 +15,6 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.ApplicationConsoleBuilder;
 
-import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.EventsApplicationConsole;
 import com.oracle.bedrock.runtime.console.FileWriterApplicationConsole;
@@ -29,12 +26,10 @@ import com.oracle.bedrock.runtime.k8s.helm.Helm;
 import com.oracle.bedrock.runtime.k8s.helm.HelmCommand;
 import com.oracle.bedrock.runtime.k8s.helm.HelmInstall;
 
-import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -43,7 +38,6 @@ import com.oracle.coherence.k8s.CoherenceVersion;
 
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
-import com.tangosol.util.WrapperException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matcher;
@@ -55,8 +49,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
-import util.Kubernetes;
-import util.MaxRetries;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -68,22 +60,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.URL;
 
 import java.nio.file.Files;
 
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import java.util.function.Predicate;
@@ -100,7 +87,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.fail;
 
 /**
  * A base class for executing Helm chart tests.
@@ -127,26 +113,6 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- helper methods -------------------------------------------------
-
-    /**
-     * Install the Helm chart.
-     *
-     * @param cluster         the k8s cluster to use
-     * @param sHelmChartName  the Helm chart name
-     * @param sNamespace      the k8s namespace being used
-     *
-     * @return  the name of the Helm release
-     *
-     * @throws Exception if there is an error
-     */
-    public static String installChart(K8sCluster cluster,
-                                      String     sHelmChartName,
-                                      URL        urlChartPackage,
-                                      String     sNamespace) throws Exception
-        {
-        String[] asEmpty = new String[0];
-        return installChart(cluster, sHelmChartName, urlChartPackage, sNamespace, asEmpty, asEmpty);
-        }
 
     /**
      * Install the Helm chart.
@@ -232,42 +198,23 @@ public abstract class BaseHelmChartTest
         // helm install dry run and get the release name used for the dry-run
         String sRelease = installDryRun(fileChartDir, sHelmChartName, sNamespace, aURLValues, asSetValues);
 
-        try
-            {
-            // helm install real using the release name from the dry-run
-            int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
+        // helm install real using the release name from the dry-run
+        int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
 
-            if (nExitCode != 0)
-                {
-                try
-                    {
-                    System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
-                    cleanupHelmReleases(sRelease);
-                    cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
-                    }
-                catch (Throwable t)
-                    {
-                    System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
-                    }
-                throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
-                }
-            }
-        catch (Throwable t)
+        if (nExitCode != 0)
             {
-            // cleanup helm release artifacts when an exception is thrown during helm install.
-            System.err.println("Handled exception " + t.getClass().getName() + " during helm install " + sHelmChartName + " namespace=" + sNamespace + " release=" + sRelease);
             try
                 {
-                System.err.println("Clean up Helm install '" + sRelease + "' after handled exception: " + t);
-                t.printStackTrace();
+                System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
                 cleanupHelmReleases(sRelease);
                 cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
                 }
-            catch (Throwable t1)
+            catch(Throwable t)
                 {
-                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t1);
+                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
                 }
-            throw new Exception("Helm install '" + sRelease + "' failed with exception: " + t);
+
+            throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
             }
 
         // Wait for the StatefulSet to be ready
@@ -350,26 +297,11 @@ public abstract class BaseHelmChartTest
 
         if (nExitCode != 0)
             {
-            int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
-            for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
-                {
-                System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
-                                           + i + " attempts remaining");
-
-                logInstallFailure(install, nExitCode, consoleInstall);
-
-                consoleInstall = new CapturingApplicationConsole();
-                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
-                }
-            }
-
-        if (nExitCode != 0)
-            {
             HelmUtils.logConsoleOutput("helm-install", consoleInstall);
-            String reason = "Install dry-run failed for helm chart " + sHelmChartName
-                    + " namespace " + sNamespace + " failed with exit code " + nExitCode;
-            fail(reason);
             }
+
+        String reason = "Install dry-run failed for helm chart " + sHelmChartName + " namespace " + sNamespace;
+        assertThat(reason, nExitCode, is(0));
 
         List<String> listLines = new ArrayList<>(consoleInstall.getCapturedOutputLines());
 
@@ -419,36 +351,7 @@ public abstract class BaseHelmChartTest
                                     .timeout(HELM_TIMEOUT)
                                     .name(sRelease);
 
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-
-        int nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
-
-        if (nExitCode != 0)
-            {
-            int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
-            for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
-                {
-                System.err.println("Helm install failed with exit code " + nExitCode + " - will retry. "
-                                           + i + " attempts remaining");
-
-                logInstallFailure(install, nExitCode, console);
-                cleanupHelmInstall(sNamespace, sRelease);
-
-                console   = new CapturingApplicationConsole();
-                nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
-                }
-            }
-
-        File file = new File(s_testLogs.getOutputFolder(), "helm-install-" + sRelease + ".log");
-        System.err.printf("Logging Helm install output for release %s to file %s ", sRelease, file);
-
-        try (PrintWriter writer = new PrintWriter(file))
-            {
-            console.getCapturedOutputLines().forEach(writer::println);
-            console.getCapturedErrorLines().forEach(writer::println);
-            }
-
-        return nExitCode;
+        return install(install, sNamespace, SystemApplicationConsole.builder(), aURLValues);
         }
 
     /**
@@ -461,7 +364,7 @@ public abstract class BaseHelmChartTest
      *
      * @throws Exception if an error occurs during install
      */
-    private static int install(HelmInstall install, String sNamespace, ApplicationConsoleBuilder console, URL... aURLValues) throws Exception
+    protected static int install(HelmInstall install, String sNamespace, ApplicationConsoleBuilder console, URL... aURLValues) throws Exception
         {
         if (aURLValues != null && aURLValues.length > 0)
             {
@@ -496,80 +399,12 @@ public abstract class BaseHelmChartTest
             install = install.namespace(sNamespace.trim());
             }
 
-        Set<String> setSecrets = new HashSet<>();
-
         if (K8S_IMAGE_PULL_SECRET != null && K8S_IMAGE_PULL_SECRET.trim().length() > 0)
             {
-            String[] asSecret = K8S_IMAGE_PULL_SECRET.trim().split(",");
-            Collections.addAll(setSecrets, asSecret);
-            }
-
-        if (K8S_COHERENCE_IMAGE_PULL_SECRET != null && K8S_COHERENCE_IMAGE_PULL_SECRET.trim().length() > 0)
-            {
-            setSecrets.add(K8S_COHERENCE_IMAGE_PULL_SECRET);
-            }
-
-        if (setSecrets.size() > 0)
-            {
-            install = install.set("imagePullSecrets={" + String.join(",", setSecrets) + "}");
+            install = install.set("imagePullSecrets={" + K8S_IMAGE_PULL_SECRET + "}");
             }
 
         return install.executeAndWait(console);
-        }
-
-    private static void cleanupHelmInstall(String sNamespace, String sRelease)
-        {
-        try
-            {
-            System.err.println("Clean up resources before retrying install of release: '" + sRelease);
-            cleanupHelmReleases(sRelease);
-            cleanupPersistentVolumeClaims(getDefaultCluster(), sRelease, sNamespace);
-            System.err.println(String.format("Finish cleaning existing release \"%s\"", sRelease));
-            }
-        catch (Throwable t)
-            {
-            System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
-            }
-        }
-
-    private static void logInstallFailure(HelmInstall install, int nExitCode, CapturingApplicationConsole console)
-        {
-        try
-            {
-            OptionsByType opts = OptionsByType.of();
-
-            install.onLaunching(LocalPlatform.get(), opts);
-
-            String sArgLine = opts.getOrDefault(Arguments.class, Arguments.empty())
-                                  .stream()
-                                  .map(Argument::toString)
-                                  .collect(Collectors.joining(" "));
-
-            StringBuilder sMessage = new StringBuilder();
-
-            sMessage.append("------------------------------------------------------------------------\n")
-                    .append("Test: ").append(s_k8sTestName.getName()).append("\n")
-                    .append("helm ").append(sArgLine).append("\n")
-                    .append("Helm returned a non-zero exit code (").append(nExitCode).append(")\n");
-
-            console.getCapturedOutputLines()
-                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
-            console.getCapturedErrorLines()
-                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
-
-            File fileDir = MavenProjectFileUtils.ensureTestOutputBaseFolder(Kubernetes.class);
-            fileDir.mkdirs();
-            File fileLog = new File(fileDir, "kubectl-retries.log");
-
-            Files.write(fileLog.toPath(),
-                        sMessage.toString().getBytes(),
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.APPEND);
-            }
-        catch (IOException e)
-            {
-            System.err.println("Could not write retry log: " + e.getMessage());
-            }
         }
 
     public static void captureInstalledPodLogs(K8sCluster cluster, String sNamespace, String sRelease)
@@ -580,7 +415,7 @@ public abstract class BaseHelmChartTest
             CapturingApplicationConsole consoleContainers = new CapturingApplicationConsole();
             int                         nExitCode;
 
-            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "-n", sNamespace, "--selector", "release=" + sRelease,  "-o", "name"),
+            nExitCode = cluster.kubectlAndWait(Arguments.of("get", "pods", "--all-namespaces=true", "--selector", "release=" + sRelease,  "-o", "name"),
                                                Console.of(consolePods),
                                                LaunchLogging.disabled());
 
@@ -599,7 +434,7 @@ public abstract class BaseHelmChartTest
                     continue;
                     }
 
-                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "-n", sNamespace, "-o", "jsonpath={.spec.containers[*].name}"),
+                nExitCode = cluster.kubectlAndWait(Arguments.of("get", sPod, "--all-namespaces=true", "-o", "jsonpath={.spec.containers[*].name}"),
                                                    Console.of(consoleContainers),
                                                    LaunchLogging.disabled());
 
@@ -971,35 +806,10 @@ public abstract class BaseHelmChartTest
         return null;
         }
 
-    protected void installClient(K8sCluster cluster,
-                                 String     sName,
-                                 String     sNamespace,
-                                 String     sRelease,
-                                 String     sClusterName) throws Exception
-        {
-        Arguments arguments = Arguments.of("apply");
-
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-
-        String sYaml = getClientYaml(sName, sRelease, sClusterName);
-
-        arguments = arguments.with("-f", sYaml);
-
-        System.err.printf("Installing client '%s' into namespace '%s' yaml:\n%s",
-                          sName, sNamespace, sYaml);
-
-        int nExitCode = cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder());
-
-        assertThat("kubectl create coherence client pod returned non-zero exit code", nExitCode, is(0));
-        }
-
     /**
      * Obtain the yaml to use to install a client.
      *
-     * @param sName          the client name
+     * @param name          the client name
      * @param sRelease      the Helm release name
      * @param sClusterName  the cluster name
      *
@@ -1007,36 +817,18 @@ public abstract class BaseHelmChartTest
      *
      * @throws IOException if there is an error creating the template
      */
-    protected String getClientYaml(String sName, String sRelease, String sClusterName) throws IOException
+    protected String getClientYaml(String name, String sRelease, String sClusterName) throws IOException
         {
         final Map<String, String> templateParams = new HashMap<>();
 
         templateParams.put("%%TEST_REGISTRY_PREFIX%%", System.getProperty("test.image.prefix"));
-        templateParams.put("%%NAME%%", sName);
+        templateParams.put("%%NAME%%", name);
         templateParams.put("%%NAMESPACE%%", getK8sNamespace());
         templateParams.put("%%WKA%%", sRelease + "-coherence-headless");
         templateParams.put("%%LISTEN_PORT%%", "20000");
         templateParams.put("%%CLUSTER%%", sClusterName);
         templateParams.put("%%IMAGE_PULL_POLICY%%", (OP_IMAGE_PULL_POLICY == null) ? "IfNotPresent" : OP_IMAGE_PULL_POLICY);
-
-        Stream<String> streamSecrets    = Stream.empty();
-        Stream<String> streamCohSecrets = Stream.empty();
-
-        if (K8S_IMAGE_PULL_SECRET != null && !K8S_IMAGE_PULL_SECRET.trim().isEmpty())
-            {
-            streamSecrets = Arrays.stream(K8S_IMAGE_PULL_SECRET.split(","));
-            }
-
-        if (K8S_COHERENCE_IMAGE_PULL_SECRET != null && !K8S_COHERENCE_IMAGE_PULL_SECRET.trim().isEmpty())
-            {
-            streamCohSecrets = Arrays.stream(K8S_COHERENCE_IMAGE_PULL_SECRET.split(","));
-            }
-
-        String sSecrets = Stream.concat(streamSecrets, streamCohSecrets)
-                                .map(s -> "  - name: " + s)
-                                .collect(Collectors.joining("\n"));
-
-        templateParams.put("%%IMAGE_PULL_SECRETS%%", sSecrets);
+        templateParams.put("%%IMAGE_PULL_SECRETS%%", K8S_IMAGE_PULL_SECRET);
 
         String clientTemplateFile = Resources.findFileOrResource("coh-client-template.yaml", null).getPath();
         String clientYamlContents = IOUtils.toString(new FileInputStream(clientTemplateFile), "UTF-8");
@@ -1053,40 +845,11 @@ public abstract class BaseHelmChartTest
             clientYamlContents = clientYamlContents.replaceAll(entry.getKey(), sValue);
             }
 
-        File clientYaml = new File(clientTemplateFile.substring(0, clientTemplateFile.lastIndexOf("/")), sName);
+        File clientYaml = new File(clientTemplateFile.substring(0, clientTemplateFile.lastIndexOf("/")), name);
 
         FileUtils.writeStringToFile(clientYaml, clientYamlContents, "UTF-8");
 
-        System.err.printf("Created client yaml file: %s\n%s", sName, clientYamlContents);
-
         return clientYaml.getPath();
-        }
-
-    /**
-     * Check for required client state.
-     *
-     * @param cluster     the k8s cluster
-     * @param sNamespace  the namespace name
-     * @param sClientPod  the pod name
-     *
-     * @return {@code true} if required client state is reached.
-     */
-    // MUST BE PUBLIC - used in Eventually.assertThat
-    public boolean isRequiredClientStateReached(K8sCluster cluster,
-                                                String     sNamespace,
-                                                String     sClientPod)
-        {
-        try
-            {
-            Queue<String> sLogs = getPodLog(cluster, sNamespace, sClientPod, null, false);
-
-            return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
-                        && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
-            }
-        catch (Exception ex)
-            {
-            return false;
-            }
         }
 
     /**
@@ -1154,7 +917,7 @@ public abstract class BaseHelmChartTest
      * @param cluster  the k8s cluster
      * @param sName    CRD name
      */
-    public static void deleteCRD(K8sCluster cluster, String sName)
+    public static void deleteCRD( K8sCluster cluster, String sName)
         {
         int nExitCode = cluster.kubectlAndWait(Arguments.of("delete", "crd", "--ignore-not-found=true", sName));
 
@@ -1264,7 +1027,7 @@ public abstract class BaseHelmChartTest
                     arguments = arguments.with(sContainer);
                     }
 
-                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console), MaxRetries.none());
+                int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console));
 
                 if (nExitCode != 0)
                     {
@@ -1304,18 +1067,9 @@ public abstract class BaseHelmChartTest
 
     protected static Queue<String> getPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer)
         {
-        return getPodLog(cluster, sNamespace, sPod, sContainer, true);
-        }
-
-    protected static Queue<String> getPodLog(K8sCluster cluster,
-                                             String     sNamespace,
-                                             String     sPod,
-                                             String     sContainer,
-                                             boolean    fAllowRetry)
-        {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        getPodLog(cluster, sNamespace, sPod, sContainer, console, fAllowRetry);
+        getPodLog(cluster, sNamespace, sPod, sContainer, console);
 
         return console.getCapturedOutputLines();
         }
@@ -1324,8 +1078,7 @@ public abstract class BaseHelmChartTest
                                   String             sNamespace,
                                   String             sPod,
                                   String             sContainer,
-                                  ApplicationConsole console,
-                                  boolean            fAllowRetry)
+                                  ApplicationConsole console)
         {
         Arguments arguments = Arguments.empty();
 
@@ -1341,9 +1094,7 @@ public abstract class BaseHelmChartTest
             arguments = arguments.with("-c", sContainer);
             }
 
-        MaxRetries maxRetries = fAllowRetry ? MaxRetries.of(5) : MaxRetries.none();
-
-        cluster.kubectlAndWait(arguments, Console.of(console), LaunchLogging.disabled(), maxRetries);
+        cluster.kubectlAndWait(arguments, Console.of(console), LaunchLogging.disabled());
         }
 
     protected static void dumpPodLog(K8sCluster cluster, String sNamespace, String sPod)
@@ -1399,8 +1150,7 @@ public abstract class BaseHelmChartTest
         File   fileConfig  = sConfig == null ? null : new File(sConfig);
         File   fileKubectl = KUBECTL == null ? null : new File(KUBECTL);
 
-        return new Kubernetes()
-                .logRetries(s_k8sTestName)
+        return new K8sCluster()
                 .withKubectlAt(fileKubectl)
                 .withKubectlConfig(fileConfig)
                 .withKubectlContext(getPropertyOrNull("k8s.context"))
@@ -1514,7 +1264,6 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "namespace");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
-                                                                       MaxRetries.none(),
                                                                        LaunchLogging.disabled());
 
         if (nExitCode == 0)
@@ -1540,7 +1289,6 @@ public abstract class BaseHelmChartTest
         Arguments                   arguments = Arguments.of("get", "crd");
         int                         nExitCode = cluster.kubectlAndWait(arguments,
                                                                        Console.of(console),
-                                                                       MaxRetries.none(),
                                                                        LaunchLogging.enabled());
         if (nExitCode == 0)
             {
@@ -1742,16 +1490,9 @@ public abstract class BaseHelmChartTest
      */
     static void ensureSecret(K8sCluster cluster, String sNamespace)
         {
-        String sSecrets = getPropertyOrNull(PROP_K8S_PULL_SECRET);
+        String sSecretName = getPropertyOrNull(PROP_K8S_PULL_SECRET);
 
-        if (sSecrets != null && !sSecrets.trim().isEmpty())
-            {
-            for (String sSecretName : sSecrets.trim().split(","))
-                {
-                ensureSecret(cluster, sNamespace, sSecretName);
-                }
-            }
-
+        ensureSecret(cluster, sNamespace, sSecretName);
         }
 
     /**
@@ -1781,7 +1522,7 @@ public abstract class BaseHelmChartTest
 
         arguments = arguments.with("get", "secret", sSecretName);
 
-        int nExitCode = cluster.kubectlAndWait(arguments, MaxRetries.none());
+        int nExitCode = cluster.kubectlAndWait(arguments);
 
         if (nExitCode != 0 && CREATE_SECRET)
             {
@@ -1947,16 +1688,7 @@ public abstract class BaseHelmChartTest
                                               .toArray(String[]::new);
                     }
 
-                String[] asValue = (sHelmValues == null)
-                        ? new String[] { "values/helm-values-coherence-image.yaml" }
-                        : new String[] { "values/helm-values-coherence-image.yaml", sHelmValues };
-
-                asReleases[i] = installChart(cluster,
-                                             COHERENCE_HELM_CHART_NAME,
-                                             COHERENCE_HELM_CHART_URL,
-                                             sNamespace,
-                                             asValue,
-                                             asActualSetValues);
+                asReleases[i] = installChart(cluster, COHERENCE_HELM_CHART_NAME, COHERENCE_HELM_CHART_URL, sNamespace, sHelmValues, asActualSetValues);
                 }
             catch(Throwable throwable)
                 {
@@ -2341,7 +2073,7 @@ public abstract class BaseHelmChartTest
     protected static Application portForward(K8sCluster k8sCluster, String sNamespace, String sSelector, int nPort) throws Exception
         {
         // Workaround intermittent kubectl port-forward failure by retrying
-        Throwable lastThrowable = null;
+        Exception lastException = null;
         final int MAX_RETRY     = 8;
         for (int i = 0; i < MAX_RETRY; i++)
             {
@@ -2349,9 +2081,9 @@ public abstract class BaseHelmChartTest
                 {
                 return internalPortForward(k8sCluster, sNamespace, sSelector, nPort);
                 }
-            catch (Throwable t)
+            catch (Exception e)
                 {
-                lastThrowable = t;
+                lastException = e;
                 try
                     {
                     // backoff before retry
@@ -2362,7 +2094,7 @@ public abstract class BaseHelmChartTest
                     }
                 }
             }
-        throw new WrapperException(lastThrowable);
+        throw lastException;
         }
 
     /**
@@ -2511,7 +2243,7 @@ public abstract class BaseHelmChartTest
      */
     protected boolean versionCheck(String sMinimalVersion)
         {
-        return versionCheck(COHERENCE_IMAGE, sMinimalVersion);
+        return versionCheck(COHERENCE_VERSION, sMinimalVersion);
         }
 
     /**
@@ -2537,11 +2269,6 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- data members ---------------------------------------------------
-
-    /**
-     * The property for helm install max retry attempt. Default to 3.
-     */
-    public static final String HELM_INSTALL_MAX_RETRY = System.getProperty("helm.install.maxRetry", "3");
 
     /**
      * The default name for the Coherence Operator Helm chart to test.
@@ -2577,11 +2304,6 @@ public abstract class BaseHelmChartTest
      * The System property to use to obtain the name of the optional k8s docker-registry secret.
      */
     public static final String PROP_K8S_PULL_SECRET = "k8s.image.pull.secret";
-
-    /**
-     * The System property to use to obtain the name of the optional k8s docker-registry secret for pulling Coherence.
-     */
-    public static final String PROP_COHERENCE_K8S_PULL_SECRET = "k8s.coherence.image.pull.secret";
 
     /**
      * The name of the System property to use to determine whether to create and destroy the k8s test namespace.
@@ -2664,11 +2386,6 @@ public abstract class BaseHelmChartTest
     protected static final String K8S_IMAGE_PULL_SECRET = getPropertyOrNull(PROP_K8S_PULL_SECRET);
 
     /**
-     * The name of the optional k8s Coherence docker-registry secret.
-     */
-    protected static final String K8S_COHERENCE_IMAGE_PULL_SECRET = getPropertyOrNull(PROP_COHERENCE_K8S_PULL_SECRET);
-
-    /**
      * Flag indicating whether to create and destroy the test namespace.
      */
     public static final boolean CREATE_NAMESPACE = Boolean.getBoolean(PROP_CREATE_NAMESPACE);
@@ -2704,9 +2421,9 @@ public abstract class BaseHelmChartTest
     public static final String[] EMPTY_JMX_SIGNATURE = new String[0];
 
     /**
-     * The full Coherence image name to use.
+     * The version (tag) for the latest Coherence image version being tested.
      */
-    public static final String COHERENCE_IMAGE = System.getProperty("test.coherence.image");
+    public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
 
     /**
      * A JUnit class rule to create temporary files and folders.
@@ -2742,10 +2459,6 @@ public abstract class BaseHelmChartTest
     @ClassRule
     @Rule
     public static final TestLogs s_testLogs = new TestLogs();
-
-    @ClassRule
-    @Rule
-    public static final Kubernetes.TestName s_k8sTestName = new Kubernetes.TestName();
 
     /**
      * The Helm command template.

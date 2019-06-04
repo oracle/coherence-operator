@@ -164,14 +164,13 @@ store:
   # store.labels are extra labels to add to the Coherence Pod
   labels: []
 
-  # store.podManagementPolicy sets the podManagementPolicy value for the
-  #   Coherence cluster StatefulSet.  The default value is Parallel, to
-  #   cause Pods to be started and stopped in parallel, which can be
-  #   useful for faster cluster start-up in certain scenarios such as
-  #   testing but could cause data loss if multiple Pods are stopped in
-  #   parallel.  This can be changed to OrderedReady which causes Pods
-  #   to start and stop in sequence.
-  podManagementPolicy: Parallel
+  # store.podManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.
+  #   The default value is OrderedReady which causes Pods to start and stop in sequence. This
+  #   can be changed to Parallel to cause Pods to be started and stopped in parallel, which can
+  #   be useful for faster cluster start-up in certain scenarios such as testing but could
+  #   cause data loss if multiple Pods are stopped in parallel so the default should be
+  #   used in production.
+  podManagementPolicy: OrderedReady
 
   # store.revisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades.
   #   The default value if not set is 3.
@@ -527,7 +526,7 @@ coherence:
   # coherence.image is the name of the Coherence image to be used
   #   NOTE: This is a required value and if this value is set to null then installing the
   #   chart will result in a missing required value error
-  image: "${helm.chart.coherence.image}"
+  image: "${release.image.prefix}oracle/coherence:${coherence.docker.version}"
   # coherence.imagePullPolicy controls the K8s Coherence container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
@@ -539,7 +538,7 @@ coherenceUtils:
   # coherenceUtils.image is the name of the CoherenceUtils image to be used
   #   NOTE: This is a required value and if this value is set to null then installing the
   #   chart will result in a missing required value error
-  image: "${operator.utils.image}"
+  image: "${release.image.prefix}oracle/coherence-operator:${project.version}-utils"
   # coherenceUtils.imagePullPolicy controls the K8s Coherence utilities container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:

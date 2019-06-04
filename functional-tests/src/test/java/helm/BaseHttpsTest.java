@@ -31,17 +31,18 @@ public abstract class BaseHttpsTest
     /**
      * Setup the test using the specified values file.
      *
-     * @param sValuesFile      the values file to use when installing the Coherence chart
-     * @param sCoherenceImage  the Coherence Docker image
-     * @param nPortToForward   the container port to forward
+     * @param sValuesFile        the values file to use when installing the Coherence chart
+     * @param sCoherenceVersion  the Coherence Docker image tag (version)
+     * @param nPortToForward     the container port to forward
      *
      * @throws Exception  if there is an error setting up the test
      */
-    protected static void setup(String sValuesFile, String sCoherenceImage, int nPortToForward) throws Exception
+    protected static void setup(String sValuesFile, String sCoherenceVersion, int nPortToForward) throws Exception
         {
         // create the SSL k8s secret (delete it first to ensure the secret is correct)
         String sSecret         = "ssl-secret";
         String sNamespace      = getK8sNamespace();
+        String sCoherenceImage = COHERENCE_IMAGE_PREFIX + sCoherenceVersion;
         String sImageName      = "coherenceImage.name=" + sCoherenceImage;
 
         createSecret(sSecret, sNamespace);
@@ -87,7 +88,7 @@ public abstract class BaseHttpsTest
         URL  urlTrustStore  = Resources.findFileOrResource(HttpTestHelper.TRUSTSTORE_GUARDIANS, null);
         File fileTrustStore = new File(urlTrustStore.toURI());
 
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "secret", sSecret, "--ignore-not-found=true"));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "secret", sSecret));
 
         int nExitCode = s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "secret", "generic", sSecret,
                                                                  "--from-file", fileKeyStore.getCanonicalPath(),
@@ -178,7 +179,17 @@ public abstract class BaseHttpsTest
     protected static HttpTestHelper s_clientHelper;
 
     /**
-     * The full Coherence image name to use.
+     * The Docker registry name to use to pull Coherence images.
      */
-    public static final String COHERENCE_IMAGE = System.getProperty("test.coherence.image");
+    public static final String DOCKER_REGISTRY = System.getProperty("docker.repo");
+
+    /**
+     * The version (tag) for the latest Coherence image version.
+     */
+    public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
+
+    /**
+     * The base Coherence image name without a tag.
+     */
+    public static final String COHERENCE_IMAGE_PREFIX = DOCKER_REGISTRY + "coherence:";
     }

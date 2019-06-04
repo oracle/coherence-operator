@@ -30,7 +30,7 @@ public class ManagementHttpsIT
     @BeforeClass
     public static void setup() throws Exception
         {
-        BaseHttpsTest.setup("values/helm-values-ssl-management.yaml", COHERENCE_IMAGE, 30000);
+        BaseHttpsTest.setup("values/helm-values-ssl-management.yaml", COHERENCE_VERSION, 30000);
         }
 
     @AfterClass
@@ -109,6 +109,5 @@ public class ManagementHttpsIT
      * Management over REST API is only available from Coherence 12.2.1.4.0 and greater.
      */
     @ClassRule
-    public static AssumingCoherenceVersion assumingCoherenceVersion
-            = new AssumingCoherenceVersion(COHERENCE_IMAGE, "12.2.1.4.0");
+    public static AssumingCoherenceVersion assumingCoherenceVersion = new AssumingCoherenceVersion(COHERENCE_VERSION, "12.2.1.4.0");
     }

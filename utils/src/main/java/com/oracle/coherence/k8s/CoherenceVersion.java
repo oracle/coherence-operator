@@ -43,11 +43,6 @@ public class CoherenceVersion
 
     static public boolean versionCheck(String sCoherence, String... asArg)
         {
-        if (sCoherence.contains(":"))
-            {
-            sCoherence = sCoherence.substring(sCoherence.indexOf(":") + 1);
-            }
-
         boolean fResult     = true;
         int[]   anCoherence = splitVersion(sCoherence);
         int[]   anVersion   = splitVersion(asArg[0]);

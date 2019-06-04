@@ -16,6 +16,9 @@ spec:
   serviceAccountName: {{ template "prometheus-operator.alertmanager.serviceAccountName" . }}
 {{- if .Values.alertmanager.alertmanagerSpec.externalUrl }}
   externalUrl: "{{ .Values.alertmanager.alertmanagerSpec.externalUrl }}"
+{{- end }}
+{{- if .Values.alertmanager.alertmanagerSpec.externalUrl }}
+  externalUrl: "{{ .Values.alertmanager.alertmanagerSpec.externalUrl }}"
 {{- else if .Values.alertmanager.ingress.enabled }}
   externalUrl: "http://{{ index .Values.alertmanager.ingress.hosts 0 }}{{ .Values.alertmanager.alertmanagerSpec.routePrefix }}"
 {{- else }}
@@ -59,7 +62,7 @@ spec:
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-      - topologyKey: {{ .Values.alertmanager.alertmanagerSpec.podAntiAffinityTopologyKey }}
+      - topologyKey: kubernetes.io/hostname
         labelSelector:
           matchLabels:
             app: alertmanager
@@ -70,7 +73,7 @@ spec:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 100
         podAffinityTerm:
-          topologyKey: {{ .Values.alertmanager.alertmanagerSpec.podAntiAffinityTopologyKey }}
+          topologyKey: kubernetes.io/hostname
           labelSelector:
             matchLabels:
               app: alertmanager

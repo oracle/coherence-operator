@@ -86,8 +86,7 @@ public class VolumesIT
             writer.println(sData);
             }
 
-        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "configmap",
-                                                 sConfigMap, "--ignore-not-found=true"));
+        s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "delete", "configmap", sConfigMap));
         s_k8sCluster.kubectlAndWait(Arguments.of("-n", sNamespace, "create", "configmap",
                                                  sConfigMap, "--from-file", file.getCanonicalPath()));
 

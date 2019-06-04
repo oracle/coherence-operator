@@ -16,16 +16,6 @@ spec:
       - {{ .Release.Namespace | quote }}
   endpoints:
   - port: web
-    {{- if .Values.alertmanager.serviceMonitor.interval }}
-    interval: {{ .Values.alertmanager.serviceMonitor.interval }}
-    {{- end }}
+    interval: 30s
     path: "{{ trimSuffix "/" .Values.alertmanager.alertmanagerSpec.routePrefix }}/metrics"
-{{- if .Values.alertmanager.serviceMonitor.metricRelabelings }}
-    metricRelabelings:
-{{ toYaml .Values.alertmanager.serviceMonitor.metricRelabelings | indent 6 }}
-{{- end }}
-{{- if .Values.alertmanager.serviceMonitor.relabelings }}
-    relabelings:
-{{ toYaml .Values.alertmanager.serviceMonitor.relabelings | indent 6 }}
-{{- end }}
 {{- end }}

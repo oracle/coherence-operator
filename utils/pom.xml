@@ -136,7 +136,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <systemProperties>
-            <test.coherence.image>${test.coherence.image}</test.coherence.image>
+            <coherence.docker.version>${coherence.docker.version}</coherence.docker.version>
           </systemProperties>
         </configuration>
         <executions>
@@ -187,7 +187,7 @@
                   <arguments>
                     <argument>build</argument>
                     <argument>-t</argument>
-                    <argument>${operator.utils.image}</argument>
+                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
                     <argument>--no-cache</argument>
                     <argument>.</argument>
                   </arguments>
@@ -221,7 +221,7 @@
                   <workingDirectory>${project.build.directory}/docker</workingDirectory>
                   <arguments>
                     <argument>push</argument>
-                    <argument>${operator.utils.image}</argument>
+                    <argument>${release.image.prefix}oracle/coherence-operator:${project.version}-utils</argument>
                   </arguments>
                 </configuration>
                 <goals>

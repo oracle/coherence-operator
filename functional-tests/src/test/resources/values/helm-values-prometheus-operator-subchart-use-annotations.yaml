@@ -2,6 +2,8 @@
 
 targetNamespaces: [ ${k8s.target.namespaces} ]
 
+serviceAccount: my-coh-operator
+
 # set this to false to use annotations defined by prometheusoperator.prometheus.prometheusSpec.additionalScrapeConfigs.
 coherenceServiceMonitorEnabled: false
 

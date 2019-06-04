@@ -78,10 +78,10 @@ server()
         MEM_OPTS="-Xms${MAX_HEAP} -Xmx${MAX_HEAP}"
     fi
 
-#   Configure whether management and metrics is added to the classpath
+#   Configure whether coherence-rest is added to the classpath
     if [[ "${COH_USE_REST}" != "" ]]
     then
-        CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-management.jar:${COHERENCE_HOME}/lib/coherence-metrics.jar"
+        CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-rest.jar"
         PROPS="${PROPS} -Dcoherence.management.http=all"
     fi
 

@@ -70,13 +70,13 @@ public class RestProbeHttpsIT
     public static HttpServerStub s_httpServer;
 
     /**
-     * The full Coherence image name to use for tests.
+     * The version (tag) for the latest Coherence image version.
      */
-    public static final String COHERENCE_IMAGE = System.getProperty("test.coherence.image");
+    public static final String COHERENCE_VERSION = System.getProperty("coherence.docker.version");
 
     /**
      * FileBasedPasswordProvider is only available from Coherence 12.2.1.4.0 and greater.
      */
     @ClassRule
-    public static AssumingCoherenceVersion assumingCoherenceVersion = new AssumingCoherenceVersion(COHERENCE_IMAGE, "12.2.1.4.0");
+    public static AssumingCoherenceVersion assumingCoherenceVersion = new AssumingCoherenceVersion(COHERENCE_VERSION, "12.2.1.4.0");
     }

@@ -35,8 +35,6 @@
     <k8s.context/>
     <!-- the k8s docker-registry secret name continuing the image pull credentials -->
     <k8s.image.pull.secret/>
-    <!-- the k8s docker-registry secret name continuing the image pull credentials for the Coherence image -->
-    <k8s.coherence.image.pull.secret/>
     <!--&lt;!&ndash; flag indicating whether to create the pull secrets &ndash;&gt;-->
     <k8s.create.secret>false</k8s.create.secret>
     <!-- the username to use when creating pull secrets -->
@@ -332,7 +330,6 @@
                 <k8s.config>${k8s.config}</k8s.config>
                 <k8s.context>${k8s.context}</k8s.context>
                 <k8s.image.pull.secret>${k8s.image.pull.secret}</k8s.image.pull.secret>
-                <k8s.coherence.image.pull.secret>${k8s.coherence.image.pull.secret}</k8s.coherence.image.pull.secret>
                 <k8s.create.namespace>${k8s.create.namespace}</k8s.create.namespace>
                 <k8s.create.secret>${k8s.create.secret}</k8s.create.secret>
                 <k8s.kubectl>${k8s.kubectl}</k8s.kubectl>
@@ -353,8 +350,9 @@
                 <project.build.directory>${project.build.directory}</project.build.directory>
                 <docker.repo>${test.image.prefix}</docker.repo>
                 <test.image.prefix>${test.image.prefix}</test.image.prefix>
-                <test.coherence.image>${test.coherence.image}</test.coherence.image>
-
+                <coherence.docker.version>${coherence.docker.version}</coherence.docker.version>
+                <test.image.prefix>${test.image.prefix}</test.image.prefix>
+                
                 <http.proxyHost>${proxyHost}</http.proxyHost>
                 <http.proxyPort>${proxyPort}</http.proxyPort>
                 <http.nonProxyHosts>${nonProxyHosts}</http.nonProxyHosts>

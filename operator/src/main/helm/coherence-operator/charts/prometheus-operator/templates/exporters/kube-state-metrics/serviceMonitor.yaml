@@ -9,19 +9,9 @@ metadata:
 spec:
   jobLabel: app
   endpoints:
-  - port: http
-    {{- if .Values.kubeStateMetrics.serviceMonitor.interval }}
-    interval: {{ .Values.kubeStateMetrics.serviceMonitor.interval }}
-    {{- end }}
+  - interval: 30s
+    port: http
     honorLabels: true
-{{- if .Values.kubeStateMetrics.serviceMonitor.metricRelabelings }}
-    metricRelabelings:
-{{ toYaml .Values.kubeStateMetrics.serviceMonitor.metricRelabelings | indent 4 }}
-{{- end }}
-{{- if .Values.kubeStateMetrics.serviceMonitor.relabelings }}
-    relabelings:
-{{ toYaml .Values.kubeStateMetrics.serviceMonitor.relabelings | indent 4 }}
-{{- end }}
   selector:
     matchLabels:
       app: kube-state-metrics
