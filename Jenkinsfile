@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
     environment {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
@@ -248,11 +248,11 @@ pipeline {
                     }
                 }
             }
-        }
-    }
-    post {
-        always {
-            deleteDir()
+            post {
+                always {
+                    deleteDir()
+                }
+            }
         }
     }
 }
