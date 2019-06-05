@@ -667,7 +667,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "count(coherence_partition_assignment_HA_status == 1)",
+          "expr": "count(coherence_partition_assignment_HA_status <= 1)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1419,7 +1419,7 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1450,5 +1450,5 @@
   "timezone": "",
   "title": "Alerts Dashboard",
   "uid": "coh-alerts",
-  "version": 4
+  "version": 5
 }

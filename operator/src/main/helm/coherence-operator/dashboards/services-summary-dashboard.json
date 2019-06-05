@@ -45,7 +45,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1559633825225,
+  "iteration": 1559697182385,
   "links": [
     {
       "icon": "dashboard",
@@ -180,6 +180,10 @@
             {
               "text": "SITE-SAFE",
               "value": "5"
+            },
+            {
+              "text": "ORPHANED",
+              "value": "0"
             }
           ]
         },
@@ -1286,7 +1290,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1317,5 +1321,5 @@
   "timezone": "",
   "title": "Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "version": 5
+  "version": 7
 }

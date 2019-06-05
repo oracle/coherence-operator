@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 14,
-  "iteration": 1559633255050,
+  "iteration": 1559696854125,
   "links": [
     {
       "icon": "dashboard",
@@ -406,9 +406,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(coherence_partition_assignment_HA_status{cluster=~\"$ClusterName\"} == 1)",
+          "expr": "count(coherence_partition_assignment_HA_status{cluster=~\"$ClusterName\"} <= 1)",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -2334,7 +2335,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -2360,7 +2360,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "12.2.1.4.0 (dev-coherence)",
           "value": "12.2.1.4.0 (dev-coherence)"
         },
@@ -2386,7 +2385,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2412,7 +2410,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2438,7 +2435,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "tags": [],
           "text": "3",
           "value": "3"
         },
@@ -2481,7 +2478,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -2512,5 +2509,5 @@
   "timezone": "",
   "title": "Coherence Dashboard Main",
   "uid": "coh-main",
-  "version": 4
+  "version": 5
 }
