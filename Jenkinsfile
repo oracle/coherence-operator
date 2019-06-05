@@ -237,7 +237,9 @@ pipeline {
                     }
                     post {
                         always {
-                            archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
+                            node("workspace") {
+                                archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
+                            }
                             sh '''
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
@@ -252,9 +254,9 @@ pipeline {
     }
     post {
         always {
-           node {
-            deleteDir()
-            }
+           node("workspace") {
+               deleteDir()
+           }
         }
     }
 }
