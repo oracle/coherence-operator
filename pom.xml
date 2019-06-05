@@ -77,7 +77,7 @@
 
     <!-- the Coherence image to use when running functional tests -->
     <coherence.image.prefix>container-registry.oracle.com/middleware/</coherence.image.prefix>
-    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74024</test.coherence.image>
+    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74172</test.coherence.image>
   </properties>
 
   <dependencyManagement>
