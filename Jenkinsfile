@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
     environment {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
@@ -237,9 +237,7 @@ pipeline {
                     }
                     post {
                         always {
-                            node("workspace") {
-                                archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
-                            }
+                            archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
                             sh '''
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
@@ -254,9 +252,7 @@ pipeline {
     }
     post {
         always {
-           node("workspace") {
-               deleteDir()
-           }
+            deleteDir()
         }
     }
 }
