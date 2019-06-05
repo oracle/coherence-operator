@@ -7,7 +7,7 @@ pipeline {
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
-        lock('kubernetes-stage1')
+        lock(label: 'kubernetes-stage', quantity: 1)
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
