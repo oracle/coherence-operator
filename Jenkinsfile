@@ -7,7 +7,7 @@ pipeline {
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
-        lock('kubernetes-stage1')
+        lock(label: 'kubernetes-stage', quantity: 1)
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
@@ -170,15 +170,87 @@ pipeline {
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                                kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
-                                kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
-                                kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
-                                kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
                                 helm tiller stop || true
                             '''
-                            deleteDir()
                         }
                     }
+                }
+                stage('kubernetes-tests-latestCoherenceReleasedImage') {
+                    steps {
+                        echo 'Kubernetes Tests'
+                        withCredentials([
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER'),
+                            string(credentialsId: 'ocr-docker-pull-secret-email',    variable: 'OCR_PULL_SECRET_EMAIL'),
+                            string(credentialsId: 'ocr-docker-pull-secret-password', variable: 'OCR_PULL_SECRET_PASSWORD'),
+                            string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
+                            string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
+                            sh '''
+                                export HELM_TILLER_LOGS=false
+                                helm tiller start-ci test-cop-$BUILD_NUMBER
+                                export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
+                                export HELM_HOST=:44134
+                                kubectl create namespace test-cop-$BUILD_NUMBER  || true
+                                kubectl create namespace test-cop2-$BUILD_NUMBER || true
+                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                                   --namespace test-cop-$BUILD_NUMBER \
+                                   --docker-server=$PULL_SECRET_SERVER \
+                                   --docker-username=$PULL_SECRET_USERNAME \
+                                   --docker-password="$PULL_SECRET_PASSWORD" \
+                                   --docker-email=$PULL_SECRET_EMAIL || true
+                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                                   --namespace test-cop2-$BUILD_NUMBER \
+                                   --docker-server=$PULL_SECRET_SERVER \
+                                   --docker-username=$PULL_SECRET_USERNAME \
+                                   --docker-password="$PULL_SECRET_PASSWORD" \
+                                   --docker-email=$PULL_SECRET_EMAIL || true
+                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                                   --namespace test-cop-$BUILD_NUMBER \
+                                   --docker-server=$OCR_PULL_SECRET_SERVER \
+                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
+                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
+                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
+                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                                   --namespace test-cop2-$BUILD_NUMBER \
+                                   --docker-server=$OCR_PULL_SECRET_SERVER \
+                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
+                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
+                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
+                            '''
+                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                                sh '''
+                                    export HELM_BINARY=`which helm`
+                                    export KUBECTL_BINARY=`which kubectl`
+                                    mvn -Dbedrock.helm=''$HELM_BINARY'' \
+                                        -Dk8s.kubectl=''$KUBECTL_BINARY'' \
+                                        -Dop.image.pull.policy=Always \
+                                        -Dci.build=$BUILD_NUMBER \
+                                        -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
+                                        -Dk8s.create.namespace=false \
+                                        -P testLatestCoherenceReleasedImage \
+                                        -P pushTestImage -P helm-test clean install
+                                '''
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
+                            sh '''
+                                helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
+                                kubectl delete namespace test-cop-$BUILD_NUMBER  || true
+                                kubectl delete namespace test-cop2-$BUILD_NUMBER || true
+                                helm tiller stop || true
+                            '''
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    deleteDir()
                 }
             }
         }

@@ -45,7 +45,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1556853863139,
+  "iteration": 1559697182385,
   "links": [
     {
       "icon": "dashboard",
@@ -85,7 +85,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -120,7 +119,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "Value",
+          "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -148,25 +147,6 @@
           "alias": "Status HA",
           "colorMode": "cell",
           "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_HA_status",
-          "thresholds": [
-            ""
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
@@ -174,10 +154,38 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
+          "pattern": "Value #B",
+          "thresholds": [
+            "2"
+          ],
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "text": "ENDANGERED",
+              "value": "1"
+            },
+            {
+              "text": "NODE-SAFE",
+              "value": "2"
+            },
+            {
+              "text": "MACHINE-SAFE",
+              "value": "3"
+            },
+            {
+              "text": "RACK-SAFE",
+              "value": "4"
+            },
+            {
+              "text": "SITE-SAFE",
+              "value": "5"
+            },
+            {
+              "text": "ORPHANED",
+              "value": "0"
+            }
+          ]
         },
         {
           "alias": "",
@@ -196,12 +204,20 @@
       ],
       "targets": [
         {
-          "expr": "avg(coherence_partition_assignment_service_node_count{cluster=~\"$ClusterName\"}) by (coherence_service, tag_HA_status) ",
+          "expr": "avg(coherence_partition_assignment_service_node_count{cluster=~\"$ClusterName\"}) by (coherence_service) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "expr": "avg(coherence_partition_assignment_HA_status{cluster=~\"$ClusterName\"}) by (coherence_service)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "title": "Storage Service List",
@@ -210,7 +226,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -270,25 +285,6 @@
           "unit": "short"
         },
         {
-          "alias": "Status HA",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_status_HA",
-          "thresholds": [
-            ""
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
-        },
-        {
           "alias": "Service Type",
           "colorMode": null,
           "colors": [
@@ -338,7 +334,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "",
       "fill": 1,
@@ -383,6 +378,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Service Task Count",
       "tooltip": {
@@ -424,7 +420,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -534,7 +529,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -628,7 +622,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -722,7 +715,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Services  that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -783,25 +775,6 @@
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Status HA",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_status_HA",
-          "thresholds": [
-            ""
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
         },
         {
           "alias": "Service Type",
@@ -869,7 +842,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The Current top  $TopLimit Services  that have the greatest task backlog.",
       "fontSize": "100%",
       "gridPos": {
@@ -930,25 +902,6 @@
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Status HA",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_status_HA",
-          "thresholds": [
-            ""
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
         },
         {
           "alias": "Service Type",
@@ -1016,7 +969,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -1181,7 +1133,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1191,10 +1143,12 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -1215,10 +1169,12 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "12.2.1.4.0 (dev-coherence)",
           "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
@@ -1239,10 +1195,12 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Services",
@@ -1263,10 +1221,12 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Caches",
@@ -1287,8 +1247,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "5",
-          "value": "5"
+          "selected": true,
+          "text": "3",
+          "value": "3"
         },
         "hide": 0,
         "includeAll": false,
@@ -1302,12 +1263,12 @@
             "value": "1"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "3",
             "value": "3"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "5",
             "value": "5"
           },
@@ -1360,5 +1321,5 @@
   "timezone": "",
   "title": "Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "version": 2
+  "version": 7
 }
