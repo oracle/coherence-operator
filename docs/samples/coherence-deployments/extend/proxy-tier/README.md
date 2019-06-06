@@ -139,7 +139,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
    Issue the following command to run QueryPlus:
 
-
    ```bash
    $ mvn exec:java
    ```

@@ -32,6 +32,7 @@
     <module>coherence-deployments/elastic-data/default</module>
     <module>coherence-deployments/elastic-data/external</module>
     <module>coherence-deployments/sidecar</module>
+    <module>coherence-deployments/federation/within-cluster</module>
     <module>operator/rolling-upgrade</module>
     <module>operator/logging/custom-logs</module>
     <!-- Enable this module when using Coherence 12.2.1.4.0 and above
