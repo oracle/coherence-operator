@@ -37,11 +37,6 @@
     </dependency>
     
     <dependency>
-      <groupId>com.oracle.coherence</groupId>
-      <artifactId>coherence-rest</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
     </dependency>

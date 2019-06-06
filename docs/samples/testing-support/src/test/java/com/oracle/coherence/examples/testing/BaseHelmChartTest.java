@@ -26,7 +26,6 @@ import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
-import com.oracle.coherence.k8s.CoherenceVersion;
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Resources;
 import org.apache.commons.io.FileUtils;
