@@ -61,7 +61,7 @@ Confirm you have completed the following sections from the `Quick Start Guide` b
   
 > **Note:** For all helm install commands you can leave the --version option off 
 > and the latest version of the chart will be retrieved. If you wanted 
-> to use a specific version, such as 0.9.7, add --version 0.9.7 to all installs for the coherence-operator and coherence charts.  
+> to use a specific version, such as 0.9.8, add --version 0.9.8 to all installs for the coherence-operator and coherence charts.  
 
 ## Ensure you have JDK8 and Maven Installed
 

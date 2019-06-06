@@ -74,8 +74,8 @@ Hang tight while we grab the latest from your chart repositories...
 
 > **Note**: For all helm install commands you can leave the `--version`
 > option off and the latest version of the chart will be retrieved.  If
-> you wanted to use a specific version, such as `0.9.7`, add `--version
-> 0.9.7` to all installs for the `coherence-operator` and `coherence`
+> you wanted to use a specific version, such as `0.9.8`, add `--version
+> 0.9.8` to all installs for the `coherence-operator` and `coherence`
 > charts.
 
 If you wish to build the Coherence Operator from source, please refer to the 
@@ -84,42 +84,27 @@ Helm repository prefix in all samples with the full qualified directory as descr
 
 ### Obtain the Coherence Docker Image
 
-> **Note**: we are assuming Coherence version 12.2.1.3 (which is the
+> **Note**: we are assuming Coherence version 12.2.1.3.2 (which is the
 > currently supported version).
 
 You must follow the instructions below to obtain the relevant Coherence Docker image.
 
-1. Go to to [store.docker.com](https://store.docker.com/)
+1. Go to to [Oracle Container Registry](https://container-registry.oracle.com)
 
-1. Search for "Oracle Coherence".
+1. Search for "Coherence".
 
-1. Choose "Developer Plan (12.2.1.3)".
+1. Select `coherence` from the list.
 
-1. Choose "Proceed to Checkout".
+1. Click on `Sign-in` on the right and enter your credentials, or create and account if you don't already have one.
 
-1. Create a Docker Id, or log in with it if you have one already.
+1. On the right, select the language for the  `Oracle Standard Terms and Restrictions`.
 
-1. Check the `I agree that my use of each program in this Content,
-   including any subsequent updates or upgrades...` box.
+1. Click `Continue` and scroll down to accept the terms and conditions.
 
-1. Check the `I acknowledge and allow Docker to share my personal
-   information linked to my Docker ID with this Publisher.` box.
+1. At the command line, do `docker login container-registry.oracle.com` with your Oracle Container Registry credentials.
 
-1. Consider whether or not you want to check the `Please keep me
-   informed of products, services and solutions from this Publisher` box.
-   
-1. Click "Get Content"
-
-1. At the command line, do `docker login` with your Docker store credentials.
-
-1. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
+1. At the command line do `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
      
-1. Provide a tag that effectively removes the `store` prefix: 
-   
-   ```bash
-   $ docker tag store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3
-   ```
-
 ## 2. Use Helm to install the Coherence Operator
 
 You may like to customize the value of the of the `--name` and
@@ -159,7 +144,7 @@ Use `helm ls` to view the installed releases.
 $ helm ls
 
 NAME                     	REVISION	UPDATED                 	STATUS  	CHART                   	APP VERSION	NAMESPACE
-sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.7	0.9.3      	default  
+sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.8	0.9.8      	default  
 ```
 
 You can also query the status with `helm status`:
@@ -192,7 +177,7 @@ $ helm --debug install coherence/coherence \
 > **Note**: If you want to use a different version of Coherence than the
 > one specified in the `coherence` helm chart, supply a `--set` argument
 > for the `coherence.image` value, as shown next.
-> `--set coherence.image="store/oracle/coherence:12.2.1.3.2"`
+> `--set coherence.image="prefix/coherence:12.2.1.3.2"`
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
 > coherence/coherence` will print out the `README.md` for the operator
