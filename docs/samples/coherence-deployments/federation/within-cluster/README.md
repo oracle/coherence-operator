@@ -30,7 +30,7 @@ The setup for this example uses 2 Coherence clusters in the same Kubernetes clus
 
 * [src/main/resources/conf/cache-config-federation.xml](src/main/resources/conf/cache-config-federation.xml) - cache config for Federation
 
-* [src/main/resources/conf/tangosol-coherence-override-federation.xml(src/main/resources/conf/tangosol-coherence-override-federation.xml) - override for Federation
+* [src/main/resources/conf/tangosol-coherence-override-federation.xml](src/main/resources/conf/tangosol-coherence-override-federation.xml) - override for Federation
 
 
 ## Prerequisites
