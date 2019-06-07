@@ -137,6 +137,7 @@ public class RollingUpgradeSampleIT
                         .withFlags("--reuse-values")
                         .set("imagePullSecrets=ocr-k8s-operator-development-secret")
                         .set("userArtifacts.image=" + sTag)
+                        .set("userArtifacts.imagePullPolicy=Never")
                         .executeAndWait(SystemApplicationConsole.builder());
 
             assertThat("Helm upgrade failed", nExitCode, is(0));
