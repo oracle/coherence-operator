@@ -383,7 +383,7 @@ Samples legend:
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
-      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2718;
+      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2726;
       1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
