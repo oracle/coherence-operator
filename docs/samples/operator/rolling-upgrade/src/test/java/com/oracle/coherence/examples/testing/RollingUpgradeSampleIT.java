@@ -135,8 +135,8 @@ public class RollingUpgradeSampleIT
             int nExitCode = s_helm.upgrade(sCoherenceRelease, fileChartDir.getPath() + "/coherence")
                         .namespace(sCohNamespace)
                         .withFlags("--reuse-values")
-                        .set("imagePullSecrets=ocr-k8s-operator-development-secret,",
-                             "userArtifacts.image=" + sTag)
+                        .set("imagePullSecrets=ocr-k8s-operator-development-secret")
+                        .set("userArtifacts.image=" + sTag)
                         .executeAndWait(SystemApplicationConsole.builder());
 
             assertThat("Helm upgrade failed", nExitCode, is(0));
