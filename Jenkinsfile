@@ -6,7 +6,7 @@ pipeline {
         NO_PROXY    = credentials('coherence-operator-no-proxy')
     }
     options {
-        lock('kubernetes-stage1')
+        lock(label: 'kubernetes-stage', quantity: 1)
     }
     stages {
         stage('maven-build') {
@@ -23,7 +23,7 @@ pipeline {
                     fi
                     helm init --client-only --skip-refresh
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh '''
 		       cd docs/samples 
 		       mvn clean install
@@ -47,7 +47,7 @@ pipeline {
                     fi
                     helm init --client-only
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd docs/samples 
 		        mvn -P docker,docker-v1,docker-v2 clean install
@@ -68,7 +68,7 @@ pipeline {
                         unset NO_PROXY
                     fi
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh ''' 
                         cd docs/samples 
                         mvn install -P dockerPush
@@ -83,10 +83,14 @@ pipeline {
             steps {
                 echo 'Kubernetes Tests'
                 withCredentials([
-                    string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
-                    string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
-                    string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
-                    string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER')]) {
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
+                            string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER'),
+                            string(credentialsId: 'ocr-docker-pull-secret-email',    variable: 'OCR_PULL_SECRET_EMAIL'),
+                            string(credentialsId: 'ocr-docker-pull-secret-password', variable: 'OCR_PULL_SECRET_PASSWORD'),
+                            string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
+                            string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
                     sh '''
                         if [ -z "$HTTP_PROXY" ]; then
                             unset HTTP_PROXY
@@ -115,8 +119,14 @@ pipeline {
                            --docker-username=$PULL_SECRET_USERNAME \
                            --docker-password="$PULL_SECRET_PASSWORD" \
                            --docker-email=$PULL_SECRET_EMAIL || true
+                        kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                           --namespace $NS \
+                           --docker-server=$OCR_PULL_SECRET_SERVER \
+                           --docker-username=$OCR_PULL_SECRET_USERNAME \
+                           --docker-password="$OCR_PULL_SECRET_PASSWORD" \
+                           --docker-email=$OCR_PULL_SECRET_EMAIL || true
                     '''
-                    withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
@@ -126,9 +136,9 @@ pipeline {
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
                                 -Dci.build=$BUILD_NUMBER \
-                                -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret \
+                                -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                                 -Dk8s.create.namespace=false \
-				-Dk8s.chart.test.versions=0.9.7 \
+				-Dk8s.chart.test.versions=0.9.8 \
 				-Dk8s.namespace=$NS \
                                 -P helm-test clean install
                         '''
