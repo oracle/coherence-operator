@@ -92,10 +92,11 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
-
-    <!-- Use the assembly plugin to pull together the files to use to build the
-         docker image under the target/docker folder -->
+    
     <plugins>
+      <!-- Use the assembly plugin to pull together the files to use to build the
+         docker image under the target/docker folder -->
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

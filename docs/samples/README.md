@@ -91,12 +91,11 @@ If you are not running samples that have a Maven project, then you can skip this
                               -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/12.2.1/coherence.12.2.1.pom
    ```
    
-   If you are using Coherence 12.2.1.4.0 or above you also need to install Coherence REST.
+   If you are running Coherence 12.2.1.4, you will also need to install `coherence-metrics`.
    
    ```bash
-   $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-rest.jar \
-                              -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-rest/12.2.1/coherence-rest.12.2.1.pom
-   $PromInterceptor.java:
+   $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-metrics.jar \
+                              -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-metrics/12.2.1/coherence-metrics.12.2.1.pom
    ```   
 
 ## Create the sample namespace
@@ -384,7 +383,7 @@ Samples legend:
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
-      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2718;
+      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2726;
       1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;

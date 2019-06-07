@@ -34,7 +34,7 @@ logs, see the [User Guide](user-guide.md).
 * Docker 18.03.1-ce (check with `docker version`)
 * Flannel networking v0.10.0-amd64 (check with `docker images | grep flannel`)
 * Helm 2.12.3 or above (and all of its prerequisites)
-* Oracle Coherence 12.2.1.3
+* Oracle Coherence 12.2.1.3.2
 
 ### Runtime Environment Prerequisites
 
@@ -104,7 +104,7 @@ You must follow the instructions below to obtain the relevant Coherence Docker i
 1. At the command line, do `docker login container-registry.oracle.com` with your Oracle Container Registry credentials.
 
 1. At the command line do `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
-     
+  
 ## 2. Use Helm to install the Coherence Operator
 
 You may like to customize the value of the of the `--name` and
@@ -177,7 +177,7 @@ $ helm --debug install coherence/coherence \
 > **Note**: If you want to use a different version of Coherence than the
 > one specified in the `coherence` helm chart, supply a `--set` argument
 > for the `coherence.image` value, as shown next.
-> `--set coherence.image="prefix/coherence:12.2.1.3.2"`
+> `--set coherence.image="store/oracle/coherence:12.2.1.3.3"`
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
 > coherence/coherence` will print out the `README.md` for the operator
