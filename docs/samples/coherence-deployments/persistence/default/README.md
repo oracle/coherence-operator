@@ -5,7 +5,7 @@ of Persistent Volumes (PV) and claims (PVC) is setup automatically as well as th
 being set to `active`. This allows restarting of a Coherence cluster and retaining
 the data.
 
-This sample shows how to enabled Persistence with the all the defaults 
+This sample shows how to enable Persistence with the all the defaults 
 under `store.persistence` in `coherence` chart `values.yaml`. Please see (this sample)[../pvc/README.md]
 for more details on setting other values such as `storageClasses`.
 
