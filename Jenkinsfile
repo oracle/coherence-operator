@@ -6,7 +6,7 @@ pipeline {
         NO_PROXY    = credentials('coherence-operator-no-proxy')
     }
     options {
-        lock('kubernetes-stage1')
+        lock(label: 'kubernetes-stage', quantity: 1)
     }
     stages {
         stage('maven-build') {
@@ -23,7 +23,7 @@ pipeline {
                     fi
                     helm init --client-only --skip-refresh
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh '''
 		       cd docs/samples 
 		       mvn clean install
@@ -47,7 +47,7 @@ pipeline {
                     fi
                     helm init --client-only
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd docs/samples 
 		        mvn -P docker,docker-v1,docker-v2 clean install
@@ -68,7 +68,7 @@ pipeline {
                         unset NO_PROXY
                     fi
                 '''
-                withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh ''' 
                         cd docs/samples 
                         mvn install -P dockerPush
@@ -126,7 +126,7 @@ pipeline {
                            --docker-password="$OCR_PULL_SECRET_PASSWORD" \
                            --docker-email=$OCR_PULL_SECRET_EMAIL || true
                     '''
-                    withMaven(jdk: 'Jdk11', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
