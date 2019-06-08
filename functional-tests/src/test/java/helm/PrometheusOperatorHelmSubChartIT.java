@@ -14,6 +14,8 @@ import com.oracle.bedrock.runtime.k8s.helm.Helm;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.net.partition.SimpleStrategyMBean;
+
 import org.junit.*;
 
 import util.AssumingCoherenceVersion;
@@ -187,6 +189,11 @@ public class PrometheusOperatorHelmSubChartIT
             System.err.println("validating cluster size of " + CLUSTER_NAME + " in namespace " + asCohNamespaces[i] + " for coherence release " + m_asReleases[i]);
             Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("coherence_cluster_size", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
                 greaterThanOrEqualTo(EXPECTED_CLUSTER_SIZE),
+                RetryFrequency.every(15, TimeUnit.SECONDS),
+                Timeout.after(2, TimeUnit.MINUTES));
+
+            Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("coherence_partition_assignment_HA_status", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
+                greaterThanOrEqualTo((long)SimpleStrategyMBean.HAStatus.MACHINE_SAFE.getCode()),
                 RetryFrequency.every(15, TimeUnit.SECONDS),
                 Timeout.after(2, TimeUnit.MINUTES));
             }
