@@ -109,8 +109,6 @@ public class PrometheusOperatorHelmSubChartIT
      * Test with user supplied prometheus_io annotations with coherence-service-monitor disabled.
      * @throws Exception
      */
-    // Work on making coherence-operator uninstall more stable. Only uninstall at end of test.
-    @Ignore
     @Test
     public void testPrometheusOperatorSubchartWithUserSuppliedAdditionalScrapeConfig()
         throws Exception
