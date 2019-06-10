@@ -177,7 +177,7 @@ $ helm --debug install coherence/coherence \
 > **Note**: If you want to use a different version of Coherence than the
 > one specified in the `coherence` helm chart, supply a `--set` argument
 > for the `coherence.image` value, as shown next.
--> `--set coherence.image="<prefix>/coherence:<version>"`
+> `--set coherence.image="<prefix>/coherence:<version>"`
 > Use the command `helm inspect readme <chart name>` to print out the
 > `README.md` of the chart.  For example `helm inspect readme
 > coherence/coherence` will print out the `README.md` for the operator
