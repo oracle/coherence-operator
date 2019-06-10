@@ -23,7 +23,7 @@ pipeline {
                         unset HTTPS_PROXY
                         unset NO_PROXY
                     fi
-                    helm init --client-only --skip-refresh
+                    helm init --skip-refresh
                 '''
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh 'mvn clean install'
@@ -86,7 +86,7 @@ pipeline {
                                 unset HTTPS_PROXY
                                 unset NO_PROXY
                             fi
-                            helm init --client-only
+                            helm init
                         '''
                         sh 'docker swarm leave --force || true'
                         sh 'docker swarm init'
@@ -117,10 +117,6 @@ pipeline {
                             string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
                             string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
                             sh '''
-                                export HELM_TILLER_LOGS=false
-                                helm tiller start-ci test-cop-$BUILD_NUMBER
-                                export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
-                                export HELM_HOST=:44134
                                 kubectl create namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl create namespace test-cop2-$BUILD_NUMBER || true
                                 kubectl create secret docker-registry coherence-k8s-operator-development-secret \
@@ -170,7 +166,6 @@ pipeline {
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                                helm tiller stop || true
                             '''
                         }
                     }
@@ -188,10 +183,6 @@ pipeline {
                             string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
                             string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
                             sh '''
-                                export HELM_TILLER_LOGS=false
-                                helm tiller start-ci test-cop-$BUILD_NUMBER
-                                export TILLER_NAMESPACE=test-cop-$BUILD_NUMBER
-                                export HELM_HOST=:44134
                                 kubectl create namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl create namespace test-cop2-$BUILD_NUMBER || true
                                 kubectl create secret docker-registry coherence-k8s-operator-development-secret \
@@ -242,7 +233,6 @@ pipeline {
                                 helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                                helm tiller stop || true
                             '''
                         }
                     }
