@@ -23,7 +23,7 @@ pipeline {
                         unset HTTPS_PROXY
                         unset NO_PROXY
                     fi
-                    helm init --skip-refresh
+                    helm init --client-only --skip-refresh
                 '''
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                    sh 'mvn clean install'
@@ -86,7 +86,7 @@ pipeline {
                                 unset HTTPS_PROXY
                                 unset NO_PROXY
                             fi
-                            helm init
+                            helm init --client-only
                         '''
                         sh 'docker swarm leave --force || true'
                         sh 'docker swarm init'
