@@ -16,6 +16,7 @@ import com.oracle.bedrock.runtime.k8s.helm.HelmInstall;
 import com.oracle.bedrock.runtime.k8s.helm.HelmUpgrade;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.sun.net.httpserver.Authenticator;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import org.junit.Before;
@@ -145,7 +146,8 @@ public class RollingUpgradeSampleIT
             Eventually.assertThat(invoking(this).isValueUppercase(sCoherenceRelease),
                   is(true),
                   Timeout.after(600, TimeUnit.SECONDS),
-                  InitialDelay.of(10, TimeUnit.SECONDS));
+                  InitialDelay.of(10, TimeUnit.SECONDS),
+                  RetryFrequency.every(10, TimeUnit.SECONDS));
             }
         }
 
