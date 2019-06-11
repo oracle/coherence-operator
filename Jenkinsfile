@@ -50,11 +50,6 @@ pipeline {
                 archiveArtifacts 'operator/target/*.tar.gz'
                 stash includes: 'operator/target/*.tar.gz', name: 'helm-chart'
             }
-            post {
-                failure {
-                    setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
-                }
-            }
         }
         stage('helm-verify') {
             agent {
