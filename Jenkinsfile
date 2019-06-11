@@ -17,7 +17,7 @@ pipeline {
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
-        COMMIT_URL = "${PROJECT_URL}" + "/commit/${env.GIT_COMMIT}"
+        COMMIT_URL = "${PROJECT_URL}" + "/commit/" + "${GIT_COMMIT}"
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
