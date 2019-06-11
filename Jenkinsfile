@@ -36,8 +36,10 @@ pipeline {
             }
             steps {
                 echo 'Maven Build'
-                echo "============="
-                echo "${COMMIT_URL}"
+                echo "============= COMMIT_URL"
+                echo "${env.COMMIT_URL}"
+                echo "============= GIT_COMMIT"
+                echo "${env.GIT_COMMIT}"
                 sh '''
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
