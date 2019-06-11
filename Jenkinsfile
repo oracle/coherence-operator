@@ -1,9 +1,23 @@
+def setBuildStatus(String message, String state, String target_url, String sha) {
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/oracle/coherence-operator"],
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: sha ],
+        statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: target_url],
+        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+    ]);
+}
+
 pipeline {
     agent none
     environment {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
+        PROJECT_URL = "https://github.com/oracle/coherence-operator"
+        COMMIT_URL = "${PROJECT_URL}" + "/commit/${env.GIT_COMMIT}"
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -14,6 +28,11 @@ pipeline {
         stage('maven-build') {
             agent {
               label 'Kubernetes'
+            }
+            post {
+                always {
+                    setBuildStatus("In Progress...", "PENDING", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                }
             }
             steps {
                 echo 'Maven Build'
@@ -30,6 +49,11 @@ pipeline {
                 }
                 archiveArtifacts 'operator/target/*.tar.gz'
                 stash includes: 'operator/target/*.tar.gz', name: 'helm-chart'
+            }
+            post {
+                failure {
+                    setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                }
             }
         }
         stage('helm-verify') {
@@ -69,6 +93,9 @@ pipeline {
             post {
                 always {
                     sh 'rm -rf operator/target/temp/'
+                }
+                failure {
+                    setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
                 }
             }
         }
@@ -168,11 +195,8 @@ pipeline {
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                             '''
                         }
-                        success {
-                            setBuildStatus("Build succeeded", "SUCCESS");
-                        }
                         failure {
-                            setBuildStatus("Build failed", "FAILURE");
+                            setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
                         }
                     }
                 }
@@ -240,6 +264,12 @@ pipeline {
                                 kubectl delete namespace test-cop-$BUILD_NUMBER  || true
                                 kubectl delete namespace test-cop2-$BUILD_NUMBER || true
                             '''
+                        }
+                        success {
+                            setBuildStatus("Build succeeded !", "SUCCESS", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                        }
+                        failure {
+                            setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
                         }
                     }
                 }
