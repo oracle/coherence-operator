@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 14,
-  "iteration": 1556853108565,
+  "iteration": 1559696854125,
   "links": [
     {
       "icon": "dashboard",
@@ -83,7 +83,6 @@
       "links": [],
       "mode": "html",
       "title": "",
-      "transparent": false,
       "type": "text"
     },
     {
@@ -168,7 +167,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "description": "Shows the number of cluster members.",
       "format": "none",
       "gauge": {
@@ -261,7 +259,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "decimals": 0,
       "description": "Recent member departures.",
       "format": "none",
@@ -347,7 +344,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "decimals": 0,
       "description": "The number of services with endangered partitions.",
       "format": "none",
@@ -410,9 +406,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(avg(coherence_service_partitions_endangered{cluster=~\"$ClusterName\",tag_type=~\"DistributedCache|FederatedCache\"}) by(name) > 0)",
+          "expr": "count(coherence_partition_assignment_HA_status{cluster=~\"$ClusterName\"} <= 1)",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -442,7 +439,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "description": "Total used cluster heap across all members.",
       "format": "decbytes",
       "gauge": {
@@ -525,7 +521,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "description": "Total available cluster heap across all members.",
       "format": "decbytes",
       "gauge": {
@@ -607,7 +602,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "decimals": 1,
       "description": "Percentage of heap memory used across all members.",
       "format": "percent",
@@ -688,7 +682,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "description": "Total and used cluster memory across all members.",
       "fill": 1,
       "gridPos": {
@@ -740,6 +733,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Cluster Memory Details",
       "tooltip": {
@@ -783,7 +777,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "description": "Show the current load average across all machines.",
       "fill": 1,
       "gridPos": {
@@ -838,6 +831,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Current Load Averages",
       "tooltip": {
@@ -879,7 +873,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Members that have the lowest physical memory % available.",
       "fontSize": "100%",
       "gridPos": {
@@ -973,7 +966,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest CPU Load % over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1084,7 +1076,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest heap memory % used over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1195,7 +1186,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Members that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1302,7 +1292,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Services  that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1413,7 +1402,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Total task backlog per member.",
       "fill": 1,
@@ -1467,6 +1455,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Task Backlog By Member",
       "tooltip": {
@@ -1512,7 +1501,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Total task backlog by service.",
       "fill": 1,
@@ -1566,6 +1554,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Task Backlog By Service",
       "tooltip": {
@@ -1611,7 +1600,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Total Proxy Outgoing Byte Backlog by Service",
       "fill": 1,
@@ -1665,6 +1653,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Proxy Outgoing Byte Backlog by Service",
       "tooltip": {
@@ -1707,7 +1696,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "Services that  have unbalanced partitions.",
       "fontSize": "100%",
       "gridPos": {
@@ -1752,41 +1740,6 @@
           "unit": "short"
         },
         {
-          "alias": "Status HA",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_status_HA",
-          "thresholds": [
-            ""
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_type",
-          "thresholds": [],
-          "type": "hidden",
-          "unit": "short"
-        },
-        {
           "alias": "Service Name",
           "colorMode": null,
           "colors": [
@@ -1823,7 +1776,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(coherence_service_partitions_unbalanced{cluster=~\"$ClusterName\", tag_type=~\"DistributedCache|FederatedCache\"}) by(name, tag_type) > 0",
+          "expr": "avg(coherence_service_partitions_unbalanced{cluster=~\"$ClusterName\", tag_type=~\"DistributedCache|FederatedCache\"}) by(name) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1837,7 +1790,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The top  $TopLimit Members that have the greatest change in sent and received messages over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1944,7 +1896,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The current top $TopLimit caches, services and member with the highest Max Query Time.",
       "fontSize": "100%",
       "gridPos": {
@@ -2074,7 +2025,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "The current top $TopLimit nodes with the highest number of Non-Optimized Queries.",
       "fontSize": "100%",
       "gridPos": {
@@ -2206,7 +2156,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -2249,6 +2198,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Guardian Recoveries",
       "tooltip": {
@@ -2293,7 +2243,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -2336,6 +2285,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Guardian Terminations",
       "tooltip": {
@@ -2377,7 +2327,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -2389,6 +2339,7 @@
           "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -2413,6 +2364,7 @@
           "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
@@ -2437,6 +2389,7 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Services",
@@ -2461,6 +2414,7 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Caches",
@@ -2555,5 +2509,5 @@
   "timezone": "",
   "title": "Coherence Dashboard Main",
   "uid": "coh-main",
-  "version": 3
+  "version": 5
 }
