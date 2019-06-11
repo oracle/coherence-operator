@@ -18,8 +18,6 @@ pipeline {
         NO_PROXY    = credentials('coherence-operator-no-proxy')
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
         COMMIT_URL = "${PROJECT_URL}" + "/commit/${env.GIT_COMMIT}"
-        echo "============="
-        echo "${COMMIT_URL}"
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -38,6 +36,8 @@ pipeline {
             }
             steps {
                 echo 'Maven Build'
+                echo "============="
+                echo "${COMMIT_URL}"
                 sh '''
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
