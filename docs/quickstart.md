@@ -150,7 +150,7 @@ To be able to pull Coherence Docker Images from the Oracle Container Registry:
 a) Login to [Oracle Container Registry](https://container-registry.oracle.com)
    and accept the terms and conditions to download Coherence images.
 
-b) Create Kubernetes docker-registgry secret with the same credentials that is
+b) Create Kubernetes docker-registry secret with the same credentials that is
    used in step (a) to login into Oracle Container Registry and tell Kubernetes
    to use that secret when pulling the image.
 
