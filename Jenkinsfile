@@ -31,7 +31,7 @@ pipeline {
             }
             post {
                 always {
-                    setBuildStatus("In Progress...", "PENDING", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                    setBuildStatus("Build in Progress...", "PENDING", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
                 }
             }
             steps {
