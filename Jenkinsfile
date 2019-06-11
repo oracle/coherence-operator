@@ -10,6 +10,16 @@ def setBuildStatus(String message, String state, String target_url, String sha) 
     ]);
 }
 
+void setBuildStatus(String message, String state) {
+ step([
+     $class: "GitHubCommitStatusSetter",
+     reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/dhirupandey/calc-pi"],
+     contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
+     errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+     statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+ ]);
+}
+
 pipeline {
     agent none
     environment {
@@ -31,7 +41,7 @@ pipeline {
             }
             post {
                 always {
-                    setBuildStatus("Build in Progress...", "PENDING", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                   setBuildStatus("Build in Progress...", "PENDING")
                 }
             }
             steps {
