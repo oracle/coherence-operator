@@ -142,33 +142,38 @@ STATUS: DEPLOYED
 
 ## 3. Use Helm to install Coherence
 
-Oracle Coherence docker image will be pulled by the Helm chart from
-[Oracle Container Registry](https://container-registry.oracle.com).
+By default the Oracle Coherence Docker image pulled by the Coherence Helm
+chart is from the Oracle Container Registry.
 
-And to be able to pull the image, you will need to
+To be able to pull Coherence Docker Images from the Oracle Container Registry:
 
-a) Log in to [OCR](https://container-registry.oracle.com) and
-   accept the terms and conditions to download Coherence images.
+a) Login to [Oracle Container Registry](https://container-registry.oracle.com)
+   and accept the terms and conditions to download Coherence images.
 
-b) Create an image pull secret with your OCR credentials, and and tell
-   Kubernetes to use that secret when pulling the image.
+b) Create Kubernetes docker-registgry secret with the same credentials that is
+   used in step (a) to login into Oracle Container Registry and tell Kubernetes
+   to use that secret when pulling the image.
 
 ```bash
-$ kubectl create secret docker-registry sample-coherence-secret \
+$ kubectl create secret docker-registry oracle-container-registry-secret \
     --docker-server=container-registry.oracle.com \
     --docker-username='<USERNAME>' --docker-password='<PASSWORD>'
 ```
 
-In Above command, replace <USERNAME> and <PASSWORD> with actual
+In the above command, replace <USERNAME> and <PASSWORD> with the actual
 username and password to authenticate with container-registry.oracle.com
 
-Install the `coherence` helm chart.  You may want to customize the values
-for the `--name`, `--namespace` and `imagePullSecrets` options.
+Install the `coherence` helm chart using the imagePullSecrets value
+'oracle-container-registry-secret' which was just created in the previous
+mentioned `kubectl create secret` command.
+
+You may want to customize the value for the `--name` option that you want
+to use for your coherence cluster.
 
 ```bash
 $ helm --debug install coherence/coherence \
     --name sample-coherence \
-    --set imagePullSecrets=sample-coherence-secret
+    --set imagePullSecrets=oracle-container-registry-secret
 ``` 
 
 > **Note**: If you want to use a different version of Coherence than the
