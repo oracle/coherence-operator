@@ -17,7 +17,7 @@ pipeline {
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
-        COMMIT_URL = "${PROJECT_URL}" + "/commit/" + "${GIT_COMMIT}"
+        COMMIT_URL = "${PROJECT_URL}" + "/commit/"
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -31,7 +31,7 @@ pipeline {
             }
             post {
                 always {
-                    setBuildStatus("Build in Progress...", "PENDING", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                    setBuildStatus("Build in Progress...", "PENDING", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                 }
             }
             steps {
@@ -94,7 +94,7 @@ pipeline {
                     sh 'rm -rf operator/target/temp/'
                 }
                 failure {
-                    setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                    setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                 }
             }
         }
@@ -195,7 +195,7 @@ pipeline {
                             '''
                         }
                         failure {
-                            setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                            setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                         }
                     }
                 }
@@ -265,10 +265,10 @@ pipeline {
                             '''
                         }
                         success {
-                            setBuildStatus("Build succeeded !", "SUCCESS", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                            setBuildStatus("Build succeeded !", "SUCCESS", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                         }
                         failure {
-                            setBuildStatus("Build failed", "FAILURE", "${COMMIT_URL}" ,"${env.GIT_COMMIT}");
+                            setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                         }
                     }
                 }
