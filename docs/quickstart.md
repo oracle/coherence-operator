@@ -82,29 +82,6 @@ If you wish to build the Coherence Operator from source, please refer to the
 [Developer Guide](developer.md) and ensure you replace `coherence` 
 Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
 
-### Obtain the Coherence Docker Image
-
-> **Note**: we are assuming Coherence version 12.2.1.3.2 (which is the
-> currently supported version).
-
-You must follow the instructions below to obtain the relevant Coherence Docker image.
-
-1. Go to to [Oracle Container Registry](https://container-registry.oracle.com)
-
-1. Search for "Coherence".
-
-1. Select `coherence` from the list.
-
-1. Click on `Sign-in` on the right and enter your credentials, or create and account if you don't already have one.
-
-1. On the right, select the language for the  `Oracle Standard Terms and Restrictions`.
-
-1. Click `Continue` and scroll down to accept the terms and conditions.
-
-1. At the command line, do `docker login container-registry.oracle.com` with your Oracle Container Registry credentials.
-
-1. At the command line do `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
-  
 ## 2. Use Helm to install the Coherence Operator
 
 You may like to customize the value of the of the `--name` and
@@ -165,13 +142,38 @@ STATUS: DEPLOYED
 
 ## 3. Use Helm to install Coherence
 
-Install the `coherence` helm chart.  You may want to customize the values
-for the `--name`, `--namespace` and `imagePullSecrets` options.
+By default the Oracle Coherence Docker image pulled by the Coherence Helm
+chart is from the Oracle Container Registry.
+
+To be able to pull Coherence Docker Images from the Oracle Container Registry:
+
+a) Login to [Oracle Container Registry](https://container-registry.oracle.com)
+   and accept the terms and conditions to download Coherence images.
+
+b) Create Kubernetes docker-registry secret with the same credentials that is
+   used in step (a) to login into Oracle Container Registry and tell Kubernetes
+   to use that secret when pulling the image.
+
+```bash
+$ kubectl create secret docker-registry oracle-container-registry-secret \
+    --docker-server=container-registry.oracle.com \
+    --docker-username='<USERNAME>' --docker-password='<PASSWORD>'
+```
+
+In the above command, replace <USERNAME> and <PASSWORD> with the actual
+username and password to authenticate with container-registry.oracle.com
+
+Install the `coherence` helm chart using the imagePullSecrets value
+'oracle-container-registry-secret' which was just created in the previous
+mentioned `kubectl create secret` command.
+
+You may want to customize the value for the `--name` option that you want
+to use for your coherence cluster.
 
 ```bash
 $ helm --debug install coherence/coherence \
     --name sample-coherence \
-    --set imagePullSecrets=sample-coherence-secret
+    --set imagePullSecrets=oracle-container-registry-secret
 ``` 
 
 > **Note**: If you want to use a different version of Coherence than the
