@@ -39,6 +39,29 @@ serviceAccount: default
 imagePullSecrets: []
 
 # ---------------------------------------------------------------------------
+# Pod scheduling values
+
+# affinity controls Pod scheduling preferences.
+#   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}
+
+# nodeSelector is the Node labels for pod assignment
+# ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+nodeSelector: {}
+
+# tolerations is for nodes that have taints on them.
+#   Useful if you want to dedicate nodes to just run the coherence container
+#   For example:
+#   tolerations:
+#   - key: "key"
+#     operator: "Equal"
+#     value: "value"
+#     effect: "NoSchedule"
+#
+#   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+# ---------------------------------------------------------------------------
 # service groups the values used to configure the internal K8s service
 service:
   # name of the service. It must be unique among services.
