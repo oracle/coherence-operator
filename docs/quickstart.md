@@ -160,7 +160,7 @@ $ kubectl create secret docker-registry oracle-container-registry-secret \
     --docker-username='<USERNAME>' --docker-password='<PASSWORD>'
 ```
 
-In the above command, replace <USERNAME> and <PASSWORD> with the actual
+In the above command, replace &lt;USERNAME&gt; and &lt;PASSWORD&gt; with the actual
 username and password to authenticate with container-registry.oracle.com
 
 Install the `coherence` helm chart using the imagePullSecrets value
