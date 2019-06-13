@@ -19,6 +19,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -103,6 +104,7 @@ public class RollingUpgradeSampleIT
      * @throws Exception
      */
     @Test
+    @Ignore("Needs more investigation")
     public void testRollingUpgradeSample() throws Exception
         {
         if (testShouldRun())
