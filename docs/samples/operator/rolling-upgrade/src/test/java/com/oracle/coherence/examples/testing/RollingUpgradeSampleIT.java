@@ -145,7 +145,7 @@ public class RollingUpgradeSampleIT
             Eventually.assertThat(invoking(this).isValueUppercase(sCoherenceRelease),
                   is(true),
                   Timeout.after(600, TimeUnit.SECONDS),
-                  InitialDelay.of(10, TimeUnit.SECONDS),
+                  InitialDelay.of(180, TimeUnit.SECONDS),
                   RetryFrequency.every(10, TimeUnit.SECONDS));
             }
         }
