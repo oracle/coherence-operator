@@ -99,11 +99,7 @@ pipeline {
                         fi
 
                         helm init --client-only
-                        export HELM_TILLER_LOGS=false
 			export NS=test-sample-${BUILD_NUMBER}
-                        helm tiller start-ci $NS
-                        export TILLER_NAMESPACE=$NS
-                        export HELM_HOST=:44134
                         helm repo add coherence https://oracle.github.io/coherence-operator/charts
 		        helm repo update
                         kubectl create namespace $NS || true
@@ -156,7 +152,6 @@ pipeline {
                         kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
                         kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
                         kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
-                        helm tiller stop || true
 			helm repo remove coherence
                     '''
                     deleteDir()
