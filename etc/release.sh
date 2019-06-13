@@ -60,7 +60,7 @@ setupReleaseBranch()
     fi
   else
     echo ""
-    echo "Git tag $RLEASE_TAG already exists so use existing release tag $RELEASE_TAG ..."
+    echo "Git tag $RELEASE_TAG already exists so use existing release tag $RELEASE_TAG ..."
     echo ""
   fi
   }
@@ -197,7 +197,7 @@ if [[ -n "$BRANCH_NAME" && -n "$RELEASE_VERSION" && -n "$NEXT_SNAPSHOT_VERSION" 
     errorMessage "Setting up release branch failed with exit " $SETUP_BRANCH_STATUS
   fi
 else
-  errorMessage "Required environment varibales RELEASE_VERSION & NEXT_RELEASE_VERSION is not set so exit with status " 1
+  errorMessage "Required environment variables RELEASE_VERSION & NEXT_RELEASE_VERSION is not set so exit with status " 1
 fi
 
 checkRequiredEnvVars
