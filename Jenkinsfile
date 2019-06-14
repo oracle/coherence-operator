@@ -261,7 +261,7 @@ pipeline {
                             '''
                         }
                         success {
-                            setBuildStatus("Build succeeded !", "SUCCESS", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                            setBuildStatus("Build succeeded", "SUCCESS", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
                         }
                         failure {
                             setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
