@@ -50,9 +50,30 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd docs/samples 
-			env
-		        mvn -P docker,docker-v1,docker-v2,dockerPush clean install
+		        mvn -P docker,docker-v1,docker-v2 clean install
 		    '''
+                }
+            }
+        }
+        stage('docker-push') {
+            agent {
+                label 'Kubernetes'
+            }
+            steps {
+                echo 'Docker Push'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh ''' 
+                        cd docs/samples 
+			env
+                        mvn install -P dockerPush
+                    '''
                 }
             }
         }
