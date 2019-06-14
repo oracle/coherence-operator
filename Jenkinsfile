@@ -67,12 +67,14 @@ pipeline {
                         unset HTTPS_PROXY
                         unset NO_PROXY
                     fi
+                    helm init --client-only
                 '''
+		sh 'docker swarm leave --force || true'
+                sh 'docker swarm init'
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh ''' 
                         cd docs/samples 
-			env
-                        mvn install -P dockerPush
+                        mvn install -P dockerPush -DskipTests
                     '''
                 }
             }
