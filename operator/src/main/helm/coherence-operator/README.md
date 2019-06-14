@@ -57,12 +57,17 @@ chart and their default values.
 | `service.annotations` | Service annotations yaml | |
 | `coherenceOperator.image` | Coherence Operator image to be pulled | `"oracle/coherence-operator:1.0.0-SNAPSHOT"` |
 | `coherenceOperator.imagePullPolicy` | Image pull policy | `"IfNotPresent"` |
+| `affinity` | Affinity that controls Pod scheduling preferences | `{}`|
+| `nodeSelector` | Node lables for pod assignment | `{}` |
+| `tolerations` | For nodes that have taints on them. See (https://kubernetes.io/docs/concepts/configuration/taint-and-toleration) | `[]` |
 | `javaLoggingLevel` | Java logging level | `"INFO"` |
 | `logCaptureEnabled` | Whether log capture via EFK stack is enabled | `false` |
 | `elasticsearch.image` | Elasticsearch Docker image url with tag | `docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0` |
 | `elasticsearch.imagePullPolicy` | Elasticsearch image pull policy | `"IfNotPresent"` |
 | `elasticsearchEndpoint.host` | Elasticsearch host installed separately | `"elasticsearch.${namespace}.svc.cluster.local` |
-| `elasticsearchEndpoint.port` | Elasticsearch port intalled separately | `9200` |
+| `elasticsearchEndpoint.port` | Elasticsearch port installed separately | `9200` |
+| `elasticsearchEndpoint.user` | Elasticsearch login credential for user when installed separately | |
+| `elasticsearchEndpoint.password` | Elasticsearch login credential for password when installed separately | |
 | `logstash.image` | Logstash Docker image url with tag | `docker.elastic.co/logstash/logstash-oss:6.6.0` |
 | `logstash.imagePullPolicy` | Logstash image pull policy | `"IfNotPresent"` |
 | `kibana.image` | Kibana Docker image url with tag | `docker.elastic.co/beats/filebeat:6.2.4` |
