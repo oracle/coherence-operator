@@ -55,6 +55,28 @@ pipeline {
                 }
             }
         }
+        stage('docker-push') {
+            agent {
+                label 'Kubernetes'
+            }
+            steps {
+                echo 'Docker Push'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh ''' 
+                        cd docs/samples 
+			env
+                        mvn install -P dockerPush
+                    '''
+                }
+            }
+        }
         stage('kubernetes-samples-tests') {
             agent {
                 label 'Kubernetes'
@@ -103,11 +125,11 @@ pipeline {
                     '''
                     withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
+			    env
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
 		            cd docs/samples 
-			    mvn install -P dockerPush
                             mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                 -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                 -Dop.image.pull.policy=Always \
