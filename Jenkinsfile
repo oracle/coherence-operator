@@ -71,6 +71,7 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh ''' 
                         cd docs/samples 
+			env
                         mvn install -P dockerPush
                     '''
                 }
@@ -124,6 +125,7 @@ pipeline {
                     '''
                     withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
+			    env
                             export HELM_BINARY=`which helm`
                             export KUBECTL_BINARY=`which kubectl`
                             export NS=test-sample-${BUILD_NUMBER}
