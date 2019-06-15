@@ -1,3 +1,58 @@
+def testStep(String additionalArgument) {
+    echo 'Kubernetes Tests'
+    withCredentials([
+        string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
+        string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+        string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+        string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER'),
+        string(credentialsId: 'ocr-docker-email',    variable: 'OCR_DOCKER_EMAIL'),
+        string(credentialsId: 'ocr-docker-password', variable: 'OCR_DOCKER_PASSWORD'),
+        string(credentialsId: 'ocr-docker-username', variable: 'OCR_DOCKER_USERNAME'),
+        string(credentialsId: 'ocr-docker-server',   variable: 'OCR_DOCKER_SERVER')]) {
+        sh '''
+            for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER
+            do
+                kubectl create namespace $i || true
+                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                    --namespace $i \
+                    --docker-server=$DOCKER_SERVER \
+                    --docker-username=$DOCKER_USERNAME \
+                    --docker-password="$DOCKER_PASSWORD" \
+                    --docker-email=$DOCKER_EMAIL || true
+                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                    --namespace $i \
+                    --docker-server=$OCR_DOCKER_SERVER \
+                    --docker-username=$OCR_DOCKER_USERNAME \
+                    --docker-password="$OCR_DOCKER_PASSWORD" \
+                    --docker-email=$OCR_DOCKER_EMAIL || true
+            done
+        '''
+        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+            sh """
+                export HELM_BINARY=`which helm`
+                export KUBECTL_BINARY=`which kubectl`
+                mvn -Dbedrock.helm="\$HELM_BINARY" \
+                    -Dk8s.kubectl="\$KUBECTL_BINARY" \
+                    -Dop.image.pull.policy=Always \
+                    -Dci.build=$BUILD_NUMBER \
+                    -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
+                    -Dk8s.create.namespace=false \
+                    $additionalArgument \
+                    -P pushTestImage -P helm-test clean install
+            """
+        }
+    }
+}
+
+def archiveAndCleanup() {
+    archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
+    sh '''
+        helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
+        kubectl delete namespace test-cop-$BUILD_NUMBER  || true
+        kubectl delete namespace test-cop2-$BUILD_NUMBER || true
+    '''
+}
+
 pipeline {
     agent none
     environment {
@@ -7,7 +62,6 @@ pipeline {
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
-        lock(label: 'kubernetes-stage', quantity: 1)
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
@@ -99,141 +153,44 @@ pipeline {
                 stage('docker-push') {
                     steps {
                         echo 'Docker Push'
-                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                            sh 'mvn -B -Dmaven.test.skip=true -P docker -P dockerPush clean install'
+                        withCredentials([
+                            string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                            string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                            string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
+                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                                sh '''
+                                    docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                                    mvn -B -Dmaven.test.skip=true -P docker -P dockerPush clean install
+                                '''
+                            }
                         }
                     }
                 }
                 stage('kubernetes-tests') {
                     steps {
-                        echo 'Kubernetes Tests'
-                        withCredentials([
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER'),
-                            string(credentialsId: 'ocr-docker-pull-secret-email',    variable: 'OCR_PULL_SECRET_EMAIL'),
-                            string(credentialsId: 'ocr-docker-pull-secret-password', variable: 'OCR_PULL_SECRET_PASSWORD'),
-                            string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
-                            string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
-                            sh '''
-                                kubectl create namespace test-cop-$BUILD_NUMBER  || true
-                                kubectl create namespace test-cop2-$BUILD_NUMBER || true
-                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                                   --namespace test-cop-$BUILD_NUMBER \
-                                   --docker-server=$PULL_SECRET_SERVER \
-                                   --docker-username=$PULL_SECRET_USERNAME \
-                                   --docker-password="$PULL_SECRET_PASSWORD" \
-                                   --docker-email=$PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                                   --namespace test-cop2-$BUILD_NUMBER \
-                                   --docker-server=$PULL_SECRET_SERVER \
-                                   --docker-username=$PULL_SECRET_USERNAME \
-                                   --docker-password="$PULL_SECRET_PASSWORD" \
-                                   --docker-email=$PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                                   --namespace test-cop-$BUILD_NUMBER \
-                                   --docker-server=$OCR_PULL_SECRET_SERVER \
-                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
-                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
-                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                                   --namespace test-cop2-$BUILD_NUMBER \
-                                   --docker-server=$OCR_PULL_SECRET_SERVER \
-                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
-                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
-                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
-                            '''
-                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                                sh '''
-                                    export HELM_BINARY=`which helm`
-                                    export KUBECTL_BINARY=`which kubectl`
-                                    mvn -Dbedrock.helm=''$HELM_BINARY'' \
-                                        -Dk8s.kubectl=''$KUBECTL_BINARY'' \
-                                        -Dop.image.pull.policy=Always \
-                                        -Dci.build=$BUILD_NUMBER \
-                                        -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
-                                        -Dk8s.create.namespace=false \
-                                        -P pushTestImage -P helm-test clean install
-                                '''
-                            }
+                        script {
+                            testStep('')
                         }
                     }
                     post {
                         always {
-                            archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
-                            sh '''
-                                helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
-                                kubectl delete namespace test-cop-$BUILD_NUMBER  || true
-                                kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                            '''
+                            script {
+                                archiveAndCleanup()
+                            }
                         }
                     }
                 }
                 stage('kubernetes-tests-latestCoherenceReleasedImage') {
                     steps {
-                        echo 'Kubernetes Tests'
-                        withCredentials([
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
-                            string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER'),
-                            string(credentialsId: 'ocr-docker-pull-secret-email',    variable: 'OCR_PULL_SECRET_EMAIL'),
-                            string(credentialsId: 'ocr-docker-pull-secret-password', variable: 'OCR_PULL_SECRET_PASSWORD'),
-                            string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
-                            string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
-                            sh '''
-                                kubectl create namespace test-cop-$BUILD_NUMBER  || true
-                                kubectl create namespace test-cop2-$BUILD_NUMBER || true
-                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                                   --namespace test-cop-$BUILD_NUMBER \
-                                   --docker-server=$PULL_SECRET_SERVER \
-                                   --docker-username=$PULL_SECRET_USERNAME \
-                                   --docker-password="$PULL_SECRET_PASSWORD" \
-                                   --docker-email=$PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                                   --namespace test-cop2-$BUILD_NUMBER \
-                                   --docker-server=$PULL_SECRET_SERVER \
-                                   --docker-username=$PULL_SECRET_USERNAME \
-                                   --docker-password="$PULL_SECRET_PASSWORD" \
-                                   --docker-email=$PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                                   --namespace test-cop-$BUILD_NUMBER \
-                                   --docker-server=$OCR_PULL_SECRET_SERVER \
-                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
-                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
-                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
-                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                                   --namespace test-cop2-$BUILD_NUMBER \
-                                   --docker-server=$OCR_PULL_SECRET_SERVER \
-                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
-                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
-                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
-                            '''
-                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                                sh '''
-                                    export HELM_BINARY=`which helm`
-                                    export KUBECTL_BINARY=`which kubectl`
-                                    mvn -Dbedrock.helm=''$HELM_BINARY'' \
-                                        -Dk8s.kubectl=''$KUBECTL_BINARY'' \
-                                        -Dop.image.pull.policy=Always \
-                                        -Dci.build=$BUILD_NUMBER \
-                                        -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
-                                        -Dk8s.create.namespace=false \
-                                        -P testLatestCoherenceReleasedImage \
-                                        -P pushTestImage -P helm-test clean install
-                                '''
-                            }
+                        script {
+                            testStep('-P testLatestCoherenceReleasedImage')
                         }
                     }
                     post {
                         always {
-                            archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
-                            sh '''
-                                helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
-                                kubectl delete namespace test-cop-$BUILD_NUMBER  || true
-                                kubectl delete namespace test-cop2-$BUILD_NUMBER || true
-                            '''
+                            script {
+                                archiveAndCleanup()
+                            }
                         }
                     }
                 }
