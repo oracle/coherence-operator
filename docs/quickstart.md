@@ -1,11 +1,11 @@
-# Quick Start guide
+# Quick Start Guide
 
 The Coherence Kubernetes Operator manages Coherence through Kubernetes,
 monitoring MBean attributes through Prometheus and server logs through
-ElasticSearch and Kibana.
+Elasticsearch and Kibana.
 
-> **Note**: use of Prometheus and Grafana is only available when using the
-> operator with Coherence version 12.2.1.4.
+> **Note**: Use of Prometheus and Grafana is available only when using the
+> operator with Oracle Coherence 12.2.1.4.
 
 Use this quick start guide to deploy Coherence applications in a
 Kubernetes cluster managed by the Coherence Kubernetes Operator. Please
@@ -40,11 +40,11 @@ logs, see the [User Guide](user-guide.md).
 
 * Kubernetes must be able to pull the docker images required by the
   Coherence Operator.
-  
+
 * Some of the Helm charts in this project require, configuration on each
   Kubernetes pod that will be running the workloads related to the
   chart.  This configuration currently includes:
-  
+
     * setting the value of the `max_map_count` kernel parameter to at
       least `262144`.  The manner for doing this is OS specific and is
       described
@@ -55,7 +55,7 @@ logs, see the [User Guide](user-guide.md).
   requirements and the Docker preferences have been tuned to run
   optimally for the hardware.  In particular, ensure memory and disk
   limits have been correctly tuned.
-  
+
 ## 1. Environment Configuration
 
 ### Add the Helm repository for Coherence
@@ -78,8 +78,8 @@ Hang tight while we grab the latest from your chart repositories...
 > 0.9.8` to all installs for the `coherence-operator` and `coherence`
 > charts.
 
-If you wish to build the Coherence Operator from source, please refer to the 
-[Developer Guide](developer.md) and ensure you replace `coherence` 
+If you wish to build the Coherence Operator from source, please refer to the
+[Developer Guide](developer.md) and ensure you replace `coherence`
 Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
 
 ## 2. Use Helm to install the Coherence Operator
@@ -94,7 +94,7 @@ $ helm --debug install coherence/coherence-operator \
     --name sample-coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
-``` 
+```
 
 > **Note**: Remove the `--debug` option if you do not want very verbose
 > output.  Please consult the `values.yaml` in the chart for important
@@ -174,7 +174,7 @@ to use for your coherence cluster.
 $ helm --debug install coherence/coherence \
     --name sample-coherence \
     --set imagePullSecrets=oracle-container-registry-secret
-``` 
+```
 
 > **Note**: If you want to use a different version of Coherence than the
 > one specified in the `coherence` helm chart, supply a `--set` argument
@@ -256,7 +256,7 @@ following XML in a file called `example-client-config.xml`:
          <scheme-name>thin-remote</scheme-name>
       </cache-mapping>
    </caching-scheme-mapping>
-  
+
    <caching-schemes>
        <remote-cache-scheme>
            <scheme-name>thin-remote</scheme-name>
@@ -333,4 +333,3 @@ Remove the `coherence` release:
 ```bash
 $ helm delete --purge sample-coherence sample-coherence-operator
 ```
-
