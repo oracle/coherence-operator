@@ -8,6 +8,7 @@ def setBuildStatus(String message, String state, String target_url, String sha) 
         statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: target_url],
         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
     ]);
+}
 
 def testStep(String additionalArgument) {
     echo 'Kubernetes Tests'
