@@ -1,11 +1,11 @@
-def setBuildStatus(String message, String state, String target_url, String sha) {
+def setBuildStatus(String message, String state, String project_url, String sha) {
     step([
         $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/oracle/coherence-operator"],
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: project_url],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
         commitShaSource: [$class: "ManuallyEnteredShaSource", sha: sha ],
-        statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: target_url],
+        statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: project_url + "/commit/" + sha],
         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
     ]);
 }
@@ -72,7 +72,6 @@ pipeline {
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
-        COMMIT_URL = "${PROJECT_URL}" + "/commit/"
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -83,13 +82,11 @@ pipeline {
             agent {
               label 'Kubernetes'
             }
-            post {
-                always {
-                   setBuildStatus("Build in Progress...", "PENDING", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}")
-                }
-            }
             steps {
                 echo 'Maven Build'
+                script {
+                    setBuildStatus("Build in Progress...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 sh '''
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
@@ -103,6 +100,11 @@ pipeline {
                 }
                 archiveArtifacts 'operator/target/*.tar.gz'
                 stash includes: 'operator/target/*.tar.gz', name: 'helm-chart'
+            }
+            post {
+                failure {
+                    setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
+                }
             }
         }
         stage('helm-verify') {
@@ -144,7 +146,7 @@ pipeline {
                     sh 'rm -rf operator/target/temp/'
                 }
                 failure {
-                    setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                    setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
                 }
             }
         }
@@ -201,7 +203,7 @@ pipeline {
                             }
                         }
                         failure {
-                            setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                            setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
                         }
                     }
                 }
@@ -218,10 +220,10 @@ pipeline {
                             }
                         }
                         success {
-                            setBuildStatus("Build succeeded", "SUCCESS", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                            setBuildStatus("Build succeeded", "SUCCESS", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
                         }
                         failure {
-                            setBuildStatus("Build failed", "FAILURE", "${env.COMMIT_URL}" + "${env.GIT_COMMIT}", "${env.GIT_COMMIT}");
+                            setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
                         }
                     }
                 }
