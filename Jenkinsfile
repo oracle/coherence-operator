@@ -61,11 +61,17 @@ pipeline {
                                 unset NO_PROXY
                             fi
                         '''
-                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                            sh ''' 
-                                cd docs/samples 
-                                mvn install -P dockerPush
-                            '''
+                        withCredentials([
+                            string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                            string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                            string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
+                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                                sh '''
+                                    docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                                    cd docs/samples
+                                    mvn install -P dockerPush
+                                '''
+                            }
                         }
                     }
                 }
