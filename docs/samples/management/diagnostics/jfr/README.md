@@ -10,11 +10,11 @@ as port 30000 on each of the Pods.
 This sample shows how you can create and manage Flight Recordings by using the Management over REST endpoint
 which is exposed via the following endpoint:
 
-* `http://host:300000`/management/coherence/cluster/diagnostic-cmd`.
+* `http://host:30000/management/coherence/cluster/diagnostic-cmd`.
 
 The Swagger document is available via the following URL:  
 
-* `http://host:300000`/management/coherence/cluster/metadata-catalog`.
+* `http://host:30000/management/coherence/cluster/metadata-catalog`.
 
 The endpoint makes use of `jcmd` which is described in the [Oracle documentation](https://docs.oracle.com/javacomponents/jmc-5-4/jfr-runtime-guide/comline.htm).
 

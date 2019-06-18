@@ -117,7 +117,7 @@
         </executions>
       </plugin>
       
-       <!-- run com.oracle.coherence.examples.SampleClient via mvn exec:java -->
+      <!-- run com.oracle.coherence.examples.SampleClient via mvn exec:java -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>

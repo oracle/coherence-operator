@@ -375,9 +375,7 @@ Samples legend:
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
       1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
       1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
-      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) 
-         1. [Enable SSL in Coherence 12.2.1.3.X](coherence-deployments/extend/ssl/12213) &#x2714;
-         1. [Enable SSL in Coherence 12.2.1.4.X and above](coherence-deployments/extend/ssl/12214) &#x2718;
+      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2714;     
       1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;

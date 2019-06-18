@@ -16,11 +16,11 @@
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>samples-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../../../../pom.xml</relativePath>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>proxy-ssl-sample-12213</artifactId>
-  <name>Coherence*Extend Sample - Proxy SSL 12.2.1.3</name>
+  <artifactId>proxy-ssl-sample</artifactId>
+  <name>Coherence*Extend Sample - SSL</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>

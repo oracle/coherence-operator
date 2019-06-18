@@ -5,11 +5,11 @@ as port 30000 on each of the Pods.
 
 This sample shows how you can access the Management over REST endpoint via the following URL:
 
-* `http://host:300000`/management/coherence/cluster`.
+* `http://host:30000/management/coherence/cluster`.
 
 The Swagger document is available via the following URL:  
 
-* `http://host:300000`/management/coherence/cluster/metadata-catalog`.
+* `http://host:30000/management/coherence/cluster/metadata-catalog`.
 
 > **Note**: Use of Management over REST is only available when using the
 > operator with Coherence 12.2.1.4.

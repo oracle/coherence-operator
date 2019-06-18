@@ -22,7 +22,7 @@ import java.util.Collection;
  * @author tam  2019.05.21
  */
 @RunWith(Parameterized.class)
-public class SSLProxySample12213IT
+public class SSLProxySampleIT
       extends BaseSampleTest
     {
     // ----- constructor ----------------------------------------------------
@@ -33,7 +33,7 @@ public class SSLProxySample12213IT
      * @param sOperatorChartURL   Operator chart URL
      * @param sCoherenceChartURL  Coherence chart URL
      */
-    public SSLProxySample12213IT(String sOperatorChartURL, String sCoherenceChartURL)
+    public SSLProxySampleIT(String sOperatorChartURL, String sCoherenceChartURL)
         {
         super(sOperatorChartURL, sCoherenceChartURL);
         }
