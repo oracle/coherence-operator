@@ -67,7 +67,7 @@ for scraping by Prometheus.
 1. Change to the `samples/operator/metrics/custom-metrics` directory and ensure you have your maven build environment set for JDK8 and build the project.
 
    ```bash
-   $ mvn clean install -P docker,coherence12214 -P coherence.version=12.2.1-4-0 
+   $ mvn clean install -P docker,coherence12214 -Dcoherence.version=12.2.1-4-0 
    ```
 
    The above will build the Docker image called `custom-metrics-sample:1.0.0-SNAPSHOT`. 

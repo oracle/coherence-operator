@@ -109,7 +109,6 @@ public class CustomMetricsSampleIT
             assertCoherence(s_k8sCluster, sCohNamespace, sClusterRelease);
             
             m_asReleases = new String[] { sClusterRelease };
-
             }
         }
 
@@ -117,7 +116,7 @@ public class CustomMetricsSampleIT
     // ----- tests ----------------------------------------------------------
 
     /**
-     * Test the proxy tier sample.
+     * Test the custom metrics sample.
      *
      * @throws Exception
      */

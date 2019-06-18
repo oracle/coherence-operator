@@ -35,6 +35,11 @@
       <groupId>com.oracle.coherence</groupId>
       <artifactId>coherence</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence-metrics</artifactId>
+    </dependency>
     
     <dependency>
       <groupId>jline</groupId>
