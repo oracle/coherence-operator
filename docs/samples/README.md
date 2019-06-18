@@ -9,6 +9,9 @@ While these samples may be useful and usable as is, it is intended that
 you would read through all of the sample code in detail, understand how
 the given sample works, and then customize it to suit your needs.
 
+> Please see the [https://github.com/coherence-community/coherence-demo](Oracle Coherence Demonstration)
+> for an example of an application using Coherence and running via the Coherence Operator.
+
 # Table of Contents
 
 1. [Start Here](#start-here)
@@ -382,7 +385,7 @@ Samples legend:
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
       1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2726;
-      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
+      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2726;
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
       1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
