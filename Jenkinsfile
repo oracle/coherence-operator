@@ -123,7 +123,8 @@ pipeline {
                                     export HELM_BINARY=`which helm`
                                     export KUBECTL_BINARY=`which kubectl`
                                     export NS=test-sample-${BUILD_NUMBER}
-                                    cd docs/samples 
+                                    # cd docs/samples 
+				    cd docs/samples/operator/rolling-upgrade
                                     mvn -Dbedrock.helm=''$HELM_BINARY'' \
                                         -Dk8s.kubectl=''$KUBECTL_BINARY'' \
                                         -Dop.image.pull.policy=Always \

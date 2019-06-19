@@ -136,7 +136,7 @@ public class RollingUpgradeSampleIT
             int nExitCode = s_helm.upgrade(sCoherenceRelease, fileChartDir.getPath() + "/coherence")
                         .namespace(sCohNamespace)
                         .withFlags("--reuse-values")
-                        .set("imagePullSecrets=ocr-k8s-operator-development-secret")
+                        .set("imagePullSecrets=sample-coherence-secret")
                         .set("userArtifacts.image=" + sTag)
                         .set("userArtifacts.imagePullPolicy=IfNotPresent")
                         .executeAndWait(SystemApplicationConsole.builder());
