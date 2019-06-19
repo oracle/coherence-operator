@@ -130,7 +130,7 @@ pipeline {
                                         -Dci.build=$BUILD_NUMBER \
                                         -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                                         -Dk8s.create.namespace=false \
-                                        -Dk8s.chart.test.versions=0.9.8 \
+                                        -Dk8s.chart.test.versions=0.9.9 \
                                         -Dk8s.namespace=$NS \
                                         -P helm-test clean install
                                 '''

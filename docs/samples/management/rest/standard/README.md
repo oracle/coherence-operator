@@ -3,13 +3,13 @@
 By default when the Coherence chart is installed the Management over REST endpoint will be exposed
 as port 30000 on each of the Pods. 
 
-This sample shows how you can access the Management of REST endpoint via the following URL:
+This sample shows how you can access the Management over REST endpoint via the following URL:
 
-* `http://host:300000`/management/coherence/cluster`.
+* `http://host:30000/management/coherence/cluster`.
 
 The Swagger document is available via the following URL:  
 
-* `http://host:300000`/management/coherence/cluster/metadata-catalog`.
+* `http://host:30000/management/coherence/cluster/metadata-catalog`.
 
 > **Note**: Use of Management over REST is only available when using the
 > operator with Coherence 12.2.1.4.
@@ -24,7 +24,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 1. Install the Coherence cluster
 
-   Issue the following to install the cluster with 1 MBean Server Pod:
+   Issue the following to install the cluster:
 
    ```bash
    $ helm install \
@@ -35,8 +35,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
+      --set coherence.image=your-12.2.1.4.0-Coherence-image \
       coherence/coherence
    ```
+   
+   > *Note:* If your version of the Coherence Operator does not default to using Coherence
+   > 12.2.1.4.0, then you will need to replace `your-12.2.1.4.0-Coherence-image` with an
+   > appropriate 12.2.1.4.0 image.
    
    Once the install has completed, issue the following command to list the pods:
    
@@ -58,7 +63,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 1. Access Management Over REST
 
-   Using `curl`, issue the following command to access the endpoint
+   Using `curl`, issue the following command to access the endpoint:
    
    ```bash
    $ curl --noproxy http://127.0.0.1:30000/management/coherence/cluster

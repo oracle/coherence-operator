@@ -73,7 +73,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
    $ kubectl cp sample-coherence-ns/storage-coherence-0:/tmp/heap.hprof heap.hprof 
    ```  
    
-   This may take a while depending upon if you Kubernets cluster is local or remote.
+   This may take a while depending upon if you Kubernetes cluster is local or remote.
    
 1. Single command version
 

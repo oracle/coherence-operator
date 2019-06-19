@@ -9,6 +9,9 @@ While these samples may be useful and usable as is, it is intended that
 you would read through all of the sample code in detail, understand how
 the given sample works, and then customize it to suit your needs.
 
+> Please see the [https://github.com/coherence-community/coherence-demo](Oracle Coherence Demonstration)
+> for an example of an application using Coherence and running via the Coherence Operator.
+
 # Table of Contents
 
 1. [Start Here](#start-here)
@@ -365,8 +368,7 @@ Samples legend:
       1. [Push logs to your own Elasticsearch Instance](operator/logging/own-elasticsearch) &#x2714;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
-      1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
-      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2718;
+      1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
       1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2726;
    1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
    1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
@@ -375,16 +377,14 @@ Samples legend:
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
       1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
       1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
-      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) 
-         1. [Enable SSL in Coherence 12.2.1.3.X](coherence-deployments/extend/ssl/12213) &#x2714;
-         1. [Enable SSL in Coherence 12.2.1.4.X and above](coherence-deployments/extend/ssl/12214) &#x2718;
+      1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2714;     
       1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
    1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
       1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
       1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
       1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2726;
-      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2718;
+      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2726;
    1. [Persistence](coherence-deployments/persistence)
       1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
       1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
