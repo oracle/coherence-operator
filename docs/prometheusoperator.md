@@ -98,7 +98,35 @@ The Grafana dashboards created to monitor Coherence Clusters have some common UI
    On the right of the page you can click to show all the dashboards available for viewing.
    
    ![All Dashboards](img/all-dashboards.png)
-      
+   
+## Configure your Prometheus Operator to scrape Coherence pods
+
+This section assumes that you do not want the coherence-operator's helm subchart PrometheusOperator installed.
+It provides information on how to configure what is automated by using coherence-operator helm chart parameter
+`prometheusoperator.enabled`=`true`. 
+
+Please consult the Prometheus Operator documentation on how to configure and deploy a service monitor for 
+your own Prometheus Operator installation. This section only describes service monitor configuration as it 
+relates to the Coherence helm chart.
+
+coherence-service-monitor.yaml fragment:
+```
+...
+spec:
+  selector:
+    matchLabels:
+      component: "coherence-service"
+...      
+endpoints:
+  - port: 9095
+```
+
+If the Coherence helm chart parameter `service.metricsHttpPort` is set when installing the Coherence helm chart,
+replace `9095` above with the new value.
+  
+If the Coherence helm chart parameter `store.metrics.ssl.enabled` is `true`, additionally add `endpoints.scheme` value of `https`
+to `coherence-service-monitor.yaml` fragment.
+    
 ## Troubleshooting
 
 ## Helm install of `coherence-operator` fails creating a custom resource definition (CRD).

@@ -1,7 +1,7 @@
 # Scrape metrics from your own Prometheus instance
 
-You may wish to scrape the metrics from your own Prometheus instance rather than use the 
-included prometheus and Grafana. 
+You may wish to scrape the metrics from your own Prometheus Operator instance rather than use the
+prometheusopeartor subchart included with coherence-operator. 
 
 This sample shows you how to scrape metrics from your own Prometheus instance.
 
@@ -42,7 +42,7 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
    
    There should only be a single `coherence-operator` pod.
    
-1. Install the Coherence cluster with `prometheusoperator` enabled
+2. Install the Coherence cluster
 
    ```bash
    $ helm install \
@@ -51,7 +51,6 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       --set clusterSize=3 \
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=true \
       --set "targetNamespaces={sample-coherence-ns}" \
       coherence/coherence
    ```
@@ -67,27 +66,34 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
    storage-coherence-2                   0/1     Running   0          22s
    ```
  
-## Configure your Prometheus to scrape Coherence pods
+## Configure your Prometheus Operator to scrape Coherence pods
 
-Normally if `prometheusoperator.enabled=true` for the `coherence-operator`, Prometheus will be installed and setup 
-to scrape all the coherence pods. By just setting `prometheusoperator.enabled=true` for coherence install, 
-each pod will expose metrics on :9095/metrics. 
+Please consult the Prometheus Operator documentation on how to configure and deploy a service monitor for 
+your own Prometheus Operator installation.
 
-You then need to point your prometheus to these targets. 
+This section only describes service monitor configuration as it relates to the Coherence helm chart.
 
-You can simulate this by using port-forward:
-
-```bash
-$ kubectl port-forward storage-coherence-0 -n sample-coherence-ns 9095:9095
+coherence-service-monitor.yaml fragment:
+```
+...
+spec:
+  selector:
+    matchLabels:
+      component: "coherence-service"
+...      
+endpoints:
+  - port: 9095
 ```
 
-Use `curl` or a browser to retrieve the metrics from the url `http://127.0.0.1:9095/metrics`.
+If the Coherence helm chart parameter `service.metricsHttpPort` is set when installing the Coherence helm chart,
+replace `9095` above with the new value.
+  
+If the Coherence helm chart parameter `store.metrics.ssl.enabled` is `true`, additionally add `endpoints.scheme` value of `https`
+to `coherence-service-monitor.yaml` fragment.
 
-```bash
-$ curl http://127.0.0.1:9095/metrics | tail -2
-coherence_jmx_scrape_duration_ms{member="storage-coherence-0", nodeId="1", cluster="storage-tier-cluster", site="coherence.sample-coherence-ns.svc.cluster.local", machine="docker-for-desktop", role="CoherenceServer"} 6
-coherence_jmx_scrape_total{member="storage-coherence-0", nodeId="1", cluster="storage-tier-cluster", site="coherence.sample-coherence-ns.svc.cluster.local", machine="docker-for-desktop", role="CoherenceServer"} 1
-```
+Note that there are a number of Coherence Grafana dashboards bundled in the coherence-operator helm chart under dashboards folder.
+While Grafana will have to be configured to the location of your prometheus datasource, one can still take advantage
+of these Coherence dashboards by extracting them from the coherence-operator helm chart.
 
 ## Uninstalling the Charts
 
