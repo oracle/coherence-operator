@@ -104,6 +104,7 @@ public class RollingUpgradeSampleIT
      * @throws Exception
      */
     @Test
+    @Ignore("https://github.com/oracle/coherence-operator/issues/196")
     public void testRollingUpgradeSample() throws Exception
         {
         if (testShouldRun())
