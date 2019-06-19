@@ -26,7 +26,7 @@
     <module>coherence-deployments/extend/proxy-tier</module>
     <module>coherence-deployments/extend/multiple</module>
     <module>coherence-deployments/extend/default</module>
-    <module>coherence-deployments/extend/ssl/12213</module>
+    <module>coherence-deployments/extend/ssl</module>
     <module>coherence-deployments/storage-disabled/interceptor</module>
     <module>coherence-deployments/storage-disabled/other</module>
     <module>coherence-deployments/elastic-data/default</module>
@@ -35,8 +35,8 @@
     <module>coherence-deployments/federation/within-cluster</module>
     <module>operator/rolling-upgrade</module>
     <module>operator/logging/custom-logs</module>
-    <!-- Enable this module when using Coherence 12.2.1.4.0 and above
-    <module>operator/metrics/custom-metrics</module>  -->
+    <module>operator/metrics/ssl</module>
+    <module>management/rest/ssl</module>
   </modules>
 
   <properties>
@@ -116,7 +116,7 @@
     <op.image.pull.policy/>
 
     <coherence.image.prefix></coherence.image.prefix>
-    <!-- interim version until chart version is corectly pullable -->
+    <!-- interim version until chart version is correctly pullable -->
     <coherence.docker.version>12.2.1.3</coherence.docker.version>
     <release.image.prefix>${test.image.prefix}</release.image.prefix>
     <docker.push.tag.prefix>${release.image.prefix}oracle/</docker.push.tag.prefix>

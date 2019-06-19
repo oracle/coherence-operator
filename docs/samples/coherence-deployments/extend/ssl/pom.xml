@@ -16,11 +16,11 @@
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>samples-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>sidecar-sample</artifactId>
-  <name>Sidecar Sample</name>
+  <artifactId>proxy-ssl-sample</artifactId>
+  <name>Coherence*Extend Sample - SSL</name>
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
@@ -117,7 +117,7 @@
         </executions>
       </plugin>
       
-      <!-- run com.oracle.coherence.examples.SampleClient via mvn exec:java -->
+      <!-- run QueryPlus via mvn exec:java -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -130,7 +130,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>com.oracle.coherence.examples.SampleClient</mainClass>
+          <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
           <systemProperties>
             <systemProperty>
@@ -142,21 +142,16 @@
               <value>client-cache-config.xml</value>
             </systemProperty>
             <systemProperty>
-              <key>coherence.pof.config</key>
-              <value>conf/storage-pof-config.xml</value>
-            </systemProperty>
-            <systemProperty>
               <key>coherence.tcmpenabled</key>
               <value>false</value>
             </systemProperty>
             <systemProperty>
               <key>coherence.cluster</key>
-              <value>sidecar-cluster</value>
+              <value>proxy-ssl-cluster</value>
             </systemProperty>
           </systemProperties>
         </configuration>
       </plugin>
-      
     </plugins>
   </build>
 

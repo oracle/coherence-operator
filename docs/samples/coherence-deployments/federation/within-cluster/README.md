@@ -1,6 +1,6 @@
 # Within a single Kubernetes cluster
 
-The federated caching feature federates cache data asynchronously across multiple geographically 
+The Federated Caching feature federates cache data asynchronously across multiple geographically 
 dispersed clusters. Cached data is federated across clusters to provide redundancy, 
 off-site backup, and multiple points of access for application users in different 
 geographical locations.
@@ -9,6 +9,9 @@ This sample shows how to setup a two Federated Coherence clusters within a singl
 
 Although this is not a recommended topology, due to the co-location of the Coherence clusters, this is 
 included as a sample of how to use Federation.
+
+> **Note**: To setup two Federated Coherence Clusters across different Kubernetes clusters, please 
+> see additional information [here](../across-clusters/README.md).
 
 The setup for this example uses 2 Coherence clusters in the same Kubernetes cluster.
 
