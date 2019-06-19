@@ -2343,7 +2343,7 @@ public abstract class BaseHelmChartTest
         {
         // Workaround intermittent kubectl port-forward failure by retrying
         Exception lastException = null;
-        final int MAX_RETRY     = 8;
+        final int MAX_RETRY     = 20;
         for (int i = 0; i < MAX_RETRY; i++)
             {
             try
@@ -2356,6 +2356,7 @@ public abstract class BaseHelmChartTest
                 try
                     {
                     // backoff before retry
+                    System.out.println("Sleep 500ms before retry of port forward");
                     Thread.sleep(500);
                     }
                 catch (InterruptedException e1)
