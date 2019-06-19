@@ -106,9 +106,8 @@ It provides information on how to configure what is automated by using coherence
 `prometheusoperator.enabled`=`true`. 
 
 Please consult the Prometheus Operator documentation on how to configure and deploy a service monitor for 
-your own Prometheus Operator installation.
-
-This section only describes service monitor configuration as it relates to the Coherence helm chart.
+your own Prometheus Operator installation. This section only describes service monitor configuration as it 
+relates to the Coherence helm chart.
 
 coherence-service-monitor.yaml fragment:
 ```
@@ -127,10 +126,6 @@ replace `9095` above with the new value.
   
 If the Coherence helm chart parameter `store.metrics.ssl.enabled` is `true`, additionally add `endpoints.scheme` value of `https`
 to `coherence-service-monitor.yaml` fragment.
-
-Note that there are a number of Coherence Grafana dashboards bundled in the coherence-operator under dashboards.
-While Grafana will have to be configured to the location of your prometheus datasource, one can still take advantage
-of these Coherence dashboards by extracting them from the coherence-operator helm chart. 
     
 ## Troubleshooting
 
