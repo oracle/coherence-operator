@@ -30,7 +30,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static helm.HelmUtils.HELM_TIMEOUT;
@@ -334,7 +332,7 @@ public class EFKHelmChartIT
         {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        Arguments args = Arguments.of("get", "configmap", "coherence-internal-config");
+        Arguments args = Arguments.of("get", "secret", "coherence-service-binding");
 
         if (sNamespace != null && sNamespace.trim().length() > 0)
             {
@@ -343,7 +341,7 @@ public class EFKHelmChartIT
 
         int nExitCode = cluster.kubectlAndWait(args, Console.of(console));
 
-        HelmUtils.logConsoleOutput("get-configmap", console);
+        HelmUtils.logConsoleOutput("get-secret", console);
 
         return nExitCode == 0;
         }

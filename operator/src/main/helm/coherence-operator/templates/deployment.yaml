@@ -90,6 +90,14 @@ spec:
             - name: ES_PORT
               value: {{ .Values.elasticsearchEndpoint.port | quote }}
     {{- end }}
+    {{- if .Values.elasticsearchEndpoint.user }}
+            - name: ES_USER
+              value: {{ .Values.elasticsearchEndpoint.user }}
+    {{- end }}
+    {{- if .Values.elasticsearchEndpoint.password }}
+            - name: ES_PASSWORD
+              value: {{ .Values.elasticsearchEndpoint.password }}
+    {{- end }}
   {{- end }}
             - name: ENABLE_FILE_LOGGING
               value: "true"
@@ -115,26 +123,30 @@ spec:
             - name: FLUENT_ELASTICSEARCH_SED_DISABLE
               value: "true"
             - name: ELASTICSEARCH_SERVICE_HOST
-  {{- $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
-  {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.host }}
-              value: {{ .Values.elasticsearchEndpoint.host }}
-    {{- else }}
-              value: {{ $eshost }}
-    {{- end }}
-  {{- else }}
-              value: {{ $eshost }}
-  {{- end }}
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchhost
             - name: ELASTICSEARCH_SERVICE_PORT
-  {{- $esport := 9200 }}
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchport
   {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.port }}
-              value: {{ .Values.elasticsearchEndpoint.port | quote  }}
-    {{- else }}
-              value: {{ $esport | quote }}
+    {{- if .Values.elasticsearchEndpoint.user}}
+            - name: ELASTICSEARCH_SERVICE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchuser
     {{- end }}
-  {{- else }}
-              value: {{ $esport | quote }}
+    {{- if .Values.elasticsearchEndpoint.password}}
+            - name: ELASTICSEARCH_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchpassword
+    {{- end }}
   {{- end }}
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf

@@ -217,9 +217,9 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_HOST
               valueFrom:
-                configMapKeyRef:
-                  name: coherence-internal-config
-                  key: operator.host
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: operatorhost
                   optional: true
             - name: COH_SITE_INFO_LOCATION
               value: http://$(OPERATOR_HOST):8000/zone/$(COH_MACHINE_NAME)
@@ -511,14 +511,24 @@ spec:
               value: "true"
             - name: ELASTICSEARCH_SERVICE_HOST
               valueFrom:
-                configMapKeyRef:
-                  name: coherence-internal-config
-                  key: elasticsearch.host
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchhost
             - name: ELASTICSEARCH_SERVICE_PORT
               valueFrom:
-                configMapKeyRef:
-                  name: coherence-internal-config
-                  key: elasticsearch.port
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchport
+            - name: ELASTICSEARCH_SERVICE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchuser
+            - name: ELASTICSEARCH_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-service-binding
+                  key: elasticsearchpassword
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf
