@@ -9,7 +9,7 @@ While these samples may be useful and usable as is, it is intended that
 you would read through all of the sample code in detail, understand how
 the given sample works, and then customize it to suit your needs.
 
-> Please see the [https://github.com/coherence-community/coherence-demo](Oracle Coherence Demonstration)
+> Please see the [Oracle Coherence Demonstration](https://github.com/coherence-community/coherence-demo)
 > for an example of an application using Coherence and running via the Coherence Operator.
 
 # Table of Contents

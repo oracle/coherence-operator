@@ -104,7 +104,6 @@ public class RollingUpgradeSampleIT
      * @throws Exception
      */
     @Test
-    @Ignore("Needs more investigation")
     public void testRollingUpgradeSample() throws Exception
         {
         if (testShouldRun())
