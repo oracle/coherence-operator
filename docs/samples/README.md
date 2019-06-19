@@ -368,7 +368,6 @@ Samples legend:
       1. [Push logs to your own Elasticsearch Instance](operator/logging/own-elasticsearch) &#x2714;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
       1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
-      1. [Include custom user metrics for scraping by Prometheus](operator/metrics/custom-metrics)  &#x2726;
       1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
       1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2726;
    1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;

@@ -37,8 +37,6 @@
     <module>operator/logging/custom-logs</module>
     <module>operator/metrics/ssl</module>
     <module>management/rest/ssl</module>
-    <!-- Enable this module when using Coherence 12.2.1.4.0 and above
-    <module>operator/metrics/custom-metrics</module>  -->
   </modules>
 
   <properties>

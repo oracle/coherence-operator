@@ -11,7 +11,6 @@ Coherence Operator.
    1. [Push logs to your own Elasticsearch Instance](logging/own-elasticsearch)
 1. [Metrics](metrics)
    1. [Deploy the operator with Prometheus enabled and view metrics in Grafana](metrics/enable-metrics)
-   1. [Include custom user metrics for scraping by Prometheus](metrics/custom-metrics)
    1. [Enable SSL for Metrics](metrics/ssl)
 1. [Scaling a Coherence deployment via kubectl](scaling)
 1. [Change image version for Coherence or application container using rolling upgrade](rolling-upgrade)   
