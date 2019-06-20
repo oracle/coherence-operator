@@ -218,7 +218,7 @@ spec:
             - name: OPERATOR_HOST
               valueFrom:
                 secretKeyRef:
-                  name: coherence-service-binding
+                  name: coherence-monitoring-config
                   key: operatorhost
                   optional: true
             - name: COH_SITE_INFO_LOCATION
@@ -512,23 +512,13 @@ spec:
             - name: ELASTICSEARCH_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: coherence-service-binding
+                  name: coherence-monitoring-config
                   key: elasticsearchhost
             - name: ELASTICSEARCH_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: coherence-service-binding
+                  name: coherence-monitoring-config
                   key: elasticsearchport
-            - name: ELASTICSEARCH_SERVICE_USER
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-service-binding
-                  key: elasticsearchuser
-            - name: ELASTICSEARCH_SERVICE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-service-binding
-                  key: elasticsearchpassword
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf

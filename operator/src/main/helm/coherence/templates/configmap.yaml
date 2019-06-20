@@ -53,10 +53,16 @@ data:
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
       port "#{ENV['ELASTICSEARCH_SERVICE_PORT']}"
-      user "#{ENV['ELASTICSEARCH_SERVICE_USER']}"
-      password "#{ENV['ELASTICSEARCH_SERVICE_PASSWORD']}"
       logstash_format true
       logstash_prefix coherence-cluster
+      {{- if .Values.elasticsearchEndpoint }}
+	{{- if .Values.elasticsearchEndpoint.user }}
+	    user "{{ .Values.elasticsearchEndpoint.user }}"
+	{{- end }}
+	{{- if .Values.elasticsearchEndpoint.password }}
+	    password "{{ .Values.elasticsearchEndpoint.password }}"
+	{{- end }}
+      {{- end }}
     </match>
 
 {{- if .Values.fluentd.application.tag }}
@@ -64,10 +70,16 @@ data:
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
       port "#{ENV['ELASTICSEARCH_SERVICE_PORT']}"
-      user "#{ENV['ELASTICSEARCH_SERVICE_USER']}"
-      password "#{ENV['ELASTICSEARCH_SERVICE_PASSWORD']}"
       logstash_format true
       logstash_prefix {{ .Values.fluentd.application.tag }}
+      {{- if .Values.elasticsearchEndpoint }}
+    {{- if .Values.elasticsearchEndpoint.user }}
+        user "{{ .Values.elasticsearchEndpoint.user }}"
+    {{- end }}
+    {{- if .Values.elasticsearchEndpoint.password }}
+        password "{{ .Values.elasticsearchEndpoint.password }}"
+    {{- end }}
+      {{- end }}
     </match>
 {{- end }}
 

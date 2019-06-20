@@ -153,17 +153,12 @@ public class CoherenceOperator
          */
         NamespaceProcessor(String sNamespace, String[] asIncludedNamespaces, String[] asExcludedNamespaces)
             {
-            m_sElasticsearchHost     = ((System.getenv(ES_HOST) == null) ?
-                    "elasticsearch." + sNamespace + ".svc.cluster.local" : System.getenv(ES_HOST));
+            m_sElasticsearchHost = Env.get(ES_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
+            m_sElasticsearchPort = Env.get(ES_PORT, DEFAULT_ES_PORT);
 
-            m_sElasticsearchPort     = ((System.getenv(ES_PORT) == null) ? DEFAULT_ES_PORT :
-                    Integer.toString(Integer.parseInt(System.getenv(ES_PORT))));
+            assertInteger(m_sElasticsearchPort);
 
-            m_sElasticsearchUser     = ((System.getenv(ES_USER) == null) ? "" : System.getenv(ES_USER));
-
-            m_sElasticsearchPassword = ((System.getenv(ES_PASSWORD) == null) ? "" : System.getenv(ES_PASSWORD));
-
-            m_sOperatorHost          = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
+            m_sOperatorHost      = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
 
             for (String sNamesp : asExcludedNamespaces)
                 {
@@ -204,7 +199,7 @@ public class CoherenceOperator
 
                             try
                                 {
-                                secret      = m_coreV1Api.readNamespacedSecret(COHERENCE_SERVICE_BINDING,
+                                secret      = m_coreV1Api.readNamespacedSecret(COHERENCE_MONITORING_CONFIG,
                                                   sNamesp, null, Boolean.TRUE, Boolean.TRUE);
                                 secretExist = (secret != null);
                                 }
@@ -216,7 +211,7 @@ public class CoherenceOperator
                             if (!secretExist)
                                 {
                                 V1ObjectMeta secretMeta = new V1ObjectMeta();
-                                secretMeta.setName(COHERENCE_SERVICE_BINDING);
+                                secretMeta.setName(COHERENCE_MONITORING_CONFIG);
 
                                 secret = new V1Secret().metadata(secretMeta);
                                 }
@@ -230,19 +225,11 @@ public class CoherenceOperator
                                 {
                                 secret.putStringDataItem("elasticsearchport", m_sElasticsearchPort);
                                 }
-                            if (m_sElasticsearchUser != null)
-                                {
-                                secret.putStringDataItem("elasticsearchuser", m_sElasticsearchUser);
-                                }
-                            if (m_sElasticsearchPassword != null)
-                                {
-                                secret.putStringDataItem("elasticsearchpassword", m_sElasticsearchPassword);
-                                }
 
                             if (secretExist)
                                 {
-                                m_coreV1Api.replaceNamespacedSecret(COHERENCE_SERVICE_BINDING, sNamesp, secret, null);
-                                LOGGER.info("Success in updating '" + COHERENCE_SERVICE_BINDING +
+                                m_coreV1Api.replaceNamespacedSecret(COHERENCE_MONITORING_CONFIG, sNamesp, secret, null);
+                                LOGGER.info("Success in updating '" + COHERENCE_MONITORING_CONFIG +
                                         "' Secret in namespace[" + sNamesp + "]");
                                 }
                             else
@@ -251,14 +238,14 @@ public class CoherenceOperator
                                     @Override
                                     public void onFailure(ApiException e, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.warning("Fail in creating '" + COHERENCE_SERVICE_BINDING +
+                                        LOGGER.warning("Fail in creating '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]" + e.toString());
                                     }
 
                                     @Override
                                     public void onSuccess(V1Secret v1Secret, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.info("Success in creating '" + COHERENCE_SERVICE_BINDING +
+                                        LOGGER.info("Success in creating '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]");
                                     }
 
@@ -307,6 +294,15 @@ public class CoherenceOperator
                     (m_setIncludedNamespaces.size() == 0 || m_setIncludedNamespaces.contains(sNamespace));
             }
 
+        /**
+         * Assert whether the value is an integer.
+         *
+         * @param value  the value
+         */
+        private void assertInteger(String value) {
+            Integer.parseInt(value);
+        }
+
         // ----- constants ---------------------------------------------------
 
         /**
@@ -318,16 +314,6 @@ public class CoherenceOperator
          * The Elasticsearch port.
          */
         private final String m_sElasticsearchPort;
-
-        /**
-         * The Elasticsearch user.
-         */
-        private final String m_sElasticsearchUser;
-
-        /**
-         * The Elasticsearch password.
-         */
-        private final String m_sElasticsearchPassword;
 
         /**
          * The Operator host.
@@ -393,16 +379,6 @@ public class CoherenceOperator
     private static final String ES_PORT = "ES_PORT";
 
     /**
-     * The environment property name for Elasticsearch user.
-     */
-    private static final String ES_USER = "ES_USER";
-
-    /**
-     * The environment property name for Elasticsearch password.
-     */
-    private static final String ES_PASSWORD = "ES_PASSWORD";
-
-    /**
      * The default of Elasticsearch port, 9200.
      */
     private static final String DEFAULT_ES_PORT = "9200";
@@ -410,9 +386,9 @@ public class CoherenceOperator
     private static final int K8S_INFO_SERVER_PORT = 8000;
 
     /**
-     * The name of the Coherence service binding secret created by operator.
+     * The name of the Coherence monitoring config secret created by operator.
      */
-    private static final String COHERENCE_SERVICE_BINDING = "coherence-service-binding";
+    private static final String COHERENCE_MONITORING_CONFIG = "coherence-monitoring-config";
 
     // ----- data members ----------------------------------------------------
 

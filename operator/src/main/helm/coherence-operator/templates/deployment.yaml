@@ -90,14 +90,6 @@ spec:
             - name: ES_PORT
               value: {{ .Values.elasticsearchEndpoint.port | quote }}
     {{- end }}
-    {{- if .Values.elasticsearchEndpoint.user }}
-            - name: ES_USER
-              value: {{ .Values.elasticsearchEndpoint.user }}
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.password }}
-            - name: ES_PASSWORD
-              value: {{ .Values.elasticsearchEndpoint.password }}
-    {{- end }}
   {{- end }}
             - name: ENABLE_FILE_LOGGING
               value: "true"
@@ -125,29 +117,13 @@ spec:
             - name: ELASTICSEARCH_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: coherence-service-binding
+                  name: coherence-monitoring-config
                   key: elasticsearchhost
             - name: ELASTICSEARCH_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: coherence-service-binding
+                  name: coherence-monitoring-config
                   key: elasticsearchport
-  {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.user}}
-            - name: ELASTICSEARCH_SERVICE_USER
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-service-binding
-                  key: elasticsearchuser
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.password}}
-            - name: ELASTICSEARCH_SERVICE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-service-binding
-                  key: elasticsearchpassword
-    {{- end }}
-  {{- end }}
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf

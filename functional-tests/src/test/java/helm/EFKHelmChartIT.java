@@ -332,7 +332,7 @@ public class EFKHelmChartIT
         {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        Arguments args = Arguments.of("get", "secret", "coherence-service-binding");
+        Arguments args = Arguments.of("get", "secret", "coherence-monitoring-config");
 
         if (sNamespace != null && sNamespace.trim().length() > 0)
             {
