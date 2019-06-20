@@ -1,5 +1,12 @@
 # Docker Images for Oracle Coherence Operator
 
+> **Note:** The images from this repo are not intended to be used directly, but only via Coherence Operator Helm Chart,
+> as documented in the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/quickstart.html).
+>
+> If, for some reason, you want to pull them to your local system directly, using `docker pull` command, please note
+> that we do not publish an image with the `latest` tag, so you will have to pull the specific, version-tagged image instead.
+> The list of available versions/tags is available on the `Tags` tab above.
+
 Oracle enables organizations using [Coherence](https://www.oracle.com/technetwork/middleware/coherence/overview/index.html) to move their clusters
 into the cloud. By supporting de facto standards such as Docker and
 Kubernetes, Oracle facilitates running Coherence on cloud-neutral
