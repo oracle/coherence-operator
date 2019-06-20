@@ -176,24 +176,7 @@ public class HelmUtils
             System.err.println("Clean-up: non-zero return from kubectl [" + nExitCode + "]");
             }
         }
-
-    /**
-     * Start a kubectl port-forward process.
-     *
-     * @param cluster    the k8s cluster
-     * @param sSelector  the selector
-     * @param nPort      the port to forward
-     *
-     * @return  the kubectl {@link Application}
-     */
-    public static Application portForward(K8sCluster cluster, String sNamespace, String sSelector, int nPort)
-        {
-        List<String> listPods = getPods(cluster, sNamespace, sSelector);
-        String       sPod     = listPods.get(0);
-
-        return portForward(cluster, sPod, sNamespace, nPort, SystemApplicationConsole.builder());
-        }
-
+    
     /**
      * Start a kubectl port-forward process.
      *

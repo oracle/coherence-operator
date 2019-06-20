@@ -7,12 +7,14 @@
 package com.oracle.coherence.examples.testing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.ApplicationConsoleBuilder;
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.EventsApplicationConsole;
 import com.oracle.bedrock.runtime.console.FileWriterApplicationConsole;
@@ -21,9 +23,11 @@ import com.oracle.bedrock.runtime.k8s.K8sCluster;
 import com.oracle.bedrock.runtime.k8s.helm.Helm;
 import com.oracle.bedrock.runtime.k8s.helm.HelmCommand;
 import com.oracle.bedrock.runtime.k8s.helm.HelmInstall;
+import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.tangosol.util.AssertionException;
@@ -54,6 +58,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,6 +81,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.fail;
 
 /**
  * A base class for executing Helm chart tests.
@@ -295,23 +301,42 @@ public abstract class BaseHelmChartTest
         // helm install dry run and get the release name used for the dry-run
         String sRelease = installDryRun(fileChartDir, sHelmChartName, sNamespace, aURLValues, asSetValues);
 
-        // helm install real using the release name from the dry-run
-        int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
+        try {
+            // helm install real using the release name from the dry-run
+            int nExitCode = install(fileChartDir, sHelmChartName, sNamespace, sRelease, aURLValues, asSetValues);
 
-        if (nExitCode != 0)
+            if (nExitCode != 0)
+                {
+                try
+                    {
+                    System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
+                    cleanupHelmReleases(sRelease);
+                    cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
+                    }
+                catch(Throwable t)
+                    {
+                    System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+                    }
+
+                throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
+                }
+            }
+        catch (Throwable t)
             {
+            // cleanup helm release artifacts when an exception is thrown during helm install.
+            System.err.println("Handled exception " + t.getClass().getName() + " during helm install " + sHelmChartName + " namespace=" + sNamespace + " release=" + sRelease);
             try
                 {
-                System.err.println("Clean up Helm install '" + sRelease + "' with exit code " + nExitCode);
+                System.err.println("Clean up Helm install '" + sRelease + "' after handled exception: " + t);
+                t.printStackTrace();
                 cleanupHelmReleases(sRelease);
                 cleanupPersistentVolumeClaims(cluster, sRelease, sNamespace);
                 }
-            catch(Throwable t)
+            catch (Throwable t1)
                 {
-                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t);
+                System.err.println("Error in clean up Helm release '" + sRelease + "': " + t1);
                 }
-
-            throw new Exception("Helm install '" + sRelease + "' failed with exit code: " + nExitCode);
+            throw new Exception("Helm install '" + sRelease + "' failed with exception: " + t);
             }
 
         // Wait for the StatefulSet to be ready
@@ -394,7 +419,25 @@ public abstract class BaseHelmChartTest
 
         if (nExitCode != 0)
             {
+            int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
+            for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
+                {
+                System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
+                                           + i + " attempts remaining");
+
+                logInstallFailure(install, nExitCode, consoleInstall);
+
+                consoleInstall = new CapturingApplicationConsole();
+                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+                }
+            }
+
+        if (nExitCode != 0)
+            {
             HelmUtils.logConsoleOutput("helm-install", consoleInstall);
+            String reason = "Install dry-run failed for helm chart " + sHelmChartName
+                    + " namespace " + sNamespace + " failed with exit code " + nExitCode;
+            fail(reason);
             }
 
         String reason = "Install dry-run failed for helm chart " + sHelmChartName + " namespace " + sNamespace;
@@ -576,6 +619,46 @@ public abstract class BaseHelmChartTest
             }
         }
 
+
+    private static void logInstallFailure(HelmInstall install, int nExitCode, CapturingApplicationConsole console)
+        {
+        try
+            {
+            OptionsByType opts = OptionsByType.of();
+
+            install.onLaunching(LocalPlatform.get(), opts);
+
+            String sArgLine = opts.getOrDefault(Arguments.class, Arguments.empty())
+                                  .stream()
+                                  .map(Argument::toString)
+                                  .collect(Collectors.joining(" "));
+
+            StringBuilder sMessage = new StringBuilder();
+
+            sMessage.append("------------------------------------------------------------------------\n")
+                    .append("Test: ").append(s_k8sTestName.getName()).append("\n")
+                    .append("helm ").append(sArgLine).append("\n")
+                    .append("Helm returned a non-zero exit code (").append(nExitCode).append(")\n");
+
+            console.getCapturedOutputLines()
+                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
+            console.getCapturedErrorLines()
+                    .forEach(sLine -> sMessage.append(sLine).append("\n"));
+
+            File fileDir = MavenProjectFileUtils.ensureTestOutputBaseFolder(Kubernetes.class);
+            fileDir.mkdirs();
+            File fileLog = new File(fileDir, "kubectl-retries.log");
+
+            Files.write(fileLog.toPath(),
+                        sMessage.toString().getBytes(),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND);
+            }
+        catch (IOException e)
+            {
+            System.err.println("Could not write retry log: " + e.getMessage());
+            }
+        }
 
     /**
      * Obtain all of the k8s resources created for the release.
@@ -2260,7 +2343,7 @@ public abstract class BaseHelmChartTest
         {
         // Workaround intermittent kubectl port-forward failure by retrying
         Exception lastException = null;
-        final int MAX_RETRY     = 8;
+        final int MAX_RETRY     = 20;
         for (int i = 0; i < MAX_RETRY; i++)
             {
             try
@@ -2273,6 +2356,7 @@ public abstract class BaseHelmChartTest
                 try
                     {
                     // backoff before retry
+                    System.out.println("Sleep 500ms before retry of port forward");
                     Thread.sleep(500);
                     }
                 catch (InterruptedException e1)
@@ -2455,6 +2539,12 @@ public abstract class BaseHelmChartTest
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The property for helm install max retry attempt. Default to 3.
+     */
+    public static final String HELM_INSTALL_MAX_RETRY = System.getProperty("helm.install.maxRetry", "3");
+
 
     /**
      * Release name Regex.
