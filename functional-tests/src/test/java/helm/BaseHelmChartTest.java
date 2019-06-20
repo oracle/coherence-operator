@@ -532,7 +532,7 @@ public abstract class BaseHelmChartTest
             }
         }
 
-    private static void logInstallFailure(HelmInstall install, int nExitCode, CapturingApplicationConsole console)
+    static void logInstallFailure(HelmInstall install, int nExitCode, CapturingApplicationConsole console)
         {
         try
             {

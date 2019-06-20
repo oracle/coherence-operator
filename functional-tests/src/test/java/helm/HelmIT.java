@@ -37,6 +37,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 
 /**
  * This test performs helm install --debug --dry-run commands and verifies the
@@ -608,12 +610,38 @@ public class HelmIT
                 install = install.set(asValues);
                 }
 
+            int nExitCode = -1;
             try (Application app = install.execute(Console.of(console)))
                 {
-                int nExitCode = app.waitFor();
+                nExitCode = app.waitFor();
                 Thread.sleep(500);  // this sleep is here because there seems to be a delay in getting all of the output
+                }
 
-                assertThat(nExitCode, is(0));
+            if (nExitCode != 0)
+                {
+                int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
+                for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
+                    {
+                    System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
+                        + i + " attempts remaining");
+
+                    logInstallFailure(install, nExitCode, console);
+
+                    console = new CapturingApplicationConsole();
+                    try (Application app = install.execute(Console.of(console)))
+                        {
+                        nExitCode = app.waitFor();
+                        Thread.sleep(500);  // this sleep is here because there seems to be a delay in getting all of the output
+                        }
+                    }
+                }
+
+            if (nExitCode != 0)
+                {
+                HelmUtils.logConsoleOutput("helm-install", console);
+                String reason = "Install dry-run failed for helm chart " + COHERENCE_HELM_CHART_NAME
+                    + " failed with exit code " + nExitCode;
+                fail(reason);
                 }
 
             Queue<String> queue = console.getCapturedOutputLines();
