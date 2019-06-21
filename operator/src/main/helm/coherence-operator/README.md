@@ -36,7 +36,7 @@ We also need to remove the internal secret in targetNamespaces, which is
 `{ default }` by default.
 
 ```
-$ kubectl delete secret coherence-service-binding
+$ kubectl delete secret coherence-monitoring-config
 ```
 
 ## Configuration

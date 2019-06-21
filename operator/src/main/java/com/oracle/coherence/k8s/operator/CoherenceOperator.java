@@ -229,7 +229,7 @@ public class CoherenceOperator
                             if (secretExist)
                                 {
                                 m_coreV1Api.replaceNamespacedSecret(COHERENCE_MONITORING_CONFIG, sNamesp, secret, null);
-                                LOGGER.info("Success in updating '" + COHERENCE_MONITORING_CONFIG +
+                                LOGGER.info("Updated '" + COHERENCE_MONITORING_CONFIG +
                                         "' Secret in namespace[" + sNamesp + "]");
                                 }
                             else
@@ -238,14 +238,14 @@ public class CoherenceOperator
                                     @Override
                                     public void onFailure(ApiException e, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.warning("Fail in creating '" + COHERENCE_MONITORING_CONFIG +
+                                        LOGGER.warning("Failed in creating '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]" + e.toString());
                                     }
 
                                     @Override
                                     public void onSuccess(V1Secret v1Secret, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.info("Success in creating '" + COHERENCE_MONITORING_CONFIG +
+                                        LOGGER.info("Created '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]");
                                     }
 
