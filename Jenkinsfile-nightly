@@ -1,0 +1,197 @@
+pipeline {
+    agent none
+    environment {
+        HTTP_PROXY  = credentials('coherence-operator-http-proxy')
+        HTTPS_PROXY = credentials('coherence-operator-https-proxy')
+        NO_PROXY    = credentials('coherence-operator-no-proxy')
+    }
+    stages {
+        stage('build-push-test') {
+            agent {
+                label 'Kubernetes'
+            }
+            stages {
+                stage('current-operator-build') {
+                    steps {
+                        echo 'Maven Build for current operator'
+                        sh '''
+                            if [ -z "$HTTP_PROXY" ]; then
+                                unset HTTP_PROXY
+                                unset HTTPS_PROXY
+                                unset NO_PROXY
+                            fi
+                            helm init --client-only --skip-refresh
+                        '''
+                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
+                           sh '''
+                               git checkout master
+                               mvn clean install
+                           '''
+                        }
+                        archiveArtifacts 'operator/target/*.tar.gz'
+                        stash includes: 'operator/target/*.tar.gz', name: 'helm-chart'
+                    }
+                }
+                stage('maven-build') {
+                    steps {
+                        echo 'Maven Build'
+                        sh '''
+                            if [ -z "$HTTP_PROXY" ]; then
+                                unset HTTP_PROXY
+                                unset HTTPS_PROXY
+                                unset NO_PROXY
+                            fi
+                            helm init --client-only --skip-refresh
+                        '''
+                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
+                           sh '''
+                               git checkout gh-pages
+                               cd docs/samples
+                               mvn clean install
+                           '''
+                        }
+                    }
+                }
+                stage('docker-build') {
+                    steps {
+                        echo 'Docker Build'
+                        sh '''
+                            docker swarm leave --force || true
+                            docker swarm init
+                            if [ -z "$HTTP_PROXY" ]; then
+                                unset HTTP_PROXY
+                                unset HTTPS_PROXY
+                                unset NO_PROXY
+                            fi
+                            helm init --client-only
+                        '''
+                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
+                            sh '''
+                                cd docs/samples
+                                mvn -P docker,docker-v1,docker-v2 clean install
+                            '''
+                        }
+                    }
+                }
+                stage('docker-push') {
+                    steps {
+                        echo 'Docker Push'
+                        sh '''
+                            if [ -z "$HTTP_PROXY" ]; then
+                                unset HTTP_PROXY
+                                unset HTTPS_PROXY
+                                unset NO_PROXY
+                            fi
+                        '''
+                        withCredentials([
+                            string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                            string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                            string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
+                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
+                                sh '''
+                                    docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                                    cd docs/samples
+                                    mvn install -P dockerPush
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('kubernetes-samples-tests') {
+                    steps {
+                        echo 'Kubernetes Tests'
+                        unstash 'helm-chart'
+                        withCredentials([
+                                    string(credentialsId: 'coherence-operator-docker-pull-secret-email',    variable: 'PULL_SECRET_EMAIL'),
+                                    string(credentialsId: 'coherence-operator-docker-pull-secret-password', variable: 'PULL_SECRET_PASSWORD'),
+                                    string(credentialsId: 'coherence-operator-docker-pull-secret-username', variable: 'PULL_SECRET_USERNAME'),
+                                    string(credentialsId: 'coherence-operator-docker-pull-secret-server',   variable: 'PULL_SECRET_SERVER'),
+                                    string(credentialsId: 'ocr-docker-pull-secret-email',    variable: 'OCR_PULL_SECRET_EMAIL'),
+                                    string(credentialsId: 'ocr-docker-pull-secret-password', variable: 'OCR_PULL_SECRET_PASSWORD'),
+                                    string(credentialsId: 'ocr-docker-pull-secret-username', variable: 'OCR_PULL_SECRET_USERNAME'),
+                                    string(credentialsId: 'ocr-docker-pull-secret-server',   variable: 'OCR_PULL_SECRET_SERVER')]) {
+                            sh '''
+                                if [ -z "$HTTP_PROXY" ]; then
+                                    unset HTTP_PROXY
+                                    unset HTTPS_PROXY
+                                    unset NO_PROXY
+                                fi
+
+                                helm init --client-only
+                                export NS=test-sample-${BUILD_NUMBER}
+                                helm repo add coherence https://oracle.github.io/coherence-operator/charts
+                                helm repo update
+                                kubectl create namespace $NS || true
+                                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                                   --namespace $NS \
+                                   --docker-server=$PULL_SECRET_SERVER \
+                                   --docker-username=$PULL_SECRET_USERNAME \
+                                   --docker-password="$PULL_SECRET_PASSWORD" \
+                                   --docker-email=$PULL_SECRET_EMAIL || true
+                                kubectl create secret docker-registry sample-coherence-secret \
+                                   --namespace $NS \
+                                   --docker-server=$PULL_SECRET_SERVER \
+                                   --docker-username=$PULL_SECRET_USERNAME \
+                                   --docker-password="$PULL_SECRET_PASSWORD" \
+                                   --docker-email=$PULL_SECRET_EMAIL || true
+                                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                                   --namespace $NS \
+                                   --docker-server=$OCR_PULL_SECRET_SERVER \
+                                   --docker-username=$OCR_PULL_SECRET_USERNAME \
+                                   --docker-password="$OCR_PULL_SECRET_PASSWORD" \
+                                   --docker-email=$OCR_PULL_SECRET_EMAIL || true
+                            '''
+                            withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
+                                sh '''
+                                    # Untar the charts ready for testing against
+                                    mkdir -p operator/target/temp
+                                    echo "Contents of operator/target"
+                                    ls operator/target
+                                    export COH_CHART=$(find operator/target -regex '.*coherence-[0-9].*-helm.tar.gz' -print)
+                                    echo COH_CHART=$COH_CHART
+                                    export COH_OP_CHART=$(find operator/target -regex '.*coherence-operator.*-helm.tar.gz' -print)
+                                    echo COH_OP_CHART=$COH_OP_CHART
+                                    tar -xf $COH_CHART -C operator/target/temp
+                                    tar -xf $COH_OP_CHART -C operator/target/temp
+                                    export HELM_CHART_BASE=`pwd`/operator/target/temp/
+
+                                    export HELM_BINARY=`which helm`
+                                    export KUBECTL_BINARY=`which kubectl`
+                                    export NS=test-sample-${BUILD_NUMBER}
+                                    # cd docs/samples
+                                    cd docs/samples/coherence-deployments/extend/proxy-tier
+                                    mvn -Dbedrock.helm=''$HELM_BINARY'' \
+                                        -Dk8s.kubectl=''$KUBECTL_BINARY'' \
+                                        -Dop.image.pull.policy=Always \
+                                        -Dci.build=$BUILD_NUMBER \
+                                        -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
+                                        -Dk8s.create.namespace=false \
+                                        -Doperator.helm.chart.package=$HELM_CHART_BASE/coherence-operator \
+                                        -Dcoherence.helm.chart.package=$HELM_CHART_BASE/coherence \
+                                        -Dk8s.namespace=$NS \
+                                        -P helm-test clean install
+                                '''
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            sh '''
+                                export NS=test-sample-${BUILD_NUMBER}
+                                helm delete --purge $(helm ls --namespace $NS --short) || true
+                                kubectl delete namespace $NS || true
+                                kubectl delete crd --ignore-not-found=true alertmanagers.monitoring.coreos.com   || true
+                                kubectl delete crd --ignore-not-found=true prometheuses.monitoring.coreos.com    || true
+                                kubectl delete crd --ignore-not-found=true prometheusrules.monitoring.coreos.com || true
+                                kubectl delete crd --ignore-not-found=true servicemonitors.monitoring.coreos.com || true
+                                helm repo remove coherence
+                            '''
+                            deleteDir()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
