@@ -25,7 +25,7 @@ pipeline {
                         withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
                            sh '''
                                git checkout master
-                               mvn clean install
+                               mvn clean install -DskipTests
                            '''
                         }
                         archiveArtifacts 'operator/target/*.tar.gz'
