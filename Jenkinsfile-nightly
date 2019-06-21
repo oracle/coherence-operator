@@ -143,7 +143,7 @@ pipeline {
                             '''
                             withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings-nightly', tempBinDir: '') {
                                 sh '''
-                                    # Untar the charts ready for testing against
+                                    # determine the .tgz of the coherence and coherence-operator charts
                                     mkdir -p operator/target/temp
                                     echo "Contents of operator/target"
                                     ls operator/target
@@ -151,9 +151,7 @@ pipeline {
                                     echo COH_CHART=$COH_CHART
                                     export COH_OP_CHART=$(find operator/target -regex '.*coherence-operator.*-helm.tar.gz' -print)
                                     echo COH_OP_CHART=$COH_OP_CHART
-                                    tar -xf $COH_CHART -C operator/target/temp
-                                    tar -xf $COH_OP_CHART -C operator/target/temp
-                                    export HELM_CHART_BASE=`pwd`/operator/target/temp/
+                                    export HELM_CHART_BASE=`pwd`
 
                                     export HELM_BINARY=`which helm`
                                     export KUBECTL_BINARY=`which kubectl`
@@ -166,8 +164,8 @@ pipeline {
                                         -Dci.build=$BUILD_NUMBER \
                                         -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                                         -Dk8s.create.namespace=false \
-                                        -Doperator.helm.chart.package=$HELM_CHART_BASE/coherence-operator \
-                                        -Dcoherence.helm.chart.package=$HELM_CHART_BASE/coherence \
+                                        -Doperator.helm.chart.package=$HELM_CHART_BASE/$COH_OP_CHART \
+                                        -Dcoherence.helm.chart.package=$HELM_CHART_BASE/$COH_CHART \
                                         -Dk8s.namespace=$NS \
                                         -P helm-test clean install
                                 '''
