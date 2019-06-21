@@ -156,7 +156,7 @@ public class CoherenceOperator
             m_sElasticsearchHost = Env.get(ES_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
             m_sElasticsearchPort = Env.get(ES_PORT, DEFAULT_ES_PORT);
 
-            assertInteger(m_sElasticsearchPort);
+            assertPort(m_sElasticsearchPort);
 
             m_sOperatorHost      = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
 
@@ -295,12 +295,23 @@ public class CoherenceOperator
             }
 
         /**
-         * Assert whether the value is an integer.
+         * Assert whether the value is a valid port.
          *
          * @param value  the value
          */
-        private void assertInteger(String value) {
-            Integer.parseInt(value);
+        private void assertPort(String value) {
+            int port;
+            try
+                {
+                port = Integer.parseInt(value);
+                }
+            catch(Throwable t)
+                {
+                throw new IllegalArgumentException("The Elasticsearch port '" + value + "' is not an integer.");
+                }
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("The Elasticsearch port '" + value + "' is not in valid port range.");
+            }
         }
 
         // ----- constants ---------------------------------------------------
