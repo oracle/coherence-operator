@@ -305,7 +305,7 @@ public class CoherenceOperator
                 {
                 port = Integer.parseInt(value);
                 }
-            catch(Throwable t)
+            catch(NumberFormatException ex)
                 {
                 throw new IllegalArgumentException("The Elasticsearch port '" + value + "' is not an integer.");
                 }
