@@ -115,27 +115,15 @@ spec:
             - name: FLUENT_ELASTICSEARCH_SED_DISABLE
               value: "true"
             - name: ELASTICSEARCH_SERVICE_HOST
-  {{- $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
-  {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.host }}
-              value: {{ .Values.elasticsearchEndpoint.host }}
-    {{- else }}
-              value: {{ $eshost }}
-    {{- end }}
-  {{- else }}
-              value: {{ $eshost }}
-  {{- end }}
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchhost
             - name: ELASTICSEARCH_SERVICE_PORT
-  {{- $esport := 9200 }}
-  {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.port }}
-              value: {{ .Values.elasticsearchEndpoint.port | quote  }}
-    {{- else }}
-              value: {{ $esport | quote }}
-    {{- end }}
-  {{- else }}
-              value: {{ $esport | quote }}
-  {{- end }}
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchport
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf

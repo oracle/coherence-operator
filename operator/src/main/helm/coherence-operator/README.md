@@ -32,11 +32,11 @@ $ helm delete sample-coherence-operator
 The command removes all the Kubernetes components associated with the chart
 and deletes the release.
 
-We also need to remove the internal config map in targetNamespaces, which is
+We also need to remove the internal secret in targetNamespaces, which is
 `{ default }` by default.
 
 ```
-$ kubectl delete configmap coherence-internal-config
+$ kubectl delete secret coherence-monitoring-config
 ```
 
 ## Configuration

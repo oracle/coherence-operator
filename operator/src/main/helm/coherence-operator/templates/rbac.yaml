@@ -54,13 +54,13 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ $releaseNamespace }}-coherence-operator-configmaps-cluster-role
+  name: {{ $releaseNamespace }}-coherence-operator-secrets-cluster-role
   labels:
     release: {{ $releaseName }}
-    component: coherence-operator-configmaps-cluster-role
+    component: coherence-operator-secrets-cluster-role
 rules:
 - apiGroups: [""]
-  resources: ["configmaps"]
+  resources: ["secrets"]
   verbs: ["create", "get", "update"]
 ---
   {{- if .Values.targetNamespaces }}
@@ -68,15 +68,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: coherence-operator-configmaps-role-binding
+  name: coherence-operator-secrets-role-binding
   namespace: {{ . | quote }}
   labels:
     release: {{ $releaseName }}
-    component: coherence-operator-configmaps-role-binding
+    component: coherence-operator-secrets-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $releaseNamespace }}-coherence-operator-configmaps-cluster-role
+  name: {{ $releaseNamespace }}-coherence-operator-secrets-cluster-role
 subjects:
   - kind: ServiceAccount
     name: {{ $serviceAccount }}
@@ -87,14 +87,14 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ $releaseNamespace }}-coherence-operator-configmaps-cluster-role-binding
+  name: {{ $releaseNamespace }}-coherence-operator-secrets-cluster-role-binding
   labels:
     release: {{ $releaseName }}
-    component: coherence-operator-configmaps-cluster-role-binding
+    component: coherence-operator-secrets-cluster-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $releaseNamespace }}-coherence-operator-configmaps-cluster-role
+  name: {{ $releaseNamespace }}-coherence-operator-secrets-cluster-role
 subjects:
   - kind: ServiceAccount
     name: {{ $serviceAccount }}

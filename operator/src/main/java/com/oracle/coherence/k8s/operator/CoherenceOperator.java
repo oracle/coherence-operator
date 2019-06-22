@@ -11,9 +11,9 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.V1ConfigMap;
 import io.kubernetes.client.models.V1Namespace;
 import io.kubernetes.client.models.V1ObjectMeta;
+import io.kubernetes.client.models.V1Secret;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Watch;
 
@@ -153,11 +153,10 @@ public class CoherenceOperator
          */
         NamespaceProcessor(String sNamespace, String[] asIncludedNamespaces, String[] asExcludedNamespaces)
             {
-            m_sElasticsearchHost = ((System.getenv(ES_HOST) == null) ?
-                    "elasticsearch." + sNamespace + ".svc.cluster.local" : System.getenv(ES_HOST));
+            m_sElasticsearchHost = Env.get(ES_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
+            m_sElasticsearchPort = Env.get(ES_PORT, DEFAULT_ES_PORT);
 
-            m_sElasticsearchPort = ((System.getenv(ES_PORT) == null) ? DEFAULT_ES_PORT :
-                    Integer.toString(Integer.parseInt(System.getenv(ES_PORT))));
+            assertPort(m_sElasticsearchPort);
 
             m_sOperatorHost      = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
 
@@ -195,59 +194,59 @@ public class CoherenceOperator
                     if (isAcceptableNamespace(sNamesp))
                         {
                         try {
-                            V1ConfigMap configMap = null;
-                            boolean configExist = false;
+                            V1Secret secret      = null;
+                            boolean  secretExist = false;
 
                             try
                                 {
-                                configMap = m_coreV1Api.readNamespacedConfigMap(COHERENCE_INTERNAL_CONFIG_MAP,
-                                        sNamesp, null, Boolean.TRUE, Boolean.TRUE);
-                                configExist = (configMap != null);
+                                secret      = m_coreV1Api.readNamespacedSecret(COHERENCE_MONITORING_CONFIG,
+                                                  sNamesp, null, Boolean.TRUE, Boolean.TRUE);
+                                secretExist = (secret != null);
                                 }
                             catch(Throwable ignore)
                                 {
                                 // Not Found
                                 }
 
-                            if (!configExist)
+                            if (!secretExist)
                                 {
-                                V1ObjectMeta configMapMeta = new V1ObjectMeta();
-                                configMapMeta.setName(COHERENCE_INTERNAL_CONFIG_MAP);
+                                V1ObjectMeta secretMeta = new V1ObjectMeta();
+                                secretMeta.setName(COHERENCE_MONITORING_CONFIG);
 
-                                configMap = new V1ConfigMap().metadata(configMapMeta);
+                                secret = new V1Secret().metadata(secretMeta);
                                 }
 
-                            configMap.putDataItem("operator.host", m_sOperatorHost);
+                            secret.putStringDataItem("operatorhost", m_sOperatorHost);
                             if (m_sElasticsearchHost != null)
                                 {
-                                configMap.putDataItem("elasticsearch.host", m_sElasticsearchHost);
+                                secret.putStringDataItem("elasticsearchhost", m_sElasticsearchHost);
                                 }
                             if (m_sElasticsearchPort != null)
                                 {
-                                configMap.putDataItem("elasticsearch.port", m_sElasticsearchPort);
+                                secret.putStringDataItem("elasticsearchport", m_sElasticsearchPort);
                                 }
 
-                            if (configExist)
+                            if (secretExist)
                                 {
-                                m_coreV1Api.replaceNamespacedConfigMap(COHERENCE_INTERNAL_CONFIG_MAP, sNamesp, configMap, null);
-                                LOGGER.info("Success in updating '" + COHERENCE_INTERNAL_CONFIG_MAP +
-                                        "' ConfigMap in namespace[" + sNamesp + "]");
+                                m_coreV1Api.replaceNamespacedSecret(COHERENCE_MONITORING_CONFIG, sNamesp, secret, null);
+                                LOGGER.info("Updated '" + COHERENCE_MONITORING_CONFIG +
+                                        "' Secret in namespace[" + sNamesp + "]");
                                 }
                             else
                                 {
-                                ApiCallback<V1ConfigMap> callback = new ApiCallback<V1ConfigMap>() {
+                                ApiCallback<V1Secret> callback = new ApiCallback<>() {
                                     @Override
                                     public void onFailure(ApiException e, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.warning("Fail in creating '" + COHERENCE_INTERNAL_CONFIG_MAP +
-                                                "' ConfigMap in namespace[" + sNamesp + "]" + e.toString());
+                                        LOGGER.warning("Failed in creating '" + COHERENCE_MONITORING_CONFIG +
+                                                "' Secret in namespace[" + sNamesp + "]" + e.toString());
                                     }
 
                                     @Override
-                                    public void onSuccess(V1ConfigMap v1ConfigMap, int i, Map<String, List<String>> map)
+                                    public void onSuccess(V1Secret v1Secret, int i, Map<String, List<String>> map)
                                     {
-                                        LOGGER.info("Success in creating '" + COHERENCE_INTERNAL_CONFIG_MAP +
-                                                "' ConfigMap in namespace[" + sNamesp + "]");
+                                        LOGGER.info("Created '" + COHERENCE_MONITORING_CONFIG +
+                                                "' Secret in namespace[" + sNamesp + "]");
                                     }
 
                                     @Override
@@ -260,12 +259,12 @@ public class CoherenceOperator
                                     {
                                     }
                                 };
-                                m_coreV1Api.createNamespacedConfigMapAsync(sNamesp, configMap,null, callback);
+                                m_coreV1Api.createNamespacedSecretAsync(sNamesp, secret, null, callback);
                                 }
                         }
                         catch(Throwable t)
                             {
-                            LOGGER.warning("Exception in creating configmap in namespace[" + sNamesp + "]: " + t);
+                            LOGGER.warning("Exception in creating secret in namespace[" + sNamesp + "]: " + t);
                             }
                         }
                     }
@@ -294,6 +293,26 @@ public class CoherenceOperator
             return !m_setExcludedNamespaces.contains(sNamespace) &&
                     (m_setIncludedNamespaces.size() == 0 || m_setIncludedNamespaces.contains(sNamespace));
             }
+
+        /**
+         * Assert whether the value is a valid port.
+         *
+         * @param value  the value
+         */
+        private void assertPort(String value) {
+            int port;
+            try
+                {
+                port = Integer.parseInt(value);
+                }
+            catch(NumberFormatException ex)
+                {
+                throw new IllegalArgumentException("The Elasticsearch port '" + value + "' is not an integer.");
+                }
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("The Elasticsearch port '" + value + "' is not in valid port range.");
+            }
+        }
 
         // ----- constants ---------------------------------------------------
 
@@ -378,9 +397,9 @@ public class CoherenceOperator
     private static final int K8S_INFO_SERVER_PORT = 8000;
 
     /**
-     * The name of the Coherence internal config map created by operator.
+     * The name of the Coherence monitoring config secret created by operator.
      */
-    private static final String COHERENCE_INTERNAL_CONFIG_MAP = "coherence-internal-config";
+    private static final String COHERENCE_MONITORING_CONFIG = "coherence-monitoring-config";
 
     // ----- data members ----------------------------------------------------
 

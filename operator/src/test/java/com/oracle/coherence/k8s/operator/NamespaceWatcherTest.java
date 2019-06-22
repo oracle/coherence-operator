@@ -83,17 +83,17 @@ public class NamespaceWatcherTest {
      * @throws Exception
      */
     @Test
-    public void testConfigMap() throws Exception
+    public void testSecret() throws Exception
         {
         String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns", "cohns2" };
         String[] asIncludedNamespaces = new String[] { "cohns", "cohns2" };
         String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker"};
 
-        CoreV1Api coreV1Api = setupTestConfigMap(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(eq("cohns"), any(),any(), any());
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(eq("cohns2"), any(),any(), any());
-        verify(coreV1Api, times(2)).createNamespacedConfigMapAsync(any(), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
+        verify(coreV1Api, times(2)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
 
     /**
@@ -102,17 +102,17 @@ public class NamespaceWatcherTest {
      * @throws Exception
      */
     @Test
-    public void testConfigMapNoIncluded() throws Exception
+    public void testSecretNoIncluded() throws Exception
         {
         String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns" };
         String[] asIncludedNamespaces = new String[] { };
         String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker"};
 
-        CoreV1Api coreV1Api = setupTestConfigMap(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(eq("cohns"), any(),any(), any());
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(eq("default"), any(),any(), any());
-        verify(coreV1Api, times(2)).createNamespacedConfigMapAsync(any(), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("default"), any(),any(), any());
+        verify(coreV1Api, times(2)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
 
     /**
@@ -121,16 +121,16 @@ public class NamespaceWatcherTest {
      * @throws Exception
      */
     @Test
-    public void testConfigMapExcluded() throws Exception
+    public void testSecretExcluded() throws Exception
         {
         String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns", "internal" };
         String[] asIncludedNamespaces = new String[] { "cohns", "cohns2" };
         String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker", "internal" };
 
-        CoreV1Api coreV1Api = setupTestConfigMap(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(eq("cohns"), any(),any(), any());
-        verify(coreV1Api, times(1)).createNamespacedConfigMapAsync(any(), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
 
     // ---- helper methods --------------------------------------------------
@@ -144,7 +144,7 @@ public class NamespaceWatcherTest {
      * @return CoreV1Api for verification
      * @throws Exception
      */
-    CoreV1Api setupTestConfigMap(String[] asNamespaces, String[] asIncludedNamespaces, String[] asExcludedNamespaces) throws Exception
+    CoreV1Api setupTestSecret(String[] asNamespaces, String[] asIncludedNamespaces, String[] asExcludedNamespaces) throws Exception
         {
         AtomicBoolean  fStopping      = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(asNamespaces.length);
