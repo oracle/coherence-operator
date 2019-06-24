@@ -6,13 +6,20 @@
 #!/bin/bash
 
 # -----------------------------------------------------------------------------
-# Below mentioned environment variables must be set before invoking this script.
+# This script uses below set of environment variables for doing coherence
+# operator release.
+#
+# Required Set of Enviornment Varibales:
 # 1) BRANCH_NAME           : Name of the GIT branch to be used to run release.
 # 2) RELEASE_VERSION       : Release version to use.
 # 3) NEXT_SNAPSHOT_VERSION : Next snapshot version to use.
 # 4) RELEASE_IMAGE_PREFIX  : Docker repository prefix to be used for
 #                            Coherence Operator docker image.
 # 5) DRY_RUN               : To indicate whether to run script in dry mode.
+
+# Optional Environment Varibales:
+# 1) SETTINGS_FILE         : Location for maven settings file. If not set assumes
+                             default maven setting file i.e $USER/.m2/settings.xml
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -22,8 +29,8 @@ setupReleaseBranch()
   {
   echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
 
-  if [ -e ../settings.xml ]; then
-    local MVN_SETTINGS="-s ../settings.xml"
+  if [ -n $SETTINGS_FILE ]; then
+    local MVN_SETTINGS="-s $SETTINGS_FILE"
   else
     local MVN_SETTINGS=""
   fi
