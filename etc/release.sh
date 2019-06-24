@@ -22,8 +22,8 @@ setupReleaseBranch()
   {
   echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
 
-  if [ -e ../settings.xml ]; then
-    local MVN_SETTINGS="-s ../settings.xml"
+  if [ -e settings.xml ]; then
+    local MVN_SETTINGS="-s settings.xml"
   else
     local MVN_SETTINGS=""
   fi
