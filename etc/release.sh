@@ -19,7 +19,7 @@
 
 # Optional Environment Varibales:
 # 1) SETTINGS_FILE         : Location for maven settings file. If not set assumes
-                             default maven setting file i.e $USER/.m2/settings.xml
+#                            default maven setting file i.e $USER/.m2/settings.xml
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
