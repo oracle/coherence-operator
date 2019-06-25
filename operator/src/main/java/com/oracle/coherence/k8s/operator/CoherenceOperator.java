@@ -158,6 +158,8 @@ public class CoherenceOperator
 
             assertPort(m_sElasticsearchPort);
 
+            m_sElasticsearchUser = Env.get(ES_USER, "");
+            m_sElasticsearchPassword = Env.get(ES_PASSWORD, "");
             m_sOperatorHost      = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
 
             for (String sNamesp : asExcludedNamespaces)
@@ -224,6 +226,14 @@ public class CoherenceOperator
                             if (m_sElasticsearchPort != null)
                                 {
                                 secret.putStringDataItem("elasticsearchport", m_sElasticsearchPort);
+                                }
+                            if (m_sElasticsearchUser != null)
+                                {
+                                secret.putStringDataItem("elasticsearchuser", m_sElasticsearchUser);
+                                }
+                            if (m_sElasticsearchPassword != null)
+                                {
+                                secret.putStringDataItem("elasticsearchpassword", m_sElasticsearchPassword);
                                 }
 
                             if (secretExist)
@@ -327,6 +337,16 @@ public class CoherenceOperator
         private final String m_sElasticsearchPort;
 
         /**
+         * The Elasticsearch user.
+         */
+        private final String m_sElasticsearchUser;
+
+        /**
+         * The Elasticsearch password.
+         */
+        private final String m_sElasticsearchPassword;
+
+        /**
          * The Operator host.
          */
         private final String m_sOperatorHost;
@@ -388,6 +408,16 @@ public class CoherenceOperator
      * The environment property name for Elasticsearch port.
      */
     private static final String ES_PORT = "ES_PORT";
+
+    /**
+     * The environment property name for Elasticsearch user.
+     */
+    private static final String ES_USER = "ES_USER";
+
+    /**
+     * The environment property name for Elasticsearch password.
+     */
+    private static final String ES_PASSWORD = "ES_PASSWORD";
 
     /**
      * The default of Elasticsearch port, 9200.

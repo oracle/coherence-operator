@@ -299,6 +299,16 @@ spec:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchport
+            - name: ELASTICSEARCH_SERVICE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchuser
+            - name: ELASTICSEARCH_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchpassword
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf

@@ -119,6 +119,10 @@ elasticsearchEndpoint:
   # The Elasticsearch port to be accessed by fluentd.
   # Default: 9200
   port:
+  # The Elasticsearch user to be accessed by fluentd.
+  # user:
+  # The Elasticsearch password to be accessed by fluentd.
+  # password:
 
 # Specify the fluentd image
 # These parameters are ignored if 'logCaptureEnabled' is false.

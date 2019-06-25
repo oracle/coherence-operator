@@ -44,15 +44,15 @@ data:
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
       port "#{ENV['ELASTICSEARCH_SERVICE_PORT']}"
+  {{- if .Values.elasticsearchEndpoint }}
+    {{- if .Values.elasticsearchEndpoint.user }}
+      user "#{ENV['ELASTICSEARCH_SERVICE_USER']}"
+    {{- end }}
+    {{- if .Values.elasticsearchEndpoint.password }}
+      password "#{ENV['ELASTICSEARCH_SERVICE_PASSWORD']}"
+    {{- end }}
+  {{- end }}
       logstash_format true
       logstash_prefix coherence-operator
-      {{- if .Values.elasticsearchEndpoint }}
-        {{- if .Values.elasticsearchEndpoint.user }}
-            user "{{ .Values.elasticsearchEndpoint.user }}"
-        {{- end }}
-        {{- if .Values.elasticsearchEndpoint.password }}
-            password "{{ .Values.elasticsearchEndpoint.password }}"
-        {{- end }}
-      {{- end }}
     </match>
 {{- end}}
