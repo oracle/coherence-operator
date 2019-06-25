@@ -86,7 +86,7 @@ spec:
             - name: ES_HOST
               value: {{ .Values.elasticsearchEndpoint.host | quote }}
     {{- end }}
-    {{- if .Values.elasticsearchEndpoint.host }}
+    {{- if .Values.elasticsearchEndpoint.port }}
             - name: ES_PORT
               value: {{ .Values.elasticsearchEndpoint.port | quote }}
     {{- end }}
