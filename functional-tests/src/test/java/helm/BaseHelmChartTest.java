@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.deferred.options.InitialDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
-import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.options.Timeout;
 
