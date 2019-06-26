@@ -148,7 +148,14 @@ chart is from the Oracle Container Registry.
 To be able to pull Coherence Docker Images from the Oracle Container Registry:
 
 a) Login to [Oracle Container Registry](https://container-registry.oracle.com)
-   and accept the terms and conditions to download Coherence images.
+   and accept the terms and conditions to download Coherence images:
+
+   > 1. Go to to [Oracle Container Registry](https://container-registry.oracle.com)
+   > 2. Search for "Coherence".
+   > 3. Select `coherence` from the list.
+   > 4. Click on `Sign-in` on the right and enter your credentials, or create and account if you don't already have one.
+   > 5. On the right, select the language for the  `Oracle Standard Terms and Restrictions`.
+   > 6. Click `Continue` and scroll down to accept the terms and conditions.
 
 b) Create Kubernetes docker-registry secret with the same credentials that is
    used in step (a) to login into Oracle Container Registry and tell Kubernetes
