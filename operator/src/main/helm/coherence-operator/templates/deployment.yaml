@@ -81,24 +81,6 @@ spec:
 {{- if .Values.logCaptureEnabled }}
             - name: EFK_INTEGRATION_ENABLED
               value: {{ .Values.logCaptureEnabled | quote }}
-  {{- if .Values.elasticsearchEndpoint }}
-    {{- if .Values.elasticsearchEndpoint.host }}
-            - name: ES_HOST
-              value: {{ .Values.elasticsearchEndpoint.host | quote }}
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.port }}
-            - name: ES_PORT
-              value: {{ .Values.elasticsearchEndpoint.port | quote }}
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.user }}
-            - name: ES_USER
-              value: {{ .Values.elasticsearchEndpoint.user | quote }}
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.password }}
-            - name: ES_PASSWORD
-              value: {{ .Values.elasticsearchEndpoint.password | quote }}
-    {{- end }}
-  {{- end }}
             - name: ENABLE_FILE_LOGGING
               value: "true"
 {{- end }}

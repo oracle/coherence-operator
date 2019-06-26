@@ -9,6 +9,7 @@ metadata:
   name: coherence-monitoring-config
 type: Opaque
 data:
+  operatorhost: {{ printf "coherence-operator-service.%s.svc.cluster.local" .Release.Namespace | b64enc | quote }}
   {{- $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
   {{- if .Values.elasticsearchEndpoint }}
   elasticsearchhost: {{ .Values.elasticsearchEndpoint.host | default $eshost | toString | b64enc | quote }}
