@@ -17,7 +17,6 @@ import io.kubernetes.client.models.V1Secret;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Watch;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -104,7 +103,6 @@ public class CoherenceOperator
      *
      * @return a DeploymentWatcher
      *
-     * @exception ApiException  If fail to serialize the request body object
      * @exception IllegalAccessException  if the class or its nullary constructor is not accessible
      * @exception InstantiationException  if this Class represents an abstract class, an interface, an array class,
      *     a primitive type, or void; or if the class has no nullary constructor; or if the instantiation fails for
@@ -112,9 +110,9 @@ public class CoherenceOperator
      */
     private static NamespaceWatcher createNamespaceWatcher(String sNamespace, String[] asNamespaces,
                                                            String[] asExcludedNamespaces, AtomicBoolean fStop)
-            throws ApiException, IllegalAccessException, InstantiationException
+            throws IllegalAccessException, InstantiationException
         {
-        return new NamespaceWatcher(fStop, new NamespaceProcessor(sNamespace, asNamespaces, asExcludedNamespaces, new CoreV1Api()));
+        return new NamespaceWatcher(fStop, new NamespaceProcessor(sNamespace, asNamespaces, asExcludedNamespaces));
         }
 
 
@@ -152,18 +150,22 @@ public class CoherenceOperator
          * @param sNamespace            the namespace of the operator
          * @param asIncludedNamespaces  an array of namespaces included for processing
          * @param asExcludedNamespaces  an array of namespaces excluded for processing
-         * @param coreV1Api             the CoreV1Api
-         *
-         * @exception ApiException  If fail to serialize the request body object
          */
-        NamespaceProcessor(String sNamespace, String[] asIncludedNamespaces, String[] asExcludedNamespaces,
-                           CoreV1Api coreV1Api) throws ApiException
+        NamespaceProcessor(String sNamespace, String[] asIncludedNamespaces, String[] asExcludedNamespaces)
             {
-            m_sNamespace    = sNamespace;
+            f_sNamespace = sNamespace;
+            f_sElasticsearchHost = Env.get(ELASTICSEARCH_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
+            f_sElasticsearchPort = Env.get(ELASTICSEARCH_PORT, DEFAULT_ES_PORT);
+
+            assertPort(f_sElasticsearchPort);
+
+            f_sElasticsearchUser     = Env.get(ELASTICSEARCH_USER, "");
+            f_sElasticsearchPassword = Env.get(ELASTICSEARCH_PASSWORD, "");
+            f_sOperatorHost          = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
 
             for (String sNamesp : asExcludedNamespaces)
                 {
-                m_setExcludedNamespaces.add(sNamesp);
+                f_setExcludedNamespaces.add(sNamesp);
                 }
 
             // null means all which corresponds to empty set here
@@ -171,33 +173,9 @@ public class CoherenceOperator
                 {
                 for (String sNamesp : asIncludedNamespaces)
                     {
-                    m_setIncludedNamespaces.add(sNamesp);
+                    f_setIncludedNamespaces.add(sNamesp);
                     }
                 }
-
-            m_coreV1Api = coreV1Api;
-
-            V1Secret secret = m_coreV1Api.readNamespacedSecret(COHERENCE_MONITORING_CONFIG,
-                                                               sNamespace, null, Boolean.TRUE, Boolean.TRUE);
-            if (secret == null)
-                {
-                throw new IllegalStateException("Cannot find secret " + COHERENCE_MONITORING_CONFIG + " in namespace " + sNamespace);
-                }
-
-            Map<String, byte[]> secretData = secret.getData();
-            if (secretData == null)
-                {
-                throw new IllegalStateException("No secret property in " + COHERENCE_MONITORING_CONFIG + " in namespace " + sNamespace);
-                }
-
-            m_abElasticsearchHost = secretData.get(ELASTICSEARCH_HOST);
-            m_abElasticsearchPort = secretData.get(ELASTICSEARCH_PORT);
-
-            assertPort(m_abElasticsearchPort);
-
-            m_abElasticsearchUser     = secretData.get(ELASTICSEARCH_USER);
-            m_abElasticsearchPassword = secretData.get(ELASTICSEARCH_PASSWORD);
-            m_abOperatorHost          = secretData.get(OPERATOR_HOST);
             }
 
         /**
@@ -216,7 +194,7 @@ public class CoherenceOperator
                     {
                     String sNamesp = objectMeta.getName();
 
-                    if (isAcceptableNamespace(sNamesp) && !m_sNamespace.equals(sNamesp))
+                    if (isAcceptableNamespace(sNamesp))
                         {
                         try {
                             V1Secret secret      = null;
@@ -241,22 +219,22 @@ public class CoherenceOperator
                                 secret = new V1Secret().metadata(secretMeta);
                                 }
 
-                            secret.putDataItem("operatorhost", m_abOperatorHost);
-                            if (m_abElasticsearchHost != null)
+                            secret.putStringDataItem(OPERATOR_HOST_SECRET, f_sOperatorHost);
+                            if (f_sElasticsearchHost != null)
                                 {
-                                secret.putDataItem("elasticsearchhost", m_abElasticsearchHost);
+                                secret.putStringDataItem(ELASTICSEARCH_HOST_SECRET, f_sElasticsearchHost);
                                 }
-                            if (m_abElasticsearchPort != null)
+                            if (f_sElasticsearchPort != null)
                                 {
-                                secret.putDataItem("elasticsearchport", m_abElasticsearchPort);
+                                secret.putStringDataItem(ELASTICSEARCH_PORT_SECRET, f_sElasticsearchPort);
                                 }
-                            if (m_abElasticsearchUser != null)
+                            if (f_sElasticsearchUser != null)
                                 {
-                                secret.putDataItem("elasticsearchuser", m_abElasticsearchUser);
+                                secret.putStringDataItem(ELASTICSEARCH_USER_SECRET, f_sElasticsearchUser);
                                 }
-                            if (m_abElasticsearchPassword != null)
+                            if (f_sElasticsearchPassword != null)
                                 {
-                                secret.putDataItem("elasticsearchpassword", m_abElasticsearchPassword);
+                                secret.putStringDataItem(ELASTICSEARCH_PASSWORD_SECRET, f_sElasticsearchPassword);
                                 }
 
                             if (secretExist)
@@ -270,28 +248,28 @@ public class CoherenceOperator
                                 ApiCallback<V1Secret> callback = new ApiCallback<>() {
                                     @Override
                                     public void onFailure(ApiException e, int i, Map<String, List<String>> map)
-                                    {
+                                        {
                                         LOGGER.warning("Failed in creating '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]" + e.toString());
-                                    }
+                                        }
 
                                     @Override
                                     public void onSuccess(V1Secret v1Secret, int i, Map<String, List<String>> map)
-                                    {
+                                        {
                                         LOGGER.info("Created '" + COHERENCE_MONITORING_CONFIG +
                                                 "' Secret in namespace[" + sNamesp + "]");
-                                    }
+                                        }
 
                                     @Override
                                     public void onUploadProgress(long l, long l1, boolean b)
-                                    {
-                                    }
+                                        {
+                                        }
 
                                     @Override
                                     public void onDownloadProgress(long l, long l1, boolean b)
-                                    {
-                                    }
-                                };
+                                        {
+                                        }
+                                    };
                                 m_coreV1Api.createNamespacedSecretAsync(sNamesp, secret, null, callback);
                                 }
                         }
@@ -307,34 +285,41 @@ public class CoherenceOperator
         // ----- helpers  ----------------------------------------------------
 
         /**
-         * Returns a boolean indicating whether the given namespace is not in excluded namespace list,
+         * The Setter of CoreV1Api.
+         * @param coreV1Api
+         */
+        void setCoreV1Api(CoreV1Api coreV1Api)
+            {
+            m_coreV1Api = coreV1Api;
+            }
+
+        /**
+         * Returns a boolean indicating whether the given namespace is neither in excluded namespace list
+         * nor equal to operator namespace.
          *
          * @param sNamespace  the namepace
          * @return true if the namespace is accepted for processing.
          */
         private boolean isAcceptableNamespace(String sNamespace)
             {
-            return !m_setExcludedNamespaces.contains(sNamespace) &&
-                    (m_setIncludedNamespaces.size() == 0 || m_setIncludedNamespaces.contains(sNamespace));
+            return !f_setExcludedNamespaces.contains(sNamespace) && !f_sNamespace.equals(sNamespace) &&
+                    (f_setIncludedNamespaces.size() == 0 || f_setIncludedNamespaces.contains(sNamespace));
             }
 
         /**
          * Assert whether the value is a valid port.
          *
-         * @param abValue  the value
+         * @param sValue  the value
          */
-        private void assertPort(byte[] abValue) {
+        private void assertPort(String sValue) {
             int port;
-            String sPort = null;
             try
                 {
-                Charset charset = Charset.forName("UTF-8");
-                sPort = new String(abValue, charset);
-                port  = Integer.parseInt(sPort);
+                port  = Integer.parseInt(sValue);
                 }
             catch(NumberFormatException ex)
                 {
-                throw new IllegalArgumentException("The Elasticsearch port '" + sPort + "' is not an integer.");
+                throw new IllegalArgumentException("The Elasticsearch port '" + sValue + "' is not an integer.");
                 }
             if (port < 0 || port > 65535) {
                 throw new IllegalArgumentException("The Elasticsearch port '" + port + "' is not in valid port range.");
@@ -346,47 +331,47 @@ public class CoherenceOperator
         /**
          * The operator namespace.
          */
-        private final String m_sNamespace;
+        private final String f_sNamespace;
 
         /**
-         * The Elasticsearch host in bytes.
+         * The Elasticsearch host.
          */
-        private final byte[] m_abElasticsearchHost;
+        private final String f_sElasticsearchHost;
 
         /**
-         * The Elasticsearch port in bytes.
+         * The Elasticsearch port.
          */
-        private final byte[] m_abElasticsearchPort;
+        private final String f_sElasticsearchPort;
 
         /**
-         * The Elasticsearch user in bytes.
+         * The Elasticsearch user.
          */
-        private final byte[] m_abElasticsearchUser;
+        private final String f_sElasticsearchUser;
 
         /**
-         * The Elasticsearch password in bytes.
+         * The Elasticsearch password.
          */
-        private final byte[] m_abElasticsearchPassword;
+        private final String f_sElasticsearchPassword;
 
         /**
          * The Operator host in bytes.
          */
-        private final byte[] m_abOperatorHost;
+        private final String f_sOperatorHost;
 
         /**
          * The CoreV1Api.
          */
-        private final CoreV1Api m_coreV1Api;
+        private CoreV1Api m_coreV1Api = new CoreV1Api();
 
         /**
          * The set of excluded namespaces.
          */
-        private final Set<String> m_setExcludedNamespaces = new HashSet<>();
+        private final Set<String> f_setExcludedNamespaces = new HashSet<>();
 
         /**
          * The set of included namespaces.
          */
-        private final Set<String> m_setIncludedNamespaces = new HashSet<>();
+        private final Set<String> f_setIncludedNamespaces = new HashSet<>();
         }
 
     // ----- constants -------------------------------------------------------
@@ -422,29 +407,54 @@ public class CoherenceOperator
     private static final String EFK_INTEGRATION_ENABLED = "EFK_INTEGRATION_ENABLED";
 
     /**
-     * The secret property name for Elasticsearch host.
+     * The environment property name for Elasticsearch host.
      */
-    static final String ELASTICSEARCH_HOST = "elasticsearchhost";
+    private static final String ELASTICSEARCH_HOST = "ELASTICSEARCH_HOST";
 
     /**
-     * The secret property name for Elasticsearch port.
+     * The environment property name for Elasticsearch port.
      */
-    static final String ELASTICSEARCH_PORT = "elasticsearchport";
+    private static final String ELASTICSEARCH_PORT = "ELASTICSEARCH_PORT";
+
+    /**
+     * The environment property name for Elasticsearch user.
+     */
+    private static final String ELASTICSEARCH_USER = "ELASTICSEARCH_USER";
+
+    /**
+     * The environment property name for Elasticsearch password.
+     */
+    private static final String ELASTICSEARCH_PASSWORD = "ELASTICSEARCH_PASSWORD";
+
+    /**
+     * The secret property name for Elasticsearch host.
+     */
+    private static final String ELASTICSEARCH_HOST_SECRET = "elasticsearchhost";
+
+    /**
+     * The secret property name for Elasticsearch host.
+     */
+    private static final String ELASTICSEARCH_PORT_SECRET = "elasticsearchport";
 
     /**
      * The secret property name for Elasticsearch user.
      */
-    static final String ELASTICSEARCH_USER = "elasticsearchuser";
+    private static final String ELASTICSEARCH_USER_SECRET = "elasticsearchuser";
 
     /**
      * The secret property name for Elasticsearch password.
      */
-    static final String ELASTICSEARCH_PASSWORD = "elasticsearchpassword";
+    private static final String ELASTICSEARCH_PASSWORD_SECRET = "elasticsearchpassword";
 
     /**
      * The secret property name for operator host.
      */
-    static final String OPERATOR_HOST = "operatorhost";
+    private static final String OPERATOR_HOST_SECRET = "operatorhost";
+
+    /**
+     * The default of Elasticsearch port, 9200.
+     */
+    private static final String DEFAULT_ES_PORT = "9200";
 
     private static final int K8S_INFO_SERVER_PORT = 8000;
 

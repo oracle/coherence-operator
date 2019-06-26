@@ -7,10 +7,8 @@
 package com.oracle.coherence.k8s.operator;
 
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -24,16 +22,8 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.V1ObjectMeta;
-import io.kubernetes.client.models.V1Secret;
 import org.junit.Test;
 
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.COHERENCE_MONITORING_CONFIG;
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.ELASTICSEARCH_HOST;
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.ELASTICSEARCH_PASSWORD;
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.ELASTICSEARCH_PORT;
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.ELASTICSEARCH_USER;
-import static com.oracle.coherence.k8s.operator.CoherenceOperator.OPERATOR_HOST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,7 +67,7 @@ public class NamespaceWatcherTest {
             expectedResult.add("ADDED-" + ns);
             }
 
-        CoreV1Api coreV1Api = createMockCoreV1Api("cohns", asNamespaces);
+        CoreV1Api coreV1Api = createMockCoreV1Api(asNamespaces);
 
         watcher.setApi(coreV1Api);
 
@@ -114,11 +104,12 @@ public class NamespaceWatcherTest {
     @Test
     public void testSecretNoIncluded() throws Exception
         {
+        String   sOpNamespace         = "cohns";
         String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2" };
         String[] asIncludedNamespaces = new String[] { };
         String[] asExcludedNamespaces = new String[] { "kube-system", "kube-public", "docker" };
 
-        CoreV1Api coreV1Api = setupTestSecret("cohns", asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(sOpNamespace, asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("default"), any(),any(), any());
@@ -133,11 +124,12 @@ public class NamespaceWatcherTest {
     @Test
     public void testSecretExcluded() throws Exception
         {
-        String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2", "internal" };
+        String   sOpNamespace         = "cohns";
+        String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2",  "internal" };
         String[] asIncludedNamespaces = new String[] { "cohns", "cohns2" };
         String[] asExcludedNamespaces = new String[] { "kube-system", "kube-public", "docker", "internal" };
 
-        CoreV1Api coreV1Api = setupTestSecret("cohns", asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(sOpNamespace, asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(any(), any(),any(), any());
@@ -160,10 +152,11 @@ public class NamespaceWatcherTest {
         {
         AtomicBoolean  fStopping      = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(asNamespaces.length);
-        CoreV1Api      coreV1Api      = createMockCoreV1Api(sOpNamespace, asNamespaces);
+        CoreV1Api      coreV1Api      = createMockCoreV1Api(asNamespaces);
 
         CoherenceOperator.NamespaceProcessor namespaceProcessor =
-                new CoherenceOperator.NamespaceProcessor("cohns", asIncludedNamespaces, asExcludedNamespaces, coreV1Api);
+                new CoherenceOperator.NamespaceProcessor(sOpNamespace, asIncludedNamespaces, asExcludedNamespaces);
+        namespaceProcessor.setCoreV1Api(coreV1Api);
 
         NamespaceWatcher watcher = new NamespaceWatcher(fStopping,
                 item -> {
@@ -182,50 +175,19 @@ public class NamespaceWatcherTest {
     /**
      * Create a mock CoreV1Api object that support querying namespace.
      *
-     * @param sOpNamespace  operator namespace
      * @param asNamespaces  array of namespaces
      * @return
      * @throws Exception
      */
-    private CoreV1Api createMockCoreV1Api(String sOpNamespace, String[] asNamespaces) throws Exception
+    private CoreV1Api createMockCoreV1Api(String[] asNamespaces) throws Exception
         { 
         CoreV1Api coreV1Api = mock(CoreV1Api.class);
-        V1Secret  secret    = createSecret(COHERENCE_MONITORING_CONFIG, sOpNamespace);
-        Call      nsCall    = createMockListNamespaceCall(asNamespaces);
-
-        when(coreV1Api.readNamespacedSecret(eq(COHERENCE_MONITORING_CONFIG), eq(sOpNamespace), isNull(),
-                eq(Boolean.TRUE), eq(Boolean.TRUE))).thenReturn(secret);
+        Call      call    = createMockListNamespaceCall(asNamespaces);
 
         when(coreV1Api.listNamespaceCall(any(), isNull(), any(), any(), any(), any(),
-                any(), any(), eq(Boolean.TRUE), any(), any())).thenReturn(nsCall);
+                any(), any(), eq(Boolean.TRUE), any(), any())).thenReturn(call);
 
         return coreV1Api;
-        }
-
-    /**
-     * Create a test secret object.
-     *
-     * @param sSecretName   secret name
-     * @param sOpNamespace  operator namespace
-     *
-     * @return a secret
-     * @throws Exception
-     */
-    private V1Secret createSecret(String sSecretName, String sOpNamespace) throws Exception
-        {
-        V1ObjectMeta secretMeta = new V1ObjectMeta();
-        secretMeta.setName(sSecretName);
-
-        V1Secret            secret = new V1Secret().metadata(secretMeta);
-        Charset charset = Charset.forName("UTF-8");
-        Map<String, byte[]> map    = Map.of(
-                ELASTICSEARCH_HOST, ("elasticsearch." + sOpNamespace + ".svc.cluster.local").getBytes(charset),
-                ELASTICSEARCH_PORT, "9200".getBytes(charset), ELASTICSEARCH_USER, new byte[0],
-                ELASTICSEARCH_PASSWORD, new byte[0],
-                OPERATOR_HOST, ("coherence-operator-service." + sOpNamespace + ".svc.cluster.local").getBytes(charset));
-        secret.setData(map);
-
-        return secret;
         }
 
     /**

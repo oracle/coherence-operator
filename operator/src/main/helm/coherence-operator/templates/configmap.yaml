@@ -42,14 +42,14 @@ data:
 
     <match coherence-operator>
       @type elasticsearch
-      host "#{ENV['ELASTICSEARCH_SERVICE_HOST']}"
-      port "#{ENV['ELASTICSEARCH_SERVICE_PORT']}"
+      host "#{ENV['ELASTICSEARCH_HOST']}"
+      port "#{ENV['ELASTICSEARCH_PORT']}"
   {{- if .Values.elasticsearchEndpoint }}
     {{- if .Values.elasticsearchEndpoint.user }}
-      user "#{ENV['ELASTICSEARCH_SERVICE_USER']}"
+      user "#{ENV['ELASTICSEARCH_USER']}"
     {{- end }}
     {{- if .Values.elasticsearchEndpoint.password }}
-      password "#{ENV['ELASTICSEARCH_SERVICE_PASSWORD']}"
+      password "#{ENV['ELASTICSEARCH_PASSWORD']}"
     {{- end }}
   {{- end }}
       logstash_format true
