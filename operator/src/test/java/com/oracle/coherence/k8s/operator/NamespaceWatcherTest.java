@@ -85,15 +85,15 @@ public class NamespaceWatcherTest {
     @Test
     public void testSecret() throws Exception
         {
-        String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns", "cohns2" };
+        String   sOpNamespace         = "cohns";
+        String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2" };
         String[] asIncludedNamespaces = new String[] { "cohns", "cohns2" };
-        String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker"};
+        String[] asExcludedNamespaces = new String[] { "kube-system", "kube-public", "docker" };
 
-        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(sOpNamespace, asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
-        verify(coreV1Api, times(2)).createNamespacedSecretAsync(any(), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
 
     /**
@@ -104,13 +104,14 @@ public class NamespaceWatcherTest {
     @Test
     public void testSecretNoIncluded() throws Exception
         {
-        String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns" };
+        String   sOpNamespace         = "cohns";
+        String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2" };
         String[] asIncludedNamespaces = new String[] { };
-        String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker"};
+        String[] asExcludedNamespaces = new String[] { "kube-system", "kube-public", "docker" };
 
-        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(sOpNamespace, asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("default"), any(),any(), any());
         verify(coreV1Api, times(2)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
@@ -123,13 +124,14 @@ public class NamespaceWatcherTest {
     @Test
     public void testSecretExcluded() throws Exception
         {
-        String[] asNamespaces         = new String[]{ "kube-system", "kube-public", "default", "docker", "cohns", "internal" };
+        String   sOpNamespace         = "cohns";
+        String[] asNamespaces         = new String[] { "kube-system", "kube-public", "default", "docker", "cohns", "cohns2",  "internal" };
         String[] asIncludedNamespaces = new String[] { "cohns", "cohns2" };
-        String[] asExcludedNamespaces = new String[] {"kube-system", "kube-public", "docker", "internal" };
+        String[] asExcludedNamespaces = new String[] { "kube-system", "kube-public", "docker", "internal" };
 
-        CoreV1Api coreV1Api = setupTestSecret(asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
+        CoreV1Api coreV1Api = setupTestSecret(sOpNamespace, asNamespaces, asIncludedNamespaces, asExcludedNamespaces);
 
-        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns"), any(),any(), any());
+        verify(coreV1Api, times(1)).createNamespacedSecretAsync(eq("cohns2"), any(),any(), any());
         verify(coreV1Api, times(1)).createNamespacedSecretAsync(any(), any(),any(), any());
         }
 
@@ -138,20 +140,22 @@ public class NamespaceWatcherTest {
     /**
      * Set up the CoreV1Api for NamespaceProcessor with given parameters for further testing.
      *
+     * @param sOpNamespace          operator namespace
      * @param asNamespaces          an array of namespaces
      * @param asIncludedNamespaces  an array of namespaces included for processing
      * @param asExcludedNamespaces  an array of namespaces excluded for processing
      * @return CoreV1Api for verification
      * @throws Exception
      */
-    CoreV1Api setupTestSecret(String[] asNamespaces, String[] asIncludedNamespaces, String[] asExcludedNamespaces) throws Exception
+    CoreV1Api setupTestSecret(String sOpNamespace, String[] asNamespaces,
+                              String[] asIncludedNamespaces, String[] asExcludedNamespaces) throws Exception
         {
         AtomicBoolean  fStopping      = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(asNamespaces.length);
         CoreV1Api      coreV1Api      = createMockCoreV1Api(asNamespaces);
 
         CoherenceOperator.NamespaceProcessor namespaceProcessor =
-                new CoherenceOperator.NamespaceProcessor("cohns", asIncludedNamespaces, asExcludedNamespaces);
+                new CoherenceOperator.NamespaceProcessor(sOpNamespace, asIncludedNamespaces, asExcludedNamespaces);
         namespaceProcessor.setCoreV1Api(coreV1Api);
 
         NamespaceWatcher watcher = new NamespaceWatcher(fStopping,
@@ -178,7 +182,7 @@ public class NamespaceWatcherTest {
     private CoreV1Api createMockCoreV1Api(String[] asNamespaces) throws Exception
         { 
         CoreV1Api coreV1Api = mock(CoreV1Api.class);
-        Call      call      = createMockCall(asNamespaces);
+        Call      call    = createMockListNamespaceCall(asNamespaces);
 
         when(coreV1Api.listNamespaceCall(any(), isNull(), any(), any(), any(), any(),
                 any(), any(), eq(Boolean.TRUE), any(), any())).thenReturn(call);
@@ -193,7 +197,7 @@ public class NamespaceWatcherTest {
      * @return
      * @throws Exception
      */
-    private Call createMockCall(String[] asNamespaces) throws Exception
+    private Call createMockListNamespaceCall(String[] asNamespaces) throws Exception
         {
         int    cVersion         = 0;
         String namespaceFormat = "{ \"kind\": \"Namespace\", \"apiVersion\": \"v1\"," +

@@ -81,16 +81,26 @@ spec:
 {{- if .Values.logCaptureEnabled }}
             - name: EFK_INTEGRATION_ENABLED
               value: {{ .Values.logCaptureEnabled | quote }}
-  {{- if .Values.elasticsearch }}
-    {{- if .Values.elasticsearchEndpoint.host }}
-            - name: ES_HOST
-              value: {{ .Values.elasticsearchEndpoint.host }}
-    {{- end }}
-    {{- if .Values.elasticsearchEndpoint.port }}
-            - name: ES_PORT
-              value: {{ .Values.elasticsearchEndpoint.port | quote }}
-    {{- end }}
-  {{- end }}
+            - name: ELASTICSEARCH_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchhost
+            - name: ELASTICSEARCH_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchport
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchuser
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchpassword
             - name: ENABLE_FILE_LOGGING
               value: "true"
 {{- end }}
@@ -114,16 +124,30 @@ spec:
               value: fluentd-coherence.conf
             - name: FLUENT_ELASTICSEARCH_SED_DISABLE
               value: "true"
-            - name: ELASTICSEARCH_SERVICE_HOST
+            - name: ELASTICSEARCH_HOST
               valueFrom:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchhost
-            - name: ELASTICSEARCH_SERVICE_PORT
+            - name: ELASTICSEARCH_PORT
               valueFrom:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchport
+  {{- if .Values.elasticsearchEndpoint.user }}
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchuser
+  {{- end }}
+  {{- if .Values.elasticsearchEndpoint.password }}
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchpassword
+  {{- end }}
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf
