@@ -346,24 +346,58 @@ public abstract class BaseHelmChartTest
                                     .set("coherenceK8sOperatorTesting=true")
                                     .set(asSetValues);
 
-        int nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+        int              nExitCode = -1;
+        RuntimeException eLast     = null;
+
+        try
+            {
+            nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+            }
+        catch (RuntimeException e)
+            {
+            eLast     = e;
+            }
 
         if (nExitCode != 0)
             {
             int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
             for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
                 {
-                System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
-                                           + i + " attempts remaining");
+                if (eLast != null)
+                    {
+                    System.err.println("Helm install (dry-run) failed with exception " + eLast + " - will retry. "
+                        + i + " attempts remaining");
+                    eLast     = null;
+                    nExitCode = -1;
+                    }
+                else
+                    {
+                    System.err.println("Helm install (dry-run) failed with exit code " + nExitCode + " - will retry. "
+                        + i + " attempts remaining");
 
-                logInstallFailure(install, nExitCode, consoleInstall);
+                    logInstallFailure(install, nExitCode, consoleInstall);
+                    }
 
                 consoleInstall = new CapturingApplicationConsole();
-                nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+                try
+                    {
+                    nExitCode = install(install, sNamespace, Console.of(consoleInstall), aURLValues);
+                    }
+                catch (RuntimeException e)
+                    {
+                    eLast     = e;
+                    nExitCode = -1;
+                    }
                 }
             }
 
-        if (nExitCode != 0)
+        if (eLast != null)
+            {
+            System.err.println("Install dry-run failed for helm chart " + sHelmChartName
+                + " namespace " + sNamespace + " failed with exception " + eLast);
+            throw eLast;
+            }
+        else if (nExitCode != 0)
             {
             HelmUtils.logConsoleOutput("helm-install", consoleInstall);
             String reason = "Install dry-run failed for helm chart " + sHelmChartName
@@ -421,22 +455,57 @@ public abstract class BaseHelmChartTest
 
         CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        int nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
+        int              nExitCode;
+        RuntimeException eLast     = null;
+
+        try
+            {
+            nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
+            }
+        catch (RuntimeException e)
+            {
+            eLast     = e;
+            nExitCode = -1;
+            }
 
         if (nExitCode != 0)
             {
             int maxRetries = Integer.parseInt(HELM_INSTALL_MAX_RETRY);
             for (int i = maxRetries; nExitCode != 0 && i > 0 ; i--)
                 {
-                System.err.println("Helm install failed with exit code " + nExitCode + " - will retry. "
-                                           + i + " attempts remaining");
+                if (eLast != null)
+                    {
+                    System.err.println("Helm install (dry-run) failed with exception " + eLast + " - will retry. "
+                        + i + " attempts remaining");
+                    eLast = null;
+                    nExitCode = -1;
+                    }
+                else
+                    {
+                    System.err.println("Helm install failed with exit code " + nExitCode + " - will retry. "
+                        + i + " attempts remaining");
 
-                logInstallFailure(install, nExitCode, console);
+                    logInstallFailure(install, nExitCode, console);
+                    }
                 cleanupHelmInstall(sNamespace, sRelease);
 
-                console   = new CapturingApplicationConsole();
-                nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
+                console = new CapturingApplicationConsole();
+                try
+                    {
+                    nExitCode = install(install, sNamespace, Console.of(console), aURLValues);
+                    }
+                catch (RuntimeException e)
+                    {
+                    eLast     = e;
+                    nExitCode = -1;
+                    }
                 }
+            }
+
+        if (eLast != null)
+            {
+            System.err.println("Failed helm install for release " + sRelease + " namespace " + sNamespace + " with exception " + eLast);
+            throw eLast;
             }
 
         File file = new File(s_testLogs.getOutputFolder(), "helm-install-" + sRelease + ".log");
