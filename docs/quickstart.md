@@ -114,8 +114,6 @@ STATUS: DEPLOYED
 
 By default, the Helm chart pulls the Oracle Coherence Docker image from the Oracle Container Registry.
 
-To pull Coherence Docker images from the Oracle Container Registry:
-
 1. In a web browser, navigate to [Oracle Container Registry](https://container-registry.oracle.com) and click **Sign In**.
 2. Enter your Oracle credentials or create an account if you don't have one.
 3. Search for coherence in the Search Oracle Container Registry field.
