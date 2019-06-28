@@ -7,87 +7,58 @@ Elasticsearch and Kibana.
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
 
-Use this quick start guide to deploy Coherence applications in a
-Kubernetes cluster managed by the Coherence Kubernetes Operator. Please
-note that this quick start guide is for illustrative purposes only, and
+Use this Quick Start guide to deploy Coherence applications in a
+Kubernetes cluster managed by the Coherence Kubernetes Operator. Note that this guide is for illustrative purposes only, and
 not sufficiently prescriptive or thorough for a production environment.
 These instructions assume that you are already familiar with Kubernetes
-and Helm.  If you need to learn more about these two important and
-complimentary technologies, please refer to the
+and Helm.  If you want to learn more about these two  technologies, refer to the
 [Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational)
 and [Helm](https://helm.sh/docs/) documentation.
-
-## More Advanced Actions
 
 For more advanced actions, such as accessing Kibana for viewing server
 logs, see the [User Guide](user-guide.md).
 
-> **Note**: If you have an old version of the operator installed on your cluster
-> you must remove it before installing any of the charts by using the
-> `helm delete --purge` command.
+> **Note**: If you have an older version of the operator installed on your cluster,
+> you must remove it before installing the current version.
 
-## Prerequisites
+## Before You Begin
 
-### Software and Version Prerequisites
+### Software Requirements
+The Coherence Kubernetes Operator has the following requirements:
 
-* Kubernetes 1.11.5+, 1.12.3+, 1.13.0+ (check with `kubectl version`)
-* Docker 18.03.1-ce (check with `docker version`)
-* Flannel networking v0.10.0-amd64 (check with `docker images | grep flannel`)
-* Helm 2.12.3 or above (and all of its prerequisites)
+* Kubernetes 1.11.5+, 1.12.3+, 1.13.0+ (`kubectl version`)
+* Docker 18.03.1-ce (`docker version`)
+* Flannel networking v0.10.0-amd64 (`docker images | grep flannel`)
+* Helm 2.12.3 or above, and all of its prerequisites
 * Oracle Coherence 12.2.1.3.2
 
-### Runtime Environment Prerequisites
+### Runtime Environment Requirements
 
-* Kubernetes must be able to pull the docker images required by the
-  Coherence Operator.
+* You will need a Kubernetes cluster that can pull the docker images required by the operator.
+* Some of the Helm charts in this operator, require configuration on each Kubernetes pod that will be running the workloads related to the chart. This configuration currently includes:
 
-* Some of the Helm charts in this project require, configuration on each
-  Kubernetes pod that will be running the workloads related to the
-  chart.  This configuration currently includes:
+    * setting the value of the `max_map_count` kernel parameter to at least `262144`. It is OS specific and is described in the [docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
 
-    * setting the value of the `max_map_count` kernel parameter to at
-      least `262144`.  The manner for doing this is OS specific and is
-      described
-      [in the docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
+* If you are running the operator with a local Kubernetes cluster on a developer workstation, ensure that the workstation meets the hardware requirements and the Docker preferences have been tuned to run optimally for the hardware.  In particular, ensure that the memory and limits are correctly tuned.
 
-* If running the operator with a local Kubernetes cluster on a developer
-  workstation, ensure the workstation meets the reasonable hardware
-  requirements and the Docker preferences have been tuned to run
-  optimally for the hardware.  In particular, ensure memory and disk
-  limits have been correctly tuned.
+## Configure the environment
 
-## 1. Environment Configuration
+### Add the Helm Repository for Coherence
 
-### Add the Helm repository for Coherence
-
-Issue the following to create a `coherence` helm repository:
+Create a `coherence` helm repository:
 
 ```bash
 $ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 
 $ helm repo update
-
-Hang tight while we grab the latest from your chart repositories...
-...Skip local chart repository
-...Successfully got an update from the "coherence" chart repository
 ```
 
-> **Note**: For all helm install commands you can leave the `--version`
-> option off and the latest version of the chart will be retrieved.  If
-> you wanted to use a specific version, such as `0.9.8`, add `--version
-> 0.9.8` to all installs for the `coherence-operator` and `coherence`
-> charts.
-
-If you wish to build the Coherence Operator from source, please refer to the
-[Developer Guide](developer.md) and ensure you replace `coherence`
+If you want to build the Coherence Operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace `coherence`
 Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
 
-## 2. Use Helm to install the Coherence Operator
+## Install the Coherence Kubernetes Operator
 
-You may like to customize the value of the of the `--name` and
-(optional) `--namespace` arguments to `helm` for the operator.  You
-may also like to customize `targetNamespaces` which the operator manages
-and `imagePullSecrets` (if it is necessary).
+1. Use `helm` to install the operator:
 
 ```bash
 $ helm --debug install coherence/coherence-operator \
@@ -95,12 +66,11 @@ $ helm --debug install coherence/coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
 ```
+> **Note**: For all `helm install` commands, you can leave the `--version` option off and the latest version of the chart is retrieved. If you wanted to use a specific version, such as `0.9.8`, add `--version 0.9.8` to all installs for the `coherence-operator` and `coherence` charts.
 
-> **Note**: Remove the `--debug` option if you do not want very verbose
-> output.  Please consult the `values.yaml` in the chart for important
-> information regarding the `--set targetNamespaces` argument.
+> **Note**: Remove the `--debug` option if you do not want verbose output. Refer to the `values.yaml` in the chart for more information about the `--set targetNamespaces` argument.
 
-If the operation completes successfully, you should see output similar to the following.
+When the operation completes successfully, output similar to the following displays:
 
 ```bash
 NOTES:
@@ -114,8 +84,7 @@ NOTES:
 
   then access the http endpoint at http://127.0.0.1:8000
 ```
-
-Use `helm ls` to view the installed releases.
+2. Use `helm ls` to view the installed releases.
 
 ```bash
 $ helm ls
@@ -124,14 +93,13 @@ NAME                     	REVISION	UPDATED                 	STATUS  	CHART      
 sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-operator-0.9.8	0.9.8      	default  
 ```
 
-You can also query the status with `helm status`:
+3. Verify the status of the operator using `helm status`:
 
 ```bash
 $ helm status sample-coherence-operator
 ```
 
-If the deployment was successful, the output should include output
-similar to the following (abbreviated):
+A successful deployment displays an output similar to the following output:
 
 ```bash
 LAST DEPLOYED: Thu Feb  7 14:11:17 2019
@@ -140,35 +108,42 @@ STATUS: DEPLOYED
 [...]
 ```
 
-## 3. Use Helm to install Coherence
+## Install Coherence
 
-By default the Oracle Coherence Docker image pulled by the Coherence Helm
-chart is from the Oracle Container Registry.
+### Obtain Images from Oracle Container Registry
 
-To be able to pull Coherence Docker Images from the Oracle Container Registry:
+By default, the Helm chart pulls the Oracle Coherence Docker image from the Oracle Container Registry.
 
-a) Login to [Oracle Container Registry](https://container-registry.oracle.com)
-   and accept the terms and conditions to download Coherence images.
+To pull Coherence Docker images from the Oracle Container Registry:
 
-b) Create Kubernetes docker-registry secret with the same credentials that is
-   used in step (a) to login into Oracle Container Registry and tell Kubernetes
-   to use that secret when pulling the image.
+1. In a web browser, navigate to [Oracle Container Registry](https://container-registry.oracle.com) and click **Sign In**.
+2. Enter your Oracle credentials or create an account if you don't have one.
+3. Search for coherence in the Search Oracle Container Registry field.
+4. Click `coherence` in the search result list.
+5. In the Oracle Coherence page, select the language from the drop-down list and click Continue.
+6. Click **Accept** in the Oracle Standard Terms and Conditions page.
+7. In a terminal window, log in to the Oracle Container Registry:
 
-```bash
-$ kubectl create secret docker-registry oracle-container-registry-secret \
-    --docker-server=container-registry.oracle.com \
-    --docker-username='<USERNAME>' --docker-password='<PASSWORD>'
-```
+    `docker login container-registry.com`
+8. Pull the coherence image with the command:
 
-In the above command, replace &lt;USERNAME&gt; and &lt;PASSWORD&gt; with the actual
-username and password to authenticate with container-registry.oracle.com
+  `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
 
-Install the `coherence` helm chart using the imagePullSecrets value
-'oracle-container-registry-secret' which was just created in the previous
-mentioned `kubectl create secret` command.
+### Set Up Secrets to Access the Oracle Container Registry
 
-You may want to customize the value for the `--name` option that you want
-to use for your coherence cluster.
+ Create a Kubernetes secret with the Oracle Container Registry credentials:
+ ```bash
+ $ kubectl create secret docker-registry oracle-container-registry-secret \
+     --docker-server=container-registry.oracle.com \
+     --docker-username='<username>' --docker-password='<password>' \
+     --docker-email=`<emailid>`
+ ```
+
+ When installing Coherence, refer to the secret and Kubernetes will use that secret when pulling the image.
+
+### Use Helm to Install Coherence
+
+Install the `coherence` helm chart using the secret 'oracle-container-registry-secret' which was created using the `kubectl create secret` command.
 
 ```bash
 $ helm --debug install coherence/coherence \
@@ -176,18 +151,18 @@ $ helm --debug install coherence/coherence \
     --set imagePullSecrets=oracle-container-registry-secret
 ```
 
-> **Note**: If you want to use a different version of Coherence than the
-> one specified in the `coherence` helm chart, supply a `--set` argument
-> for the `coherence.image` value, as shown next.
+>**Note**: If you want to use a different version of Coherence than the one specified in the `coherence` Helm chart, supply a `--set` argument
+> for the `coherence.image` value:
+>
 > `--set coherence.image="<prefix>/coherence:<version>"`
+>
 > Use the command `helm inspect readme <chart name>` to print out the
-> `README.md` of the chart.  For example `helm inspect readme
-> coherence/coherence` will print out the `README.md` for the operator
-> chart.  This includes documentation on all the possible values that
-> can be configured with `--set` options to `helm`.  In particular, look
-> at the *Configuration* section of the `README.md`.
+> `README.md` of the chart. For example, `helm inspect readme
+> coherence/coherence` prints out the `README.md` for the operator
+> chart. This includes documentation on all the possible values that
+> can be configured with `--set` options to `helm`. Refer to the Configuration section of [README](README.md).
 
-If the operation completes successfully, you should see output similar
+When the operation completes successfully, you see output similar
 to the following.
 
 ```bash
@@ -209,7 +184,7 @@ NOTES:
   then access the http endpoint at http://127.0.0.1:30000
 ```
 
-You can also query the status with `helm status`:
+You can also query the status of the installed Coherence with `helm status`:
 
 ```bash
 $ helm status sample-coherence
@@ -217,32 +192,26 @@ LAST DEPLOYED: Wed Feb 13 14:51:38 2019
 STATUS: DEPLOYED
 [...]
 ```
+Running `helm install` creates a **helm release**.  See the
+[Helm Glossary](https://docs.helm.sh/glossary/) for the  definition of Release.
 
-Running `helm install` creates what is called a "helm release".  See the
-[glossary](https://docs.helm.sh/glossary/) for the formal definition of
-"release".
+## Access the Installed Coherence
+You can access the installed Coherence running within your Kubernetes using the default Coherence*Extend feature.
 
-## 4. Access the Coherence running within Kubernetes using the default Coherence*Extend feature
+When starting Coherence with no options, the created Coherence cluster has three nodes, and exposes a Coherence*Extend proxy server on port 20000 in the cluster. You must forward this port so that it is available outside the cluster. You can use the `kubectl` command by supplying the name of the Kubernetes pod that is running the Coherence.
 
-When starting Coherence with no options, as in the preceding section,
-the Coherence cluster created has three nodes, and exposes a
-Coherence*Extend proxy server on port 20000 in the cluster.  As the
-chart notes explain, you must "forward" this port so that it is
-available outside the cluster.  The `kubectl` command can do this, but
-you must supply the name of the Kubernetes "pod" that is running
-Coherence.  Thankfully, the chart notes say exactly how to do this:
+Query the Kubernetes cluster to get the name of the first of the three nodes in the Coherence cluster.
 
 ```bash
 $ export POD_NAME=$(kubectl get pods -l "app=coherence,release=sample-coherence" -o jsonpath="{.items[0].metadata.name}")
+```
+The name of the cluster will be similar to `sample-coherence-65f558c987-5bdxr`. Then, map the port 20000 inside the cluster to port 20000 outside the cluster.
+
+```bash
 $ kubectl port-forward $POD_NAME 20000:20000
 ```
 
-The first command queries the Kubernetes cluster to get the name of the
-first of the three nodes in the Coherence cluster.  It may be something
-like `sample-coherence-65f558c987-5bdxr`.  The second command tells
-Kubernetes to map port 20000 inside the cluster to port 20000 outside
-the cluster.  With this information, it is possible to write a
-Coherence*Extend client configuration to access the cluster.  Save the
+With this information, you can write a Coherence*Extend client configuration to access the cluster. Save the
 following XML in a file called `example-client-config.xml`:
 
 ```xml
@@ -276,11 +245,9 @@ following XML in a file called `example-client-config.xml`:
 </cache-config>
 ```
 
-Finally, we can write a small Java program to interact with the
-Coherence cluster.  Save this file next to the preceding XML file, as
-`HelloCoherence.java`
+Write a simple Java program to interact with the Coherence cluster. Save this file as `HelloCoherence.java`in the same directory as the XML file.
 
-```
+```bash
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -294,39 +261,33 @@ public class HelloCoherence {
   }
 }
 ```
-
-Assuming you are in the same directory as the XML and Java source files,
-and that the correct `coherence.jar` is available at
-`${COHERENCE_HOME}/lib/coherence.jar`, compile and run the program as shown
-next:
+With the XML and Java source files in the same directory, and the `coherence.jar` at `${COHERENCE_HOME}/lib/coherence.jar`, compile and run the program:
 
 ```bash
 $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloCoherence.java
 $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
        -Dcoherence.cacheconfig=$PWD/example-client-config.xml HelloCoherence
 ```
-
-This should produce output similar to the following:
+This produces an output similar to the following:
 
 ```bash
 The value of the key is 1
 ```
 
-Running the program again should produce:
+Run the program again and you get an output similar to the following:
 
 ```bash
 The value of the key is 2
 ```
 
-> **Note**: If you are using JDK 11 or newer, you can omit the `javac`
-> step and simply run the program as shown next.
+> **Note**: If you are using JDK 11 or later, you can omit the javac step and simply run the program as:
 
 ```bash
 $ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
   -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
 ```
 
-## 5. Use Helm to delete Coherence and the Operator
+## Remove Coherence and Coherence Kubernetes Operator
 
 Remove the `coherence` release:
 
