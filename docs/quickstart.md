@@ -120,12 +120,6 @@ By default, the Helm chart pulls the Oracle Coherence Docker image from the Orac
 4. Click `coherence` in the search result list.
 5. In the Oracle Coherence page, select the language from the drop-down list and click Continue.
 6. Click **Accept** in the Oracle Standard Terms and Conditions page.
-7. In a terminal window, log in to the Oracle Container Registry:
-
-    `docker login container-registry.com`
-8. Pull the coherence image with the command:
-
-  `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
 
 ### Set Up Secrets to Access the Oracle Container Registry
 
