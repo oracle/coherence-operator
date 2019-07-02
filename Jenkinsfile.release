@@ -1,0 +1,28 @@
+pipeline {
+    agent none
+    environment {
+        HTTP_PROXY  = credentials('coherence-operator-http-proxy')
+        HTTPS_PROXY = credentials('coherence-operator-https-proxy')
+        NO_PROXY    = credentials('coherence-operator-no-proxy')
+    }
+    stages {
+        stage('release') {
+            agent {
+                label 'Kubernetes'
+            }
+            steps {
+                echo 'Release Coherence Operator'
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-release-maven-settings', tempBinDir: '') {
+                     sh """
+                         $(pwd)/etc/release.sh
+                     """
+                }
+            }
+            post {
+                always {
+                    deleteDir()
+                }
+            }
+        }
+    }
+}

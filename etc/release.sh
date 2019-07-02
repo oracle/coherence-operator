@@ -29,7 +29,7 @@ setupReleaseBranch()
   {
   echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
 
-  if [ -n $SETTINGS_FILE ]; then
+  if [ -n "$SETTINGS_FILE" ]; then
     local MVN_SETTINGS="-s $SETTINGS_FILE"
   else
     local MVN_SETTINGS=""
