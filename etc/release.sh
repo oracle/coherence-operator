@@ -94,8 +94,13 @@ buildReleaseBranch()
   git status
   pwd
 
-  MVN_ARGS="$MVN_SETTINGS -Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
+  if [ -n "$MVN_SETTINGS" ]; then
+    MVN_ARGS="$MVN_SETTINGS -Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
+  else
+    MVN_ARGS="-Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
+  fi
 
+  echo "MVN_ARGS == $MVN_ARGS"
   if [ "false" = "$DRY_RUN" ]; then
     mvn -PdockerPush $MVN_ARGS clean install
   else
