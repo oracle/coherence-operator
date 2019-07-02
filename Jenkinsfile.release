@@ -13,9 +13,7 @@ pipeline {
             steps {
                 echo 'Release Coherence Operator'
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-release-maven-settings', tempBinDir: '') {
-                     sh """
-                         $(pwd)/etc/release.sh
-                     """
+                    sh './etc/release.sh'
                 }
             }
             post {
