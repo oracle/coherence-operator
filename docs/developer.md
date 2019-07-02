@@ -1,28 +1,14 @@
-# Coherence Operator Developer Guide
+# Oracle Coherence Kubernetes Operator Developer Guide
 
-This document describes:
+The Developer Guide provides information for developers who want to build, install, and test the operator.
 
-* how to build the operator, without running any tests.
-
-* how to locally "install" the built artifacts so that the operator
-  can be tried out.  Built artifacts include:
-
-   * Docker images
-
-   * Helm charts
-
-* how to validate that the build was successful.
-
-Upon successfully completing these steps, you should be able to
-successfully execute the instructions in the [quickstart](quickstart.md)
-and [user-guide](user-guide.md).
+After successfully completing the steps in this guide, you can execute the instructions in the [Quick Start Guide](quickstart.md)
+and [User Guide](user-guide.md).
 
 ## Prerequisites
 
-* Ensure the prerequisites [listed in the quickstart](./quickstart.md#prerequisites) are all met.
-
-These instructions have been validated with the following software and
-versions.
+Refer to the [Requirements](quickstart.md) section in the Quick Start Guide.
+In addition to the requirements defined in the Quick Start Guide, you require the following software versions for the build environment:
 
 * Mac OS 10.13.6
 * Docker Desktop 2.0.0.3 (31259).  Channel: stable, 8858db33c8, with Kubernetes
@@ -30,189 +16,79 @@ versions.
 * Oracle JDK 11.0.1 2018-10-16 LTS
 * Apache Maven 3.5.4
 
-> You will need to make the necessary adjustments to execute the steps in
-> this developer guide on other operating systems with other Docker
+> **Note**: You need to make the necessary adjustments to execute the steps in this guide on other operating systems with other Docker
 > versions.
 
-### Prerequisite validation
 
-The following commands allow you to validate the satisfaction of the
-prerequisites.  Failure of any of these validation steps means that you
-will not be able to successfully perform the steps in the remainder of
-this developer guide.  You must make it so you can perform these
-validation steps before continuing.
 
-#### 1 Validate Docker is running successfully
+### Verify System Environment
 
-```bash
-$ docker run hello-world`
-```
+Check and verify that your environment is properly configured with the following software for building and installing the operator:
 
-This should produce output similar to the following:
+| Software | Verify | Expected Output|
+| ---------| ----------------------------|----------------|
+| Docker   | `$ docker run hello world`  | `Hello from Docker!`|
+| Kubernetes | `$ kubectl version` | `Client Version: version.Info{Major:"1", Minor:"13", GitVersion:"v1.13.3", GitCommit:"721bfa751924da8d1680787490c54b9179b1fed0", GitTreeState:"clean", BuildDate:"2019-02-04T04:49:22Z", GoVersion:"go1.11.5", Compiler:"gc", Platform:"darwin/amd64"}<br>Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.11", GitCommit:"637c7e288581ee40ab4ca210618a89a555b6e7e9", GitTreeState:"clean", BuildDate:"2018-11-26T14:25:46Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}` |
+| Helm | `$ helm version` | `Client: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}<br>Server: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}` |
+| Java | `java version` | `java version "11.0.1" 2018-10-16 LTS` |
+| Maven | `mvn version` | `Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-17T14:33:14-04:00) <br> Maven home: /Users/username/Downloads/apache-maven-3.5.4 <br> Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk-11.0.1.jdk/Contents/Home` |
 
-```bash
-Hello from Docker!
-This message shows that your installation appears to be working correctly.
-...
-```
+## Build the Operator
 
-#### 2 Validate Kubernetes is Installed Correctly
+To build the operator without running any tests, do the following:
 
-```bash
-$ kubectl version
-```
-
-This should produce output similar to the following:
-
-```bash
-Client Version: version.Info{Major:"1", Minor:"13", GitVersion:"v1.13.3", GitCommit:"721bfa751924da8d1680787490c54b9179b1fed0", GitTreeState:"clean", BuildDate:"2019-02-04T04:49:22Z", GoVersion:"go1.11.5", Compiler:"gc", Platform:"darwin/amd64"}
-Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.11", GitCommit:"637c7e288581ee40ab4ca210618a89a555b6e7e9", GitTreeState:"clean", BuildDate:"2018-11-26T14:25:46Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}
-```
-
-#### 3 Validate Helm is installed Correctly
-
-```bash
-$ helm version
-```
-
-This should produce output similar to the following:
-
-```bash
-Client: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}
-Server: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}
-```
-
-#### 4 Validate Java is Installed Correctly
-
-```bash
-$ java -version
-```
-
-This should produce output similar to the following:
-
-```bash
-java version "11.0.1" 2018-10-16 LTS
-...
-```
-
-#### 5 Validate Maven is Installed Correctly
-
-```bash
-$ mvn -version
-```
-
-This should produce output similar to the following:
-
-```bash
-Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-17T14:33:14-04:00)
-Maven home: /Users/username/Downloads/apache-maven-3.5.4
-Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk-11.0.1.jdk/Contents/Home
-...
-```
-
-## How to Build the Operator, Without Running Any Tests
-
-1. Clone and check out the `1.0` branch of the [GitHub repository](https://github.com/oracle/coherence-operator).
-
-   If you do not have a maven `settings.xml` file, create one.  If you
-   have one, make sure the following is included in your `default` profile.
-   All of the maven commands in this document are assumed to use this
-   `settings.xml` file.
+1. Clone and check out the current version of the operator from the [GitHub repository](https://github.com/oracle/coherence-operator).
+2. Create a maven `settings.xml` file. If you already have one, ensure that the following settings are included in your default profile. All of the maven commands in this guide use this `settings.xml` file.
 
    ```xml
    <properties>
        <test.image.prefix>DOCKER_REPO_HOSTNAME/DOCKER_REPO_PREFIX/dev/DEV_USERNAME/</test.image.prefix>
    </properties>
    ```
-
-   * `DOCKER_REPO_HOSTNAME` is the hostname of the docker repo that you may
-     eventually push your built docker images to.  **You are not required to
-     push any images when executing the steps in this document.**
+   In the `settings.xml` file:
+   * `DOCKER_REPO_HOSTNAME` is the hostname of the docker repo in which you will push your built docker images.  
+   >**Note**: You are not required to
+     push any images when executing the steps in this document.
 
    * `DOCKER_REPO_PREFIX` is some prefix within that repo.
 
    * `DEV_USERNAME` is a username unique to your development environment.
+  *  In this example, `YOUR_test.image.prefix_VALUE` is the
+   value used for `test.image.prefix` property in the `settings.xml` file.
 
-   In the remainder of this document, `YOUR_test.image.prefix_VALUE` is the
-   value of your `test.image.prefix` property in your `settings.xml` file.
+3. Obtain a Coherence 12.2.1.3.2 Docker image and tag it correctly.
+  * Refer to the section [Obtain Images from Oracle Container Registry](quickstart,md) to pull the Coherence Docker image from the Oracle Container Registry.
 
-1. Obtain a Coherence 12.2.1.3.2 Docker image and tag it correctly.
+    `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
 
-   1. The process is to get the 12.2.1.3 Docker image and apply a patch
-     to derive a Docker image that contains Coherence 12.2.1.3.2.
-     First, let's get the 12.2.1.3 Docker image and tag it correctly
-     
-      1. Go to [store.docker.com](https://store.docker.com/).
+4. Tag the obtained image in the way it is required to build the operator.  
 
-      2. Search for "Oracle Coherence".
-
-      3. Choose "Developer Plan (12.2.1.3)".
-
-      4. Choose "Proceed to Checkout".
-
-      5. Create a Docker Id, or log in with it if you have one already.
-
-      6. Check the `I agree that my use of each program in this Content,
-         including any subsequent updates or upgrades...` box.
-
-      7. Check the `I acknowledge and allow Docker to share my personal
-         information linked to my Docker ID with this Publisher.` box.
-
-      8. Consider whether or not you want to check the `Please keep me
-         informed of products, services and solutions from this
-         Publisher` box.
-
-      9. At the command line, do `docker login` with your Docker store
-         credentials.
-
-      10. At the command line do `docker pull store/oracle/coherence:12.2.1.3`
-     
-      11. Provide a tag that effectively removes the `store` prefix: `docker tag store/oracle/coherence:12.2.1.3 oracle/coherence:12.2.1.3`
-
-   2. Now that we have `oracle/coherence:12.2.1.3` in our local Docker
-     server, apply the patch to derive 12.2.1.3.2 from it.
-     
-      1. Clone the Oracle Docker Images git repository: `git clone git@github.com:oracle/docker-images.git`
-      
-      2. Change directory to `OracleCoherence/samples/122132-patch-for-k8s`
-
-      3. Follow the steps in [these instructions](https://github.com/oracle/docker-images/blob/master/OracleCoherence/samples/122132-patch-for-k8s/README.md)
-         to create a Coherence 12.2.1.3.2 docker image.
-           
-   3. Tag the 12.2.1.3.2 image in the way the operator build expects.  
-   
-      1. Obtain the image hash for the resultant Docker image.
+      1. Obtain the image hash for the Coherence 12.2.1.3.2 Docker image.
 
          ```bash
-         $ docker images | grep 12.2.1.3.2` 
+         $ docker images | grep 12.2.1.3.2`
          ```
 
-         For discussion, let's call this `COHERENCE_IMAGE_HASH`.
+         In this example, it is assumed that the Coherence image hash is `COHERENCE_IMAGE_HASH`.
 
          ```bash
          docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2`
-         ``` 
-          
-         After this command successfully completes, you must be able to say
+         ```
+
+      2. After executing this command, again execute the command to list the docker images which will list the image hash:
 
          ```bash
          $ docker images | grep 12.2.1.3.2
-         ``` 
 
-         and see the expected COHERENCE_IMAGE_HASH.  For example:
-
-         ```bash
          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
          ```
-         
-1. From the top level directory of the `coherence-operator` repository,
-   on the `1.0` branch, do the following.
+6. From the top level directory of the `coherence-operator` repository in GitHub, do the following.
 
    ```bash
    $ mvn -DskipTests clean install
    ```
 
-   This should produce output similar to the following:
+   This produces output similar to the following:
 
    ```bash
    ...
@@ -231,18 +107,15 @@ Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVir
    [INFO] ------------------------------------------------------------------------
    ```
 
-   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-1. `mvn -DskipTests generate-resources`
+7. `mvn -DskipTests generate-resources`
 
-   This should produce output similar to the output of the preceding step.
+   This produces output similar to the output of the preceding step.
 
-1. `mvn -DskipTests -Pdocker clean install`
+8. `mvn -DskipTests -Pdocker clean install`
 
-   This should produce output similar to the output of the preceding step.
-   In addition the output must contain messages similar to the following,
-   somewhere in the middle of the output.
-
+    The output of this command has the following message:
    ```bash
    ...
    Successfully built af61471e4774
@@ -252,16 +125,16 @@ Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVir
    Successfully tagged YOUR_test.image.prefix_VALUE/oracle/coherence-utils:VERSION
    ```
 
-   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-1. Verify the docker images have been built and are accessible to your
+9. Verify that the docker images have been built and are accessible to your
    local docker server.
-  
+
    ```bash
    $ docker images | grep YOUR_test.image.prefix_VALUE
    ```
 
-   This should produce output similar to the following:
+   This produces output similar to the following:
 
    ```bash
    YOUR_test.image.prefix_VALUE/oracle/coherence-utils    VERSION 88495a497a16 14 minutes ago 124MB
@@ -269,29 +142,24 @@ Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVir
    YOUR_test.image.prefix_VALUE/oracle/coherence          12.2.1.3.2       7e7feca04384 2 months ago 547MB
    ```
 
-   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-1. Verify the Coherence Helm chart and the Coherence Operator Helm chart
-   have been built and are accessible in your work area.
-  
+10. Verify that the Coherence Helm chart and the Coherence Operator Helm chart have been built and are accessible in your work area.
+
    ```bash
    $ ls -la operator/target | grep "drw" | grep coherence
    ```
 
-   This should produce output similar to the following:
+   This produces output similar to the following:
 
    ```bash
    drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-VERSION-helm
    drwxr-xr-x   3 username  staff      96 Apr 17 18:38 coherence-operator-VERSION-helm
    ```
+   If you want to use the build image as the source while executing the steps in the [Quick Start Guide](quickstart.md) and [User Guide](user-guide.md), replace the Helm repository prefix with the full qualified path:
 
-   If you are using the image build from above, whenn executing the steps in the [quickstart](quickstart.md) and
-   [user-guide](user-guide.md), replace the following will the respective full qualified path.
-    
-   * `coherence/coherence` - /Users/username/workareas/coherence-operator/target/coherence-1.0.0-SNAPSHOT-helm/coherence
-   
-   * `coherence/coherence-operator` - /Users/username/workareas/coherence-operator/target/coherence-operator-1.0.0-SNAPSHOT-helm/coherence-operator
+   * `coherence/coherence` - `/Users/username/workareas/coherence-operator/target/coherence-1.0.0-SNAPSHOT-helm/coherence`
 
-   > **Note:** we are assuming we have built the Coherence Operator within `/Users/username/workareas/coherence-operator`
-  
-   Note that `VERSION` will actually be something like `1.0.0-SNAPSHOT`.
+   * `coherence/coherence-operator` - `/Users/username/workareas/coherence-operator/target/coherence-operator-1.0.0-SNAPSHOT-helm/coherence-operator`
+
+   > **Note:** It is assumed that the Coherence Operator is built within `/Users/username/workareas/coherence-operator`. The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
