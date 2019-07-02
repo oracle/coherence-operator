@@ -50,7 +50,7 @@ setupReleaseBranch()
     fi
 
     if [ 0 -eq $? ]; then
-      mvn -s $MVN_SETTINGS -DnewVersion=$NEXT_SNAPSHOT_VERSION versions:set versions:commit
+      mvn $MVN_SETTINGS -DnewVersion=$NEXT_SNAPSHOT_VERSION versions:set versions:commit
       if [ -n "${RELEASE_IMAGE_PREFIX}" ]; then
         sed "s|${RELEASE_IMAGE_PREFIX}|\${test.image.prefix}|" pom.xml
       else
