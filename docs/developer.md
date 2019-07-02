@@ -37,7 +37,7 @@ Check and verify that your environment is properly configured with the following
 
 To build the operator without running any tests, do the following:
 
-1. Clone and check out the operator version `1.0` from the [GitHub repository](https://github.com/oracle/coherence-operator).
+1. Clone and check out the current version of the operator from the [GitHub repository](https://github.com/oracle/coherence-operator).
 2. Create a maven `settings.xml` file. If you already have one, ensure that the following settings are included in your default profile. All of the maven commands in this guide use this `settings.xml` file.
 
    ```xml
@@ -61,21 +61,7 @@ To build the operator without running any tests, do the following:
 
     `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
 
-  * Provide a tag to the docker image:
-
-    `docker tag container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
-
-4. The `oracle/coherence:12.2.1.3` is in the local Docker server. Apply the patch to derive 12.2.1.3.2 from that image:
-
-      1. Clone the Oracle Docker Images git repository:
-
-      `git clone git@github.com:oracle/docker-images.git`
-
-      2. Change directory to `OracleCoherence/samples/122132-patch-for-k8s`.
-
-      3. Follow the steps [described here](https://github.com/oracle/docker-images/blob/master/OracleCoherence/samples/122132-patch-for-k8s/README.md) to create a Coherence 12.2.1.3.2 Docker image.
-
-5. Tag the 12.2.1.3.2 image in the way it is required to build the operator.  
+4. Tag the obtained image in the way it is required to build the operator.  
 
       1. Obtain the image hash for the Coherence 12.2.1.3.2 Docker image.
 
@@ -96,9 +82,7 @@ To build the operator without running any tests, do the following:
 
          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
          ```
-
-
-6. From the top level directory of the `coherence-operator` repository in the GitHub, do the following.
+6. From the top level directory of the `coherence-operator` repository in GitHub, do the following.
 
    ```bash
    $ mvn -DskipTests clean install
