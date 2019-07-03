@@ -16,10 +16,6 @@
 # 4) RELEASE_IMAGE_PREFIX  : Docker repository prefix to be used for
 #                            Coherence Operator docker image.
 # 5) DRY_RUN               : To indicate whether to run script in dry mode.
-
-# Optional Environment Varibales:
-# 1) SETTINGS_FILE         : Location for maven settings file. If not set assumes
-#                            default maven setting file i.e $USER/.m2/settings.xml
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -29,14 +25,8 @@ setupReleaseBranch()
   {
   echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
 
-  if [ -n "$SETTINGS_FILE" ]; then
-    local MVN_SETTINGS="-s $SETTINGS_FILE"
-  else
-    local MVN_SETTINGS=""
-  fi
-
   if [ -z $(git ls-remote -q --tags | grep $RELEASE_TAG) ]; then
-    mvn $MVN_SETTINGS -DnewVersion=$RELEASE_VERSION versions:set versions:commit
+    mvn -DnewVersion=$RELEASE_VERSION versions:set versions:commit
 
     pwd
     ls -ls
@@ -50,7 +40,7 @@ setupReleaseBranch()
     fi
 
     if [ 0 -eq $? ]; then
-      mvn $MVN_SETTINGS -DnewVersion=$NEXT_SNAPSHOT_VERSION versions:set versions:commit
+      mvn -DnewVersion=$NEXT_SNAPSHOT_VERSION versions:set versions:commit
       if [ -n "${RELEASE_IMAGE_PREFIX}" ]; then
         sed "s|${RELEASE_IMAGE_PREFIX}|\${test.image.prefix}|" pom.xml
       else
@@ -94,8 +84,9 @@ buildReleaseBranch()
   git status
   pwd
 
-  MVN_ARGS="$MVN_SETTINGS -Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
+  MVN_ARGS="-Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
 
+  echo "MVN_ARGS == $MVN_ARGS"
   if [ "false" = "$DRY_RUN" ]; then
     mvn -PdockerPush $MVN_ARGS clean install
   else
