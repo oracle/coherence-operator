@@ -32,6 +32,8 @@ setupReleaseBranch()
     ls -ls
     sed "s|\${test.image.prefix}|${RELEASE_IMAGE_PREFIX}|" pom.xml
 
+    git config user.name "Coherence Bot"
+    git config user.email coherence-bot_ww@oracle.com
     git commit -a -m "Preparing for Release Version $RELEASE_VERSION"
     git tag $RELEASE_TAG
 
@@ -144,6 +146,8 @@ publishCharts()
   git clean -d -f
   git status
 
+  git config user.name "Coherence Bot"
+  git config user.email coherence-bot_ww@oracle.com
   git commit -m "Release coherence-operator and coherence helm charts version: $RELEASE_VERSION"
   if [ 0 -ne $? ]; then
     echo "Failed to commit the changes containing coherence-operator and coherence helm charts."
