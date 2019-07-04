@@ -59,7 +59,7 @@ Confirm you have completed the following sections from the `Quick Start Guide` b
 
   * [Add the Helm repository for Coherence](../quickstart.md#add-the-helm-repository-for-coherence)
   
-  * [Obtain the Coherence Docker Image](../quickstart.md#obtain-the-coherence-docker-image)
+  * [Obtain Images from Oracle Container Registry](../quickstart.md#obtain-images-from-oracle-container-registry)
   
   
 > **Note:** For all helm install commands you can leave the --version option off 
