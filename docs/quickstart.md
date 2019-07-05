@@ -1,15 +1,12 @@
 # Quick Start Guide
 
-The Coherence Kubernetes Operator manages Coherence through Kubernetes,
-monitoring MBean attributes through Prometheus and server logs through
-Elasticsearch and Kibana.
+The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
 
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
 
 Use this Quick Start guide to deploy Coherence applications in a
-Kubernetes cluster managed by the Coherence Kubernetes Operator. Note that this guide is for illustrative purposes only, and
-not sufficiently prescriptive or thorough for a production environment.
+Kubernetes cluster managed by the operator. Note that this guide is for illustrative purposes only, and not sufficiently prescriptive or thorough for a production environment.
 These instructions assume that you are already familiar with Kubernetes
 and Helm.  If you want to learn more about these two  technologies, refer to the
 [Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational)
@@ -18,13 +15,12 @@ and [Helm](https://helm.sh/docs/) documentation.
 For more advanced actions, such as accessing Kibana for viewing server
 logs, see the [User Guide](user-guide.md).
 
-> **Note**: If you have an older version of the operator installed on your cluster,
-> you must remove it before installing the current version.
+> **Note**: If you have an older version of the operator installed on your cluster, you must remove it before installing the current version.
 
 ## Before You Begin
 
 ### Software Requirements
-The Coherence Kubernetes Operator has the following requirements:
+The operator has the following requirements:
 
 * Kubernetes 1.11.5+, 1.12.3+, 1.13.0+ (`kubectl version`)
 * Docker 18.03.1-ce (`docker version`)
@@ -53,10 +49,10 @@ $ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 $ helm repo update
 ```
 
-If you want to build the Coherence Operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace `coherence`
+If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace `coherence`
 Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
 
-## Install the Coherence Kubernetes Operator
+## Install the Operator
 
 1. Use `helm` to install the operator:
 
@@ -74,15 +70,10 @@ When the operation completes successfully, output similar to the following displ
 
 ```bash
 NOTES:
-1. Get the application URLs by running these commands:
+Coherence Operator successfully installed.
 
-  export POD_NAME=$(kubectl get pods -l "app=coherence-operator,release=sample-coherence-operator" -o jsonpath="{.items[0].metadata.name}")
-
-  To forward a local port to the Pod http port run:
-
-      kubectl port-forward $POD_NAME 8000:8000
-
-  then access the http endpoint at http://127.0.0.1:8000
+Monitoring namespaces:
+  ""
 ```
 2. Use `helm ls` to view the installed releases.
 
@@ -120,6 +111,8 @@ By default, the Helm chart pulls the Oracle Coherence Docker image from the Orac
 4. Click `coherence` in the search result list.
 5. In the Oracle Coherence page, select the language from the drop-down list and click Continue.
 6. Click **Accept** in the Oracle Standard Terms and Conditions page.
+
+This action is required to pull the image correctly for the first time. After this, the image will be pulled automatically using the Kubernetes secret.
 
 ### Set Up Secrets to Access the Oracle Container Registry
 
