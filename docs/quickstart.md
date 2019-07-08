@@ -30,14 +30,14 @@ The operator has the following requirements:
 
 ### Runtime Environment Requirements
 
-* You will need a Kubernetes cluster that can pull the docker images required by the operator.
+* You need a Kubernetes cluster that can pull the docker images required by the operator.
 * Some of the Helm charts in this operator, require configuration on each Kubernetes pod that will be running the workloads related to the chart. This configuration currently includes:
 
     * setting the value of the `max_map_count` kernel parameter to at least `262144`. It is OS specific and is described in the [docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
 
 * If you are running the operator with a local Kubernetes cluster on a developer workstation, ensure that the workstation meets the hardware requirements and the Docker preferences have been tuned to run optimally for the hardware.  In particular, ensure that the memory and limits are correctly tuned.
 
-## Configure the environment
+## Configure the Environment
 
 ### Add the Helm Repository for Coherence
 
