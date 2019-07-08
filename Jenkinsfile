@@ -49,8 +49,7 @@ def testStep(String additionalArgument) {
                     -Dci.build=$BUILD_NUMBER \
                     -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                     -Dk8s.create.namespace=false \
-                    $additionalArgument \
-                    -P pushTestImage -P helm-test clean install
+                    install -P pushTestImage -P helm-test $additionalArgument
             """
         }
     }
@@ -59,9 +58,11 @@ def testStep(String additionalArgument) {
 def archiveAndCleanup() {
     archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
     sh '''
-        helm delete --purge $(helm ls --namespace test-cop-$BUILD_NUMBER --short) || true
-        kubectl delete namespace test-cop-$BUILD_NUMBER  || true
-        kubectl delete namespace test-cop2-$BUILD_NUMBER || true
+        for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER
+        do
+            helm delete --purge $(helm ls --namespace $i --short) || true
+            kubectl delete namespace $i || true
+        done
     '''
 }
 
@@ -210,7 +211,7 @@ pipeline {
                 stage('kubernetes-tests-latestCoherenceReleasedImage') {
                     steps {
                         script {
-                            testStep('-P testLatestCoherenceReleasedImage')
+                            testStep('-P testLatestCoherenceReleasedImage -pl functional-tests')
                         }
                     }
                     post {
