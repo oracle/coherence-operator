@@ -31,9 +31,9 @@ The operator has the following requirements:
 ### Runtime Environment Requirements
 
 * You need a Kubernetes cluster that can pull the docker images required by the operator.
-* Some of the Helm charts in this operator, require configuration on each Kubernetes pod that will be running the workloads related to the chart. This configuration currently includes:
+* Some of the Helm charts in this operator, require configuration on each Kubernetes pod that will run the workloads related to the chart. This configuration currently includes:
 
-    * setting the value of the `max_map_count` kernel parameter to at least `262144`. It is OS specific and is described in the [docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
+    * setting the value of the `max_map_count` kernel parameter to at least `262144`. This is OS specific and is described in the [Docker documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode).
 
 * If you are running the operator with a local Kubernetes cluster on a developer workstation, ensure that the workstation meets the hardware requirements and the Docker preferences have been tuned to run optimally for the hardware.  In particular, ensure that the memory and limits are correctly tuned.
 
@@ -49,8 +49,8 @@ $ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 $ helm repo update
 ```
 
-If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace `coherence`
-Helm repository prefix in all samples with the full qualified directory as described at the end of the guide.
+If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace the `coherence`
+Helm repository prefix in all samples with the fully qualified directory as described at the end of the guide.
 
 ## Install the Operator
 
@@ -62,11 +62,11 @@ $ helm --debug install coherence/coherence-operator \
     --set "targetNamespaces={}" \
     --set imagePullSecrets=sample-coherence-secret
 ```
-> **Note**: For all `helm install` commands, you can leave the `--version` option off and the latest version of the chart is retrieved. If you wanted to use a specific version, such as `0.9.8`, add `--version 0.9.8` to all installs for the `coherence-operator` and `coherence` charts.
+> **Note**: For all `helm install` commands, you can leave the `--version` option off if you want the latest version of the chart to be retrieved. However, if you want to use a specific version, such as `0.9.8`, add `--version 0.9.8` to all installs for the `coherence-operator` and `coherence` charts.
 
 > **Note**: Remove the `--debug` option if you do not want verbose output. Refer to the `values.yaml` in the chart for more information about the `--set targetNamespaces` argument.
 
-When the operation completes successfully, output similar to the following displays:
+When the operation completes successfully, the Helm installation produces an output similar to the following:
 
 ```bash
 NOTES:
@@ -90,7 +90,7 @@ sample-coherence-operator	1       	Thu May  9 13:59:22 2019	DEPLOYED	coherence-o
 $ helm status sample-coherence-operator
 ```
 
-A successful deployment displays an output similar to the following output:
+A successful deployment displays an output similar to the following:
 
 ```bash
 LAST DEPLOYED: Thu Feb  7 14:11:17 2019
@@ -103,16 +103,16 @@ STATUS: DEPLOYED
 
 ### Obtain Images from Oracle Container Registry
 
-By default, the Helm chart pulls the Oracle Coherence Docker image from the Oracle Container Registry.
+By default, the Helm chart pulls the Oracle Coherence Docker image from the Oracle Container Registry. To pull the image correctly for the first time, you must perform the following steps:
 
 1. In a web browser, navigate to [Oracle Container Registry](https://container-registry.oracle.com) and click **Sign In**.
 2. Enter your Oracle credentials or create an account if you don't have one.
 3. Search for coherence in the Search Oracle Container Registry field.
 4. Click `coherence` in the search result list.
-5. In the Oracle Coherence page, select the language from the drop-down list and click Continue.
-6. Click **Accept** in the Oracle Standard Terms and Conditions page.
+5. On the Oracle Coherence page, select the language from the drop-down list and click Continue.
+6. Click **Accept** on the Oracle Standard Terms and Conditions page.
 
-This action is required to pull the image correctly for the first time. After this, the image will be pulled automatically using the Kubernetes secret.
+Subsequently, the image will be pulled automatically using the Kubernetes secret.
 
 ### Set Up Secrets to Access the Oracle Container Registry
 
@@ -169,7 +169,7 @@ NOTES:
   then access the http endpoint at http://127.0.0.1:30000
 ```
 
-You can also query the status of the installed Coherence with `helm status`:
+You can also query the status of the installed Coherence using `helm status`:
 
 ```bash
 $ helm status sample-coherence
@@ -253,26 +253,26 @@ $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloCoherence.java
 $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
        -Dcoherence.cacheconfig=$PWD/example-client-config.xml HelloCoherence
 ```
-This produces an output similar to the following:
+The program produces an output similar to the following:
 
 ```bash
 The value of the key is 1
 ```
 
-Run the program again and you get an output similar to the following:
+Run the program again to get an output similar to the following:
 
 ```bash
 The value of the key is 2
 ```
 
-> **Note**: If you are using JDK 11 or later, you can omit the javac step and simply run the program as:
+> **Note**: If you are using JDK 11 or later, you can omit the `javac` command and simply run the program as:
 
 ```bash
 $ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
   -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
 ```
 
-## Remove Coherence and Coherence Kubernetes Operator
+## Remove Coherence and Oracle Coherence Operator
 
 Remove the `coherence` release:
 
