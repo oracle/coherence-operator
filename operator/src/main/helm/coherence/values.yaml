@@ -28,7 +28,7 @@ clusterSize:
 #
 #   Multiple pull secrets must be specified as a list, which Helm expects to be contained in curly braces:
 #
-#   --set "imagePullSecrets{foo,bar}"
+#   --set "imagePullSecrets={foo,bar}"
 #
 imagePullSecrets: []
 
