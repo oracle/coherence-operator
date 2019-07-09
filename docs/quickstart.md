@@ -1,12 +1,31 @@
 # Quick Start Guide
 
-The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
+The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
 
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
 
+- [Introduction](#introduction)
+- [Before You Begin](#before-you-begin)
+  * [Software Requirements](#software-requirements)
+  * [Runtime Environment Requirements](#runtime-environment-requirements)
+- [Configure the Environment](#configure-the-environment)
+  * [Add the Helm Repository for Coherence](#add-the-helm-repository-for-coherence)
+- [Install the Operator](#install-the-operator)
+- [Install Coherence](#install-coherence)
+ * [Obtain Images from Oracle Container Registry](#obtain-images-from-oracle-container-registry)
+ * [Set Up Secrets to Access the Oracle Container Registry](#set-up-secrets-to-access-the-oracle-container-registry)
+  * [Use Helm to Install Coherence](#use-helm-to-install-coherence)
+- [Access the Installed Coherence](#access-the-installed-coherence)
+- [Remove Coherence and Oracle Coherence Operator](#remove-coherence-and-oracle-coherence-operator)
+
+
+
+
+## Introduction
+
 Use this Quick Start guide to deploy Coherence applications in a
-Kubernetes cluster managed by the operator. Note that this guide is for illustrative purposes only, and not sufficiently prescriptive or thorough for a production environment.
+Kubernetes cluster managed by the operator. Note that this guide is for demonstration purposes only, and not sufficiently prescriptive or thorough for a production environment.
 These instructions assume that you are already familiar with Kubernetes
 and Helm.  If you want to learn more about these two  technologies, refer to the
 [Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational)
@@ -54,7 +73,7 @@ Helm repository prefix in all samples with the fully qualified directory as desc
 
 ## Install the Operator
 
-1. Use `helm` to install the operator:
+1. Use **`helm`** to install the operator:
 
 ```bash
 $ helm --debug install coherence/coherence-operator \
