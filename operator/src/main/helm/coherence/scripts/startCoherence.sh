@@ -82,7 +82,7 @@ server()
     if [[ "${COH_USE_REST}" != "" ]]
     then
         CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-management.jar:${COHERENCE_HOME}/lib/coherence-metrics.jar"
-        PROPS="${PROPS} -Dcoherence.management.http=all"
+        PROPS="${PROPS} -Dcoherence.management.http=all -Dcoherence.metrics.http.enabled=true"
     fi
 
 #   Configure whether to add third-party modules to the classpath

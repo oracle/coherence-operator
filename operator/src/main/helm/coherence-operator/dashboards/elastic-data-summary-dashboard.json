@@ -117,7 +117,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_file_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_rm_file_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -199,7 +199,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -281,7 +281,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_file_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_rm_file_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -363,7 +363,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -420,7 +420,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -505,7 +505,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_rm_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -592,7 +592,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_journal_rm_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_journal_rm_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -600,7 +600,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta(coherence_journal_rm_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_journal_rm_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -688,7 +688,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_journal_rm_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_journal_rm_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -696,7 +696,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta(coherence_journal_rm_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_journal_rm_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -767,7 +767,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -791,7 +791,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

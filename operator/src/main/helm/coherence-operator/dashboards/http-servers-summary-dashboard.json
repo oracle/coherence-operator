@@ -201,7 +201,7 @@
       ],
       "targets": [
         {
-          "expr": "count(coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}) by (name) ",
+          "expr": "count("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -209,7 +209,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}) by (name) ",
+          "expr": "sum("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -217,7 +217,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_extend_proxy_error_count_total{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}) by (name) ",
+          "expr": "sum("vendor:coherence_extend_proxy_error_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -225,7 +225,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_extend_proxy_average_request_time{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}) by (name) ",
+          "expr": "sum("vendor:coherence_extend_proxy_average_request_time{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -275,7 +275,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -363,7 +363,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_extend_proxy_response_1xx_count{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -371,7 +371,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta(coherence_extend_proxy_response_2xx_count{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -379,7 +379,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(idelta(coherence_extend_proxy_response_3xx_count{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -387,7 +387,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(idelta(coherence_extend_proxy_response_4xx_count{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -395,7 +395,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(idelta(coherence_extend_proxy_response_5xx_count{cluster=~\"$ClusterName\",tag_protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -467,7 +467,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -492,7 +492,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
