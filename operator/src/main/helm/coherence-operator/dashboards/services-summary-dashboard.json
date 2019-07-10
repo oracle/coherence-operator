@@ -607,7 +607,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(coherence_service_partitions_vulnerable{cluster=~\"$ClusterName\",tag_type=~\"DistributedCache|FederatedCache\"}) by (name)",
+          "expr": "avg(coherence_service_partitions_vulnerable{cluster=~\"$ClusterName\",tag_type=~\"DistributedCache|FederatedCache\"}) by (name) > 0",
           "format": "table",
           "instant": true,
           "interval": "",
