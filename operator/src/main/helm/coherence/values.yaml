@@ -82,6 +82,11 @@ store:
     #   configuration file to use.
     configMapName:
 
+  # store.mainClass is the Coherence container main class.  The default value is
+  #   com.tangosol.net.DefaultCacheServer.
+  #
+  mainClass:
+
   # store.maxHeap is the min/max heap value to pass to the JVM.
   #   The format should be the same as that used for Java's -Xms and -Xmx JVM options.
   #   If not set the JVM defaults are used.

@@ -480,6 +480,16 @@ public class HelmIT
         assertThat(mapSpecSnapshot, is(mapExpectedSnapshot));
         }
 
+    @Test
+    public void shouldSetMainClassConfiguration()
+        {
+        String                     sRelease = "test-release";
+        Map<String, LinkedHashMap> map      = install(sRelease, "store.mainClass=custom.ServerMain");
+
+        assertEnvironmentVariable(map, "COH_MAIN_CLASS", "custom.ServerMain");
+        }
+
+
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings("unchecked")
