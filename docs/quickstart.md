@@ -1,6 +1,9 @@
 # Quick Start Guide
 
+
 The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
+
+
 
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
@@ -25,7 +28,11 @@ The Quick Start guide provides a simple tutorial to help you get the operator up
 ## Introduction
 
 Use this Quick Start guide to deploy Coherence applications in a
+
 Kubernetes cluster managed by the operator. Note that this guide is for demonstration purposes only, and not sufficiently prescriptive or thorough for a production environment.
+
+
+
 These instructions assume that you are already familiar with Kubernetes
 and Helm.  If you want to learn more about these two  technologies, refer to the
 [Kubernetes](https://kubernetes.io/docs/home/?path=users&persona=app-developer&level=foundational)
@@ -68,8 +75,10 @@ $ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 $ helm repo update
 ```
 
+
 If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace the `coherence`
 Helm repository prefix in all samples with the fully qualified directory as described at the end of the guide.
+=======
 
 ## Install the Operator
 
@@ -132,6 +141,8 @@ By default, the Helm chart pulls the Oracle Coherence Docker image from the Orac
 6. Click **Accept** on the Oracle Standard Terms and Conditions page.
 
 Subsequently, the image will be pulled automatically using the Kubernetes secret.
+
+This action is required to pull the image correctly for the first time. After this, the image will be pulled automatically using the Kubernetes secret.
 
 ### Set Up Secrets to Access the Oracle Container Registry
 
