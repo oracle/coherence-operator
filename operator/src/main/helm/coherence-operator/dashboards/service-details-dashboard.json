@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1556853830392,
+  "id": 11,
+  "iteration": 1562720394189,
   "links": [
     {
       "icon": "dashboard",
@@ -335,6 +335,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Thread Utilization %",
       "tooltip": {
@@ -426,6 +427,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Task Rate",
       "tooltip": {
@@ -471,7 +473,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -516,6 +517,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Task Backlog",
       "tooltip": {
@@ -607,6 +609,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request Pending Count",
       "tooltip": {
@@ -652,7 +655,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -698,6 +700,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request Pending Duration",
       "tooltip": {
@@ -743,7 +746,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 1,
       "fill": 1,
       "gridPos": {
@@ -790,6 +792,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Task Average Duration",
       "tooltip": {
@@ -835,7 +838,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -880,6 +882,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request Average Duration",
       "tooltip": {
@@ -940,11 +943,10 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "rgb(6, 6, 6)",
+        "#37872D",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -1021,11 +1023,11 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "#37872D",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "decimals": null,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -1084,7 +1086,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "-1,100000",
+      "thresholds": "1,2",
       "title": "Vulnerable Partitions",
       "type": "singlestat",
       "valueFontSize": "80%",
@@ -1988,6 +1990,7 @@
           "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -2061,7 +2064,7 @@
     ]
   },
   "timezone": "",
-  "title": "Service Details  Dashboard",
+  "title": "Service Details Dashboard",
   "uid": "coh-service-details",
   "version": 2
 }
