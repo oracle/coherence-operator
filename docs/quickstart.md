@@ -77,6 +77,7 @@ $ helm repo update
 If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace the `coherence`
 Helm repository prefix in all samples with the fully qualified directory as described at the end of the guide.
 
+
 ## Install the Operator
 
 1. Use **`helm`** to install the operator:
