@@ -61,7 +61,7 @@
     <mockito.version>2.18.3</mockito.version>
 
     <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>12.2.1-4-0-74457</coherence.version>
+    <coherence.version>12.2.1-4-0-74464</coherence.version>
 
     <!-- Image prefix used to differentiate builds during CI/CD -->
     <test.image.prefix>SET test.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</test.image.prefix>
