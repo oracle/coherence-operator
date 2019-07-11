@@ -3,8 +3,6 @@
 
 The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
 
-
-
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
 
@@ -78,7 +76,7 @@ $ helm repo update
 
 If you want to build the operator from source, refer to the [Developer Guide](developer.md) and ensure that you replace the `coherence`
 Helm repository prefix in all samples with the fully qualified directory as described at the end of the guide.
-=======
+
 
 ## Install the Operator
 
