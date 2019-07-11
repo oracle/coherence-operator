@@ -238,6 +238,10 @@ spec:
             - name: COH_OVERRIDE_CONFIG
               value: {{ .Values.store.overrideConfig | quote }}
   {{- end }}
+  {{- if .Values.store.mainClass }}
+            - name: COH_MAIN_CLASS
+              value: {{ .Values.store.mainClass | quote }}
+  {{- end }}
   {{- if .Values.store.pof.config }}
             - name: COH_POF_CONFIG
               value: {{ .Values.store.pof.config | quote }}

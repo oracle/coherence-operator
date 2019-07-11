@@ -38,18 +38,24 @@ main()
 # ---------------------------------------------------------------------------
 usage()
     {
-    echo "Invalid command '${COMMAND}', must be one of server, console, probe or queryplus"
+    echo "Invalid command '${COMMAND}', must be one of server, console, probe, queryplus, or mbeanserver"
     exit 1
     }
 
 # ---------------------------------------------------------------------------
-# Add the configuration for running a DefaultCacheServer
+# Add the configuration for running a cache server
 # ---------------------------------------------------------------------------
 server()
     {
-    echo "Configuring DefaultCacheServer"
+    if [[ -n "${COH_MAIN_CLASS}" ]]
+    then
+        MAIN_CLASS=${COH_MAIN_CLASS}
+    else
+        MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
+    fi
 
-    MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
+    echo "Configuring cache server '${MAIN_CLASS}'"
+
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
 #   Configure the Coherence member's role
