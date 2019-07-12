@@ -49,7 +49,7 @@ def testStep(String additionalArgument) {
                     -Dci.build=$BUILD_NUMBER \
                     -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                     -Dk8s.create.namespace=false \
-                    install -P pushTestImage -P helm-test $additionalArgument
+                    install -P push-test-image -P helm-test $additionalArgument
             """
         }
     }
@@ -185,7 +185,7 @@ pipeline {
                             withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                                 sh '''
                                     docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                                    mvn -B -Dmaven.test.skip=true -P docker -P dockerPush clean install
+                                    mvn -B -Dmaven.test.skip=true -P docker -P docker-push clean install
                                 '''
                             }
                         }

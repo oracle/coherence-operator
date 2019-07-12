@@ -384,7 +384,7 @@
          This is required when building against a k8s cluster that cannot see the local
          registry on the build machine. -->
     <profile>
-      <id>pushTestImage</id>
+      <id>push-test-image</id>
       <build>
         <plugins>
          <plugin>

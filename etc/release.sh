@@ -90,7 +90,7 @@ buildReleaseBranch()
 
   echo "MVN_ARGS == $MVN_ARGS"
   if [ "false" = "$DRY_RUN" ]; then
-    mvn -PdockerPush $MVN_ARGS clean install
+    mvn -Pdocker-push $MVN_ARGS clean install
   else
     mvn $MVN_ARGS clean install
   fi
