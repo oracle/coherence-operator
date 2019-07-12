@@ -25,11 +25,7 @@ The Quick Start guide provides a simple tutorial to help you get the operator up
 
 ## Introduction
 
-Use this Quick Start guide to deploy Coherence applications in a
-
-Kubernetes cluster managed by the operator. Note that this guide is for demonstration purposes only, and not sufficiently prescriptive or thorough for a production environment.
-
-
+Use this Quick Start guide to deploy Coherence applications in a Kubernetes cluster managed by the operator. Note that this guide is for demonstration purposes only, and not sufficiently prescriptive or thorough for a production environment.
 
 These instructions assume that you are already familiar with Kubernetes
 and Helm.  If you want to learn more about these two  technologies, refer to the
