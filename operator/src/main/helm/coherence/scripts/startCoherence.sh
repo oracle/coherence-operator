@@ -18,7 +18,7 @@ main()
     COMMAND=${1};
     shift
     MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
-    COH_MAIN_ARGS=""
+    MAIN_ARGS=""
 
     case "${COMMAND}" in
         server) server ;;
@@ -52,6 +52,11 @@ server()
         MAIN_CLASS=${COH_MAIN_CLASS}
     else
         MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
+    fi
+
+    if [[ -n "${COH_MAIN_ARGS}" ]]
+    then
+        MAIN_ARGS=${COH_MAIN_ARGS}
     fi
 
     echo "Configuring cache server '${MAIN_CLASS}'"
@@ -126,7 +131,7 @@ queryplus()
     CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar:${COH_UTIL_DIR}/lib/coherence-utils.jar"
     MAIN_CLASS="com.tangosol.coherence.dslquery.QueryPlus"
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false"
-    COH_MAIN_ARGS=${@}
+    MAIN_ARGS=${@}
     }
 
 
@@ -139,7 +144,7 @@ mbeanserver()
 
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*"
     MAIN_CLASS="com.oracle.coherence.k8s.JmxmpServer"
-    COH_MAIN_ARGS=""
+    MAIN_ARGS=""
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false \
          -Dcoherence.management.serverfactory=com.oracle.coherence.k8s.JmxmpServer \
          -Dcoherence.jmxmp.port=9099 \
@@ -177,7 +182,7 @@ probe()
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*"
     MAIN_CLASS=${1}
     shift
-    COH_MAIN_ARGS=${@}
+    MAIN_ARGS=${@}
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false"
     }
 
@@ -213,7 +218,7 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
         -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
         -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
         -Dcoherence.ttl=0 \
-        ${PROPS} ${JAVA_OPTS} ${MAIN_CLASS} ${COH_MAIN_ARGS}"
+        ${PROPS} ${JAVA_OPTS} ${MAIN_CLASS} ${MAIN_ARGS}"
 
 #   Dump the full set of environment variables to the console for logging/debugging
     echo "---------------------------------"

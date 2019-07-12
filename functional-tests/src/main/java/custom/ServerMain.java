@@ -16,7 +16,7 @@ public class ServerMain
     {
     public static void main(String[] argv)
         {
-        DefaultCacheServer server =DefaultCacheServer.startServerDaemon();
+        DefaultCacheServer server = DefaultCacheServer.startServerDaemon();
         server.waitForServiceStart();
 
         for (int i = 0; i < 1200; i++)

@@ -4,7 +4,7 @@ cluster: MyCoherenceCluster
 
 store:
   cacheConfig: "server-cache-config.xml"
-  mainClass:   "com.tangosol.net.DefaultCacheServer"
+  main.class:   "com.tangosol.net.DefaultCacheServer"
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds:       10

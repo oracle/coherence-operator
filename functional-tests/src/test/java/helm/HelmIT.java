@@ -484,9 +484,11 @@ public class HelmIT
     public void shouldSetMainClassConfiguration()
         {
         String                     sRelease = "test-release";
-        Map<String, LinkedHashMap> map      = install(sRelease, "store.mainClass=custom.ServerMain");
+        Map<String, LinkedHashMap> map      = install(sRelease, "store.main.class=custom.ServerMain",
+                                                      "store.main.arguments=arg1 arg2");
 
         assertEnvironmentVariable(map, "COH_MAIN_CLASS", "custom.ServerMain");
+        assertEnvironmentVariable(map, "COH_MAIN_ARGS", "arg1 arg2");
         }
 
 
