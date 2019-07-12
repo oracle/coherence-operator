@@ -49,6 +49,8 @@ Coherence 12.2.1.4.
 | `cluster` | Cluster name of Coherence cluster member | Helm release name |
 | `serviceAccountName` | Name of the service | `"default"` |
 | `store.cacheConfig` | Name of the cache configuration file | |
+| `store.main.class` | Coherence container main class | com.tangosol.net.DefaultCacheServer |
+| `store.main.arguments` | Coherence container main class arguments| |
 | `store.pof.config` | Name of POF serialization configuration file | `pof-config.xml` |
 | `store.storageEnabled` | Whether Coherence storage is enabled | |
 | `store.logging.level` | Coherence log level | `5` |
