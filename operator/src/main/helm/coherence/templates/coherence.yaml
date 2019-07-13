@@ -22,9 +22,6 @@ spec:
   podManagementPolicy: {{ default "Parallel" .Values.store.podManagementPolicy }}
   updateStrategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   revisionHistoryLimit: {{ default 3 .Values.store.revisionHistoryLimit }}
   selector:
     matchLabels:
