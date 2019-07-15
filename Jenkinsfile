@@ -211,7 +211,7 @@ pipeline {
                 stage('kubernetes-tests-latestCoherenceReleasedImage') {
                     steps {
                         script {
-                            testStep('-P testLatestCoherenceReleasedImage -pl functional-tests')
+                            testStep('-P test-latest-coherence-released-image -pl functional-tests')
                         }
                     }
                     post {
