@@ -203,7 +203,7 @@
     </profile>
 
     <profile>
-      <id>dockerPush</id>
+      <id>docker-push</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
