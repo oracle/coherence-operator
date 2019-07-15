@@ -4,10 +4,11 @@
 
 For active persistence, local storage is recommended as its IO has a lower latency.
 
-The following are steps for setting up Coherence active persistence with local storage.
-#### 1. Create a local storage class.
+Set up Coherence active persistence with local storage using the following steps:
 
-Use the following yaml to create a local storage class, `localsc`, if it is necessary.
+#### 1. Create a Local Storage Class
+
+If necessary, create a local storage class, `localsc`, using YAML.
 
 ```
 apiVersion: storage.k8s.io/v1
@@ -21,14 +22,13 @@ metadata:
   selfLink: /apis/storage.k8s.io/v1/storageclasses/localsc
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
-``` 
+```
 
-#### 2. Create local Persistent Volumes.
+#### 2. Create Local Persistent Volumes
 
-Since local volumes can [only be used as a statically created](https://kubernetes.io/docs/concepts/storage/#local)
-PersistentVolume, persistent volumes need to be created before they are used.
+Since local volumes can only be used as a statically created PersistentVolume, persistent volumes need to be created before they are used. For information about persistent volumes, read the [Kubernetes document](https://kubernetes.io/docs/concepts/storage/#local).
 
-A sample yaml for creating Persistence Volume `mylocalsc-pv0` with label `type: local` is as follows. 
+A sample YAML for creating PersistentVolume, `mylocalsc-pv0` with label `type: local` is as follows:
 
 ```
 kind: PersistentVolume
@@ -47,80 +47,77 @@ spec:
     path: "/coh/mydata"
 ```
 
-with the following command
+The sample YAML file can be used to create PersistentVolume using the following **```kubectl```**command:
 ```
 kubectl create -f mypv0.yaml
 ```
 
-Note that the number of Persistent Volumes created need to be the same as Coherence cluster size.
-For instance, in case of a cluster of size 3, one also need to create `mylocalsc-pv1`, `mylocalsc-pv2`, and `mylocalsc-pv3`.
+**Note**: The number of Persistent Volumes created should be the same as the Coherence cluster size.
+For instance, in case of a cluster of size 3, you must create Persistent Volumes, `mylocalsc-pv1`, `mylocalsc-pv2`, and `mylocalsc-pv3`.
 
-#### 3. Specify parameters for Coherence Helm install.
+#### 3. Specify Parameters for Coherence Helm Install
 
-##### a. Set nodeSelector for Coherence clusters.
-         
-In order to use the local storage, the Coherence cluster needs to run a specified set
-of nodes. Labels will be used to identify the nodes that we want used.
+##### a. Set nodeSelector for Coherence Clusters
 
-Note that the set of nodes identified needs to be the same as the Coherence cluster size.
+In order to use the local storage, the Coherence cluster must run a specified set
+of nodes. Labels are used to identify the nodes that you want to use.
 
-Suppose the label `name=pool1` is sufficient to identify the nodes that is required,
+Note that the set of nodes identified must be the same as the Coherence cluster size.
+
+Suppose the label `name=pool1` is sufficient to identify the nodes that are required,
 then the following Helm parameter needs to be set:
 
 ```
 --set nodeSelector.name=pool1
 ```
 
-##### b. Enable active persistence in Coherence.
-
+##### b. Enable Active Persistence in Coherence
+Set the following Helm parameter to enable Active Persistence in Coherence:
 ```
---set store.persistence.enabled=true 
+--set store.persistence.enabled=true
 ```
 
-##### c. Specify Persistent volumes used for Coherence.
+##### c. Specify Persistent Volumes Used for Coherence
 
-###### i. Set storage class.
+Set storage class and set labels for persistent volumes.
 
 ```
 --set store.persistence.storageClass=mylocalsc
 ```
-
-###### ii. Set labels for persistent volumes.
 ```
---set store.persistence.selector.matchLabels.type=local 
+--set store.persistence.selector.matchLabels.type=local
 ```
 
-#### 4. Uninstall the Coherence with persistence.
-##### i. Helm delete the installation.
-##### ii. Delete the pvc created one by one.
-Note that the pvc is created in the same namespace as your Helm installation.
-And the number of pvc equals the Coherence cluster size.
-The name of pvc can be found as follows:
+#### 4. Uninstall Coherence with Persistence
+##### i. Remove the Installation Using Helm Delete
+##### ii. Delete the Persistent Volume Claim (PVC)
+***Note***: The PVC is created in the same namespace as your Helm installation. The number of PVC equals the Coherence cluster size.
+
+Retrieve the name of the PVC as follows:
 ```
 kubectl get pvc -n your_namespace
 ```
-Then the pvc can be deleted one by one as follows:
+Then, delete the PVC one at a time as follows:
 ```
 kubectl delete pvc -n your_namespace your_pvc_name
 ```
 
-##### iii. Delete the pv created one by one.
+##### iii. Delete the Persistent Volume
 ```
 kubectl delete pv mylocalsc-pv0
 ```
-etc.
 
 
 ### Snapshot
-By default, Coherence snapshot use the same location as active persistence to store snapshot data.
+By default, Coherence snapshot uses the same location as active persistence to store snapshot data.
 
-If it is desired to use a different location, then add the following parameter in Helm installation:
+If you wish to use a different location, then add the following parameter during Helm installation:
 
 ```
 --set store.snapshot.enabled=true
 ```
 
-In this case, one should use use block storage and configure `store.snapshot.storageClass` 
-and `store.snapshot.selector.matchLabels` as in 3.c. above if it is necessary.
+In this case, you should use block storage and configure `store.snapshot.storageClass`
+and `store.snapshot.selector.matchLabels` as in step 3c above.
 
-In OCI environement, by default, OCI block storage is used. There is no need to set the above two properties.
+ OCI block storage is used by default in an OCI environment. Therefore, it is not required to set the above two properties.
