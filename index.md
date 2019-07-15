@@ -49,6 +49,9 @@ environment. You can:
   [Coherence*Extend](https://docs.oracle.com/middleware/12213/coherence/develop-remote-clients/building-your-first-extend-application.htm#COHCG5033)
   to access your cluster with a variety of clients.
 
+* Use Kubernetes Zone information to ensure data stored in Coherence is resilient to loss of a Zone.
+  Coherence goes to great efforts to ensure data is safe across processes, machines, racks and sites. When Coherence is deployed to Kubernetes with the Coherence Operator, data will be spread across zones to ensure this underlying principle is supported; thus by default, loss of any zone is a tolerated failure mode. This is reflected in the StatusHA value (SITE-SAFE) for partitioned services, in addition to the member level site information that is equivalent to the kubernetes zone label on the associated pod.
+
 * Start clusters based on declarative startup parameters and desired
   states.
 
