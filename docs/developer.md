@@ -1,14 +1,12 @@
-# Oracle Coherence Kubernetes Operator Developer Guide
+# Developer Guide
 
 The Developer Guide provides information for developers who want to build, install, and test the operator.
 
-After successfully completing the steps in this guide, you can execute the instructions in the [Quick Start Guide](quickstart.md)
-and [User Guide](user-guide.md).
+After successfully completing the steps in this guide, you can execute the instructions in the [Quick Start Guide](quickstart.md) and [User Guide](user-guide.md).
 
 ## Prerequisites
 
-Refer to the [Requirements](quickstart.md) section in the Quick Start Guide.
-In addition to the requirements defined in the Quick Start Guide, you require the following software versions for the build environment:
+See [Before You Begin](quickstart.md#before-you-begin) section in the Quick Start guide. In addition, you require the following software versions for the build environment:
 
 * Mac OS 10.13.6
 * Docker Desktop 2.0.0.3 (31259).  Channel: stable, 8858db33c8, with Kubernetes
@@ -16,73 +14,76 @@ In addition to the requirements defined in the Quick Start Guide, you require th
 * Oracle JDK 11.0.1 2018-10-16 LTS
 * Apache Maven 3.5.4
 
-> **Note**: You need to make the necessary adjustments to execute the steps in this guide on other operating systems with other Docker
-> versions.
-
-
+> **Note**: If you are using other operating systems or Docker versions, you need to make the necessary adjustments to execute the steps in this guide.
 
 ### Verify System Environment
 
-Check and verify that your environment is properly configured with the following software for building and installing the operator:
+Check whether your environment is configured with the following software for building and installing the operator:
 
-| Software | Verify | Expected Output|
-| ---------| ----------------------------|----------------|
+| Software | Verify                          | Expected Output      |
+| ---------| --------------------------------|---------------------|
 | Docker   | `$ docker run hello world`  | `Hello from Docker!`|
-| Kubernetes | `$ kubectl version` | `Client Version: version.Info{Major:"1", Minor:"13", GitVersion:"v1.13.3", GitCommit:"721bfa751924da8d1680787490c54b9179b1fed0", GitTreeState:"clean", BuildDate:"2019-02-04T04:49:22Z", GoVersion:"go1.11.5", Compiler:"gc", Platform:"darwin/amd64"}<br>Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.11", GitCommit:"637c7e288581ee40ab4ca210618a89a555b6e7e9", GitTreeState:"clean", BuildDate:"2018-11-26T14:25:46Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}` |
-| Helm | `$ helm version` | `Client: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}<br>Server: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}` |
-| Java | `java version` | `java version "11.0.1" 2018-10-16 LTS` |
-| Maven | `mvn version` | `Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-17T14:33:14-04:00) <br> Maven home: /Users/username/Downloads/apache-maven-3.5.4 <br> Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk-11.0.1.jdk/Contents/Home` |
+| Kubernetes | `$ kubectl version`       | `Client Version: version.Info{Major:"1", Minor:"13", GitVersion:"v1.13.3", GitCommit:"721bfa751924da8d1680787490c54b9179b1fed0", GitTreeState:"clean", BuildDate:"2019-02-04T04:49:22Z", GoVersion:"go1.11.5", Compiler:"gc", Platform:"darwin/amd64"}<br>Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.11", GitCommit:"637c7e288581ee40ab4ca210618a89a555b6e7e9", GitTreeState:"clean", BuildDate:"2018-11-26T14:25:46Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}` |
+| Helm | `$ helm version`               | `Client: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}<br>Server: &version.Version{SemVer:"v2.12.3", GitCommit:"eecf22f77df5f65c823aacd2dbd30ae6c65f186e", GitTreeState:"clean"}` |
+| Java | `java version`                  | `java version "11.0.1" 2018-10-16 LTS` |
+| Maven | `mvn version`                   | `Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-17T14:33:14-04:00) <br> Maven home: /Users/username/Downloads/apache-maven-3.5.4 <br> Java version: 11.0.1, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk-11.0.1.jdk/Contents/Home` |
 
 ## Build the Operator
 
-To build the operator without running any tests, do the following:
+The operator is built using Apache Maven. To build the operator without running any tests, do the following:
 
 1. Clone and check out the current version of the operator from the [GitHub repository](https://github.com/oracle/coherence-operator).
-2. Create a maven `settings.xml` file. If you already have one, ensure that the following settings are included in your default profile. All of the maven commands in this guide use this `settings.xml` file.
+2. Create a Maven `settings.xml` file. If you already have one, ensure that the following settings are included in your default profile:
 
    ```xml
    <properties>
        <test.image.prefix>DOCKER_REPO_HOSTNAME/DOCKER_REPO_PREFIX/dev/DEV_USERNAME/</test.image.prefix>
    </properties>
    ```
+   >**Note**: All the Maven commands in this guide use this `settings.xml` file.
+
    In the `settings.xml` file:
-   * `DOCKER_REPO_HOSTNAME` is the hostname of the docker repo in which you will push your built docker images.  
+   * `DOCKER_REPO_HOSTNAME` is the hostname of the Docker repository in which you will push your built Docker images.
    >**Note**: You are not required to
      push any images when executing the steps in this document.
 
-   * `DOCKER_REPO_PREFIX` is some prefix within that repo.
+   * `DOCKER_REPO_PREFIX` is your organization who owns the repository on Docker Hub.
 
    * `DEV_USERNAME` is a username unique to your development environment.
-  *  In this example, `YOUR_test.image.prefix_VALUE` is the
+
+   * In this example, `YOUR_test.image.prefix_VALUE` is the
    value used for `test.image.prefix` property in the `settings.xml` file.
 
 3. Obtain a Coherence 12.2.1.3.2 Docker image and tag it correctly.
   * Refer to the section [Obtain Images from Oracle Container Registry](quickstart,md) to pull the Coherence Docker image from the Oracle Container Registry.
 
-    `docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2`
+    ```bash
+    docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2
+    ```
 
 4. Tag the obtained image in the way it is required to build the operator.  
 
-      1. Obtain the image hash for the Coherence 12.2.1.3.2 Docker image.
+      1. Obtain the image ID for the Coherence 12.2.1.3.2 Docker image:
 
          ```bash
-         $ docker images | grep 12.2.1.3.2`
+         $ docker images | grep 12.2.1.3.2
          ```
 
-         In this example, it is assumed that the Coherence image hash is `COHERENCE_IMAGE_HASH`.
+      2. Tag the obtained image:
 
          ```bash
-         docker tag COHERENCE_IMAGE_HASH YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2`
+         docker tag some_tag YOUR_test.image.prefix_VALUE/oracle/coherence:12.2.1.3.2
          ```
+         In this example, `some_tag` is the tag given to identify the pulled image.
 
-      2. After executing this command, again execute the command to list the docker images which will list the image hash:
+      3. Again execute the command to list the image ID for Coherence:
 
          ```bash
          $ docker images | grep 12.2.1.3.2
 
          YOUR_test.image.prefix_VALUE/oracle/coherence 12.2.1.3.2 7e7feca04384 2 months ago 547MB
          ```
-6. From the top level directory of the `coherence-operator` repository in GitHub, do the following.
+5. From the root directory of your cloned repository, build the operator using the following commands:
 
    ```bash
    $ mvn -DskipTests clean install
@@ -109,11 +110,11 @@ To build the operator without running any tests, do the following:
 
    >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-7. `mvn -DskipTests generate-resources`
+   `mvn -DskipTests generate-resources`
 
    This produces output similar to the output of the preceding step.
 
-8. `mvn -DskipTests -Pdocker clean install`
+  `mvn -DskipTests -Pdocker clean install`
 
     The output of this command has the following message:
    ```bash
@@ -127,8 +128,8 @@ To build the operator without running any tests, do the following:
 
    >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-9. Verify that the docker images have been built and are accessible to your
-   local docker server.
+6. Verify that the Docker images have been built and are accessible to your
+   local Docker server.
 
    ```bash
    $ docker images | grep YOUR_test.image.prefix_VALUE
@@ -144,7 +145,7 @@ To build the operator without running any tests, do the following:
 
    >**Note**: The `VERSION` in the output will be similar to `1.0.0-SNAPSHOT`.
 
-10. Verify that the Coherence Helm chart and the Coherence Operator Helm chart have been built and are accessible in your work area.
+7. Verify that the Coherence Helm chart and the Coherence Operator Helm chart have been built and are accessible in your work area.
 
    ```bash
    $ ls -la operator/target | grep "drw" | grep coherence
