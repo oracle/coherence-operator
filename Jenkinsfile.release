@@ -15,7 +15,7 @@ pipeline {
             steps {
                 echo 'Release Coherence Operator'
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-release-maven-settings', tempBinDir: '') {
-                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     sh './etc/release.sh'
                 }
             }
