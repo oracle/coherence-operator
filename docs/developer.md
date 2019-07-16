@@ -55,7 +55,7 @@ The operator is built using Apache Maven. To build the operator without running 
    value used for `test.image.prefix` property in the `settings.xml` file.
 
 3. Obtain a Coherence 12.2.1.3.2 Docker image and tag it correctly.
-  * Refer to the section [Obtain Images from Oracle Container Registry](quickstart,md) to pull the Coherence Docker image from the Oracle Container Registry.
+  * Refer to the section [Obtain Images from Oracle Container Registry](quickstart.md) to pull the Coherence Docker image from the Oracle Container Registry.
 
     ```bash
     docker pull container-registry.oracle.com/middleware/coherence:12.2.1.3.2
