@@ -2,7 +2,6 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
-{{- if .Values.logCaptureEnabled }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -10,6 +9,7 @@ metadata:
 type: Opaque
 data:
   operatorhost: {{ printf "coherence-operator-service.%s.svc.cluster.local" .Release.Namespace | b64enc | quote }}
+{{- if .Values.logCaptureEnabled }}
   {{- $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
   {{- if .Values.elasticsearchEndpoint }}
   elasticsearchhost: {{ .Values.elasticsearchEndpoint.host | default $eshost | toString | b64enc | quote }}
