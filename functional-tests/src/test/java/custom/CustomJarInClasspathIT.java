@@ -142,6 +142,43 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             }
         }
 
+        /**
+         * Run the test using supplied list of values files.
+         *
+         * @throws Exception  if the test fails
+         */
+        @Test
+        public void testCoherenceServerWithUserSuppliedClass() throws Exception
+        {
+            String sNamespace      = getK8sNamespace();
+            String sValuesOriginal = "values/helm-values-coh-user-artifacts-mainClass.yaml";
+
+            m_sRelease = installCoherence(s_k8sCluster,
+                    sNamespace,
+                    sValuesOriginal,
+                    "coherence.image=" + COHERENCE_IMAGE);
+
+            assertCoherence(s_k8sCluster, sNamespace, m_sRelease);
+
+            assertCoherenceService(s_k8sCluster, sNamespace, m_sRelease);
+
+            String       sCoherenceSelector = getCoherencePodSelector(m_sRelease);
+            List<String> listPods           = getPods(s_k8sCluster, sNamespace, sCoherenceSelector);
+
+            assertThat(listPods.size(), is(3));
+
+            System.err.println("Waiting for Coherence Pods");
+
+            for (String sPod : listPods)
+            {
+                System.err.println("Waiting for Coherence Pod " + sPod + "...");
+                Eventually.assertThat(invoking(this).hasDefaultCacheServerStarted(s_k8sCluster, sNamespace, sPod),
+                        is(true), Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
+            }
+
+            System.err.println("Coherence Pods started");
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**

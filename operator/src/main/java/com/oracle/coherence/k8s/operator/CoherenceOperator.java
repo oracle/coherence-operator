@@ -71,13 +71,10 @@ public class CoherenceOperator
 
             new KubernetesInfoServer(K8S_INFO_SERVER_PORT).start();
 
-            if (Boolean.parseBoolean(System.getenv(EFK_INTEGRATION_ENABLED)))
-                {
-                AbstractWatcher<?, ?> namespaceWatcher = createNamespaceWatcher(sNamespace, asNamespaces,
-                        asExcludedNamespaces, fStopping);
-                listWatchers.add(namespaceWatcher);
-                namespaceWatcher.start(threadFactory);
-                }
+            AbstractWatcher<?, ?> namespaceWatcher = createNamespaceWatcher(sNamespace, asNamespaces,
+                    asExcludedNamespaces, fStopping);
+            listWatchers.add(namespaceWatcher);
+            namespaceWatcher.start(threadFactory);
             }
         catch(Throwable t)
             {
@@ -153,15 +150,27 @@ public class CoherenceOperator
          */
         NamespaceProcessor(String sNamespace, String[] asIncludedNamespaces, String[] asExcludedNamespaces)
             {
-            f_sNamespace = sNamespace;
-            f_sElasticsearchHost = Env.get(ELASTICSEARCH_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
-            f_sElasticsearchPort = Env.get(ELASTICSEARCH_PORT, DEFAULT_ES_PORT);
+            f_sNamespace    = sNamespace;
+            f_sOperatorHost = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
+            f_fEfkEnabled   = Boolean.parseBoolean(System.getenv(EFK_INTEGRATION_ENABLED));
 
-            assertPort(f_sElasticsearchPort);
+            if (f_fEfkEnabled)
+                {
+                f_sElasticsearchHost = Env.get(ELASTICSEARCH_HOST, "elasticsearch." + sNamespace + ".svc.cluster.local");
+                f_sElasticsearchPort = Env.get(ELASTICSEARCH_PORT, DEFAULT_ES_PORT);
 
-            f_sElasticsearchUser     = Env.get(ELASTICSEARCH_USER, "");
-            f_sElasticsearchPassword = Env.get(ELASTICSEARCH_PASSWORD, "");
-            f_sOperatorHost          = "coherence-operator-service." + sNamespace + ".svc.cluster.local";
+                assertPort(f_sElasticsearchPort);
+
+                f_sElasticsearchUser     = Env.get(ELASTICSEARCH_USER, "");
+                f_sElasticsearchPassword = Env.get(ELASTICSEARCH_PASSWORD, "");
+                }
+            else
+                {
+                f_sElasticsearchHost     = null;
+                f_sElasticsearchPort     = null;
+                f_sElasticsearchUser     = null;
+                f_sElasticsearchPassword = null;
+                }
 
             for (String sNamesp : asExcludedNamespaces)
                 {
@@ -220,21 +229,24 @@ public class CoherenceOperator
                                 }
 
                             secret.putStringDataItem(OPERATOR_HOST_SECRET, f_sOperatorHost);
-                            if (f_sElasticsearchHost != null)
+                            if (f_fEfkEnabled)
                                 {
-                                secret.putStringDataItem(ELASTICSEARCH_HOST_SECRET, f_sElasticsearchHost);
-                                }
-                            if (f_sElasticsearchPort != null)
-                                {
-                                secret.putStringDataItem(ELASTICSEARCH_PORT_SECRET, f_sElasticsearchPort);
-                                }
-                            if (f_sElasticsearchUser != null)
-                                {
-                                secret.putStringDataItem(ELASTICSEARCH_USER_SECRET, f_sElasticsearchUser);
-                                }
-                            if (f_sElasticsearchPassword != null)
-                                {
-                                secret.putStringDataItem(ELASTICSEARCH_PASSWORD_SECRET, f_sElasticsearchPassword);
+                                if (f_sElasticsearchHost != null)
+                                    {
+                                    secret.putStringDataItem(ELASTICSEARCH_HOST_SECRET, f_sElasticsearchHost);
+                                    }
+                                if (f_sElasticsearchPort != null)
+                                    {
+                                    secret.putStringDataItem(ELASTICSEARCH_PORT_SECRET, f_sElasticsearchPort);
+                                    }
+                                if (f_sElasticsearchUser != null)
+                                    {
+                                    secret.putStringDataItem(ELASTICSEARCH_USER_SECRET, f_sElasticsearchUser);
+                                    }
+                                if (f_sElasticsearchPassword != null)
+                                    {
+                                    secret.putStringDataItem(ELASTICSEARCH_PASSWORD_SECRET, f_sElasticsearchPassword);
+                                    }
                                 }
 
                             if (secretExist)
@@ -332,6 +344,11 @@ public class CoherenceOperator
          * The operator namespace.
          */
         private final String f_sNamespace;
+
+        /**
+         * Boolean indicate whether EFK integration is enabled.
+         */
+        private final boolean f_fEfkEnabled;
 
         /**
          * The Elasticsearch host.

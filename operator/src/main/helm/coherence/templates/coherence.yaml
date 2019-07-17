@@ -22,9 +22,6 @@ spec:
   podManagementPolicy: {{ default "Parallel" .Values.store.podManagementPolicy }}
   updateStrategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   revisionHistoryLimit: {{ default 3 .Values.store.revisionHistoryLimit }}
   selector:
     matchLabels:
@@ -237,6 +234,14 @@ spec:
   {{- if .Values.store.overrideConfig }}
             - name: COH_OVERRIDE_CONFIG
               value: {{ .Values.store.overrideConfig | quote }}
+  {{- end }}
+  {{- if .Values.store.main.class }}
+            - name: COH_MAIN_CLASS
+              value: {{ .Values.store.main.class | quote }}
+  {{- end }}
+  {{- if .Values.store.main.arguments }}
+            - name: COH_MAIN_ARGS
+              value: {{ .Values.store.main.arguments | quote }}
   {{- end }}
   {{- if .Values.store.pof.config }}
             - name: COH_POF_CONFIG

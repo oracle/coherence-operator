@@ -4,6 +4,8 @@ pipeline {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
+        DOCKER_USERNAME = credentials('coherence-operator-release-dockerhub-username')
+        DOCKER_PASSWORD = credentials('coherence-operator-release-dockerhub-password')
     }
     stages {
         stage('release') {
@@ -13,6 +15,7 @@ pipeline {
             steps {
                 echo 'Release Coherence Operator'
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-release-maven-settings', tempBinDir: '') {
+                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     sh './etc/release.sh'
                 }
             }
