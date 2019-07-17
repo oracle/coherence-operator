@@ -130,16 +130,16 @@ to the `coherence-service-monitor.yaml` fragment.
 
 ## Troubleshooting
 
-## Helm Install of `coherence-operator` Fails
+### Helm install of `coherence-operator` fails, creating a custom resource definition (CRD)
 
-The helm installation for `coherence-operator` fails creating a custom resource definition (CRD). When you see this error, follow the recommendation in [Prometheus Operator: helm fails to create CRDs](https://github.com/helm/charts/tree/master/stable/prometheus-operator#user-content-helm-fails-to-create-crds)
+The helm installation for `coherence-operator` fails, creating a custom resource definition (CRD). When you see this error, follow the recommendation in [Prometheus Operator: helm fails to create CRDs](https://github.com/helm/charts/tree/master/stable/prometheus-operator#user-content-helm-fails-to-create-crds)
 to manually install the Prometheus Operator CRDs, and then install the `coherence-operator` chart with these additional set values.
 
 ```bash
 --set prometheusoperator.enabled=true --set prometheusoperator.prometheusOperator.createCustomResource=false
 ```
 
-### No Datasource Found
+### No datasource found
 
 When you see this error, manually create a datasource by clicking `Create your first data source` on the Grafana Home page, and fill in the following fields:
 
