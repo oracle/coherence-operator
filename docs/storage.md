@@ -47,7 +47,9 @@ spec:
     path: "/coh/mydata"
 ```
 
+
 The sample YAML file can be used to create PersistentVolume using the following ```kubectl``` command:
+
 ```
 kubectl create -f mypv0.yaml
 ```
@@ -110,6 +112,7 @@ kubectl delete pv mylocalsc-pv0
 
 ### Snapshot
 By default, Coherence snapshot uses the same location as active persistence to store snapshot data.
+
 
 If you want to use a different location, then add the following parameter during Helm installation:
 
