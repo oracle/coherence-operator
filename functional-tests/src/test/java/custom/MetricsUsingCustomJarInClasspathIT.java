@@ -241,31 +241,6 @@ public class MetricsUsingCustomJarInClasspathIT
             }
         }
 
-    protected static Queue<String> getPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer)
-        {
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-
-        Arguments arguments = Arguments.empty();
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-        arguments = arguments.with("logs", sPod);
-
-        if (sContainer != null)
-            {
-            arguments = arguments.with("-c", sContainer);
-            }
-
-        int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console));
-        if (nExitCode != 0 && !Arrays.asList(CLIENTS).contains(sPod))
-            {
-            throw new IllegalStateException("kubectl returned non-zero exit code capturing logs for Pod " + sPod);
-            }
-
-        return console.getCapturedOutputLines();
-        }
-
     private Queue<String> deleteClients()
         {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
