@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 11,
-  "iteration": 1562720394189,
+  "id": 17,
+  "iteration": 1562901576968,
   "links": [
     {
       "icon": "dashboard",
@@ -95,7 +95,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -289,7 +288,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Thread utilization across all members.",
       "fill": 1,
@@ -381,7 +379,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 1,
       "description": "The rate of tasks for this service across all members.",
       "fill": 1,
@@ -563,7 +560,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -1108,7 +1104,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -1189,7 +1184,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "description": "Indicates memory utilized by the cache entries. \nNote: If the unit-calculator is not BINARY or the service is not a DistributedCache service, then the details may be incorrect.",
       "format": "decbytes",
       "gauge": {
@@ -1242,7 +1236,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum("vendor:coherence_cache_unit_factor{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"} * "vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) ",
+          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) ",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1271,7 +1265,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -1323,7 +1316,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum("vendor:coherence_storage_index_total_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"})",
+          "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1352,7 +1345,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -1404,7 +1396,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(sum("vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name))",
+          "expr": "count(sum(vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1429,7 +1421,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -1490,6 +1481,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Partition Status Over Time",
       "tooltip": {
@@ -1535,7 +1527,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -1588,6 +1579,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Owned Primary and Backup Partitions",
       "tooltip": {
@@ -1630,7 +1622,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -1786,7 +1777,7 @@
       ],
       "targets": [
         {
-          "expr": "sum("vendor:coherence_cache_unit_factor{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"} * "vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name)  ",
+          "expr": "sum(vendor:coherence_cache_unit_factor{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"} * vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1794,7 +1785,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum("vendor:coherence_cache_size{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
+          "expr": "sum(vendor:coherence_cache_size{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1802,7 +1793,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum("vendor:coherence_cache_total_gets{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
+          "expr": "sum(vendor:coherence_cache_total_gets{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1810,7 +1801,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum("vendor:coherence_cache_total_puts{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
+          "expr": "sum(vendor:coherence_cache_total_puts{cluster=~\"$ClusterName\", coherence_service=~\"$ServiceName\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1838,7 +1829,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "description": "",
       "fontSize": "100%",
       "gridPos": {
@@ -1976,7 +1966,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1986,6 +1976,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "coherence's cluster",
           "value": "coherence's cluster"
         },
@@ -2011,10 +2002,11 @@
       {
         "allValue": null,
         "current": {
-          "text": "DistributedCache",
-          "value": "DistributedCache"
+          "text": "DistributedCachePersistence",
+          "value": "DistributedCachePersistence"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
@@ -2066,5 +2058,5 @@
   "timezone": "",
   "title": "Service Details Dashboard",
   "uid": "coh-service-details",
-  "version": 2
+  "version": 1
 }

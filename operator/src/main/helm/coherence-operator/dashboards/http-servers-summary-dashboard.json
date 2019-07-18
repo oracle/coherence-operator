@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 10,
-  "iteration": 1556853405442,
+  "id": 9,
+  "iteration": 1562896670680,
   "links": [
     {
       "icon": "dashboard",
@@ -56,7 +56,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -201,7 +200,7 @@
       ],
       "targets": [
         {
-          "expr": "count("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "count(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -209,7 +208,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "sum(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -217,7 +216,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum("vendor:coherence_extend_proxy_error_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "sum(vendor:coherence_connection_manager_total_error_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -225,7 +224,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum("vendor:coherence_extend_proxy_average_request_time{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "sum(vendor:coherence_connection_manager_average_request_time{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -242,7 +241,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -275,7 +273,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_request_count_total{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -285,6 +283,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "HTTP Requests/ sec",
       "tooltip": {
@@ -329,7 +328,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -363,7 +361,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -371,7 +369,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -379,7 +377,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_extend_proxy_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -387,7 +385,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -395,7 +393,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(idelta("vendor:coherence_extend_proxy_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -405,6 +403,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "HTTP Response Codes",
       "tooltip": {
@@ -446,7 +445,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -461,6 +460,7 @@
           "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -486,6 +486,7 @@
           "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
@@ -506,7 +507,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -537,5 +538,5 @@
   "timezone": "",
   "title": "HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
-  "version": 2
+  "version": 3
 }

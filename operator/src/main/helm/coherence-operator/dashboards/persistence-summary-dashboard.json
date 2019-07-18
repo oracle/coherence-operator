@@ -758,7 +758,7 @@
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values("vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

@@ -248,7 +248,7 @@
       ],
       "targets": [
         {
-          "expr": "avg("vendor:coherence_platform_os_available_processors{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_available_processors{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -258,7 +258,7 @@
           "refId": "D"
         },
         {
-          "expr": "avg("vendor:coherence_platform_os_free_swap_space_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_free_swap_space_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -268,7 +268,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg("vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -278,7 +278,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg("vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -288,7 +288,7 @@
           "refId": "E"
         },
         {
-          "expr": "avg("vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine) / avg("vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine) / avg(vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -339,7 +339,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg("vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_free_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -347,7 +347,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg("vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_platform_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -435,7 +435,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(avg_over_time("vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[1m])) by (machine)",
+          "expr": "avg(avg_over_time(vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[1m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -443,7 +443,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(avg_over_time("vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[5m])) by (machine)",
+          "expr": "avg(avg_over_time(vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[5m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -451,7 +451,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg(avg_over_time("vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[15m])) by (machine)",
+          "expr": "avg(avg_over_time(vendor:coherence_platform_os_system_load_average{cluster=~\"$ClusterName\"}[15m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

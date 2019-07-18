@@ -165,6 +165,7 @@ public class MetricsUsingCustomJarInClasspathIT
                     System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_misses_millis"));
                     System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_total_puts_millis"));
                     System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_total_gets_millis"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_units_bytes"));
                     System.err.println();
                     }
                 }
