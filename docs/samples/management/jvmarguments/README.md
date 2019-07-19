@@ -1,24 +1,17 @@
-# Provide arguments to the JVM that runs Coherence
+# Tune JVM Runtime Settings
 
-Any production enterprise Java application must carefully tune the JVM
-arguments for maximum performance, and Coherence is no exception.  This
-use-case explains how to convey JVM arguments to Coherence running
-inside Kubernetes.
+All production enterprise Java application must carefully tune the JVM settings for maximum performance. This sample shows how to set JVM arguments to Coherence running in Kubernetes.
 
-Please see the [Coherence Performance Tuning
-documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB)
-for authoritative information on this topic.
+Refer to [Coherence Performance Tuning
+documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB) for more information about JVM tuning.
 
-There are several values in the
+There are many values in the
 [values.yaml](https://github.com/oracle/coherence-operator/blob/master/operator/src/main/helm/coherence/values.yaml)
-file of the Coherence Helm chart that convey JVM arguments to the JVM
-that runs Coherence within Kubernetes.  Please see the source code for
-the authoritative documentation on these values.  Such values include
-the following.
+file of the Coherence Helm chart that sets JVM arguments to the JVM that runs Coherence within Kubernetes. The values are described in the following table:
 
-| `--set` left hand side | Meaning |
+| `--set` Arguments | Descirption |
 |------------------------|---------|
-| `store.maxHeap`        | Heap size arguments to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used. |
+| `store.maxHeap`        | Heap size arguments to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set, the JVM defaults are used. |
 | `store.jmx.maxHeap` | Heap size arguments passed to the MBean server JVM.  Same format and meaning as the preceding row. |
 | `store.jvmArgs` | Options passed directly to the JVM running Coherence within Kubernetes |
 | `store.javaOpts` | Miscellaneous JVM options to pass to the Coherence store container |
@@ -33,9 +26,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
                     
 1. Install the Coherence cluster
 
-   Issue the following to install the cluster with the following settings:
+   Install the cluster with the following settings:
    
-   * `--set store.maxHeap=1G` - Set max Heap to 1G
+   * `--set store.maxHeap=1G` - Set `maxHeap` to 1 GB
    
    * `--set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp"` - Set generic options
    
@@ -60,33 +53,33 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-66f9bb7b75-hqk4l   1/1     Running   0          13m
    storage-coherence-0                   1/1     Running   0          3m
    storage-coherence-1                   1/1     Running   0          2m
    storage-coherence-2                   0/1     Running   0          44s
    ```
-   
-   The JVM arguments will include the `store.` arguments specified above,
-   in addition to many others required by the operator and Coherence.
+
+   The JVM arguments include the `store.` argument and other arguments required by the operator and Coherence.
 
    ```
    -Xmx1g -Xms1g -Xloggc:/tmp/gc-log -server -Xcomp -Xms8g -Xmx8g -Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true
    ```
 
-1. Inspect the resulting values
+1. Inspect the result
 
-   To inspect the full JVM arguments, you can use `kubectl logs storage-coherence-0 -n sample-coherence-ns > /tmp/storage-coherence-0.log` 
-   and search for one of the arguments you specified.
+   To inspect the full JVM arguments, you can use `kubectl logs storage-coherence-0 -n sample-coherence-ns > /tmp/storage-coherence-0.log` and search for one of the arguments that you specified.
 
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the chart installed in this sample.
+Use the following command to delete the chart installed in this sample:
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
+Before starting another sample, ensure that all the pods are removed from previous sample.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+If you want to remove the `coherence-operator`, then include it in the `helm delete` command.
