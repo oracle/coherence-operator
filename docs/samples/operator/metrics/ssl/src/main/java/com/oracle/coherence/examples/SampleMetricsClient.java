@@ -21,7 +21,7 @@ public class SampleMetricsClient
     public static void main(String ... args)
         {
         try {
-            HttpSSLHelper clientHelper = new HttpSSLHelper(9095);
+            HttpSSLHelper clientHelper = new HttpSSLHelper(9612);
             Client clientStarLord = clientHelper.getClient(HttpSSLHelper.CERT_STAR_LORD,
                                                              HttpSSLHelper.STORE_PASSWORD,
                                                              HttpSSLHelper.KEY_PASSWORD,
