@@ -185,12 +185,12 @@ public class PrometheusOperatorHelmSubChartIT
         for (int i = 0; i < m_asReleases.length; i++)
             {
             System.err.println("validating cluster size of " + CLUSTER_NAME + " in namespace " + asCohNamespaces[i] + " for coherence release " + m_asReleases[i]);
-            Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("coherence_cluster_size", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
+            Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("vendor:coherence_cluster_size", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
                 greaterThanOrEqualTo(EXPECTED_CLUSTER_SIZE),
                 RetryFrequency.every(15, TimeUnit.SECONDS),
                 Timeout.after(2, TimeUnit.MINUTES));
 
-            Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("coherence_partition_assignment_HA_status", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
+            Eventually.assertThat(invoking(this).getPrometheusMetricAsLong("vendor:coherence_partition_assignment_ha_status_code", CLUSTER_NAME, asCohNamespaces[i], sOpNamespace),
                 greaterThanOrEqualTo((long)SimpleStrategyMBean.HAStatus.MACHINE_SAFE.getCode()),
                 RetryFrequency.every(15, TimeUnit.SECONDS),
                 Timeout.after(2, TimeUnit.MINUTES));

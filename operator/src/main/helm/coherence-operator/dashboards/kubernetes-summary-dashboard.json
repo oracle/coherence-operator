@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
+        "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 9,
-  "iteration": 1556853459131,
+  "id": 26,
+  "iteration": 1563506083746,
   "links": [
     {
       "icon": "dashboard",
@@ -70,7 +70,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -140,6 +139,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -212,7 +212,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(coherence_cluster_size{cluster=~\"$ClusterName\"}) by (machine, member, pod, role, namespace)",
+          "expr": "avg(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}) by (machine, member, pod, role, namespace)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -229,7 +229,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 9,
@@ -261,7 +260,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(coherence_platform_os_process_cpu_load{cluster=~\"$ClusterName\"}) by (pod)",
+          "expr": "avg(vendor:coherence_os_process_cpu_load{cluster=~\"$ClusterName\"}) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -271,6 +270,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Pod Process CPU Load",
       "tooltip": {
@@ -315,7 +315,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 9,
@@ -347,7 +346,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"} ",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"} ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -357,6 +356,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Pod Heap Memory Usage",
       "tooltip": {
@@ -398,7 +398,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -408,17 +408,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -432,17 +431,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

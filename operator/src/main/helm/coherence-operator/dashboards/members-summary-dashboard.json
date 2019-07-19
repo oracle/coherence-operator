@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
+        "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
-  "iteration": 1556853599117,
+  "id": 46,
+  "iteration": 1563526054959,
   "links": [
     {
       "icon": "dashboard",
@@ -67,12 +67,10 @@
       "links": [],
       "mode": "html",
       "title": "",
-      "transparent": false,
       "type": "text"
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -86,7 +84,7 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": null,
+        "col": 2,
         "desc": false
       },
       "styles": [
@@ -139,7 +137,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -190,7 +188,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to machines summary",
           "linkUrl": "/d/coh-machines-summary",
           "mappingType": 1,
           "pattern": "machine",
@@ -266,17 +264,7 @@
       ],
       "targets": [
         {
-          "expr": "max(coherence_node_packet_delivery_efficiency{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -284,7 +272,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -292,7 +280,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine) / sum(coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)  ",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -305,193 +293,170 @@
       "type": "table"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fill": 1,
+      "columns": [],
+      "description": "The top  $TopLimit Members that have the highest Total GC Time over the current time range.",
+      "fontSize": "100%",
       "gridPos": {
-        "h": 9,
+        "h": 6,
         "w": 12,
         "x": 0,
         "y": 8
       },
-      "id": 23,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
+      "id": 96,
       "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 2,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "Total Collection Time",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "Value",
+          "thresholds": [],
+          "type": "number",
+          "unit": "ms"
+        },
+        {
+          "alias": "Member Name",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for ${__cell}",
+          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "mappingType": 1,
+          "pattern": "member",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        }
+      ],
       "targets": [
         {
-          "expr": "coherence_node_publisher_success_rate{cluster=~\"$ClusterName\"}",
-          "format": "time_series",
-          "instant": false,
+          "expr": "topk($TopLimit, sum(delta(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}[$__range])) by (member))",
+          "format": "table",
+          "instant": true,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Publisher Success Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": "1",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Top $TopLimit Total GC Time  - Current Range",
+      "transform": "table",
+      "type": "table"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fill": 1,
+      "columns": [],
+      "description": "The top  $TopLimit Members that have the highest Total GC Count over the current time range.",
+      "fontSize": "100%",
       "gridPos": {
-        "h": 9,
+        "h": 6,
         "w": 12,
         "x": 12,
         "y": 8
       },
-      "id": 24,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
+      "id": 97,
       "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 2,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "Total Collection Count",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 0,
+          "pattern": "Value",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Member Name",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for ${__cell}",
+          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "mappingType": 1,
+          "pattern": "member",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
       "targets": [
         {
-          "expr": "coherence_node_receiver_success_rate{cluster=~\"$ClusterName\"}",
-          "format": "time_series",
-          "instant": false,
+          "expr": "topk($TopLimit, sum(delta(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
+          "format": "table",
+          "instant": true,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Receiver Success Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": "1",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Top $TopLimit Total GC Count  - Current Range",
+      "transform": "table",
+      "type": "table"
     },
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 14
       },
       "id": 65,
       "legend": {
@@ -518,7 +483,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) / coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"} * 100",
+          "expr": "(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) / vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"} * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -528,6 +493,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Memory Usage %",
       "tooltip": {
@@ -572,13 +538,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 14
       },
       "id": 66,
       "legend": {
@@ -605,7 +570,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -615,6 +580,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Heap Memory Usage",
       "tooltip": {
@@ -659,17 +625,17 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
-      "description": "The  Garbage Collection Count (by type) over the current time range.",
+      "description": "",
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 22
       },
       "id": 68,
+      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -698,18 +664,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(coherence_platform_gc_collection_count{subType=\"GarbageCollector\", cluster=~\"$ClusterName\"}[1m])",
+          "expr": "sum(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"}) by (member) - sum(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"} offset 1m) by (member)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}} : {{name}} ",
+          "legendFormat": "{{member}}",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
-      "title": "Garbage Collection Count",
+      "title": "Total Collection Count by Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -752,16 +719,16 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "The Garbage Collection Time (by type) over the current time range.",
+      "description": "",
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 25
+        "y": 22
       },
       "id": 69,
+      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -790,18 +757,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(coherence_platform_gc_collection_time{subType=\"GarbageCollector\", cluster=~\"$ClusterName\"}[1m]) ",
+          "expr": "sum(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}) by (member) - sum(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"} offset 1m) by (member)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}} : {{name}} ",
+          "legendFormat": "{{member}} ",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
-      "title": "Garbage Collection Time",
+      "title": "Total Garbage Collection Time by Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -838,10 +806,186 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "id": 23,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor:coherence_node_publisher_success_rate{cluster=~\"$ClusterName\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member: {{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Publisher Success Rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 24,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor:coherence_node_receiver_success_rate{cluster=~\"$ClusterName\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member: {{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Receiver Success Rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -851,17 +995,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -875,17 +1018,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -899,17 +1041,19 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Services",
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -923,17 +1067,19 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -947,8 +1093,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "1",
-          "value": "1"
+          "selected": true,
+          "text": "3",
+          "value": "3"
         },
         "hide": 0,
         "includeAll": false,
@@ -957,12 +1104,12 @@
         "name": "TopLimit",
         "options": [
           {
-            "selected": true,
+            "selected": false,
             "text": "1",
             "value": "1"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "3",
             "value": "3"
           },
@@ -1015,5 +1162,5 @@
   "timezone": "",
   "title": "Members Summary Dashboard",
   "uid": "coh-members-summary",
-  "version": 2
+  "version": 10
 }

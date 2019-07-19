@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 17,
+  "id": 28,
   "links": [
     {
       "icon": "dashboard",
@@ -122,7 +122,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(delta(coherence_cluster_members_departure_count[5m]))",
+          "expr": "avg(delta(vendor:coherence_cluster_members_departure_count[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -256,7 +256,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(coherence_platform_memory_heap_memory_usage_used / coherence_platform_memory_heap_memory_usage_max) by(cluster) * 100",
+          "expr": "avg(vendor:coherence_memory_heap_memory_usage_used / vendor:coherence_memory_heap_memory_usage_max) by(cluster) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -392,7 +392,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(coherence_platform_os_free_physical_memory_size / coherence_platform_os_total_physical_memory_size)  by (machine) * 100",
+          "expr": "avg(vendor:coherence_os_free_physical_memory_size / vendor:coherence_os_total_physical_memory_size)  by (machine) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -529,7 +529,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "count(avg(coherence_service_partitions_unbalanced{tag_type=~\"DistributedCache|FederatedCache\"}) by(name) > 0)",
+          "expr": "count(avg(vendor:coherence_service_partitions_unbalanced{type=~\"DistributedCache|FederatedCache\"}) by(name) > 0)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -667,7 +667,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "count(coherence_partition_assignment_HA_status <= 1)",
+          "expr": "count(vendor:coherence_partition_assignment_ha_status_code <= 1)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -804,7 +804,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(delta(coherence_node_guard_recover_count[5m]))",
+          "expr": "avg(delta(vendor:coherence_node_guard_recover_count[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -941,7 +941,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(delta(coherence_node_guard_terminate_count[5m]))",
+          "expr": "avg(delta(vendor:coherence_node_guard_terminate_count[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1078,7 +1078,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "count(coherence_cluster_size)",
+          "expr": "count(vendor:coherence_cluster_size)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1215,7 +1215,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(delta(coherence_federation_destination_error_responses_total[5m]))",
+          "expr": "avg(delta(vendor:coherence_federation_destination_status[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1352,7 +1352,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "coherence_extend_proxy_outgoing_byte_backlog",
+          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1450,5 +1450,5 @@
   "timezone": "",
   "title": "Alerts Dashboard",
   "uid": "coh-alerts",
-  "version": 5
+  "version": 1
 }

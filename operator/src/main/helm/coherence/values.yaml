@@ -509,7 +509,7 @@ service:
   # Default: 30000
   managementHttpPort:
   # The metrics http port as integer
-  # Default: 9095
+  # Default: 9612
   metricsHttpPort:
 
 # ---------------------------------------------------------------------------

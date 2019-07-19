@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
-  "iteration": 1556853653365,
+  "id": 30,
+  "iteration": 1563506426996,
   "links": [
     {
       "icon": "dashboard",
@@ -56,7 +56,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -91,7 +90,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
@@ -110,7 +109,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_persistence_mode",
+          "pattern": "persistence_mode",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -180,7 +179,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(name, tag_persistence_mode)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -188,7 +187,7 @@
           "refId": "B"
         },
         {
-          "expr": "max(coherence_service_persistence_latency_max{cluster=~\"$ClusterName\"}) by(name, tag_persistence_mode)",
+          "expr": "max(vendor:coherence_service_persistence_latency_max{cluster=~\"$ClusterName\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -202,7 +201,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -270,7 +268,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -295,7 +293,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(member)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -309,7 +307,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -428,6 +425,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
+          "linkTooltip": "Drill down to machines summary",
           "linkUrl": "/d/coh-machines-summary",
           "mappingType": 1,
           "pattern": "machine",
@@ -452,7 +450,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -460,7 +458,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -468,7 +466,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg(coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -476,7 +474,7 @@
           "refId": "D"
         },
         {
-          "expr": "avg(coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"} / coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"} / vendor:coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -493,7 +491,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "description": "Shows the total active space used by all services.",
       "fill": 1,
       "gridPos": {
@@ -527,7 +524,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Disk Space",
@@ -536,6 +533,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Active Space Used - All Services",
       "tooltip": {
@@ -580,7 +578,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "description": "Shows the total active space used by service.",
       "fill": 1,
       "gridPos": {
@@ -615,7 +612,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by (name)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -625,6 +622,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Active Space Used by Service",
       "tooltip": {
@@ -666,7 +664,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -676,17 +674,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -700,17 +697,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -728,13 +724,14 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Services",
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -752,13 +749,14 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -846,5 +844,5 @@
   "timezone": "",
   "title": "Persistence Summary Dashboard",
   "uid": "coh-persistence-summary",
-  "version": 3
+  "version": 2
 }

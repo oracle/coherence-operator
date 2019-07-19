@@ -39,7 +39,7 @@ spec:
   {{- end }}
 {{- end }}
       annotations:
-        prometheus.io/port: "9095"
+        prometheus.io/port: "9612"
         prometheus.io/scrape: "true"
 {{- if .Values.store }}
   {{- if .Values.store.annotations }}
@@ -159,7 +159,7 @@ spec:
             - name: "mgmt-http-port"
               containerPort: 30000
             - name: "metrics-port"
-              containerPort: 9095
+              containerPort: 9612
 {{- if .Values.store -}}
   {{- if .Values.store.ports -}}
     {{- range $name, $port := .Values.store.ports }}
@@ -203,7 +203,7 @@ spec:
             - name: COH_MGMT_HTTP_PORT
               value: "30000"
             - name: COH_METRICS_PORT
-              value: "9095"
+              value: "9612"
             - name: COH_MACHINE_NAME
               valueFrom:
                 fieldRef:

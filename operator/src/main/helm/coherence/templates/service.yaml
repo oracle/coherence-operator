@@ -35,7 +35,7 @@ spec:
       targetPort: "mgmt-http-port"
     - name: coherence-metrics-http
       protocol: TCP
-      port: {{ .Values.service.metricsHttpPort | default 9095 }}
+      port: {{ .Values.service.metricsHttpPort | default 9612 }}
       targetPort: "metrics-port"
 {{- if .Values.store.ports -}}
   {{- range $name, $port := .Values.store.ports }}

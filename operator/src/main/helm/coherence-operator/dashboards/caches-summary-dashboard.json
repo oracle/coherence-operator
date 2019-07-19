@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 15,
-  "iteration": 1556852971036,
+  "id": 20,
+  "iteration": 1563505131400,
   "links": [
     {
       "icon": "dashboard",
@@ -56,7 +56,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -91,7 +90,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to cache details for ${__cell}",
           "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "name",
@@ -110,7 +109,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -183,7 +182,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_cache_unit_factor{cluster=~\"$ClusterName\",tier=\"back\"} * coherence_cache_units{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
+          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -191,7 +190,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_cache_size{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
+          "expr": "sum(vendor:coherence_cache_size{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -208,7 +207,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "description": "Shows a graph of cache related memory used.",
       "fill": 1,
       "gridPos": {
@@ -243,7 +241,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_cache_unit_factor{cluster=~\"$ClusterName\",tier=\"back\"} * coherence_cache_units{cluster=~\"$ClusterName\",tier=\"back\"})",
+          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",tier=\"back\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -252,7 +250,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_storage_index_total_units{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -262,6 +260,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Cache Data Memory Usage",
       "tooltip": {
@@ -302,7 +301,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 10,
@@ -337,7 +335,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -372,7 +370,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to cache details for ${__cell}",
           "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_2}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "cache",
@@ -415,7 +413,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_storage_index_total_units{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
+          "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -429,7 +427,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -439,17 +437,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -463,17 +460,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -491,13 +487,14 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Services",
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -515,13 +512,14 @@
           "value": "$__all"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": true,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

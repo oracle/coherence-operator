@@ -116,7 +116,7 @@ Coherence 12.2.1.4.
 | `service.annotations` | Service annotations (in Yaml) | |
 | `service.externalPort` | The Extend service port| `20000`|
 | `service.managementPort` | The management http port | `30000` |
-| `service.metricsHttpPort` | The metrics http port | `9095` |
+| `service.metricsHttpPort` | The metrics http port | `9612` |
 | `resources.requests.cpu` | See (http://kubernetes.io/docs/user-guide/compute-resources) | `0` |
 | `resources.limits.cpu` | See (http://kubernetes.io/docs/user-guide/compute-resources) | `32`|
 | `coherence.image` | Coherence image to be pulled | `"oracle/coherence:12.2.1.3"` |

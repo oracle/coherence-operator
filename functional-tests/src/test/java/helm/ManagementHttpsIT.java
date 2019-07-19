@@ -80,7 +80,7 @@ public class ManagementHttpsIT
         {
         String sNamespace = getK8sNamespace();
 
-        try (Application app = portForwardCoherencePod(s_k8sCluster, sNamespace, m_sRelease, 9095))
+        try (Application app = portForwardCoherencePod(s_k8sCluster, sNamespace, m_sRelease, 9612))
             {
             PortMapping    portMapping  = app.get(PortMapping.class);
             int            nPort        = portMapping.getPort().getActualPort();

@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1556853744299,
+  "id": 13,
+  "iteration": 1563520101621,
   "links": [
     {
       "icon": "dashboard",
@@ -66,7 +66,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -187,7 +186,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
@@ -206,7 +205,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_host_url",
+          "pattern": "host_url",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -279,7 +278,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_extend_proxy_connection_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -287,7 +286,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(coherence_extend_proxy_messages_received_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_total_messages_received{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -295,7 +294,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(coherence_extend_proxy_messages_sent_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -303,7 +302,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(coherence_extend_proxy_bytes_received_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_total_bytes_received {cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -311,7 +310,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_extend_proxy_bytes_sent_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -319,7 +318,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_extend_proxy_outgoing_byte_backlog{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -327,7 +326,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_extend_proxy_unauthorized_connection_attempts{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, tag_host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_unauthorized_connection_attempts{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -341,7 +340,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "description": "",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -376,29 +375,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Total Bytes Received",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
         },
         {
           "alias": "Remote Client Address",
@@ -411,63 +394,12 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_remote_client_address",
+          "pattern": "remote_address",
           "preserveFormat": false,
           "sanitize": false,
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Total Bytes Sent",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Outgoing Byte Backlog",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "50"
-          ],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Connection Time",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
         },
         {
           "alias": "Remote Client Port",
@@ -480,13 +412,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_remote_client_port",
+          "pattern": "remote_port",
           "thresholds": [],
           "type": "number",
           "unit": "none"
         },
         {
-          "alias": "",
+          "alias": "Connection Time",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -494,39 +426,15 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "decimals": 2,
-          "pattern": "/.*/",
+          "pattern": "Value",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "ms"
         }
       ],
       "targets": [
         {
-          "expr": "avg(coherence_extend_connection_bytes_received_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (tag_remote_client_address, tag_remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "avg(coherence_extend_connection_bytes_sent_total{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (tag_remote_client_address, tag_remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "avg(coherence_extend_connection_outgoing_byte_backlog{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (tag_remote_client_address, tag_remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "expr": "avg(coherence_extend_connection_time_MS{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (tag_remote_client_address, tag_remote_client_port, member)",
+          "expr": "avg(vendor:coherence_connection_connection_time_millis{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_address, remote_port, member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -534,7 +442,7 @@
           "refId": "D"
         }
       ],
-      "title": "Current Proxy Server Connect for $ServiceName",
+      "title": "Current Proxy Server Connections for $ServiceName",
       "transform": "table",
       "type": "table"
     },
@@ -543,7 +451,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 9,
@@ -575,7 +482,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "coherence_extend_proxy_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
+          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\", protocol=~\"tcp\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -584,6 +491,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Outgoing Byte Backlog",
       "tooltip": {
@@ -601,11 +509,12 @@
       },
       "yaxes": [
         {
+          "decimals": 0,
           "format": "decbytes",
-          "label": null,
+          "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -627,7 +536,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "fill": 1,
       "gridPos": {
@@ -660,7 +568,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "coherence_extend_proxy_outgoing_message_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
+          "expr": "vendor:coherence_connection_manager_outgoing_message_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -669,6 +577,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Outgoing Message Backlog",
       "tooltip": {
@@ -713,7 +622,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Total bytes sent (bytes/sec) of all Proxy Server members for $ServiceName.",
       "fill": 1,
@@ -750,7 +658,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_extend_proxy_bytes_sent_total{cluster=~\"$ClusterName\",tag_protocol=~\"tcp\", name=~\"$ServiceName\"}[1m])) by (member)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\", name=~\"$ServiceName\"}[1m])) by (member)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -761,6 +669,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Bytes Sent/ sec - $ServiceName",
       "tooltip": {
@@ -805,7 +714,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": 0,
       "description": "Total bytes received (bytes/sec) of all Proxy Server members for $ServiceName.",
       "fill": 1,
@@ -842,7 +750,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_extend_proxy_bytes_received_total{cluster=~\"$ClusterName\",tag_protocol=~\"tcp\"}[1m])) by (member)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}[1m])) by (member)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -853,6 +761,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Bytes Received/ sec - $ServiceName",
       "tooltip": {
@@ -894,7 +803,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -904,17 +813,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -928,17 +836,16 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(coherence_cluster_size{cluster=~\"$ClusterName\"}, tag_version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -952,17 +859,19 @@
       {
         "allValue": null,
         "current": {
-          "text": "ExtendTcpProxyService-2",
-          "value": "ExtendTcpProxyService-2"
+          "selected": true,
+          "text": "Proxy",
+          "value": "Proxy"
         },
         "datasource": "Prometheus",
+        "definition": "label_values(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\"}, name)",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "ServiceName",
         "options": [],
-        "query": "label_values(coherence_extend_proxy_messages_sent_total{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1007,5 +916,5 @@
   "timezone": "",
   "title": "Proxy Server Detail Dashboard",
   "uid": "coh-proxy-server-detail",
-  "version": 2
+  "version": 1
 }

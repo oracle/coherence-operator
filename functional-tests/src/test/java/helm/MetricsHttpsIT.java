@@ -30,7 +30,7 @@ public class MetricsHttpsIT
     @BeforeClass
     public static void setup() throws Exception
         {
-        BaseHttpsTest.setup("values/helm-values-ssl-metrics.yaml", COHERENCE_IMAGE, 9095);
+        BaseHttpsTest.setup("values/helm-values-ssl-metrics.yaml", COHERENCE_IMAGE, 9612);
         }
 
     @AfterClass

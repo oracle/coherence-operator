@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 12,
-  "iteration": 1556853255735,
+  "id": 9,
+  "iteration": 1563518534200,
   "links": [
     {
       "icon": "dashboard",
@@ -67,7 +67,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -150,25 +149,9 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_participant_type",
+          "pattern": "participant_type",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "State",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "tag_participant_state",
-          "thresholds": [],
-          "type": "string",
           "unit": "short"
         },
         {
@@ -185,7 +168,7 @@
           "pattern": "Value #B",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "decbytes"
         },
         {
           "alias": "Entries Sent",
@@ -252,7 +235,7 @@
           "unit": "ms"
         },
         {
-          "alias": "% Complete",
+          "alias": "Status",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -264,19 +247,33 @@
           "mappingType": 1,
           "pattern": "Value #G",
           "thresholds": [],
-          "type": "number",
-          "unit": "percent"
+          "type": "string",
+          "unit": "percent",
+          "valueMaps": [
+            {
+              "text": "OK",
+              "value": "0"
+            },
+            {
+              "text": "WARNING",
+              "value": "1"
+            },
+            {
+              "text": "ERROR",
+              "value": "2"
+            }
+          ]
         },
         {
-          "alias": "",
+          "alias": "Node Id",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "decimals": 2,
-          "pattern": "/.*/",
+          "decimals": 0,
+          "pattern": "node_id",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -284,15 +281,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_federation_destination_current_bandwidth_MB_per_sec{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(coherence_federation_destination_bytes_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "sum(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -300,7 +289,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_federation_destination_entries_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "sum(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -308,7 +297,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_federation_destination_msg_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "sum(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -316,7 +305,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(coherence_federation_destination_records_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "sum(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -324,7 +313,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(coherence_federation_destination_replicate_all_total_time_ms{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "sum(vendor:coherence_federation_destination_replicate_all_total_time_millis{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -332,7 +321,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(coherence_federation_destination_replicate_all_percent_complete{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, tag_participant_type, nodeId, tag_participant_state)",
+          "expr": "avg(vendor:coherence_federation_destination_status{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -349,7 +338,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "description": "",
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -357,13 +346,11 @@
         "x": 0,
         "y": 8
       },
-      "id": 6,
+      "id": 7,
+      "interval": "",
       "legend": {
-        "alignAsTable": false,
         "avg": false,
         "current": true,
-        "hideEmpty": false,
-        "hideZero": false,
         "max": false,
         "min": false,
         "show": true,
@@ -384,19 +371,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(coherence_federation_destination_current_bandwidth_MB_per_sec{cluster=~\"$ClusterName\", name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (node_id)",
           "format": "time_series",
-          "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Node: {{nodeId}}",
+          "legendFormat": "Node: {{node_id}}",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
-      "title": "Bandwidth In Use per Member",
+      "title": "Data Sent  per Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -412,7 +399,8 @@
       },
       "yaxes": [
         {
-          "format": "MBs",
+          "decimals": null,
+          "format": "decbytes",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -420,12 +408,12 @@
           "show": true
         },
         {
-          "format": "Mbits",
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": false
+          "show": true
         }
       ],
       "yaxis": {
@@ -438,7 +426,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -446,7 +433,8 @@
         "x": 12,
         "y": 8
       },
-      "id": 7,
+      "id": 16,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": true,
@@ -470,16 +458,17 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_federation_destination_entries_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (nodeId)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (node_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Node: {{nodeId}}",
+          "legendFormat": "Node: {{node_id}}",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Entries Sent per Member",
       "tooltip": {
@@ -523,201 +512,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "The 90-percentile value of the time (in milliseconds) it took to apply the replication messages on the destination.",
-      "fill": 1,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 9,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideEmpty": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "avg(coherence_federation_destination_msg_apply_time_percentile_ms{cluster=~\"$ClusterName\", name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "NodeId: {{nodeId}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Destination Processing Delay",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "ms",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "Mbits",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "description": "The 90-percentile value of the time (in milliseconds) taken by transmission of replication messages and the corresponding acknowledge messages over the network.",
-      "fill": 1,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 10,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideEmpty": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "avg(coherence_federation_destination_msg_network_round_trip_time_percentile_ms{cluster=~\"$ClusterName\", name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "NodeId: {{nodeId}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Network Roundtrip Delay",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "ms",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "Mbits",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "description": "The 90-percentile value of the time (in milliseconds) the journal records are in the cache waiting to be replicated.",
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 16
       },
-      "id": 11,
+      "id": 17,
+      "interval": "",
       "legend": {
-        "alignAsTable": false,
         "avg": false,
         "current": true,
-        "hideEmpty": true,
-        "hideZero": true,
         "max": false,
         "min": false,
         "show": true,
@@ -738,18 +544,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(coherence_federation_destination_record_backlog_delay_time_percentile_ms{cluster=~\"$ClusterName\", name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (node_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "NodeId: {{nodeId}}",
+          "legendFormat": "Node: {{node_id}}",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
-      "title": "Local Processing Delay",
+      "title": "Entries Sent per Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -765,7 +572,7 @@
       },
       "yaxes": [
         {
-          "format": "ms",
+          "format": "short",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -773,12 +580,12 @@
           "show": true
         },
         {
-          "format": "Mbits",
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": false
+          "show": true
         }
       ],
       "yaxis": {
@@ -791,15 +598,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "decimals": 0,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 16
       },
       "id": 12,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": true,
@@ -824,24 +632,25 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(coherence_federation_destination_error_responses_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (nodeId)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_error_responses{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}[1m])) by (node_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Error Responses Node: {{nodeId}}",
+          "legendFormat": "Error Responses Node: {{node_id}}",
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_federation_destination_msg_unacked_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
+          "expr": "sum(vendor:coherence_federation_destination_total_msg_unacked{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (node_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Message Unacked Node: {{nodeId}}",
+          "legendFormat": "Message Unacked Node: {{node_id}}",
           "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Errors and Un-Acked Messages",
       "tooltip": {
@@ -888,7 +697,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 24
       },
       "id": 13,
       "links": [],
@@ -898,13 +707,12 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 26
       },
       "id": 8,
       "links": [],
@@ -965,7 +773,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_name",
+          "pattern": "name",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -981,7 +789,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_participant_type",
+          "pattern": "participant_type",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -1000,7 +808,7 @@
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "decbytes"
         },
         {
           "alias": "Entries Received",
@@ -1086,7 +894,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_federation_origin_bytes_received_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
+          "expr": "sum(vendor:coherence_federation_origin_total_bytes_received {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1094,7 +902,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_federation_origin_entries_received_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
+          "expr": "sum(vendor:coherence_federation_origin_total_entries_received {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1102,7 +910,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_federation_origin_records_received_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
+          "expr": "sum(vendor:coherence_federation_origin_total_records_received {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1110,20 +918,12 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_federation_origin_msg_received_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
+          "expr": "sum(vendor:coherence_federation_origin_total_msg_received {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
-        },
-        {
-          "expr": "sum(coherence_federation_origin_record_backlog_delay_time_percentile_ms{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "E"
         }
       ],
       "title": "Origins",
@@ -1132,13 +932,12 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 32
       },
       "id": 15,
       "links": [],
@@ -1199,7 +998,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_name",
+          "pattern": "name",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -1215,7 +1014,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "tag_participant_type",
+          "pattern": "participant_type",
           "thresholds": [],
           "type": "string",
           "unit": "short"
@@ -1237,15 +1036,47 @@
           "unit": "short"
         },
         {
-          "alias": "",
+          "alias": "Node Id",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
+          "decimals": 0,
+          "pattern": "node_id",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Total Bytes Received",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
-          "pattern": "/.*/",
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "decbytes"
+        },
+        {
+          "alias": "Total Un-Acked Messages",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #B",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -1253,12 +1084,20 @@
       ],
       "targets": [
         {
-          "expr": "sum(coherence_federation_origin_bytes_received_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, nodeId, tag_member)",
+          "expr": "sum(vendor:coherence_federation_origin_total_bytes_received {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, node_id, member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "expr": "sum(vendor:coherence_federation_origin_total_msg_unacked {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"})by (coherence_service, name, node_id, member)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "title": "Origins Member Details",
@@ -1270,13 +1109,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 38
       },
       "id": 14,
       "legend": {
@@ -1303,16 +1141,17 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_federation_destination_msg_unacked_total{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (nodeId)",
+          "expr": "sum(vendor:coherence_federation_destination_total_msg_unacked{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~\"$ServiceName\"}) by (node_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Message Unacked Node: {{nodeId}}",
+          "legendFormat": "Message Unacked Node: {{node_id}}",
           "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Origins Un-Acked Messages",
       "tooltip": {
@@ -1355,7 +1194,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1365,17 +1204,19 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
+          "selected": true,
+          "text": "PrimaryCluster",
+          "value": "PrimaryCluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(coherence_cluster_size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1389,18 +1230,19 @@
       {
         "allValue": null,
         "current": {
-          "isNone": true,
-          "text": "None",
-          "value": ""
+          "selected": true,
+          "text": "SecondaryCluster",
+          "value": "SecondaryCluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Destination",
         "multi": false,
         "name": "Destination",
         "options": [],
-        "query": "label_values(coherence_federation_destination_bytes_sent_total{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1414,18 +1256,19 @@
       {
         "allValue": null,
         "current": {
-          "isNone": true,
-          "text": "None",
-          "value": ""
+          "selected": true,
+          "text": "FederatedCache",
+          "value": "FederatedCache"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "ServiceName",
         "options": [],
-        "query": "label_values(coherence_federation_destination_bytes_sent_total{cluster=~\"$ClusterName\",name=~\"$Destination\"}, coherence_service)",
+        "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\"}, coherence_service)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1470,5 +1313,5 @@
   "timezone": "",
   "title": "Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 2
+  "version": 1
 }

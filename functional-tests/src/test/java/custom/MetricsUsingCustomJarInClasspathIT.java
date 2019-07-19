@@ -158,13 +158,14 @@ public class MetricsUsingCustomJarInClasspathIT
                     Queue<String> metricsScrape = getMetricsScrape(sPod);
                     assertNotNull("Missing expected metrics scrape from pod " + sPod, metricsScrape);
                     System.err.println("Metrics scrape from pod " + sPod);
-                    System.err.println(getMetric(metricsScrape, "coherence_cluster_size"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_size"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_hits"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_misses"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_misses_millis"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_total_puts_millis"));
-                    System.err.println(getMetric(metricsScrape, "coherence_cache_total_gets_millis"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cluster_size"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_size"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_hits"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_misses"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_misses_millis"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_total_puts_millis"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_total_gets_millis"));
+                    System.err.println(getMetric(metricsScrape, "vendor:coherence_cache_units_bytes"));
                     System.err.println();
                     }
                 }
@@ -184,7 +185,7 @@ public class MetricsUsingCustomJarInClasspathIT
      */
     Queue<String> getMetricsScrape(String sPod)
         {
-        return processHttpRequest(s_k8sCluster, sPod, "GET", "localhost", 9095, "/metrics");
+        return processHttpRequest(s_k8sCluster, sPod, "GET", "localhost", 9612, "/metrics");
         }
 
     /**
