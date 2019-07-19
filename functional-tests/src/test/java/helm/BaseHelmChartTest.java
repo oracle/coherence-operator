@@ -1350,25 +1350,7 @@ public abstract class BaseHelmChartTest
 
     protected static Queue<String> getPodLog(K8sCluster cluster, String sNamespace, String sPod)
         {
-        CapturingApplicationConsole console   = new CapturingApplicationConsole();
-
-        Arguments arguments = Arguments.empty();
-
-        if (sNamespace != null)
-            {
-            arguments = arguments.with("--namespace", sNamespace);
-            }
-
-        arguments = arguments.with("logs", sPod);
-
-        int nExitCode = cluster.kubectlAndWait(arguments, Console.of(console), LaunchLogging.disabled());
-
-        if (nExitCode != 0)
-            {
-                throw new IllegalStateException("kubectl returned non-zero exit code capturing logs for Pod " + sPod);
-            }
-
-        return console.getCapturedOutputLines();
+        return getPodLog(cluster, sNamespace, sPod, null);
         }
 
     protected static Queue<String> getPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer)
