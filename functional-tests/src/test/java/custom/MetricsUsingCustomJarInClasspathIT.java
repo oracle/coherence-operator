@@ -185,7 +185,7 @@ public class MetricsUsingCustomJarInClasspathIT
      */
     Queue<String> getMetricsScrape(String sPod)
         {
-        return processHttpRequest(s_k8sCluster, sPod, "GET", "localhost", 9095, "/metrics");
+        return processHttpRequest(s_k8sCluster, sPod, "GET", "localhost", 9612, "/metrics");
         }
 
     /**

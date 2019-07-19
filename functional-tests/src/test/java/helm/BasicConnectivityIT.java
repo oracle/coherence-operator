@@ -175,7 +175,7 @@ public class BasicConnectivityIT
 
     private Application portForwardMetrics() throws Exception
         {
-        return portForwardCoherencePod(s_k8sCluster, m_sNamespace, m_sRelease, 9095);
+        return portForwardCoherencePod(s_k8sCluster, m_sNamespace, m_sRelease, 9612);
         }
 
     private ConfigurableCacheFactory getCacheFactory(int nPort)
