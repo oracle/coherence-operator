@@ -1,4 +1,4 @@
-# Access Coherence via default proxy port
+# Access Coherence via the Default Proxy Port
 
 This sample shows how to access the Coherence cluster via the default proxy service
 exposed on port 20000.
@@ -7,21 +7,21 @@ exposed on port 20000.
 
 ## Sample files
 
-* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client config for extend client
+* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client configuration for the extend client
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed the Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/extend/default` directory and ensure you have your maven build environment set for JDK8 and build the project.
-   
+1. Change to the `samples/coherence-deployments/extend/default` directory. Ensure that you have your maven build environment set for JDK8, and build the project.
+
    ```bash
    $ mvn clean install
    ```
 
-1. Install the Coherence cluster
+2. Install the Coherence cluster.
 
    ```bash
    $ helm install \
@@ -35,33 +35,37 @@ Ensure you have already installed the Coherence Operator by using the instructio
       coherence/coherence
    ```
 
-   Once the install has completed, issue the following command to list the pods:
-   
+   Once the installation is complete, get the list of pods by using the `kubectl` command:
+
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+
+   All the three storage-coherence pods should be running and ready, as shown in the output:
+
+   ```console
    NAME                  READY   STATUS    RESTARTS   AGE
    storage-coherence-0   1/1     Running   0          4m
    storage-coherence-1   1/1     Running   0          2m
    storage-coherence-2   1/1     Running   0          1m
    ```
-       
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as above.
 
-1. Port forward the proxy port on the storage-coherence-0 pod.
+
+3. Port forward the proxy port on the storage-coherence-0 pod using the `kubectl` command:
 
    ```bash
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-1. Connect via QueryPlus and issue CohQL commands
+4. Connect via QueryPlus and run the `CohQL` commands.
 
-   Issue the following command to run QueryPlus:
+   Run the following command to execute QueryPlus:
 
    ```bash
    $ mvn exec:java
    ```
 
-   Run the following CohQL commands to insert data into the cluster.
+   Run the following `CohQL` commands to insert data into the cluster.
 
    ```sql
    insert into 'test' key('key-1') value('value-1');
@@ -75,14 +79,12 @@ Ensure you have already installed the Coherence Operator by using the instructio
    1
    ```
 
-## Uninstalling the Chart
+## Uninstall the Chart
 
-Carry out the following commands to delete the chart installed in this sample.
+Run the following command to delete the chart installed in this sample.
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous samples.
-
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+Before starting another sample, ensure that all  pods are removed from the previous sample. To remove `coherence-operator`, use the `helm delete` command.

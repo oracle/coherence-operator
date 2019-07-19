@@ -1,19 +1,19 @@
-# Installing Multiple Coherence clusters with one Operator
+# Installing Multiple Coherence Clusters with One Operator
 
-This sample shows how the Coherence Operator can manage two or more Coherence clusters and
+This sample shows how Oracle Coherence Operator can manage two or more Coherence clusters, and
 how you can see the logs from both clusters using Kibana.
 
 [Return to Coherence Deployments samples](../) / [Return to samples](../../README.md#list-of-samples)
 
 ## Installation Steps
 
-1. Install Coherence Operator 
+1. Install Oracle Coherence Operator.
 
-   Issue the following command to install `coherence-operator` with log capture enabled:
-   
-   > **Note:** If you already have the `coherence-operator` installed without log capture enabled, you
-   > must delete it via `helm delete coherence-operator --purge`, before continuing.
-   
+   Run the following command to install `coherence-operator` with log capture enabled:
+
+   > **Note:** If you have already installede `coherence-operator` without log capture enabled, you
+   > must delete it using `helm delete coherence-operator --purge` before continuing.
+
    ```bash
    $ helm install \
       --namespace sample-coherence-ns \
@@ -23,22 +23,22 @@ how you can see the logs from both clusters using Kibana.
       --set "targetNamespaces={sample-coherence-ns}" \
       coherence/coherence-operator  
    ```
-   
-   Once the install has completed, issue the following command to list the pods:
+
+   After installation, run the following command to list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   Along with `coherence-operator`, the command also returns the `elasticsearch` and `kibana` pods.
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-7f596c6796-nns9n   2/2     Running   0          41s
    elasticsearch-5b5474865c-86888        1/1     Running   0          41s
    kibana-f6955c4b9-4ndsh                1/1     Running   0          41s
    ```
-   
-   Along with the `coherence-operator`, you should also see `elasticsearch` and `kibana` pods.
+2. Install the first Coherence cluster, `cluster-a`.
 
-1. Install first Coherence cluster `cluster-a`
-
-   for each of the clusters, we only create 2 pods to save on resources.
+   For each cluster, create only two pods to save  resources.
 
    ```bash
    $ helm install \
@@ -51,10 +51,10 @@ how you can see the logs from both clusters using Kibana.
       --set logCaptureEnabled=true \
       coherence/coherence
    ```
-   
-1. Install second Coherence cluster `cluster-b`
 
-   for each of the clusters, we only create 2 pods to save on resources.
+3. Install the second Coherence cluster, `cluster-b`
+
+   For each cluster, create only two pods to save resources.
 
    ```bash
    $ helm install \
@@ -73,34 +73,33 @@ how you can see the logs from both clusters using Kibana.
 Use the `port-forward-kibana.sh` script in the
 [../../common](../../../common) directory to view log messages.
 
-1. Start the port-forward
+1. Start port forwarding.
 
    ```bash
    $ ./port-forward-kibana.sh sample-coherence-ns
-
+   ```
+   ```console
    Forwarding from 127.0.0.1:5601 -> 5601
    Forwarding from [::1]:5601 -> 5601
    ```
-1. Access Kibana using the following URL:
+2. Access Kibana using the following URL:
 
    [http://127.0.0.1:5601/](http://127.0.0.1:5601/)
-   
-   > **Note:** It may take up to 5 minutes for the data to reach the elasticsearch instance.   
-   
-   Once logged in, click on `Dashboard` on the left and choose `Coherence Cluster - All Messages`.
-   You should see messages from both `cluster-a` and `cluster-b`.
-   
-   ![Coherence Cluster - All Messages](img/kibana-dashboard.png)
-   
-   
-## Uninstalling the Charts
 
-Carry out the following commands to delete the charts installed in this sample.
+   > **Note:** It may take up to five minutes for the data to reach the elasticsearch instance.   
+
+   Once logged in, click `Dashboard` on the left and choose `Coherence Cluster - All Messages`.
+   You should see messages from both clusters, `cluster-a` and `cluster-b`.
+
+   ![Coherence Cluster - All Messages](img/kibana-dashboard.png)
+
+
+## Uninstall the Charts
+
+Run the following command to delete the charts installed in this sample.
 
 ```bash
 $ helm delete cluster-a cluster-b --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
-
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+Before starting another sample, ensure that all  pods are removed from the previous sample. To remove `coherence-operator`, use the `helm delete` command.
