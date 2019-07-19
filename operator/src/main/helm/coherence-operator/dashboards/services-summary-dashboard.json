@@ -27,7 +27,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor:coherence_service_owned_partitioned_primary{cluster=~\"$ClusterName\"}[60s])",
+        "expr": "changes(vendor:coherence_service_owned_partitions_primary{cluster=~\"$ClusterName\"}[60s])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,

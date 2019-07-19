@@ -27,7 +27,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor:coherence_service_owned_partitioned_primary{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}[1m])",
+        "expr": "changes(vendor:coherence_service_owned_partitions_primary{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -1396,7 +1396,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(sum(vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name))",
+          "expr": "count(sum(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1561,7 +1561,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_owned_partitioned_primary{cluster=~\"$ClusterName\", name=~\"$ServiceName\"})   ",
+          "expr": "avg(vendor:coherence_service_owned_partitions_primary{cluster=~\"$ClusterName\", name=~\"$ServiceName\"})   ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1777,7 +1777,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_cache_unit_factor{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"} * vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name)  ",
+          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}) by (name)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,

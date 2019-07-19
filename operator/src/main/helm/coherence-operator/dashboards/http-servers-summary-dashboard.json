@@ -377,7 +377,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(idelta(vendor:coherence_extend_proxy_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

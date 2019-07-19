@@ -151,7 +151,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -232,7 +232,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -313,7 +313,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"} / vendor:coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"} / vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -1388,7 +1388,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1396,7 +1396,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1481,7 +1481,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_non_heap_memory_usage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "vendor:coherence_memory_non_heap_memory_usage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1489,7 +1489,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_platform_memory_non_heap_memory_usage_committed{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "vendor:coherence_memory_non_heap_memory_usage_committed{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1577,7 +1577,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(vendor:coherence_platform_gc_collection_count{subType=\"GarbageCollector\", cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m]) ",
+          "expr": "idelta(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m]) ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1663,7 +1663,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(vendor:coherence_platform_gc_collection_time{subType=\"GarbageCollector\", cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m])",
+          "expr": "idelta(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

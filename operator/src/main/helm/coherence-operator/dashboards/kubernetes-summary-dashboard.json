@@ -261,7 +261,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(vendor:coherence_platform_os_process_cpu_load{cluster=~\"$ClusterName\"}) by (pod)",
+          "expr": "avg(vendor:coherence_os_process_cpu_load{cluster=~\"$ClusterName\"}) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -347,7 +347,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_platform_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"} ",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"} ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

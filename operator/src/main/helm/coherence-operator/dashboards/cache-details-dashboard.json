@@ -1655,7 +1655,7 @@
         "multi": false,
         "name": "CacheName",
         "options": [],
-        "query": "label_values(vendor:coherence_cache_units{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}, name)",
+        "query": "label_values(vendor:coherence_cache_units_bytes{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
