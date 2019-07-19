@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1562896095120,
+  "id": 20,
+  "iteration": 1563505131400,
   "links": [
     {
       "icon": "dashboard",
@@ -90,7 +90,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to cache details for ${__cell}",
           "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "name",
@@ -109,7 +109,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -335,7 +335,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -370,7 +370,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to cache details for ${__cell}",
           "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_2}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "cache",
@@ -437,9 +437,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -463,9 +460,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -489,7 +483,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -515,7 +508,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -572,5 +564,5 @@
   "timezone": "",
   "title": "Caches Summary Dashboard",
   "uid": "coh-caches-summary",
-  "version": 1
+  "version": 2
 }

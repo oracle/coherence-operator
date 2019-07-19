@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 17,
-  "iteration": 1562901576968,
+  "id": 25,
+  "iteration": 1563528294180,
   "links": [
     {
       "icon": "dashboard",
@@ -180,7 +180,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -569,6 +569,7 @@
         "y": 24
       },
       "id": 22,
+      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -594,7 +595,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_service_request_pending_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}  ",
+          "expr": "vendor:coherence_service_request_pending_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1104,6 +1105,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "decimals": 0,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -1688,7 +1690,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to cache details for ${__cell}",
           "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "name",
@@ -1976,9 +1978,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -2002,8 +2001,6 @@
       {
         "allValue": null,
         "current": {
-          "text": "DistributedCachePersistence",
-          "value": "DistributedCachePersistence"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -2059,4 +2056,5 @@
   "title": "Service Details Dashboard",
   "uid": "coh-service-details",
   "version": 1
+}
 }

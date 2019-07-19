@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 28,
   "links": [
     {
       "icon": "dashboard",
@@ -1215,7 +1215,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(delta(vendor:coherence_federation_destination_total_error_responses[5m]))",
+          "expr": "avg(delta(vendor:coherence_federation_destination_status[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 3,
-  "iteration": 1562896403311,
+  "id": 19,
+  "iteration": 1563505913815,
   "links": [
     {
       "icon": "dashboard",
@@ -776,7 +776,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -1000,7 +1000,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -1163,7 +1163,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -1284,8 +1284,56 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
-          "pattern": "/.*/",
+          "mappingType": 1,
+          "pattern": "",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Eviction Count",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 0,
+          "pattern": "Value #H",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Locks Pending",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #I",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Locks Granted",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #J",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -1349,6 +1397,30 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "G"
+        },
+        {
+          "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\", cache=~\"$CacheName\"}) by (member)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "H"
+        },
+        {
+          "expr": "sum(vendor:coherence_storage_manager_locks_pending{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\", cache=~\"$CacheName\"}) by (member)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "I"
+        },
+        {
+          "expr": "sum(vendor:coherence_storage_manager_locks_granted{cluster=~\"$ClusterName\",coherence_service=~\"$ServiceName\", cache=~\"$CacheName\"}) by (member)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "J"
         }
       ],
       "title": "Cache Storage Details for Cache $CacheName",
@@ -1490,6 +1562,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
+          "linkTooltip": "Drill down to member details for  ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
@@ -1593,9 +1666,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -1619,8 +1689,6 @@
       {
         "allValue": null,
         "current": {
-          "text": "DistributedCachePersistence",
-          "value": "DistributedCachePersistence"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -1644,8 +1712,6 @@
       {
         "allValue": null,
         "current": {
-          "text": "persistence-test1",
-          "value": "persistence-test1"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -1700,5 +1766,5 @@
   "timezone": "",
   "title": "Cache Details Dashboard",
   "uid": "coh-cache-details",
-  "version": 1
+  "version": 2
 }

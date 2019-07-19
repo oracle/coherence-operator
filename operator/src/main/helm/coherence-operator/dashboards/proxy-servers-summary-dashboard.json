@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 16,
-  "iteration": 1562900988272,
+  "id": 32,
+  "iteration": 1563506783966,
   "links": [
     {
       "icon": "dashboard",
@@ -106,7 +106,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Drill down to generic service details",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
@@ -125,7 +125,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "link": true,
-          "linkTooltip": "Drill down to Proxy Server Details",
+          "linkTooltip": "Drill down to Proxy Server Details for ${__cell_1}",
           "linkUrl": "/d/coh-proxy-server-detail?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "Value #B",
@@ -877,9 +877,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -903,9 +900,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -929,7 +923,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -960,5 +954,5 @@
   "timezone": "",
   "title": "Proxy Servers Summary Dashboard",
   "uid": "coh-proxy-services-summary",
-  "version": 3
+  "version": 1
 }

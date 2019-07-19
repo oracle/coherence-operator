@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 15,
-  "iteration": 1562901382309,
+  "id": 13,
+  "iteration": 1563520101621,
   "links": [
     {
       "icon": "dashboard",
@@ -186,7 +186,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
@@ -375,29 +375,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Total Bytes Received",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
         },
         {
           "alias": "Remote Client Address",
@@ -410,63 +394,12 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "remote_client_address",
+          "pattern": "remote_address",
           "preserveFormat": false,
           "sanitize": false,
           "thresholds": [],
           "type": "string",
           "unit": "short"
-        },
-        {
-          "alias": "Total Bytes Sent",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Outgoing Byte Backlog",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "50"
-          ],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Connection Time",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
         },
         {
           "alias": "Remote Client Port",
@@ -479,13 +412,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "remote_client_port",
+          "pattern": "remote_port",
           "thresholds": [],
           "type": "number",
           "unit": "none"
         },
         {
-          "alias": "",
+          "alias": "Connection Time",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -493,39 +426,15 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "decimals": 2,
-          "pattern": "/.*/",
+          "pattern": "Value",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "ms"
         }
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_client_address, remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "avg(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_client_address, remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "avg(vendor:coherence_connection_manager_outgoing_message_backlog{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_client_address, remote_client_port, member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "expr": "avg(vendor:coherence_connection_connection_time_millis{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_client_address, remote_client_port, member)",
+          "expr": "avg(vendor:coherence_connection_connection_time_millis{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_address, remote_port, member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -573,7 +482,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
+          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\", protocol=~\"tcp\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -600,11 +509,12 @@
       },
       "yaxes": [
         {
+          "decimals": 0,
           "format": "decbytes",
-          "label": null,
+          "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -903,9 +813,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -929,8 +836,6 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -954,9 +859,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "ExtendTcpProxyService-3",
-          "value": "ExtendTcpProxyService-3"
+          "selected": true,
+          "text": "Proxy",
+          "value": "Proxy"
         },
         "datasource": "Prometheus",
         "definition": "label_values(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\"}, name)",
@@ -1011,5 +916,5 @@
   "timezone": "",
   "title": "Proxy Server Detail Dashboard",
   "uid": "coh-proxy-server-detail",
-  "version": 5
+  "version": 1
 }

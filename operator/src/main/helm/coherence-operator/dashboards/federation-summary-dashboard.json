@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 11,
-  "iteration": 1556853316279,
+  "id": 21,
+  "iteration": 1563518480600,
   "links": [
     {
       "icon": "dashboard",
@@ -85,7 +85,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -136,7 +135,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard for this Federated Service.",
+          "linkTooltip": "Drill down to federation details for destination ${__cell_1}",
           "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -154,6 +153,9 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
+          "link": false,
+          "linkTooltip": "",
+          "linkUrl": "",
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
@@ -177,79 +179,33 @@
           "unit": "short"
         },
         {
-          "alias": "Connection State",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "participant_state",
-          "thresholds": [
-            "1",
-            "2"
-          ],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": []
-        },
-        {
-          "alias": "Members OK",
+          "alias": "Status",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard for this Federated Service.",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Members Not OK",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard for this Federated Service.",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
+          "decimals": 2,
           "mappingType": 1,
           "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "2"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
           "thresholds": [],
-          "type": "number",
-          "unit": "short"
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "text": "OK",
+              "value": "0"
+            },
+            {
+              "text": "WARNING",
+              "value": "1"
+            },
+            {
+              "text": "ERROR",
+              "value": "2"
+            }
+          ]
         }
       ],
       "targets": [
@@ -262,15 +218,7 @@
           "refId": "A"
         },
         {
-          "expr": "count(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\", participant_state=~\"IDLE|READY|SENDING|BACKLOG_EXCESSIVE|BACKLOG_NORMAL|YIELDING|PAUSED\"})by (coherence_service, name, participant_type)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "count(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\", participant_state!~\"IDLE|READY|SENDING|BACKLOG_EXCESSIVE|BACKLOG_NORMAL|YIELDING|PAUSED\"})by (coherence_service, name, participant_type)",
+          "expr": "avg(vendor:coherence_federation_destination_status {cluster=~\"$ClusterName\"}) by (coherence_service, name, participant_type)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -284,7 +232,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -298,7 +245,7 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 3,
+        "col": 2,
         "desc": true
       },
       "styles": [
@@ -335,7 +282,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard",
+          "linkTooltip": "Drill down to federation details for origin ${__cell_2}",
           "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
           "mappingType": 1,
           "pattern": "coherence_service",
@@ -421,250 +368,6 @@
       "type": "table"
     },
     {
-      "columns": [],
-      "datasource": null,
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 26,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 4,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Node Id",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "nodeId",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Service",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard for this Federated Service.",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
-          "mappingType": 1,
-          "pattern": "coherence_service",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Local Processing Delay",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Destination",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "expr": "topk($TopLimit, sum(avg_over_time(vendor:coherence_federation_destination_record_backlog_delay_time_percentile_ms{cluster=~\"$ClusterName\"}[$__range] )) by (coherence_service, nodeId, name)) >0",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Top $TopLimit Local Replication Delays - Current Range",
-      "transform": "table",
-      "type": "table"
-    },
-    {
-      "columns": [],
-      "datasource": null,
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 27,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 4,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Node Id",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "nodeId",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Service",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Click here to show Federation Details Dashboard for this Federated Service.",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
-          "mappingType": 1,
-          "pattern": "coherence_service",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Origin Processing Delay",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Destination",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "expr": "topk($TopLimit, sum(avg_over_time(vendor:coherence_federation_origin_record_backlog_delay_time_percentile_ms{cluster=~\"$ClusterName\"}[$__range])) by (coherence_service, nodeId, name)) > 0",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Top $TopLimit Origin Replication Delays - Current Range",
-      "transform": "table",
-      "type": "table"
-    },
-    {
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
@@ -673,7 +376,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -686,7 +388,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 14
+        "y": 8
       },
       "id": 17,
       "interval": null,
@@ -754,7 +456,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -767,7 +468,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 14
+        "y": 8
       },
       "id": 13,
       "interval": null,
@@ -835,7 +536,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -848,7 +548,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 14
+        "y": 8
       },
       "id": 10,
       "interval": null,
@@ -916,7 +616,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -929,7 +628,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 14
+        "y": 8
       },
       "id": 14,
       "interval": null,
@@ -997,7 +696,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -1010,7 +708,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 14
+        "y": 8
       },
       "id": 18,
       "interval": null,
@@ -1078,7 +776,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -1091,7 +788,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 14
+        "y": 8
       },
       "id": 11,
       "interval": null,
@@ -1155,13 +852,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 12
       },
       "id": 23,
       "legend": {
@@ -1197,6 +893,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Bytes Sent",
       "tooltip": {
@@ -1241,15 +938,15 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 12
       },
       "id": 7,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": true,
@@ -1273,7 +970,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_federation_origin_total_bytes_received {cluster=~\"$ClusterName\"}[30s])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_origin_total_bytes_received {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1283,6 +980,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Bytes Received",
       "tooltip": {
@@ -1326,13 +1024,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 20
       },
       "id": 19,
       "legend": {
@@ -1368,6 +1065,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Messages Sent",
       "tooltip": {
@@ -1411,13 +1109,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 20
       },
       "id": 24,
       "legend": {
@@ -1453,6 +1150,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Messages Received",
       "tooltip": {
@@ -1496,13 +1194,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 28
       },
       "id": 21,
       "legend": {
@@ -1538,6 +1235,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Records Sent",
       "tooltip": {
@@ -1581,13 +1279,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 28
       },
       "id": 20,
       "legend": {
@@ -1623,6 +1320,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Records Received",
       "tooltip": {
@@ -1666,13 +1364,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 42
+        "y": 36
       },
       "id": 6,
       "legend": {
@@ -1708,6 +1405,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Entries Sent",
       "tooltip": {
@@ -1751,13 +1449,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 42
+        "y": 36
       },
       "id": 22,
       "legend": {
@@ -1793,6 +1490,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Total Entries Received",
       "tooltip": {
@@ -1833,7 +1531,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1843,10 +1541,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "coherence's cluster",
-          "value": "coherence's cluster"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -1867,10 +1564,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "12.2.1.4.0 (dev-coherence)",
-          "value": "12.2.1.4.0 (dev-coherence)"
         },
         "datasource": "Prometheus",
+        "definition": "",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
@@ -1965,5 +1661,5 @@
   "timezone": "",
   "title": "Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "version": 3
+  "version": 1
 }
