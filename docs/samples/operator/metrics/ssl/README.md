@@ -86,11 +86,11 @@ Ensure you have already installed the Coherence Operator using the instructions 
 1. Start port forward for the metrics port:
 
    ```bash
-   $ kubectl port-forward storage-coherence-0 -n sample-coherence-ns 9095:9095
+   $ kubectl port-forward storage-coherence-0 -n sample-coherence-ns 9612:9612
    ```
    ```console
-   Forwarding from [::1]:9095 -> 9095
-   Forwarding from 127.0.0.1:9095 -> 9095
+   Forwarding from [::1]:9612 -> 9612
+   Forwarding from 127.0.0.1:9612 -> 9612
    ```   
 
 1. (Optional) Configure Prometheus.

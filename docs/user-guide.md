@@ -955,9 +955,9 @@ To configure a SSL endpoint for Coherence metrics:
 To verify that the Coherence metrics for Prometheus is running with HTTPS, forward the Coherence metrics port and access the metrics from your local machine use the following commands:
 
   ```bash
-  $ kubectl port-forward <Coherence pod> 9095:9095
+  $ kubectl port-forward <Coherence pod> 9612:9612
 
-  $ curl -X GET https://localhost:9095/metrics --cacert <caCert> --cert <certificate>
+  $ curl -X GET https://localhost:9612/metrics --cacert <caCert> --cert <certificate>
   ```
 
 You can add `--insecure` if you use self-signed certificate. Also, look for the following message in the log file of the Coherence pod:</br>
@@ -973,7 +973,7 @@ After configuring Prometheus to use SSL, verify that the Prometheus is scraping 
 
   http://localhost:9090/graph
   ```
-You should see many coherence_* metrics.   
+You should see many vendor:coherence_* metrics.   
 
 To enable SSL for both management over REST and metrics publishing for Prometheus, install the Coherence chart with both YAML files:
 
