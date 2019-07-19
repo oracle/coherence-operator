@@ -1,62 +1,52 @@
-# Change image version for Coherence or application container using rolling upgrade
+# Change Image Version for Coherence or Application Container Using Rolling Upgrade
 
-The steps detailed in samples such as [Storage-disabled client in cluster via interceptor](../../coherence-deployments/storage-disabled/interceptor)
-call for the creation of a sidecar docker image that conveys the application classes 
-to Kubernetes. This docker image is tagged with a version number, and the version number 
-is how Kubernetes enables safe rolling upgrades. You can read more about safe rolling upgrades 
-in the [Helm documentation](https://helm.sh/docs/helm/#helm-upgrade). 
+Samples, such as [Storage-disabled client in cluster via interceptor](../../coherence-deployments/storage-disabled/interceptor) call for the creation of a sidecar docker image.
+Sidecar docker image provides the application classes to Kubernetes. The docker image is tagged with a version number and this version number is used by Kubernetes to enable safe rolling upgrades. You can read more about safe rolling upgrades in the [Helm documentation](https://helm.sh/docs/helm/#helm-upgrade).
 
-Briefly, as with the scaling described in the preceding section, the safe rolling upgrade 
-feature allows you to instruct Kubernetes, via the operator, to replace the currently installed 
-version of your application classes with a different one. Kubernetes does not care if the different 
-version is "newer" or "older", as long as it has a docker tag and can be pulled by the cluster, 
-that is all Kubernetes needs to know. The operator will ensure this is done without data loss or interruption of service.
+The safe rolling upgrade feature allows you to instruct Kubernetes, through the operator, to replace the currently installed version of your application classes with a different one. Kubernetes does not verify whether the classes are new or old. It checks whether the image can be pulled by the cluster and image has a docker tag. The operator also ensures that the replacement is done without data loss or interruption of service.
 
-This sample will initially deploy version 1.0.0 of our sidecar and then do a rolling upgrade to
-version 2.0.0 of the sidecar which introduces a server side Interceptor to modify 
-data to ensure its stored as uppercase. 
+This sample initially deploys version 1.0.0 of the sidecar Docker image and then does a rolling upgrade to
+version 2.0.0 of the sidecar image which introduces a server side Interceptor to modify data to ensure it is stored as uppercase.
 
 [Return to Storage-Disabled clients samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Sample files
 
-* [src/main/docker-v1/Dockerfile](src/main/docker-v1/Dockerfile) - Dockerfile for creating side-car which only includes v1 storage-cache-config.xml
+* [src/main/docker-v1/Dockerfile](src/main/docker-v1/Dockerfile) - Dockerfile for creating sidecar which includes  only v1 storage-cache-config.xml
 
-* [src/main/docker-v2/Dockerfile](src/main/docker-v2/Dockerfile) - Dockerfile for creating side-car which includes v2 storage-cache-config.xml
+* [src/main/docker-v2/Dockerfile](src/main/docker-v2/Dockerfile) - Dockerfile for creating sidecar which includes v2 storage-cache-config.xml
 
-* [src/main/resources/conf/v1/storage-cache-config.xml](src/main/resources/conf/v1/storage-cache-config.xml) - version 1 cache config for storage-enabled tier - no interceptor 
+* [src/main/resources/conf/v1/storage-cache-config.xml](src/main/resources/conf/v1/storage-cache-config.xml) - Cache configuration version 1 for storage-enabled tier without interceptor
 
-* [src/main/resources/conf/v2/storage-cache-config.xml](src/main/resources/conf/v2/storage-cache-config.xml) - version 2 cache config for storage-enabled tier - includes uppercase interceptor  
+* [src/main/resources/conf/v2/storage-cache-config.xml](src/main/resources/conf/v2/storage-cache-config.xml) - Cache configuration version 2 for storage-enabled tier that includes uppercase interceptor
 
-* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client config for extend client
+* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Client configuration for extend client
 
-* [src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java) - interceptor that will change all entries to uppercase - version 2.0.0
+* [src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java](src/main/java/com/oracle/coherence/examples/UppercaseInterceptor.java) - Interceptor that changes all entries to uppercase - version 2.0.0
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../README.md#install-the-coherence-operator).
+Ensure you have already installed the Coherence Operator using the instructions [here](../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
-1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your maven build environment set for JDK8 and build the project.
+1. Change to the `samples/operator/rolling-upgrade` directory and ensure you have your Maven build environment set for JDK 8 and build the project:
 
    ```bash
    $ mvn clean install -P docker-v1,docker-v2
    ```
 
-   The above will build the v1 & v2 Docker images called:
+   The version 1 and version 2  Docker images are created:
     
    * `rolling-upgrade-sample:1.0.0`
     
-   * `rolling-upgrade-sample:2.0.0` 
+   * `rolling-upgrade-sample:2.0.0`
    
-   Version 1.0.0  will be the initial image installed in the chart.
+   `rolling-upgrade-sample:1.0.0` is the initial image installed in the chart.
 
-   > **Note**: If you are running against a remote Kubernetes cluster you will need to
-   > push the above image to your repository accessible to that cluster. You will also need to 
-   > prefix the image name in your `helm` command below.
+   > **Note**: If you are using a remote Kubernetes cluster, you need to push the created images to your repository accessible to that cluster. You need to prefix the image name in the `helm` command.
 
-1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image as a sidecar.
+1. Install the Coherence cluster with rolling-upgrade-sample:1.0.0 image as a sidecar:
 
    ```bash
    $ helm install \
@@ -72,33 +62,35 @@ Ensure you have already installed the Coherence Operator by using the instructio
       coherence/coherence
    ```
    
-   Once the install has completed, issue the following command to list the pods:
+   After the installation completes, list the pods:
    
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                   READY   STATUS    RESTARTS   AGE
    storage-coherence-0    1/1     Running   0          4m
    storage-coherence-1    1/1     Running   0          2m
    storage-coherence-2    1/1     Running   0          1m
    ```
    
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as shown above.
+   All the three storage-coherence-0/1/2 pods are in running state.
    
-1. Port forward the proxy port on the storage-coherence-0 pod.
+1. Port forward the proxy port on the `storage-coherence-0` pod:
 
    ```bash
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-1. Connect via QueryPlus and issue CohQL commands
+1. Connect through QueryPlus and use CohQL commands.
 
-   Issue the following command to run QueryPlus:
+   Execute the following command to run QueryPlus:
 
    ```bash
    $ mvn exec:java
    ```
 
-   Run the following CohQL commands to insert data into the cluster.
+   Run the following CohQL commands to insert data into the cluster:
 
    ```sql
    insert into 'test' key('key-1') value('value-1');
@@ -109,15 +101,13 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ["key-1", "value-1"]   
    ["key-2", "value-2"]
    ```
-   
-   Keep CohQL open while you continue.
-   
-1. Upgrade the server to rolling-upgrade-sample:2.0.0 image  
 
-   Issue the following to upgrade to version 2.0.0 of the image.
-   
-   * `--reuse-values` - specifies to re-use all previous values associated with the release
-   
+1. Upgrade the server to `rolling-upgrade-sample:2.0.0` image. 
+
+   Use the following arguments to upgrade to version 2.0.0 of the image:
+
+   * `--reuse-values` - specifies to reuse all previous values associated with the release
+
    * `--set userArtifacts.image=rolling-upgrade-sample:2.0.0` - the new artifact version
 
    ```bash
@@ -127,25 +117,25 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set imagePullSecrets=sample-coherence-secret \
       --set userArtifacts.image=rolling-upgrade-sample:2.0.0
    ```
-   
-   While the upgrade is running you can issue the following in your `CohQL` session:
+
+   When the upgrade is running, you can execute the following commands in the CohQL session:
    
    ```sql
    select key(), value() from 'test';
    ```
    
-   You will notice that the data always remains the same.
+   You can note that the data always remains the same.
    
-   > **Note**: Your port-forward will fail once the `storage-coherence-0` pod restarts, so you will have 
-   > stop and restart it.  
+   > **Note**: Your port-forward fails when the storage-coherence-0` pod restarts. You have to stop and restart it.
    
-   In an environment where you have configured a load balancer, then the 
-   Coherence*Extend session will automatically reconnect for you when it detects a disconnect.
+   In an environment where you have configured a load balancer, then the Coherence*Extend session automatically reconnects when it detects a disconnect.
    
-1. Check the status of the upgrade
+1. Check the status of the upgrade:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS        RESTARTS   AGE
    coherence-operator-66f9bb7b75-pprgg   1/1     Running       0          30m
    storage-coherence-0                   1/1     Running       0          19m
@@ -153,11 +143,11 @@ Ensure you have already installed the Coherence Operator by using the instructio
    storage-coherence-2                   1/1     Running       0          1m 
    ```
    
-   When all of the pods have status of `Running` and `1/1` for Ready, you can continue.
+   When all the pods have status of `Running` and `1/1` for Ready, you can continue.
    
-   > **Note**: The above shows not all pods are finished restarting.
+   > **Note**: The pods in the output shows that not all pods are finished restarting.
    
-1. Add more data via CohQL commands
+1. Add more data through CohQL commands:
 
    ```sql
    insert into 'test' key('key-3') value('value-3');
@@ -169,29 +159,30 @@ Ensure you have already installed the Coherence Operator by using the instructio
    ["key-2", "value-2"]
    ```    
 
-   You will notice that the value for `key-3` has been converted to uppercase which shows that the
-   server-side interceptor is now active.
+   You can note that the value for `key-3` has been converted to uppercase which shows that the  server-side interceptor is now active.
  
-1. Verify the 2.0.0 image is active
+1. Verify that the 2.0.0 image is active.
 
-   Use the following to verify the 2.0.0 image is active:
+   Use the following command to verify that the 2.0.0 image is active:
    
    ```bash
    $ kubectl describe pod storage-coherence-0  -n sample-coherence-ns | grep rolling-upgrade
+   ```
+   ```console
    Image:         rolling-upgrade-sample:2.0.0
    Normal  Pulled                 4m59s  kubelet, docker-for-desktop  Container image "rolling-upgrade-sample:2.0.0" already present on machine
    ```
    
-   The above shows that the version 2.0.0 image is now present.
+   The output shows that the version 2.0.0 image is now present.
 
-## Uninstalling the Chart
+## Uninstall the Chart
 
-Carry out the following commands to delete the chart installed in this sample.
+Use the following command: to delete the chart installed in this sample:
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous samples.
+Before starting another sample, ensure that all the pods are removed from previous samples.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+If you want to remove the `coherence-operator`, then use `helm delete` command.

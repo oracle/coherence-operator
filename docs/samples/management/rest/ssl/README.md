@@ -1,40 +1,36 @@
-# Enable SSL with management over REST
+# Enable SSL with Management over REST Endpoint
 
-By default when the Coherence chart is installed the Management over REST endpoint will be exposed
-as port 30000 (via HTTP) on each of the Pods. 
+By default, when the Coherence chart is installed, the Management over REST endpoint is exposed at port 30000 (through HTTP) on each of the pods.
 
-This sample shows how you can access configure the Management over REST endpoint to use SSL.
+This sample shows how you can access and configure the management over REST endpoint to use SSL.
 
-> **Note**: Use of Management over REST is only available when using the
-> operator with Coherence 12.2.1.4.
+> **Note**: Use of management over REST endpoint is available only when using the operator with Oracle Coherence 12.2.1.4.0 version.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Sample files
 
 * [src/main/java/com/oracle/coherence/examples/SampleRESTClient.java](src/main/java/com/oracle/coherence/examples/SampleRESTClient.java) -
-  client to connect to management over rest via SSL
+  Client to connect to management over REST through SSL
   
 * [src/main/java/com/oracle/coherence/examples/HttpSSLHelper.java](src/main/java/com/oracle/coherence/examples/HttpSSLHelper.java) -
-  client to connect to management over rest via SSL
+  Client to connect to management over Rest through SSL
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure you have already installed the Coherence Operator using the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
-1. Change to the `samples/management/rest/ssl/src/main/resources/certs` directory and ensure you have your maven build environment set for JDK8 and build the project.
+1. Change to the `samples/management/rest/ssl/src/main/resources/certs` directory and ensure that you have Maven build environment set for JDK 8 and build the project:
 
    ```bash
    $ mvn clean compile
    ```
    
-   > **Note**: This sample uses self-signed certificates and simple passwords. They are for sample
-   > purposes only and should **NOT** use these in a production environment.
-   > You should use and generate proper certificates with appropriate passwords.
+   > **Note**: This sample uses self-signed certificates and simple passwords. They are for sample purposes only and must not be used in a production environment. You must use and generate proper certificates with appropriate passwords.
 
-1. Create the SSL Secret 
+1. Create the SSL Secret:
 
    ```bash   
    $ cd /src/main/resources/certs
@@ -47,7 +43,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
         --from-literal trustpassword.txt=secret
    ```
 
-1. Install the Coherence cluster
+1. Install the Coherence cluster:
    
    ```bash
    $ helm install \
@@ -72,44 +68,46 @@ Ensure you have already installed the Coherence Operator by using the instructio
       coherence/coherence
    ```
    
-   > *Note:* If your version of the Coherence Operator does not default to using Coherence
-   > 12.2.1.4.0, then you will need to replace `your-12.2.1.4.0-Coherence-image` with an
-   > appropriate 12.2.1.4.0 image.
+   > *Note:* If your version of the Coherence Operator does not default to using Oracle Coherence 12.2.1.4.0, then you must replace `your-12.2.1.4.0-Coherence-image` with an appropriate 12.2.1.4.0 image.
    
-1. Confirm SSL is applied
+1. Confirm that the SSL is applied:
 
    ```bash
    $ kubectl logs storage-coherence-0 --namespace sample-coherence-ns | grep SSLSocketProviderDependencies
+   ```
+   ```console
    2019-06-17 03:31:13.256/7.535 Oracle Coherence GE 12.2.1.4.0 <D5> (thread=main, member=1): instantiated SSLSocketProviderDependencies: SSLSocketProvider(auth=two-way, 
      identity=SunX509/file:/coherence/certs/management/icarus.jks,
      trust=SunX509/file:/coherence/certs/management/truststore-guardians.jks)
    ```
    
-1. Port-Forward the Management over REST port
+1. Port forward the management over REST endpoint port:
 
    ```bash
    $ kubectl port-forward storage-coherence-0 -n sample-coherence-ns 30000:30000
+   ```
+   ```console
    Forwarding from [::1]:30000 -> 30000
    Forwarding from 127.0.0.1:30000 -> 30000
    ```   
 
-1. Access Management Over REST
+1. Access management over REST endpoint
 
-   Issue the following command to run the `SampleRESTClient` which will connect via SSL.
+   Use the following command to run the `SampleRESTClient` which connects through SSL:
 
    ```bash
    $ mvn exec:java
    ```
    
-   This should result in the output below with the additional content from the REST endpoint:
+   This results in the output with the additional content from the REST endpoint:
    
-   ```bash
+   ```console
    Success, HTTP Response code is 200
    ```
    
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the two charts installed in this sample.
+Use the following commands to delete the two charts installed in this sample:
 
 ```bash
 $ helm delete storage --purge
@@ -121,6 +119,6 @@ Delete the secret using the following:
 $ kubectl delete secret ssl-secret --namespace sample-coherence-ns
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
+Before starting another sample, ensure that all the pods are removed from previous sample.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+If you want to remove the `coherence-operator`, then use the `helm delete` command.

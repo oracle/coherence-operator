@@ -1,18 +1,16 @@
-# Access management over REST
+# Access Management over REST
 
-By default when the Coherence chart is installed the Management over REST endpoint will be exposed
-as port 30000 on each of the Pods. 
+When the Coherence chart is installed, the Management over REST endpoint is exposed on port 30000 on each of the pods by default.
 
-This sample shows how you can access the Management over REST endpoint via the following URL:
+This sample shows how you can access the Management over REST endpoint using the following URL:
 
-* `http://host:30000/management/coherence/cluster`.
+ `http://host:30000/management/coherence/cluster`.
 
-The Swagger document is available via the following URL:  
+You can view the Swagger document at:  
 
-* `http://host:30000/management/coherence/cluster/metadata-catalog`.
+ `http://host:30000/management/coherence/cluster/metadata-catalog`.
 
-> **Note**: Use of Management over REST is only available when using the
-> operator with Coherence 12.2.1.4.
+> **Note**: Use of Management over REST is available only when using the operator with Oracle Coherence 12.2.1.4.0.
 
 [Return to Management over REST samples](../)  [Return to Management samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -24,7 +22,7 @@ Ensure you have already installed the Coherence Operator by using the instructio
 
 1. Install the Coherence cluster
 
-   Issue the following to install the cluster:
+   Execute the following command to install the cluster:
 
    ```bash
    $ helm install \
@@ -39,11 +37,9 @@ Ensure you have already installed the Coherence Operator by using the instructio
       coherence/coherence
    ```
    
-   > *Note:* If your version of the Coherence Operator does not default to using Coherence
-   > 12.2.1.4.0, then you will need to replace `your-12.2.1.4.0-Coherence-image` with an
-   > appropriate 12.2.1.4.0 image.
+   > *Note:* If your version of the Coherence Operator does not default to using Coherence 12.2.1.4.0, then you need to replace `your-12.2.1.4.0-Coherence-image` with an appropriate 12.2.1.4.0 image.
    
-   Once the install has completed, issue the following command to list the pods:
+   After the installation completes, list the pods:
    
    ```bash
    $ kubectl get pods -n sample-coherence-ns
@@ -53,31 +49,34 @@ Ensure you have already installed the Coherence Operator by using the instructio
    storage-coherence-2    1/1     Running   0          2m
    ```
    
-1. Port-Forward the Management over REST port
+1. Port forward the Management over REST port:
 
    ```bash
    $ kubectl port-forward storage-coherence-0 -n sample-coherence-ns 30000:30000
+   ```
+   ```console
    Forwarding from [::1]:30000 -> 30000
    Forwarding from 127.0.0.1:30000 -> 30000
    ```   
 
-1. Access Management Over REST
+1. Access Management over REST
 
-   Using `curl`, issue the following command to access the endpoint:
+   Use Curl to access the endpoint:
    
    ```bash
    $ curl --noproxy http://127.0.0.1:30000/management/coherence/cluster
    ```
    
-   This will return the top-level JSON.  You can access the Swagger endpoint via `http://127.0.0.1:30000/management/coherence/cluster/metadata-catalog`.
+   This returns the top-level JSON. You can access the Swagger endpoint via `http://127.0.0.1:30000/management/coherence/cluster/metadata-catalog`.
    
    You can specify individual attributes via the following:
    
    ```bash
    $ curl http://127.0.0.1:30000/management/coherence/cluster?fields=clusterName,running,version,clusterSize
    ``` 
-   
-   The output, minus the links element, should be similar to below:
+
+   The output, minus the links element, will be similar to:
+
    ```json
    {
    "links": [ ... ]
@@ -87,18 +86,14 @@ Ensure you have already installed the Coherence Operator by using the instructio
    "clusterName":"coherence-cluster"}
    }
    ```
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the chart installed in this sample.
+Use the following command to delete the chart installed in this sample:
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous samples.
+Before starting another sample, ensure that all the pods are removed from previous samples.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above. 
-  
-
-   
-
+If you want to remove the `coherence-operator`, then include it in the `helm delete` command.
