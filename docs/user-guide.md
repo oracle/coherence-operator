@@ -39,13 +39,13 @@ Coherence and the Coherence Operator in your Kubernetes cluster, and how to use 
 
 The User Guide provides exclusive steps for managing Coherence within Kubernetes. For most of the administrative tasks for managing Kubernetes, refer to [Kubernetes](https://kubernetes.io/docs/home/) Documentation.
 
-The information in this guide is organized into sections that are common and Kubernetes specific tasks. Refer to these sections accordingly for managing Coherence:
+The information in this guide is organized into sections that are common and Kubernetes specific tasks. Refer to these sections for managing Coherence:
 * [Common Coherence Tasks](#common-coherence-tasks)
 * [Kubernetes Specific Tasks](#kubernetes-specific-tasks)
 
 # Before You Begin
 
-See [Before You Begin](quickstart.md#before-you-begin) section in the Quick Start guide.
+Refere to [Before You Begin](quickstart.md#before-you-begin) section in the Quick Start guide.
 
 All the examples in this guide are installed in a Kubernetes namespace called *sample-coherence-ns*.  To set this namespace as the active namespace, execute the command:
 
@@ -60,12 +60,14 @@ File](https://docs.oracle.com/middleware/12213/coherence/develop-applications/un
 and deploying JARs for [Processing Data in a
 Cache](https://docs.oracle.com/middleware/12213/coherence/develop-applications/processing-data-cache.htm).
 
-Most of the administrative tasks to do with Coherence apply when running within Kubernetes.  The [official documentation](https://docs.oracle.com/middleware/12213/coherence/) remains a very useful resource. This section covers a few common scenarios that require special treatment regarding Kubernetes.
+Most of the administrative tasks to do with Coherence apply when running within Kubernetes.  The [Oracle Coherence](https://docs.oracle.com/middleware/12213/coherence/) documentation remains a very useful resource. This section covers a few common scenarios that require special treatment regarding Kubernetes.
 
 ## Provide Configuration Files and Application Classes to the Coherence Cluster within Kubernetes
 
 This section explains how to make custom configuration and JAR files
-available to your Coherence cluster running in Kubernetes. This approach can be used for any administrative task that requires to make JAR, XML, or other configuration files available to the Coherence cluster.
+available to your Coherence cluster running in Kubernetes. This approach can be used for any administrative tasks that require to make JAR, XML, or other configuration files available to the Coherence cluster.
+
+You can refer to [Add Application Jars/Config to a Coherence Deployment](samples/coherence-deployments/sidecar#add-application-jarsconfig-to-a-coherence-deployment) in the Samples.
 
 The Oracle Coherence Operator uses the *sidecar pattern*, as
 recommended by [Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/logging/#sidecar-container-with-a-logging-agent),
@@ -90,13 +92,14 @@ Coherence* for use within Kubernetes.
 
 To create a JAR file:
 
-1. Create a directory for the files.
+1. Create a directory for the files:
 
   ```bash
   $ mkdir -p hello-example/files/lib
   $ cd hello-example
   ```
-2. Create a Java program to access the cluster. Save the java file as HelloExample.java in the `hello-example` directory.
+
+2. Create a Java program to access the cluster. Save the java file as `HelloExample.java` in the `hello-example` directory.
 
   ```java
   import java.io.Serializable;
@@ -134,8 +137,7 @@ To create a JAR file:
 }
 ```
 
-This program uses a static inner class, `Timestamp`, to store the values in Coherence. Any Java object that is stored in Coherence must
-be accessible by Coherence in compiled form. The Java objects are compiled classes in JAR files on the Coherence classpath. Therefore, compile and archive the file:
+This program uses a static inner class, `Timestamp`, to store the values in Coherence. Any Java object that is stored in Coherence must be accessible by Coherence in compiled form. The Java objects are compiled classes in JAR files on the Coherence classpath. Therefore, compile and archive the file:
 
   ```
   $ javac -cp .:${COHERENCE_HOME}/lib/coherence.jar HelloExample.java
@@ -145,20 +147,16 @@ be accessible by Coherence in compiled form. The Java objects are compiled class
 
 Package the created JAR file within the sidecar Docker image:
 
-1. Create a `Dockerfile` with the following contents.
+1. Create a `Dockerfile` with the following contents:
 
     ```bash
     FROM oraclelinux:7-slim
     RUN mkdir -p /files/lib
     COPY files/lib/hello-example.jar files/lib
     ```
-    Note that the JAR file is placed in the `files/lib` directory
-    relative to the root of the Docker image. This is the default
-    location where Coherence will look for JAR files to add to the
-    classpath. Any JAR files in `files/lib` will be added to the
-    classpath. You can change the location where Coherence looks for JARs to add to the classpath.
+    Note that the JAR file is placed in the `files/lib` directory relative to the root of the Docker image. This is the default location where Coherence looks for JAR files to add to the classpath. Any JAR files in `files/lib` are added to the classpath. You can change the location where Coherence must look for JARs to add to the classpath.
 
-2. Ensure that the Docker is running on the current host. If not, see [ Get Started](https://docs.docker.com/get-started/) in Docker documentation.
+2. Ensure that the Docker is running on the current host. If not, refer to [ Get Started](https://docs.docker.com/get-started/) in Docker documentation.
 
 3. Build and tag a Docker image for `hello-example-sidecar`:
 
@@ -167,10 +165,9 @@ Package the created JAR file within the sidecar Docker image:
     ```
 
     The trailing dot "." in the command refers to run the build relative to the current directory.
-4. Push the created Docker image to the Docker registry which the Kubernetes cluster can reach:
+4. Push the created Docker image to the Docker registry which the Kubernetes cluster can access.
 
-   See [Quick Start](quickstart.md#obtain-images-from-oracle-container-registry) guide to learn how to make the Kubernetes cluster aware of the Docker credentials so it
-   can pull down images.
+   The [Quick Start](quickstart.md#obtain-images-from-oracle-container-registry) guide describes how to make the Kubernetes cluster can pull the images using the Docker credentials.
 
    > **Note:** If you are using a local Kubernetes, you can omit this step, since the Kubernetes pulls from the same Docker server as the one to which the local build command built the image.
 
@@ -186,7 +183,7 @@ $ helm --debug install coherence/coherence --name hello-example \
 
 > **Note:** If the JAR files are in a different location within the sidecar Docker image, use the `--set userArtifacts.libDir=<absolute path within docker image>` argument to `helm install` to configure the correct location.
 
-In a new terminal window, set up a Kubernetes port forward to expose the Extend port so that your local client can use it.
+In a new terminal window, set up a Kubernetes port forward to expose the Extend port so that your local client can use it:
 
 ```bash
 $ export POD_NAME=$(kubectl get pods --namespace default -l \
@@ -196,15 +193,14 @@ $ kubectl --namespace default port-forward $POD_NAME 20000:20000
 
 This prints the following output and blocks the shell:
 
-```bash
+```console
 Forwarding from 127.0.0.1:20000 -> 20000
 Forwarding from [::1]:20000 -> 20000
 ```
 
 #### Create the Local Extend Client Configuration
 
-A local client configuration is necessary because the local client connects to the service through Coherence*Extend. Create a file
-named `hello-client-config.xml` with the following contents:
+A local client configuration is necessary because the local client connects to the service through Coherence*Extend. Create a file named `hello-client-config.xml` with the following contents:
 
 ```
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -251,7 +247,7 @@ An output similar to the following is displayed:
 The value of the key is Timestamp: previousTime: 11:47:04 currentTime: 16:09:30
 ```
 
-Run the command again and it will show the updated `Timestamp`:
+Run the command again and it shows the updated `Timestamp`:
 
 ```
 The value of the key is Timestamp: previousTime: 16:09:30 currentTime: 16:10:20
@@ -267,14 +263,14 @@ $ helm delete --purge hello-example
 
 The similar sidecar approach is used to deploy configuration files to Coherence inside Kubernetes. Though, Coherence has the necessary built-in configuration, a subset of that configuration is used in this example.
 
-1. Create a directory for the files.
+1. Create a directory for the files:
 
   ```bash
   $ cd ..
   $ mkdir -p hello-config-example/files/conf
   $ cd hello-config-example
   ```
-2. Create the Java program to access the cluster. In the same directory, create a simple java program `HelloConfigXml.java`.
+2. Create the Java program to access the cluster. In the same directory, create a simple java program `HelloConfigXml.java`:
 
   ```java
   import com.tangosol.net.CacheFactory;
@@ -416,35 +412,29 @@ content:
 
 Package the XML file within the sidecar Docker image:
 
-1. Create a `Dockerfile` next to the java file, with the following contents.
+1. Create a `Dockerfile` next to the Java file with the following contents.
 
    ```bash
    FROM oraclelinux:7-slim
    RUN mkdir -p /files/conf
    COPY files/conf/hello-server-config.xml files/conf/hello-server-config.xml
    ```
-   Note that the XML file is placed in the `files/conf` directory
-   relative to the root of the Docker image.  This is the default
-   location where Coherence will look for configuration files that apply to Coherence.  You can change the location where Coherence
-   looks for configuration files to add to the classpath.
+   Note that the XML file is placed in the `files/conf` directory relative to the root of the Docker image. This is the default location where Coherence looks for configuration files that apply to Coherence. You can change the location where Coherence looks for configuration files to add to the classpath.
 
-2. Ensure Docker is running on current host. If not, refer to [Get Started with Docker](https://docs.docker.com/get-started/).
+2. Ensure Docker is running on the current host. If not, refer to [Get Started with Docker](https://docs.docker.com/get-started/).
 
 3. Build and tag a Docker image for `hello-server-config-sidecar`:
 
     ```bash
     $ docker build -t "hello-server-config-sidecar:1.0.0-SNAPSHOT" .
     ```
-  Note that the trailing dot "." is very significant.  It means, "run the build relative to the current directory."
+    Note that the trailing dot "." is very significant which means to run the build relative to the current directory.
 
-4. Push your image to the Docker registry which the Kubernetes cluster
-   can reach.  See [Quick Start](./quickstart.md) guide to learn how
-   to make the Kubernetes cluster aware of the Docker credentials so it
-   can pull down images.
+4. Push your image to the Docker registry which the Kubernetes cluster can access. The [Quick Start](./quickstart.md) guide describes how to make the Kubernetes cluster pull the images using the Docker credentials.
 
    > **Note:** If you are using a local Kubernetes, you can omit this step, since the Kubernetes pulls from the same Docker server as the one to which the local build command built the image.
 
-5. Install the Helm chart, passing the arguments with the sidecar image:
+5. Install the Helm chart with the sidecar image arguments:
 
 ```bash
 $ helm --debug install coherence/coherence --name hello-server-config \
@@ -455,10 +445,7 @@ $ helm --debug install coherence/coherence --name hello-server-config \
 
 > **Note:** If your XML files are in a different location within the sidecar Docker image, use the `--set userArtifacts.configDir=<absolute path within docker image>` argument to `helm install` to configure the correct location.
 
-In a separate shell, set up a Kubernetes port forward to expose the
-Extend port so that your local client can use it.  The instructions for
-doing this are output from the above `helm install` command, but they
-are repeated here for your convenience.
+In a new terminal window, set up a Kubernetes port forward to expose the Extend port so that your local client can use it.  The instructions for doing this are from the output of the `helm install` command:
 
 ```bash
 $ export POD_NAME=$(kubectl get pods --namespace default -l "app=coherence,release=hello-server-config" -o jsonpath="{.items[0].metadata.name}")
@@ -482,13 +469,13 @@ $ java -cp .:${COHERENCE_HOME}/lib/coherence.jar \
        -Dcoherence.distributed.localstorage=false \
        -Dcoherence.cacheconfig=$PWD/hello-client-config.xml -Dcoherence.log.level=1 HelloConfigXml
 ```
-The the correct `coherence.jar` must be available at`${COHERENCE_HOME}/lib/coherence.jar`. An output similar to the following s displayed:
+The correct `coherence.jar` must be available at `${COHERENCE_HOME}/lib/coherence.jar`. An output similar to the following is displayed:
 
 ```bash
 The value of the key is 1
 ```
 
-Run the program again and it shows that the value has been incremented.
+Run the program again and it shows that the value has been incremented:
 
 ```bash
 The value of the key is 2.
@@ -496,10 +483,7 @@ The value of the key is 2.
 
 ## Deploy JAR Containing Application Classes and Configuration files
 
-You can deploy a JAR that contains both application classes and configuration files. The sidecar image contains one or more JAR files, each of which can contain application classes, configuration files, or both.
-JAR files included in the sidecar image will be available on the Coherence classpath and all Java classes in those JAR files will be available for Classloading by the entire Coherence cluster. The configuration files must be included in the top
-level of a JAR file so that it can be referenced by the Coherence helm
-chart. An example of the sidecar image layout:
+You can deploy a JAR that contains both application classes and configuration files. The sidecar image contains one or more JAR files, each of which can contain application classes, configuration files, or both. JAR files included in the sidecar image are available on the Coherence classpath and all Java classes in those JAR files are available for Classloading by the entire Coherence cluster. The configuration files must be included in the top level of a JAR file so that it can be referenced by the Coherence Helm chart. An example of the sidecar image layout:
 
 ```bash
 files/
@@ -534,8 +518,8 @@ $ helm --debug install coherence/coherence --name hello-server-config \
 
 You can use the operator to create log files and JVM heap dump files to debug issues in Coherence applications.
 
-See more about [Debugging in
-Coherence](https://docs.oracle.com/middleware/12213/coherence/develop-applications/debugging-coherence.htm) in *Oracle Fusion Middleware Developing Applications with Oracle Coherence*.
+Refer to [Debugging in
+Coherence](https://docs.oracle.com/middleware/12213/coherence/develop-applications/debugging-coherence.htm) section in *Oracle Fusion Middleware Developing Applications with Oracle Coherence*.
 
 In this example, a `.hprof` file is collected for a heap dump:
 
@@ -585,12 +569,14 @@ Heap dump file created
 
 In this command, the PID of the Coherence is assumed to be `1`. Also, the heap dump output is redirected to `stderr` to prevent the unsuppressable output from `jcmd` from showing up in the heap dump file.
 
+You can also refer to [Produce and Extract Heap Dump](samples/management/diagnostics/heap-dump) in Samples.
+
 
 ## Extract Coherence Log Files from Kubernetes
 
-When you install the operator and Coherence with the feature log capture enabled, all the log messages from each Coherence cluster are captured to Elasticsearch, stored with Fluentd, and analyzed in Kibana.
+When you install the operator and Coherence with the log capture feature enabled, all the log messages from each Coherence cluster are captured in Elasticsearch, stored with Fluentd, and analyzed in Kibana.
 The common practice is to capture all the log messages from all of the Coherence clusters into a log aggregator than examining individual Coherence cluster node log files for errors.
-Refer to the [sample] for installing the operator and Coherence with log capture enabled.
+Refer to [Enable Log Capture to View Logs in Kiabana](samples/operator/logging/log-capture) sample for installing the operator and Coherence with log capture enabled.
 
 With log capture feature enabled, all the log messages from every Coherence cluster member are captured including the cluster members that are not running. The persistence of the stored log messages depends on how Fluentd is configured and is beyond the scope of this documentation.  
 
@@ -619,8 +605,9 @@ JMX is the standard way to inspect and manage enterprise Java applications. Appl
 
 The Coherence Helm chart must be installed with additional arguments so that you can use the JMX feature in the operator. This section covers how to install Coherence in a Kubernetes cluster with JMX enabled.
 
-Note that to fully appreciate this use-case, deploy an application that
-uses Coherence and creates some caches.  Such an application can be
+You can refer to [Access JMX in the Coherence Cluster Using JConsole and VisualVM](samples/management/jmx#access-jmx-in-the-coherence-cluster-using-jconsole-and-visualvm) in the Samples.
+
+Note that to fully appreciate this use case, deploy an application that uses Coherence and creates some caches.  Such an application can be
 installed using the steps detailed in [Deploy JAR Files](#deploy-jar-files).
 
 See the [Quick Start](quickstart.md#install-the-operator) guide to install the operator. Install Coherence using Helm chart with the following additional argument for JMX `--set store.jmx.enabled=true*`:
@@ -632,17 +619,15 @@ $ helm --debug install coherence/coherence --name hello-example \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
-After Coherence installation, you must expose the network port for JMX using the `kubectl port-forward` command.
+After the installation completes, you must expose the network port for JMX using the `kubectl port-forward` command.
 
-The instructions will also include suggestions on how to use JConsole or
-[VisualVM](https://visualvm.github.io/).  For the sake of completeness,
-this use-case documents how to use VisualVM to access and manipulate
+The instructions  also include suggestions on how to use JConsole or [VisualVM](https://visualvm.github.io/).  In this guide, VisualVM is used to access and manipulate
 Coherence MBeans when running within Kubernetes.
 
 ### Download the `opendmk_jmxremote_optional_jar` JAR
 
 The JMX endpoint does not use RMI, instead it uses JMXMP. This requires an
-additional JAR on the classpath of the Java JMX client (VisualVM, or
+additional JAR on the classpath of the Java JMX client (VisualVM or
 JConsole). This can be downloaded as a Maven dependency:
 
 ```xml
@@ -672,44 +657,34 @@ visualvm --jdkhome ${JAVA_HOME} --cp:a PATH_TO_DOWNLOADED.jar
 
 3. Click **MBeans** to open the MBeans browser.
 
-4. In the tree view on the left, open Coherence > Cache >
-  DistributedCache and keep drilling down , until you can find a cache
-  created by your application.
+4. In the left tree view, open **Coherence** -> **Cache** ->
+  **DistributedCache** and search for the cache created by your application.
 
-  Here you can see the MBeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-A443DF50-F151-4E9B-AFC9-DFEDF4B149E7__CHDFJDAC
+   You can view the MBeans [here](https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-A443DF50-F151-4E9B-AFC9-DFEDF4B149E7__CHDFJDAC).
 
-  In particular `HighUnits`, which defaults to 0.  This can be
+   In particular, `HighUnits`, which defaults to 0. This can be
   interactively changed in `visualvm`.
 
-5. Expand the tree view to Coherence > Node and pick one of the nodes.
+5. Expand the tree view and select **Coherence** -> **Node** and choose one of the nodes.
 
-  Here you can see the MBeans in https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-0AB8710B-2A1D-432D-AFBF-8E73B8230D51__CHDBIJFA
+   You can view the MBeans [here](https://docs.oracle.com/middleware/12213/coherence/COHMG/oracle-coherence-mbeans-reference.htm#GUID-0AB8710B-2A1D-432D-AFBF-8E73B8230D51__CHDBIJFA)
 
-  In particular `LoggingLevel`, which defaults to 5. This can be
-  also be interactively changed.
+   In particular, `LoggingLevel`, which defaults to 5. This can be also be interactively changed.
 
-  Note that any changes to MBean attributes done in this way will not
-  persist when the cluster restarts.  To make persistent changes, you
-  must modify the Coherence configuration files.
+   Note that any changes to MBean attributes done in this way does not persist when the cluster restarts. To make persistent changes, you must modify the Coherence configuration files.
 
 ## Provide Arguments to the JVM that Runs Coherence
 
-Any production enterprise Java application must carefully tune the JVM
-arguments for maximum performance, and Coherence is no exception.  This
-use-case explains how to convey JVM arguments to Coherence running
-inside Kubernetes.
+Any production enterprise Java application must carefully tune the JVM arguments for maximum performance, and Coherence is no exception.  This use case explains how to provide JVM arguments to Coherence running inside Kubernetes.
 
-This use-case is covered [in the samples](samples/management/jvmarguments/).
+You can also see [Tune JVM Runtime Settings](samples/management/jvmarguments) in the Samples.
 
-Please see [the Coherence Performance Tuning
-documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB)
-for authoritative information on this topic.
+Also, refer to the [Coherence Performance Tuning
+documentation](https://docs.oracle.com/middleware/12213/coherence/administer/performance-tuning.htm#GUID-2A0BC9E6-C3AA-4012-B3D8-EC51963B0CEB) for more information about performance tuning.
 
 There are several values in the
 [values.yaml](https://github.com/oracle/coherence-operator/blob/master/operator/src/main/helm/coherence/values.yaml)
-file of the Coherence Helm chart that convey JVM arguments to the JVM
-that runs Coherence within Kubernetes. Please see the source code for
-the authoritative documentation on these values.  Such values include
+file of the Coherence Helm chart that provides JVM arguments to the JVM that runs Coherence within Kubernetes. See the source code for the authoritative documentation on these values.  Such values include
 the following.
 
 | `--set` left hand side | Meaning |
@@ -731,7 +706,7 @@ $ helm --debug install coherence/coherence --name hello-example \
      --set imagePullSecrets=sample-coherence-secret
 ```
 
-The JVM arguments will include the `store.` arguments specified above,
+The JVM arguments include the `store.` arguments specified above,
 in addition to many others required by the operator and Coherence.
 
 ```bash
@@ -745,8 +720,9 @@ To inspect the full JVM arguments, you can use `kubectl get logs -f <pod-name>` 
 
 ## Using Helm to Scale the Coherence Deployment
 
-The Coherence Operator leverages Kubernetes `Statefulsets` to ensure that the scale up and scale down operations allow the underlying Coherence
-cluster nodes sufficient time to rebalance the cluster data.
+The Coherence Operator leverages Kubernetes `Statefulsets` to ensure that the scale up and scale down operations allow the underlying Coherence cluster nodes sufficient time to rebalance the cluster data.
+
+You can refer to [Scaling a Coherence Deployment](samples/operator/scaling#scaling-a-coherence-deployment) in the Samples.
 
 Use the following command to scale up the number of Coherence cluster nodes:
 ```bash
@@ -770,7 +746,9 @@ The Coherence cluster rebalances the decrease in the number of nodes and the num
 
 The sidecar docker image created using the JAR file containing application classes is tagged with a version number. The version number enables safe rolling upgrades. See Helm documentation for more information about safe rolling upgrades. The safe rolling upgrade allow you to instruct Kubernetes to replace the currently deployed version of the application classes with a different one.  Coherence and Kubernetes ensures that this upgrade is done without any data loss or interruption of service.
 
-Assuming that you have installed the sidecar docker image using the steps detailed in the <procedure link> and the new sidecar docker image is available for the upgrade, you can use the following command to upgrade:
+You can refer to [Change Image Version for Coherence or Application Container Using Rolling Upgrade](samples/operator/rolling-upgrade#change-image-version-for-coherence-or-application-container-using-rolling-upgrade) in the Samples.
+
+Assuming that you have installed the sidecar docker image using the steps detailed in the [Deploy JAR Files](user-guide.md#deploy-jar-files) section and the new sidecar docker image is available for the upgrade, you can use the following command to upgrade:
 
 ```bash
 $ helm --debug upgrade coherence/coherence --name hello-example --reuse-values \
@@ -783,9 +761,11 @@ In this example, the `hello-example-sidecar:1.0.1` is the upgrade destination ta
 ## Deploy Multiple Coherence Clusters
 
 The operator is designed to be installed once on a given
-Kubernetes cluster. This one [Helm release](https://helm.sh/docs/glossary/#release) of the Coherence Operator can monitor and manage all of the Coherence clusters installed on the given Kubernetes cluster.
+Kubernetes cluster. [Helm release](https://helm.sh/docs/glossary/#release) of the Coherence Operator can monitor and manage all of the Coherence clusters installed in the given Kubernetes cluster.
 
 The following commands install the Coherence operator, then install multiple independent Coherence clusters on the same Kubernetes cluster. All the clusters are managed by one operator.
+
+You can refer to [nstalling Multiple Coherence Clusters with One Operator](samples/coherence-deployments/multiple-clusters#installing-multiple-coherence-clusters-with-one-operator) in the samples.
 
 First, install the Coherence Operator with an empty list for the `targetNamespaces` parameter. This causes the operator to manage
 all namespaces for Coherence clusters.
@@ -824,7 +804,7 @@ See the following guides for monitoring services and viewing logs:
 * [Monitoring Coherence services via Grafana dashboards](prometheusoperator.md)
 * [Accessing the EFK stack for viewing logs](logcapture.md)
 
-> **Note**: Use of Prometheus and Grafana is available only when using the operator with Oracle Coherence 12.2.1.4.
+> **Note**: Use of Prometheus and Grafana is available only when using the operator with Oracle Coherence 12.2.1.4.0.
 
 ## Configuring SSL Endpoints for Management over REST and Metrics Publishing
 
@@ -840,27 +820,27 @@ This section describes how to configure a two way SSL for Coherence management o
 
 1. Create Kubernetes secrets for your key store and trust store files. Coherence SSL requires Java key store and trust store files. These files are password protected. Let's define the password protected key store and trust store files:
 
-  ```
-  keyStore - name of the Java keystore file: myKeystore.jks
-  keyStorePasswordFile - name of the keystore password file: storepassword.txt
-  keyPasswordFile - name of the key password file: keypassword.txt
-  trustStore - name of the Java trust store file: myTruststore.jks
-  trustStorePasswordFile - name of the trust store password file: trustpassword.txt
-  ```
-  The following command creates a Kubernetes secret named `ssl-secret` which contains the Java key store and trust store files:
+   ```bash
+    keyStore - name of the Java keystore file: myKeystore.jks
+    keyStorePasswordFile - name of the keystore password file: storepassword.txt
+    keyPasswordFile - name of the key password file: keypassword.txt
+    trustStore - name of the Java trust store file: myTruststore.jks
+    trustStorePasswordFile - name of the trust store password file: trustpassword.txt
+    ```
+    The following command creates a Kubernetes secret named `ssl-secret` which contains the Java key store and trust store files:
 
-  ```bash
-  kubectl create secret generic ssl-secret \
+    ```bash
+    kubectl create secret generic ssl-secret \
      --namespace myNamespace \
      --from-file=./myKeystore.jks \
      --from-file=./myTruststore.jks \
      --from-file=./storepassword.txt \
      --from-file=./keypassword.txt \
      --from-file=./trustpassword.txt
-  ```
+    ```
 2. Create a YAML file, `helm-values-ssl-management.yaml`, to enable SSL for Coherence management over REST using the keystore, trust store, and password files in the `ssl-secret`:
 
-  ```yaml     
+    ```yaml     
        store:
          management:
            ssl:
@@ -877,7 +857,7 @@ This section describes how to configure a two way SSL for Coherence management o
 
          readinessProbe:
            initialDelaySeconds: 10  
-  ```
+    ```
 3. Install the Coherence Helm chart using the YAML file `helm-values-ssl-management.yaml`:
 
   ```bash
@@ -903,8 +883,7 @@ Also, look for the following message in the log file of the Coherence pod: <br /
 
 To configure a SSL endpoint for Coherence metrics:
 
-  1. Create Kubernetes secrets for your key store and trust store files. Coherence SSL requires Java key store and trust store files. These files are password protected. Let's define the password protected key store and trust store files:
-
+1. Create Kubernetes secrets for your key store and trust store files. Coherence SSL requires Java key store and trust store files. These files are password protected. Let's define the password protected key store and trust store files:
     ```bash
     keyStore - name of the Java keystore file: myKeystore.jks
     keyStorePasswordFile - name of the keystore password file: storepassword.txt
@@ -912,6 +891,7 @@ To configure a SSL endpoint for Coherence metrics:
     trustStore - name of the Java trust store file: myTruststore.jks
     trustStorePasswordFile - name of the trust store password file: trustpassword.txt
     ```
+
     The following command creates a Kubernetes secret named `ssl-secret` which contains the Java key store and trust store files:
 
     ```bash
@@ -925,7 +905,7 @@ To configure a SSL endpoint for Coherence metrics:
     ```
 2. Create a YAML file, `helm-values-ssl-metrics.yaml`, using the keystore, trust store, and password file stored in `ssl-secret`:
 
-  ```yaml   
+    ```yaml   
      store:
        metrics:
          ssl:
@@ -941,26 +921,25 @@ To configure a SSL endpoint for Coherence metrics:
            requireClientCert: true
            readinessProbe:
            initialDelaySeconds: 10
-  ```        
+      ```        
 3. Install the Coherence helm chart using the YAML file, `helm-values-ssl-metrics.yaml`:
 
-  ```bash
-  helm install coherence/coherence \
+    ```bash
+    helm install coherence/coherence \
     --name coherence \
     --namespace myNamespace \
     --set imagePullSecrets=my-imagePull-secret \
     -f helm-values-ssl-metrics.yaml
-  ```
-
+    ```
 To verify that the Coherence metrics for Prometheus is running with HTTPS, forward the Coherence metrics port and access the metrics from your local machine use the following commands:
 
-  ```bash
-  $ kubectl port-forward <Coherence pod> 9095:9095
+      ```bash
+      $ kubectl port-forward <Coherence pod> 9095:9095
 
-  $ curl -X GET https://localhost:9095/metrics --cacert <caCert> --cert <certificate>
-  ```
+      $ curl -X GET https://localhost:9095/metrics --cacert <caCert> --cert <certificate>
+      ```
 
-You can add `--insecure` if you use self-signed certificate. Also, look for the following message in the log file of the Coherence pod:</br>
+    You can add `--insecure` if you use self-signed certificate. Also, look for the following message in the log file of the Coherence pod:</br>
   `Started: HttpAcceptor{Name=Proxy:MetricsHttpProxy:HttpAcceptor, State=(SERVICE_STARTED), HttpServer=NettyHttpServer{Protocol=HTTPS, AuthMethod=cert}`
 
 To configure Prometheus SSL (TLS) connections with the Coherence metrics SSL endpoints, see https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md for more information about how to specify Kubernetes secrets that contain the certificates required for two-way SSL in Prometheus.
@@ -973,7 +952,7 @@ After configuring Prometheus to use SSL, verify that the Prometheus is scraping 
 
   http://localhost:9090/graph
   ```
-You should see many coherence_* metrics.   
+You can see many coherence_* metrics.
 
 To enable SSL for both management over REST and metrics publishing for Prometheus, install the Coherence chart with both YAML files:
 
