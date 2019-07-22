@@ -39,10 +39,11 @@ REad through the samples, understand how they work, and then customize them to y
 
 To setup Coherence Operator, follow these steps:
 
-1. [Confirm Quickstart Runtime Prerequisites](#confirm-quickstart-runtime-prerequisites)
-1. [Ensure you have JDK 8 and Maven Installed](#ensure-you-have-jdk8-and-maven-installed)
-1. [Ensure you install Coherence into your local Maven repository](#ensure-you-install-coherence-into-your-local-maven-repository)
+1. [Check Runtime Prerequisites](#check-runtime-prerequisites)
+1. [Check JDK 8 and Maven Installation](#check-jdk-8-and-maven-installation)
+1. [Install Coherence into Local Maven Repository](#install-coherence-into-local-maven-repository)
 1. [Create the Sample Namespace](#create-the-sample-namespace)
+5. [Create a Secret](#create-a-secret)
 1. [Clone the GitHub Repository](#clone-the-github-repository)
 1. [Install the Coherence Operator](#install-the-coherence-operator)
 
@@ -97,9 +98,9 @@ If you are running samples that have a Maven project, then follow these steps:
    If you are running Coherence 12.2.1.4, you need to install `coherence-metrics`.
 
    ```bash
-   $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-metrics.jar \
-  -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-metrics/12.2.1/coherence-metrics.12.2.1.pom
-   ```   
+   $ mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence-metrics.jar -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence-metrics/12.2.1/coherence-metrics.12.2.1.pom
+   ``` 
+
 ## Create the Sample Namespace
 
 You need to create the namespace for the first time to run any of the samples. Create your target namespace:
@@ -141,39 +142,37 @@ repository within your Docker Hub account. Then, create a secret to allow Kubern
 3. Enter `Coherence` as the Name of the repository and in the Description type `Re-tags of Official Coherence Image`.
 4. Select Public or Private for the repository and click **Create**.
 5. Note the docker tag displayed.
-```bash
-docker push <dockerid>/coherence:tagname
-```
-`<dockerid>/coherence:tagname` is the docker tag for the repository.
-6. Follow the steps in the section [Obtain Images from Oracle Container Registry](https://github.com/oracle/coherence-operator/blob/gh-pages/docs/quickstart.md#obtain-images-from-oracle-container-registry) to get the Coherence 12.2.1.3.x Docker image.
-7. Re-tag the Coherence 12.2.1.3.x Docker image with your repository and docker tag.
-```bash
- docker tag store/oracle/coherence:12.2.1.3 <dockerid>/coherence:12.2.1.3
- ```
-8. Log in to your Docker Hub account:
- ```bash
- docker login
- ```
- Enter your Docker ID and password.
-9. Push the re-tagged image to your Docker repository:
- ```bash
-docker push <dockerid>/coherence:12.2.1.3
- ```
- Note the value of the `The push refers to repository` statement.  The
- first part of that is necessary to create the secret for Kubernetes.
- In this case, it should be something like `docker.io/mydockerid/coherence`.
-10. Create the secret within your namespace:
-```bash
-kubectl create secret docker-registry sample-coherence-secret \
- --namespace sample-coherence-ns --docker-server=hub.docker.com \
- --docker-username=docker.io/<dockerid> --docker-password="your docker password" \
- --docker-email="the email address of your docker account"
-```
-When invoking `helm`, you can specify one or more secrets using the `--set imagePullSecrets` option.
-
    ```bash
-   --set "imagePullSecrets{sample-coherence-secret}"
+   docker push <dockerid>/coherence:tagname
    ```
+   `<dockerid>/coherence:tagname` is the docker tag for the repository.
+6. Follow the steps in the section [Obtain Images from Oracle Container Registry](quickstart.md#obtain-images-from-oracle-container-registry) to get the Coherence 12.2.1.3.x Docker image.
+7. Re-tag the Coherence 12.2.1.3.x Docker image with your repository and docker tag.
+   ```bash
+   docker tag store/oracle/coherence:12.2.1.3 <dockerid>/coherence:12.2.1.3
+    ```
+8. Log in to your Docker Hub account:
+   ```bash
+   docker login
+   ```
+   Enter your Docker ID and password.
+9. Push the re-tagged image to your Docker repository:
+   ```bash
+   docker push <dockerid>/coherence:12.2.1.3
+    ```
+   Note the value of the `The push refers to repository` statement. The first part of that is necessary to create the secret for Kubernetes. In this case, it should be something like `docker.io/mydockerid/coherence`.
+10. Create the secret within your namespace:
+    ```bash
+    kubectl create secret docker-registry sample-coherence-secret 
+      --namespace sample-coherence-ns --docker-server=hub.docker.com 
+      --docker-username=docker.io/<dockerid> --docker-password="your docker password" 
+      --docker-email="the email address of your docker account"
+      ```
+      When invoking `helm`, you can specify one or more secrets using the `--set imagePullSecrets` option.
+
+      ```bash
+       --set "imagePullSecrets{sample-coherence-secret}"
+       ```
 
 ## Clone the GitHub Repository
 
@@ -306,52 +305,51 @@ Samples legend:
 
 * &#x2726; - Available for Coherence 12.2.1.4.x and above
 
-* &#x2718; - Not yet available
 
 1. [Coherence Operator](operator/)
    1. [Logging](operator/logging)
-      1. [Enable log capture to view logs in Kiabana ](operator/logging/log-capture) &#x2714;
-      1. [Configure custom logger and view in Kibana ](operator/logging/custom-logs) &#x2714;
-      1. [Push logs to your own Elasticsearch Instance](operator/logging/own-elasticsearch) &#x2714;
+      1. [Enable Log capture to View Logs in Kiabana ](operator/logging/log-capture) &#x2714;
+      1. [Configure Custom Logger and View in Kibana ](operator/logging/custom-logs) &#x2714;
+      1. [Push Logs to Your Elasticsearch Instance](operator/logging/own-elasticsearch) &#x2714;
    1. [Metrics (12.2.1.4.X only)](operator/metrics)
-      1. [Deploy the operator with Prometheus enabled and view in Grafana](operator/metrics/enable-metrics)  &#x2726;
+      1. [Deploy the Operator with Prometheus Enabled and View in Grafana](operator/metrics/enable-metrics)  &#x2726;
       1. [Enable SSL for Metrics](operator/metrics/ssl) &#x2726;
-      1. [Scrape metrics from your own Prometheus instance](operator/metrics/own-prometheus) &#x2726;
-   1. [Scaling a Coherence deployment via kubectl](operator/scaling) &#x2714;
-   1. [Change image version for Coherence or application container using rolling upgrade](operator/rolling-upgrade) &#x2714;
+      1. [Scrape Metrics from Your Prometheus Instance](operator/metrics/own-prometheus) &#x2726;
+   1. [Scaling a Coherence Deployment](operator/scaling) &#x2714;
+   1. [Change Image Version for Coherence or aApplication Container Using Rolling Upgrade](operator/rolling-upgrade) &#x2714;
 1. [Coherence Deployments](coherence-deployments)
-   1. [Add application jars/Config to a Coherence deployment](coherence-deployments/sidecar) &#x2714;
+   1. [Add Application JARs/Config to a Coherence Deployment](coherence-deployments/sidecar) &#x2714;
    1. [Accessing Coherence via Coherence*Extend](coherence-deployments/extend)
-      1. [Access Coherence via default proxy port](coherence-deployments/extend/default) &#x2714;
-      1. [Access Coherence via separate proxy tier](coherence-deployments/extend/proxy-tier) &#x2714;
+      1. [Access Coherence via the Default Proxy Port](coherence-deployments/extend/default) &#x2714;
+      1. [Access Coherence via the Separate Proxy Tier](coherence-deployments/extend/proxy-tier) &#x2714;
       1. [Enabling SSL for Proxy Servers](coherence-deployments/extend/ssl) &#x2714;     
-      1. [Using multiple Coherence*Extend proxies](coherence-deployments/extend/multiple) &#x2714;
-   1. [Accessing Coherence via storage-disabled clients](coherence-deployments/storage-disabled)
-      1. [Storage-disabled client in cluster via interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
-      1. [Storage-disabled client in cluster as separate user image](coherence-deployments/storage-disabled/other) &#x2714;
+      1. [Using multiple Coherence*Extend Proxies](coherence-deployments/extend/multiple) &#x2714;
+   1. [Accessing Coherence via storage-disabled Clients](coherence-deployments/storage-disabled)
+      1. [Storage-disabled Client in Cluster via Interceptor](coherence-deployments/storage-disabled/interceptor) &#x2714;
+      1. [Storage-disabled Client in Cluster as Separate User image](coherence-deployments/storage-disabled/other) &#x2714;
    1. [Federation  (12.2.1.4.X only)](coherence-deployments/federation)
-      1. [Within a single Kubernetes cluster](coherence-deployments/federation/within-cluster) &#x2726;
-      1. [Across across separate Kubernets clusters](coherence-deployments/federation/across-clusters) &#x2726;
+      1. [Within a Single Kubernetes Cluster](coherence-deployments/federation/within-cluster) &#x2726;
+      1. [Across Separate Kubernets Clusters](coherence-deployments/federation/across-clusters) &#x2726;
    1. [Persistence](coherence-deployments/persistence)
-      1. [Use default persistent volume claim](coherence-deployments/persistence/default) &#x2714;
-      1. [Use a specific persistent volume](coherence-deployments/persistence/pvc) &#x2714;
+      1. [Use Default Persistent Volume Claim](coherence-deployments/persistence/default) &#x2714;
+      1. [Use a Specific Persistent Volume](coherence-deployments/persistence/pvc) &#x2714;
    1. [Elastic Data](coherence-deployments/elastic-data)
-      1. [Deploy using default FlashJournal locations](coherence-deployments/elastic-data/default) &#x2714;
-      1. [Deploy using external volume mapped to the host](coherence-deployments/elastic-data/external) &#x2714;
-   1. [Installing Multiple Coherence clusters with one Operator](coherence-deployments/multiple-clusters)    
+      1. [Deploy Using Default FlashJournal Locations](coherence-deployments/elastic-data/default) &#x2714;
+      1. [Deploy Using External Volume Mapped to the Host](coherence-deployments/elastic-data/external) &#x2714;
+   1. [Installing Multiple Coherence Clusters with One Operator](coherence-deployments/multiple-clusters)    
 1. [Management](management)
    1. [Using Management over REST (12.2.1.4.X only)](management/rest)
-      1. [Access management over REST](management/rest/standard) &#x2726;
-      1. [Access management over REST using JVisualVM plugin](management/rest/jvisualvm) &#x2726;
-      1. [Enable SSL with management over REST](management/rest/ssl) &#x2726;
+      1. [Access Management over REST](management/rest/standard) &#x2726;
+      1. [Access Management over REST Using JVisualVM plugin](management/rest/jvisualvm) &#x2726;
+      1. [Enable SSL with Management over REST](management/rest/ssl) &#x2726;
       1. [Modify Writable MBeans](management/rest/mbeans) &#x2726;
-   1. [Access JMX in the Coherence cluster via JConsole and JVisualVM](management/jmx) &#x2714;
-   1. [Access Coherence Console and CohQL on a cluster node](management/console-cohql) &#x2714;
+   1. [Access JMX in the Coherence Cluster via JConsole and JVisualVM](management/jmx) &#x2714;
+   1. [Access Coherence Console and CohQL on a Cluster Node](management/console-cohql) &#x2714;
    1. [Diagnostic Tools](management/diagnostics)
-      1. [Produce and extract a heap dump](management/diagnostics/heap-dump) &#x2714;
-      1. [Produce and extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2726;
-   1. [Manage and use the Reporter](management/reporter) &#x2726;
-   1. [Provide arguments to the JVM that runs Coherence](management/jvmarguments) &#x2714;      
+      1. [Produce and Extract a Heap Dump](management/diagnostics/heap-dump) &#x2714;
+      1. [Produce and Extract a Java Flight Recorder (JFR) file](management/diagnostics/jfr) &#x2726;
+   1. [Manage and Use the Reporter](management/reporter) &#x2726;
+   1. [Provide Arguments to the JVM that Runs Coherence](management/jvmarguments) &#x2714;      
 
 # Troubleshooting Tips
 
@@ -458,8 +456,9 @@ If you have enabled Prometheus, then you can use the `port-forward-prometheus.sh
 
    ```bash
    $ ./port-forward-prometheus.sh sample-coherence-ns
-  ```
-  ```console
+    ```
+
+   ```console
    Forwarding from 127.0.0.1:9090 -> 9090
    Forwarding from [::1]:9090 -> 9090
    ```
