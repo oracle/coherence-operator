@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.bedrock.deferred.options.MaximumRetryDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.runtime.console.SystemApplicationConsole;
 import com.tangosol.util.Resources;
@@ -118,8 +119,9 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS));
 
             System.err.println("****************************************************************");
             System.err.println("********[STARTING UPGRADE OF " + m_sRelease + "]***********");
@@ -132,8 +134,9 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             System.err.println("Waiting for required Client-1 state after upgrade ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReachedAfterUpgrade(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  Eventually.within(TIMEOUT, TimeUnit.SECONDS));
             }
         finally
             {
@@ -292,6 +295,11 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
      * Time out value for checking the required condition.
      */
     private static final int      TIMEOUT      = 300;
+
+    /**
+     * The retry frequency in seconds.
+     */
+    private static final int RETRY_FREQUENCEY_SECONDS = 10;
 
     /**
      * The boolean indicates whether coherence cache data is persisted.

@@ -1154,6 +1154,7 @@ public abstract class BaseHelmChartTest
             }
         catch (Exception ex)
             {
+            System.err.printf("isRequiredClientStateReached(%s, %s, %s): %s\n", cluster, sNamespace, sClientPod, ex);
             return false;
             }
         }

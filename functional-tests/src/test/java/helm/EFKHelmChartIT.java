@@ -300,8 +300,9 @@ public class EFKHelmChartIT
             System.err.println("Waiting for Client-1 initial state ...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS));
 
             Eventually.assertThat("cloud- index-pattern is null or empty",
                     invoking(this).isCloudApplicationESIndexReady(), is(true),
