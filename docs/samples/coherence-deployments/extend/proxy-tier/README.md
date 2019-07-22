@@ -1,51 +1,44 @@
-# Access Coherence via separate proxy tier
+# Access Coherence via a Separate Proxy Tier
 
-This sample shows how we can deploy 2 tiers, a storage-enabled data tier and
-storage-disabled proxy tier. This is a common scenario when using Coherence*Extend
-to connect to a cluster and you with to separate the proxy tier from the data tier.
+This sample shows how to deploy two tiers, a storage-enabled data tier and a storage-disabled proxy tier. This is a common scenario when you are using Coherence*Extend
+to connect to a cluster and when you want to separate the proxy tier from the data tier.
 
-This is achieved by using 2 helm installs, which both include a sidecar container
-for the data tier and proxy tier cache config.
+This is achieved by using two `helm install` commands, both of which include a sidecar container
+for the data tier and proxy tier cache configuration.
 
 [Return to Coherence*Extend samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Sample files
 
-* [src/main/docker/Dockerfile](src/main/docker/Dockerfile) - Dockerfile for creating side-car image from which configuration
-  will be read from at pod startup
+* [src/main/docker/Dockerfile](src/main/docker/Dockerfile) - Dockerfile for creating sidecar image from which the configuration will be read at pod startup
 
-* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - cache config for extend client
+* [src/main/resources/client-cache-config.xml](src/main/resources/client-cache-config.xml) - Cache configuration for the extend client
 
-* [src/main/resources/conf/proxy-cache-config.xml](src/main/resources/conf/proxy-cache-config.xml) - cache config for proxy-tier
+* [src/main/resources/conf/proxy-cache-config.xml](src/main/resources/conf/proxy-cache-config.xml) - Cache configuration for proxy-tier
 
-* [src/main/resources/conf/storage-cache-config.xml](src/main/resources/conf/storage-cache-config.xml) - cache config for storage-tier
+* [src/main/resources/conf/storage-cache-config.xml](src/main/resources/conf/storage-cache-config.xml) - Cache configuration for storage-tier
 
 ## Prerequisites
 
-Ensure you have already installed the Coherence Operator by using the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed the Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
-1. Change to the `samples/coherence-deployments/extend/proxy-tier` directory and ensure you have your maven build environment set for JDK8 and build the project.
+1. Change to the `samples/coherence-deployments/extend/proxy-tier` directory. Ensure that you have your maven build environment set for JDK8, and build the project.
 
    ```bash
    $ mvn clean install -P docker
    ```
 
-1. The result of the above is the docker image will be built with the cache configuration files
-   with the name in the format proxy-tier-sample:${version}.
+   This builds the Docker image with the cache configuration files and compiled Java classes, with the name in the format `proxy-tier-sample:${version}`. For example,
 
-   For Example:
+    ```bash
+    proxy-tier-sample:1.0.0-SNAPSHOT
+     ```
 
-   ```bash
-   proxy-tier-sample:1.0.0-SNAPSHOT
-   ```
+   > **Note:** If you are running against a remote Kubernetes cluster, you must push the above image to your repository accessible to that cluster. You must also prefix the image name in your `helm` command as shown below.
 
-   > **Note:** If you are running against a remote Kubernetes cluster you will need to
-   > push the above image to your repository accessible to that cluster. You will also need to 
-   > prefix the image name in your `helm` command below.
-
-1. Install the Coherence cluster
+2. Install the Coherence cluster.
 
    ```bash
    $ helm install \
@@ -60,36 +53,38 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
       coherence/coherence
    ```
-   
-   Once the install has completed, issue the following command to list the pods:
+
+  Once the installation is complete, run the following command to retrieve the list of pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+  All the three storage-coherence pods should be running and ready, as shown in the output:
+
+   ```console
    NAME                   READY   STATUS    RESTARTS   AGE
    storage-coherence-0    1/1     Running   0          4m
    storage-coherence-1    1/1     Running   0          2m   
    storage-coherence-2    1/1     Running   0          2m
    ```
-   
-   All 3 storage-coherence-0/1/2 pods should be running and ready, as above.
 
-1. Install the storage-disabled proxy-tier
+3. Install the storage-disabled proxy-tier.
 
-   The following are set to ensure this release will connect to the Coherence clusterSize
+   Set the following properties to ensure that this release connects to the Coherence clusterSize
    created by the `storage` release:
 
-   * `--set cluster=proxy-tier-cluster` - same cluster name
+   * `--set cluster=proxy-tier-cluster` - Uses the same cluster name
 
-   * `--set store.wka=storage-coherence-headless` - ensures it can contact the cluster
-   
-   * `--set cluster=proxy-tier-cluster` - ensures the cluster name is the same
+   * `--set store.wka=storage-coherence-headless` - Ensures that it can contact the cluster
 
-   * `--set prometheusoperator.enabled=false` - set storage to false
+   * `--set cluster=proxy-tier-cluster` - Ensures that the cluster name is the same
 
-   * `--set store.cacheConfig=proxy-cache-config.xml` - uses proxy cache config from sidecar
-   
-   > **Note:** We are using a clusterSize for the proxy-tier of just 1, to save resources. You could
-   > also scale out the proxy-tier for high availability purposes.
+   * `--set prometheusoperator.enabled=false` - Sets storage to false
+
+   * `--set store.cacheConfig=proxy-cache-config.xml` - Uses proxy cache configuration from sidecar
+
+   > **Note:** For the proxy-tier, we are using a clusterSize of one, to save resources. You can
+   > scale out the proxy-tier for high availability purposes.
 
    ```bash
    $ helm install \
@@ -106,20 +101,20 @@ Ensure you have already installed the Coherence Operator by using the instructio
      --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
      coherence/coherence
    ```
-   
-   To confirm the proxy-tier has joined the cluster you can look at the logs using:
+
+   To confirm that the proxy-tier has joined the cluster, you can look at the logs using:
 
    ```bash
    $ kubectl logs proxy-tier-coherence-0 -n sample-coherence-ns | grep ActualMemberSet
    ```
 
-   This should return the following, which indicates there are now 4 members:
+   This should return the following, which indicates that there are now four members:
 
-   ```bash
+   ```console
    ActualMemberSet=MemberSet(Size=4
    ```
 
-   You should now see 3 charts installed:
+   You should now see three charts installed:
 
    ```bash
    $ helm ls
@@ -129,21 +124,21 @@ Ensure you have already installed the Coherence Operator by using the instructio
    storage           	1       	Wed Mar 20 14:53:58 2019	DEPLOYED	coherence-1.0.0-SNAPSHOT         	1.0.0-SNAPSHOT	sample-coherence-ns
    ```
 
-1. Port forward the proxy port on the proxy-tier
+4. Port forward the proxy port on the proxy-tier.
 
    ```bash
    $ kubectl port-forward -n sample-coherence-ns proxy-tier-coherence-0 20000:20000
    ```
 
-1. Connect via QueryPlus and issue CohQL commands
+5. Connect via QueryPlus and run the `CohQL` commands.
 
-   Issue the following command to run QueryPlus:
+   Run the following command to execute QueryPlus:
 
    ```bash
    $ mvn exec:java
    ```
 
-   Run the following CohQL commands to insert data into the cluster.
+   Run the following `CohQL` commands to insert data into the cluster.
 
    ```sql
    insert into 'test' key('key-1') value('value-1');
@@ -157,14 +152,12 @@ Ensure you have already installed the Coherence Operator by using the instructio
    1
    ```
 
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the two charts installed in this sample.
+Run the following command to delete both the charts installed in this sample:
 
 ```bash
 $ helm delete storage proxy-tier --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
-
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
+Before starting another sample, ensure that all  pods are removed from the previous sample. To remove `coherence-operator`, use the `helm delete` command.
