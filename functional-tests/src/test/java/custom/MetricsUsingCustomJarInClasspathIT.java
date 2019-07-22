@@ -7,6 +7,7 @@
 package custom;
 
 import com.oracle.bedrock.deferred.options.InitialDelay;
+import com.oracle.bedrock.deferred.options.MaximumRetryDelay;
 import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
@@ -24,7 +25,6 @@ import org.junit.Test;
 
 import util.AssumingCoherenceVersion;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
@@ -129,8 +129,9 @@ public class MetricsUsingCustomJarInClasspathIT
             System.err.println("Waiting for Client-1 initial state...");
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  within(TIMEOUT, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  within(TIMEOUT, TimeUnit.SECONDS));
 
             // validate metrics ports
             for (String sPod : listPods)
@@ -142,13 +143,15 @@ public class MetricsUsingCustomJarInClasspathIT
 
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT1),
                                   is(true),
-                                  within(120, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  within(120, TimeUnit.SECONDS));
 
             Eventually.assertThat(invoking(this).isRequiredClientStateReached(s_k8sCluster, sNamespace, CLIENT2),
                                   is(true),
-                                  within(120, TimeUnit.SECONDS),
-                                  RetryFrequency.fibonacci());
+                                  MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                                  within(120, TimeUnit.SECONDS));
 
             for (int i = 0; i < 6; i++)
                 {
@@ -276,6 +279,12 @@ public class MetricsUsingCustomJarInClasspathIT
      */
     private static final int      TIMEOUT      = 300;
 
+
+    /**
+     * The retry frequency in seconds.
+     */
+    private static final int RETRY_FREQUENCEY_SECONDS = 10;
+
     /**
      * The boolean indicates whether coherence cache data is persisted.
      */
@@ -288,7 +297,6 @@ public class MetricsUsingCustomJarInClasspathIT
 
     private static final String   CLIENT1  = "coh-client-1";
     private static final String   CLIENT2  = "coh-client-2";
-    private static final String[] CLIENTS  = new String[] { CLIENT1, CLIENT2 };
     private static final String   CLUSTER1 = "MyCoherenceCluster";
 
     /**
