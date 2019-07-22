@@ -1,9 +1,9 @@
-# Push logs to your own Elasticsearch Instance  
+# Push Logs to Your Elasticsearch Instance  
 
-The Oracle Coherence Operator manages logging data through the EFK
-(ElasticSearch, Fluentd and Kibana) stack.
+The Oracle Coherence Operator manages data logging through the
+ElasticSearch, Fluentd, and Kibana (EFK) stack.
 
-This sample explains how to instruct fluentd to push data your own elastic search instance.
+This sample explains how to make Fluentd to push data to your own Elasticsearch instance.
 
 [Return to Logging samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -13,23 +13,21 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
 
 1. Install the Coherence Operator
 
-   You must install the Coherence Operator by using the instructions below to 
-   enable logCapture and point to the host and port of your `existing elasticsearch` instance.
+   You must install the Coherence Operator using the instructions that enable log capture and point to the host and port of your existing Elasticsearch instance.
 
-   *Note*: If you have an existing running Coherence Operator, you should uninstall 
-   by using `helm delete coherence-operator --purge`.
+   *Note*: If you have a running Coherence Operator, you should uninstall using the command `helm delete coherence-operator --purge`.
 
    Ensure you set the following:
   
-   * `elasticsearchEndpoint.host` to your elasticsearch host
+   * `elasticsearchEndpoint.host` to your Elasticsearch host.
    
-   * `elasticsearchEndpoint.port` to your elasticsearch port 
+   * `elasticsearchEndpoint.port` to your Elasticsearch port.
    
-   *Note*: If your Elasticsearch host requires user and password, you can also set the following:
+   *Note*: If your Elasticsearch host requires username and password, set the following:
    
-   * `elasticsearchEndpoint.user` to your elasticsearch username
+   * `elasticsearchEndpoint.user` to your Elasticsearch username.
    
-   * `elasticsearchEndpoint.password` to your elasticsearch password 
+   * `elasticsearchEndpoint.password` to your elasticsearch password.
   
    ```bash
    $ helm install \
@@ -43,14 +41,19 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       coherence/coherence-operator
    ```
 
-1. Confirm the Elasticsearch endpoint is set
+1. Verify that the Elasticsearch endpoint is set.
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-856d5f8544-kgxgd   2/2     Running   0          8m
-
+   ```
+   ```bash
    $ kubectl logs coherence-operator-856d5f8544-kgxgd  -n sample-coherence-ns -c fluentd | grep -A3 'match coherence-operator'
+   ```
+   ```console
    
    <match coherence-operator>
     @type elasticsearch
@@ -58,16 +61,15 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
     port my-elastic-port
    ```
    
-   The above host and port should match the values you supplied in the above `helm install`.
+   The host and port value must match the values you supplied in the `helm install` command.
                    
 1. Install the Coherence cluster
 
    The following additional options are set:
    
-   * `--set logCaptureEnabled=true` - this will then use the configuration of the operator 
-     for the elasticsearch endpoint for fluentd.
+   * `--set logCaptureEnabled=true` - This uses the configuration of the operator for the Elasticsearch endpoint for Fluentd.
 
-   > **Note**: The Coherence Operator will provide the Elasticsearch host and port values to the Coherence install.
+   > **Note**: The Coherence Operator provides the Elasticsearch host and port values to install Coherence.
    
    ```bash
    $ helm install \
@@ -80,10 +82,12 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
       coherence/coherence
    ```
    
-   Once the install has completed, issue the following command to list the pods:
+   After the installation completes, list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-7f596c6796-nns9n   2/2     Running   0          22m
    storage-coherence-0                   2/2     Running   0          17m
@@ -91,27 +95,28 @@ This will ensure that Elasticsearch and Kibana will be installed and configured.
    storage-coherence-2                   2/2     Running   0          16m
    ```
    
-   Notice that the `coherence-operator` and all the `coherence` pods have two containers, the second one being fluentd.
+   The `coherence-operator` and all the `coherence` pods have two containers. The second container is for Fluentd.
    
    ```bash
    $ kubectl logs storage-coherence-0  -n sample-coherence-ns -c fluentd | grep -A3 'match coherence-cluster'
     <match coherence-cluster>
+    ```
+    ```console
      @type elasticsearch
      host "my-elastic-host"
      port my-elastic-port
    ```
    
-   The above host and port should match the values you supplied in the `coherence-operator` install.
+   The host and port values must match the values you provided to install the `coherence-operator`.
    
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the chart installed in this sample.
+Use the following commands to delete the chart installed in this sample:
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
+Before starting another sample, ensure that all the pods are removed from previous sample.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
-
+If you want to remove the `coherence-operator`, then use the `helm delete` command.

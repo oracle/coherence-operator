@@ -119,11 +119,11 @@ spec:
       component: "coherence-service"
 ...      
 endpoints:
-  - port: 9095
+  - port: 9612
 ```
 
 If the Coherence helm chart parameter `service.metricsHttpPort` is set when installing the Coherence helm chart,
-replace `9095` above with the new value.
+replace `9612` above with the new value.
 
 If the Coherence helm chart parameter `store.metrics.ssl.enabled` is set to `true`, then add  `endpoints.scheme` with the value of `https`
 to the `coherence-service-monitor.yaml` fragment.

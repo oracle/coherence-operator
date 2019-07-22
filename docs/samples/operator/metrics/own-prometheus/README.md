@@ -1,12 +1,10 @@
-# Scrape metrics from your own Prometheus instance
+# Scrape Metrics from Your Prometheus Instance
 
-You may wish to scrape the metrics from your own Prometheus Operator instance rather than use the
-prometheusopeartor subchart included with coherence-operator. 
+You can scrape the metrics from your own Prometheus Operator instance rather than using the `prometheusopeartor` subchart included with `coherence-operator`.
 
 This sample shows you how to scrape metrics from your own Prometheus instance.
 
-> **Note:** Use of Prometheus and Grafana is only available when using the
-> operator with Coherence 12.2.1.4.
+> **Note:** Use of Prometheus and Grafana is available only when using the operator with Oracle Coherence 12.2.1.4.0 version.
 
 [Return to Metrics samples](../) / [Return to Coherence Operator samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -14,14 +12,14 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
 
 1. Install Coherence Operator
 
-   When you install the `coherence-operator` chart, you must ensure to specify `--set prometheusoperator.enabled=false`
-   or leave out the option completely, which will default to false. 
+   When you install the `coherence-operator`, you must ensure to specify `--set prometheusoperator.enabled=false`
+   or leave out the option completely, which also defaults to false.
   
    ```bash
    --set prometheusoperator.enabled=false
    ```
 
-   Issue the following command to install `coherence-operator` with `prometheusoperator` enabled:
+   Use the following command to install `coherence-operator` with `prometheusoperator` enabled:
    
    ```bash
    $ helm install \
@@ -32,15 +30,17 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       coherence/coherence-operator
    ```
    
-   Once the install has completed, issue the following command to list the pods:
+   After the installation completes, list the pods:
    
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-665489854f-jr7qj   1/1     Running   0          9s
    ```
    
-   There should only be a single `coherence-operator` pod.
+   There is only a single `coherence-operator` pod.
    
 2. Install the Coherence cluster
 
@@ -55,57 +55,52 @@ This sample shows you how to scrape metrics from your own Prometheus instance.
       coherence/coherence
    ```
    
-   Once the install has completed, issue the following command to list the pods:
+   After the installation completes, list the pods:
 
    ```bash
    $ kubectl get pods -n sample-coherence-ns
+   ```
+   ```console
    NAME                                  READY   STATUS    RESTARTS   AGE
    coherence-operator-665489854f-jr7qj   1/1     Running   0          3m
    storage-coherence-0                   1/1     Running   0          1m
    storage-coherence-1                   1/1     Running   0          1m
    storage-coherence-2                   0/1     Running   0          22s
    ```
- 
-## Configure your Prometheus Operator to scrape Coherence pods
 
-Please consult the Prometheus Operator documentation on how to configure and deploy a service monitor for 
-your own Prometheus Operator installation.
+## Configure Your Prometheus Operator to Scrape Coherence Pods
 
-This section only describes service monitor configuration as it relates to the Coherence helm chart.
+Refer [Prometheus Operator](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md) documentation for information about how to configure and deploy a service monitor for your Prometheus Operator installation.
 
-coherence-service-monitor.yaml fragment:
+This section describes only the service monitor configuration as it relates to the Coherence Helm chart.
+
+`coherence-service-monitor.yaml` fragment:
 ```
 ...
 spec:
   selector:
     matchLabels:
       component: "coherence-service"
-...      
+...
 endpoints:
-  - port: 9095
+  - port: 9612
 ```
 
-If the Coherence helm chart parameter `service.metricsHttpPort` is set when installing the Coherence helm chart,
-replace `9095` above with the new value.
+If the parameter `service.metricsHttpPort` is set when installing the Coherence Helm chart, replace `port: 9612` with the new value.
   
-If the Coherence helm chart parameter `store.metrics.ssl.enabled` is `true`, additionally add `endpoints.scheme` value of `https`
-to `coherence-service-monitor.yaml` fragment.
+If the Coherence Helm chart parameter `store.metrics.ssl.enabled` is `true`, add `endpoints.scheme` value of `https` to `coherence-service-monitor.yaml` fragment.
 
-Note that there are a number of Coherence Grafana dashboards bundled in the coherence-operator helm chart under dashboards folder.
-While Grafana will have to be configured to the location of your prometheus datasource, one can still take advantage
-of these Coherence dashboards by extracting them from the coherence-operator helm chart.
+There are a number of Coherence Grafana dashboards bundled in the Coherence Operator Helm chart under dashboards folder.
+While Grafana have to be configured to the location of your Prometheus datasource, you can take advantage of these Coherence dashboards by extracting them from the Coherence Operator Helm chart.
 
-## Uninstalling the Charts
+## Uninstall the Charts
 
-Carry out the following commands to delete the chart installed in this sample.
+Use the following commands to delete the chart installed in this sample:
 
 ```bash
 $ helm delete storage --purge
 ```
 
-Before starting another sample, ensure that all the pods are gone from previous sample.
+Before starting another sample, ensure that all the pods are removed from previous sample.
 
-If you wish to remove the `coherence-operator`, then include it in the `helm delete` command above.
-
-
-
+If you want to remove the `coherence-operator`, use the `helm delete` command.
