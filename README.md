@@ -13,7 +13,7 @@ http://oss.oracle.com/licenses/upl.
 Oracle enables organizations using Coherence to move their clusters into the cloud. By supporting industry standards, such as Docker and Kubernetes, Oracle facilitates running Coherence on cloud-neutral infrastructure. In addition, Oracle provides an open-source Coherence Operator ("the operator"), which implements features to assist with deploying and managing Coherence clusters in a Kubernetes environment. You can:
 
 * Run Coherence within the industry standard Kubernetes container orchestration framework, using Docker containers for the members of a Coherence cluster.
-* Use popular industry standard tools such as Grafana, ELK (or more specifically the Elasticsearch, Fluentd and Kibana (EFK) stack, and Prometheus to monitor the performance, logs, and health of your clusters.
+* Use popular industry standard tools such as Grafana, ELK (or more specifically the Elasticsearch, Fluentd and Kibana (EFK) stack), and Prometheus to monitor the performance, logs, and health of your clusters.
 * Flexibly override and customize cluster configuration.
 * Scale the Coherence deployment.
 * Use Coherence*Extend to access your cluster with a variety of clients.
