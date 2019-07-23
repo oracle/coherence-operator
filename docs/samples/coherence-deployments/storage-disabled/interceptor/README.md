@@ -1,4 +1,4 @@
-# Storage-disabled Client in Cluster via Interceptor
+# Storage-Disabled Client in Cluster via Interceptor
 
 This sample demonstrates deploying 2 tiers, a storage-enabled data tier, and a storage-disabled client tier. The client tier uses an interceptor to
 start up a Coherence storage-disabled client and perform some processing.
