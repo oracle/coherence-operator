@@ -34,7 +34,7 @@
       </participant>
       <participant>
         <name system-property="secondary.cluster">SecondaryCluster</name>
-        <initial-action>pause</initial-action>
+        <initial-action>start</initial-action>
         <remote-addresses>
           <socket-address>
             <address system-property="secondary.cluster.host">127.0.0.1</address>
@@ -44,11 +44,11 @@
       </participant>
     </participants>
     <topology-definitions>
-      <active-passive>
+      <active-active>
         <name>Active</name>
         <active system-property="primary.cluster">PrimaryCluster</active>
         <active system-property="secondary.cluster">SecondaryCluster</active>
-      </active-passive>
+      </active-active>
   </topology-definitions>
   </federation-config>
 </coherence>
