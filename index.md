@@ -6,30 +6,9 @@ http://oss.oracle.com/licenses/upl.
 
 -->
 
----------
+# Oracle Coherence Operator Documentation
 
-## Join our Public Slack Channel
-
-We have a **public Slack channel** where you can get in touch with us to
-ask questions about using the operator or give us feedback or
-suggestions about what features and improvements you would like to see.
-We would love to hear from you. To join our channel, please [visit this
-site to get an
-invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ).  The
-invitation email will include details of how to access our Slack
-workspace.  After you are logged in, please come to `#operator` and say,
-"hello!"
-
---------
-
-
-Oracle enables organizations using Coherence to move their clusters
-into the cloud. By supporting de facto standards such as Docker and
-Kubernetes, Oracle facilitates running Coherence on cloud-neutral
-infrastructure. In particular, Oracle provides an open-source
-Coherence Kubernetes Operator, which implements features to assist
-with deploying and managing Coherence clusters in a Kubernetes
-environment. You can:
+Oracle enables organizations using Coherence to move their clusters into the cloud. By supporting industry standards, such as Docker and Kubernetes, Oracle facilitates running Coherence on cloud-neutral infrastructure. In addition, Oracle provides an open-source Coherence Operator ("the operator"), which implements features to assist with deploying and managing Coherence clusters in a Kubernetes environment. You can:
 
 * Run Coherence within the de facto standard Kubernetes container
   orchestration framework, using Docker containers for the members of a
@@ -64,37 +43,27 @@ server-side Coherence constructs.
 The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md), or try out the
 [samples](docs/samples/README.md).
 
-# About this documentation
+## About this documentation
 
-This documentation includes sections targeted to different audiences.
-To help you find what you are looking for more easily, please consult
-this table of contents:
+This documentation includes sections targeted to different audiences. To help you find what you are looking for more easily, consult this table of contents:
 
-* The [Quick Start guide](docs/quickstart.md) explains how to
-  quickly get Coherence running on Kubernetes, using the defaults,
-  nothing special.
+* The [Quick Start Guide](docs/quickstart.md) explains how to
+  quickly get Coherence running on Kubernetes, using the defaults, nothing special.
 
-* The [User guide](docs/user-guide.md) contains detailed usage
-  information on the Coherence Operator, including how to install and
-  configure the operator and several common use-cases.
+* The [User Guide](docs/user-guide.md) contains detailed usage
+  information on the Coherence Operator, including how to install and  configure the operator and several common use cases.
 
-* The [Samples](docs/samples/README.md) provide detailed example
-  code and instructions that show you how to perform various tasks
-  related to the operator.
+* The [Samples](docs/samples/README.md) provide detailed example code and instructions that show you how to perform various tasks related to the operator.
 
-* The [Developer guide](docs/developer.md) provides details for people
-  who want to understand how the operator is built, tested, and so
-  on. Those who wish to contribute to the operator code will find useful
-  information here.
+* The [Developer Guide](docs/developer.md) provides details for users who want to understand how the operator is built, tested, and so on. Those who wish to contribute to the operator code will find useful information here.
   
 <!--
 * The [Contributing](#contributing-to-the-operator) section provides information about contribution requirements.
 -->
 
-# User guide
+## User Guide
 
-The [User guide](docs/user-guide.md) provides detailed information
-about all aspects of using the operator including:
+The [User Guide](docs/user-guide.md) provides detailed information on all aspects of using the operator including:
 
 * Installing and configuring the operator.
 
@@ -108,21 +77,23 @@ about all aspects of using the operator including:
 
 * And much more!
 
-# Samples
+## Samples
 
-Please refer to our [samples](docs/samples/README.md) for
+Refer to our [samples](docs/samples/README.md) for
 information about the available sample code.
 
-Need more help? Have a suggestion? Come and say "Hello!"
+## Things to Keep In Mind for Existing Coherence Users
 
-# Things to Keep In Mind for Existing Coherence Users
+Software running in Kubernetes must provide "health checks" so that Kubernetes can make informed decisions about starting, stopping, or even killing, the containers running the software.  The operator provides everything required to do this for Coherence.  Keep in mind  that these health checks cause frequent `MemberJoined` and  `MemberLeft` events to happen.  If these events refer to something  like `OracleCoherenceK8sPodChecker`, they are normal and be safely ignored.
 
-* Software running in Kubernetes must provide "health checks" so that
-  Kubernetes can make informed decisions about starting, stopping, or
-  even killing, the containers running the software.  The operator
-  provides everything required to do this for Coherence.  Keep in mind
-  that these health checks cause frequent `MemberJoined` and
-  `MemberLeft` events to happen.  If these events refer to something
-  like `OracleCoherenceK8sPodChecker`, they are normal and be safely
-  ignored.
+## Need more help? Have a suggestion? Come and say "Hello!"
 
+### Join Our Public Slack Channel
+
+We have a **public Slack channel** where you can get in touch with us to
+ask questions about using the operator or give us feedback or
+suggestions about what features and improvements you would like to see.
+We would love to hear from you. To join our channel, please [visit this
+site to get an
+invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ). The
+invitation email will include details of how to access our Slack workspace.  After you are logged in, please come to `#operator` and say, "hello!"
