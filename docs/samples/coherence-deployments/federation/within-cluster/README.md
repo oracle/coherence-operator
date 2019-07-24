@@ -140,13 +140,13 @@ Ensure that you have installed Oracle Coherence Operator by following the instru
    Run QueryPlus against the **PrimaryCluster** by using the following command:
 
    ```bash
-   $ mvn exec:java -Dproxy-port=20000
+   $ mvn exec:java -Dproxy.port=20000
    ```
 
    Open another terminal and run QueryPlus against the **SecondaryCluster**:
 
    ```bash
-   $ mvn exec:java -Dproxy-port=20001
+   $ mvn exec:java -Dproxy.port=20001
    ```
 
 7. Insert data into the **PrimaryCluster**.
