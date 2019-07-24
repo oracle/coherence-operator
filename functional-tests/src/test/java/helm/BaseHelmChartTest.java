@@ -1152,9 +1152,9 @@ public abstract class BaseHelmChartTest
             return sLogs.stream().anyMatch(l -> l.contains("Cache Value Before Cloud EntryProcessor: AWS"))
                         && sLogs.stream().anyMatch(l -> l.contains("Cache Value After Cloud EntryProcessor: GCP"));
             }
-        catch (Exception ex)
+        catch (Throwable t)
             {
-            System.err.printf("isRequiredClientStateReached(%s, %s, %s): %s\n", cluster, sNamespace, sClientPod, ex);
+            System.err.printf("Error in isRequiredClientStateReached(%s, %s, %s): %s\n", cluster, sNamespace, sClientPod, t);
             return false;
             }
         }
