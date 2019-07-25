@@ -262,6 +262,12 @@ public class EFKHelmChartIT
         String sNamespace      = getK8sNamespace();
         String sValuesOriginal = "values/helm-values-coh-user-artifact-efk.yaml";
 
+        Eventually.assertThat(invoking(this).isKibanaReady(),
+                is(true),
+                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+                Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS));
+
         // required to perform elastic search for application log events
         createCloudApplicationESIndex();
 
@@ -509,6 +515,34 @@ public class EFKHelmChartIT
         Map<String, ?> mapSource = (Map<String, ?>) m.get("_source");
         return mapSource.get("member") + ">" + mapSource.get(sFieldName);
         }).collect(Collectors.toList());
+        }
+
+    // must be public - used in Eventually.assertThat call.
+    public boolean isKibanaReady()
+        {
+        Queue<String> queueLogs = new ConcurrentLinkedQueue<>();
+        boolean       fReady    = false;
+        try
+            {
+            queueLogs.addAll(processKibanaQuery("/api/status"));
+
+            Map<String, ?>      map       = HelmUtils.JSON_MAPPER.readValue(queueLogs.stream().collect(Collectors.joining()), Map.class);
+            Map<String, Object> mapStatus = (Map<String, Object>)map.get("status");
+
+            if (mapStatus != null)
+                {
+                Map<String, Object> mapOverall = (Map<String, Object>)mapStatus.get("overall");
+                                    fReady     = mapOverall != null && "green".equals(mapOverall.get("state"));
+                }
+            }
+        catch(Exception e)
+            {
+            System.err.println("Cannot parse Kibana Json: " + e);
+            }
+        finally
+            {
+            return fReady;
+            }
         }
 
     // must be public - used in Eventually.assertThat call.
