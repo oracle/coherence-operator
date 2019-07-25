@@ -1,4 +1,4 @@
-# Docker Images for Oracle Coherence Operator
+# Docker Images for Coherence Operator
 
 > **Note:** The images from this repository must be used only through Coherence Operator Helm Chart as documented in the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/quickstart.html), and are not intended to be used directly.
 >
