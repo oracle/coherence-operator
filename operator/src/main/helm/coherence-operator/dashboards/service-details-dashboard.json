@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 25,
-  "iteration": 1563528294180,
+  "id": 6,
+  "iteration": 1564040926613,
   "links": [
     {
       "icon": "dashboard",
@@ -271,7 +271,7 @@
           "refId": "B"
         },
         {
-          "expr": "(sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member))",
+          "expr": "(sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member) - sum(vendor:coherence_service_thread_idle_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member))",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -322,7 +322,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member))",
+          "expr": "((sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (member))) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -389,6 +389,7 @@
         "y": 16
       },
       "id": 4,
+      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -402,7 +403,7 @@
       "lines": true,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -413,7 +414,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(vendor:coherence_service_task_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}[1m]) ",
+          "expr": "irate(vendor:coherence_service_task_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}[1m]) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -595,7 +596,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_service_request_pending_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
+          "expr": "vendor:coherence_service_request_pending_count{cluster=~\"$ClusterName\", name=~\"$ServiceName\"} > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -686,7 +687,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_service_request_pending_duration{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}  ",
+          "expr": "vendor:coherence_service_request_pending_duration{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}> 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -936,9 +937,9 @@
     },
     {
       "cacheTimeout": null,
-      "colorBackground": true,
+      "colorBackground": false,
       "colorPostfix": false,
-      "colorValue": false,
+      "colorValue": true,
       "colors": [
         "#37872D",
         "rgba(237, 129, 40, 0.89)",
@@ -1017,8 +1018,8 @@
     },
     {
       "cacheTimeout": null,
-      "colorBackground": true,
-      "colorValue": false,
+      "colorBackground": false,
+      "colorValue": true,
       "colors": [
         "#37872D",
         "rgba(237, 129, 40, 0.89)",
@@ -1099,7 +1100,7 @@
     {
       "cacheTimeout": null,
       "colorBackground": false,
-      "colorValue": false,
+      "colorValue": true,
       "colors": [
         "#299c46",
         "rgba(237, 129, 40, 0.89)",
@@ -1164,7 +1165,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "",
+      "thresholds": "1,2",
       "title": "Unbalanced Partitions",
       "type": "singlestat",
       "valueFontSize": "80%",
@@ -2056,5 +2057,4 @@
   "title": "Service Details Dashboard",
   "uid": "coh-service-details",
   "version": 1
-}
 }

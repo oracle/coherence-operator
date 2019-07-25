@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 13,
-  "iteration": 1563520101621,
+  "id": 18,
+  "iteration": 1564035729887,
   "links": [
     {
       "icon": "dashboard",
@@ -482,7 +482,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\", protocol=~\"tcp\"}",
+          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\", protocol=~\"tcp\"} > 0",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -568,7 +568,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_outgoing_message_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}",
+          "expr": "vendor:coherence_connection_manager_outgoing_message_backlog{cluster=~\"$ClusterName\", name=~\"$ServiceName\"} > 0",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -619,7 +619,7 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
       "decimals": 0,
@@ -632,6 +632,7 @@
         "y": 23
       },
       "id": 40,
+      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -644,7 +645,7 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
@@ -663,7 +664,7 @@
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{Member}} Sent",
+          "legendFormat": "{{member}} Sent",
           "refId": "A"
         }
       ],
@@ -711,7 +712,7 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
       "decimals": 0,
@@ -736,7 +737,7 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
