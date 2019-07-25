@@ -1,6 +1,6 @@
 # Enable log capture to view logs in Kiabana   
 
-The Oracle Coherence Operator manages data logging through the Elasticsearch, Fluentd and Kibana (EFK) stack. The log capture feature is disabled by default.
+The Coherence Operator manages data logging through the Elasticsearch, Fluentd and Kibana (EFK) stack. The log capture feature is disabled by default.
 
 This sample shows how to enable log capture and access the Kibana user interface (UI) to view the captured logs.
 

@@ -1,6 +1,6 @@
 # Configure Custom Logger and View in Kibana 
 
-The Oracle Coherence Operator manages data logging through the Elasticsearch, Fluentd, and Kibana (EFK) stack.
+The Coherence Operator manages data logging through the Elasticsearch, Fluentd, and Kibana (EFK) stack.
 
 This sample shows how to:
 * Configure your own application logger named `cloud`

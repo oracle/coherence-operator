@@ -22,7 +22,7 @@ Refer to the [Coherence Documentation](https://docs.oracle.com/middleware/12213/
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

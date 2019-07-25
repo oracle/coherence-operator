@@ -36,7 +36,7 @@ The setup for this example uses two Coherence clusters in the same Kubernetes cl
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

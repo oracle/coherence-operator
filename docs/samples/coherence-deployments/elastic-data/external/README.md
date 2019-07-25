@@ -15,7 +15,7 @@ for more information about Elastic Data.
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

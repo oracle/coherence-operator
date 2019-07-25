@@ -20,7 +20,7 @@ using `active` persistence mode. Local storage is the recommended storage type f
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

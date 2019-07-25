@@ -2,7 +2,7 @@
 
 # Monitoring Coherence Services via Grafana Dashboards
 
-The Oracle Coherence Operator (the "operator") includes the Prometheus Operator as an optional subchart named, `prometheusoperator`.
+The Coherence Operator (the "operator") includes the Prometheus Operator as an optional subchart named, `prometheusoperator`.
 To configure the Prometheus Operator and monitor Coherence services via Grafana dashboards, follow the instructions:
 
 > **Note:** Use of Prometheus and Grafana is available only when using the

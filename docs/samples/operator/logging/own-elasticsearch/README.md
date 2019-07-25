@@ -1,6 +1,6 @@
 # Push Logs to Your Elasticsearch Instance  
 
-The Oracle Coherence Operator manages data logging through the
+The Coherence Operator manages data logging through the
 ElasticSearch, Fluentd, and Kibana (EFK) stack.
 
 This sample explains how to make Fluentd to push data to your own Elasticsearch instance.

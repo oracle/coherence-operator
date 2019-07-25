@@ -12,7 +12,7 @@ for more details about setting other values such as `storageClasses`.
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

@@ -1,7 +1,7 @@
 # Quick Start Guide
 
 
-The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Oracle Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
+The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
 
 > **Note**: Use of Prometheus and Grafana is available only when using the
 > operator with Oracle Coherence 12.2.1.4.
@@ -18,7 +18,7 @@ The Quick Start guide provides a simple tutorial to help you get the operator up
   * [Set Up Secrets to Access the Oracle Container Registry](#set-up-secrets-to-access-the-oracle-container-registry)
   * [Use Helm to Install Coherence](#use-helm-to-install-coherence)
 - [Access the Installed Coherence](#access-the-installed-coherence)
-- [Remove Coherence and Oracle Coherence Operator](#remove-coherence-and-oracle-coherence-operator)
+- [Remove Coherence and Coherence Operator](#remove-coherence-and-oracle-coherence-operator)
 
 
 
@@ -296,7 +296,7 @@ $ java -cp $${COHERENCE_HOME}/lib/coherence.jar \
   -Dcoherence.cacheconfig=$PWD/example-client-config.xml  HelloCoherence.java
 ```
 
-## Remove Coherence and Oracle Coherence Operator
+## Remove Coherence and Coherence Operator
 
 Remove the `coherence` release:
 
