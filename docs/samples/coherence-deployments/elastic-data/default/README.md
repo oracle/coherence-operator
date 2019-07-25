@@ -1,4 +1,4 @@
-# Deploy Elastic Data using Default FlashJournal Locations
+# Deploy Elastic Data Using Default FlashJournal Locations
 
 This sample shows how to enable Elastic Data using the default FlashJournal directory, `/tmp/`.  
 

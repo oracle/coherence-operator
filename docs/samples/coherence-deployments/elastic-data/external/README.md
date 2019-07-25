@@ -1,4 +1,4 @@
-# Deploy Using External Volume Mapped to the Host
+# Deploy Elastic Data Using External Volume Mapped to the Host
 
 This sample shows how to create persistent volumes (PV), and then map the Elastic Data to be stored on these PV. This would allow for a specific size to be used for storing Elastic Data, rather than only relying on the size of the underlying default `/tmp/` directory.
 

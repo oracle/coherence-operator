@@ -1,4 +1,4 @@
-# Accessing Coherence via storage-disabled clients
+# Accessing Coherence via Storage-Disabled Clients
 
 # Table of Contents
 

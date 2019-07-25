@@ -1,6 +1,6 @@
 
 
-# Monitoring Coherence services via Grafana Dashboards
+# Monitoring Coherence Services via Grafana Dashboards
 
 The Oracle Coherence Operator (the "operator") includes the Prometheus Operator as an optional subchart named, `prometheusoperator`.
 To configure the Prometheus Operator and monitor Coherence services via Grafana dashboards, follow the instructions:
@@ -25,7 +25,7 @@ Prometheus. The servicemonitor, `<releasename>-coherence-service-monitor`
 configures Prometheus to scrape all components of `coherence-service`.
 
 
-## Port forward Grafana
+## Port Forward Grafana
 
 After you install the charts, use the following script to port forward the Grafana pod:
 
@@ -40,8 +40,7 @@ do
 done
 ```
 
-> **Note:** We add place the port-forward in a while to ensure it restarts any time it exists as
-> port-forwarding is sometimes unreliable and should only be used as a development tool.
+> **Note:** Since port forwarding is sometimes unreliable, it should be used only as a development tool, and not in a production environment.
 
 ## Log in to Grafana
 
@@ -128,7 +127,7 @@ replace `9612` above with the new value.
 If the Coherence helm chart parameter `store.metrics.ssl.enabled` is set to `true`, then add  `endpoints.scheme` with the value of `https`
 to the `coherence-service-monitor.yaml` fragment.
 
-## Troubleshooting
+## Troubleshoot
 
 ### Helm install of `coherence-operator` fails, creating a custom resource definition (CRD)
 
