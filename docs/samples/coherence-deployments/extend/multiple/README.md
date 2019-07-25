@@ -1,6 +1,6 @@
 # Using Multiple Coherence*Extend Proxies       
 
-This sample shows how to run multiple Proxy services on a single cluster node. To support this within the Oracle Coherence Operator, a custom cache configuration must be added as well as an additional pod must be exposed on the pod.
+This sample shows how to run multiple Proxy services on a single cluster node. To support this within the Coherence Operator, a custom cache configuration must be added as well as an additional pod must be exposed on the pod.
 
 [Return to Coherence*Extend samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
 
@@ -14,7 +14,7 @@ This sample shows how to run multiple Proxy services on a single cluster node. T
 
 ## Prerequisites
 
-Ensure that you have installed Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 

@@ -69,7 +69,7 @@ available to your Coherence cluster running in Kubernetes. This approach can be 
 
 You can refer to [Add Application Jars/Config to a Coherence Deployment](samples/coherence-deployments/sidecar#add-application-jarsconfig-to-a-coherence-deployment) in the Samples.
 
-The Oracle Coherence Operator uses the *sidecar pattern*, as
+The Coherence Operator uses the *sidecar pattern*, as
 recommended by [Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/logging/#sidecar-container-with-a-logging-agent),
 to make resources available to Coherence within the Kubernetes cluster.
 Docker containers are the most flexible way to allow interaction

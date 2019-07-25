@@ -1,13 +1,13 @@
 # Installing Multiple Coherence Clusters with One Operator
 
-This sample shows how Oracle Coherence Operator can manage two or more Coherence clusters, and
+This sample shows how Coherence Operator can manage two or more Coherence clusters, and
 how you can see the logs from both clusters using Kibana.
 
 [Return to Coherence Deployments samples](../) / [Return to samples](../../README.md#list-of-samples)
 
 ## Installation Steps
 
-1. Install Oracle Coherence Operator.
+1. Install Coherence Operator.
 
    Run the following command to install `coherence-operator` with log capture enabled:
 

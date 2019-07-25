@@ -33,7 +33,7 @@ allowing `CohQL` commands to be passed and executed against a Coherence cluster.
 
 ## Prerequisites
 
-Ensure that you have installed the Oracle Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
+Ensure that you have installed the Coherence Operator by following the instructions [here](../../../README.md#install-the-coherence-operator).
 
 ## Installation Steps
 
