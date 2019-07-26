@@ -10,7 +10,7 @@ def setBuildStatus(String message, String state, String project_url, String sha)
     ]);
 }
 
-def testStep(String additionalArgument) {
+def testStep(String wsdir, String nspId, String additionalArgument) {
     echo 'Kubernetes Tests'
     withCredentials([
         string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
@@ -21,44 +21,48 @@ def testStep(String additionalArgument) {
         string(credentialsId: 'ocr-docker-password', variable: 'OCR_DOCKER_PASSWORD'),
         string(credentialsId: 'ocr-docker-username', variable: 'OCR_DOCKER_USERNAME'),
         string(credentialsId: 'ocr-docker-server',   variable: 'OCR_DOCKER_SERVER')]) {
-        sh '''
-            for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER
+        sh """
+            for i in test-cop-$nspId test-cop2-$nspId
             do
-                kubectl create namespace $i || true
+                kubectl create namespace \$i || true
                 kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                    --namespace $i \
-                    --docker-server=$DOCKER_SERVER \
-                    --docker-username=$DOCKER_USERNAME \
-                    --docker-password="$DOCKER_PASSWORD" \
-                    --docker-email=$DOCKER_EMAIL || true
+                    --namespace \$i \
+                    --docker-server=\$DOCKER_SERVER \
+                    --docker-username=\$DOCKER_USERNAME \
+                    --docker-password="\$DOCKER_PASSWORD" \
+                    --docker-email=\$DOCKER_EMAIL || true
                 kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                    --namespace $i \
-                    --docker-server=$OCR_DOCKER_SERVER \
-                    --docker-username=$OCR_DOCKER_USERNAME \
-                    --docker-password="$OCR_DOCKER_PASSWORD" \
-                    --docker-email=$OCR_DOCKER_EMAIL || true
+                    --namespace \$i \
+                    --docker-server=\$OCR_DOCKER_SERVER \
+                    --docker-username=\$OCR_DOCKER_USERNAME \
+                    --docker-password="\$OCR_DOCKER_PASSWORD" \
+                    --docker-email=\$OCR_DOCKER_EMAIL || true
             done
-        '''
+        """
         withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
             sh """
+                cd $wsdir
                 export HELM_BINARY=`which helm`
                 export KUBECTL_BINARY=`which kubectl`
                 mvn -Dbedrock.helm="\$HELM_BINARY" \
                     -Dk8s.kubectl="\$KUBECTL_BINARY" \
                     -Dop.image.pull.policy=Always \
-                    -Dci.build=$BUILD_NUMBER \
+                    -Dci.build=$nspId \
                     -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                     -Dk8s.create.namespace=false \
-                    install -P push-test-image -P helm-test $additionalArgument
+                    -Dhelm.install.maxRetry=6 \
+                    install -P helm-test -pl functional-tests $additionalArgument
             """
         }
     }
 }
 
 def archiveAndCleanup() {
-    archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*'
+    dir (env.WORKSPACE) {
+        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*,_ws2/functional-tests/target/test-output/**/*,_ws2/functional-tests/target/surefire-reports/**/*,_ws2/functional-tests/target/failsafe-reports/**/*'
+    }
     sh '''
-        for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER
+        for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER test-cop-${BUILD_NUMBER}-2 test-cop2-${BUILD_NUMBER}-2
         do
             helm delete --purge $(helm ls --namespace $i --short) || true
             kubectl delete namespace $i || true
@@ -191,47 +195,62 @@ pipeline {
                         }
                     }
                 }
-                stage('kubernetes-tests') {
+                stage('docker-build-push-test') {
                     steps {
-                        script {
-                            testStep('')
-                        }
-                    }
-                    post {
-                        always {
-                            script {
-                                archiveAndCleanup()
-                            }
-                        }
-                        failure {
-                            setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
+                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                            sh '''
+                                mvn -B clean install -P helm-test -P push-test-image -Dmaven.test.skip=true
+                            '''
                         }
                     }
                 }
-                stage('kubernetes-tests-latestCoherenceReleasedImage') {
+                stage('copy-workspace') {
                     steps {
-                        script {
-                            testStep('-P test-latest-coherence-released-image -pl functional-tests')
+                        sh '''
+                            rm -rf _ws2
+                            mkdir _ws2
+                            find . -type d -not -name _ws2 -not -name . -maxdepth 1 -exec cp -R \\{} _ws2 \\;
+                            find . -type f -maxdepth 1 -exec cp \\{} _ws2 \\;
+                        '''
+                    }
+                }
+                stage('maven-build-2') {
+                    steps {
+                        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                            sh '''
+                                cd _ws2
+                                mvn -B install -P testLatestCoherenceReleasedImage
+                            '''
                         }
                     }
-                    post {
-                        always {
-                            script {
-                                archiveAndCleanup()
+                }
+                stage('kubernetes-tests-parallel') {
+                    parallel {
+                        stage('test-1') {
+                            steps {
+                                testStep('.', env.BUILD_NUMBER, '')
                             }
                         }
-                        success {
-                            setBuildStatus("Build succeeded", "SUCCESS", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
-                        }
-                        failure {
-                            setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
+                        stage('test-2') {
+                            steps {
+                                testStep('./_ws2', env.BUILD_NUMBER + '-2', '-P testLatestCoherenceReleasedImage')
+                            }
                         }
                     }
                 }
             }
             post {
                 always {
+                    script {
+                        archiveAndCleanup()
+                    }
                     deleteDir()
+                }
+                success {
+                    setBuildStatus("Build succeeded", "SUCCESS", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
+                }
+                failure {
+                    setBuildStatus("Build failed", "FAILURE", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
                 }
             }
         }
