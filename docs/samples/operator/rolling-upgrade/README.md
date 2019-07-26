@@ -102,7 +102,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ["key-2", "value-2"]
    ```
 
-1. Upgrade the server to `rolling-upgrade-sample:2.0.0` image. 
+1. Upgrade the helm release to use the `rolling-upgrade-sample:2.0.0` image. 
 
    Use the following arguments to upgrade to version 2.0.0 of the image:
 
@@ -118,6 +118,27 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set userArtifacts.image=rolling-upgrade-sample:2.0.0
    ```
 
+1. Check the status of the upgrade.
+
+   Use the following command to check the status of the rolling upgrade of all pods.
+   
+   > **Note**: The command below will not return until upgrade of all pods is complete.
+    
+   ```bash
+   $ kubectl rollout status sts/storage-coherence --namespace sample-coherence-ns
+   Waiting for 1 pods to be ready...
+   Waiting for 1 pods to be ready...
+   waiting for statefulset rolling update to complete 1 pods at revision storage-coherence-67b75785f6...
+   Waiting for 1 pods to be ready...
+   Waiting for 1 pods to be ready...
+   waiting for statefulset rolling update to complete 2 pods at revision storage-coherence-67b75785f6...
+   Waiting for 1 pods to be ready...
+   Waiting for 1 pods to be ready...
+   statefulset rolling update complete 3 pods at revision storage-coherence-67b75785f6...
+   ```
+
+1. Verify the data through CohQL commands.
+
    When the upgrade is running, you can execute the following commands in the CohQL session:
 
    ```sql
@@ -130,24 +151,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
    
    In an environment where you have configured a load balancer, then the Coherence*Extend session automatically reconnects when it detects a disconnect.
    
-1. Check the status of the upgrade:
-
-   ```bash
-   $ kubectl get pods -n sample-coherence-ns
-   ```
-   ```console
-   NAME                                  READY   STATUS        RESTARTS   AGE
-   coherence-operator-66f9bb7b75-pprgg   1/1     Running       0          30m
-   storage-coherence-0                   1/1     Running       0          19m
-   storage-coherence-1                   0/1     Terminating   0          18m
-   storage-coherence-2                   1/1     Running       0          1m 
-   ```
-
-   When all the pods have status of `Running` and `1/1` for Ready, you can continue.
-
-   > **Note**: The pods in the output shows that not all pods are finished restarting.
-
-1. Add more data through CohQL commands:
+1. Add new data to confirm the interceptor is now active.  
 
    ```sql
    insert into 'test' key('key-3') value('value-3');
@@ -159,9 +163,9 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ["key-2", "value-2"]
    ```
 
-   You can note that the value for `key-3` has been converted to uppercase which shows that the  server-side interceptor is now active.
+   You can note that the value for `key-3` has been converted to uppercase which shows that the server-side interceptor is now active.
 
-1. Verify that the 2.0.0 image is active.
+1. Verify that the 2.0.0 image on one of the pods.
 
    Use the following command to verify that the 2.0.0 image is active:
 
