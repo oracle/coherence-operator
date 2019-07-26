@@ -8,7 +8,7 @@ The safe rolling upgrade feature allows you to instruct Kubernetes, through the 
 This sample initially deploys version 1.0.0 of the sidecar Docker image and then does a rolling upgrade to
 version 2.0.0 of the sidecar image which introduces a server side Interceptor to modify data to ensure it is stored as uppercase.
 
-[Return to Storage-Disabled clients samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../../README.md#list-of-samples)
+[Return to Storage-Disabled clients samples](../) / [Return to Coherence Deployments samples](../../) / [Return to samples](../../README.md#list-of-samples)
 
 ## Sample files
 
@@ -73,9 +73,9 @@ Ensure you have already installed the Coherence Operator using the instructions 
    storage-coherence-1    1/1     Running   0          2m
    storage-coherence-2    1/1     Running   0          1m
    ```
-   
+
    All the three storage-coherence-0/1/2 pods are in running state.
-   
+
 1. Port forward the proxy port on the `storage-coherence-0` pod:
 
    ```bash
@@ -98,7 +98,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
 
    select key(), value() from 'test';
    Results
-   ["key-1", "value-1"]   
+   ["key-1", "value-1"]
    ["key-2", "value-2"]
    ```
 
@@ -119,11 +119,11 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ```
 
    When the upgrade is running, you can execute the following commands in the CohQL session:
-   
+
    ```sql
    select key(), value() from 'test';
    ```
-   
+
    You can note that the data always remains the same.
    
    > **Note**: Your port-forward fails when the storage-coherence-0` pod restarts. You have to stop and restart it.
@@ -142,11 +142,11 @@ Ensure you have already installed the Coherence Operator using the instructions 
    storage-coherence-1                   0/1     Terminating   0          18m
    storage-coherence-2                   1/1     Running       0          1m 
    ```
-   
+
    When all the pods have status of `Running` and `1/1` for Ready, you can continue.
-   
+
    > **Note**: The pods in the output shows that not all pods are finished restarting.
-   
+
 1. Add more data through CohQL commands:
 
    ```sql
@@ -157,14 +157,14 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ["key-1", "value-1"]
    ["key-3", "VALUE-3"]
    ["key-2", "value-2"]
-   ```    
+   ```
 
    You can note that the value for `key-3` has been converted to uppercase which shows that the  server-side interceptor is now active.
- 
+
 1. Verify that the 2.0.0 image is active.
 
    Use the following command to verify that the 2.0.0 image is active:
-   
+
    ```bash
    $ kubectl describe pod storage-coherence-0  -n sample-coherence-ns | grep rolling-upgrade
    ```
@@ -172,7 +172,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
    Image:         rolling-upgrade-sample:2.0.0
    Normal  Pulled                 4m59s  kubelet, docker-for-desktop  Container image "rolling-upgrade-sample:2.0.0" already present on machine
    ```
-   
+
    The output shows that the version 2.0.0 image is now present.
 
 ## Uninstall the Chart

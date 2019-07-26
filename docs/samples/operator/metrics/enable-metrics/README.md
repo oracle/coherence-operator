@@ -48,9 +48,9 @@ This sample shows you how to configure the Prometheus Operator and monitor Coher
    coherence-operator-prometheus-node-exporter-n9ls7        1/1     Running   0          35s
    prometheus-coherence-operator-prometh-prometheus-0       3/3     Running   1          21s
    ```
-   
+
    You can see `grafana` and other `promethues` related pods along with the `coherence-operator` pod.
-   
+
 1. Install the Coherence cluster with `prometheusoperator` enabled:
 
    ```bash
@@ -64,9 +64,9 @@ This sample shows you how to configure the Prometheus Operator and monitor Coher
       --set "targetNamespaces={sample-coherence-ns}" \
       coherence/coherence
    ```
-   
+
    > **Note:** If the Coherence Operator chart version does not have the default Coherence image as 12.2.1.4, then you need to set this using `--set coherence.image=your-12.2.1.4-image`.
-   
+
    After the installation completes, list the pods:
 
    ```bash
@@ -87,7 +87,7 @@ This sample shows you how to configure the Prometheus Operator and monitor Coher
  
 ## Access Grafana
 
-Run the `port-forward-grafana.sh` script in the [common](../../common) directory to view metrics.
+Run the `port-forward-grafana.sh` script in the [common](../../../common) directory to view metrics.
 
 1. Start the port-forward:
 

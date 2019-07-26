@@ -71,7 +71,7 @@ how you can see the logs from both clusters using Kibana.
 ## Access Kibana
 
 Use the `port-forward-kibana.sh` script in the
-[../../common](../../../common) directory to view log messages.
+[../../common](../../common) directory to view log messages.
 
 1. Start port forwarding.
 
@@ -102,4 +102,4 @@ Run the following command to delete the charts installed in this sample.
 $ helm delete cluster-a cluster-b --purge
 ```
 
-Before starting another sample, ensure that all  pods are removed from the previous sample. To remove `coherence-operator`, use the `helm delete` command.
+Before starting another sample, ensure that all pods are removed from the previous sample. To remove `coherence-operator`, use the `helm delete` command.
