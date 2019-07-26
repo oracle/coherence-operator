@@ -1,0 +1,105 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "coherence-operator.fullname" . }}
+  labels:
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+    component: "coherence-operator"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
+      component: "coherence-operator"
+  template:
+    metadata:
+      labels:
+        coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
+        app: {{ template "coherence-operator.name" . }}
+        release: {{ .Release.Name }}
+        component: "coherence-operator"
+    spec:
+{{- if .Values.serviceAccount}}
+  {{- if not ((eq .Values.serviceAccount "default")) }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+  {{- end }}
+{{- end }}
+{{- if .Values.imagePullSecrets }}
+  {{- $secretsType := typeOf .Values.imagePullSecrets }}
+      imagePullSecrets:
+  {{- if eq $secretsType "string" }}
+      - name: {{ .Values.imagePullSecrets }}
+  {{- else }}
+    {{- range .Values.imagePullSecrets }}
+      - name: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+# ---------------------------------------------------------------------------
+# Node scheduling
+# ---------------------------------------------------------------------------
+{{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+{{- end }}
+{{- if .Values.affinity }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
+{{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+{{- end }}
+      containers:
+# ---------------------------------------------------------------------------
+#  Container: coherence-operator
+# ---------------------------------------------------------------------------
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.coherenceOperator.image }}
+          imagePullPolicy: {{ .Values.coherenceOperator.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: "rest"
+              containerPort: 8000
+            - name: "metrics"
+              containerPort: 8383
+            - name: "operator-metrics"
+              containerPort: 8686
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "coherence-operator"
+{{- if .Values.logCaptureEnabled }}
+            - name: EFK_INTEGRATION_ENABLED
+              value: {{ .Values.logCaptureEnabled | quote }}
+            - name: ELASTICSEARCH_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchhost
+            - name: ELASTICSEARCH_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchport
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchuser
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchpassword
+{{- end }}

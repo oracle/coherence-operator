@@ -1,0 +1,5 @@
+---
+- version: v1
+  group: coherence.oracle.com
+  kind: CoherenceInternal
+  chart: build/_output/helm-charts/coherence

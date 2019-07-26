@@ -1,7 +1,29 @@
 operator/src/main/helm/coherence-k8s-operator/requirements.yaml
 operator/src/main/helm/coherence-k8s-operator/charts/prometheus-operator*.tgz
+
+# IntelliJ project files
 .idea/
-target/
 *.iml
+
+# MacOS files
 .DS_Store
+
+# Maven files
 settings.xml
+target/
+
+# Operator-SDK build output
+_output/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out

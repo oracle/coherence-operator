@@ -56,3 +56,4 @@ jaxb.index
 /src/main/docker/Dockerfile
 /src/main/docker/logging.properties.template
 /Jenkinsfile
+/operator

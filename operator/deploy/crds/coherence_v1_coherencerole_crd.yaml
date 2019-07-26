@@ -1,0 +1,147 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: coherenceroles.coherence.oracle.com
+spec:
+  group: coherence.oracle.com
+  names:
+    kind: CoherenceRole
+    listKind: CoherenceRoleList
+    plural: coherenceroles
+    singular: coherencerole
+  scope: Namespaced
+  subresources:
+    scale:
+      labelSelectorPath: .status.selector
+      specReplicasPath: .spec.replicas
+      statusReplicasPath: .status.replicas
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            images:
+              description: Details of the Docker images used in the role
+              properties:
+                coherence:
+                  description: CoherenceImage is the details of the Coherence image
+                    to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+                coherenceUtils:
+                  description: CoherenceUtils is the details of the Coherence utilities
+                    image to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+              type: object
+            labels:
+              additionalProperties:
+                type: string
+              description: 'The extra labels to add to the all of the Pods in this
+                roles. Labels here will add to or override those defined for the cluster.
+                More info: http://kubernetes.io/docs/user-guide/labels'
+              type: object
+            readinessProbe:
+              description: 'The readiness probe config to be used for the Pods in
+                this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+              properties:
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded.
+                  format: int32
+                  type: integer
+                initialDelaySeconds:
+                  description: 'Number of seconds after the container has started
+                    before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe.
+                  format: int32
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed.
+                  format: int32
+                  type: integer
+                timeoutSeconds:
+                  description: 'Number of seconds after which the probe times out.
+                    More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+              type: object
+            replicas:
+              description: The desired number of cluster members of this role. This
+                is a pointer to distinguish between explicit zero and not specified.
+                Default value is 3.
+              format: int32
+              type: integer
+            roleName:
+              description: The name of this role. This value will be used to set the
+                Coherence role property for all members of this role
+              type: string
+            scalingPolicy:
+              description: ScalingPolicy describes how the replicas of the cluster
+                role will be scaled. The default is ParallelUpSafeDown
+              type: string
+          type: object
+        status:
+          properties:
+            currentReplicas:
+              description: CurrentReplicas is the current size of the Coherence cluster.
+              format: int32
+              type: integer
+            readyReplicas:
+              description: ReadyReplicas is the number of Pods created by the StatefulSet.
+              format: int32
+              type: integer
+            replicas:
+              description: Replicas is the desired size of the Coherence cluster.
+              format: int32
+              type: integer
+            selector:
+              description: 'label query over pods that should match the replicas count.
+                This is same as the label selector but in the string format to avoid
+                introspection by clients. The string will be in the same format as
+                the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors'
+              type: string
+            status:
+              description: The current status.
+              type: string
+          required:
+          - replicas
+          - currentReplicas
+          - readyReplicas
+          type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
