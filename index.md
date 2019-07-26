@@ -43,7 +43,7 @@ server-side Coherence constructs.
 The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md), or try out the
 [samples](docs/samples/README.md).
 
-## About this documentation
+## About This Documentation
 
 This documentation includes sections targeted to different audiences. To help you find what you are looking for more easily, consult this table of contents:
 
@@ -56,6 +56,10 @@ This documentation includes sections targeted to different audiences. To help yo
 * The [Samples](docs/samples/README.md) provide detailed example code and instructions that show you how to perform various tasks related to the operator.
 
 * The [Developer Guide](docs/developer.md) provides details for users who want to understand how the operator is built, tested, and so on. Those who wish to contribute to the operator code will find useful information here.
+
+* The [Access the EFK (Elasticsearch, Fluentd and Kibana) Stack to View Logs](docs/logcapture.md) page describes how to enable log capture, and manage data logging through the EFK stack to view logs.
+
+* The [Monitor Coherence Services via Grafana Dashboards](docs/prometheusoperator.md) page explains how to configure the Prometheus Operator and monitor Coherence services through Grafana dashboards.
   
 <!--
 * The [Contributing](#contributing-to-the-operator) section provides information about contribution requirements.

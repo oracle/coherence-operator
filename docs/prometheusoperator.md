@@ -1,6 +1,6 @@
 
 
-# Monitoring Coherence Services via Grafana Dashboards
+# Monitor Coherence Services via Grafana Dashboards
 
 The Coherence Operator (the "operator") includes the Prometheus Operator as an optional subchart named, `prometheusoperator`.
 To configure the Prometheus Operator and monitor Coherence services via Grafana dashboards, follow the instructions:
