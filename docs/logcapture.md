@@ -1,9 +1,9 @@
-# Accessing the EFK (ElasticSearch, Fluentd and Kibana) Stack for Viewing Logs
+# Access the EFK (Elasticsearch, Fluentd and Kibana) Stack to View Logs
 
 The Coherence Operator (the "operator") manages Oracle Coherence on Kubernetes.
 It manages monitoring data through Prometheus, and logging data through the EFK stack.
 
-This use-case is covered in the samples. Refer to the [samples documentation](docs/samples/operator/logging/log-capture/). To access and configure the Kibana user interface(UI),  follow the instructions:
+This use case is covered in the samples. Refer to the [samples documentation](samples/operator/logging/log-capture/README.md). To access and configure the Kibana user interface(UI),  follow the instructions:
 
 ## Install the Charts
 

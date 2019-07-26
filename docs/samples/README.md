@@ -2,7 +2,7 @@
 
 The samples provide demonstrations of how to accomplish common tasks. These samples are provided for educational and demonstration purposes only; they are not intended to be used in production deployments or to be depended upon to create production environments.
 
-REad through the samples, understand how they work, and then customize them to your requirements.
+Read through the samples, understand how they work, and then customize them to your requirements.
 
 > See the [Oracle Coherence Demonstration](https://github.com/coherence-community/coherence-demo) for an example of an application using Coherence and running via the Coherence Operator.
 
@@ -146,7 +146,7 @@ repository within your Docker Hub account. Then, create a secret to allow Kubern
    docker push <dockerid>/coherence:tagname
    ```
    `<dockerid>/coherence:tagname` is the docker tag for the repository.
-6. Follow the steps in the section [Obtain Images from Oracle Container Registry](quickstart.md#obtain-images-from-oracle-container-registry) to get the Coherence 12.2.1.3.x Docker image.
+6. Follow the steps in the section [Obtain Images from Oracle Container Registry](../quickstart.md#obtain-images-from-oracle-container-registry) to get the Coherence 12.2.1.3.x Docker image.
 7. Re-tag the Coherence 12.2.1.3.x Docker image with your repository and docker tag.
    ```bash
    docker tag store/oracle/coherence:12.2.1.3 <dockerid>/coherence:12.2.1.3

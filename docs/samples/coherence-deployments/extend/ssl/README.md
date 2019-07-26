@@ -8,7 +8,7 @@ Refer to the [Coherence Documentation](https://docs.oracle.com/middleware/12213/
 > **Note:** If you are using Coherence 12.2.1.4.0, the instructions are slightly different, and
 > you should refer to them [here](../12214/).
 
-[Return to Coherence*Extend SSL samples](../) / [Return to Coherence*Extend samples](../../) / [Return to Coherence Deployments samples](../../../) / [Return to samples](../../../../README.md#list-of-samples)
+[Return to Coherence*Extend SSL samples](../) / [Return to Coherence*Extend samples](../../) / [Return to Coherence Deployments samples](../../../) / [Return to samples](../../../README.md#list-of-samples)
 
 ## Sample files
 

@@ -169,7 +169,7 @@ $ helm --debug install coherence/coherence \
 > `README.md` of the chart. For example, `helm inspect readme
 > coherence/coherence` prints out the `README.md` for the operator
 > chart. This includes documentation on all the possible values that
-> can be configured with `--set` options to `helm`. Refer to the Configuration section of [README](README.md).
+> can be configured with `--set` options to `helm`. Refer to the [Configuration](https://github.com/oracle/coherence-operator/tree/master/operator/src/main/helm/coherence#configuration) section of README.
 
 When the operation completes successfully, you see output similar
 to the following.
