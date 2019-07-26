@@ -1,0 +1,205 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: coherenceclusters.coherence.oracle.com
+spec:
+  group: coherence.oracle.com
+  names:
+    kind: CoherenceCluster
+    listKind: CoherenceClusterList
+    plural: coherenceclusters
+    singular: coherencecluster
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            imagePullSecrets:
+              description: 'The secrets to be used when pulling images. Secrets must
+                be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/'
+              items:
+                type: string
+              type: array
+            images:
+              description: Details of the Docker images used in the roles. If set
+                here the image details apply globally to all roles but may be overridden
+                at the role level
+              properties:
+                coherence:
+                  description: CoherenceImage is the details of the Coherence image
+                    to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+                coherenceUtils:
+                  description: CoherenceUtils is the details of the Coherence utilities
+                    image to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+              type: object
+            labels:
+              additionalProperties:
+                type: string
+              description: 'The extra labels to add to the all of the Pods in all
+                roles. Labels here may be added to or overridden for each role. More
+                info: http://kubernetes.io/docs/user-guide/labels'
+              type: object
+            readinessProbe:
+              description: 'The readiness probe config to be used for the Pods in
+                the cluster. These are the default values and may be overridden for
+                each role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+              properties:
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded.
+                  format: int32
+                  type: integer
+                initialDelaySeconds:
+                  description: 'Number of seconds after the container has started
+                    before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe.
+                  format: int32
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed.
+                  format: int32
+                  type: integer
+                timeoutSeconds:
+                  description: 'Number of seconds after which the probe times out.
+                    More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+              type: object
+            roles:
+              description: Roles is the list of different roles in the cluster There
+                must be at least one role in a cluster.
+              items:
+                properties:
+                  images:
+                    description: Details of the Docker images used in the role
+                    properties:
+                      coherence:
+                        description: CoherenceImage is the details of the Coherence
+                          image to be used
+                        properties:
+                          image:
+                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                            type: string
+                          imagePullPolicy:
+                            description: 'Image pull policy. One of Always, Never,
+                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                            type: string
+                        type: object
+                      coherenceUtils:
+                        description: CoherenceUtils is the details of the Coherence
+                          utilities image to be used
+                        properties:
+                          image:
+                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                            type: string
+                          imagePullPolicy:
+                            description: 'Image pull policy. One of Always, Never,
+                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                            type: string
+                        type: object
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: 'The extra labels to add to the all of the Pods in
+                      this roles. Labels here will add to or override those defined
+                      for the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
+                    type: object
+                  readinessProbe:
+                    description: 'The readiness probe config to be used for the Pods
+                      in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+                    properties:
+                      failureThreshold:
+                        description: Minimum consecutive failures for the probe to
+                          be considered failed after having succeeded.
+                        format: int32
+                        type: integer
+                      initialDelaySeconds:
+                        description: 'Number of seconds after the container has started
+                          before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        format: int32
+                        type: integer
+                      periodSeconds:
+                        description: How often (in seconds) to perform the probe.
+                        format: int32
+                        type: integer
+                      successThreshold:
+                        description: Minimum consecutive successes for the probe to
+                          be considered successful after having failed.
+                        format: int32
+                        type: integer
+                      timeoutSeconds:
+                        description: 'Number of seconds after which the probe times
+                          out. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        format: int32
+                        type: integer
+                    type: object
+                  replicas:
+                    description: The desired number of cluster members of this role.
+                      This is a pointer to distinguish between explicit zero and not
+                      specified. Default value is 3.
+                    format: int32
+                    type: integer
+                  roleName:
+                    description: The name of this role. This value will be used to
+                      set the Coherence role property for all members of this role
+                    type: string
+                  scalingPolicy:
+                    description: ScalingPolicy describes how the replicas of the cluster
+                      role will be scaled. The default is ParallelUpSafeDown
+                    type: string
+                type: object
+              type: array
+            serviceAccountName:
+              description: The name to use for the service account to use when RBAC
+                is enabled The role bindings must already have been created as this
+                chart does not create them it just sets the serviceAccountName value
+                in the Pod spec.
+              type: string
+          required:
+          - roles
+          type: object
+        status:
+          type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true

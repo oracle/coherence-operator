@@ -1,0 +1,179 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: coherenceinternals.coherence.oracle.com
+spec:
+  group: coherence.oracle.com
+  names:
+    kind: CoherenceInternal
+    listKind: CoherenceInternalList
+    plural: coherenceinternals
+    singular: coherenceinternal
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata'
+          type: object
+        spec:
+          description: Spec contains the specification for a Coherence cluster. The
+            format is the same as the values file for the Coherence Helm chart.
+          properties:
+            cluster:
+              description: The name of the cluster
+              type: string
+            clusterSize:
+              description: The size of the cluster
+              format: int32
+              type: integer
+            coherence:
+              description: The Coherence Docker image settings
+              properties:
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+              type: object
+            coherenceUtils:
+              description: The Coherence Utilities Docker image settings
+              properties:
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+              type: object
+            fluentd:
+              description: Specify the fluentd image These parameters are ignored
+                if 'LogCaptureEnabled' is false.
+              properties:
+                application:
+                  description: The fluentd application configuration
+                  properties:
+                    configFile:
+                      description: The fluentd configuration file configuring source
+                        for application log.
+                      type: string
+                    tag:
+                      description: This value should be source.tag from fluentd.application.configFile.
+                      type: string
+                  type: object
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+              type: object
+            fullnameOverride:
+              type: string
+            imagePullSecrets:
+              description: 'The secrets to be used when pulling images. Secrets must
+                be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/'
+              items:
+                type: string
+              type: array
+            logCaptureEnabled:
+              description: Controls whether or not log capture via EFK stack is enabled.
+              type: boolean
+            role:
+              description: The role name of a Coherence cluster member
+              type: string
+            serviceAccountName:
+              description: The name to use for the service account to use when RBAC
+                is enabled The role bindings must already have been created as this
+                chart does not create them it just sets the serviceAccountName value
+                in the Pod spec.
+              type: string
+            store:
+              description: The store settings
+              properties:
+                labels:
+                  additionalProperties:
+                    type: string
+                  description: 'The extra labels to add to the Coherence Pod. More
+                    info: http://kubernetes.io/docs/user-guide/labels'
+                  type: object
+                readinessProbe:
+                  description: 'The readiness probe config. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+                  properties:
+                    failureThreshold:
+                      description: Minimum consecutive failures for the probe to be
+                        considered failed after having succeeded.
+                      format: int32
+                      type: integer
+                    initialDelaySeconds:
+                      description: 'Number of seconds after the container has started
+                        before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                      format: int32
+                      type: integer
+                    periodSeconds:
+                      description: How often (in seconds) to perform the probe.
+                      format: int32
+                      type: integer
+                    successThreshold:
+                      description: Minimum consecutive successes for the probe to
+                        be considered successful after having failed.
+                      format: int32
+                      type: integer
+                    timeoutSeconds:
+                      description: 'Number of seconds after which the probe times
+                        out. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                      format: int32
+                      type: integer
+                  type: object
+                wka:
+                  description: The name of the headless service used for Coherence
+                    WKA
+                  type: string
+              type: object
+            userArtifacts:
+              description: The user artifacts image settings
+              properties:
+                configDir:
+                  description: The folder in the custom artifacts Docker image containing
+                    configuration files to be added to the classpath of the Coherence
+                    container. If not set the configDir is "/files/conf".
+                  type: string
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+                libDir:
+                  description: The folder in the custom artifacts Docker image containing
+                    jar files to be added to the classpath of the Coherence container.
+                    If not set the libDir is "/files/lib".
+                  type: string
+              type: object
+          required:
+          - cluster
+          type: object
+        status:
+          type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true

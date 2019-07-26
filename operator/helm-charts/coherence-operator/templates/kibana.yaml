@@ -1,0 +1,86 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+{{- if .Values.logCaptureEnabled }}
+  {{- if not .Values.elasticsearchEndpoint.host }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+    component: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
+      component: kibana
+  template:
+    metadata:
+      labels:
+        coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
+        app: {{ template "coherence-operator.name" . }}
+        release: {{ .Release.Name }}
+        component: kibana
+    spec:
+{{- if .Values.imagePullSecrets }}
+  {{- $secretsType := typeOf .Values.imagePullSecrets }}
+      imagePullSecrets:
+  {{- if eq $secretsType "string" }}
+      - name: {{ .Values.imagePullSecrets }}
+  {{- else }}
+    {{- range .Values.imagePullSecrets }}
+      - name: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+      initContainers:
+        - name: {{ .Chart.Name }}-dashboardimport
+          image: "{{ .Values.kibana.image }}"
+          imagePullPolicy: {{ .Values.kibana.imagePullPolicy | default "IfNotPresent" }}
+          command: ["/bin/bash"]
+          args:
+              - "-c"
+              - "/tmp/dashboardImport.sh"
+          volumeMounts:
+          - name: {{ template "coherence-operator.fullname" . }}-dashboards
+            mountPath: "/kibanadashboards"
+          - name: {{ template "coherence-operator.fullname" . }}-importscript
+            mountPath: "/tmp/dashboardImport.sh"
+            subPath: dashboardImport.sh
+      containers:
+        - name: kibana
+          image: {{ .Values.kibana.image }}
+          imagePullPolicy: {{ .Values.kibana.imagePullPolicy | default "IfNotPresent" }}
+          env:
+          - name: "LOGGING_QUIET"
+            value: "true"
+          ports:
+            - containerPort: 5601
+      volumes:
+        - name: {{ template "coherence-operator.fullname" . }}-dashboards
+          configMap:
+            name: {{ template "coherence-operator.fullname" . }}-dashboards
+        - name: {{ template "coherence-operator.fullname" . }}-importscript
+          configMap:
+            name: {{ template "coherence-operator.fullname" . }}-importscript
+            defaultMode: 0777
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  labels:
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+    component: kibana-service
+spec:
+  type: NodePort
+  ports:
+    - port: 5601
+  selector:
+    coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
+    component: kibana
+  {{- end }}
+{{- end }}
