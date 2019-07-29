@@ -57,9 +57,7 @@ Ensure that you have installed the Coherence Operator by following the instructi
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-4. Connect via QueryPlus and run the `CohQL` commands.
-
-   Run the following command to execute QueryPlus:
+4. Connect via CohQL and run the following commands:
 
    ```bash
    $ mvn exec:java

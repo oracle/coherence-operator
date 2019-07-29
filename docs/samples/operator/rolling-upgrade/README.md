@@ -37,11 +37,11 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ```
 
    The version 1 and version 2  Docker images are created:
-    
+
    * `rolling-upgrade-sample:1.0.0`
-    
+
    * `rolling-upgrade-sample:2.0.0`
-   
+
    `rolling-upgrade-sample:1.0.0` is the initial image installed in the chart.
 
    > **Note**: If you are using a remote Kubernetes cluster, you need to push the created images to your repository accessible to that cluster. You need to prefix the image name in the `helm` command.
@@ -61,9 +61,9 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set userArtifacts.image=rolling-upgrade-sample:1.0.0 \
       coherence/coherence
    ```
-   
+
    After the installation completes, list the pods:
-   
+
    ```bash
    $ kubectl get pods -n sample-coherence-ns
    ```
@@ -82,9 +82,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-1. Connect through QueryPlus and use CohQL commands.
-
-   Execute the following command to run QueryPlus:
+1. Connect via CohQL commands and execute the following command:
 
    ```bash
    $ mvn exec:java
@@ -102,7 +100,7 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ["key-2", "value-2"]
    ```
 
-1. Upgrade the helm release to use the `rolling-upgrade-sample:2.0.0` image. 
+1. Upgrade the helm release to use the `rolling-upgrade-sample:2.0.0` image.
 
    Use the following arguments to upgrade to version 2.0.0 of the image:
 
@@ -121,9 +119,9 @@ Ensure you have already installed the Coherence Operator using the instructions 
 1. Check the status of the upgrade.
 
    Use the following command to check the status of the rolling upgrade of all pods.
-   
+
    > **Note**: The command below will not return until upgrade of all pods is complete.
-    
+
    ```bash
    $ kubectl rollout status sts/storage-coherence --namespace sample-coherence-ns
    Waiting for 1 pods to be ready...
@@ -146,11 +144,11 @@ Ensure you have already installed the Coherence Operator using the instructions 
    ```
 
    You can note that the data always remains the same.
-   
+
    > **Note**: Your port-forward fails when the storage-coherence-0` pod restarts. You have to stop and restart it.
-   
+
    In an environment where you have configured a load balancer, then the Coherence*Extend session automatically reconnects when it detects a disconnect.
-   
+
 1. Add new data to confirm the interceptor is now active.  
 
    ```sql

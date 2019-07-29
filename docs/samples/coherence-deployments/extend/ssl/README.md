@@ -85,9 +85,7 @@ Ensure that you have installed Coherence Operator by following the instructions 
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-4. Connect via QueryPlus and run the `CohQL` commands.
-
-   Run the following command to run QueryPlus:
+4. Connect via CohQL and run the commands:
 
    ```bash
    $ mvn exec:java
@@ -115,7 +113,7 @@ Ensure that you have installed Coherence Operator by following the instructions 
        identity=SunX509/file:conf/certs/groot.jks, trust=SunX509/file:conf/certs/truststore-all.jks)
    ```
 
-   Type `bye` or `CTRL-C` to exit QueryPlus.  
+   Type `bye` or `CTRL-C` to exit CohQL.  
 
 ## Uninstall the Charts
 
