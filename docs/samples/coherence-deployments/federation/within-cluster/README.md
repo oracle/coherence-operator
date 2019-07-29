@@ -135,15 +135,15 @@ Ensure that you have installed Coherence Operator by following the instructions 
    $ kubectl port-forward --namespace sample-coherence-ns cluster-2-coherence-0  20001:20000
    ```
 
-6. Use QueryPlus to connect to each cluster.
+6. Use CohQL to connect to each cluster.
 
-   Run QueryPlus against the **PrimaryCluster** by using the following command:
+   Run CohQL against the **PrimaryCluster** by using the following command:
 
    ```bash
    $ mvn exec:java -Dproxy.port=20000
    ```
 
-   Open another terminal and run QueryPlus against the **SecondaryCluster**:
+   Open another terminal and run CohQL against the **SecondaryCluster**:
 
    ```bash
    $ mvn exec:java -Dproxy.port=20001

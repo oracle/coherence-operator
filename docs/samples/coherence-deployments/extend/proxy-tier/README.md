@@ -130,15 +130,13 @@ Ensure that you have installed the Coherence Operator by following the instructi
    $ kubectl port-forward -n sample-coherence-ns proxy-tier-coherence-0 20000:20000
    ```
 
-5. Connect via QueryPlus and run the `CohQL` commands.
-
-   Run the following command to execute QueryPlus:
+5. Connect via CohQL and run the commands:
 
    ```bash
    $ mvn exec:java
    ```
 
-   Run the following `CohQL` commands to insert data into the cluster.
+   Run the following CohQL commands to insert data into the cluster.
 
    ```sql
    insert into 'test' key('key-1') value('value-1');

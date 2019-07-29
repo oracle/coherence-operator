@@ -1,4 +1,4 @@
-# Configure Custom Logger and View in Kibana 
+# Configure Custom Logger and View in Kibana
 
 The Coherence Operator manages data logging through the Elasticsearch, Fluentd, and Kibana (EFK) stack.
 
@@ -39,23 +39,23 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
 
    The Docker image is built with the cache and logging
    configuration, and compiled Java classes.
-   
+
    > **Note:** If you are using a remote Kubernetes cluster, you need to push the built Docker image to your repository accessible to that cluster. Also, you need to prefix the image name in the `helm install` command.
 
 1. Install the Coherence cluster
 
    The following additional options are required:
-   
+
    * `--set logCaptureEnabled=true` - Enables log catpure.
-   
+
    * `--set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT` - Sets custom image with configuration and classes.  If you are using a remote Kubernetes cluster, the value of this option must be the Docker image that can be pulled by the cluster.  For example, `mydockerid/custom-logger-samples:1.0.0-SNAPSHOT`.
-   
+
    * `--set store.logging.configFile=custom-logging.properties` - Configures custom logger.
-   
+
    * `--set fluentd.application.configFile=/conf/fluentd-cloud.conf` - Includes custom `fluentd.conf` for `cloud` logger.
-   
+
    * `--set fluentd.application.tag=cloud` - Sets the Fluentd application tag.
-   
+
    ```bash
    $ helm install \
       --namespace sample-coherence-ns \
@@ -87,18 +87,16 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    storage-coherence-1                   2/2     Running   0          1m
    storage-coherence-2                   2/2     Running   0          1m
    ```
-   
+
    Ensure that all pods (storage-coherence-0/1/2) are running and ready.
-          
+
 1. Port forward the Coherence proxy port on the `storage-coherence-0` pod.
 
    ```bash
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20000:20000
    ```
 
-1. Connect through QueryPlus and use CohQL commands
-
-   Execute the following command to run QueryPlus:
+1. Connect through CohQL and execute the following command:
 
    ```bash
    $ mvn exec:java
@@ -112,9 +110,9 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    insert into 'test' key('key-3') value('value-3');
    insert into 'test' key('key-4') value('value-4');
    ```
-   
+
    Verify the data:
-   
+
    ```sql
    select key(), value() from 'test';
    Results
@@ -123,11 +121,11 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    ["key-1", "VALUE-1"]
    ["key-3", "VALUE-3"]
    ```    
-   
+
    From the ouput, you can observe that the server side interceptor has changed the value to uppercase.
-   
+
 1. Confirm that the log message can be viewed:
-   
+
    ```bash
    $ kubectl exec -it  storage-coherence-0  -n sample-coherence-ns -c coherence -- bash -c 'cat /logs/cloud*.log'
    ```
@@ -135,35 +133,35 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
    2019-04-29 04:45:03 Cloud 1.0 <INFO> (cluster=custom-logger-cluster, member=storage-coherence-0, thread=PartitionedCacheWorker:0x0000:5): Before, key=key-4, value=value-4
    2019-04-29 04:45:03 Cloud 1.0 <INFO> (cluster=custom-logger-cluster, member=storage-coherence-0, thread=PartitionedCacheWorker:0x0000:5): Changed key=key-4 to value=VALUE-4
    ```
-   
+
    > **Note**: Depending upon the data distribution, not all members show the messages.
-   
+
 ## Verify Kibana Logs
 
 1. Access Kibana
 
    Access Kibana using the instructions [here](../../../README.md#access-kibana).
-   
+
 1. Create an Index Pattern
 
    * In Kibana, open **Management** and click **Index Patterns**.
    * Click **Create index pattern**.
-   
+
    * Set the name to `cloud-*`. This will show that this matches 1 index, such as `cloud-2019.04.29`.
-   
+
    * Click **Next Step** and select `@timestamp`  in the **Time Filter field name** drop-down menu and click **Create index pattern**.
-   
+
    > **Note:** It takes approximately 5 minutes for the data to reach the Elasticsearch instance.
-   
+
 1. View data from the `cloud-*` index pattern
 
    * Open **Discover** and select `cloud-*` in the drop-down list which shows `coherence-cluster-*`.
-   
+
      ![Cloud Dropdown](img/cloud-dropdown.png)
-   
+
    * When you click **Refresh**, you can see the data from the custom logger.
-   
-     ![Cloud logger data](img/cloud-data.png) 
+
+     ![Cloud logger data](img/cloud-data.png)
 
 ## Uninstall the Charts
 

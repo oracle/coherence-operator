@@ -88,15 +88,13 @@ Ensure that you have installed Coherence Operator by following the instructions 
    $ kubectl port-forward -n sample-coherence-ns storage-coherence-0 20001:20001
    ```
 
-5. Connect via QueryPlus using port 20000.
-
-   Run the following command for QueryPlus and connect to proxy port 20000:
+5. Connect via CohQL using port 20000 and run the following command:
 
    ```bash
    $ mvn exec:java -Dproxy.port=20000
    ```
 
-   Run the following `CohQL` commands to insert data into the cluster via proxy port 20000.
+   Run the following CohQL commands to insert data into the cluster via proxy port 20000.
 
    ```
    insert into 'test' key('key-1') value('value-1');
@@ -116,9 +114,7 @@ Ensure that you have installed Coherence Operator by following the instructions 
    2019-05-01 10:01:08.007/5.684 Oracle Coherence GE 12.2.1.4.0 <D6> (thread=com.tangosol.coherence.dslquery.QueryPlus.main(), member=n/a): Connecting Socket to 127.0.0.1:20000
    ```
 
-6. Connect via QueryPlus using port 20001.
-
-   Run the following command for QueryPlus and connect to proxy port 20001:
+6. Connect via CohQL using port 20001 using the following command:
 
    ```bash
    $ mvn exec:java -Dproxy.port=20001
