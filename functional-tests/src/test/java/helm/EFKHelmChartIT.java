@@ -205,15 +205,21 @@ public class EFKHelmChartIT
             assertThat(verifyEFKData(m_asReleases[i], "pod-uid", listUids.get(0)), is(true));
             }
 
+        Eventually.assertThat(invoking(this).isKibanaReady(),
+            is(true),
+            MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+            RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+            Eventually.within(HELM_TIMEOUT, TimeUnit.SECONDS));
+
         // validate that the 2 index patterns exists. This ensures that the initContainer to
         // load the kibana-dashboard-data.json has been loaded
+        Eventually.assertThat("Kibana Coherence operator index pattern does not exist",
+            invoking(this).isKibanaIndexPatternReady(COHERENCE_OPERATOR_INDEX_PATTERN), is(true),
+            MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+            RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
+            Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
         Eventually.assertThat("Kibana Coherence cluster index pattern does not exist",
                 invoking(this).isKibanaIndexPatternReady(COHERENCE_CLUSTER_INDEX_PATTERN), is(true),
-                MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
-                RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
-                Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
-        Eventually.assertThat("Kibana Coherence operator index pattern does not exist",
-                invoking(this).isKibanaIndexPatternReady(COHERENCE_OPERATOR_INDEX_PATTERN), is(true),
                 MaximumRetryDelay.of(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
                 RetryFrequency.every(RETRY_FREQUENCEY_SECONDS, TimeUnit.SECONDS),
                 Timeout.after(HELM_TIMEOUT, TimeUnit.SECONDS));
