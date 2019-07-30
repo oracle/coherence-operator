@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 51,
-  "iteration": 1563526309145,
+  "id": 2,
+  "iteration": 1564389506395,
   "links": [
     {
       "icon": "dashboard",
@@ -364,7 +364,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": true,
+      "stack": false,
       "steppedLine": false,
       "targets": [
         {
@@ -380,7 +380,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Service Task Count (Stacked)",
+      "title": "Service Task Count",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1151,5 +1151,5 @@
   "timezone": "",
   "title": "Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "version": 2
+  "version": 1
 }

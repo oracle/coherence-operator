@@ -30,8 +30,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 45,
-  "iteration": 1563523554466,
+  "id": 6,
+  "iteration": 1564390427885,
   "links": [
     {
       "icon": "dashboard",
@@ -709,7 +709,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": true,
+      "stack": false,
       "steppedLine": false,
       "targets": [
         {
@@ -725,7 +725,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Garbage Collection Count (Stacked)",
+      "title": "Garbage Collection Count",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -795,7 +795,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": true,
+      "stack": false,
       "steppedLine": false,
       "targets": [
         {
@@ -811,7 +811,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Garbage Collection Time (Stacked)",
+      "title": "Garbage Collection Time",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1667,5 +1667,5 @@
   "timezone": "",
   "title": "Member Details Dashboard",
   "uid": "coh-member-details",
-  "version": 5
+  "version": 1
 }
