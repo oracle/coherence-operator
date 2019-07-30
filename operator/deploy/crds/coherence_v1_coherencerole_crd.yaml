@@ -109,8 +109,20 @@ spec:
               type: string
             scalingPolicy:
               description: ScalingPolicy describes how the replicas of the cluster
-                role will be scaled. The default is ParallelUpSafeDown
+                role will be scaled. The default if not specified is based upon the
+                value of the StorageEnabled field. If StorageEnabled field is not
+                specified or is true the default scaling will be safe, if StorageEnabled
+                is set to false the default scaling will be parallel.
               type: string
+            storageEnabled:
+              description: A boolean flag indicating whether members of this role
+                are storage enabled. This value will set the corresponding coherence.distributed.localstorage
+                System property. If not specified the default value is true. This
+                flag is also used to configure the ScalingPolicy value if a value
+                is not specified. If the StorageEnabled field is not specified or
+                is true the scaling will be safe, if StorageEnabled is set to false
+                scaling will be parallel.
+              type: boolean
           type: object
         status:
           properties:

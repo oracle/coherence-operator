@@ -19,23 +19,12 @@ type CoherenceClusterSpec struct {
 	// sets the serviceAccountName value in the Pod spec.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-	// The readiness probe config to be used for the Pods in the cluster. These are the default values and
-	// may be overridden for each role.
-	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
-	// +optional
-	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
-	// The extra labels to add to the all of the Pods in all roles.
-	// Labels here may be added to or overridden for each role.
-	// More info: http://kubernetes.io/docs/user-guide/labels
-	// +optional
-	Labels *map[string]string `json:"labels,omitempty"`
-	// Details of the Docker images used in the roles.
-	// If set here the image details apply globally to all roles but may
-	// be overridden at the role level
-	// +optional
-	Images Images `json:"images,omitempty"`
+	// This spec is either the spec of a single role cluster or is used as the
+	// default values applied to roles in Roles array.
+	DefaultRole CoherenceRoleSpec `json:"defaultRole"`
 	// Roles is the list of different roles in the cluster
 	// There must be at least one role in a cluster.
+	// +optional
 	Roles []CoherenceRoleSpec `json:"roles"`
 }
 
@@ -80,7 +69,7 @@ func (c *CoherenceCluster) GetWkaServiceName() string {
 // Obtain the CoherenceRoleSpec for the specified role name
 func (c *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 	for _, role := range c.Spec.Roles {
-		if role.RoleName == name {
+		if role.GetRoleName() == name {
 			return role
 		}
 	}
@@ -90,7 +79,7 @@ func (c *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 // Set the CoherenceRoleSpec
 func (c *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
 	for index, role := range c.Spec.Roles {
-		if role.RoleName == spec.RoleName {
+		if role.GetRoleName() == spec.GetRoleName() {
 			c.Spec.Roles[index] = spec
 			break
 		}

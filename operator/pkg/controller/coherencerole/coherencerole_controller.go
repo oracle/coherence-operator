@@ -3,7 +3,6 @@ package coherencerole
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -44,13 +43,7 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 	scheme := mgr.GetScheme()
-
-	kinds, _, _ := scheme.ObjectKinds(&coherence.CoherenceCluster{})
-	gvk := schema.GroupVersionKind{
-		Group:   kinds[0].Group,
-		Version: kinds[0].Version,
-		Kind:    reflect.TypeOf(coherence.CoherenceInternal{}).Name(),
-	}
+	gvk := coherence.GetCoherenceInternalGroupVersionKind(scheme)
 
 	return &ReconcileCoherenceRole{
 		client: mgr.GetClient(),
@@ -175,7 +168,7 @@ func (r *ReconcileCoherenceRole) createRole(p params) (reconcile.Result, error) 
 	}
 
 	logger := p.reqLogger.WithValues("Role", p.cohInternal.GetName())
-	logger.Info("Creating new Role")
+	logger.Info("Creating CoherenceInternal")
 
 	// define a new CoherenceInternal structure
 	spec, err := coherence.NewCoherenceInternalSpecAsMap(p.cluster, p.role)
@@ -188,7 +181,7 @@ func (r *ReconcileCoherenceRole) createRole(p params) (reconcile.Result, error) 
 	// Set the labels for the CoherenceInternal
 	labels := make(map[string]string)
 	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
-	labels[coherence.CoherenceRoleLabel] = p.role.Spec.RoleName
+	labels[coherence.CoherenceRoleLabel] = p.role.Spec.GetRoleName()
 	cohInternal.SetLabels(labels)
 
 	// Set CoherenceCluster instance as the owner and controller of the CoherenceInternal structure
@@ -198,7 +191,7 @@ func (r *ReconcileCoherenceRole) createRole(p params) (reconcile.Result, error) 
 
 	p.role.Status.Status = coherence.RoleStatusCreated
 	p.role.Status.Replicas = p.role.Spec.GetReplicas()
-	p.role.Status.Selector = fmt.Sprintf(selectorTemplate, p.cluster.Name, p.role.Spec.RoleName)
+	p.role.Status.Selector = fmt.Sprintf(selectorTemplate, p.cluster.Name, p.role.Spec.GetRoleName())
 	_ = r.client.Status().Update(context.TODO(), p.role)
 
 	// Create the CoherenceInternal resource in k8s which will be detected
@@ -219,7 +212,7 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 	logger := p.reqLogger.WithValues("Role", p.cohInternal.GetName())
 	logger.Info("Reconciling existing CoherenceRole")
 
-	clusterRole := p.cluster.GetRole(p.role.Spec.RoleName)
+	clusterRole := p.cluster.GetRole(p.role.Spec.GetRoleName())
 	if !reflect.DeepEqual(clusterRole, p.role.Spec) {
 		// role spec is not the same as the cluster's role spec - likely caused by a scale
 		// update the cluster and the update will come around again
@@ -245,17 +238,6 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 	sts, err := r.findStatefulSet(p.role)
 	if err != nil {
 		logger.Info("Could not get StatefulSet")
-	} else {
-		b, _ := json.Marshal(sts.Status)
-		logger.Info("StatefulSet status is " + string(b))
-
-		// Update this CoherenceRole's status
-		p.role.Status.CurrentReplicas = sts.Status.Replicas
-		p.role.Status.ReadyReplicas = sts.Status.ReadyReplicas
-		if sts.Status.ReadyReplicas == desiredReplicas {
-			p.role.Status.Status = coherence.RoleStatusReady
-		}
-		_ = r.client.Status().Update(context.TODO(), p.role)
 	}
 
 	if !isUpgrade && currentReplicas == desiredReplicas {
@@ -333,6 +315,18 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 		// send a successful scale event
 		msg := fmt.Sprintf("Upgraded Helm install %s in CoherenceRole %s", p.role.Name, p.role.Name)
 		r.events.Event(p.cluster, corev1.EventTypeNormal, "SuccessfulUpgrade", msg)
+	} else if sts != nil {
+		// nothing to do to update or scale - update our status if the StatefulSet has changed
+
+		if p.role.Status.CurrentReplicas != sts.Status.Replicas || p.role.Status.ReadyReplicas != sts.Status.ReadyReplicas {
+			// Update this CoherenceRole's status
+			p.role.Status.CurrentReplicas = sts.Status.Replicas
+			p.role.Status.ReadyReplicas = sts.Status.ReadyReplicas
+			if sts.Status.ReadyReplicas == desiredReplicas {
+				p.role.Status.Status = coherence.RoleStatusReady
+			}
+			_ = r.client.Status().Update(context.TODO(), p.role)
+		}
 	}
 
 	return reconcile.Result{}, nil

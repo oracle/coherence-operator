@@ -7,7 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,8 +24,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// The name of this controller. This is used in events, log messages, etc.
-const controllerName = "coherencecluster-controller"
+const (
+	// The name of this controller. This is used in events, log messages, etc.
+	controllerName string = "coherencecluster-controller"
+
+	createEventMessage       string = "created CoherenceRole '%s' in CoherenceCluster '%s' successful"
+	createEventFailedMessage string = "create CoherenceRole '%s' in CoherenceCluster '%s' failed\n%s"
+	updateEventMessage       string = "updated CoherenceRole %s in CoherenceCluster %s successful"
+	updateFailedEventMessage string = "update CoherenceRole %s in CoherenceCluster %s failed\n%s"
+	deleteEventMessage       string = "deleted CoherenceRole %s in CoherenceCluster %s successful"
+	deleteFailedEventMessage string = "delete CoherenceRole %s in CoherenceCluster %s failed\n%s"
+
+	EventReasonCreated      string = "SuccessfulCreate"
+	EventReasonFailedCreate string = "FailedCreate"
+	EventReasonUpdated      string = "SuccessfulUpdate"
+	EventReasonFailedUpdate string = "FailedUpdate"
+	EventReasonDeleted      string = "SuccessfulDelete"
+	EventReasonFailedDelete string = "FailedDelete"
+)
 
 var log = logf.Log.WithName(controllerName)
 
@@ -115,11 +131,13 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, err
 	}
 
+	// get the desired role specs from the cluster
+	desiredRoles, desiredRoleNames := r.getDesiredRoles(cluster)
+
 	// remove any existing roles that are not in the desired spec
-	newRoleNames := listRoles(cluster)
 	for name, role := range existingRoles {
-		if newRoleNames[name] == false {
-			err = r.deleteRole(params{existingRole: role, reqLogger: reqLogger})
+		if _, found := desiredRoles[name]; !found {
+			err = r.deleteRole(params{cluster: cluster, existingRole: role, reqLogger: reqLogger})
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -127,11 +145,11 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 	}
 
 	// Remove any existing roles where the replica count in the desired spec is zero
-	for _, role := range cluster.Spec.Roles {
+	for _, role := range desiredRoles {
 		if role.GetReplicas() == 0 {
-			existingRole, found := existingRoles[role.RoleName]
+			existingRole, found := existingRoles[role.GetRoleName()]
 			if found {
-				err = r.deleteRole(params{existingRole: existingRole, reqLogger: reqLogger})
+				err = r.deleteRole(params{cluster: cluster, existingRole: existingRole, reqLogger: reqLogger})
 				if err != nil {
 					return reconcile.Result{}, err
 				}
@@ -139,33 +157,12 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		}
 	}
 
-	// Process the inserts and updates
-	for _, role := range cluster.Spec.Roles {
-		// Check whether this CoherenceInternal already exists
-		existingRole, found := existingRoles[role.RoleName]
-
-		if found {
-			// this is a request to update a cluster role
-
-			parameters := params{
-				request:      request,
-				cluster:      cluster,
-				desiredRole:  role,
-				existingRole: existingRole,
-				reqLogger:    reqLogger,
-			}
-
-			result, err := r.updateRole(parameters)
-			if err != nil || result.Requeue {
-				return result, err
-			}
-		} else {
-			// this is a request for a new cluster role
-
-			// make sure that the WKA service exists
-			if err := r.ensureWkaService(cluster); err != nil {
-				return reconcile.Result{}, err
-			}
+	// Process the inserts and updates in the order they are specified in the cluster spec
+	for _, roleName := range desiredRoleNames {
+		role := desiredRoles[roleName]
+		if role.GetReplicas() > 0 {
+			// Check whether this CoherenceRole already exists
+			existingRole, found := existingRoles[role.GetRoleName()]
 
 			parameters := params{
 				request:      request,
@@ -175,8 +172,17 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 				reqLogger:    reqLogger,
 			}
 
-			if err := r.createRole(parameters); err != nil {
-				return reconcile.Result{}, err
+			if found {
+				// this is a request to update a cluster role
+				result, err := r.updateRole(parameters)
+				if err != nil || result.Requeue {
+					return result, err
+				}
+			} else {
+				// this is a request for a new cluster role
+				if err := r.createRole(parameters); err != nil {
+					return reconcile.Result{}, err
+				}
 			}
 		}
 	}
@@ -198,22 +204,29 @@ type params struct {
 // createRole create a new cluster role.
 func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	if p.desiredRole.GetReplicas() <= 0 {
-		// nothing to do as the desired replica count is zero
+		// should not get here but do nothing the desired replica count is zero
 		return nil
 	}
 
-	logger := p.reqLogger.WithValues("Role", p.existingRole.GetName())
-	logger.Info("Creating new Role")
+	fullName := p.desiredRole.GetFullRoleName(p.cluster)
+
+	logger := p.reqLogger.WithValues("Role", fullName)
+	logger.Info("Creating CoherenceRole")
+
+	// make sure that the WKA service exists
+	if err := r.ensureWkaService(p.cluster); err != nil {
+		return err
+	}
 
 	// define a new CoherenceRole structure
 	role := &coherence.CoherenceRole{}
 	role.SetNamespace(p.request.Namespace)
-	role.SetName(p.request.Name + "-" + p.desiredRole.RoleName)
-	role.Spec = p.desiredRole
+	role.SetName(fullName)
+	role.Spec = *p.desiredRole.DeepCopyWithDefaults(&p.cluster.Spec.DefaultRole)
 
 	labels := make(map[string]string)
-	labels["coherenceCluster"] = p.cluster.Name
-	labels["coherenceRole"] = p.desiredRole.RoleName
+	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
+	labels[coherence.CoherenceRoleLabel] = p.desiredRole.GetRoleName()
 	role.SetLabels(labels)
 
 	// Set CoherenceCluster instance as the owner and controller of the CoherenceRole structure
@@ -223,12 +236,14 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 
 	// Create the CoherenceRole resource in k8s which will be detected by the role controller
 	if err := r.client.Create(context.TODO(), role); err != nil {
+		msg := fmt.Sprintf(createEventFailedMessage, role.Name, p.cluster.Name, err.Error())
+		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedCreate, msg)
 		return err
 	}
 
 	// send a successful creation event
-	msg := fmt.Sprintf("create CoherenceRole %s in CoherenceCluster %s successful", role.Name, p.cluster.Name)
-	r.events.Event(p.cluster, v1.EventTypeNormal, "SuccessfulCreate", msg)
+	msg := fmt.Sprintf(createEventMessage, role.Name, p.cluster.Name)
+	r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonCreated, msg)
 
 	return nil
 }
@@ -236,7 +251,7 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 // updateRole updates an existing cluster role.
 func (r *ReconcileCoherenceCluster) updateRole(p params) (reconcile.Result, error) {
 	logger := p.reqLogger.WithValues("Role", p.existingRole.GetName())
-	logger.Info("Update existing Role")
+	logger.Info("Update CoherenceRole")
 
 	if reflect.DeepEqual(p.existingRole.Spec, p.desiredRole) {
 		// nothing to do
@@ -250,12 +265,12 @@ func (r *ReconcileCoherenceCluster) updateRole(p params) (reconcile.Result, erro
 
 	if err == nil {
 		// send a successful update event
-		msg := fmt.Sprintf("update CoherenceRole %s in CoherenceCluster %s successful", p.existingRole.Name, p.cluster.Name)
-		r.events.Event(p.cluster, v1.EventTypeNormal, "SuccessfulUpdate", msg)
+		msg := fmt.Sprintf(updateEventMessage, p.existingRole.Name, p.cluster.Name)
+		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonUpdated, msg)
 	} else {
 		// send a failed update event
-		msg := fmt.Sprintf("update CoherenceRole %s in CoherenceCluster %s failed\n%s", p.existingRole.Name, p.cluster.Name, err.Error())
-		r.events.Event(p.cluster, v1.EventTypeNormal, "FailedUpdate", msg)
+		msg := fmt.Sprintf(updateFailedEventMessage, p.existingRole.Name, p.cluster.Name, err.Error())
+		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedUpdate, msg)
 	}
 
 	return reconcile.Result{}, err
@@ -269,12 +284,14 @@ func (r *ReconcileCoherenceCluster) deleteRole(p params) error {
 
 	err := r.client.Delete(context.TODO(), &p.existingRole)
 	if err != nil {
+		msg := fmt.Sprintf(deleteFailedEventMessage, p.existingRole.Name, p.cluster.Name, err.Error())
+		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedDelete, msg)
 		return err
 	}
 
 	// send a successful deletion event
-	msg := fmt.Sprintf("delete CoherenceRole %s in CoherenceCluster %s successful", p.existingRole.Name, p.cluster.Name)
-	r.events.Event(p.cluster, v1.EventTypeNormal, "SuccessfulDelete", msg)
+	msg := fmt.Sprintf(deleteEventMessage, p.existingRole.Name, p.cluster.Name)
+	r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonDeleted, msg)
 
 	return nil
 }
@@ -332,13 +349,25 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 	return err
 }
 
-// listRoles creates a map of all of the role names in the specified CoherenceCluster.
-func listRoles(cluster *coherence.CoherenceCluster) map[string]bool {
-	m := make(map[string]bool)
-	for _, role := range cluster.Spec.Roles {
-		m[role.RoleName] = true
+// getDesiredRoles returns a map with all of the desired roles from the cluster and a slice of role names in the order they
+// were specified in the cluster.
+// If the cluster has no roles then the default role will be used as the single role spec for the cluster.
+func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.CoherenceCluster) (map[string]coherence.CoherenceRoleSpec, []string) {
+	defaultSpec := cluster.Spec.DefaultRole
+	if len(cluster.Spec.Roles) == 0 {
+		return map[string]coherence.CoherenceRoleSpec{defaultSpec.GetRoleName(): defaultSpec}, []string{defaultSpec.GetRoleName()}
+	} else {
+		m := make(map[string]coherence.CoherenceRoleSpec)
+		names := make([]string, len(cluster.Spec.Roles))
+		index := 0
+		for _, role := range cluster.Spec.Roles {
+			clone := role.DeepCopyWithDefaults(&defaultSpec)
+			names[index] = role.GetRoleName()
+			m[names[index]] = *clone
+			index = index + 1
+		}
+		return m, names
 	}
-	return m
 }
 
 // findExistingRoles populates a map with all of the existing (deployed) cluster roles for the cluster name.
@@ -360,7 +389,7 @@ func (r *ReconcileCoherenceCluster) findExistingRoles(clusterName string, namesp
 	}
 
 	for _, role := range list.Items {
-		roles[role.Spec.RoleName] = role
+		roles[role.Spec.GetRoleName()] = role
 	}
 
 	return nil

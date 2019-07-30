@@ -3,6 +3,9 @@ package v1
 import (
 	"encoding/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"reflect"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -70,6 +73,10 @@ type CoherenceInternalSpec struct {
 // CoherenceInternalStoreSpec defines the desired state of CoherenceInternal stores
 // +k8s:openapi-gen=true
 type CoherenceInternalStoreSpec struct {
+	// A boolean flag indicating whether members of this role are storage enabled.
+	// If not specified the default value is true.
+	// +optional
+	StorageEnabled *bool `json:"storageEnabled,omitempty"`
 	// The name of the headless service used for Coherence WKA
 	WKA string `json:"wka,omitempty"`
 	// The extra labels to add to the Coherence Pod.
@@ -97,7 +104,6 @@ func NewCoherenceInternalSpecAsMap(cluster *CoherenceCluster, role *CoherenceRol
 	return jsonMap, err
 }
 
-
 // NewCoherenceInternalSpec creates a new CoherenceInternalSpec from the specified cluster and role
 func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) CoherenceInternalSpec {
 	out := CoherenceInternalSpec{}
@@ -106,94 +112,44 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) Co
 	out.ClusterSize = role.Spec.GetReplicas()
 	out.Cluster = cluster.Name
 	out.ServiceAccountName = cluster.Spec.ServiceAccountName
-	out.Role = role.Spec.RoleName
 	out.ImagePullSecrets = cluster.Spec.ImagePullSecrets
+	out.Role = role.Spec.GetRoleName()
 
 	// Set the images from the cluster and role
-	out.Coherence = createImageSpec(cluster.Spec.Images.Coherence, role.Spec.Images.Coherence)
-	out.CoherenceUtils = createImageSpec(cluster.Spec.Images.CoherenceUtils, role.Spec.Images.CoherenceUtils)
+	if role.Spec.Images != nil {
+		out.Coherence = role.Spec.Images.Coherence
+		out.CoherenceUtils = role.Spec.Images.CoherenceUtils
+	}
 
 	// Set the Store fields
 	out.Store = &CoherenceInternalStoreSpec{}
 	out.Store.WKA = cluster.GetWkaServiceName()
+	out.Store.StorageEnabled = role.Spec.StorageEnabled
+	out.Store.ReadinessProbe = role.Spec.ReadinessProbe
 
-	// Set the labels, first from the cluser then from the role
+	// Set the labels
 	labels := make(map[string]string)
-	if cluster.Spec.Labels != nil {
-		for k, v := range *cluster.Spec.Labels {
-			labels[k] = v
-		}
-	}
 	if role.Spec.Labels != nil {
 		for k, v := range *role.Spec.Labels {
 			labels[k] = v
 		}
 	}
-	labels[CoherenceRoleLabel] = role.Spec.RoleName
+	// Add the cluster and role labels
+	labels[CoherenceClusterLabel] = cluster.Name
+	labels[CoherenceRoleLabel] = role.Spec.GetRoleName()
+
 	out.Store.Labels = &labels
-
-	// set the readiness probe if set for the cluster or role
-	if cluster.Spec.ReadinessProbe != nil || role.Spec.ReadinessProbe != nil {
-		probe := ReadinessProbeSpec{}
-		// Set the readiness value from the cluster (if present)
-		if cluster.Spec.ReadinessProbe != nil {
-			probe.FailureThreshold = cluster.Spec.ReadinessProbe.FailureThreshold
-			probe.InitialDelaySeconds = cluster.Spec.ReadinessProbe.InitialDelaySeconds
-			probe.PeriodSeconds = cluster.Spec.ReadinessProbe.PeriodSeconds
-			probe.SuccessThreshold = cluster.Spec.ReadinessProbe.SuccessThreshold
-			probe.TimeoutSeconds = cluster.Spec.ReadinessProbe.TimeoutSeconds
-		}
-
-		// Override the readiness value from the role (if present)
-		if role.Spec.ReadinessProbe != nil {
-			if role.Spec.ReadinessProbe.FailureThreshold != nil {
-				probe.FailureThreshold = role.Spec.ReadinessProbe.FailureThreshold
-			}
-			if role.Spec.ReadinessProbe.InitialDelaySeconds != nil {
-				probe.InitialDelaySeconds = role.Spec.ReadinessProbe.InitialDelaySeconds
-			}
-			if role.Spec.ReadinessProbe.PeriodSeconds != nil {
-				probe.PeriodSeconds = role.Spec.ReadinessProbe.PeriodSeconds
-			}
-			if role.Spec.ReadinessProbe.SuccessThreshold != nil {
-				probe.SuccessThreshold = role.Spec.ReadinessProbe.SuccessThreshold
-			}
-			if role.Spec.ReadinessProbe.TimeoutSeconds != nil {
-				probe.TimeoutSeconds = role.Spec.ReadinessProbe.TimeoutSeconds
-			}
-		}
-		out.Store.ReadinessProbe = &probe
-	}
 
 	return out
 }
 
-// Create an ImageSpec from two ImageSpec instances, the second will override the first.
-// If both first and second are nil or no fields are set in either ImageSpec then nil is returned.
-func createImageSpec(first *ImageSpec, second *ImageSpec) *ImageSpec {
-	if first == nil && second == nil {
-		// nothing to set
-		return nil
+// GetCoherenceInternalGroupVersionKind obtains the GroupVersionKind for the CoherenceInternal struct
+func GetCoherenceInternalGroupVersionKind(scheme *runtime.Scheme) schema.GroupVersionKind {
+	kinds, _, _ := scheme.ObjectKinds(&CoherenceCluster{})
+
+	return schema.GroupVersionKind{
+		Group:   kinds[0].Group,
+		Version: kinds[0].Version,
+		Kind:    reflect.TypeOf(CoherenceInternal{}).Name(),
 	}
-
-	spec := ImageSpec{}
-
-	if first != nil {
-		spec.Image = first.Image
-		spec.ImagePullPolicy = first.ImagePullPolicy
-	}
-
-	if second != nil && second.Image != "" {
-		spec.Image = second.Image
-	}
-
-	if second != nil && second.ImagePullPolicy != "" {
-		spec.ImagePullPolicy = second.ImagePullPolicy
-	}
-
-	if spec.Image == "" && spec.ImagePullPolicy == "" {
-		return nil
-	}
-
-	return &spec
 }

@@ -15,28 +15,28 @@ type FakeEventRecorder struct {
 }
 
 type FakeEvent struct {
-	Object runtime.Object
-	Type string
-	Reason string
-	Message string
-	Timestamp metav1.Time
+	Owner       runtime.Object
+	Type        string
+	Reason      string
+	Message     string
+	Timestamp   metav1.Time
 	Annotations map[string]string
 }
 
 func (f *FakeEventRecorder) Event(object runtime.Object, eventtype, reason, message string) {
 	if f.Events != nil {
-		f.Events <- FakeEvent{Object: object, Type: eventtype, Reason: reason, Message: message}
+		f.Events <- FakeEvent{Owner: object, Type: eventtype, Reason: reason, Message: message}
 	}
 }
 
 func (f *FakeEventRecorder) Eventf(object runtime.Object, eventtype, reason, messageFmt string, args ...interface{}) {
 	if f.Events != nil {
-		f.Events <- FakeEvent{Object: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...)}
+		f.Events <- FakeEvent{Owner: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...)}
 	}
 }
 
 func (f *FakeEventRecorder) PastEventf(object runtime.Object, timestamp metav1.Time, eventtype, reason, messageFmt string, args ...interface{}) {
-	f.Events <- FakeEvent{Object: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...), Timestamp: timestamp}
+	f.Events <- FakeEvent{Owner: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...), Timestamp: timestamp}
 }
 
 func (f *FakeEventRecorder) AnnotatedEventf(object runtime.Object, annotations map[string]string, eventtype, reason, messageFmt string, args ...interface{}) {
@@ -47,7 +47,7 @@ func (f *FakeEventRecorder) AnnotatedEventf(object runtime.Object, annotations m
 			clone[k] = v
 		}
 	}
-	f.Events <- FakeEvent{Object: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...), Annotations: clone}
+	f.Events <- FakeEvent{Owner: object, Type: eventtype, Reason: reason, Message: fmt.Sprintf(messageFmt, args...), Annotations: clone}
 }
 
 // NewFakeEventRecorder creates new fake event recorder with event channel with

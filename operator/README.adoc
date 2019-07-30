@@ -5,7 +5,7 @@ https://github.com/operator-framework/operator-sdk[Operator SDK].
 
 == Prerequisites
 
-* https://github.com/operator-framework/operator-sdk/tree/v0.9.0[operator-sdk] version v0.9.0
+* https://github.com/operator-framework/operator-sdk/tree/v0.9.0[operator-sdk] version *v0.9.0*
 * https://git-scm.com/downloads[git]
 * https://golang.org/dl/[go] version v1.12+.
 * https://www.mercurial-scm.org/downloads[mercurial] version 3.9+
@@ -17,7 +17,9 @@ https://github.com/operator-framework/operator-sdk[Operator SDK].
 version 1.2.0+ (for local debugging with `operator-sdk up local --enable-delve`).
 
 
-* The project uses `make` for building, which should already be installed on most systems
+* This project uses `make` for building, which should already be installed on most systems
+
+_Note:_ This project currently uses the Operator SDK v0.9.0 so make sure you install the correct version of the CLI.
 
 _Note:_ As stated above this project requires K8s v1.11.3+ which is not the version currently installed by
 Docker on MacOS. To run the Coherence Operator on a Mac you need to have the Edge version of Docker for MacOS

@@ -65,7 +65,7 @@ var _ = Describe("CoherenceRole Controller", func() {
 	Context("when calling Reconcile", func() {
 		It("should return and not requeue if no parent CoherenceCluster", func() {
 			mgr := stubs.NewFakeManager(role)
-			r   := newReconciler(mgr)
+			r := newReconciler(mgr)
 
 			res, err := r.Reconcile(req)
 
@@ -80,7 +80,7 @@ var _ = Describe("CoherenceRole Controller", func() {
 			// Assert that a failure event was raised for the role
 			event, found := mgr.NextEvent()
 			Expect(found).To(BeTrue())
-			Expect(event.Object.GetObjectKind()).To(Equal(role.GetObjectKind()))
+			Expect(event.Owner.GetObjectKind()).To(Equal(role.GetObjectKind()))
 			Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 			Expect(event.Reason).To(Equal("Failed"))
 			Expect(event.Message).To(HavePrefix("Invalid CoherenceRole"))
@@ -94,10 +94,9 @@ var _ = Describe("CoherenceRole Controller", func() {
 			Expect(roleUpdated.Status.Status).To(Equal(coherence.RoleStatusFailed))
 		})
 
-
 		It("should create new CoherenceInternal if one does not exist", func() {
 			mgr := stubs.NewFakeManager(cluster, role)
-			r   := newReconciler(mgr)
+			r := newReconciler(mgr)
 
 			res, err := r.Reconcile(req)
 
@@ -110,14 +109,14 @@ var _ = Describe("CoherenceRole Controller", func() {
 			Expect(cohInt).To(Not(BeNil()))
 
 			// Assert fields of CoherenceInternal e.g. assert labels etc...
-			labels := cohInt.GetLabels();
+			labels := cohInt.GetLabels()
 			Expect(labels).To(Not(BeNil()))
 			Expect(labels[coherence.CoherenceRoleLabel]).To(Equal(roleName))
 
 			// Assert that a success event was raised for the role
 			event, found := mgr.NextEvent()
 			Expect(found).To(BeTrue())
-			Expect(event.Object.GetObjectKind()).To(Equal(role.GetObjectKind()))
+			Expect(event.Owner.GetObjectKind()).To(Equal(role.GetObjectKind()))
 			Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 			Expect(event.Reason).To(Equal("SuccessfulCreate"))
 			Expect(event.Message).To(HavePrefix("create Helm install"))
@@ -132,8 +131,7 @@ var _ = Describe("CoherenceRole Controller", func() {
 			Expect(roleUpdated.Status.Replicas).To(Equal(role.Spec.GetReplicas()))
 			Expect(roleUpdated.Status.CurrentReplicas).To(BeZero())
 			Expect(roleUpdated.Status.ReadyReplicas).To(BeZero())
-			Expect(roleUpdated.Status.Selector).To(Equal(fmt.Sprintf(selectorTemplate, cluster.Name, role.Spec.RoleName)))
+			Expect(roleUpdated.Status.Selector).To(Equal(fmt.Sprintf(selectorTemplate, cluster.Name, role.Spec.GetRoleName())))
 		})
 	})
 })
-

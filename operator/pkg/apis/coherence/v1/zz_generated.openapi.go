@@ -100,30 +100,10 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
-					"readinessProbe": {
+					"defaultRole": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The readiness probe config to be used for the Pods in the cluster. These are the default values and may be overridden for each role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"labels": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The extra labels to add to the all of the Pods in all roles. Labels here may be added to or overridden for each role. More info: http://kubernetes.io/docs/user-guide/labels",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"images": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Details of the Docker images used in the roles. If set here the image details apply globally to all roles but may be overridden at the role level",
-							Ref:         ref("./pkg/apis/coherence/v1.Images"),
+							Description: "This spec is either the spec of a single role cluster or is used as the default values applied to roles in Roles array.",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceRoleSpec"),
 						},
 					},
 					"roles": {
@@ -140,11 +120,11 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						},
 					},
 				},
-				Required: []string{"roles"},
+				Required: []string{"defaultRole"},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec"},
 	}
 }
 
@@ -427,9 +407,16 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.Images"),
 						},
 					},
+					"storageEnabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "A boolean flag indicating whether members of this role are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"scalingPolicy": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default is ParallelUpSafeDown",
+							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
