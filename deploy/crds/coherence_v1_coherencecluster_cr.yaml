@@ -7,16 +7,20 @@ spec:
   imagePullSecrets:
     - "ocs-secret"
     - "docker-store-secret"
-  defaultRole:
-    images:
-      coherence:
-        image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74512"
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 10
+  images:
+    coherence:
+      image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74512"
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  labels:
+    - "foo" : "bar"
   roles:
-    - roleName: storage
+    - role: storage
       replicas: 5
-    - roleName: proxy
+      labels:
+        - "foo" :
+        - "xyz" : "bar"
+    - role: proxy
       replicas: 2
       storageEnabled: false

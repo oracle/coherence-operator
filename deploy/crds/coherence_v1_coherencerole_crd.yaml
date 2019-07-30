@@ -103,7 +103,7 @@ spec:
                 Default value is 3.
               format: int32
               type: integer
-            roleName:
+            role:
               description: The name of this role. This value will be used to set the
                 Coherence role property for all members of this role
               type: string

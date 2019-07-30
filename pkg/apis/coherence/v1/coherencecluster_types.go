@@ -21,7 +21,7 @@ type CoherenceClusterSpec struct {
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// This spec is either the spec of a single role cluster or is used as the
 	// default values applied to roles in Roles array.
-	DefaultRole CoherenceRoleSpec `json:"defaultRole"`
+	CoherenceRoleSpec `json:",inline"`
 	// Roles is the list of different roles in the cluster
 	// There must be at least one role in a cluster.
 	// +optional

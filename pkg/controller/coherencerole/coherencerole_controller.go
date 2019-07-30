@@ -27,10 +27,28 @@ import (
 )
 
 // The name of this controller. This is used in events, log messages, etc.
-const controllerName = "coherencerole-controller"
+const (
+	controllerName = "coherencerole-controller"
 
-// The template used to create the CoherenceRole.Status.Selector
-const selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
+	invalidRoleEventMessage  string = "invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'"
+	createEventMessage       string = "created CoherenceInternal '%s' from CoherenceRole '%s' successful"
+	createEventFailedMessage string = "create CoherenceInternal '%s' from CoherenceRole '%s' failed\n%s"
+	updateEventMessage       string = "updated CoherenceInternal %s from CoherenceRole %s successful"
+	updateFailedEventMessage string = "update CoherenceInternal %s from CoherenceRole %s failed\n%s"
+	deleteEventMessage       string = "deleted CoherenceInternal %s from CoherenceRole %s successful"
+	deleteFailedEventMessage string = "delete CoherenceInternal %s from CoherenceRole %s failed\n%s"
+
+	eventReasonFailed       string = "Failed"
+	eventReasonCreated      string = "SuccessfulCreate"
+	eventReasonFailedCreate string = "FailedCreate"
+	eventReasonUpdated      string = "SuccessfulUpdate"
+	eventReasonFailedUpdate string = "FailedUpdate"
+	eventReasonDeleted      string = "SuccessfulDelete"
+	eventReasonFailedDelete string = "FailedDelete"
+
+	// The template used to create the CoherenceRole.Status.Selector
+	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
+)
 
 var log = logf.Log.WithName(controllerName)
 
@@ -128,9 +146,9 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 			role.Status.Status = coherence.RoleStatusFailed
 			_ = r.client.Status().Update(context.TODO(), role)
 
-			// send a successful creation event
-			msg := fmt.Sprintf("Invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'", role.Name, clusterName)
-			r.events.Event(role, corev1.EventTypeNormal, "Failed", msg)
+			// send a failure creation event
+			msg := fmt.Sprintf(invalidRoleEventMessage, role.Name, clusterName)
+			r.events.Event(role, corev1.EventTypeNormal, eventReasonFailed, msg)
 
 			return reconcile.Result{Requeue: false}, nil
 		} else {
@@ -201,8 +219,8 @@ func (r *ReconcileCoherenceRole) createRole(p params) (reconcile.Result, error) 
 	}
 
 	// send a successful creation event
-	msg := fmt.Sprintf("create Helm install '%s' in CoherenceRole '%s' successful", cohInternal.GetName(), p.role.Name)
-	r.events.Event(p.role, corev1.EventTypeNormal, "SuccessfulCreate", msg)
+	msg := fmt.Sprintf(createEventMessage, cohInternal.GetName(), p.role.Name)
+	r.events.Event(p.role, corev1.EventTypeNormal, eventReasonCreated, msg)
 
 	return reconcile.Result{}, nil
 }

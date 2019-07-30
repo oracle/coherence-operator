@@ -24,14 +24,19 @@ import (
 
 // NewFakeManager creates a fake manager.Manager for use when testing controllers.
 func NewFakeManager(initObjs ...runtime.Object) *FakeManager {
-	gvk := schema.GroupVersion{Group: "coherence.oracle.com", Version: "v1"}
+	gv := schema.GroupVersion{Group: "coherence.oracle.com", Version: "v1"}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(gvk, &coherence.CoherenceCluster{})
-	s.AddKnownTypes(gvk, &coherence.CoherenceClusterList{})
-	s.AddKnownTypes(gvk, &coherence.CoherenceRole{})
-	s.AddKnownTypes(gvk, &coherence.CoherenceRoleList{})
-	s.AddKnownTypeWithName(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"}, &unstructured.Unstructured{})
+	s.AddKnownTypes(gv, &coherence.CoherenceCluster{})
+	s.AddKnownTypes(gv, &coherence.CoherenceClusterList{})
+	s.AddKnownTypes(gv, &coherence.CoherenceRole{})
+	s.AddKnownTypes(gv, &coherence.CoherenceRoleList{})
+
+	gvk := coherence.GetCoherenceInternalGroupVersionKind(s)
+	s.AddKnownTypeWithName(gvk, &unstructured.Unstructured{})
+
+	//s.AddKnownTypes(gv, &coherence.CoherenceInternalList{})
+	s.AddKnownTypeWithName(schema.GroupVersionKind{Group: gv.Group, Version: gv.Version, Kind: "CoherenceInternalList"}, &unstructured.UnstructuredList{})
 
 	cl := fake.NewFakeClient(initObjs...)
 
@@ -182,6 +187,50 @@ func (f *FakeManager) AssertCoherenceRoles(namespace string, count int) {
 // AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace for a cluster name
 func (f *FakeManager) AssertCoherenceRolesForCluster(namespace, clusterName string, count int) {
 	list := &coherence.CoherenceRoleList{}
+
+	opts := client.ListOptions{
+		Namespace: namespace,
+	}
+
+	err := opts.SetLabelSelector(coherence.CoherenceClusterLabel + "=" + clusterName)
+	Expect(err).To(BeNil())
+
+	err = f.Client.List(context.TODO(), &opts, list)
+	Expect(err).To(BeNil())
+	Expect(len(list.Items)).To(Equal(count))
+}
+
+// AssertCoherenceRoleExists asserts that the specified CoherenceRole exists in the namespace and returns it
+func (f *FakeManager) AssertCoherenceInternalExists(namespace, name string) *unstructured.Unstructured {
+	gvk := coherence.GetCoherenceInternalGroupVersionKind(f.Scheme)
+	role := &unstructured.Unstructured{}
+	role.SetGroupVersionKind(gvk)
+
+	err := f.Client.Get(context.TODO(), apitypes.NamespacedName{Namespace: namespace, Name: name}, role)
+	Expect(err).NotTo(HaveOccurred())
+	return role
+}
+
+// AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace
+func (f *FakeManager) AssertCoherenceInternals(namespace string, count int) {
+	gvk := coherence.GetCoherenceInternalGroupVersionKind(f.Scheme)
+	list := &unstructured.UnstructuredList{}
+
+	list.SetGroupVersionKind(gvk)
+	list.SetKind("CoherenceInternalList")
+
+	opts := client.ListOptions{
+		Namespace: namespace,
+	}
+
+	_ = f.Client.List(context.TODO(), &opts, list)
+	//Expect(err).To(BeNil())
+	Expect(len(list.Items)).To(Equal(count))
+}
+
+// AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace for a cluster name
+func (f *FakeManager) AssertCoherenceInternalForRole(namespace, clusterName string, roleName string, count int) {
+	list := &unstructured.UnstructuredList{}
 
 	opts := client.ListOptions{
 		Namespace: namespace,

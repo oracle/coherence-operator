@@ -42,7 +42,7 @@ goBuild()
     DATE=$(date -u)
     BUILD_INFO="${VERSION}|${GITCOMMIT}|${DATE// /.}"
 
-    operator-sdk build ${OPERATOR_IMAGE} --verbose --go-build-args "-ldflags -X=main.BuildInfo=${BUILD_INFO}"
+    operator-sdk build ${OPERATOR_IMAGE} --verbose --go-build-args "-o ./build/_output/bin/operator -ldflags -X=main.BuildInfo=${BUILD_INFO}"
     }
 
 # Create the Helm chart distributions

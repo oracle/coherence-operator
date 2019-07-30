@@ -29,108 +29,86 @@ spec:
           type: object
         spec:
           properties:
-            defaultRole:
-              description: This spec is either the spec of a single role cluster or
-                is used as the default values applied to roles in Roles array.
-              properties:
-                images:
-                  description: Details of the Docker images used in the role
-                  properties:
-                    coherence:
-                      description: CoherenceImage is the details of the Coherence
-                        image to be used
-                      properties:
-                        image:
-                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                          type: string
-                        imagePullPolicy:
-                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                          type: string
-                      type: object
-                    coherenceUtils:
-                      description: CoherenceUtils is the details of the Coherence
-                        utilities image to be used
-                      properties:
-                        image:
-                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                          type: string
-                        imagePullPolicy:
-                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                          type: string
-                      type: object
-                  type: object
-                labels:
-                  additionalProperties:
-                    type: string
-                  description: 'The extra labels to add to the all of the Pods in
-                    this roles. Labels here will add to or override those defined
-                    for the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
-                  type: object
-                readinessProbe:
-                  description: 'The readiness probe config to be used for the Pods
-                    in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
-                  properties:
-                    failureThreshold:
-                      description: Minimum consecutive failures for the probe to be
-                        considered failed after having succeeded.
-                      format: int32
-                      type: integer
-                    initialDelaySeconds:
-                      description: 'Number of seconds after the container has started
-                        before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
-                      format: int32
-                      type: integer
-                    periodSeconds:
-                      description: How often (in seconds) to perform the probe.
-                      format: int32
-                      type: integer
-                    successThreshold:
-                      description: Minimum consecutive successes for the probe to
-                        be considered successful after having failed.
-                      format: int32
-                      type: integer
-                    timeoutSeconds:
-                      description: 'Number of seconds after which the probe times
-                        out. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
-                      format: int32
-                      type: integer
-                  type: object
-                replicas:
-                  description: The desired number of cluster members of this role.
-                    This is a pointer to distinguish between explicit zero and not
-                    specified. Default value is 3.
-                  format: int32
-                  type: integer
-                roleName:
-                  description: The name of this role. This value will be used to set
-                    the Coherence role property for all members of this role
-                  type: string
-                scalingPolicy:
-                  description: ScalingPolicy describes how the replicas of the cluster
-                    role will be scaled. The default if not specified is based upon
-                    the value of the StorageEnabled field. If StorageEnabled field
-                    is not specified or is true the default scaling will be safe,
-                    if StorageEnabled is set to false the default scaling will be
-                    parallel.
-                  type: string
-                storageEnabled:
-                  description: A boolean flag indicating whether members of this role
-                    are storage enabled. This value will set the corresponding coherence.distributed.localstorage
-                    System property. If not specified the default value is true. This
-                    flag is also used to configure the ScalingPolicy value if a value
-                    is not specified. If the StorageEnabled field is not specified
-                    or is true the scaling will be safe, if StorageEnabled is set
-                    to false scaling will be parallel.
-                  type: boolean
-              type: object
             imagePullSecrets:
               description: 'The secrets to be used when pulling images. Secrets must
                 be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/'
               items:
                 type: string
               type: array
+            images:
+              description: Details of the Docker images used in the role
+              properties:
+                coherence:
+                  description: CoherenceImage is the details of the Coherence image
+                    to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+                coherenceUtils:
+                  description: CoherenceUtils is the details of the Coherence utilities
+                    image to be used
+                  properties:
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+              type: object
+            labels:
+              additionalProperties:
+                type: string
+              description: 'The extra labels to add to the all of the Pods in this
+                roles. Labels here will add to or override those defined for the cluster.
+                More info: http://kubernetes.io/docs/user-guide/labels'
+              type: object
+            readinessProbe:
+              description: 'The readiness probe config to be used for the Pods in
+                this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+              properties:
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded.
+                  format: int32
+                  type: integer
+                initialDelaySeconds:
+                  description: 'Number of seconds after the container has started
+                    before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe.
+                  format: int32
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed.
+                  format: int32
+                  type: integer
+                timeoutSeconds:
+                  description: 'Number of seconds after which the probe times out.
+                    More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+              type: object
+            replicas:
+              description: The desired number of cluster members of this role. This
+                is a pointer to distinguish between explicit zero and not specified.
+                Default value is 3.
+              format: int32
+              type: integer
+            role:
+              description: The name of this role. This value will be used to set the
+                Coherence role property for all members of this role
+              type: string
             roles:
               description: Roles is the list of different roles in the cluster There
                 must be at least one role in a cluster.
@@ -206,7 +184,7 @@ spec:
                       specified. Default value is 3.
                     format: int32
                     type: integer
-                  roleName:
+                  role:
                     description: The name of this role. This value will be used to
                       set the Coherence role property for all members of this role
                     type: string
@@ -230,14 +208,29 @@ spec:
                     type: boolean
                 type: object
               type: array
+            scalingPolicy:
+              description: ScalingPolicy describes how the replicas of the cluster
+                role will be scaled. The default if not specified is based upon the
+                value of the StorageEnabled field. If StorageEnabled field is not
+                specified or is true the default scaling will be safe, if StorageEnabled
+                is set to false the default scaling will be parallel.
+              type: string
             serviceAccountName:
               description: The name to use for the service account to use when RBAC
                 is enabled The role bindings must already have been created as this
                 chart does not create them it just sets the serviceAccountName value
                 in the Pod spec.
               type: string
+            storageEnabled:
+              description: A boolean flag indicating whether members of this role
+                are storage enabled. This value will set the corresponding coherence.distributed.localstorage
+                System property. If not specified the default value is true. This
+                flag is also used to configure the ScalingPolicy value if a value
+                is not specified. If the StorageEnabled field is not specified or
+                is true the scaling will be safe, if StorageEnabled is set to false
+                scaling will be parallel.
+              type: boolean
           required:
-          - defaultRole
           - roles
           type: object
         status:

@@ -141,6 +141,10 @@ spec:
                       format: int32
                       type: integer
                   type: object
+                storageEnabled:
+                  description: A boolean flag indicating whether members of this role
+                    are storage enabled. If not specified the default value is true.
+                  type: boolean
                 wka:
                   description: The name of the headless service used for Coherence
                     WKA

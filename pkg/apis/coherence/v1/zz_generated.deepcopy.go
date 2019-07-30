@@ -78,7 +78,7 @@ func (in *CoherenceClusterSpec) DeepCopyInto(out *CoherenceClusterSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	in.DefaultRole.DeepCopyInto(&out.DefaultRole)
+	in.CoherenceRoleSpec.DeepCopyInto(&out.CoherenceRoleSpec)
 	if in.Roles != nil {
 		in, out := &in.Roles, &out.Roles
 		*out = make([]CoherenceRoleSpec, len(*in))

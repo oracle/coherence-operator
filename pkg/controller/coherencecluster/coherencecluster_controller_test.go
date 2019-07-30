@@ -68,19 +68,19 @@ var _ = Describe("coherencecluster_controller", func() {
 
 			It("should create one default CoherenceRole", func() {
 				mgr.AssertCoherenceRoles(testNamespace, 1)
-				name := cluster.Spec.DefaultRole.GetFullRoleName(cluster)
+				name := cluster.Spec.CoherenceRoleSpec.GetFullRoleName(cluster)
 				role := mgr.AssertCoherenceRoleExists(testNamespace, name)
 				Expect(role.Spec).To(Equal(coherence.CoherenceRoleSpec{}))
 			})
 
 			It("should fire a successful CoherenceRole create event", func() {
-				name := cluster.Spec.DefaultRole.GetFullRoleName(cluster)
+				name := cluster.Spec.CoherenceRoleSpec.GetFullRoleName(cluster)
 				msg := fmt.Sprintf(createEventMessage, name, testClusterName)
 				event := mgr.AssertEvent()
 
 				Expect(event.Owner).To(Equal(cluster))
 				Expect(event.Type).To(Equal(v1.EventTypeNormal))
-				Expect(event.Reason).To(Equal(EventReasonCreated))
+				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
 
 				mgr.AssertNoRemainingEvents()
@@ -97,7 +97,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 		BeforeEach(func() {
 			roleSpec = coherence.CoherenceRoleSpec{
-				RoleName: "storage",
+				Role: "storage",
 			}
 
 			cluster = &coherence.CoherenceCluster{
@@ -127,7 +127,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 				Expect(event.Owner).To(Equal(cluster))
 				Expect(event.Type).To(Equal(v1.EventTypeNormal))
-				Expect(event.Reason).To(Equal(EventReasonCreated))
+				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
 
 				mgr.AssertNoRemainingEvents()
@@ -152,11 +152,11 @@ var _ = Describe("coherencecluster_controller", func() {
 
 		BeforeEach(func() {
 			roleSpecOne = coherence.CoherenceRoleSpec{
-				RoleName: "storage",
+				Role: "storage",
 			}
 
 			roleSpecTwo = coherence.CoherenceRoleSpec{
-				RoleName: "proxy",
+				Role: "proxy",
 			}
 
 			cluster = &coherence.CoherenceCluster{
@@ -190,12 +190,12 @@ var _ = Describe("coherencecluster_controller", func() {
 
 				Expect(eventOne.Owner).To(Equal(cluster))
 				Expect(eventOne.Type).To(Equal(v1.EventTypeNormal))
-				Expect(eventOne.Reason).To(Equal(EventReasonCreated))
+				Expect(eventOne.Reason).To(Equal(eventReasonCreated))
 				Expect(eventOne.Message).To(Equal(msgOne))
 
 				Expect(eventTwo.Owner).To(Equal(cluster))
 				Expect(eventTwo.Type).To(Equal(v1.EventTypeNormal))
-				Expect(eventTwo.Reason).To(Equal(EventReasonCreated))
+				Expect(eventTwo.Reason).To(Equal(eventReasonCreated))
 				Expect(eventTwo.Message).To(Equal(msgTwo))
 
 				mgr.AssertNoRemainingEvents()
@@ -260,13 +260,13 @@ var _ = Describe("coherencecluster_controller", func() {
 
 			BeforeEach(func() {
 				existingRoleSpec = coherence.CoherenceRoleSpec{
-					RoleName: "storage",
+					Role: "storage",
 				}
 
 				imageName := "coherence:1.2.3"
 
 				updatedgRoleSpec = coherence.CoherenceRoleSpec{
-					RoleName: "storage",
+					Role: "storage",
 					Images: &coherence.Images{
 						Coherence: &coherence.ImageSpec{Image: &imageName},
 					},
@@ -322,7 +322,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(v1.EventTypeNormal))
-					Expect(event.Reason).To(Equal(EventReasonUpdated))
+					Expect(event.Reason).To(Equal(eventReasonUpdated))
 					Expect(event.Message).To(Equal(msg))
 
 					mgr.AssertNoRemainingEvents()
@@ -343,7 +343,7 @@ var _ = Describe("coherencecluster_controller", func() {
 							Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 						},
 						Spec: coherence.CoherenceRoleSpec{
-							RoleName: "storage",
+							Role:     "storage",
 							Replicas: &three,
 						},
 					},
@@ -356,7 +356,7 @@ var _ = Describe("coherencecluster_controller", func() {
 					},
 					Spec: coherence.CoherenceClusterSpec{
 						Roles: []coherence.CoherenceRoleSpec{
-							{RoleName: "storage", Replicas: &zero},
+							{Role: "storage", Replicas: &zero},
 						},
 					},
 				}
@@ -387,7 +387,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(v1.EventTypeNormal))
-					Expect(event.Reason).To(Equal(EventReasonDeleted))
+					Expect(event.Reason).To(Equal(eventReasonDeleted))
 					Expect(event.Message).To(Equal(msg))
 
 					mgr.AssertNoRemainingEvents()
@@ -407,7 +407,7 @@ var _ = Describe("coherencecluster_controller", func() {
 						Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 					},
 					Spec: coherence.CoherenceRoleSpec{
-						RoleName: "storage",
+						Role: "storage",
 					},
 				}
 
@@ -418,7 +418,7 @@ var _ = Describe("coherencecluster_controller", func() {
 						Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 					},
 					Spec: coherence.CoherenceRoleSpec{
-						RoleName: "proxy",
+						Role: "proxy",
 					},
 				}
 
@@ -461,7 +461,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(v1.EventTypeNormal))
-					Expect(event.Reason).To(Equal(EventReasonDeleted))
+					Expect(event.Reason).To(Equal(eventReasonDeleted))
 					Expect(event.Message).To(Equal(msg))
 
 					mgr.AssertNoRemainingEvents()

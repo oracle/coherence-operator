@@ -14,7 +14,7 @@ type CoherenceRoleSpec struct {
 	// The name of this role.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
-	RoleName string `json:"roleName,omitempty"`
+	Role string `json:"role,omitempty"`
 	// The desired number of cluster members of this role.
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// Default value is 3.
@@ -113,15 +113,15 @@ func (in *CoherenceRoleSpec) GetFullRoleName(cluster *CoherenceCluster) string {
 }
 
 // Obtain the name for a role.
-// If the RoleName field is not set the default name is returned.
+// If the Role field is not set the default name is returned.
 func (in *CoherenceRoleSpec) GetRoleName() string {
 	if in == nil {
 		return DefaultRoleName
 	}
-	if in.RoleName == "" {
+	if in.Role == "" {
 		return DefaultRoleName
 	}
-	return in.RoleName
+	return in.Role
 }
 
 // GetCoherenceClusterName obtains the Coherence cluster name from the label for a CoherenceRole.
@@ -129,10 +129,17 @@ func (in *CoherenceRole) GetCoherenceClusterName() string {
 	if in == nil {
 		return ""
 	}
-	if in.Labels == nil {
-		return ""
+
+	if in.Labels != nil {
+		if name, ok := in.Labels[CoherenceClusterLabel]; ok {
+			return name
+		}
 	}
-	return in.Labels[CoherenceClusterLabel]
+
+	l := len(in.Name) - len(in.Spec.Role)
+	name := in.Name[0 : l-1]
+
+	return name
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set
@@ -156,10 +163,10 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	// If a field is not set use the value from the default
 	// If the field is a struct it should implement DeepCopyWithDefaults so call that method
 
-	if in.RoleName != "" {
-		clone.RoleName = in.RoleName
+	if in.Role != "" {
+		clone.Role = in.Role
 	} else {
-		clone.RoleName = defaults.RoleName
+		clone.Role = defaults.Role
 	}
 
 	if in.Replicas != nil {

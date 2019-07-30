@@ -54,7 +54,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("defaults is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
@@ -70,8 +70,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				Expect(clone).To(Equal(original))
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -102,7 +102,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("original is nil", func() {
 			BeforeEach(func() {
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -114,8 +114,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				original = nil
 			})
 
-			It("should copy the defaults RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(defaults.RoleName))
+			It("should copy the defaults Role field", func() {
+				Expect(clone.Role).To(Equal(defaults.Role))
 			})
 
 			It("should copy the defaults Replicas field", func() {
@@ -146,7 +146,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("all fields in the original are set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
@@ -156,7 +156,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -166,8 +166,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -195,7 +195,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 			})
 		})
 
-		When("the original RoleName is not set", func() {
+		When("the original Role is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
 					Replicas:       replicasOne,
@@ -207,7 +207,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -217,8 +217,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the defaults RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(defaults.RoleName))
+			It("should copy the defaults Role field", func() {
+				Expect(clone.Role).To(Equal(defaults.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -249,7 +249,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("the original Replicas is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
 					Images:         imagesOne,
@@ -258,7 +258,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -268,8 +268,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the defaults Replicas field", func() {
@@ -300,7 +300,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("the original ReadinessProbe is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					Images:         imagesOne,
@@ -309,7 +309,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -319,8 +319,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -351,7 +351,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("the original Images is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
@@ -360,7 +360,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -370,8 +370,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -402,7 +402,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("the original Labels is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
@@ -411,7 +411,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -421,8 +421,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {
@@ -453,7 +453,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 		When("the original ScalingPolicy is not set", func() {
 			BeforeEach(func() {
 				original = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameOne,
+					Role:           roleNameOne,
 					Replicas:       replicasOne,
 					StorageEnabled: &storageOne,
 					ReadinessProbe: probeOne,
@@ -462,7 +462,7 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 
 				defaults = &coherence.CoherenceRoleSpec{
-					RoleName:       roleNameTwo,
+					Role:           roleNameTwo,
 					Replicas:       replicasTwo,
 					StorageEnabled: &storageTwo,
 					ReadinessProbe: probeTwo,
@@ -472,8 +472,8 @@ var _ = Describe("Testing CoherenceRole struct", func() {
 				}
 			})
 
-			It("should copy the original RoleName field", func() {
-				Expect(clone.RoleName).To(Equal(original.RoleName))
+			It("should copy the original Role field", func() {
+				Expect(clone.Role).To(Equal(original.Role))
 			})
 
 			It("should copy the original Replicas field", func() {

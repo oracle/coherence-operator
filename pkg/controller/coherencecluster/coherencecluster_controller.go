@@ -35,12 +35,12 @@ const (
 	deleteEventMessage       string = "deleted CoherenceRole %s in CoherenceCluster %s successful"
 	deleteFailedEventMessage string = "delete CoherenceRole %s in CoherenceCluster %s failed\n%s"
 
-	EventReasonCreated      string = "SuccessfulCreate"
-	EventReasonFailedCreate string = "FailedCreate"
-	EventReasonUpdated      string = "SuccessfulUpdate"
-	EventReasonFailedUpdate string = "FailedUpdate"
-	EventReasonDeleted      string = "SuccessfulDelete"
-	EventReasonFailedDelete string = "FailedDelete"
+	eventReasonCreated      string = "SuccessfulCreate"
+	eventReasonFailedCreate string = "FailedCreate"
+	eventReasonUpdated      string = "SuccessfulUpdate"
+	eventReasonFailedUpdate string = "FailedUpdate"
+	eventReasonDeleted      string = "SuccessfulDelete"
+	eventReasonFailedDelete string = "FailedDelete"
 )
 
 var log = logf.Log.WithName(controllerName)
@@ -222,7 +222,7 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	role := &coherence.CoherenceRole{}
 	role.SetNamespace(p.request.Namespace)
 	role.SetName(fullName)
-	role.Spec = *p.desiredRole.DeepCopyWithDefaults(&p.cluster.Spec.DefaultRole)
+	role.Spec = *p.desiredRole.DeepCopyWithDefaults(&p.cluster.Spec.CoherenceRoleSpec)
 
 	labels := make(map[string]string)
 	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
@@ -237,13 +237,13 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	// Create the CoherenceRole resource in k8s which will be detected by the role controller
 	if err := r.client.Create(context.TODO(), role); err != nil {
 		msg := fmt.Sprintf(createEventFailedMessage, role.Name, p.cluster.Name, err.Error())
-		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedCreate, msg)
+		r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonFailedCreate, msg)
 		return err
 	}
 
 	// send a successful creation event
 	msg := fmt.Sprintf(createEventMessage, role.Name, p.cluster.Name)
-	r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonCreated, msg)
+	r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonCreated, msg)
 
 	return nil
 }
@@ -266,11 +266,11 @@ func (r *ReconcileCoherenceCluster) updateRole(p params) (reconcile.Result, erro
 	if err == nil {
 		// send a successful update event
 		msg := fmt.Sprintf(updateEventMessage, p.existingRole.Name, p.cluster.Name)
-		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonUpdated, msg)
+		r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonUpdated, msg)
 	} else {
 		// send a failed update event
 		msg := fmt.Sprintf(updateFailedEventMessage, p.existingRole.Name, p.cluster.Name, err.Error())
-		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedUpdate, msg)
+		r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonFailedUpdate, msg)
 	}
 
 	return reconcile.Result{}, err
@@ -285,13 +285,13 @@ func (r *ReconcileCoherenceCluster) deleteRole(p params) error {
 	err := r.client.Delete(context.TODO(), &p.existingRole)
 	if err != nil {
 		msg := fmt.Sprintf(deleteFailedEventMessage, p.existingRole.Name, p.cluster.Name, err.Error())
-		r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonFailedDelete, msg)
+		r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonFailedDelete, msg)
 		return err
 	}
 
 	// send a successful deletion event
 	msg := fmt.Sprintf(deleteEventMessage, p.existingRole.Name, p.cluster.Name)
-	r.events.Event(p.cluster, v1.EventTypeNormal, EventReasonDeleted, msg)
+	r.events.Event(p.cluster, v1.EventTypeNormal, eventReasonDeleted, msg)
 
 	return nil
 }
@@ -353,7 +353,7 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 // were specified in the cluster.
 // If the cluster has no roles then the default role will be used as the single role spec for the cluster.
 func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.CoherenceCluster) (map[string]coherence.CoherenceRoleSpec, []string) {
-	defaultSpec := cluster.Spec.DefaultRole
+	defaultSpec := cluster.Spec.CoherenceRoleSpec
 	if len(cluster.Spec.Roles) == 0 {
 		return map[string]coherence.CoherenceRoleSpec{defaultSpec.GetRoleName(): defaultSpec}, []string{defaultSpec.GetRoleName()}
 	} else {

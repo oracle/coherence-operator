@@ -17,9 +17,9 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 	It("cluster has role with name", func() {
 		roleOne := coherence.CoherenceRoleSpec{}
-		roleOne.RoleName = "storage"
+		roleOne.Role = "storage"
 		roleTwo := coherence.CoherenceRoleSpec{}
-		roleTwo.RoleName = "proxy"
+		roleTwo.Role = "proxy"
 
 		cluster := coherence.CoherenceCluster{}
 		cluster.Spec.Roles = make([]coherence.CoherenceRoleSpec, 2)
@@ -31,9 +31,9 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 	It("cluster does not have role with name", func() {
 		roleOne := coherence.CoherenceRoleSpec{}
-		roleOne.RoleName = "storage"
+		roleOne.Role = "storage"
 		roleTwo := coherence.CoherenceRoleSpec{}
-		roleTwo.RoleName = "proxy"
+		roleTwo.Role = "proxy"
 
 		cluster := coherence.CoherenceCluster{}
 		cluster.Spec.Roles = make([]coherence.CoherenceRoleSpec, 2)
@@ -45,12 +45,12 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 	It("set cluster role", func() {
 		roleOne := coherence.CoherenceRoleSpec{}
-		roleOne.RoleName = "storage"
+		roleOne.Role = "storage"
 		roleTwo := coherence.CoherenceRoleSpec{}
-		roleTwo.RoleName = "proxy"
+		roleTwo.Role = "proxy"
 
 		roleUpdate := coherence.CoherenceRoleSpec{}
-		roleUpdate.RoleName = "storage"
+		roleUpdate.Role = "storage"
 		roleUpdate.Replicas = int32Pointer(19)
 
 		cluster := coherence.CoherenceCluster{}
@@ -65,12 +65,12 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 	It("set cluster role when role not in cluster", func() {
 		roleOne := coherence.CoherenceRoleSpec{}
-		roleOne.RoleName = "storage"
+		roleOne.Role = "storage"
 		roleTwo := coherence.CoherenceRoleSpec{}
-		roleTwo.RoleName = "proxy"
+		roleTwo.Role = "proxy"
 
 		roleUpdate := coherence.CoherenceRoleSpec{}
-		roleUpdate.RoleName = "foo"
+		roleUpdate.Role = "foo"
 		roleUpdate.Replicas = int32Pointer(19)
 
 		cluster := coherence.CoherenceCluster{}
