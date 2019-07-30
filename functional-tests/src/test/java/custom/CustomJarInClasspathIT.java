@@ -140,7 +140,7 @@ public class CustomJarInClasspathIT extends BaseHelmChartTest
             }
         finally
             {
-            dumpPodLog(s_k8sCluster, sNamespace, CLIENT1, null);
+            dumpPodLog(s_k8sCluster, sNamespace, CLIENT1);
             deleteClients();
             }
         }

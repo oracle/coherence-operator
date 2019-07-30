@@ -221,10 +221,17 @@ public class PersistenceSnapshotHelmChartIT
 
         if (fPersistence)
             {
-            dumpPodLog(s_k8sCluster, sNamespace, listPods.get(0));
+            dumpPodLog(s_k8sCluster, sNamespace, sCoherencePod);
             Queue<String> sLogs = getPodLog(s_k8sCluster, sNamespace, listPods.get(0));
-
-            assertThat(sLogs.stream().anyMatch(l -> l.contains("Creating persistence active directory")), is(true));
+            try
+                {
+                assertThat(sLogs.stream().anyMatch(l -> l.contains("Creating persistence active directory")), is(true));
+                }
+            catch (Throwable t)
+                {
+                dumpPodLog(s_k8sCluster, sNamespace, sCoherencePod, null,true);
+                throw t;
+                }
             }
 
         testSnapshot(sNamespace);
