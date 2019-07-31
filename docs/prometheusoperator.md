@@ -34,9 +34,10 @@ After you install the charts, use the following script to port forward the Grafa
 
 trap "exit" INT
 
+POD=$(kubectl get pods --selector=app=grafana --namespace namespace --output=jsonpath="{.items..metadata.name}")
 while :
 do
-  kubectl port-forward $(kubectl get pods --selector=app=grafana -n namespace --output=jsonpath="{.items..metadata.name}") -n namespace 3000:3000
+  kubectl port-forward $POD --namespace namespace 3000:3000
 done
 ```
 
@@ -44,9 +45,11 @@ done
 
 ## Log in to Grafana
 
-In a browser, go to the URL, `http://127.0.0.1:3000/d/coh-main/coherence-dashboard-main` to access the main Coherence dashboard.
+In a browser, go to the URL, `http://127.0.0.1:3000/d/coh-main` to access the main Coherence dashboard.
 
-On the Grafana login page, enter the login id, `admin` and the password, `prom-operator`.
+On the Grafana login page, enter the login id, `admin` and the default password, `prom-operator`.
+
+> **Note:** You should change this password once you have logged in.
 
 Click `Home` on the upper left corner of the page to get a list of preconfigured dashboards.
 Click ` Coherence Dashboard Main`.
