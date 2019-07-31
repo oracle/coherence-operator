@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1564389506395,
+  "id": 29,
+  "iteration": 1564545528529,
   "links": [
     {
       "icon": "dashboard",
@@ -156,7 +156,8 @@
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [
-            "2"
+            "2",
+            "3"
           ],
           "type": "string",
           "unit": "short",
