@@ -41,7 +41,6 @@ Ensure you have already installed the Coherence Operator by using the instructio
       --set clusterSize=3 \
       --set cluster=coherence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set store.jvmArgs="-Xloggc:/tmp/gc-log -server -Xcomp"  \
       --set store.javaOpts="-Dcoherence.log.level=6 -Djava.net.preferIPv4Stack=true" \

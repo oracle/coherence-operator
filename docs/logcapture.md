@@ -25,9 +25,10 @@ then include the `--namespace` option for both `kubectl` commands.
 #!/bin/bash
 trap "exit" INT
 
+POD=$(kubectl get pods --namespace namespace | grep kibana | awk '{print $1}')
 while :
 do
-   kubectl port-forward $(kubectl get pods | grep kibana | awk '{print $1}') 5601:5601
+   kubectl port-forward $POD --namespace namespace 5601:5601
 done
 
 ```

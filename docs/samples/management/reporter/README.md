@@ -29,7 +29,6 @@ Ensure you have installed the Coherence Operator using the instructions [here](.
       --set clusterSize=3 \
       --set cluster=coherence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set coherence.image=your-12.2.1.4.0-Coherence-image \
       coherence/coherence

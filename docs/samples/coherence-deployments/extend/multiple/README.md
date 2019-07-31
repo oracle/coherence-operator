@@ -50,7 +50,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set cluster=multiple-proxy-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=multiple-proxy-sample:1.0.0-SNAPSHOT \
       --set store.javaOpts="-Dcoherence.extend.port2=20001" \

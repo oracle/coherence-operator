@@ -55,7 +55,6 @@ See [here](../../management/rest/) for information about connecting to Managemen
       --set clusterSize=3 \
       --set cluster=coherence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \

@@ -30,7 +30,6 @@ Ensure that you have installed the Coherence Operator by following the instructi
       --set clusterSize=3 \
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       coherence/coherence
    ```

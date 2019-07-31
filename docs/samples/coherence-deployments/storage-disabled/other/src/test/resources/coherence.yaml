@@ -8,6 +8,3 @@ cluster: helidon-cluster
 imagePullSecrets: sample-coherence-secret
 
 logCaptureEnabled: false
-
-prometheusoperator:
-  enabled: false

@@ -54,7 +54,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
       --set store.pof.config=storage-pof-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=sidecar-sample:1.0.0-SNAPSHOT \
       coherence/coherence

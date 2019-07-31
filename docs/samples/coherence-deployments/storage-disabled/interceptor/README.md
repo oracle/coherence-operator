@@ -23,7 +23,7 @@ This sample uses only one storage-disabled client. You can change this by settin
 
 * [src/main/java/com/oracle/coherence/examples/DemoInterceptor.java](src/main/java/com/oracle/coherence/examples/DemoInterceptor.java) - Interceptor that starts our `mock` client
 
-Note that if you want to enable Prometheus or log capture, set the following properties in the `helm install` command to `true`. These properties are set to false by default. However, in this sample, these properties have been set to `false` for completeness.
+> **Note:** If you want to enable Prometheus or log capture, ensure you set the appropriate properties for the Coherence Operator install:
 
 * Prometheus: `--set prometheusoperator.enabled=true`
 
@@ -64,7 +64,6 @@ Ensure that you have installed the Coherence Operator by following the instructi
       --set cluster=interceptor-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=interceptor-sample:1.0.0-SNAPSHOT \
       coherence/coherence
@@ -94,7 +93,7 @@ Ensure that you have installed the Coherence Operator by following the instructi
 
    * `--set store.wka=storage-coherence-headless` - Ensures that it can contact the cluster
 
-   * `--set prometheusoperator.enabled=false` - Sets storage to false
+   * `--set store.storageEnabled=false` - Sets storage to false
 
    * `--set store.cacheConfig=interceptor-cache-config.xml` - Uses interceptor cache configuration from the sidecar image
 
@@ -104,12 +103,10 @@ Ensure that you have installed the Coherence Operator by following the instructi
      --set cluster=interceptor-cluster \
      --set clusterSize=1 \
      --set store.wka=storage-coherence-headless \
-     --set prometheusoperator.enabled=true \
      --name interceptor-client-tier \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=interceptor-cache-config.xml \
      --set store.storageEnabled=false \
-     --set prometheusoperator.enabled=false \
      --set logCaptureEnabled=false \
      --set userArtifacts.image=interceptor-sample:1.0.0-SNAPSHOT \
      coherence/coherence
