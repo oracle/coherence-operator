@@ -88,7 +88,7 @@ func add(mgr manager.Manager, r *ReconcileCoherenceRole) error {
 	// Watch for changes to secondary resource - in this case we watch the StatefulSet created by the Helm chart
 	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    r.createEmptyCoherenceInternal(nil),
+		OwnerType:    r.CreateEmptyCoherenceInternal(nil),
 	})
 	if err != nil {
 		return err
@@ -193,14 +193,11 @@ func (r *ReconcileCoherenceRole) createRole(p params) (reconcile.Result, error) 
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	cohInternal := r.createEmptyCoherenceInternal(p.role)
-	cohInternal.Object["spec"] = spec
 
-	// Set the labels for the CoherenceInternal
-	labels := make(map[string]string)
-	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
-	labels[coherence.CoherenceRoleLabel] = p.role.Spec.GetRoleName()
-	cohInternal.SetLabels(labels)
+	cohInternal, err := r.CreateCoherenceInternal(p.cluster, p.role, spec)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 
 	// Set CoherenceCluster instance as the owner and controller of the CoherenceInternal structure
 	if err := controllerutil.SetControllerReference(p.cluster, cohInternal, r.scheme); err != nil {
@@ -266,6 +263,18 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 
 	if currentReplicas < desiredReplicas {
 		// Scaling UP
+
+		// if scaling up and upgrading then upgrade first and scale second
+		if isUpgrade {
+			result, err := r.upgrade(p, currentReplicas, desiredRole, logger)
+			if err == nil {
+				// requeue so that we then scale up
+				return reconcile.Result{Requeue: true}, nil
+			} else {
+				return result, err
+			}
+		}
+
 		logger.Info(fmt.Sprintf("Scaling up existing Role from %d to %d", currentReplicas, desiredReplicas))
 		// if scaling up and upgrading then upgrade first and scale second
 
@@ -289,50 +298,19 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 	} else if currentReplicas > desiredReplicas {
 		// Scaling DOWN
 		logger.Info(fmt.Sprintf("Scaling down existing Role from %d to %d", currentReplicas, desiredReplicas))
+
 		// if scaling down and upgrading then scale down first and upgrade second
+		result, err := r.scale(p, existing, desiredReplicas, currentReplicas, sts)
 
-		// update the CoherenceInternal, this should trigger an update of the Helm install to scale the StatefulSet
-		existing.Spec.ClusterSize = desiredReplicas
-		p.cohInternal.Object["spec"] = existing.Spec
-		err = r.client.Update(context.TODO(), p.cohInternal)
-		if err != nil {
-			return reconcile.Result{}, err
+		if err == nil && isUpgrade {
+			// requeue the request so that we then updgrade
+			return reconcile.Result{Requeue: true}, nil
+		} else {
+			return result, err
 		}
-
-		// Update this CoherenceRole's status
-		p.role.Status.Status = coherence.RoleStatusScaling
-		p.role.Status.Replicas = desiredReplicas
-		err = r.client.Status().Update(context.TODO(), p.role)
-		if err != nil {
-			logger.Error(err, "Failed to update Status")
-		}
-
-		// send a successful scale event
-		msg := fmt.Sprintf("scaled Helm install %s in CoherenceRole %s from %d to %d", p.role.Name, p.role.Name, currentReplicas, desiredReplicas)
-		r.events.Event(p.role, corev1.EventTypeNormal, "SuccessfulScale", msg)
-
 	} else if isUpgrade {
-		// Rolling upgrade
-		logger.Info("Rolling upgrade of existing Role")
-
-		// update the CoherenceInternal, this should trigger an update of the Helm install
-		p.cohInternal.Object["spec"] = desiredRole
-		err = r.client.Status().Update(context.TODO(), p.cohInternal)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-
-		// Update this CoherenceRole's status
-		p.role.Status.Status = coherence.RoleStatusRollingUpgrade
-		p.role.Status.Replicas = desiredReplicas
-		err = r.client.Update(context.TODO(), p.role)
-		if err != nil {
-			logger.Error(err, "Failed to update Status")
-		}
-
-		// send a successful scale event
-		msg := fmt.Sprintf("Upgraded Helm install %s in CoherenceRole %s", p.role.Name, p.role.Name)
-		r.events.Event(p.cluster, corev1.EventTypeNormal, "SuccessfulUpgrade", msg)
+		// do an upgrade
+		return r.upgrade(p, currentReplicas, desiredRole, logger)
 	} else if sts != nil {
 		// nothing to do to update or scale - update our status if the StatefulSet has changed
 
@@ -346,6 +324,39 @@ func (r *ReconcileCoherenceRole) updateRole(p params) (reconcile.Result, error) 
 			_ = r.client.Status().Update(context.TODO(), p.role)
 		}
 	}
+
+	return reconcile.Result{}, nil
+}
+
+// upgrade triggers a rolling upgrade of the role
+func (r *ReconcileCoherenceRole) upgrade(p params, replicas int32, desiredRole coherence.CoherenceInternalSpec, logger logr.Logger) (reconcile.Result, error) {
+	// Rolling upgrade
+	logger.Info("Rolling upgrade of existing Role")
+
+	spec, err := coherence.CoherenceInternalSpecAsMapFromSpec(desiredRole)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// update the CoherenceInternal, this should trigger an update of the Helm install
+	desiredRole.ClusterSize = replicas
+	p.cohInternal.Object["spec"] = spec
+
+	err = r.client.Update(context.TODO(), p.cohInternal)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Update this CoherenceRole's status
+	p.role.Status.Status = coherence.RoleStatusRollingUpgrade
+	err = r.client.Update(context.TODO(), p.role)
+	if err != nil {
+		logger.Error(err, "Failed to update Status")
+	}
+
+	// send a successful scale event
+	msg := fmt.Sprintf(updateEventMessage, p.role.Name, p.role.Name)
+	r.events.Event(p.cluster, corev1.EventTypeNormal, eventReasonUpdated, msg)
 
 	return reconcile.Result{}, nil
 }
@@ -364,13 +375,27 @@ func (r *ReconcileCoherenceRole) findStatefulSet(role *coherence.CoherenceRole) 
 
 // GetCoherenceInternal gets the unstructured CoherenceInternal from k8s for a given CoherenceRole
 func (r *ReconcileCoherenceRole) getCoherenceInternal(role *coherence.CoherenceRole) (*unstructured.Unstructured, error) {
-	cohInt := r.createEmptyCoherenceInternal(role)
+	cohInt := r.CreateEmptyCoherenceInternal(role)
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: role.Namespace, Name: role.Name}, cohInt)
 	return cohInt, err
 }
 
-// createEmptyCoherenceInternal creates an empty (no Spec) unstructured CoherenceInternal.
-func (r *ReconcileCoherenceRole) createEmptyCoherenceInternal(role *coherence.CoherenceRole) *unstructured.Unstructured {
+// CreateCoherenceInternal creates a unstructured CoherenceInternal.
+func (r *ReconcileCoherenceRole) CreateCoherenceInternal(cluster *coherence.CoherenceCluster, role *coherence.CoherenceRole, spec map[string]interface{}) (*unstructured.Unstructured, error) {
+	cohInternal := r.CreateEmptyCoherenceInternal(role)
+	cohInternal.Object["spec"] = spec
+
+	// Set the labels for the CoherenceInternal
+	labels := make(map[string]string)
+	labels[coherence.CoherenceClusterLabel] = cluster.Name
+	labels[coherence.CoherenceRoleLabel] = role.Spec.GetRoleName()
+	cohInternal.SetLabels(labels)
+
+	return cohInternal, nil
+}
+
+// CreateEmptyCoherenceInternal creates an empty (no Spec) unstructured CoherenceInternal.
+func (r *ReconcileCoherenceRole) CreateEmptyCoherenceInternal(role *coherence.CoherenceRole) *unstructured.Unstructured {
 	cohInternal := &unstructured.Unstructured{}
 
 	cohInternal.SetGroupVersionKind(r.gvk)

@@ -332,7 +332,7 @@ const (
 	// Parallel means that a role will be scaled up or down by adding or removing members in parallel.
 	// If the members of the role are storage enabled then this could cause data loss
 	ParallelScaling ScalingPolicy = "Parallel"
-	// ParallelUpSafeDown means that a role will be scaled up by adding or removing members in parallel
+	// ParallelUpSafeDownScaling means that a role will be scaled up by adding or removing members in parallel
 	// but will be scaled down in a safe manner to ensure no data loss.
-	ParallelUpSafeDown ScalingPolicy = "ParallelUpSafeDown"
+	ParallelUpSafeDownScaling ScalingPolicy = "ParallelUpSafeDownScaling"
 )

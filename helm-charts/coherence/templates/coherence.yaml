@@ -150,7 +150,7 @@ spec:
 # ---------------------------------------------------------------------------
 #  Container: coherence
 # ---------------------------------------------------------------------------
-        - name: {{ .Chart.Name }}
+        - name: "coherence"
           image: {{ .Values.coherence.image | quote }}
           imagePullPolicy: {{ .Values.coherence.imagePullPolicy | default "IfNotPresent" }}
           ports:

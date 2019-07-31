@@ -11,7 +11,9 @@ TENANT          ?= odx-stateservice/test/oracle
 OPERATOR_IMAGE  := ${REGISTRY}/${TENANT}/coherence-operator:${VERSION}
 
 HELM_COHERENCE_IMAGE ?= container-registry.oracle.com/middleware/coherence:12.2.1.3.2
-HELM_UTILS_IMAGE     ?= iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:1.1.0-SNAPSHOT-utils
+HELM_UTILS_IMAGE     ?= iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:1.1.0-SNAPSHOT-
+
+PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
 VARS := $(foreach V,$\
 		$(sort $(.VARIABLES)),$\

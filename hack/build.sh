@@ -64,6 +64,7 @@ createHelmCharts()
     replaceProperties build/_output/helm-charts/coherence/values.yaml
     replaceProperties build/_output/helm-charts/coherence-operator/Chart.yaml
     replaceProperties build/_output/helm-charts/coherence-operator/values.yaml
+    replaceProperties build/_output/helm-charts/coherence-operator/requirements.yaml
     replaceProperties build/_output/helm-charts/coherence-operator/templates/deployment.yaml
 
     # For each Helm chart folder package the chart into a .tar.gz

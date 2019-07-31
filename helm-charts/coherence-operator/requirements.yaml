@@ -8,7 +8,7 @@ dependencies:
   # MODIFY filtered file from src/main/helm/coherence-operator/resources/yaml.
   - name: prometheus-operator
     repository: https://kubernetes-charts.storage.googleapis.com/
-    version: ${prometheus.operator.helmchart.version}
+    version: ${PROMETHEUS_HELMCHART_VERSION}
     alias: prometheusoperator
     condition: prometheusoperator.enabled
     # prometheus-operator helm chart requires helm 2.10+.

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -79,7 +79,7 @@ var _ = Describe("coherencecluster_controller", func() {
 				event := mgr.AssertEvent()
 
 				Expect(event.Owner).To(Equal(cluster))
-				Expect(event.Type).To(Equal(v1.EventTypeNormal))
+				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
 
@@ -126,7 +126,7 @@ var _ = Describe("coherencecluster_controller", func() {
 				event := mgr.AssertEvent()
 
 				Expect(event.Owner).To(Equal(cluster))
-				Expect(event.Type).To(Equal(v1.EventTypeNormal))
+				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
 
@@ -189,12 +189,12 @@ var _ = Describe("coherencecluster_controller", func() {
 				eventTwo := mgr.AssertEvent()
 
 				Expect(eventOne.Owner).To(Equal(cluster))
-				Expect(eventOne.Type).To(Equal(v1.EventTypeNormal))
+				Expect(eventOne.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(eventOne.Reason).To(Equal(eventReasonCreated))
 				Expect(eventOne.Message).To(Equal(msgOne))
 
 				Expect(eventTwo.Owner).To(Equal(cluster))
-				Expect(eventTwo.Type).To(Equal(v1.EventTypeNormal))
+				Expect(eventTwo.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(eventTwo.Reason).To(Equal(eventReasonCreated))
 				Expect(eventTwo.Message).To(Equal(msgTwo))
 
@@ -321,7 +321,7 @@ var _ = Describe("coherencecluster_controller", func() {
 					event := mgr.AssertEvent()
 
 					Expect(event.Owner).To(Equal(cluster))
-					Expect(event.Type).To(Equal(v1.EventTypeNormal))
+					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonUpdated))
 					Expect(event.Message).To(Equal(msg))
 
@@ -386,7 +386,7 @@ var _ = Describe("coherencecluster_controller", func() {
 					event := mgr.AssertEvent()
 
 					Expect(event.Owner).To(Equal(cluster))
-					Expect(event.Type).To(Equal(v1.EventTypeNormal))
+					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonDeleted))
 					Expect(event.Message).To(Equal(msg))
 
@@ -460,7 +460,7 @@ var _ = Describe("coherencecluster_controller", func() {
 					event := mgr.AssertEvent()
 
 					Expect(event.Owner).To(Equal(cluster))
-					Expect(event.Type).To(Equal(v1.EventTypeNormal))
+					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonDeleted))
 					Expect(event.Message).To(Equal(msg))
 
