@@ -61,7 +61,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set cluster=proxy-ssl-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=proxy-ssl-sample:1.0.0-SNAPSHOT \
       coherence/coherence

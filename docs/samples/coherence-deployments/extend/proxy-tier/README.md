@@ -48,7 +48,6 @@ Ensure that you have installed the Coherence Operator by following the instructi
       --set cluster=proxy-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
       coherence/coherence
@@ -79,7 +78,7 @@ Ensure that you have installed the Coherence Operator by following the instructi
 
    * `--set cluster=proxy-tier-cluster` - Ensures that the cluster name is the same
 
-   * `--set prometheusoperator.enabled=false` - Sets storage to false
+   * `--set store.storageEnabled=false` - Sets storage to false
 
    * `--set store.cacheConfig=proxy-cache-config.xml` - Uses proxy cache configuration from sidecar
 
@@ -93,11 +92,9 @@ Ensure that you have installed the Coherence Operator by following the instructi
      --set clusterSize=1 \
      --set store.storageEnabled=false \
      --set store.wka=storage-coherence-headless \
-     --set prometheusoperator.enabled=false \
      --name proxy-tier \
      --set imagePullSecrets=sample-coherence-secret \
      --set store.cacheConfig=proxy-cache-config.xml \
-     --set prometheusoperator.enabled=false \
      --set userArtifacts.image=proxy-tier-sample:1.0.0-SNAPSHOT \
      coherence/coherence
    ```

@@ -44,7 +44,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set cluster=elastic-data-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=elastic-data-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=elastic-data-sample-default:1.0.0-SNAPSHOT \
       coherence/coherence

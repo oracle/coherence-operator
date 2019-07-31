@@ -23,7 +23,6 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set clusterSize=3 \
       --set cluster=coherence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       coherence/coherence
    ```

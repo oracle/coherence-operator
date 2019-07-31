@@ -64,7 +64,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=elastic-data-cache-config.xml \
       --set store.overrideConfig=elastic-data-override.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=elastic-data-sample-external:1.0.0-SNAPSHOT \
       -f src/main/yaml/volumes.yaml \

@@ -64,7 +64,6 @@ Ensure you have already installed the Coherence Operator with `--set logCaptureE
       --set cluster=custom-logger-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=true \
       --set userArtifacts.image=custom-logger-sample:1.0.0-SNAPSHOT \
       --set store.logging.configFile=custom-logging.properties \

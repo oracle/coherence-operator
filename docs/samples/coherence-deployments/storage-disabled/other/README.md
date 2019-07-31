@@ -25,7 +25,7 @@ allowing `CohQL` commands to be passed and executed against a Coherence cluster.
 
 * [src/main/helm/](src/main/helm) - Helm chart files
 
-**Note**: If you want to enable Prometheus or log capture, set the following properties in the `helm install` command to `true`. These properties are set to false by default. However, in this sample, these properties have been set to `false` for completeness.
+> **Note:** If you want to enable Prometheus or log capture, ensure you set the appropriate properties for the Coherence Operator install:
 
 * Prometheus: `--set prometheusoperator.enabled=true`
 
@@ -59,7 +59,6 @@ Ensure that you have installed the Coherence Operator by following the instructi
       --set clusterSize=3 \
       --set cluster=helidon-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       coherence/coherence
    ```

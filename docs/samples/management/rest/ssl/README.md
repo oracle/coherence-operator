@@ -52,7 +52,6 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set clusterSize=3 \
       --set cluster=rest-ssl-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=true \
       --set logCaptureEnabled=false \
       --set store.management.ssl.enabled=true \
       --set store.management.ssl.secrets=ssl-secret \

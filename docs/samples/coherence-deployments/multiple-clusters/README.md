@@ -11,7 +11,7 @@ how you can see the logs from both clusters using Kibana.
 
    Run the following command to install `coherence-operator` with log capture enabled:
 
-   > **Note:** If you have already installede `coherence-operator` without log capture enabled, you
+   > **Note:** If you have already installed the `coherence-operator` without log capture enabled, you
    > must delete it using `helm delete coherence-operator --purge` before continuing.
 
    ```bash
@@ -47,7 +47,6 @@ how you can see the logs from both clusters using Kibana.
       --set clusterSize=2 \
       --set cluster=cluster-a \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=true \
       coherence/coherence
    ```
@@ -63,7 +62,6 @@ how you can see the logs from both clusters using Kibana.
       --set clusterSize=2 \
       --set cluster=cluster-b \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=true \
       coherence/coherence
    ```

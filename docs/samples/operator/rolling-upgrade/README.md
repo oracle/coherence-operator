@@ -56,7 +56,6 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set cluster=rolling-upgrade-cluster \
       --set imagePullSecrets=sample-coherence-secret \
       --set store.cacheConfig=storage-cache-config.xml \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set userArtifacts.image=rolling-upgrade-sample:1.0.0 \
       coherence/coherence

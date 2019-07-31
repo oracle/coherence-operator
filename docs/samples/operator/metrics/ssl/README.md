@@ -22,8 +22,6 @@ This sample shows you how to enable SSL for metrics capture only when configurin
 
 Ensure you have already installed the Coherence Operator using the instructions [here](../../../README.md#install-the-coherence-operator).
 
-> **Note:** You do not need to enable metrics capture using `--set prometheusoperator.enabled=true` as an external Prometheus is used.
-
 ## Installation Steps
 
 1. Change to the `samples/operator/metrics/ssl` directory and ensure you have your Maven build environment set for JDK 8 and build the project:
@@ -56,7 +54,6 @@ Ensure you have already installed the Coherence Operator using the instructions 
       --set clusterSize=3 \
       --set cluster=metrics-ssl-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=true \
       --set logCaptureEnabled=false \
       --set store.metrics.ssl.enabled=true \
       --set store.metrics.ssl.secrets=ssl-secret \

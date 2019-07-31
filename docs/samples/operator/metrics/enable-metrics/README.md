@@ -51,7 +51,7 @@ This sample shows you how to configure the Prometheus Operator and monitor Coher
 
    You can see `grafana` and other `promethues` related pods along with the `coherence-operator` pod.
 
-1. Install the Coherence cluster with `prometheusoperator` enabled:
+1. Install the Coherence cluster:
 
    ```bash
    $ helm install \
@@ -60,8 +60,6 @@ This sample shows you how to configure the Prometheus Operator and monitor Coher
       --set clusterSize=3 \
       --set cluster=storage-tier-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=true \
-      --set "targetNamespaces={sample-coherence-ns}" \
       coherence/coherence
    ```
 

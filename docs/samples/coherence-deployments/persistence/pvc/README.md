@@ -89,7 +89,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set clusterSize=3 \
       --set cluster=persistence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \
@@ -190,7 +189,6 @@ Ensure that you have installed Coherence Operator by following the instructions 
       --set clusterSize=3 \
       --set cluster=persistence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set store.persistence.enabled=true \
       --set store.persistence.storageClass=mylocalsc \

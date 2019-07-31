@@ -31,7 +31,6 @@ This sample shows you how to scale up a Statefulset using `kubectl` and scale do
       --set clusterSize=2 \
       --set cluster=coherence-cluster \
       --set imagePullSecrets=sample-coherence-secret \
-      --set prometheusoperator.enabled=false \
       --set logCaptureEnabled=false \
       --set store.jmx.enabled=true \
       --set store.jmx.replicas=1 \
