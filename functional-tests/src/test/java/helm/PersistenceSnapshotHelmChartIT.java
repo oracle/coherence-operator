@@ -229,7 +229,7 @@ public class PersistenceSnapshotHelmChartIT
                 }
             catch (Throwable t)
                 {
-                dumpPodLog(s_k8sCluster, sNamespace, sCoherencePod, null,true);
+                dumpPodLog(s_k8sCluster, sNamespace, sCoherencePod, null, true);
                 throw t;
                 }
             }
