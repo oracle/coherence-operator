@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1556853493525,
+  "id": 17,
+  "iteration": 1564038958211,
   "links": [
     {
       "icon": "dashboard",
@@ -66,15 +66,13 @@
       "links": [],
       "mode": "html",
       "title": "",
-      "transparent": false,
       "type": "text"
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
-        "h": 5,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 2
@@ -310,10 +308,10 @@
       "datasource": null,
       "fill": 1,
       "gridPos": {
-        "h": 9,
+        "h": 11,
         "w": 12,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 96,
       "legend": {
@@ -401,14 +399,13 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": null,
       "fill": 1,
       "gridPos": {
-        "h": 9,
+        "h": 11,
         "w": 12,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "id": 97,
       "legend": {
@@ -502,7 +499,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -613,5 +610,5 @@
   "timezone": "",
   "title": "Machines Summary Dashboard",
   "uid": "coh-machines-summary",
-  "version": 2
+  "version": 1
 }

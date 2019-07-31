@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 19,
-  "iteration": 1563505913815,
+  "id": 25,
+  "iteration": 1564038858271,
   "links": [
     {
       "icon": "dashboard",
@@ -624,7 +624,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1766,5 +1766,5 @@
   "timezone": "",
   "title": "Cache Details Dashboard",
   "uid": "coh-cache-details",
-  "version": 2
+  "version": 1
 }
