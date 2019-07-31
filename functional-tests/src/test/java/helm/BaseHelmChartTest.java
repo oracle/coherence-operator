@@ -1400,10 +1400,10 @@ public abstract class BaseHelmChartTest
 
     protected static void dumpPodLog(K8sCluster cluster, String sNamespace, String sPod)
         {
-        dumpPodLog(cluster, sNamespace, sPod, null);
+        dumpPodLog(cluster, sNamespace, sPod, null, false);
         }
 
-    protected static void dumpPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer)
+    protected static void dumpPodLog(K8sCluster cluster, String sNamespace, String sPod, String sContainer, boolean fPreviousLog)
         {
         Arguments arguments = Arguments.empty();
 
@@ -1419,8 +1419,13 @@ public abstract class BaseHelmChartTest
             arguments = arguments.with("-c", sContainer);
             }
 
+        if (fPreviousLog)
+            {
+            arguments = arguments.with("-p");
+            }
+
         System.err.println("-----------------------------------------------------------");
-        System.err.println("Logs for Pod " + sPod + " container " + sContainer);
+        System.err.println((fPreviousLog ? "Previous " : "") + "Logs for Pod " + sPod + " container " + sContainer);
         System.err.println("-----------------------------------------------------------");
         cluster.kubectlAndWait(arguments, SystemApplicationConsole.builder(), LaunchLogging.disabled());
         System.err.println("-----------------------------------------------------------");
