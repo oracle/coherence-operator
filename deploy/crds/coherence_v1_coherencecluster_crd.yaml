@@ -62,6 +62,51 @@ spec:
                         More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
                       type: string
                   type: object
+                fluentd:
+                  description: Fluentd defines the settings for the fluentd image
+                  properties:
+                    application:
+                      description: The fluentd application configuration
+                      properties:
+                        configFile:
+                          description: The fluentd configuration file configuring
+                            source for application log.
+                          type: string
+                        tag:
+                          description: This value should be source.tag from fluentd.application.configFile.
+                          type: string
+                      type: object
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                  type: object
+                userArtifacts:
+                  description: UserArtifacts configures the image containing jar files
+                    and configuration files that are added to the Coherence JVM's
+                    classpath.
+                  properties:
+                    configDir:
+                      description: The folder in the custom artifacts Docker image
+                        containing configuration files to be added to the classpath
+                        of the Coherence container. If not set the configDir is "/files/conf".
+                      type: string
+                    image:
+                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                      type: string
+                    imagePullPolicy:
+                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                      type: string
+                    libDir:
+                      description: The folder in the custom artifacts Docker image
+                        containing jar files to be added to the classpath of the Coherence
+                        container. If not set the libDir is "/files/lib".
+                      type: string
+                  type: object
               type: object
             labels:
               additionalProperties:
@@ -139,6 +184,55 @@ spec:
                           imagePullPolicy:
                             description: 'Image pull policy. One of Always, Never,
                               IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                            type: string
+                        type: object
+                      fluentd:
+                        description: Fluentd defines the settings for the fluentd
+                          image
+                        properties:
+                          application:
+                            description: The fluentd application configuration
+                            properties:
+                              configFile:
+                                description: The fluentd configuration file configuring
+                                  source for application log.
+                                type: string
+                              tag:
+                                description: This value should be source.tag from
+                                  fluentd.application.configFile.
+                                type: string
+                            type: object
+                          image:
+                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                            type: string
+                          imagePullPolicy:
+                            description: 'Image pull policy. One of Always, Never,
+                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                            type: string
+                        type: object
+                      userArtifacts:
+                        description: UserArtifacts configures the image containing
+                          jar files and configuration files that are added to the
+                          Coherence JVM's classpath.
+                        properties:
+                          configDir:
+                            description: The folder in the custom artifacts Docker
+                              image containing configuration files to be added to
+                              the classpath of the Coherence container. If not set
+                              the configDir is "/files/conf".
+                            type: string
+                          image:
+                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                            type: string
+                          imagePullPolicy:
+                            description: 'Image pull policy. One of Always, Never,
+                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                            type: string
+                          libDir:
+                            description: The folder in the custom artifacts Docker
+                              image containing jar files to be added to the classpath
+                              of the Coherence container. If not set the libDir is
+                              "/files/lib".
                             type: string
                         type: object
                     type: object

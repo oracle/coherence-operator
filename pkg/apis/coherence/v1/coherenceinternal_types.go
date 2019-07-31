@@ -82,7 +82,7 @@ type CoherenceInternalStoreSpec struct {
 	// The extra labels to add to the Coherence Pod.
 	// More info: http://kubernetes.io/docs/user-guide/labels
 	// +optional
-	Labels *map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// The readiness probe config.
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
@@ -92,16 +92,6 @@ type CoherenceInternalStoreSpec struct {
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
 // +k8s:openapi-gen=true
 type CoherenceInternalStatus struct {
-}
-
-// NewCoherenceInternalSpecAsMap creates a new CoherenceInternalSpec as a map from the specified cluster and role
-func NewCoherenceInternalSpecAsMap(cluster *CoherenceCluster, role *CoherenceRole) (map[string]interface{}, error) {
-	spec := NewCoherenceInternalSpec(cluster, role)
-
-	b, _ := json.Marshal(spec)
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(b, &jsonMap)
-	return jsonMap, err
 }
 
 // NewCoherenceInternalSpec creates a new CoherenceInternalSpec from the specified cluster and role
@@ -119,6 +109,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) Co
 	if role.Spec.Images != nil {
 		out.Coherence = role.Spec.Images.Coherence
 		out.CoherenceUtils = role.Spec.Images.CoherenceUtils
+		out.UserArtifacts = role.Spec.Images.UserArtifacts
+		out.Fluentd = role.Spec.Images.Fluentd
 	}
 
 	// Set the Store fields
@@ -138,9 +130,19 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) Co
 	labels[CoherenceClusterLabel] = cluster.Name
 	labels[CoherenceRoleLabel] = role.Spec.GetRoleName()
 
-	out.Store.Labels = &labels
+	out.Store.Labels = labels
 
 	return out
+}
+
+// NewCoherenceInternalSpecAsMap creates a new CoherenceInternalSpec as a map from the specified cluster and role
+func NewCoherenceInternalSpecAsMap(cluster *CoherenceCluster, role *CoherenceRole) (map[string]interface{}, error) {
+	spec := NewCoherenceInternalSpec(cluster, role)
+
+	b, _ := json.Marshal(spec)
+	jsonMap := make(map[string]interface{})
+	err := json.Unmarshal(b, &jsonMap)
+	return jsonMap, err
 }
 
 // GetCoherenceInternalGroupVersionKind obtains the GroupVersionKind for the CoherenceInternal struct

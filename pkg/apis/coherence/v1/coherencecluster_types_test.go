@@ -51,7 +51,7 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 		roleUpdate := coherence.CoherenceRoleSpec{}
 		roleUpdate.Role = "storage"
-		roleUpdate.Replicas = int32Pointer(19)
+		roleUpdate.Replicas = int32Ptr(19)
 
 		cluster := coherence.CoherenceCluster{}
 		cluster.Spec.Roles = make([]coherence.CoherenceRoleSpec, 2)
@@ -71,7 +71,7 @@ var _ = Describe("Testing CoherenceCluster", func() {
 
 		roleUpdate := coherence.CoherenceRoleSpec{}
 		roleUpdate.Role = "foo"
-		roleUpdate.Replicas = int32Pointer(19)
+		roleUpdate.Replicas = int32Ptr(19)
 
 		cluster := coherence.CoherenceCluster{}
 		cluster.Spec.Roles = make([]coherence.CoherenceRoleSpec, 2)

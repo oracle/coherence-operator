@@ -66,7 +66,7 @@ spec:
               containerPort: 8000
             - name: "metrics"
               containerPort: 8383
-            - name: "operator-metrics"
+            - name: "oper-metrics"
               containerPort: 8686
           env:
             - name: WATCH_NAMESPACE

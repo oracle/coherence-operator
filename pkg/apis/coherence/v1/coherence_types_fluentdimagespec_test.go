@@ -15,18 +15,18 @@ var _ = Describe("Testing FluentdImageSpec struct", func() {
 			defaults *coherence.FluentdImageSpec
 			clone    *coherence.FluentdImageSpec
 
-			appOne = &coherence.FluentdApplicationSpec{ConfigFile: stringPointer("one.yaml")}
-			appTwo = &coherence.FluentdApplicationSpec{ConfigFile: stringPointer("two.yaml")}
+			appOne = &coherence.FluentdApplicationSpec{ConfigFile: stringPtr("one.yaml")}
+			appTwo = &coherence.FluentdApplicationSpec{ConfigFile: stringPtr("two.yaml")}
 
 			always = v1.PullAlways
 			never  = v1.PullNever
 
 			specOne = coherence.ImageSpec{
-				Image:           stringPointer("foo.1.0"),
+				Image:           stringPtr("foo.1.0"),
 				ImagePullPolicy: &always,
 			}
 			specTwo = coherence.ImageSpec{
-				Image:           stringPointer("foo.2.0"),
+				Image:           stringPtr("foo.2.0"),
 				ImagePullPolicy: &never,
 			}
 		)
@@ -177,7 +177,7 @@ var _ = Describe("Testing FluentdImageSpec struct", func() {
 			BeforeEach(func() {
 				original = &coherence.FluentdImageSpec{
 					ImageSpec: coherence.ImageSpec{
-						Image:           stringPointer("foo:1.0"),
+						Image:           stringPtr("foo:1.0"),
 						ImagePullPolicy: nil,
 					},
 					Application: appOne,

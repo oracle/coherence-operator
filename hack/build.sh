@@ -52,7 +52,10 @@ createHelmCharts()
     local CHART_DIR=./build/_output/helm-charts
 
     # Copy the Helm charts from their source location to the distribution folder
-    copy "./helm-charts/" "build/_output/helm-charts"
+    copy "./helm-charts/"                "build/_output/helm-charts"
+    cp   "./deploy/role.yaml"            "build/_output/helm-charts/coherence-operator/templates/role.yaml"
+    cp   "./deploy/role_binding.yaml"    "build/_output/helm-charts/coherence-operator/templates/role_binding.yaml"
+    cp   "./deploy/service_account.yaml" "build/_output/helm-charts/coherence-operator/templates/service_account.yaml"
 
     # Do a search and replace of properties in selected files in the Helm charts
     # This is done because the Helm charts can be large and processing every file

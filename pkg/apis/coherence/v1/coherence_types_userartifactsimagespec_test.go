@@ -31,8 +31,8 @@ var _ = Describe("Testing UserArtifactsImageSpec struct", func() {
 		When("defaults is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/lib"),
-					ConfigDir: stringPointer("/conf"),
+					LibDir:    stringPtr("/lib"),
+					ConfigDir: stringPtr("/conf"),
 				}
 
 				defaults = nil
@@ -50,8 +50,8 @@ var _ = Describe("Testing UserArtifactsImageSpec struct", func() {
 		When("original is nil", func() {
 			BeforeEach(func() {
 				defaults = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/lib"),
-					ConfigDir: stringPointer("/conf"),
+					LibDir:    stringPtr("/lib"),
+					ConfigDir: stringPtr("/conf"),
 				}
 
 				original = nil
@@ -69,13 +69,13 @@ var _ = Describe("Testing UserArtifactsImageSpec struct", func() {
 		When("all fields in the original are set", func() {
 			BeforeEach(func() {
 				original = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/lib"),
-					ConfigDir: stringPointer("/conf"),
+					LibDir:    stringPtr("/lib"),
+					ConfigDir: stringPtr("/conf"),
 				}
 
 				defaults = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/libDefault"),
-					ConfigDir: stringPointer("/confDefault"),
+					LibDir:    stringPtr("/libDefault"),
+					ConfigDir: stringPtr("/confDefault"),
 				}
 			})
 
@@ -92,12 +92,12 @@ var _ = Describe("Testing UserArtifactsImageSpec struct", func() {
 			BeforeEach(func() {
 				original = &coherence.UserArtifactsImageSpec{
 					LibDir:    nil,
-					ConfigDir: stringPointer("/conf"),
+					ConfigDir: stringPtr("/conf"),
 				}
 
 				defaults = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/libDefault"),
-					ConfigDir: stringPointer("/confDefault"),
+					LibDir:    stringPtr("/libDefault"),
+					ConfigDir: stringPtr("/confDefault"),
 				}
 			})
 
@@ -113,13 +113,13 @@ var _ = Describe("Testing UserArtifactsImageSpec struct", func() {
 		When("the original ConfigDir is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/lib"),
+					LibDir:    stringPtr("/lib"),
 					ConfigDir: nil,
 				}
 
 				defaults = &coherence.UserArtifactsImageSpec{
-					LibDir:    stringPointer("/libDefault"),
-					ConfigDir: stringPointer("/confDefault"),
+					LibDir:    stringPtr("/libDefault"),
+					ConfigDir: stringPtr("/confDefault"),
 				}
 			})
 

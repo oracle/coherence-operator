@@ -1,9 +1,21 @@
 package v1_test
 
-func int32Pointer(x int32) *int32 {
+// Returns a pointer to an int32
+func int32Ptr(x int32) *int32 {
 	return &x
 }
 
-func stringPointer(x string) *string {
+// Returns a pointer to an int32
+func boolPtr(x bool) *bool {
 	return &x
+}
+
+// Returns a pointer to a string
+func stringPtr(x string) *string {
+	return &x
+}
+
+// Returns a pointer to a map
+func mapPtr(m map[string]string) *map[string]string {
+	return &m
 }

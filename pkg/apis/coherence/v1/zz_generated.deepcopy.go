@@ -248,13 +248,9 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
-		*out = new(map[string]string)
-		if **in != nil {
-			in, out := *in, *out
-			*out = make(map[string]string, len(*in))
-			for key, val := range *in {
-				(*out)[key] = val
-			}
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
 		}
 	}
 	if in.ReadinessProbe != nil {
@@ -489,6 +485,16 @@ func (in *Images) DeepCopyInto(out *Images) {
 	if in.CoherenceUtils != nil {
 		in, out := &in.CoherenceUtils, &out.CoherenceUtils
 		*out = new(ImageSpec)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.UserArtifacts != nil {
+		in, out := &in.UserArtifacts, &out.UserArtifacts
+		*out = new(UserArtifactsImageSpec)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.Fluentd != nil {
+		in, out := &in.Fluentd, &out.Fluentd
+		*out = new(FluentdImageSpec)
 		(*in).DeepCopyInto(*out)
 	}
 	return

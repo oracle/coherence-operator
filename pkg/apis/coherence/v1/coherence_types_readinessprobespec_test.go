@@ -31,11 +31,11 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("defaults is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = nil
@@ -65,11 +65,11 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("original is nil", func() {
 			BeforeEach(func() {
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				original = nil
@@ -99,19 +99,19 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("all original fields are set", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 
@@ -140,18 +140,18 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
 					InitialDelaySeconds: nil,
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 
@@ -179,19 +179,19 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("original TimeoutSeconds is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
+					InitialDelaySeconds: int32Ptr(10),
 					TimeoutSeconds:      nil,
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 
@@ -219,19 +219,19 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("original PeriodSeconds is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
 					PeriodSeconds:       nil,
-					SuccessThreshold:    int32Pointer(40),
-					FailureThreshold:    int32Pointer(50),
+					SuccessThreshold:    int32Ptr(40),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 
@@ -259,19 +259,19 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("original SuccessThreshold is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
 					SuccessThreshold:    nil,
-					FailureThreshold:    int32Pointer(50),
+					FailureThreshold:    int32Ptr(50),
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 
@@ -299,19 +299,19 @@ var _ = Describe("Testing ReadinessProbeSpec struct", func() {
 		When("original FailureThreshold is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(10),
-					TimeoutSeconds:      int32Pointer(20),
-					PeriodSeconds:       int32Pointer(30),
-					SuccessThreshold:    int32Pointer(40),
+					InitialDelaySeconds: int32Ptr(10),
+					TimeoutSeconds:      int32Ptr(20),
+					PeriodSeconds:       int32Ptr(30),
+					SuccessThreshold:    int32Ptr(40),
 					FailureThreshold:    nil,
 				}
 
 				defaults = &coherence.ReadinessProbeSpec{
-					InitialDelaySeconds: int32Pointer(100),
-					TimeoutSeconds:      int32Pointer(200),
-					PeriodSeconds:       int32Pointer(300),
-					SuccessThreshold:    int32Pointer(400),
-					FailureThreshold:    int32Pointer(500),
+					InitialDelaySeconds: int32Ptr(100),
+					TimeoutSeconds:      int32Ptr(200),
+					PeriodSeconds:       int32Ptr(300),
+					SuccessThreshold:    int32Ptr(400),
+					FailureThreshold:    int32Ptr(500),
 				}
 			})
 

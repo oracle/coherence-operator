@@ -31,10 +31,10 @@ spec:
      protocol: TCP
      port: 8383
      targetPort: "metrics"
-   - name: operatorMetrics
+   - name: oper-metrics
      protocol: TCP
      port: 8686
-     targetPort: "operatorMetrics"
+     targetPort: "oper-metrics"
   selector:
     coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
     component: coherence-operator

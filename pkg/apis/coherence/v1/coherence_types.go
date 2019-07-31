@@ -4,15 +4,16 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-// Common Coherence types
+// Common Coherence API structs
 
+// NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
 // NOTE: json tags are required. Any new fields you add must have json tags for the fields to be serialized.
 
 // ----- constants ----------------------------------------------------------
 
 const (
 	// The default number of replicas that will be created for a role if no value is specified in the spec
-	DefaultReplicas = 3
+	DefaultReplicas int32 = 3
 
 	// The defaultrole name that will be used for a role if no value is specified in the spec
 	DefaultRoleName = "storage"
@@ -41,6 +42,13 @@ type Images struct {
 	// CoherenceUtils is the details of the Coherence utilities image to be used
 	// +optional
 	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+	// UserArtifacts configures the image containing jar files and configuration files
+	// that are added to the Coherence JVM's classpath.
+	// +optional
+	UserArtifacts *UserArtifactsImageSpec `json:"userArtifacts,omitempty"`
+	// Fluentd defines the settings for the fluentd image
+	// +optional
+	Fluentd *FluentdImageSpec `json:"fluentd,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this Images struct with any nil or not set values set
@@ -61,6 +69,8 @@ func (in *Images) DeepCopyWithDefaults(defaults *Images) *Images {
 	clone := Images{}
 	clone.Coherence = in.Coherence.DeepCopyWithDefaults(defaults.Coherence)
 	clone.CoherenceUtils = in.CoherenceUtils.DeepCopyWithDefaults(defaults.CoherenceUtils)
+	clone.UserArtifacts = in.UserArtifacts.DeepCopyWithDefaults(defaults.UserArtifacts)
+	clone.Fluentd = in.Fluentd.DeepCopyWithDefaults(defaults.Fluentd)
 
 	return &clone
 }

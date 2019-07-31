@@ -30,13 +30,13 @@ build-dirs:
 
 # Builds the project, helm charts and Docker image
 .PHONY: build
-build: build-dirs Makefile
+build: build-dirs
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@./hack/build.sh ${VARS}
 
 # Executes the Go unit tests that do not require a k8s cluster
 .PHONY: test
-test: build-dirs Makefile
+test: build-dirs
 	./hack/test.sh
 
 # This step will run the Operator SDK code generators.
@@ -46,7 +46,4 @@ test: build-dirs Makefile
 # the pkg/apis directory have been changed.
 .PHONY: generate
 generate:
-	@echo "Running Operator SDK generate k8s
-	@operator-sdk generate k8s
-	@echo "Running Operator SDK generate openapi
-	@operator-sdk generate openapi
+	./hack/generate.sh

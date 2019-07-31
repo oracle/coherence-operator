@@ -658,11 +658,23 @@ func schema_pkg_apis_coherence_v1_Images(ref common.ReferenceCallback) common.Op
 							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
 						},
 					},
+					"userArtifacts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UserArtifacts configures the image containing jar files and configuration files that are added to the Coherence JVM's classpath.",
+							Ref:         ref("./pkg/apis/coherence/v1.UserArtifactsImageSpec"),
+						},
+					},
+					"fluentd": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Fluentd defines the settings for the fluentd image",
+							Ref:         ref("./pkg/apis/coherence/v1.FluentdImageSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ImageSpec"},
+			"./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
 	}
 }
 

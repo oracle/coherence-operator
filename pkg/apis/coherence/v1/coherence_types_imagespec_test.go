@@ -34,7 +34,7 @@ var _ = Describe("Testing ImageSpec struct", func() {
 				always := v1.PullAlways
 
 				original = &coherence.ImageSpec{
-					Image:           stringPointer("foo:1.0"),
+					Image:           stringPtr("foo:1.0"),
 					ImagePullPolicy: &always,
 				}
 
@@ -55,7 +55,7 @@ var _ = Describe("Testing ImageSpec struct", func() {
 				always := v1.PullAlways
 
 				defaults = &coherence.ImageSpec{
-					Image:           stringPointer("foo:1.0"),
+					Image:           stringPtr("foo:1.0"),
 					ImagePullPolicy: &always,
 				}
 
@@ -77,12 +77,12 @@ var _ = Describe("Testing ImageSpec struct", func() {
 				never := v1.PullNever
 
 				original = &coherence.ImageSpec{
-					Image:           stringPointer("foo:1.0"),
+					Image:           stringPtr("foo:1.0"),
 					ImagePullPolicy: &always,
 				}
 
 				defaults = &coherence.ImageSpec{
-					Image:           stringPointer("foo:2.0"),
+					Image:           stringPtr("foo:2.0"),
 					ImagePullPolicy: &never,
 				}
 			})
@@ -107,7 +107,7 @@ var _ = Describe("Testing ImageSpec struct", func() {
 				}
 
 				defaults = &coherence.ImageSpec{
-					Image:           stringPointer("foo:2.0"),
+					Image:           stringPtr("foo:2.0"),
 					ImagePullPolicy: &never,
 				}
 			})
@@ -126,12 +126,12 @@ var _ = Describe("Testing ImageSpec struct", func() {
 				never := v1.PullNever
 
 				original = &coherence.ImageSpec{
-					Image:           stringPointer("foo:1.0"),
+					Image:           stringPtr("foo:1.0"),
 					ImagePullPolicy: nil,
 				}
 
 				defaults = &coherence.ImageSpec{
-					Image:           stringPointer("foo:2.0"),
+					Image:           stringPtr("foo:2.0"),
 					ImagePullPolicy: &never,
 				}
 			})

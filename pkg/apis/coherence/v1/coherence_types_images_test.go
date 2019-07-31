@@ -10,14 +10,33 @@ var _ = Describe("Testing Images struct", func() {
 
 	Context("Copying an Images using DeepCopyWithDefaults", func() {
 		var (
+			specOne   = &coherence.ImageSpec{Image: stringPtr("foo.1.0")}
+			specTwo   = &coherence.ImageSpec{Image: stringPtr("foo.2.0")}
+			specThree = &coherence.ImageSpec{Image: stringPtr("foo.3.0")}
+			specFour  = &coherence.ImageSpec{Image: stringPtr("foo.4.0")}
+
+			userOne   = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
+			userTwo   = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
+			fluentOne = &coherence.FluentdImageSpec{ImageSpec: coherence.ImageSpec{Image: stringPtr("fluent:1.0")}}
+			fluentTwo = &coherence.FluentdImageSpec{ImageSpec: coherence.ImageSpec{Image: stringPtr("fluent:2.0")}}
+
+			imagesOne = &coherence.Images{
+				Coherence:      specOne,
+				CoherenceUtils: specTwo,
+				UserArtifacts:  userOne,
+				Fluentd:        fluentOne,
+			}
+
+			imagesTwo = &coherence.Images{
+				Coherence:      specThree,
+				CoherenceUtils: specFour,
+				UserArtifacts:  userTwo,
+				Fluentd:        fluentTwo,
+			}
+
 			original *coherence.Images
 			defaults *coherence.Images
 			clone    *coherence.Images
-
-			specOne   = &coherence.ImageSpec{Image: stringPointer("foo.1.0")}
-			specTwo   = &coherence.ImageSpec{Image: stringPointer("foo.2.0")}
-			specThree = &coherence.ImageSpec{Image: stringPointer("foo.3.0")}
-			specFour  = &coherence.ImageSpec{Image: stringPointer("foo.4.0")}
 		)
 
 		JustBeforeEach(func() {
@@ -37,105 +56,98 @@ var _ = Describe("Testing Images struct", func() {
 
 		When("defaults is nil", func() {
 			BeforeEach(func() {
-				original = &coherence.Images{
-					Coherence:      specOne,
-					CoherenceUtils: specTwo,
-				}
-
+				original = imagesOne.DeepCopy()
 				defaults = nil
 			})
 
-			It("should copy the original Coherence field", func() {
-				Expect(*clone.Coherence).To(Equal(*original.Coherence))
-			})
-
-			It("should copy the original CoherenceUtils field", func() {
-				Expect(*clone.CoherenceUtils).To(Equal(*original.CoherenceUtils))
+			It("the clone should equal the original", func() {
+				Expect(clone).To(Equal(original))
 			})
 		})
 
 		When("original is nil", func() {
 			BeforeEach(func() {
-				defaults = &coherence.Images{
-					Coherence:      specThree,
-					CoherenceUtils: specFour,
-				}
-
 				original = nil
+				defaults = imagesTwo.DeepCopy()
 			})
 
-			It("should copy the defaults Coherence field", func() {
-				Expect(*clone.Coherence).To(Equal(*defaults.Coherence))
-			})
-
-			It("should copy the defaults CoherenceUtils field", func() {
-				Expect(*clone.CoherenceUtils).To(Equal(*defaults.CoherenceUtils))
+			It("the clone should equal the defaults", func() {
+				Expect(clone).To(Equal(defaults))
 			})
 		})
 
 		When("all fields in the original are set", func() {
 			BeforeEach(func() {
-				original = &coherence.Images{
-					Coherence:      specOne,
-					CoherenceUtils: specTwo,
-				}
-
-				defaults = &coherence.Images{
-					Coherence:      specThree,
-					CoherenceUtils: specFour,
-				}
+				original = imagesOne.DeepCopy()
+				defaults = imagesTwo.DeepCopy()
 			})
 
-			It("should copy the original Coherence field", func() {
-				Expect(*clone.Coherence).To(Equal(*original.Coherence))
-			})
-
-			It("should copy the original CoherenceUtils field", func() {
-				Expect(*clone.CoherenceUtils).To(Equal(*original.CoherenceUtils))
+			It("the clone should equal the original", func() {
+				Expect(clone).To(Equal(original))
 			})
 		})
 
 		When("the original Coherence field is nil", func() {
 			BeforeEach(func() {
-				original = &coherence.Images{
-					Coherence:      nil,
-					CoherenceUtils: specTwo,
-				}
+				original = imagesOne.DeepCopy()
+				defaults = imagesTwo.DeepCopy()
 
-				defaults = &coherence.Images{
-					Coherence:      specThree,
-					CoherenceUtils: specFour,
-				}
+				original.Coherence = nil
 			})
 
-			It("should copy the defaults Coherence field", func() {
-				Expect(*clone.Coherence).To(Equal(*defaults.Coherence))
-			})
+			It("the clone should equal the original with the Coherence field from the defaults", func() {
+				expected := original.DeepCopy()
+				expected.Coherence = defaults.Coherence
 
-			It("should copy the original CoherenceUtils field", func() {
-				Expect(*clone.CoherenceUtils).To(Equal(*original.CoherenceUtils))
+				Expect(clone).To(Equal(expected))
 			})
 		})
 
 		When("the original CoherenceUtils field is nil", func() {
 			BeforeEach(func() {
-				original = &coherence.Images{
-					Coherence:      specOne,
-					CoherenceUtils: nil,
-				}
+				original = imagesOne.DeepCopy()
+				defaults = imagesTwo.DeepCopy()
 
-				defaults = &coherence.Images{
-					Coherence:      specThree,
-					CoherenceUtils: specFour,
-				}
+				original.CoherenceUtils = nil
 			})
 
-			It("should copy the original Coherence field", func() {
-				Expect(*clone.Coherence).To(Equal(*original.Coherence))
+			It("the clone should equal the original with the CoherenceUtils field from the defaults", func() {
+				expected := original.DeepCopy()
+				expected.CoherenceUtils = defaults.CoherenceUtils
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original UserArtifacts field is nil", func() {
+			BeforeEach(func() {
+				original = imagesOne.DeepCopy()
+				defaults = imagesTwo.DeepCopy()
+
+				original.UserArtifacts = nil
 			})
 
-			It("should copy the defaults CoherenceUtils field", func() {
-				Expect(*clone.CoherenceUtils).To(Equal(*defaults.CoherenceUtils))
+			It("the clone should equal the original with the UserArtifacts field from the defaults", func() {
+				expected := original.DeepCopy()
+				expected.UserArtifacts = defaults.UserArtifacts
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Fluentd field is nil", func() {
+			BeforeEach(func() {
+				original = imagesOne.DeepCopy()
+				defaults = imagesTwo.DeepCopy()
+
+				original.Fluentd = nil
+			})
+
+			It("the clone should equal the original with the Fluentd field from the defaults", func() {
+				expected := original.DeepCopy()
+				expected.Fluentd = defaults.Fluentd
+
+				Expect(clone).To(Equal(expected))
 			})
 		})
 	})

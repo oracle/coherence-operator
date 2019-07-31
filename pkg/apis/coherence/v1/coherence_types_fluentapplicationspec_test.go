@@ -31,8 +31,8 @@ var _ = Describe("Testing FluentdApplicationSpec struct", func() {
 		When("defaults is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("config.yaml"),
-					Tag:        stringPointer("abc-123"),
+					ConfigFile: stringPtr("config.yaml"),
+					Tag:        stringPtr("abc-123"),
 				}
 
 				defaults = nil
@@ -50,8 +50,8 @@ var _ = Describe("Testing FluentdApplicationSpec struct", func() {
 		When("original is nil", func() {
 			BeforeEach(func() {
 				defaults = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("config.yaml"),
-					Tag:        stringPointer("abc-123"),
+					ConfigFile: stringPtr("config.yaml"),
+					Tag:        stringPtr("abc-123"),
 				}
 
 				original = nil
@@ -69,13 +69,13 @@ var _ = Describe("Testing FluentdApplicationSpec struct", func() {
 		When("all fields in the original are set", func() {
 			BeforeEach(func() {
 				original = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("config.yaml"),
-					Tag:        stringPointer("abc-123"),
+					ConfigFile: stringPtr("config.yaml"),
+					Tag:        stringPtr("abc-123"),
 				}
 
 				defaults = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("default-config.yaml"),
-					Tag:        stringPointer("def-456"),
+					ConfigFile: stringPtr("default-config.yaml"),
+					Tag:        stringPtr("def-456"),
 				}
 			})
 
@@ -92,12 +92,12 @@ var _ = Describe("Testing FluentdApplicationSpec struct", func() {
 			BeforeEach(func() {
 				original = &coherence.FluentdApplicationSpec{
 					ConfigFile: nil,
-					Tag:        stringPointer("abc-123"),
+					Tag:        stringPtr("abc-123"),
 				}
 
 				defaults = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("default-config.yaml"),
-					Tag:        stringPointer("def-456"),
+					ConfigFile: stringPtr("default-config.yaml"),
+					Tag:        stringPtr("def-456"),
 				}
 			})
 
@@ -113,13 +113,13 @@ var _ = Describe("Testing FluentdApplicationSpec struct", func() {
 		When("the original Tag is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("config.yaml"),
+					ConfigFile: stringPtr("config.yaml"),
 					Tag:        nil,
 				}
 
 				defaults = &coherence.FluentdApplicationSpec{
-					ConfigFile: stringPointer("default-config.yaml"),
-					Tag:        stringPointer("def-456"),
+					ConfigFile: stringPtr("default-config.yaml"),
+					Tag:        stringPtr("def-456"),
 				}
 			})
 
