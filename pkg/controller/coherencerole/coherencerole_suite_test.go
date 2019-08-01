@@ -1,12 +1,29 @@
 package coherencerole
 
 import (
+	"encoding/json"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+
 	"testing"
-	)
+)
 
 func TestCoherenceRoleControler(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "CoherenceRole Controller Suite")
+}
+
+// UnstructuredToCoherenceInternalSpec converts an Unstructured to a CoherenceInternalSpec.
+// The "spec" field of the Unstructured is marshalled to json and then
+// un-marshalled back to a CoherenceInternalSpec.
+func UnstructuredToCoherenceInternalSpec(u *unstructured.Unstructured) *coherence.CoherenceInternalSpec {
+	spec := &coherence.CoherenceInternalSpec{}
+	data, err := json.Marshal(u.Object["spec"])
+	Expect(err).ToNot(HaveOccurred())
+	err = json.Unmarshal(data, spec)
+	Expect(err).ToNot(HaveOccurred())
+	return spec
 }

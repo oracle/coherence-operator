@@ -10,6 +10,7 @@ spec:
   images:
     coherence:
       image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74512"
+  cacheConfig: "foo.xml"
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10

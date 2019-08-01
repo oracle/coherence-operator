@@ -42,6 +42,8 @@ type CoherenceRoleSpec struct {
 	// More info: http://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels *map[string]string `json:"labels,omitempty"`
+	// CacheConfig is the name of the cache configuration file to use
+	CacheConfig *string `json:"cacheConfig,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -118,6 +120,12 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.ScalingPolicy = in.ScalingPolicy
 	} else {
 		clone.ScalingPolicy = defaults.ScalingPolicy
+	}
+
+	if in.CacheConfig != nil {
+		clone.CacheConfig = in.CacheConfig
+	} else {
+		clone.CacheConfig = defaults.CacheConfig
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)

@@ -29,6 +29,10 @@ spec:
           type: object
         spec:
           properties:
+            cacheConfig:
+              description: CacheConfig is the name of the cache configuration file
+                to use
+              type: string
             imagePullSecrets:
               description: 'The secrets to be used when pulling images. Secrets must
                 be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/'
@@ -159,6 +163,10 @@ spec:
                 must be at least one role in a cluster.
               items:
                 properties:
+                  cacheConfig:
+                    description: CacheConfig is the name of the cache configuration
+                      file to use
+                    type: string
                   images:
                     description: Details of the Docker images used in the role
                     properties:

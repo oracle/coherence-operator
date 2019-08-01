@@ -33,6 +33,10 @@ spec:
           type: object
         spec:
           properties:
+            cacheConfig:
+              description: CacheConfig is the name of the cache configuration file
+                to use
+              type: string
             images:
               description: Details of the Docker images used in the role
               properties:

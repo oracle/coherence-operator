@@ -94,7 +94,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 	Context("Creating a CoherenceInternal from a CoherenceCluster and CoherenceRole", func() {
 		var (
-			result coherence.CoherenceInternalSpec
+			result *coherence.CoherenceInternalSpec
 		)
 
 		JustBeforeEach(func() {
@@ -173,7 +173,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 	Context("Creating a CoherenceInternal as a Map from a CoherenceCluster and CoherenceRole", func() {
 		var (
 			cohMap map[string]interface{}
-			cohInt coherence.CoherenceInternalSpec
+			cohInt *coherence.CoherenceInternalSpec
 			err    error
 		)
 
@@ -186,13 +186,13 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("should not produce a map that serializes back to the expected CoherenceInternal", func() {
+		It("should produce a map that serializes back to the expected CoherenceInternal", func() {
 			data, e := json.Marshal(cohMap)
 			Expect(e).ToNot(HaveOccurred())
 
-			result := coherence.CoherenceInternalSpec{}
+			result := &coherence.CoherenceInternalSpec{}
 
-			e = json.Unmarshal(data, &result)
+			e = json.Unmarshal(data, result)
 			Expect(e).ToNot(HaveOccurred())
 
 			Expect(result).To(Equal(cohInt))

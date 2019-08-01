@@ -34,6 +34,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			labelsOne = map[string]string{"one": "1", "two": "2"}
 			labelsTwo = map[string]string{"three": "3", "four": "4"}
 
+			cacheConfigOne = "config-one.xml"
+			cacheConfigTwo = "config-one.xml"
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:           roleNameOne,
 				Replicas:       replicasOne,
@@ -42,6 +45,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				ScalingPolicy:  &scalingOne,
 				ReadinessProbe: probeOne,
 				Labels:         nil,
+				CacheConfig:    &cacheConfigOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -52,6 +56,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				ScalingPolicy:  &scalingTwo,
 				ReadinessProbe: probeTwo,
 				Labels:         nil,
+				CacheConfig:    &cacheConfigTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -141,6 +146,25 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Replicas = defaults.Replicas
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original CacheConfig is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.CacheConfig = nil
+			})
+
+			It("clone should be equal to the original with the CacheConfig field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.CacheConfig = defaults.CacheConfig
 
 				Expect(clone).To(Equal(expected))
 			})

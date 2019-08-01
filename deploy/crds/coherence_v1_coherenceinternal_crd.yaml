@@ -107,6 +107,10 @@ spec:
             store:
               description: The store settings
               properties:
+                cacheConfig:
+                  description: CacheConfig is the name of the cache configuration
+                    file to use
+                  type: string
                 labels:
                   additionalProperties:
                     type: string

@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission/types"
@@ -38,14 +37,14 @@ func NewFakeManager(initObjs ...runtime.Object) *FakeManager {
 	//s.AddKnownTypes(gv, &coherence.CoherenceInternalList{})
 	s.AddKnownTypeWithName(schema.GroupVersionKind{Group: gv.Group, Version: gv.Version, Kind: "CoherenceInternalList"}, &unstructured.UnstructuredList{})
 
-	cl := fake.NewFakeClient(initObjs...)
+	cl := NewFakeClient(initObjs...)
 
 	return &FakeManager{Scheme: s, Client: cl, Events: NewFakeEventRecorder(20)}
 }
 
 type FakeManager struct {
 	Scheme *runtime.Scheme
-	Client client.Client
+	Client FakeClient
 	Events *FakeEventRecorder
 }
 
@@ -56,7 +55,7 @@ type ReconcileResult struct {
 
 // Reset creates a new client and event recorder for this manager.
 func (f *FakeManager) Reset(initObjs ...runtime.Object) {
-	f.Client = fake.NewFakeClient(initObjs...)
+	f.Client = NewFakeClient(initObjs...)
 	f.Events = NewFakeEventRecorder(20)
 }
 

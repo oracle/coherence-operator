@@ -87,6 +87,8 @@ type CoherenceInternalStoreSpec struct {
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
 	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
+	// CacheConfig is the name of the cache configuration file to use
+	CacheConfig *string `json:"cacheConfig,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -95,7 +97,7 @@ type CoherenceInternalStatus struct {
 }
 
 // NewCoherenceInternalSpec creates a new CoherenceInternalSpec from the specified cluster and role
-func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) CoherenceInternalSpec {
+func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *CoherenceInternalSpec {
 	out := CoherenceInternalSpec{}
 
 	out.FullnameOverride = role.Name
@@ -118,6 +120,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) Co
 	out.Store.WKA = cluster.GetWkaServiceName()
 	out.Store.StorageEnabled = role.Spec.StorageEnabled
 	out.Store.ReadinessProbe = role.Spec.ReadinessProbe
+	out.Store.CacheConfig = role.Spec.CacheConfig
 
 	// Set the labels
 	labels := make(map[string]string)
@@ -132,7 +135,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) Co
 
 	out.Store.Labels = labels
 
-	return out
+	return &out
 }
 
 // NewCoherenceInternalSpecAsMap creates a new CoherenceInternalSpec as a map from the specified cluster and role
@@ -142,7 +145,7 @@ func NewCoherenceInternalSpecAsMap(cluster *CoherenceCluster, role *CoherenceRol
 }
 
 // CoherenceInternalSpecAsMapFromSpec creates a new CoherenceInternalSpec as a map from the specified and role
-func CoherenceInternalSpecAsMapFromSpec(spec CoherenceInternalSpec) (map[string]interface{}, error) {
+func CoherenceInternalSpecAsMapFromSpec(spec *CoherenceInternalSpec) (map[string]interface{}, error) {
 	b, _ := json.Marshal(spec)
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal(b, &jsonMap)
