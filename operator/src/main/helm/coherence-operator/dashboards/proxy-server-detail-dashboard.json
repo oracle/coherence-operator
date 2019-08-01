@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 18,
-  "iteration": 1564035729887,
+  "id": 5,
+  "iteration": 1564641610050,
   "links": [
     {
       "icon": "dashboard",
@@ -430,11 +430,27 @@
           "thresholds": [],
           "type": "number",
           "unit": "ms"
+        },
+        {
+          "alias": "Node Id",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "node_id",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
         }
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_connection_connection_time_millis{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_address, remote_port, member)",
+          "expr": "avg(vendor:coherence_connection_connection_time_millis{cluster=~\"$ClusterName\",name=~\"$ServiceName\"}) by (remote_address, remote_port, member, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
