@@ -107,7 +107,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
@@ -126,7 +126,7 @@
           "decimals": 0,
           "link": true,
           "linkTooltip": "Drill down to Proxy Server Details for ${__cell_1}",
-          "linkUrl": "/d/coh-proxy-server-detail?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-proxy-server-detail?var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
@@ -866,7 +866,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -923,7 +923,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

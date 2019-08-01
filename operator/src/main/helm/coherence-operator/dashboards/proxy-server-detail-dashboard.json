@@ -117,7 +117,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "",
-          "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
@@ -187,7 +187,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-member-details?var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -376,7 +376,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1&var-MemberName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-member-details?var-MemberName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -803,7 +803,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -886,7 +886,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

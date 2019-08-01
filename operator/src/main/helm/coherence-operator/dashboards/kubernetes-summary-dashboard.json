@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 26,
-  "iteration": 1563506083746,
+  "id": 8,
+  "iteration": 1564640113413,
   "links": [
     {
       "icon": "dashboard",
@@ -103,64 +103,13 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "pod",
           "thresholds": [],
           "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Machine",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "",
-          "linkUrl": "/d/coh-machines-summary",
-          "mappingType": 1,
-          "pattern": "machine",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Member",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Role",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "role",
-          "thresholds": [],
-          "type": "number",
           "unit": "short"
         },
         {
@@ -203,16 +152,32 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
-          "pattern": "/.*/",
+          "mappingType": 1,
+          "pattern": "",
           "thresholds": [],
           "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Coherence Version",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "version",
+          "thresholds": [],
+          "type": "string",
           "unit": "short"
         }
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}) by (machine, member, pod, role, namespace)",
+          "expr": "avg(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}) by (pod, version, namespace)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -397,7 +362,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -485,5 +450,5 @@
   "timezone": "",
   "title": "Kubernetes Summary Dashboard",
   "uid": "coh-kubernetes-summary",
-  "version": 2
+  "version": 1
 }
