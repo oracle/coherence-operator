@@ -1002,7 +1002,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkTooltip": "Drill down to member details for ${__cell}",
           "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
