@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 17,
-  "iteration": 1564038958211,
+  "id": 29,
+  "iteration": 1564642461051,
   "links": [
     {
       "icon": "dashboard",
@@ -211,25 +211,6 @@
           "unit": "decbytes"
         },
         {
-          "alias": "Machine",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": false,
-          "linkTooltip": "",
-          "linkUrl": "/d/coh-machines-summary",
-          "mappingType": 1,
-          "pattern": "machine",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
           "alias": "",
           "colorMode": null,
           "colors": [
@@ -305,7 +286,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 11,
@@ -355,6 +335,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Free Physical Memory",
       "tooltip": {
@@ -458,6 +439,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Load Averages",
       "tooltip": {

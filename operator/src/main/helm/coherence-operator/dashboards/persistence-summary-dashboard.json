@@ -426,7 +426,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to machines summary",
-          "linkUrl": "/d/coh-machines-summary",
+          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "machine",
           "thresholds": [],
