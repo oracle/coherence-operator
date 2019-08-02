@@ -91,6 +91,19 @@ type CoherenceInternalStoreSpec struct {
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// PofConfig is the name of the POF configuration file to use when using POF serializer
 	PofConfig *string `json:"pofConfig,omitempty"`
+	// OverrideConfig is name of the Coherence operational configuration override file,
+	// the default is tangosol-coherence-override.xml
+	OverrideConfig *string `json:"overrideConfig,omitEmpty"`
+	// MaxHeap is the min/max heap value to pass to the JVM.
+	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	// If not set the JVM defaults are used.
+	MaxHeap *string `json:"maxHeap,omitEmpty"`
+	// JvmArgs specifies the options to pass to the Coherence JVM. The default is
+	// to use the G1 collector.
+	JvmArgs *string `json:"jvmArgs,omitEmpty"`
+	// JavaOpts is miscellaneous JVM options to pass to the Coherence store container
+	// This options will override the system options computed in the start up script.
+	JavaOpts *string `json:"javaOpts,omitEmpty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -124,6 +137,10 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.ReadinessProbe = role.Spec.ReadinessProbe
 	out.Store.CacheConfig = role.Spec.CacheConfig
 	out.Store.PofConfig = role.Spec.PofConfig
+	out.Store.OverrideConfig = role.Spec.OverrideConfig
+	out.Store.MaxHeap = role.Spec.MaxHeap
+	out.Store.JvmArgs = role.Spec.JvmArgs
+	out.Store.JavaOpts = role.Spec.JavaOpts
 
 	// Set the labels
 	labels := make(map[string]string)

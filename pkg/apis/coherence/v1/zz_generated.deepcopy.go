@@ -268,6 +268,26 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 		*out = new(string)
 		**out = **in
 	}
+	if in.OverrideConfig != nil {
+		in, out := &in.OverrideConfig, &out.OverrideConfig
+		*out = new(string)
+		**out = **in
+	}
+	if in.MaxHeap != nil {
+		in, out := &in.MaxHeap, &out.MaxHeap
+		*out = new(string)
+		**out = **in
+	}
+	if in.JvmArgs != nil {
+		in, out := &in.JvmArgs, &out.JvmArgs
+		*out = new(string)
+		**out = **in
+	}
+	if in.JavaOpts != nil {
+		in, out := &in.JavaOpts, &out.JavaOpts
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
@@ -388,6 +408,26 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 	}
 	if in.PofConfig != nil {
 		in, out := &in.PofConfig, &out.PofConfig
+		*out = new(string)
+		**out = **in
+	}
+	if in.OverrideConfig != nil {
+		in, out := &in.OverrideConfig, &out.OverrideConfig
+		*out = new(string)
+		**out = **in
+	}
+	if in.MaxHeap != nil {
+		in, out := &in.MaxHeap, &out.MaxHeap
+		*out = new(string)
+		**out = **in
+	}
+	if in.JvmArgs != nil {
+		in, out := &in.JvmArgs, &out.JvmArgs
+		*out = new(string)
+		**out = **in
+	}
+	if in.JavaOpts != nil {
+		in, out := &in.JavaOpts, &out.JavaOpts
 		*out = new(string)
 		**out = **in
 	}

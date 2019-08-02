@@ -112,6 +112,15 @@ spec:
                       type: string
                   type: object
               type: object
+            javaOpts:
+              description: JavaOpts is miscellaneous JVM options to pass to the Coherence
+                store container This options will override the system options computed
+                in the start up script.
+              type: string
+            jvmArgs:
+              description: JvmArgs specifies the options to pass to the Coherence
+                JVM. The default is to use the G1 collector.
+              type: string
             labels:
               additionalProperties:
                 type: string
@@ -119,6 +128,15 @@ spec:
                 roles. Labels here will add to or override those defined for the cluster.
                 More info: http://kubernetes.io/docs/user-guide/labels'
               type: object
+            maxHeap:
+              description: MaxHeap is the min/max heap value to pass to the JVM. The
+                format should be the same as that used for Java's -Xms and -Xmx JVM
+                options. If not set the JVM defaults are used.
+              type: string
+            overrideConfig:
+              description: OverrideConfig is name of the Coherence operational configuration
+                override file, the default is tangosol-coherence-override.xml
+              type: string
             pofConfig:
               description: PofConfig is the name of the POF configuration file to
                 use when using POF serializer
@@ -248,6 +266,15 @@ spec:
                             type: string
                         type: object
                     type: object
+                  javaOpts:
+                    description: JavaOpts is miscellaneous JVM options to pass to
+                      the Coherence store container This options will override the
+                      system options computed in the start up script.
+                    type: string
+                  jvmArgs:
+                    description: JvmArgs specifies the options to pass to the Coherence
+                      JVM. The default is to use the G1 collector.
+                    type: string
                   labels:
                     additionalProperties:
                       type: string
@@ -255,6 +282,15 @@ spec:
                       this roles. Labels here will add to or override those defined
                       for the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
                     type: object
+                  maxHeap:
+                    description: MaxHeap is the min/max heap value to pass to the
+                      JVM. The format should be the same as that used for Java's -Xms
+                      and -Xmx JVM options. If not set the JVM defaults are used.
+                    type: string
+                  overrideConfig:
+                    description: OverrideConfig is name of the Coherence operational
+                      configuration override file, the default is tangosol-coherence-override.xml
+                    type: string
                   pofConfig:
                     description: PofConfig is the name of the POF configuration file
                       to use when using POF serializer
@@ -316,6 +352,11 @@ spec:
                       will be safe, if StorageEnabled is set to false scaling will
                       be parallel.
                     type: boolean
+                required:
+                - overrideConfig
+                - maxHeap
+                - jvmArgs
+                - javaOpts
                 type: object
               type: array
             scalingPolicy:
@@ -340,6 +381,11 @@ spec:
                 is true the scaling will be safe, if StorageEnabled is set to false
                 scaling will be parallel.
               type: boolean
+          required:
+          - overrideConfig
+          - maxHeap
+          - jvmArgs
+          - javaOpts
           type: object
         status:
           type: object

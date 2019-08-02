@@ -46,6 +46,19 @@ type CoherenceRoleSpec struct {
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// PofConfig is the name of the POF configuration file to use when using POF serializer
 	PofConfig *string `json:"pofConfig,omitempty"`
+	// OverrideConfig is name of the Coherence operational configuration override file,
+	// the default is tangosol-coherence-override.xml
+	OverrideConfig *string `json:"overrideConfig,omitEmpty"`
+	// MaxHeap is the min/max heap value to pass to the JVM.
+	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	// If not set the JVM defaults are used.
+	MaxHeap *string `json:"maxHeap,omitEmpty"`
+	// JvmArgs specifies the options to pass to the Coherence JVM. The default is
+	// to use the G1 collector.
+	JvmArgs *string `json:"jvmArgs,omitEmpty"`
+	// JavaOpts is miscellaneous JVM options to pass to the Coherence store container
+	// This options will override the system options computed in the start up script.
+	JavaOpts *string `json:"javaOpts,omitEmpty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -134,6 +147,30 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.PofConfig = in.PofConfig
 	} else {
 		clone.PofConfig = defaults.PofConfig
+	}
+
+	if in.OverrideConfig != nil {
+		clone.OverrideConfig = in.OverrideConfig
+	} else {
+		clone.OverrideConfig = defaults.OverrideConfig
+	}
+
+	if in.MaxHeap != nil {
+		clone.MaxHeap = in.MaxHeap
+	} else {
+		clone.MaxHeap = defaults.MaxHeap
+	}
+
+	if in.JvmArgs != nil {
+		clone.JvmArgs = in.JvmArgs
+	} else {
+		clone.JvmArgs = defaults.JvmArgs
+	}
+
+	if in.JavaOpts != nil {
+		clone.JavaOpts = in.JavaOpts
+	} else {
+		clone.JavaOpts = defaults.JavaOpts
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)

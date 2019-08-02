@@ -40,6 +40,18 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			pofConfigOne = "pof-one.xml"
 			pofConfigTwo = "pof-two.xml"
 
+			overrideConfigOne = "tangsolol-coherence-override-one.xml"
+			overrideConfigTwo = "tangsolol-coherence-override-two.xml"
+
+			maxHeapOne = "-Xmx1G"
+			maxHeapTwo = "-Xmx2G"
+
+			jvmArgsOne = "-XX:+UseG1GC"
+			jvmArgsTwo = ""
+
+			JavaOptsOne = "-Dcoherence.log.level=9"
+			JavaOptsTwo = "-Dcoherence.log.level=5"
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:           roleNameOne,
 				Replicas:       replicasOne,
@@ -50,6 +62,10 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Labels:         nil,
 				CacheConfig:    &cacheConfigOne,
 				PofConfig:      &pofConfigOne,
+				OverrideConfig: &overrideConfigOne,
+				MaxHeap:		&maxHeapOne,
+				JvmArgs:		&jvmArgsOne,
+				JavaOpts:		&JavaOptsOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -62,6 +78,10 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Labels:         nil,
 				CacheConfig:    &cacheConfigTwo,
 				PofConfig:      &pofConfigTwo,
+				OverrideConfig: &overrideConfigTwo,
+				MaxHeap:		&maxHeapTwo,
+				JvmArgs:		&jvmArgsTwo,
+				JavaOpts:		&JavaOptsTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -189,6 +209,82 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.PofConfig = defaults.PofConfig
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original OverrideConfig is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.OverrideConfig = nil
+			})
+
+			It("clone should be equal to the original with the OverrideConfig field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.OverrideConfig = defaults.OverrideConfig
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original MaxHeap is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.MaxHeap = nil
+			})
+
+			It("clone should be equal to the original with the MaxHeap field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.MaxHeap = defaults.MaxHeap
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original JvmArgs is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.JvmArgs = nil
+			})
+
+			It("clone should be equal to the original with the JvmArgs field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.JvmArgs = defaults.JvmArgs
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original JavaOpts is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.JavaOpts = nil
+			})
+
+			It("clone should be equal to the original with the JavaOpts field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.JavaOpts = defaults.JavaOpts
 
 				Expect(clone).To(Equal(expected))
 			})

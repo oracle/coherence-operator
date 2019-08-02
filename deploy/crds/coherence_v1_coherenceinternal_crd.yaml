@@ -111,12 +111,30 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
+                javaOpts:
+                  description: JavaOpts is miscellaneous JVM options to pass to the
+                    Coherence store container This options will override the system
+                    options computed in the start up script.
+                  type: string
+                jvmArgs:
+                  description: JvmArgs specifies the options to pass to the Coherence
+                    JVM. The default is to use the G1 collector.
+                  type: string
                 labels:
                   additionalProperties:
                     type: string
                   description: 'The extra labels to add to the Coherence Pod. More
                     info: http://kubernetes.io/docs/user-guide/labels'
                   type: object
+                maxHeap:
+                  description: MaxHeap is the min/max heap value to pass to the JVM.
+                    The format should be the same as that used for Java's -Xms and
+                    -Xmx JVM options. If not set the JVM defaults are used.
+                  type: string
+                overrideConfig:
+                  description: OverrideConfig is name of the Coherence operational
+                    configuration override file, the default is tangosol-coherence-override.xml
+                  type: string
                 pofConfig:
                   description: PofConfig is the name of the POF configuration file
                     to use when using POF serializer
@@ -157,6 +175,11 @@ spec:
                   description: The name of the headless service used for Coherence
                     WKA
                   type: string
+              required:
+              - overrideConfig
+              - maxHeap
+              - jvmArgs
+              - javaOpts
               type: object
             userArtifacts:
               description: The user artifacts image settings

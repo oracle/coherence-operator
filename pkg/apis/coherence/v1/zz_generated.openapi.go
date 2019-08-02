@@ -168,6 +168,34 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"overrideConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxHeap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"jvmArgs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"javaOpts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -182,6 +210,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						},
 					},
 				},
+				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{
@@ -412,7 +441,36 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "",
 						},
 					},
+					"overrideConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxHeap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"jvmArgs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"javaOpts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
+				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{
@@ -537,7 +595,36 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Format:      "",
 						},
 					},
+					"overrideConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxHeap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"jvmArgs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"javaOpts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
+				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{
