@@ -87,13 +87,16 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					SuccessThreshold:    int32Ptr(40),
 					FailureThreshold:    int32Ptr(50),
 				},
-				Labels: map[string]string{"one": "1", "two": "2"},
+				Labels:         map[string]string{"one": "1", "two": "2"},
 				CacheConfig:    stringPtr("cache-config.xml"),
 				PofConfig:      stringPtr("pof-config.xml"),
 				OverrideConfig: stringPtr("coherence-override.xml"),
 				MaxHeap:        stringPtr("-Xmx1G"),
 				JvmArgs:        stringPtr("-XX:+UseG1GC"),
 				JavaOpts:       stringPtr("-Dcoherence.log.level=9"),
+				Ports:          map[string]int32{ "my-http-port": 8080, "my-other-port": 1234},
+				Env:            map[string]string{"FOO": "foo-value", "BAR": "bar-value"},
+				Annotations:    map[string]string{"prometheus.io/scrape": "true", "prometheus.io/port": "2408"},
 			},
 		}
 	})
@@ -191,6 +194,36 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store JavaOpts", func() {
 				Expect(result.Store.JavaOpts).To(Equal(role.Spec.JavaOpts))
+			})
+
+			It("should set the Store Ports", func() {
+				expected := make(map[string]int32)
+
+				for k, v := range role.Spec.Ports {
+					expected[k] = v
+				}
+
+				Expect(result.Store.Ports).To(Equal(expected))
+			})
+
+			It("should set the Store Env", func() {
+				expected := make(map[string]string)
+
+				for k, v := range role.Spec.Env {
+					expected[k] = v
+				}
+
+				Expect(result.Store.Env).To(Equal(expected))
+			})
+
+			It("should set the Store Annotations", func() {
+				expected := make(map[string]string)
+
+				for k, v := range role.Spec.Annotations {
+					expected[k] = v
+				}
+
+				Expect(result.Store.Annotations).To(Equal(expected))
 			})
 		})
 	})

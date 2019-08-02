@@ -59,6 +59,35 @@ type CoherenceRoleSpec struct {
 	// JavaOpts is miscellaneous JVM options to pass to the Coherence store container
 	// This options will override the system options computed in the start up script.
 	JavaOpts *string `json:"javaOpts,omitEmpty"`
+	// Ports is additional port mappings that will be added to the Pod
+	// To specify extra ports add them as port name value pairs the same as they
+	// would be added to a Pod containers spec, for example these values:
+	//
+	// ports:
+	//   my-http-port: 8080
+	//   my-other-port: 1234
+	//
+	// will add the port mappings to the Pod and Service for ports 8080 and 1234
+	Ports map[string]int32 `json:"ports,omitempty"`
+	// Env is additional environment variable mappings that will be passed to
+	// the Coherence container in the Pod
+	// To specify extra variables add them as name value pairs the same as they
+	// would be added to a Pod containers spec, for example these values:
+	//
+	// env:
+	//   FOO: "foo-value"
+	//   BAR: "bar-value"
+	//
+	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
+	Env map[string]string `json:"env,omitempty"`
+	// Annotations are free-form yaml that will be added to the store release as annotations
+	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
+	// include annotations for Prometheus it would look like this:
+	//
+	// annotations:
+	//   prometheus.io/scrape: "true"
+	//   prometheus.io/port: "2408"
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -174,6 +203,9 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)
+	clone.Ports = in.mergeMapInt32(in.Ports, defaults.Ports)
+	clone.Env = in.mergeMap(in.Env, defaults.Env)
+	clone.Annotations = in.mergeMap(in.Annotations, defaults.Annotations)
 
 	clone.Images = in.Images.DeepCopyWithDefaults(defaults.Images)
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
@@ -207,6 +239,31 @@ func (in *CoherenceRoleSpec) mergeMap(m1, m2 map[string]string) map[string]strin
 			} else {
 				delete(merged, k)
 			}
+		}
+	}
+
+	return merged
+}
+
+// Return a map that is two maps merged.
+// If both maps are nil then nil is returned.
+// Where there are duplicate keys those in m1 take precedence.
+func (in *CoherenceRoleSpec) mergeMapInt32(m1, m2 map[string]int32) map[string]int32 {
+	if m1 == nil && m2 == nil {
+		return nil
+	}
+
+	merged := make(map[string]int32)
+
+	if m2 != nil {
+		for k, v := range m2 {
+			merged[k] = v
+		}
+	}
+
+	if m1 != nil {
+		for k, v := range m1 {
+			merged[k] = v
 		}
 	}
 

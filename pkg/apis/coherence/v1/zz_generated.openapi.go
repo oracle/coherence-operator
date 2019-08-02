@@ -196,6 +196,48 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"ports": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"integer"},
+										Format: "int32",
+									},
+								},
+							},
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -469,6 +511,48 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "",
 						},
 					},
+					"ports": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"integer"},
+										Format: "int32",
+									},
+								},
+							},
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
@@ -621,6 +705,48 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"ports": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"integer"},
+										Format: "int32",
+									},
+								},
+							},
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},

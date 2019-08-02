@@ -52,6 +52,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			JavaOptsOne = "-Dcoherence.log.level=9"
 			JavaOptsTwo = "-Dcoherence.log.level=5"
 
+			portsOne = map[string]int32{"port1": 8081, "port2": 8082}
+			portsTwo = map[string]int32{"port3": 8083, "port4": 8084}
+
+			envOne = map[string]string{"foo1" : "1", "foo2": "2"}
+			envTwo = map[string]string{"foo3" : "3", "foo4": "4"}
+
+			annotationsOne = map[string]string{"anno1": "1", "anno2": "2"}
+			annotationsTwo = map[string]string{"anno3": "3", "anno4": "4"}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:           roleNameOne,
 				Replicas:       replicasOne,
@@ -66,6 +75,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				MaxHeap:		&maxHeapOne,
 				JvmArgs:		&jvmArgsOne,
 				JavaOpts:		&JavaOptsOne,
+				Ports:			nil,
+				Env:			nil,
+				Annotations:	nil,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -82,6 +94,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				MaxHeap:		&maxHeapTwo,
 				JvmArgs:		&jvmArgsTwo,
 				JavaOpts:		&JavaOptsTwo,
+				Ports:			nil,
+				Env:			nil,
+				Annotations:	nil,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -434,6 +449,262 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Labels = map[string]string{"one": "1", "two": "2", "four": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Ports is not set and default Ports is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Ports = nil
+				defaults.Ports = portsTwo
+			})
+
+			It("clone should be equal to the original with the Ports field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Ports = defaults.Ports
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Ports is set and default Ports is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Ports = portsOne
+				defaults.Ports = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+		})
+
+		When("the original Ports is set and default Ports is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Ports = portsOne
+				defaults.Ports = portsTwo
+			})
+
+			It("clone should have the combined Ports", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 8083, "port4": 8084}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Ports has duplicate keys to the default Ports", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 18083}
+				defaults.Ports = map[string]int32{"port3": 8083, "port4": 8084}
+			})
+
+			It("clone should have the combined Ports with the duplicate key mapped to the originals value", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 18083, "port4": 8084}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Env is not set and default Env is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Env = nil
+				defaults.Env = envTwo
+			})
+
+			It("clone should be equal to the original with the Env field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Env = defaults.Env
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Env is set and default Env is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Env = envOne
+				defaults.Env = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+		})
+
+		When("the original Env is set and default Env is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Env = envOne
+				defaults.Env = envTwo
+			})
+
+			It("clone should have the combined Env", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "3", "foo4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Env has duplicate keys to the default Env", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "changed"}
+				defaults.Env = map[string]string{"foo3": "3", "foo4": "4"}
+			})
+
+			It("clone should have the combined Env with the duplicate key mapped to the originals value", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "changed", "foo4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Env has duplicate keys to the default Env where the value is empty string", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": ""}
+				defaults.Env = map[string]string{"foo3": "3", "foo4": "4"}
+			})
+
+			It("clone should have the combined Env with the duplicate key removed", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Annotations is not set and default Annotations is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Annotations = nil
+				defaults.Annotations = annotationsTwo
+			})
+
+			It("clone should be equal to the original with the Annotations field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Annotations = defaults.Annotations
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Annotations is set and default Annotations is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Annotations = annotationsOne
+				defaults.Annotations = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+		})
+
+		When("the original Annotations is set and default Annotations is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.Annotations = annotationsOne
+				defaults.Annotations = annotationsTwo
+			})
+
+			It("clone should have the combined Annotations", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno3": "3", "anno4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Annotations has duplicate keys to the default Annotations", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno3": "changed"}
+				defaults.Annotations = map[string]string{"anno3": "3", "anno4": "4"}
+			})
+
+			It("clone should have the combined Annotations with the duplicate key mapped to the originals value", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno3": "changed", "anno4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Annotations has duplicate keys to the default Annotations where the value is empty string", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno3": ""}
+				defaults.Annotations = map[string]string{"anno3": "3", "anno4": "4"}
+			})
+
+			It("clone should have the combined Annotations with the duplicate key removed", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno4": "4"}
 
 				Expect(clone).To(Equal(expected))
 			})
