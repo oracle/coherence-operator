@@ -47,14 +47,13 @@ import (
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
 const (
 	// configName is the name of the internal Coherence Operator configuration.
-	configName                = "coherence-monitoring-config"
-	)
-
+	configName = "coherence-monitoring-config"
+)
 
 // BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
 var BuildInfo string
-// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
+// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 // Change below variables to serve metrics on different host or port.
 var (
@@ -108,7 +107,7 @@ func main() {
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		log.Error(err, "Failed to get watch namespace")
+		log.Error(err, "failed to get watch namespace")
 		os.Exit(1)
 	}
 
@@ -177,8 +176,8 @@ func main() {
 
 	//// Add to the below struct any other metrics ports you want to expose.
 	//servicePorts := []v1.ServicePort{
-	//	{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
-	//	{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
+	//	{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{TypeIs: intstr.Int, IntVal: metricsPort}},
+	//	{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{TypeIs: intstr.Int, IntVal: operatorMetricsPort}},
 	//}
 	//// Create Service object to expose the metrics port(s).
 	//_, err = metrics.CreateMetricsService(ctx, cfg, servicePorts)
@@ -226,7 +225,7 @@ func setupHelm(mgr manager.Manager, namespace string, hflags *hoflags.HelmOperat
 	// Setup Helm controller
 	watchList, err := watches.Load(hflags.WatchesFile)
 	if err != nil {
-		log.Error(err, "Failed to load Helm watches")
+		log.Error(err, "failed to load Helm watches")
 		return err
 	}
 
@@ -241,7 +240,7 @@ func setupHelm(mgr manager.Manager, namespace string, hflags *hoflags.HelmOperat
 			WatchDependentResources: w.WatchDependentResources,
 		})
 		if err != nil {
-			log.Error(err, "Failed to add Helm watche")
+			log.Error(err, "failed to add Helm watche")
 			return err
 		}
 	}

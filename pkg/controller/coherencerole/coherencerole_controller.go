@@ -4,20 +4,20 @@ package coherencerole
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -29,15 +29,18 @@ import (
 const (
 	controllerName = "coherencerole-controller"
 
-	invalidRoleEventMessage  string = "invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'"
-	createEventMessage       string = "created CoherenceInternal '%s' from CoherenceRole '%s' successful"
-	createEventFailedMessage string = "create CoherenceInternal '%s' from CoherenceRole '%s' failed\n%s"
-	updateEventMessage       string = "updated CoherenceInternal %s from CoherenceRole %s successful"
-	updateFailedEventMessage string = "update CoherenceInternal %s from CoherenceRole %s failed\n%s"
-	deleteEventMessage       string = "deleted CoherenceInternal %s from CoherenceRole %s successful"
-	deleteFailedEventMessage string = "delete CoherenceInternal %s from CoherenceRole %s failed\n%s"
+	invalidRoleEventMessage      string = "invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'"
+	createMessage                string = "created CoherenceInternal '%s' from CoherenceRole '%s' successful"
+	createFailedMessage          string = "create CoherenceInternal '%s' from CoherenceRole '%s' failed\n%s"
+	updateMessage                string = "updated CoherenceInternal %s from CoherenceRole %s successful"
+	updateFailedMessage          string = "update CoherenceInternal %s from CoherenceRole %s failed\n%s"
+	deleteMessage                string = "deleted CoherenceInternal %s from CoherenceRole %s successful"
+	deleteFailedMessage          string = "delete CoherenceInternal %s from CoherenceRole %s failed\n%s"
+	failedToGetHelmValuesMessage string = "Failed to get Helm values for CoherenceRole %s failed\n%s"
+	failedToGetParentCluster     string = "Failed to get parent CoherenceCluster %s for CoherenceRole %s failed\n%s"
+	failedToReconcileRole        string = "Failed to reconcile CoherenceRole %s due to error\n%s"
 
-	eventReasonFailed       string = "Failed"
+	eventReasonFailed       string = "failed"
 	eventReasonCreated      string = "SuccessfulCreate"
 	eventReasonFailedCreate string = "FailedCreate"
 	eventReasonUpdated      string = "SuccessfulUpdate"
@@ -98,9 +101,11 @@ func add(mgr manager.Manager, r *ReconcileCoherenceRole) error {
 }
 
 // blank assignment to verify that ReconcileCoherenceRole implements reconcile.Reconciler.
+// If the reconcile.Reconciler API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileCoherenceRole{}
 
-// ReconcileCoherenceRole reconciles a CoherenceRole object
+// ReconcileCoherenceRole reconciles a CoherenceRole object and related CoherenceInternal
+// Helm values resources.
 type ReconcileCoherenceRole struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the api server
@@ -116,8 +121,8 @@ type ReconcileCoherenceRole struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
-	reqLogger.Info("Reconciling CoherenceRole")
+	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
+	logger.Info("Reconciling CoherenceRole")
 
 	// Fetch the CoherenceRole role
 	role := &coh.CoherenceRole{}
@@ -127,10 +132,14 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return reconcile.Result{}, nil
+			logger.Info("CoherenceRole not found - assuming normal deletion")
+			return reconcile.Result{Requeue: false}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		// We can't call the error handler as we do not even have a role.
+		// We log the error and do not requeue the request.
+		logger.Error(err, "Error getting CoherenceRole to reconcile")
+		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(failedToReconcileRole, role.Name, err), logger)
 	}
 
 	clusterName := role.GetCoherenceClusterName()
@@ -140,33 +149,26 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: request.Namespace, Name: clusterName}, cluster)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			reqLogger.Error(err, "A CoherenceRole must have an associated CoherenceCluster and should not be created outside of a CoherenceCluster.")
-
-			// update the status to failed.
-			role.Status.Status = coh.RoleStatusFailed
-			_ = r.client.Status().Update(context.TODO(), role)
-
-			// send a failure creation event
-			msg := fmt.Sprintf(invalidRoleEventMessage, role.Name, clusterName)
-			r.events.Event(role, corev1.EventTypeNormal, eventReasonFailed, msg)
-
-			return reconcile.Result{Requeue: false}, nil
+			return r.handleErrAndFinish(nil, role, fmt.Sprintf(invalidRoleEventMessage, role.Name, clusterName), logger)
 		} else {
-			return reconcile.Result{}, err
+			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetParentCluster, clusterName, role.Name, err.Error()), logger)
 		}
 	}
 
 	// find the existing Helm values structure in k8s (this will be an unstructured.Unstructured)
 	// it may not exist if this is a create request
 	helmValues, err := r.GetExistingHelmValues(role)
-	if err != nil && !errors.IsNotFound(err) {
-		return reconcile.Result{}, err
-	}
 
-	if err != nil && errors.IsNotFound(err) {
-		// this is an insert of a new role
-		return r.createRole(cluster, role)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Helm values was not found so this is an insert of a new role
+			return r.createRole(cluster, role)
+		} else {
+			// the error is a real error
+			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetHelmValuesMessage, role.Name, err.Error()), logger)
+		}
 	} else {
+		// The Helm values was found so this is an update
 		return r.updateRole(cluster, role, helmValues)
 	}
 }
@@ -178,70 +180,82 @@ func (r *ReconcileCoherenceRole) createRole(cluster *coh.CoherenceCluster, role 
 		return reconcile.Result{}, nil
 	}
 
-	log.Info("Creating Coherence Role", "Namespace", role.Namespace, "Name", role.Name)
+	logger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
+	logger.Info("Creating Coherence Role Helm values")
 
 	// define a new Helm values map
 	spec, err := coh.NewCoherenceInternalSpecAsMap(cluster, role)
 	if err != nil {
-		return reconcile.Result{}, err
+		// this error would only occur if there was a json marshalling issue which would be unlikely
+		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, role.Name, role.Name, err), logger)
 	}
 
-	helmValues := r.CreateCoherenceInternal(cluster, role, spec)
+	helmValues := r.CreateHelmValues(cluster, role, spec)
 
 	// Set this CoherenceRole instance as the owner and controller of the Helm values structure
 	if err := controllerutil.SetControllerReference(cluster, helmValues, r.scheme); err != nil {
-		return reconcile.Result{}, err
+		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
 	}
-
-	role.Status.Status = coh.RoleStatusCreated
-	role.Status.Replicas = role.Spec.GetReplicas()
-	role.Status.Selector = fmt.Sprintf(selectorTemplate, cluster.Name, role.Spec.GetRoleName())
-	_ = r.client.Status().Update(context.TODO(), role)
 
 	// Create the CoherenceInternal resource in k8s which will be detected
 	// by the Helm operator and trigger a Helm install
 	if err := r.client.Create(context.TODO(), helmValues); err != nil {
-		return reconcile.Result{}, err
+		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
+	}
+
+	// update this CoherenceRole's status
+	role.Status.Status = coh.RoleStatusCreated
+	role.Status.Replicas = role.Spec.GetReplicas()
+	role.Status.Selector = fmt.Sprintf(selectorTemplate, cluster.Name, role.Spec.GetRoleName())
+	err = r.client.Status().Update(context.TODO(), role)
+	if err != nil {
+		// failed to update the CoherenceRole's status
+		// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
+		logger.Error(err, "failed to update role status")
 	}
 
 	// send a successful creation event
-	msg := fmt.Sprintf(createEventMessage, helmValues.GetName(), role.Name)
+	msg := fmt.Sprintf(createMessage, helmValues.GetName(), role.Name)
 	r.events.Event(role, corev1.EventTypeNormal, eventReasonCreated, msg)
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{Requeue: false}, nil
 }
 
 // updateRole updates an existing CoherenceInternal which will in turn trigger a Helm update.
 func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, helmValues *unstructured.Unstructured) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
-	reqLogger.Info("Updating existing Coherence Role")
+	logger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
+	logger.Info("Reconciling existing Coherence Role")
 
-	clusterRole := cluster.GetRole(role.Spec.GetRoleName())
-	if !reflect.DeepEqual(clusterRole, role.Spec) {
-		// role spec is not the same as the cluster's role spec - likely caused by a scale
-		// update the cluster and the update will come around again
-		reqLogger.Info("CoherenceCluster role spec is different to this spec - updating CoherenceCluster '" + cluster.Name + "'")
-		cluster.SetRole(role.Spec)
-		err := r.client.Update(context.TODO(), cluster)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
+	// ToDo: Fix this code to work when there is only a default role in the cluster spec and also how to work with the role + defaults
+	//clusterRole := cluster.GetRole(role.Spec.GetRoleName())
+	//if !reflect.DeepEqual(clusterRole, role.Spec) {
+	//	// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
+	//	// been caused by a direct update to the CoherenceRole, even though we really discourage that.
+	//	// Update the cluster which will cause this update to come around again.
+	//	logger.Info("CoherenceCluster role spec is different to this spec - updating CoherenceCluster '" + cluster.Name + "'")
+	//	cluster.SetRole(role.Spec)
+	//	err := r.client.Update(context.TODO(), cluster)
+	//	if err != nil {
+	//		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
+	//	}
+	//}
 
 	// convert the unstructured data to a CoherenceInternal that we can deal with better
 	existing, err := r.toCoherenceInternal(helmValues)
 	if err != nil {
-		return reconcile.Result{}, err
+		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 	}
 
 	currentReplicas := existing.Spec.ClusterSize
 	desiredReplicas := role.Spec.GetReplicas()
 	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
-	isUpgrade := !reflect.DeepEqual(&existing.Spec, desiredRole)
+	clone := existing.Spec.DeepCopy()
+	clone.ClusterSize = desiredRole.ClusterSize
+	isUpgrade := !reflect.DeepEqual(&clone, desiredRole)
 
 	sts, err := r.findStatefulSet(role)
 	if err != nil {
-		reqLogger.Info("Could not find StatefulSet")
+		logger.Info("Could not find StatefulSet")
 	}
 
 	if currentReplicas < desiredReplicas {
@@ -259,14 +273,14 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 			}
 		}
 
-		reqLogger.Info(fmt.Sprintf("Scaling up existing Role from %d to %d", currentReplicas, desiredReplicas))
+		logger.Info(fmt.Sprintf("Scaling up existing Role from %d to %d", currentReplicas, desiredReplicas))
 		return r.scale(role, helmValues, existing, desiredReplicas, currentReplicas, sts)
 	} else if currentReplicas > desiredReplicas {
 		// Scaling DOWN
 
 		// if scaling down and upgrading then scale down first and upgrade second
 		// so that we do not have to upgrade the members we are scaling down
-		reqLogger.Info(fmt.Sprintf("Scaling down existing Role from %d to %d", currentReplicas, desiredReplicas))
+		logger.Info(fmt.Sprintf("Scaling down existing Role from %d to %d", currentReplicas, desiredReplicas))
 		result, err := r.scale(role, helmValues, existing, desiredReplicas, currentReplicas, sts)
 
 		if err == nil && isUpgrade {
@@ -290,11 +304,16 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 			if sts.Status.ReadyReplicas == desiredReplicas {
 				role.Status.Status = coh.RoleStatusReady
 			}
-			_ = r.client.Status().Update(context.TODO(), role)
+			err = r.client.Status().Update(context.TODO(), role)
+			if err != nil {
+				// failed to update the CoherenceRole's status
+				// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
+				log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			}
 		}
 	}
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{Requeue: false}, nil
 }
 
 // upgrade triggers a rolling upgrade of the role
@@ -305,6 +324,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 
 	spec, err := coh.CoherenceInternalSpecAsMapFromSpec(desiredRole)
 	if err != nil {
+		// ToDo - handle this properly
 		return reconcile.Result{}, err
 	}
 
@@ -314,6 +334,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 
 	err = r.client.Update(context.TODO(), existingRole)
 	if err != nil {
+		// ToDo - handle this properly
 		return reconcile.Result{}, err
 	}
 
@@ -321,14 +342,14 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 	role.Status.Status = coh.RoleStatusRollingUpgrade
 	err = r.client.Update(context.TODO(), role)
 	if err != nil {
-		reqLogger.Error(err, "Failed to update Status")
+		reqLogger.Error(err, "failed to update Status")
 	}
 
 	// send a successful scale event
-	msg := fmt.Sprintf(updateEventMessage, role.Name, role.Name)
+	msg := fmt.Sprintf(updateMessage, role.Name, role.Name)
 	r.events.Event(role, corev1.EventTypeNormal, eventReasonUpdated, msg)
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{Requeue: false}, nil
 }
 
 // findStatefulSet finds the StatefulSet associated to the role.
@@ -350,8 +371,8 @@ func (r *ReconcileCoherenceRole) GetExistingHelmValues(role *coh.CoherenceRole) 
 	return cohInt, err
 }
 
-// CreateCoherenceInternal creates a unstructured CoherenceInternal.
-func (r *ReconcileCoherenceRole) CreateCoherenceInternal(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, spec map[string]interface{}) *unstructured.Unstructured {
+// CreateHelmValues creates an unstructured Helm values struct.
+func (r *ReconcileCoherenceRole) CreateHelmValues(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, spec map[string]interface{}) *unstructured.Unstructured {
 	cohInternal := r.CreateEmptyHelmValues(role)
 	cohInternal.Object["spec"] = spec
 
@@ -398,4 +419,41 @@ func (r *ReconcileCoherenceRole) toCoherenceInternal(state *unstructured.Unstruc
 	}
 
 	return cohInternal, nil
+}
+
+// failed is the common error handler
+func (r *ReconcileCoherenceRole) handleErrAndRequeue(err error, role *coh.CoherenceRole, msg string, logger logr.Logger) (reconcile.Result, error) {
+	return r.failed(err, role, msg, true, logger)
+}
+
+// failed is the common error handler
+func (r *ReconcileCoherenceRole) handleErrAndFinish(err error, role *coh.CoherenceRole, msg string, logger logr.Logger) (reconcile.Result, error) {
+	return r.failed(err, role, msg, false, logger)
+}
+
+// failed is the common error handler
+func (r *ReconcileCoherenceRole) failed(err error, role *coh.CoherenceRole, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+	if err == nil {
+		logger.V(0).Info(msg)
+	} else {
+		logger.Error(err, msg)
+	}
+
+	if role != nil {
+		// update the status to failed.
+		role.Status.Status = coh.RoleStatusFailed
+		if e := r.client.Status().Update(context.TODO(), role); e != nil {
+			// There isn't much we can do, we're already handling an error
+			logger.Error(err, "failed to update role status")
+		}
+
+		// send a failure event
+		r.events.Event(role, corev1.EventTypeNormal, eventReasonFailed, msg)
+	}
+
+	if requeue {
+		return reconcile.Result{Requeue: true}, nil
+	} else {
+		return reconcile.Result{Requeue: false}, nil
+	}
 }

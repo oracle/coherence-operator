@@ -25,7 +25,7 @@ type CoherenceClusterSpec struct {
 	// Roles is the list of different roles in the cluster
 	// There must be at least one role in a cluster.
 	// +optional
-	Roles []CoherenceRoleSpec `json:"roles"`
+	Roles []CoherenceRoleSpec `json:"roles,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -73,7 +73,7 @@ func (c *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 			return role
 		}
 	}
-	return CoherenceRoleSpec{}
+	return c.Spec.CoherenceRoleSpec
 }
 
 // Set the CoherenceRoleSpec

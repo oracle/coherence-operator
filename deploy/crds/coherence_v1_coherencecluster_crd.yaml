@@ -340,8 +340,6 @@ spec:
                 is true the scaling will be safe, if StorageEnabled is set to false
                 scaling will be parallel.
               type: boolean
-          required:
-          - roles
           type: object
         status:
           type: object

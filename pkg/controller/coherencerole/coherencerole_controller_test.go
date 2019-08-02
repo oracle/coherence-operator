@@ -62,7 +62,7 @@ var _ = Describe("coherencerole_controller", func() {
 			specMap, err := coherence.CoherenceInternalSpecAsMapFromSpec(spec)
 			Expect(err).NotTo(HaveOccurred())
 
-			cohIntern := controller.CreateCoherenceInternal(cluster, roleNew, specMap)
+			cohIntern := controller.CreateHelmValues(cluster, roleNew, specMap)
 
 			err = mgr.Client.Create(context.TODO(), cohIntern)
 			Expect(err).NotTo(HaveOccurred())
@@ -126,7 +126,7 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should fire a create event", func() {
-				msg := fmt.Sprintf(createEventMessage, roleNew.Name, roleNew.Name)
+				msg := fmt.Sprintf(createMessage, roleNew.Name, roleNew.Name)
 				event := mgr.AssertEvent()
 
 				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
@@ -190,7 +190,7 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should fire an update event", func() {
-				msg := fmt.Sprintf(updateEventMessage, roleNew.Name, roleNew.Name)
+				msg := fmt.Sprintf(updateMessage, roleNew.Name, roleNew.Name)
 				event := mgr.AssertEvent()
 
 				Expect(event.Type).To(Equal(corev1.EventTypeNormal))

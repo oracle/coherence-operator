@@ -44,7 +44,7 @@ func NewFakeManager(initObjs ...runtime.Object) *FakeManager {
 
 type FakeManager struct {
 	Scheme *runtime.Scheme
-	Client FakeClient
+	Client ClientWithErrors
 	Events *FakeEventRecorder
 }
 
