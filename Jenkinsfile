@@ -120,6 +120,9 @@ pipeline {
                             '''
                             withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                                 sh '''
+                                    # Retrieve the most recent operator release rather than hard coding
+                                    RELEASE=`curl -s https://oracle.github.io/coherence-operator/charts/index.yaml | grep appVersion: | sed 1q | sed 's/^.*: //'`
+                                    echo "Testing against release $RELEASE"
                                     export HELM_BINARY=`which helm`
                                     export KUBECTL_BINARY=`which kubectl`
                                     export NS=test-sample-${BUILD_NUMBER}
@@ -130,7 +133,7 @@ pipeline {
                                         -Dci.build=$BUILD_NUMBER \
                                         -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
                                         -Dk8s.create.namespace=false \
-                                        -Dk8s.chart.test.versions=1.0.0 \
+                                        -Dk8s.chart.test.versions=$RELEASE \
                                         -Dk8s.namespace=$NS \
                                         -P helm-test clean install
                                 '''
