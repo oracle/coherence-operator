@@ -138,7 +138,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -189,7 +189,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to machines summary",
-          "linkUrl": "/d/coh-machines-summary",
+          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "machine",
           "thresholds": [],
@@ -344,7 +344,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -421,7 +421,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -985,7 +985,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -1135,7 +1135,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

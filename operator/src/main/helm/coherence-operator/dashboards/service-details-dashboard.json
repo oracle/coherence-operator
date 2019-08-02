@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
-  "iteration": 1564040926613,
+  "id": 15,
+  "iteration": 1564641033776,
   "links": [
     {
       "icon": "dashboard",
@@ -181,7 +181,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -1692,7 +1692,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to cache details for ${__cell}",
-          "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-CacheName=${__cell}",
+          "linkUrl": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
@@ -1915,7 +1915,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -1947,7 +1947,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_service_persistence_latency_average{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}) by (member) > 0",
+          "expr": "sum(vendor:coherence_service_persistence_latency_average{cluster=~\"$ClusterName\", name=~\"$ServiceName\"}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1968,7 +1968,7 @@
       "type": "table"
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -2025,7 +2025,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

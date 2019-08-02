@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 9,
-  "iteration": 1563518534200,
+  "id": 24,
+  "iteration": 1564639837859,
   "links": [
     {
       "icon": "dashboard",
@@ -116,6 +116,9 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to service details for ${__cell}",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -981,6 +984,9 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to service details for ${__cell}",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -1079,6 +1085,25 @@
           "pattern": "Value #B",
           "thresholds": [],
           "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Member",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "mappingType": 1,
+          "pattern": "member",
+          "thresholds": [],
+          "type": "string",
           "unit": "short"
         }
       ],
@@ -1193,7 +1218,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
