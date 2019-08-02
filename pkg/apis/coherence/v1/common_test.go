@@ -14,8 +14,3 @@ func boolPtr(x bool) *bool {
 func stringPtr(x string) *string {
 	return &x
 }
-
-// Returns a pointer to a map
-func mapPtr(m map[string]string) *map[string]string {
-	return &m
-}

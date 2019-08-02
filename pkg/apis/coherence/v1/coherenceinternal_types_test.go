@@ -87,7 +87,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					SuccessThreshold:    int32Ptr(40),
 					FailureThreshold:    int32Ptr(50),
 				},
-				Labels: mapPtr(map[string]string{"one": "1", "two": "2"}),
+				Labels: map[string]string{"one": "1", "two": "2"},
 			},
 		}
 	})
@@ -158,7 +158,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			It("should set the Store Labels", func() {
 				expected := make(map[string]string)
 
-				for k, v := range *role.Spec.Labels {
+				for k, v := range role.Spec.Labels {
 					expected[k] = v
 				}
 				expected[coherence.CoherenceClusterLabel] = "test-cluster"

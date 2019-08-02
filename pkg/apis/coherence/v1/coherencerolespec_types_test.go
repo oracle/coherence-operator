@@ -353,7 +353,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
 				original.Labels = nil
-				defaults.Labels = &labelsTwo
+				defaults.Labels = labelsTwo
 			})
 
 			It("clone should be equal to the original with the Labels field from the defaults", func() {
@@ -371,7 +371,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// original and defaults are deep copies so that we can change them
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
-				original.Labels = &labelsOne
+				original.Labels = labelsOne
 				defaults.Labels = nil
 			})
 
@@ -385,15 +385,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// original and defaults are deep copies so that we can change them
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
-				original.Labels = &labelsOne
-				defaults.Labels = &labelsTwo
+				original.Labels = labelsOne
+				defaults.Labels = labelsTwo
 			})
 
 			It("clone should have the combined Labels", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Labels = mapPtr(map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"})
+				expected.Labels = map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"}
 
 				Expect(clone).To(Equal(expected))
 			})
@@ -405,15 +405,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
 
-				original.Labels = mapPtr(map[string]string{"one": "1", "two": "2", "three": "changed"})
-				defaults.Labels = mapPtr(map[string]string{"three": "3", "four": "4"})
+				original.Labels = map[string]string{"one": "1", "two": "2", "three": "changed"}
+				defaults.Labels = map[string]string{"three": "3", "four": "4"}
 			})
 
 			It("clone should have the combined Labels with the duplicate key mapped to the originals value", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Labels = mapPtr(map[string]string{"one": "1", "two": "2", "three": "changed", "four": "4"})
+				expected.Labels = map[string]string{"one": "1", "two": "2", "three": "changed", "four": "4"}
 
 				Expect(clone).To(Equal(expected))
 			})
@@ -425,15 +425,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
 
-				original.Labels = mapPtr(map[string]string{"one": "1", "two": "2", "three": ""})
-				defaults.Labels = mapPtr(map[string]string{"three": "3", "four": "4"})
+				original.Labels = map[string]string{"one": "1", "two": "2", "three": ""}
+				defaults.Labels = map[string]string{"three": "3", "four": "4"}
 			})
 
 			It("clone should have the combined Labels with the duplicate key removed", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Labels = mapPtr(map[string]string{"one": "1", "two": "2", "four": "4"})
+				expected.Labels = map[string]string{"one": "1", "two": "2", "four": "4"}
 
 				Expect(clone).To(Equal(expected))
 			})

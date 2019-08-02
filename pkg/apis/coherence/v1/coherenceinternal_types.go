@@ -145,7 +145,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	// Set the labels
 	labels := make(map[string]string)
 	if role.Spec.Labels != nil {
-		for k, v := range *role.Spec.Labels {
+		for k, v := range role.Spec.Labels {
 			labels[k] = v
 		}
 	}

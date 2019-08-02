@@ -392,13 +392,9 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
-		*out = new(map[string]string)
-		if **in != nil {
-			in, out := *in, *out
-			*out = make(map[string]string, len(*in))
-			for key, val := range *in {
-				(*out)[key] = val
-			}
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
 		}
 	}
 	if in.CacheConfig != nil {

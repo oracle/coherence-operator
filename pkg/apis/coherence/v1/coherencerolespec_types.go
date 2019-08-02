@@ -41,7 +41,7 @@ type CoherenceRoleSpec struct {
 	// Labels here will add to or override those defined for the cluster.
 	// More info: http://kubernetes.io/docs/user-guide/labels
 	// +optional
-	Labels *map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// CacheConfig is the name of the cache configuration file to use
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// PofConfig is the name of the POF configuration file to use when using POF serializer
@@ -185,7 +185,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 // If both maps are nil then nil is returned.
 // Where there are duplicate keys those in m1 take precedence.
 // Keys that map to "" will not be added to the merged result
-func (in *CoherenceRoleSpec) mergeMap(m1, m2 *map[string]string) *map[string]string {
+func (in *CoherenceRoleSpec) mergeMap(m1, m2 map[string]string) map[string]string {
 	if m1 == nil && m2 == nil {
 		return nil
 	}
@@ -193,7 +193,7 @@ func (in *CoherenceRoleSpec) mergeMap(m1, m2 *map[string]string) *map[string]str
 	merged := make(map[string]string)
 
 	if m2 != nil {
-		for k, v := range *m2 {
+		for k, v := range m2 {
 			if v != "" {
 				merged[k] = v
 			}
@@ -201,7 +201,7 @@ func (in *CoherenceRoleSpec) mergeMap(m1, m2 *map[string]string) *map[string]str
 	}
 
 	if m1 != nil {
-		for k, v := range *m1 {
+		for k, v := range m1 {
 			if v != "" {
 				merged[k] = v
 			} else {
@@ -210,5 +210,5 @@ func (in *CoherenceRoleSpec) mergeMap(m1, m2 *map[string]string) *map[string]str
 		}
 	}
 
-	return &merged
+	return merged
 }
