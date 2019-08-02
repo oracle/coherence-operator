@@ -88,6 +88,12 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					FailureThreshold:    int32Ptr(50),
 				},
 				Labels: map[string]string{"one": "1", "two": "2"},
+				CacheConfig:    stringPtr("cache-config.xml"),
+				PofConfig:      stringPtr("pof-config.xml"),
+				OverrideConfig: stringPtr("coherence-override.xml"),
+				MaxHeap:        stringPtr("-Xmx1G"),
+				JvmArgs:        stringPtr("-XX:+UseG1GC"),
+				JavaOpts:       stringPtr("-Dcoherence.log.level=9"),
 			},
 		}
 	})
@@ -167,6 +173,25 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				Expect(result.Store.Labels).To(Equal(expected))
 			})
 
+			It("should set the Store CacheConfig", func() {
+				Expect(result.Store.CacheConfig).To(Equal(role.Spec.CacheConfig))
+			})
+
+			It("should set the Store PofConfig", func() {
+				Expect(result.Store.PofConfig).To(Equal(role.Spec.PofConfig))
+			})
+
+			It("should set the Store MaxHeap", func() {
+				Expect(result.Store.MaxHeap).To(Equal(role.Spec.MaxHeap))
+			})
+
+			It("should set the Store JvmArgs", func() {
+				Expect(result.Store.JvmArgs).To(Equal(role.Spec.JvmArgs))
+			})
+
+			It("should set the Store JavaOpts", func() {
+				Expect(result.Store.JavaOpts).To(Equal(role.Spec.JavaOpts))
+			})
 		})
 	})
 
