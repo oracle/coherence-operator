@@ -119,6 +119,10 @@ spec:
                 roles. Labels here will add to or override those defined for the cluster.
                 More info: http://kubernetes.io/docs/user-guide/labels'
               type: object
+            pofConfig:
+              description: PofConfig is the name of the POF configuration file to
+                use when using POF serializer
+              type: string
             readinessProbe:
               description: 'The readiness probe config to be used for the Pods in
                 this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
@@ -251,6 +255,10 @@ spec:
                       this roles. Labels here will add to or override those defined
                       for the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
                     type: object
+                  pofConfig:
+                    description: PofConfig is the name of the POF configuration file
+                      to use when using POF serializer
+                    type: string
                   readinessProbe:
                     description: 'The readiness probe config to be used for the Pods
                       in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'

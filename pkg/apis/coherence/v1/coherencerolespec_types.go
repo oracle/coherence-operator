@@ -44,6 +44,8 @@ type CoherenceRoleSpec struct {
 	Labels *map[string]string `json:"labels,omitempty"`
 	// CacheConfig is the name of the cache configuration file to use
 	CacheConfig *string `json:"cacheConfig,omitempty"`
+	// PofConfig is the name of the POF configuration file to use when using POF serializer
+	PofConfig *string `json:"pofConfig,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -126,6 +128,12 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.CacheConfig = in.CacheConfig
 	} else {
 		clone.CacheConfig = defaults.CacheConfig
+	}
+
+	if in.PofConfig != nil {
+		clone.PofConfig = in.PofConfig
+	} else {
+		clone.PofConfig = defaults.PofConfig
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)

@@ -263,6 +263,11 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 		*out = new(string)
 		**out = **in
 	}
+	if in.PofConfig != nil {
+		in, out := &in.PofConfig, &out.PofConfig
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
@@ -378,6 +383,11 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 	}
 	if in.CacheConfig != nil {
 		in, out := &in.CacheConfig, &out.CacheConfig
+		*out = new(string)
+		**out = **in
+	}
+	if in.PofConfig != nil {
+		in, out := &in.PofConfig, &out.PofConfig
 		*out = new(string)
 		**out = **in
 	}

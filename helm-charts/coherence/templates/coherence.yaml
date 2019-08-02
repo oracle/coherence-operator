@@ -243,9 +243,9 @@ spec:
             - name: COH_MAIN_ARGS
               value: {{ .Values.store.main.arguments | quote }}
   {{- end }}
-  {{- if .Values.store.pof.config }}
+  {{- if .Values.store.pofConfig }}
             - name: COH_POF_CONFIG
-              value: {{ .Values.store.pof.config | quote }}
+              value: {{ .Values.store.pofConfig | quote }}
   {{- end }}
   {{- $storageEnabled := toString .Values.store.storageEnabled }}
   {{- if eq $storageEnabled "true" }}

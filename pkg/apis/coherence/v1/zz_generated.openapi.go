@@ -161,6 +161,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"pofConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -398,6 +405,13 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "",
 						},
 					},
+					"pofConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},
@@ -512,6 +526,13 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					"cacheConfig": {
 						SchemaProps: spec.SchemaProps{
 							Description: "CacheConfig is the name of the cache configuration file to use",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"pofConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
 							Type:        []string{"string"},
 							Format:      "",
 						},

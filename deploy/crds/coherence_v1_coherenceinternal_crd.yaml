@@ -117,6 +117,10 @@ spec:
                   description: 'The extra labels to add to the Coherence Pod. More
                     info: http://kubernetes.io/docs/user-guide/labels'
                   type: object
+                pofConfig:
+                  description: PofConfig is the name of the POF configuration file
+                    to use when using POF serializer
+                  type: string
                 readinessProbe:
                   description: 'The readiness probe config. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
                   properties:

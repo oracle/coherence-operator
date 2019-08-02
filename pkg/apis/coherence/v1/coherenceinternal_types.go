@@ -89,6 +89,8 @@ type CoherenceInternalStoreSpec struct {
 	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
 	// CacheConfig is the name of the cache configuration file to use
 	CacheConfig *string `json:"cacheConfig,omitempty"`
+	// PofConfig is the name of the POF configuration file to use when using POF serializer
+	PofConfig *string `json:"pofConfig,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -121,6 +123,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.StorageEnabled = role.Spec.StorageEnabled
 	out.Store.ReadinessProbe = role.Spec.ReadinessProbe
 	out.Store.CacheConfig = role.Spec.CacheConfig
+	out.Store.PofConfig = role.Spec.PofConfig
 
 	// Set the labels
 	labels := make(map[string]string)

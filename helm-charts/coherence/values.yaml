@@ -50,10 +50,8 @@ store:
   # store.cacheConfig is the name of the cache configuration file to use
   cacheConfig:
 
-  # store.pof is the configuration values for POF
-  pof:
-    # store.pof.config specifies the name of the POF configuration file to use when using POF serializer.
-    config: pof-config.xml
+  # store.pofConfig is the name of the POF configuration file to use when using POF serializer
+  pofConfig: pof-config.xml
 
   # store.storageEnabled is true to run Coherence containers as storage enabled cluster members
   #   or false to run storage disabled cluster members
