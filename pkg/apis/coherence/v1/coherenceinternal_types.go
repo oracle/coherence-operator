@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	appv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -150,6 +151,19 @@ type CoherenceInternalStoreSpec struct {
 	//   prometheus.io/port: "2408"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// PodManagementPolicy sets the podManagementPolicy value for the
+	// Coherence cluster StatefulSet.  The default value is Parallel, to
+	// cause Pods to be started and stopped in parallel, which can be
+	// useful for faster cluster start-up in certain scenarios such as
+	// testing but could cause data loss if multiple Pods are stopped in
+	// parallel.  This can be changed to OrderedReady which causes Pods
+	// to start and stop in sequence.
+	// +optional
+	PodManagementPolicy *appv1.PodManagementPolicyType `json:"podManagementPolicy,omitempty"`
+	// RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades.
+	// The default value if not set is 3.
+	// +optional
+	RevisionHistoryLimit *int32 `json:"revisionHistoryLimit,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -187,6 +201,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.MaxHeap = role.Spec.MaxHeap
 	out.Store.JvmArgs = role.Spec.JvmArgs
 	out.Store.JavaOpts = role.Spec.JavaOpts
+	out.Store.PodManagementPolicy = role.Spec.PodManagementPolicy
+	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
 
 	// Set the labels
 	labels := make(map[string]string)

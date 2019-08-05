@@ -1,5 +1,9 @@
 package v1
 
+import (
+	appv1 "k8s.io/api/apps/v1"
+)
+
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -97,6 +101,19 @@ type CoherenceRoleSpec struct {
 	//   prometheus.io/port: "2408"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// PodManagementPolicy sets the podManagementPolicy value for the
+	// Coherence cluster StatefulSet.  The default value is Parallel, to
+	// cause Pods to be started and stopped in parallel, which can be
+	// useful for faster cluster start-up in certain scenarios such as
+	// testing but could cause data loss if multiple Pods are stopped in
+	// parallel.  This can be changed to OrderedReady which causes Pods
+	// to start and stop in sequence.
+	// +optional
+	PodManagementPolicy *appv1.PodManagementPolicyType `json:"podManagementPolicy,omitempty"`
+	// RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades.
+	// The default value if not set is 3.
+	// +optional
+	RevisionHistoryLimit *int32 `json:"revisionHistoryLimit,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -209,6 +226,18 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.JavaOpts = in.JavaOpts
 	} else {
 		clone.JavaOpts = defaults.JavaOpts
+	}
+
+	if in.PodManagementPolicy != nil {
+		clone.PodManagementPolicy = in.PodManagementPolicy
+	} else {
+		clone.PodManagementPolicy = defaults.PodManagementPolicy
+	}
+
+	if in.RevisionHistoryLimit != nil {
+		clone.RevisionHistoryLimit = in.RevisionHistoryLimit
+	} else {
+		clone.RevisionHistoryLimit = defaults.RevisionHistoryLimit
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)

@@ -5,6 +5,7 @@
 package v1
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -309,6 +310,16 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 			(*out)[key] = val
 		}
 	}
+	if in.PodManagementPolicy != nil {
+		in, out := &in.PodManagementPolicy, &out.PodManagementPolicy
+		*out = new(appsv1.PodManagementPolicyType)
+		**out = **in
+	}
+	if in.RevisionHistoryLimit != nil {
+		in, out := &in.RevisionHistoryLimit, &out.RevisionHistoryLimit
+		*out = new(int32)
+		**out = **in
+	}
 	return
 }
 
@@ -468,6 +479,16 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.PodManagementPolicy != nil {
+		in, out := &in.PodManagementPolicy, &out.PodManagementPolicy
+		*out = new(appsv1.PodManagementPolicyType)
+		**out = **in
+	}
+	if in.RevisionHistoryLimit != nil {
+		in, out := &in.RevisionHistoryLimit, &out.RevisionHistoryLimit
+		*out = new(int32)
+		**out = **in
 	}
 	return
 }

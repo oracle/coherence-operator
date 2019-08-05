@@ -94,7 +94,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				MaxHeap:        stringPtr("-Xmx1G"),
 				JvmArgs:        stringPtr("-XX:+UseG1GC"),
 				JavaOpts:       stringPtr("-Dcoherence.log.level=9"),
-				Ports:          map[string]int32{ "my-http-port": 8080, "my-other-port": 1234},
+				Ports:          map[string]int32{"my-http-port": 8080, "my-other-port": 1234},
 				Env:            map[string]string{"FOO": "foo-value", "BAR": "bar-value"},
 				Annotations:    map[string]string{"prometheus.io/scrape": "true", "prometheus.io/port": "2408"},
 			},
@@ -224,6 +224,14 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				}
 
 				Expect(result.Store.Annotations).To(Equal(expected))
+			})
+
+			It("should set the Store PodManagementPolicy", func() {
+				Expect(result.Store.PodManagementPolicy).To(Equal(role.Spec.PodManagementPolicy))
+			})
+
+			It("should set the Store RevisionHistoryLimit", func() {
+				Expect(result.Store.RevisionHistoryLimit).To(Equal(role.Spec.RevisionHistoryLimit))
 			})
 		})
 	})

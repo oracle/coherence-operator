@@ -156,6 +156,15 @@ spec:
               description: OverrideConfig is name of the Coherence operational configuration
                 override file, the default is tangosol-coherence-override.xml
               type: string
+            podManagementPolicy:
+              description: PodManagementPolicy sets the podManagementPolicy value
+                for the Coherence cluster StatefulSet.  The default value is Parallel,
+                to cause Pods to be started and stopped in parallel, which can be
+                useful for faster cluster start-up in certain scenarios such as testing
+                but could cause data loss if multiple Pods are stopped in parallel.  This
+                can be changed to OrderedReady which causes Pods to start and stop
+                in sequence.
+              type: string
             pofConfig:
               description: PofConfig is the name of the POF configuration file to
                 use when using POF serializer
@@ -203,6 +212,12 @@ spec:
               description: The desired number of cluster members of this role. This
                 is a pointer to distinguish between explicit zero and not specified.
                 Default value is 3.
+              format: int32
+              type: integer
+            revisionHistoryLimit:
+              description: RevisionHistoryLimit is the number of deployment revision
+                K8s keeps after rolling upgrades. The default value if not set is
+                3.
               format: int32
               type: integer
             role:
@@ -339,6 +354,15 @@ spec:
                     description: OverrideConfig is name of the Coherence operational
                       configuration override file, the default is tangosol-coherence-override.xml
                     type: string
+                  podManagementPolicy:
+                    description: PodManagementPolicy sets the podManagementPolicy
+                      value for the Coherence cluster StatefulSet.  The default value
+                      is Parallel, to cause Pods to be started and stopped in parallel,
+                      which can be useful for faster cluster start-up in certain scenarios
+                      such as testing but could cause data loss if multiple Pods are
+                      stopped in parallel.  This can be changed to OrderedReady which
+                      causes Pods to start and stop in sequence.
+                    type: string
                   pofConfig:
                     description: PofConfig is the name of the POF configuration file
                       to use when using POF serializer
@@ -387,6 +411,12 @@ spec:
                     description: The desired number of cluster members of this role.
                       This is a pointer to distinguish between explicit zero and not
                       specified. Default value is 3.
+                    format: int32
+                    type: integer
+                  revisionHistoryLimit:
+                    description: RevisionHistoryLimit is the number of deployment
+                      revision K8s keeps after rolling upgrades. The default value
+                      if not set is 3.
                     format: int32
                     type: integer
                   role:

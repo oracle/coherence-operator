@@ -238,6 +238,20 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"podManagementPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"revisionHistoryLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -552,6 +566,20 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							},
 						},
 					},
+					"podManagementPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"revisionHistoryLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 				},
 			},
 		},
@@ -745,6 +773,20 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 									},
 								},
 							},
+						},
+					},
+					"podManagementPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"revisionHistoryLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},

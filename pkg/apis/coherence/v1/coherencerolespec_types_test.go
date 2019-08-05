@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	appv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
@@ -55,48 +56,58 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			portsOne = map[string]int32{"port1": 8081, "port2": 8082}
 			portsTwo = map[string]int32{"port3": 8083, "port4": 8084}
 
-			envOne = map[string]string{"foo1" : "1", "foo2": "2"}
-			envTwo = map[string]string{"foo3" : "3", "foo4": "4"}
+			envOne = map[string]string{"foo1": "1", "foo2": "2"}
+			envTwo = map[string]string{"foo3": "3", "foo4": "4"}
 
 			annotationsOne = map[string]string{"anno1": "1", "anno2": "2"}
 			annotationsTwo = map[string]string{"anno3": "3", "anno4": "4"}
 
+			podManagementPolicyOne appv1.PodManagementPolicyType = "Parallel"
+			podManagementPolicyTwo appv1.PodManagementPolicyType = "OrderedReady"
+
+			revisionHistoryLimitOne = int32Ptr(3)
+			revisionHistoryLimitTwo = int32Ptr(5)
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
-				Role:           roleNameOne,
-				Replicas:       replicasOne,
-				Images:         imagesOne,
-				StorageEnabled: &storageOne,
-				ScalingPolicy:  &scalingOne,
-				ReadinessProbe: probeOne,
-				Labels:         nil,
-				CacheConfig:    &cacheConfigOne,
-				PofConfig:      &pofConfigOne,
-				OverrideConfig: &overrideConfigOne,
-				MaxHeap:		&maxHeapOne,
-				JvmArgs:		&jvmArgsOne,
-				JavaOpts:		&JavaOptsOne,
-				Ports:			nil,
-				Env:			nil,
-				Annotations:	nil,
+				Role:                 roleNameOne,
+				Replicas:             replicasOne,
+				Images:               imagesOne,
+				StorageEnabled:       &storageOne,
+				ScalingPolicy:        &scalingOne,
+				ReadinessProbe:       probeOne,
+				Labels:               nil,
+				CacheConfig:          &cacheConfigOne,
+				PofConfig:            &pofConfigOne,
+				OverrideConfig:       &overrideConfigOne,
+				MaxHeap:              &maxHeapOne,
+				JvmArgs:              &jvmArgsOne,
+				JavaOpts:             &JavaOptsOne,
+				Ports:                nil,
+				Env:                  nil,
+				Annotations:          nil,
+				PodManagementPolicy:  &podManagementPolicyOne,
+				RevisionHistoryLimit: revisionHistoryLimitOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
-				Role:           roleNameTwo,
-				Replicas:       replicasTwo,
-				Images:         imagesTwo,
-				StorageEnabled: &storageTwo,
-				ScalingPolicy:  &scalingTwo,
-				ReadinessProbe: probeTwo,
-				Labels:         nil,
-				CacheConfig:    &cacheConfigTwo,
-				PofConfig:      &pofConfigTwo,
-				OverrideConfig: &overrideConfigTwo,
-				MaxHeap:		&maxHeapTwo,
-				JvmArgs:		&jvmArgsTwo,
-				JavaOpts:		&JavaOptsTwo,
-				Ports:			nil,
-				Env:			nil,
-				Annotations:	nil,
+				Role:                 roleNameTwo,
+				Replicas:             replicasTwo,
+				Images:               imagesTwo,
+				StorageEnabled:       &storageTwo,
+				ScalingPolicy:        &scalingTwo,
+				ReadinessProbe:       probeTwo,
+				Labels:               nil,
+				CacheConfig:          &cacheConfigTwo,
+				PofConfig:            &pofConfigTwo,
+				OverrideConfig:       &overrideConfigTwo,
+				MaxHeap:              &maxHeapTwo,
+				JvmArgs:              &jvmArgsTwo,
+				JavaOpts:             &JavaOptsTwo,
+				Ports:                nil,
+				Env:                  nil,
+				Annotations:          nil,
+				PodManagementPolicy:  &podManagementPolicyTwo,
+				RevisionHistoryLimit: revisionHistoryLimitTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -300,6 +311,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.JavaOpts = defaults.JavaOpts
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original PodManagementPolicy is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.PodManagementPolicy = nil
+			})
+
+			It("clone should be equal to the original with the PodManagementPolicy field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.PodManagementPolicy = defaults.PodManagementPolicy
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original RevisionHistoryLimit is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.RevisionHistoryLimit = nil
+			})
+
+			It("clone should be equal to the original with the RevisionHistoryLimit field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.RevisionHistoryLimit = defaults.RevisionHistoryLimit
 
 				Expect(clone).To(Equal(expected))
 			})
