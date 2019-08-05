@@ -29,6 +29,12 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			imagesOne = &coherence.Images{Coherence: &coherence.ImageSpec{Image: stringPtr("foo:1.0")}}
 			imagesTwo = &coherence.Images{Coherence: &coherence.ImageSpec{Image: stringPtr("foo:2.0")}}
 
+			logginOne = &coherence.LoggingSpec{Level: int32Ptr(9)}
+			logginTwo = &coherence.LoggingSpec{Level: int32Ptr(7)}
+
+			mainOne = &coherence.MainSpec{Class: stringPtr("com.tangosol.net.DefaultCacheServer")}
+			mainTwo = &coherence.MainSpec{Class: stringPtr("com.tangosol.net.DefaultCacheServer2")}
+
 			scalingOne = coherence.SafeScaling
 			scalingTwo = coherence.ParallelScaling
 
@@ -79,6 +85,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				CacheConfig:          &cacheConfigOne,
 				PofConfig:            &pofConfigOne,
 				OverrideConfig:       &overrideConfigOne,
+				Logging:              logginOne,
+				Main:                 mainOne,
 				MaxHeap:              &maxHeapOne,
 				JvmArgs:              &jvmArgsOne,
 				JavaOpts:             &JavaOptsOne,
@@ -100,6 +108,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				CacheConfig:          &cacheConfigTwo,
 				PofConfig:            &pofConfigTwo,
 				OverrideConfig:       &overrideConfigTwo,
+				Logging:              logginTwo,
+				Main:                 mainTwo,
 				MaxHeap:              &maxHeapTwo,
 				JvmArgs:              &jvmArgsTwo,
 				JavaOpts:             &JavaOptsTwo,
@@ -254,6 +264,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.OverrideConfig = defaults.OverrideConfig
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Logging is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Logging = nil
+			})
+
+			It("clone should be equal to the original with the Logging field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Logging = defaults.Logging
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Main is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Main = nil
+			})
+
+			It("clone should be equal to the original with the Main field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Main = defaults.Main
 
 				Expect(clone).To(Equal(expected))
 			})

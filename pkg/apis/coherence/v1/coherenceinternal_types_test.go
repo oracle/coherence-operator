@@ -91,6 +91,15 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				CacheConfig:    stringPtr("cache-config.xml"),
 				PofConfig:      stringPtr("pof-config.xml"),
 				OverrideConfig: stringPtr("coherence-override.xml"),
+				Logging: &coherence.LoggingSpec{
+					Level:         int32Ptr(9),
+					ConfigFile:    stringPtr("logging.properties"),
+					ConfigMapName: stringPtr("loggingMap"),
+				},
+				Main: &coherence.MainSpec{
+					Class:     stringPtr("com.tangosol.net.DefaultCacheServer"),
+					Arguments: stringPtr("-Dcoherence.localhost=192.168.0.301"),
+				},
 				MaxHeap:        stringPtr("-Xmx1G"),
 				JvmArgs:        stringPtr("-XX:+UseG1GC"),
 				JavaOpts:       stringPtr("-Dcoherence.log.level=9"),
@@ -182,6 +191,18 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store PofConfig", func() {
 				Expect(result.Store.PofConfig).To(Equal(role.Spec.PofConfig))
+			})
+
+			It("should set the Store OverrideConfig", func() {
+				Expect(result.Store.OverrideConfig).To(Equal(role.Spec.OverrideConfig))
+			})
+
+			It("should set the Store Logging", func() {
+				Expect(result.Store.Logging).To(Equal(role.Spec.Logging))
+			})
+
+			It("should set the Store Main", func() {
+				Expect(result.Store.Main).To(Equal(role.Spec.Main))
 			})
 
 			It("should set the Store MaxHeap", func() {

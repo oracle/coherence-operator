@@ -56,6 +56,12 @@ type CoherenceRoleSpec struct {
 	// the default is tangosol-coherence-override.xml
 	// +optional
 	OverrideConfig *string `json:"overrideConfig,omitempty"`
+	// Logging allows configuration of Coherence and java util logging.
+	// +optional
+	Logging *LoggingSpec `json:"logging,omitempty"`
+	// Main allows specification of Coherence container main class.
+	// +optional
+	Main *MainSpec `json:"main,omitempty"`
 	// MaxHeap is the min/max heap value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
 	// If not set the JVM defaults are used.
@@ -246,6 +252,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Annotations = in.mergeMap(in.Annotations, defaults.Annotations)
 
 	clone.Images = in.Images.DeepCopyWithDefaults(defaults.Images)
+	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)
+	clone.Main = in.Main.DeepCopyWithDefaults(defaults.Main)
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
 
 	return &clone

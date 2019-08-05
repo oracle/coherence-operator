@@ -106,6 +106,12 @@ type CoherenceInternalStoreSpec struct {
 	// the default is tangosol-coherence-override.xml
 	// +optional
 	OverrideConfig *string `json:"overrideConfig,omitempty"`
+	// Logging allows configuration of Coherence and java util logging.
+	// +optional
+	Logging *LoggingSpec `json:"logging,omitempty"`
+	// Main allows specification of Coherence container main class.
+	// +optional
+	Main *MainSpec `json:"main,omitempty"`
 	// MaxHeap is the min/max heap value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
 	// If not set the JVM defaults are used.
@@ -198,6 +204,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.CacheConfig = role.Spec.CacheConfig
 	out.Store.PofConfig = role.Spec.PofConfig
 	out.Store.OverrideConfig = role.Spec.OverrideConfig
+	out.Store.Logging = role.Spec.Logging
+	out.Store.Main = role.Spec.Main
 	out.Store.MaxHeap = role.Spec.MaxHeap
 	out.Store.JvmArgs = role.Spec.JvmArgs
 	out.Store.JavaOpts = role.Spec.JavaOpts

@@ -25,6 +25,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.FluentdImageSpec":           schema_pkg_apis_coherence_v1_FluentdImageSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":                  schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.Images":                     schema_pkg_apis_coherence_v1_Images(ref),
+		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
+		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.UserArtifactsImageSpec":     schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref),
 	}
@@ -175,6 +177,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"logging": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Logging allows configuration of Coherence and java util logging.",
+							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
+						},
+					},
+					"main": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Main allows specification of Coherence container main class.",
+							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
+						},
+					},
 					"maxHeap": {
 						SchemaProps: spec.SchemaProps{
 							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
@@ -269,7 +283,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -503,6 +517,18 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "",
 						},
 					},
+					"logging": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Logging allows configuration of Coherence and java util logging.",
+							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
+						},
+					},
+					"main": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Main allows specification of Coherence container main class.",
+							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
+						},
+					},
 					"maxHeap": {
 						SchemaProps: spec.SchemaProps{
 							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
@@ -584,7 +610,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -712,6 +738,18 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Format:      "",
 						},
 					},
+					"logging": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Logging allows configuration of Coherence and java util logging.",
+							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
+						},
+					},
+					"main": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Main allows specification of Coherence container main class.",
+							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
+						},
+					},
 					"maxHeap": {
 						SchemaProps: spec.SchemaProps{
 							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
@@ -793,7 +831,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -969,6 +1007,67 @@ func schema_pkg_apis_coherence_v1_Images(ref common.ReferenceCallback) common.Op
 		},
 		Dependencies: []string{
 			"./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- LoggingSpec struct ------------------------------------------------- LoggingSpec defines the settings for the Coherence Pod logging",
+				Properties: map[string]spec.Schema{
+					"level": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The default being 5 (info level).",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"configFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ConfigFile allows the location of the Java util logging configuration file to be overridden.\n If this value is not set the logging.properties file embedded in this chart will be used.\n If this value is set the configuration will be located by trying the following locations in order:\n   1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging\n        properties file will be located as a file location relative to the ConfigMap volume mount point.\n   2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the\n        configuration files directory in the user artifacts image.\n   3. Using this value as an absolute file name.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"configMapName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ConfigMapName allows a config map to be mounted as a volume containing the logging\n configuration file to use.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_MainSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- MainSpec struct ---------------------------------------------------- MainSpec defines the specification of Coherence container main class.",
+				Properties: map[string]spec.Schema{
+					"class": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Class is the Coherence container main class.  The default value is\n  com.tangosol.net.DefaultCacheServer.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"arguments": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Arguments is the optional arguments for Coherence container main class.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 

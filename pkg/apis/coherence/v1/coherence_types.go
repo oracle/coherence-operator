@@ -123,6 +123,112 @@ func (in *ImageSpec) DeepCopyWithDefaults(defaults *ImageSpec) *ImageSpec {
 	return &clone
 }
 
+// ----- LoggingSpec struct -------------------------------------------------
+// LoggingSpec defines the settings for the Coherence Pod logging
+// +k8s:openapi-gen=true
+type LoggingSpec struct {
+	// The default being 5 (info level).
+	// +optional
+	Level *int32 `json:"level,omitempty"`
+	// ConfigFile allows the location of the Java util logging configuration file to be overridden.
+	//  If this value is not set the logging.properties file embedded in this chart will be used.
+	//  If this value is set the configuration will be located by trying the following locations in order:
+	//    1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging
+	//         properties file will be located as a file location relative to the ConfigMap volume mount point.
+	//    2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the
+	//         configuration files directory in the user artifacts image.
+	//    3. Using this value as an absolute file name.
+	// +optional
+	ConfigFile *string `json:"configFile,omitempty"`
+	// ConfigMapName allows a config map to be mounted as a volume containing the logging
+	//  configuration file to use.
+	// +optional
+	ConfigMapName *string `json:"configMapName,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this LoggingSpec struct with any nil or not set values set
+// by the corresponding value in the defaults LoggingSpec struct.
+func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := LoggingSpec{}
+
+	if in.Level != nil {
+		clone.Level = in.Level
+	} else {
+		clone.Level = defaults.Level
+	}
+
+	if in.ConfigFile != nil {
+		clone.ConfigFile = in.ConfigFile
+	} else {
+		clone.ConfigFile = defaults.ConfigFile
+	}
+
+	if in.ConfigMapName != nil {
+		clone.ConfigMapName = in.ConfigMapName
+	} else {
+		clone.ConfigMapName = defaults.ConfigMapName
+	}
+
+	return &clone
+}
+
+// ----- MainSpec struct ----------------------------------------------------
+// MainSpec defines the specification of Coherence container main class.
+// +k8s:openapi-gen=true
+type MainSpec struct {
+	// Class is the Coherence container main class.  The default value is
+	//   com.tangosol.net.DefaultCacheServer.
+	// +optional
+	Class *string `json:"class,omitempty"`
+	// Arguments is the optional arguments for Coherence container main class.
+	// +optional
+	Arguments *string `json:"arguments,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this MainSpec struct with any nil or not set values set
+// by the corresponding value in the defaults MainSpecstruct.
+func (in *MainSpec) DeepCopyWithDefaults(defaults *MainSpec) *MainSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := MainSpec{}
+
+	if in.Class != nil {
+		clone.Class = in.Class
+	} else {
+		clone.Class = defaults.Class
+	}
+
+	if in.Arguments != nil {
+		clone.Arguments = in.Arguments
+	} else {
+		clone.Arguments = defaults.Arguments
+	}
+
+	return &clone
+}
+
 // ----- ReadinessProbeSpec struct ------------------------------------------
 
 // ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe
