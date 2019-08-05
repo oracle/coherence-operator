@@ -39,6 +39,7 @@ const (
 	failedToGetHelmValuesMessage string = "Failed to get Helm values for CoherenceRole %s failed\n%s"
 	failedToGetParentCluster     string = "Failed to get parent CoherenceCluster %s for CoherenceRole %s failed\n%s"
 	failedToReconcileRole        string = "Failed to reconcile CoherenceRole %s due to error\n%s"
+	failedToScaleRole            string = "Failed to scale CoherenceRole %s from %d to %d due to error\n%s"
 
 	eventReasonFailed       string = "failed"
 	eventReasonCreated      string = "SuccessfulCreate"
@@ -48,6 +49,7 @@ const (
 	eventReasonDeleted      string = "SuccessfulDelete"
 	eventReasonFailedDelete string = "FailedDelete"
 	eventReasonScale        string = "Scaling"
+	eventReasonScaleFailed  string = "ScalingFailed"
 
 	// The template used to create the CoherenceRole.Status.Selector
 	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
@@ -226,19 +228,18 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	logger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
 	logger.Info("Reconciling existing Coherence Role")
 
-	// ToDo: Fix this code to work when there is only a default role in the cluster spec and also how to work with the role + defaults
-	//clusterRole := cluster.GetRole(role.Spec.GetRoleName())
-	//if !reflect.DeepEqual(clusterRole, role.Spec) {
-	//	// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
-	//	// been caused by a direct update to the CoherenceRole, even though we really discourage that.
-	//	// Update the cluster which will cause this update to come around again.
-	//	logger.Info("CoherenceCluster role spec is different to this spec - updating CoherenceCluster '" + cluster.Name + "'")
-	//	cluster.SetRole(role.Spec)
-	//	err := r.client.Update(context.TODO(), cluster)
-	//	if err != nil {
-	//		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
-	//	}
-	//}
+	clusterRole := cluster.GetRole(role.Spec.GetRoleName())
+	if !reflect.DeepEqual(clusterRole, role.Spec) {
+		// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
+		// been caused by a direct update to the CoherenceRole, even though we really discourage that.
+		// Update the cluster which will cause this update to come around again.
+		logger.Info("CoherenceCluster role spec is different to this spec - updating CoherenceCluster '" + cluster.Name + "'")
+		cluster.SetRole(role.Spec)
+		err := r.client.Update(context.TODO(), cluster)
+		if err != nil {
+			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
+		}
+	}
 
 	// convert the unstructured data to a CoherenceInternal that we can deal with better
 	existing, err := r.toCoherenceInternal(helmValues)
@@ -249,9 +250,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	currentReplicas := existing.Spec.ClusterSize
 	desiredReplicas := role.Spec.GetReplicas()
 	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
-	clone := existing.Spec.DeepCopy()
-	clone.ClusterSize = desiredRole.ClusterSize
-	isUpgrade := !reflect.DeepEqual(&clone, desiredRole)
+	isUpgrade := r.isUpgrade(&existing.Spec, desiredRole)
 
 	sts, err := r.findStatefulSet(role)
 	if err != nil {
@@ -264,12 +263,16 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 		// if scaling up and upgrading then upgrade first and scale second
 		// otherwise we'd have to upgrade all the scaled up members
 		if isUpgrade {
-			result, err := r.upgrade(role, helmValues, currentReplicas, desiredRole)
+			err := r.upgrade(role, helmValues, currentReplicas, desiredRole)
 			if err == nil {
-				// requeue so that we then scale up after the upgrade
+				// Requeue so that we then scale up after the upgrade.
+				// We do things this way because the upgrade is still happening asynchronously
+				// and could take time. By re-queuing the request it will come back around to
+				// the reconcile method keep being re-queued until the cluster is once again
+				// in a stable state when the scale up will then happen.
 				return reconcile.Result{Requeue: true}, nil
 			} else {
-				return result, err
+				return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 			}
 		}
 
@@ -285,13 +288,20 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 
 		if err == nil && isUpgrade {
 			// requeue the request so that we then upgrade
+			// We do things this way because the scale down is still happening asynchronously
+			// and could take time. By re-queuing the request it will come back around to
+			// the reconcile method keep being re-queued until the cluster is once again
+			// in a stable state when the upgrade will then happen.
 			return reconcile.Result{Requeue: true}, nil
 		} else {
 			return result, err
 		}
 	} else if isUpgrade {
 		// no scaling, just a rolling upgrade
-		return r.upgrade(role, helmValues, currentReplicas, desiredRole)
+		if err := r.upgrade(role, helmValues, currentReplicas, desiredRole); err != nil {
+			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
+		}
+		return reconcile.Result{Requeue: false}, nil
 	} else if sts != nil {
 		// nothing to do to update or scale
 		// We probably arrived here due to a change in the StatefulSet for a role
@@ -316,16 +326,23 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	return reconcile.Result{Requeue: false}, nil
 }
 
+// isUpgrade determines whether the current spec differs to the desired spec ignoring differences to the Replicas field.
+func (r *ReconcileCoherenceRole) isUpgrade(current *coh.CoherenceInternalSpec, desired *coh.CoherenceInternalSpec) bool {
+	clone := current.DeepCopy()
+	clone.ClusterSize = desired.ClusterSize
+
+	return !reflect.DeepEqual(clone, desired)
+}
+
 // upgrade triggers a rolling upgrade of the role
-func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *unstructured.Unstructured, replicas int32, desiredRole *coh.CoherenceInternalSpec) (reconcile.Result, error) {
+func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *unstructured.Unstructured, replicas int32, desiredRole *coh.CoherenceInternalSpec) error {
 	// Rolling upgrade
 	reqLogger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
 	reqLogger.Info("Rolling upgrade of existing Role")
 
 	spec, err := coh.CoherenceInternalSpecAsMapFromSpec(desiredRole)
 	if err != nil {
-		// ToDo - handle this properly
-		return reconcile.Result{}, err
+		return err
 	}
 
 	// update the CoherenceInternal, this should trigger an update of the Helm install
@@ -334,8 +351,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 
 	err = r.client.Update(context.TODO(), existingRole)
 	if err != nil {
-		// ToDo - handle this properly
-		return reconcile.Result{}, err
+		return err
 	}
 
 	// Update this CoherenceRole's status
@@ -349,7 +365,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 	msg := fmt.Sprintf(updateMessage, role.Name, role.Name)
 	r.events.Event(role, corev1.EventTypeNormal, eventReasonUpdated, msg)
 
-	return reconcile.Result{Requeue: false}, nil
+	return nil
 }
 
 // findStatefulSet finds the StatefulSet associated to the role.

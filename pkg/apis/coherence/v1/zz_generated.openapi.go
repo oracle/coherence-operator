@@ -252,7 +252,6 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						},
 					},
 				},
-				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{
@@ -554,7 +553,6 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 						},
 					},
 				},
-				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{
@@ -750,7 +748,6 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 						},
 					},
 				},
-				Required: []string{"overrideConfig", "maxHeap", "jvmArgs", "javaOpts"},
 			},
 		},
 		Dependencies: []string{

@@ -76,14 +76,14 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 		if err == nil {
 			if replicas == desired {
 				// we're at the desired size so finished scaling
-				return reconcile.Result{}, nil
+				return reconcile.Result{Requeue: false}, nil
 			} else {
 				// scaled by one but not yet at the desired size - requeue request after one minute
 				return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 			}
 		} else {
 			// failed
-			return reconcile.Result{}, err
+			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToScaleRole, role.Name, current, replicas, err.Error()), logger)
 		}
 	}
 

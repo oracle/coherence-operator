@@ -68,20 +68,29 @@ func (c *CoherenceCluster) GetWkaServiceName() string {
 
 // Obtain the CoherenceRoleSpec for the specified role name
 func (c *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
-	for _, role := range c.Spec.Roles {
-		if role.GetRoleName() == name {
-			return role
+	if len(c.Spec.Roles) > 0 {
+		for _, role := range c.Spec.Roles {
+			if role.GetRoleName() == name {
+				return role
+			}
 		}
+	} else if name == c.Spec.CoherenceRoleSpec.GetRoleName() {
+		return c.Spec.CoherenceRoleSpec
 	}
-	return c.Spec.CoherenceRoleSpec
+	return CoherenceRoleSpec{}
 }
 
 // Set the CoherenceRoleSpec
 func (c *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
-	for index, role := range c.Spec.Roles {
-		if role.GetRoleName() == spec.GetRoleName() {
-			c.Spec.Roles[index] = spec
-			break
+	name := spec.GetRoleName()
+	if len(c.Spec.Roles) > 0 {
+		for index, role := range c.Spec.Roles {
+			if role.GetRoleName() == name {
+				c.Spec.Roles[index] = spec
+				break
+			}
 		}
+	} else if name == c.Spec.CoherenceRoleSpec.GetRoleName() {
+		c.Spec.CoherenceRoleSpec = spec
 	}
 }

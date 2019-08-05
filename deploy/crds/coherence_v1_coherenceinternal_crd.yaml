@@ -205,11 +205,6 @@ spec:
                   description: The name of the headless service used for Coherence
                     WKA
                   type: string
-              required:
-              - overrideConfig
-              - maxHeap
-              - jvmArgs
-              - javaOpts
               type: object
             userArtifacts:
               description: The user artifacts image settings

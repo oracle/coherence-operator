@@ -88,7 +88,7 @@ var _ = Describe("coherencerole_controller", func() {
 		errors = stubs.ClientErrors{}
 	})
 
-	When("The client will return an error getting the CoherenceRole", func() {
+	When("The k8s client returns an error getting the CoherenceRole", func() {
 		var err error = stubs.FakeError{Msg: "error getting role"}
 
 		BeforeEach(func() {
@@ -98,9 +98,8 @@ var _ = Describe("coherencerole_controller", func() {
 		})
 
 		When("reconcile is called", func() {
-			It("should return error", func() {
-				Expect(result.Error).To(HaveOccurred())
-				Expect(result.Error).To(Equal(err))
+			It("should not return error", func() {
+				Expect(result.Error).NotTo(HaveOccurred())
 			})
 
 			It("should re-queue the request", func() {
@@ -177,9 +176,8 @@ var _ = Describe("coherencerole_controller", func() {
 		})
 
 		When("reconcile is called", func() {
-			It("should return error", func() {
-				Expect(result.Error).To(HaveOccurred())
-				Expect(result.Error).To(Equal(err))
+			It("should not return error", func() {
+				Expect(result.Error).NotTo(HaveOccurred())
 			})
 
 			It("should re-queue the request", func() {

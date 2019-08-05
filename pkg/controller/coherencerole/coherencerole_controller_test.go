@@ -213,8 +213,6 @@ var _ = Describe("coherencerole_controller", func() {
 		var sts appsv1.StatefulSet
 
 		BeforeEach(func() {
-			cluster = defaultCluster
-
 			var replicas int32 = 3
 
 			roleCurrent = &coherence.CoherenceRole{
@@ -223,6 +221,16 @@ var _ = Describe("coherencerole_controller", func() {
 					Role:     roleName,
 					Replicas: &replicas,
 				},
+			}
+
+			cluster = &coherence.CoherenceCluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: testNamespace,
+					Name:      testClusterName,
+				},
+				Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{
+					{Role: roleName, Replicas: &replicas},
+				}},
 			}
 
 			roleNew = &coherence.CoherenceRole{

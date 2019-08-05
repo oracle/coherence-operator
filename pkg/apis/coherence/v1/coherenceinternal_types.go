@@ -51,22 +51,30 @@ type CoherenceInternalSpec struct {
 	// The name to use for the service account to use when RBAC is enabled
 	// The role bindings must already have been created as this chart does not create them it just
 	// sets the serviceAccountName value in the Pod spec.
+	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// The secrets to be used when pulling images. Secrets must be manually created in the target namespace.
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+	// +optional
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// The Coherence Docker image settings
+	// +optional
 	Coherence *ImageSpec `json:"coherence,omitempty"`
 	// The Coherence Utilities Docker image settings
+	// +optional
 	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
 	// The store settings
+	// +optional
 	Store *CoherenceInternalStoreSpec `json:"store,omitempty"`
 	// Controls whether or not log capture via EFK stack is enabled.
+	// +optional
 	LogCaptureEnabled bool `json:"logCaptureEnabled,omitempty"`
 	// Specify the fluentd image
 	// These parameters are ignored if 'LogCaptureEnabled' is false.
+	// +optional
 	Fluentd *FluentdImageSpec `json:"fluentd,omitempty"`
 	// The user artifacts image settings
+	// +optional
 	UserArtifacts *UserArtifactsImageSpec `json:"userArtifacts,omitempty"`
 }
 
@@ -88,22 +96,28 @@ type CoherenceInternalStoreSpec struct {
 	// +optional
 	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
 	// CacheConfig is the name of the cache configuration file to use
+	// +optional
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// PofConfig is the name of the POF configuration file to use when using POF serializer
+	// +optional
 	PofConfig *string `json:"pofConfig,omitempty"`
 	// OverrideConfig is name of the Coherence operational configuration override file,
 	// the default is tangosol-coherence-override.xml
-	OverrideConfig *string `json:"overrideConfig,omitEmpty"`
+	// +optional
+	OverrideConfig *string `json:"overrideConfig,omitempty"`
 	// MaxHeap is the min/max heap value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
 	// If not set the JVM defaults are used.
-	MaxHeap *string `json:"maxHeap,omitEmpty"`
+	// +optional
+	MaxHeap *string `json:"maxHeap,omitempty"`
 	// JvmArgs specifies the options to pass to the Coherence JVM. The default is
 	// to use the G1 collector.
-	JvmArgs *string `json:"jvmArgs,omitEmpty"`
+	// +optional
+	JvmArgs *string `json:"jvmArgs,omitempty"`
 	// JavaOpts is miscellaneous JVM options to pass to the Coherence store container
 	// This options will override the system options computed in the start up script.
-	JavaOpts *string `json:"javaOpts,omitEmpty"`
+	// +optional
+	JavaOpts *string `json:"javaOpts,omitempty"`
 	// Ports is additional port mappings that will be added to the Pod
 	// To specify extra ports add them as port name value pairs the same as they
 	// would be added to a Pod containers spec, for example these values:
@@ -113,6 +127,7 @@ type CoherenceInternalStoreSpec struct {
 	//   my-other-port: 1234
 	//
 	// will add the port mappings to the Pod and Service for ports 8080 and 1234
+	// +optional
 	Ports map[string]int32 `json:"ports,omitempty"`
 	// Env is additional environment variable mappings that will be passed to
 	// the Coherence container in the Pod
@@ -124,6 +139,7 @@ type CoherenceInternalStoreSpec struct {
 	//   BAR: "bar-value"
 	//
 	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
+	// +optional
 	Env map[string]string `json:"env,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
 	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
@@ -132,6 +148,7 @@ type CoherenceInternalStoreSpec struct {
 	// annotations:
 	//   prometheus.io/scrape: "true"
 	//   prometheus.io/port: "2408"
+	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 

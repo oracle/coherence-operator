@@ -206,10 +206,12 @@ type UserArtifactsImageSpec struct {
 	// The folder in the custom artifacts Docker image containing jar
 	// files to be added to the classpath of the Coherence container.
 	// If not set the libDir is "/files/lib".
+	// +optional
 	LibDir *string `json:"libDir,omitempty"`
 	// The folder in the custom artifacts Docker image containing
 	// configuration files to be added to the classpath of the Coherence container.
 	// If not set the configDir is "/files/conf".
+	// +optional
 	ConfigDir *string `json:"configDir,omitempty"`
 }
 
@@ -283,8 +285,10 @@ func (in *FluentdImageSpec) DeepCopyWithDefaults(defaults *FluentdImageSpec) *Fl
 // +k8s:openapi-gen=true
 type FluentdApplicationSpec struct {
 	// The fluentd configuration file configuring source for application log.
+	// +optional
 	ConfigFile *string `json:"configFile,omitempty"`
 	// This value should be source.tag from fluentd.application.configFile.
+	// +optional
 	Tag *string `json:"tag,omitempty"`
 }
 
