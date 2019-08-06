@@ -1,23 +1,23 @@
 module github.com/oracle/coherence-operator
 
 require (
-	github.com/NYTimes/gziphandler v1.0.1 // indirect
-	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
 	github.com/go-logr/logr v0.1.0
+	github.com/go-openapi/loads v0.17.0
+	github.com/go-openapi/spec v0.19.0
+	github.com/go-openapi/strfmt v0.18.0
+	github.com/go-openapi/validate v0.18.0
 	github.com/onsi/ginkgo v1.7.0
 	github.com/onsi/gomega v1.4.3
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/operator-framework/operator-sdk v0.9.1-0.20190724001845-d6e1aba9fa51
 	github.com/spf13/pflag v1.0.3
 	k8s.io/api v0.0.0-20190612125737-db0771252981
+	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/helm v2.13.1+incompatible
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
-	k8s.io/kubernetes v1.11.8-beta.0.0.20190124204751-3a10094374f2
 	sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/controller-tools v0.1.10
+	sigs.k8s.io/yaml v1.1.0
 )
 
 // Pinned to kubernetes-1.13.4
