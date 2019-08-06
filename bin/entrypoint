@@ -5,8 +5,8 @@
 
 if ! whoami &>/dev/null; then
   if [ -w /etc/passwd ]; then
-    echo "${USER_NAME:-helm}:x:$(id -u):$(id -g):${USER_NAME:-helm} user:${HOME}:/sbin/nologin" >> /etc/passwd
+    echo "${USER_NAME:-coherence}:x:$(id -u):$(id -g):${USER_NAME:-coherence} user:${HOME}:/sbin/nologin" >> /etc/passwd
   fi
 fi
 
-exec ${OPERATOR} run helm --watches-file=/opt/helm/watches.yaml $@
+exec ${OPERATOR} run helm --watches-file=/opt/${USER_NAME:-coherence}/watches.yaml $@

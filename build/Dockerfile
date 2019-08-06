@@ -1,9 +1,9 @@
 FROM oraclelinux:7-slim
 
-ENV OPERATOR=/usr/local/bin/helm-operator \
+ENV OPERATOR=/usr/local/bin/coherence-operator \
     USER_UID=1001 \
-    USER_NAME=helm \
-    HOME=/opt/helm
+    USER_NAME=coherence \
+    HOME=/opt/coherence
 
 COPY watches.yaml ${HOME}/watches.yaml
 
