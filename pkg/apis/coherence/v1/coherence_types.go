@@ -229,6 +229,64 @@ func (in *MainSpec) DeepCopyWithDefaults(defaults *MainSpec) *MainSpec {
 	return &clone
 }
 
+// ----- PersistentStorageSpec struct ---------------------------------------
+// PersistenceStorageSpec defines the persistence settings for the Coherence
+// +k8s:openapi-gen=true
+type PersistentStorageSpec struct {
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim
+	// for persistence data.
+	// +optional
+	PersistentVolumeClaim *v1.PersistentVolumeClaimSpec `json:"persistentVolumeClaim,omitempty"` // from k8s.io/api/core/v1
+	// Volume allows the configuration of a normal k8s volume mapping
+	// for persistence data instead of a persistent volume claim. If a value is defined
+	// for store.persistence.volume then no PVC will be created and persistence data
+	// will instead be written to this volume. It is up to the deployer to understand
+	// the consequences of this and how the guarantees given when using PVCs differ
+	// to the storage guarantees for the particular volume type configured here.
+	// +optional
+	Volume *v1.Volume `json:"volume,omitempty"` // from k8s.io/api/core/v1
+}
+
+// DeepCopyWithDefaults returns a copy of this PersistentStorageSpec struct with any nil or not set values set
+// by the corresponding value in the defaults PersistentStorageSpec struct.
+func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorageSpec) *PersistentStorageSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := PersistentStorageSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.PersistentVolumeClaim != nil {
+		clone.PersistentVolumeClaim = in.PersistentVolumeClaim
+	} else {
+		clone.PersistentVolumeClaim = defaults.PersistentVolumeClaim
+	}
+
+	if in.Volume != nil {
+		clone.Volume = in.Volume
+	} else {
+		clone.Volume = defaults.Volume
+	}
+
+	return &clone
+}
+
 // ----- ReadinessProbeSpec struct ------------------------------------------
 
 // ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe

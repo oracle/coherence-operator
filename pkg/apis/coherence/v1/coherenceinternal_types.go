@@ -170,6 +170,16 @@ type CoherenceInternalStoreSpec struct {
 	// The default value if not set is 3.
 	// +optional
 	RevisionHistoryLimit *int32 `json:"revisionHistoryLimit,omitempty"`
+	// Persistence values configure the on-disc data persistence settings.
+	// The bool Enabled enables or disabled on disc persistence of data.
+	// +optional
+	Persistence *PersistentStorageSpec `json:"persistence,omitempty"`
+	// Snapshot values configure the on-disc persistence data snapshot (backup) settings.
+	// The bool Enabled enables or disabled a different location for
+	// persistence snapshot data. If set to false then snapshot files will be written
+	// to the same volume configured for persistence data in the Persistence section.
+	// +optional
+	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -211,6 +221,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.JavaOpts = role.Spec.JavaOpts
 	out.Store.PodManagementPolicy = role.Spec.PodManagementPolicy
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
+	out.Store.Persistence = role.Spec.Persistence
+	out.Store.Snapshot = role.Spec.Snapshot
 
 	// Set the labels
 	labels := make(map[string]string)

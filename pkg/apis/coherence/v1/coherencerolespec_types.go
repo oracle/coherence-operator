@@ -120,6 +120,16 @@ type CoherenceRoleSpec struct {
 	// The default value if not set is 3.
 	// +optional
 	RevisionHistoryLimit *int32 `json:"revisionHistoryLimit,omitempty"`
+	// Persistence values configure the on-disc data persistence settings.
+	// The bool Enabled enables or disabled on disc persistence of data.
+	// +optional
+	Persistence *PersistentStorageSpec `json:"persistence,omitempty"`
+	// Snapshot values configure the on-disc persistence data snapshot (backup) settings.
+	// The bool Enabled enables or disabled a different location for
+	// persistence snapshot data. If set to false then snapshot files will be written
+	// to the same volume configured for persistence data in the Persistence section.
+	// +optional
+	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -254,6 +264,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Images = in.Images.DeepCopyWithDefaults(defaults.Images)
 	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)
 	clone.Main = in.Main.DeepCopyWithDefaults(defaults.Main)
+	clone.Persistence = in.Persistence.DeepCopyWithDefaults(defaults.Persistence)
+	clone.Snapshot = in.Snapshot.DeepCopyWithDefaults(defaults.Snapshot)
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
 
 	return &clone
