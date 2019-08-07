@@ -630,29 +630,8 @@ spec:
 {{- include "coherence.release_labels" . | indent 10 }}
           component: "coherence-vol"
       spec:
-        accessModes: [ "ReadWriteOnce" ]
-        {{- if .Values.store.persistence.dataSource }}
-        dataSource: {{ .Values.store.persistence.dataSource }}
-        {{- end }}
-        {{- if .Values.store.persistence.volumeMode }}
-        volumeMode: {{ .Values.store.persistence.volumeMode }}
-        {{- end }}
-        {{- if .Values.store.persistence.volumeName }}
-        volumeName: {{ .Values.store.persistence.volumeName }}
-        {{- end }}
-        {{- if .Values.store.persistence.selector }}
-        selector:
-{{ toYaml .Values.store.persistence.selector | indent 10 }}
-        {{- end }}
-        resources:
-          requests:
-            storage: {{ .Values.store.persistence.size }}
-        {{- if .Values.store.persistence.storageClass }}
-          {{- if (eq "-" .Values.store.persistence.storageClass) }}
-        storageClassName: ""
-          {{- else }}
-        storageClassName: "{{ .Values.store.persistence.storageClass }}"
-          {{- end }}
+        {{- if .Values.store.snapshot.persistentVolumeClaim }}
+{{ toYaml .Values.store.persistence.persistentVolumeClaim | indent 8 }}
         {{- end }}
       {{- end }}
     {{- end }}
@@ -666,29 +645,8 @@ spec:
 {{- include "coherence.release_labels" . | indent 10 }}
           component: "coherence-vol"
       spec:
-        accessModes: [ "ReadWriteOnce" ]
-        {{- if .Values.store.snapshot.dataSource }}
-        dataSource: {{ .Values.store.snapshot.dataSource }}
-        {{- end }}
-        {{- if .Values.store.snapshot.volumeMode }}
-        volumeMode: {{ .Values.store.snapshot.volumeMode }}
-        {{- end }}
-        {{- if .Values.store.snapshot.volumeName }}
-        volumeName: {{ .Values.store.snapshot.volumeName }}
-        {{- end }}
-        {{- if .Values.store.snapshot.selector }}
-        selector:
-{{ toYaml .Values.store.snapshot.selector | indent 10 }}
-        {{- end }}
-        resources:
-          requests:
-            storage: {{ .Values.store.snapshot.size }}
-        {{- if .Values.store.snapshot.storageClass }}
-          {{- if (eq "-" .Values.store.snapshot.storageClass) }}
-        storageClassName: ""
-          {{- else }}
-        storageClassName: "{{ .Values.store.snapshot.storageClass }}"
-          {{- end }}
+        {{- if .Values.store.snapshot.persistentVolumeClaim }}
+{{ toYaml .Values.store.snapshot.persistentVolumeClaim | indent 8 }}
         {{- end }}
       {{- end }}
     {{- end }}

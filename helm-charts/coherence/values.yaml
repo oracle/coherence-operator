@@ -193,43 +193,12 @@ store:
     # store.persistence.enabled enables or disabled on disc persistence of data
     enabled: false
 
-    # store.persistence.size The size of the PersistentVolume to allocate to each Pod
+    # store.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
     # in the StatefulSet. For production servers this number should likely be much larger.
-    size: "2Gi"
-
-    # store.persistence.storageClass is the Persistent Volume Storage Class
-    # If defined the PVC storageClassName is set to the defined name
-    # If set to "-" the PVC storageClassName is set to "", which disables
-    #   dynamic provisioning
-    # If undefined (the default) or set to null, no storageClassName spec is
-    #   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    #   GKE, AWS & OpenStack)
-    storageClass:
-
-    # store.persistence.dataSource is the dataSource attribute to use in the persistence PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    dataSource:
-
-    # store.persistence.volumeMode is the volumeMode attribute to use in the persistence PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    volumeMode:
-
-    # store.persistence.volumeName is the volumeName attribute to use in the persistence PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    volumeName:
-
-    # store.persistence.selector is the yaml to add to the selector section of the persistence PVC spec
+    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
     #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
     #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-    #
-    #   For example, if a PersistentVolume already exists with the label coherenceCluster: "foo" then
-    #   a selector can be added to make the Pod use that PV like this:
-    #
-    #   selector:
-    #     matchLabels:
-    #       coherenceCluster: "foo"
-    #
-    selector:
+    persistenceVolumeClaim:
 
     # store.persistence.volume allows the configuration of a normal k8s volume mapping
     #   for persistence data instead of a persistent volume claim. If a value is defined
@@ -248,43 +217,12 @@ store:
     #   to the same volume configured for persistence data in the store.persistence section.
     enabled: false
 
-    # store.snapshot.size The size of the PersistentVolume to allocate to each Pod
+    # store.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
     # in the StatefulSet. For production servers this number should likely be much larger.
-    size: "2Gi"
-
-    # store.snapshot.storageClass is the Persistent Volume Storage Class
-    #   If defined the PVC storageClassName is set to the defined name
-    #   If set to "-" the PVC storageClassName is set to "", which disables
-    #     dynamic provisioning
-    #   If undefined (the default) or set to null, no storageClassName spec is
-    #     set, choosing the default provisioner.  (gp2 on AWS, standard on
-    #     GKE, AWS & OpenStack)
-    storageClass:
-
-    # store.snapshot.dataSource is the dataSource attribute to use in the snapshot PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    dataSource:
-
-    # store.snapshot.volumeMode is the volumeMode attribute to use in the snapshot PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    volumeMode:
-
-    # store.snapshot.volumeName is the volumeName attribute to use in the snapshot PVC spec
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    volumeName:
-
-    # store.snapshot.selector is the yaml to add to the selector section of the persistence PVC spec
+    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
     #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
     #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-    #
-    #   For example, if a PersistentVolume already exists with the label coherenceCluster: "foo" then
-    #   a selector can be added to make the Pod use that PV like this:
-    #
-    #   selector:
-    #     matchLabels:
-    #       coherenceCluster: "foo"
-    #
-    selector:
+    persistenceVolumeClaim:
 
     # store.snapshot.volume allows the configuration of a normal k8s volume mapping
     #   for persistence snapshot data instead of a persistent volume claim. If a value is defined
