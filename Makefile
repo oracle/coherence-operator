@@ -44,7 +44,7 @@ build: build-dirs
 	# create Helm charts
 	@echo "Creating Helm chart distributions"
 	# Copy the Helm charts from their source location to the distribution folder
-	rm -rf $(CHART_DIR); mkdir $(CHART_DIR); cp -R ./helm-charts/ $(CHART_DIR)
+	rm -rf $(CHART_DIR); mkdir $(CHART_DIR); cp -R ./helm-charts/* $(CHART_DIR)
 	cp ./deploy/role.yaml            $(CHART_DIR)/coherence-operator/templates/role.yaml
 	cp ./deploy/role_binding.yaml    $(CHART_DIR)/coherence-operator/templates/role_binding.yaml
 	cp ./deploy/service_account.yaml $(CHART_DIR)/coherence-operator/templates/service_account.yaml
