@@ -59,15 +59,18 @@ def testStep(String wsdir, String nspId, String additionalArgument) {
 
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
-        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*,_ws2/functional-tests/target/test-output/**/*,_ws2/functional-tests/target/surefire-reports/**/*,_ws2/functional-tests/target/failsafe-reports/**/*'
+        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,coherence-utils/utils/target/test-output/**/*,coherence-utils/utils/target/surefire-reports/**/*,coherence-utils/utils/target/failsafe-reports/**/*,coherence-utils/functional-tests/target/test-output/**/*,coherence-utils/functional-tests/target/surefire-reports/**/*,coherence-utils/functional-tests/target/failsafe-reports/**/*'
     }
-    sh '''
-        for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER test-cop-${BUILD_NUMBER}-2 test-cop2-${BUILD_NUMBER}-2
-        do
-            helm delete --purge $(helm ls --namespace $i --short) || true
-            kubectl delete namespace $i || true
-        done
-    '''
+    //dir (env.WORKSPACE) {
+    //    archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*,_ws2/functional-tests/target/test-output/**/*,_ws2/functional-tests/target/surefire-reports/**/*,_ws2/functional-tests/target/failsafe-reports/**/*'
+    //}
+    //sh '''
+    //    for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER test-cop-${BUILD_NUMBER}-2 test-cop2-${BUILD_NUMBER}-2
+    //    do
+    //        helm delete --purge $(helm ls --namespace $i --short) || true
+    //        kubectl delete namespace $i || true
+    //    done
+    //'''
 }
 
 pipeline {
@@ -83,6 +86,7 @@ pipeline {
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
+    /*
         stage('maven-build') {
             agent {
               label 'Kubernetes'
@@ -155,12 +159,13 @@ pipeline {
                 }
             }
         }
+        */
         stage("docker-build-push-tests") {
             agent {
                 label 'Kubernetes'
             }
             stages{
-                stage('docker-build') {
+                stage('build-utils') {
                     steps {
                         echo 'Docker Build'
                         sh '''
@@ -174,12 +179,15 @@ pipeline {
                         sh 'docker swarm leave --force || true'
                         sh 'docker swarm init'
                         withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                            sh 'mvn generate-resources'
-                            sh 'mvn -Pdocker clean install'
+                            sh '''
+                                cd coherence-utils
+                                mvn generate-resources
+                                mvn -Pdocker clean install
+                            '''
                         }
                     }
                 }
-                stage('docker-push') {
+                stage('docker-push-utils') {
                     steps {
                         echo 'Docker Push'
                         withCredentials([
@@ -189,6 +197,7 @@ pipeline {
                             withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                                 sh '''
                                     docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                                    cd coherence-utils
                                     mvn -B -Dmaven.test.skip=true -P docker -P docker-push clean install
                                 '''
                             }
@@ -199,11 +208,26 @@ pipeline {
                     steps {
                         withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                             sh '''
+                                cd coherence-utils
                                 mvn -B clean install -P helm-test -P push-test-image -Dmaven.test.skip=true
                             '''
                         }
                     }
                 }
+                stage('build-go-code') {
+                    steps {
+                        sh '''
+                        export http_proxy=$HTTP_PROXY
+                        make build
+                        '''
+                    }
+                }
+                stage('test-go-code') {
+                    steps {
+                        sh 'make test'
+                    }
+                }
+                /*
                 stage('copy-workspace') {
                     steps {
                         sh '''
@@ -237,7 +261,7 @@ pipeline {
                             }
                         }
                     }
-                }
+                }*/
             }
             post {
                 always {
