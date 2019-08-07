@@ -10,14 +10,17 @@ REGISTRY        ?= iad.ocir.io
 TENANT          ?= odx-stateservice/test/oracle
 OPERATOR_IMAGE  := ${REGISTRY}/${TENANT}/coherence-operator:${VERSION}
 
-HELM_COHERENCE_IMAGE ?= container-registry.oracle.com/middleware/coherence:12.2.1.3.2
+HELM_COHERENCE_IMAGE ?= iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
 HELM_UTILS_IMAGE     ?= iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:1.1.0-SNAPSHOT-utils
 
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
-override BUILD_OUTPUT := ./build/_output
-override BUILD_PROPS  := $(BUILD_OUTPUT)/build.properties
-override CHART_DIR    := $(BUILD_OUTPUT)/helm-charts
+TEST_NAMESPACE ?= operator-e2e-test
+
+override BUILD_OUTPUT  := ./build/_output
+override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
+override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
+override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
 
 all: build
 
@@ -25,6 +28,7 @@ all: build
 build-dirs:
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
+	@mkdir -p $(TEST_LOGS_DIR)
 
 # Builds the project, helm charts and Docker image
 build: export CGO_ENABLED = 0
@@ -72,11 +76,6 @@ build: build-dirs
 		tar -czf $(CHART_DIR)/$${chartname}-$(VERSION).tar.gz $${chart}; \
 	done
 
-	@echo "Creating CRD distribution"
-	rm -rf $(BUILD_OUTPUT)/crds/; mkdir $(BUILD_OUTPUT)/crds/; cp -R ./deploy/crds/*_crd.yaml $(BUILD_OUTPUT)/crds/
-	@echo "Creating deployment yaml files"
-	rm -rf $(BUILD_OUTPUT)/yaml/; mkdir $(BUILD_OUTPUT)/yaml/; cp -R ./deploy/*.yaml $(BUILD_OUTPUT)/yaml/
-
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	operator-sdk build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
@@ -91,6 +90,45 @@ test: build-dirs
 		CMD=ginkgo; \
 	fi; \
 	$$CMD test -v ./cmd/... ./pkg/...
+
+# Executes the Go end-to-end tests that require a k8s cluster using
+# a local operator instance (i.e. the operator is not deployed to k8s).
+# These tests will use whichever k8s cluster the local environment
+# is pointing to.
+# These tests require the Operator CRDs and will install them before
+# tests start and remove them afterwards.
+e2e-local-test: export CGO_ENABLED = 0
+e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+e2e-local-test: build-dirs
+	@echo "creating test namespace"
+	kubectl create namespace ${TEST_NAMESPACE}
+	@echo "executing end-to-end tests"
+	operator-sdk test local ./test/e2e/local --namespace ${TEST_NAMESPACE} --up-local \
+		--verbose --debug \
+		--local-operator-flags "--watches-file=local-watches.yaml" \
+		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
+	@echo "deleting test namespace"
+	kubectl delete namespace ${TEST_NAMESPACE}
+
+# Executes the Go end-to-end tests that require a k8s cluster using
+# a deployed operator instance (i.e. the operator Docker image is
+# deployed to k8s). These tests will use whichever k8s cluster the
+# local environment is pointing to.
+# These tests require the Operator CRDs and will install them before
+# tests start and remove them afterwards.
+e2e-test: export CGO_ENABLED = 0
+e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+e2e-test: build-dirs
+	@echo "creating test namespace"
+	kubectl create namespace ${TEST_NAMESPACE}
+	@echo "executing end-to-end tests"
+	operator-sdk test local ./test/e2e/remote --namespace ${TEST_NAMESPACE} \
+		--image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-SNAPSHOT \
+		--verbose --debug \
+		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
+	@echo "deleting test namespace"
+	kubectl delete namespace ${TEST_NAMESPACE}
+
 
 # This step will run the Operator SDK code generators.
 # These commands will generate the CRD files from the API structs and will

@@ -136,6 +136,13 @@ func (in *CoherenceRoleSpec) GetReplicas() int32 {
 	return *in.Replicas
 }
 
+// Set the number of replicas required for a role.
+func (in *CoherenceRoleSpec) SetReplicas(replicas int32) {
+	if in != nil {
+		in.Replicas = &replicas
+	}
+}
+
 // Obtain the full name for  a role.
 func (in *CoherenceRoleSpec) GetFullRoleName(cluster *CoherenceCluster) string {
 	return cluster.Name + "-" + in.GetRoleName()

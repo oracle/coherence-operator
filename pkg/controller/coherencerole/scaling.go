@@ -55,10 +55,10 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 	logger := log.WithValues("Namespace", role.Name, "Name", role.Name)
 
 	if sts.Status.ReadyReplicas != current {
-		logger.Info(fmt.Sprintf("Role %s is not StatusHA - re-queing scaling request", role.Name))
+		logger.Info(fmt.Sprintf("Role %s is not StatusHA - re-queing scaling request. Stateful set ready replicas is %d", role.Name, sts.Status.ReadyReplicas))
 	}
 
-	ha := current == 1 || r.isStatusHA(role, sts)
+	ha := current == 1 || r.IsStatusHA(role, sts)
 
 	if ha {
 		var replicas int32
@@ -124,15 +124,15 @@ func (r *ReconcileCoherenceRole) parallelScale(role *coh.CoherenceRole, cohInter
 	return reconcile.Result{}, nil
 }
 
-// isStatusHA will return true if the cluster represented by the role is StatusHA.
-func (r *ReconcileCoherenceRole) isStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
+// IsStatusHA will return true if the cluster represented by the role is StatusHA.
+func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
 	list := corev1.PodList{}
 	opts := client.ListOptions{}
 	opts.InNamespace(role.Namespace)
 	opts.MatchingLabels(sts.Spec.Selector.MatchLabels)
 
-	if log.V(2).Enabled() {
-		log.V(2).Info("Checking StatefulSet "+sts.Name+" for StatusHA", "Namespace", role.Name, "Name", role.Name)
+	if log.Enabled() {
+		log.Info("Checking StatefulSet "+sts.Name+" for StatusHA", "Namespace", role.Name, "Name", role.Name)
 	}
 
 	err := r.client.List(context.TODO(), &opts, &list)
@@ -142,33 +142,39 @@ func (r *ReconcileCoherenceRole) isStatusHA(role *coh.CoherenceRole, sts *appsv1
 	}
 
 	if len(list.Items) == 0 {
-		if log.V(2).Enabled() {
-			log.V(2).Info("Cannot find any Pods for StatefulSet " + sts.Name + " - assuming StatusHA is true")
+		if log.Enabled() {
+			log.Info("Cannot find any Pods for StatefulSet " + sts.Name + " - assuming StatusHA is true")
 		}
 		return true
 	}
 
 	for _, pod := range list.Items {
-		ha, err := isPodStatusHA(pod.Name)
-		if log.V(2).Enabled() {
-			log.V(2).Info("Checking pod " + pod.Name + " for StatusHA")
-		}
-		if err == nil {
-			return ha
+		if pod.Status.Phase == "Running" {
+			ip := pod.Status.PodIP
+			ha, err := IsPodStatusHA(ip)
+			if log.Enabled() {
+				log.Info("Checking pod " + pod.Name + " for StatusHA")
+			}
+			if err == nil {
+				return ha
+			}
+		} else {
+			log.Info("Skipping StatusHA checking for pod " + pod.Name + " as Pod status not in running phase")
 		}
 	}
 
 	return false
 }
 
-func isPodStatusHA(pod string) (bool, error) {
+// Determine whether a Pod's Coherence Services are StatusHA.
+func IsPodStatusHA(podIP string) (bool, error) {
 	cl := &http.Client{}
 
-	url := fmt.Sprintf(servicesFormat, pod)
+	url := fmt.Sprintf(servicesFormat, podIP)
 	response, err := cl.Get(url)
 	if err != nil {
-		if log.V(2).Enabled() {
-			log.V(2).Info("Error accessing pod " + pod + " URL " + url + "\n" + err.Error())
+		if log.Enabled() {
+			log.Info("Error accessing podIP " + podIP + " URL " + url + "\n" + err.Error())
 		}
 		return false, err
 	}
@@ -178,15 +184,15 @@ func isPodStatusHA(pod string) (bool, error) {
 
 	err = json.Unmarshal(data, &services)
 	if err != nil {
-		if log.V(2).Enabled() {
-			log.V(2).Info("Error parsing services json returned from pod " + pod + " URL " + url + "\n" + string(data) + "\n" + err.Error())
+		if log.Enabled() {
+			log.Info("Error parsing services json returned from podIP " + podIP + " URL " + url + "\n" + string(data) + "\n" + err.Error())
 		}
 		return false, err
 	}
 
 	for _, service := range services.Items {
 		if service["type"] == "DistributedCache" {
-			url = fmt.Sprintf(partitionFormat, pod, service["name"])
+			url = fmt.Sprintf(partitionFormat, podIP, service["name"])
 			response, err := cl.Get(url)
 			if err == nil {
 				if response.StatusCode == 200 {
@@ -198,14 +204,14 @@ func isPodStatusHA(pod string) (bool, error) {
 							return false, nil
 						}
 					} else {
-						if log.V(2).Enabled() {
-							log.V(2).Info("Error checking StatusHA on pod " + pod + "\n" + err.Error())
+						if log.Enabled() {
+							log.Info("Error checking StatusHA on podIP " + podIP + "\n" + err.Error())
 						}
 						return false, err
 					}
 				}
 			} else {
-				log.V(2).Info("Error accessing pod " + pod + " URL " + url + "\n" + err.Error())
+				log.Info("Error accessing podIP " + podIP + " URL " + url + "\n" + err.Error())
 			}
 		}
 	}

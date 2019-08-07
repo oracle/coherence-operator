@@ -32,6 +32,7 @@ var _ = Describe("coherencerole_controller", func() {
 		cluster     *coherence.CoherenceCluster
 		roleNew     *coherence.CoherenceRole
 		roleCurrent *coherence.CoherenceRole
+		statefulSet *appsv1.StatefulSet
 		existing    []runtime.Object
 		result      stubs.ReconcileResult
 
@@ -66,6 +67,10 @@ var _ = Describe("coherencerole_controller", func() {
 
 			err = mgr.Client.Create(context.TODO(), cohIntern)
 			Expect(err).NotTo(HaveOccurred())
+		}
+
+		if statefulSet != nil {
+			_ = mgr.Client.Create(context.TODO(), statefulSet)
 		}
 
 		request := reconcile.Request{
@@ -178,6 +183,15 @@ var _ = Describe("coherencerole_controller", func() {
 					},
 				},
 			}
+
+			statefulSet = &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				Status: appsv1.StatefulSetStatus{
+					Replicas:        replicas,
+					ReadyReplicas:   replicas,
+					CurrentReplicas: replicas,
+				},
+			}
 		})
 
 		When("reconcile is called", func() {
@@ -210,8 +224,6 @@ var _ = Describe("coherencerole_controller", func() {
 	})
 
 	When("a CoherenceRole is unchanged and the StatefulSet is unchanged", func() {
-		var sts appsv1.StatefulSet
-
 		BeforeEach(func() {
 			var replicas int32 = 3
 
@@ -247,7 +259,7 @@ var _ = Describe("coherencerole_controller", func() {
 				},
 			}
 
-			sts = appsv1.StatefulSet{
+			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
@@ -255,8 +267,6 @@ var _ = Describe("coherencerole_controller", func() {
 					CurrentReplicas: replicas,
 				},
 			}
-
-			existing = []runtime.Object{&sts}
 		})
 
 		When("reconcile is called", func() {
@@ -280,7 +290,6 @@ var _ = Describe("coherencerole_controller", func() {
 	})
 
 	When("a CoherenceRole is unchanged and the StatefulSet replicas has changed to the desired size", func() {
-		var sts appsv1.StatefulSet
 		var replicas int32 = 3
 
 		BeforeEach(func() {
@@ -308,7 +317,7 @@ var _ = Describe("coherencerole_controller", func() {
 				},
 			}
 
-			sts = appsv1.StatefulSet{
+			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
@@ -316,8 +325,6 @@ var _ = Describe("coherencerole_controller", func() {
 					CurrentReplicas: replicas,
 				},
 			}
-
-			existing = []runtime.Object{&sts}
 		})
 
 		When("reconcile is called", func() {
@@ -340,8 +347,8 @@ var _ = Describe("coherencerole_controller", func() {
 
 			It("should update the CoherenceRole's status replicas", func() {
 				role := mgr.AssertCoherenceRoleExists(testNamespace, fullRoleName)
-				Expect(role.Status.CurrentReplicas).To(Equal(sts.Status.CurrentReplicas))
-				Expect(role.Status.ReadyReplicas).To(Equal(sts.Status.ReadyReplicas))
+				Expect(role.Status.CurrentReplicas).To(Equal(statefulSet.Status.CurrentReplicas))
+				Expect(role.Status.ReadyReplicas).To(Equal(statefulSet.Status.ReadyReplicas))
 			})
 
 			It("should update the CoherenceRole's status value", func() {
@@ -352,12 +359,9 @@ var _ = Describe("coherencerole_controller", func() {
 	})
 
 	When("a CoherenceRole is unchanged and the StatefulSet replicas has changed but not to the desired size", func() {
-		var sts appsv1.StatefulSet
 		var replicas int32 = 3
 
 		BeforeEach(func() {
-			cluster = defaultCluster
-
 			roleCurrent = &coherence.CoherenceRole{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
 				Spec: coherence.CoherenceRoleSpec{
@@ -365,6 +369,9 @@ var _ = Describe("coherencerole_controller", func() {
 					Replicas: &replicas,
 				},
 			}
+
+			cluster = defaultCluster.DeepCopy()
+			cluster.Spec.Roles = []coherence.CoherenceRoleSpec{roleCurrent.Spec}
 
 			roleNew = &coherence.CoherenceRole{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
@@ -380,7 +387,7 @@ var _ = Describe("coherencerole_controller", func() {
 				},
 			}
 
-			sts = appsv1.StatefulSet{
+			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
@@ -388,8 +395,6 @@ var _ = Describe("coherencerole_controller", func() {
 					CurrentReplicas: 2,
 				},
 			}
-
-			existing = []runtime.Object{&sts}
 		})
 
 		When("reconcile is called", func() {
@@ -412,13 +417,13 @@ var _ = Describe("coherencerole_controller", func() {
 
 			It("should update the CoherenceRole's status replica counts", func() {
 				role := mgr.AssertCoherenceRoleExists(testNamespace, fullRoleName)
-				Expect(role.Status.CurrentReplicas).To(Equal(sts.Status.CurrentReplicas))
-				Expect(role.Status.ReadyReplicas).To(Equal(sts.Status.ReadyReplicas))
+				Expect(role.Status.CurrentReplicas).To(Equal(statefulSet.Status.CurrentReplicas))
+				Expect(role.Status.ReadyReplicas).To(Equal(statefulSet.Status.ReadyReplicas))
 			})
 
 			It("should not update the CoherenceRole's status value", func() {
 				role := mgr.AssertCoherenceRoleExists(testNamespace, fullRoleName)
-				Expect(role.Status.Status).To(Equal(roleNew.Status.Status))
+				Expect(role.Status.Status).To(Equal(coherence.RoleStatusCreated))
 			})
 		})
 	})
