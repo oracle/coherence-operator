@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
@@ -74,6 +76,78 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			revisionHistoryLimitOne = int32Ptr(3)
 			revisionHistoryLimitTwo = int32Ptr(5)
 
+			block          = corev1.PersistentVolumeBlock
+			filesystem     = corev1.PersistentVolumeFilesystem
+			persistenceOne = &coherence.PersistentStorageSpec{
+				Enabled: boolPtr(true),
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+					},
+					StorageClassName: stringPtr("sc1"),
+					DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc1", Kind: "PersistentVolumeClaim"},
+					VolumeMode:       &block,
+					VolumeName:       "name1",
+					Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
+				},
+				Volume: &corev1.Volume{
+					Name:         "vol1",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+			persistenceTwo = &coherence.PersistentStorageSpec{
+				Enabled: boolPtr(true),
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
+					},
+					StorageClassName: stringPtr("sc2"),
+					DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc2", Kind: "PersistentVolumeClaim"},
+					VolumeMode:       &filesystem,
+					VolumeName:       "name2",
+					Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh2"}},
+				},
+				Volume: &corev1.Volume{
+					Name:         "vol2",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+
+			snapshotOne = &coherence.PersistentStorageSpec{
+				Enabled: boolPtr(true),
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+					},
+					StorageClassName: stringPtr("sc1"),
+					DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc3", Kind: "PersistentVolumeClaim"},
+					VolumeMode:       &block,
+					VolumeName:       "name3",
+					Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
+				},
+				Volume: &corev1.Volume{
+					Name:         "vol3",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+			snapshotTwo = &coherence.PersistentStorageSpec{
+				Enabled: boolPtr(true),
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
+					},
+					StorageClassName: stringPtr("sc2"),
+					DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc4", Kind: "PersistentVolumeClaim"},
+					VolumeMode:       &filesystem,
+					VolumeName:       "name4",
+					Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh2"}},
+				},
+				Volume: &corev1.Volume{
+					Name:         "vol4",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -95,6 +169,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Annotations:          nil,
 				PodManagementPolicy:  &podManagementPolicyOne,
 				RevisionHistoryLimit: revisionHistoryLimitOne,
+				Persistence:          persistenceOne,
+				Snapshot:             snapshotOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -118,6 +194,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Annotations:          nil,
 				PodManagementPolicy:  &podManagementPolicyTwo,
 				RevisionHistoryLimit: revisionHistoryLimitTwo,
+				Persistence:          persistenceTwo,
+				Snapshot:             snapshotTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -397,6 +475,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.RevisionHistoryLimit = defaults.RevisionHistoryLimit
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Persistence is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Persistence = nil
+			})
+
+			It("clone should be equal to the original with the Persistence field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Persistence = defaults.Persistence
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Snapshot is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Snapshot = nil
+			})
+
+			It("clone should be equal to the original with the Snapshot field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Snapshot = defaults.Snapshot
 
 				Expect(clone).To(Equal(expected))
 			})

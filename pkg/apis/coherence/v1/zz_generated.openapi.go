@@ -27,6 +27,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.Images":                     schema_pkg_apis_coherence_v1_Images(ref),
 		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
+		"./pkg/apis/coherence/v1.PersistentStorageSpec":      schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.UserArtifactsImageSpec":     schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref),
 	}
@@ -266,6 +267,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "int32",
 						},
 					},
+					"persistence": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+					"snapshot": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -283,7 +296,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -606,11 +619,23 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "int32",
 						},
 					},
+					"persistence": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+					"snapshot": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -827,11 +852,23 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Format:      "int32",
 						},
 					},
+					"persistence": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+					"snapshot": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -1068,6 +1105,38 @@ func schema_pkg_apis_coherence_v1_MainSpec(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- PersistentStorageSpec struct --------------------------------------- PersistenceStorageSpec defines the persistence settings for the Coherence",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"persistentVolumeClaim": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.",
+							Ref:         ref("k8s.io/api/core/v1.PersistentVolumeClaimSpec"),
+						},
+					},
+					"volume": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.",
+							Ref:         ref("k8s.io/api/core/v1.Volume"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.Volume"},
 	}
 }
 

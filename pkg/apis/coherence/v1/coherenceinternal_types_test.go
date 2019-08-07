@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -40,6 +41,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 		safeScaling := coherence.SafeScaling
 		always := corev1.PullAlways
 		ifNotPresent := corev1.PullIfNotPresent
+		block := corev1.PersistentVolumeBlock
 
 		// Fully populated CoherenceRole
 		role = coherence.CoherenceRole{
@@ -100,12 +102,46 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					Class:     stringPtr("com.tangosol.net.DefaultCacheServer"),
 					Arguments: stringPtr("-Dcoherence.localhost=192.168.0.301"),
 				},
-				MaxHeap:        stringPtr("-Xmx1G"),
-				JvmArgs:        stringPtr("-XX:+UseG1GC"),
-				JavaOpts:       stringPtr("-Dcoherence.log.level=9"),
-				Ports:          map[string]int32{"my-http-port": 8080, "my-other-port": 1234},
-				Env:            map[string]string{"FOO": "foo-value", "BAR": "bar-value"},
-				Annotations:    map[string]string{"prometheus.io/scrape": "true", "prometheus.io/port": "2408"},
+				MaxHeap:     stringPtr("-Xmx1G"),
+				JvmArgs:     stringPtr("-XX:+UseG1GC"),
+				JavaOpts:    stringPtr("-Dcoherence.log.level=9"),
+				Ports:       map[string]int32{"my-http-port": 8080, "my-other-port": 1234},
+				Env:         map[string]string{"FOO": "foo-value", "BAR": "bar-value"},
+				Annotations: map[string]string{"prometheus.io/scrape": "true", "prometheus.io/port": "2408"},
+				Persistence: &coherence.PersistentStorageSpec{
+					Enabled: boolPtr(true),
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+						},
+						StorageClassName: stringPtr("sc1"),
+						DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc1", Kind: "PersistentVolumeClaim"},
+						VolumeMode:       &block,
+						VolumeName:       "name1",
+						Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
+					},
+					Volume: &corev1.Volume{
+						Name:         "vol1",
+						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+					},
+				},
+				Snapshot: &coherence.PersistentStorageSpec{
+					Enabled: boolPtr(true),
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+						},
+						StorageClassName: stringPtr("sc1"),
+						DataSource:       &corev1.TypedLocalObjectReference{Name: "pvc2", Kind: "PersistentVolumeClaim"},
+						VolumeMode:       &block,
+						VolumeName:       "name",
+						Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
+					},
+					Volume: &corev1.Volume{
+						Name:         "vol1",
+						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+					},
+				},
 			},
 		}
 	})
