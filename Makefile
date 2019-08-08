@@ -6,12 +6,12 @@ ARCH            ?= amd64
 OS              ?= linux
 UNAME_S         := $(shell uname -s)
 
-REGISTRY        ?= iad.ocir.io
-TENANT          ?= odx-stateservice/test/oracle
-OPERATOR_IMAGE  := ${REGISTRY}/${TENANT}/coherence-operator:${VERSION}
+COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
+HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74630
 
-HELM_COHERENCE_IMAGE ?= iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
-HELM_UTILS_IMAGE     ?= iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:1.1.0-SNAPSHOT-utils
+# One may need to define RELEASE_IMAGE_PREFIX in the environment.
+OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:${VERSION}
+HELM_UTILS_IMAGE ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:2.0.0-SNAPSHOT-utils
 
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
@@ -163,4 +163,9 @@ generate:
 	@echo "Generating Open API code and CRDs"
 	operator-sdk generate openapi
 
-.PHONY: all build-dirs build test generate
+# This step push the operator image to registry.
+push:
+	@echo "Pushing $(OPERATOR_IMAGE)"
+	docker push $(OPERATOR_IMAGE)
+
+.PHONY: all build-dirs build test generate push

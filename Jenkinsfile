@@ -80,6 +80,9 @@ pipeline {
         HTTPS_PROXY = credentials('coherence-operator-https-proxy')
         NO_PROXY    = credentials('coherence-operator-no-proxy')
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
+
+        COHERENCE_IMAGE_PREFIX = credentials('coherence-operator-coherence-image-prefix')
+        TEST_IMAGE_PREFIX      = credentials('coherence-operator-test-image-prefix')
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -217,14 +220,24 @@ pipeline {
                 stage('build-go-code') {
                     steps {
                         sh '''
-                        export http_proxy=$HTTP_PROXY
-                        make build
+                            export http_proxy=$HTTP_PROXY
+                            export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                            make build
                         '''
                     }
                 }
                 stage('test-go-code') {
                     steps {
                         sh 'make test'
+                    }
+                }
+                stage('push-operator') {
+                    steps {
+                        sh '''
+                            export http_proxy=$HTTP_PROXY
+                            export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                            make push
+                        '''
                     }
                 }
                 /*
