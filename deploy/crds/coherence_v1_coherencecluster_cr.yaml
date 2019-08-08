@@ -3,24 +3,4 @@ kind: CoherenceCluster
 metadata:
   name: mycluster
 spec:
-  serviceAccountName: "foo"
-  imagePullSecrets:
-    - "ocs-secret"
-    - "docker-store-secret"
-  images:
-    coherence:
-      image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74512"
-  readinessProbe:
-    initialDelaySeconds: 10
-    periodSeconds: 10
-  labels:
-    - "foo" : "bar"
-  roles:
-    - role: storage
-      replicas: 5
-      labels:
-        - "foo" :
-        - "xyz" : "bar"
-    - role: proxy
-      replicas: 2
-      storageEnabled: false
+  replicas: 1

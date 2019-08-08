@@ -9,6 +9,7 @@ metadata:
   labels:
 {{- include "coherence-operator.release_labels" . | indent 4 }}
     component: "coherence-operator"
+    name: coherence-operator
 spec:
   replicas: 1
   selector:
@@ -22,6 +23,7 @@ spec:
         app: {{ template "coherence-operator.name" . }}
         release: {{ .Release.Name }}
         component: "coherence-operator"
+        name: coherence-operator
     spec:
 {{- if .Values.serviceAccount}}
   {{- if not ((eq .Values.serviceAccount "default")) }}

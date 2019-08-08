@@ -4,12 +4,12 @@ package helper
 import (
 	goctx "context"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/oracle/coherence-operator/pkg/apis"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	"testing"
-
-	"github.com/oracle/coherence-operator/pkg/apis"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"testing"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -119,6 +119,7 @@ func WaitForCoherenceRole(t *testing.T, f *framework.Framework, namespace, name 
 	return role, err
 }
 
+// GetCoherenceRole gets the specified CoherenceRole
 func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coherence.CoherenceRole, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
 	role := &coherence.CoherenceRole{
@@ -131,6 +132,57 @@ func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coherenc
 	err := f.Client.Get(goctx.TODO(), opts, role)
 
 	return role, err
+}
+
+// WaitForOperatorPods waits for a Coherence Operator Pods to be created.
+func WaitForOperatorPods(kubeclient kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	var pods []corev1.Pod
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		pods, err = ListOperatorPods(kubeclient, namespace)
+		if err != nil {
+			return false, err
+		}
+		return len(pods) > 0, nil
+	})
+	return pods, err
+}
+
+// List the Operator Pods that exist - this is Pods with the label "name=coherence-operator"
+func ListOperatorPods(kubeclient kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
+	opts := metav1.ListOptions{
+		LabelSelector: "name=coherence-operator",
+	}
+
+	list, err := kubeclient.CoreV1().Pods(namespace).List(opts)
+	if err != nil {
+		return []corev1.Pod{}, err
+	}
+
+	return list.Items, nil
+}
+
+// WaitForPodReady waits for a Pods to be ready.
+func WaitForPodReady(kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		p, err := kubeclient.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		if len(p.Status.ContainerStatuses) > 0 {
+			ready := true
+			for _, s := range p.Status.ContainerStatuses {
+				if !s.Ready {
+					ready = false
+					break
+				}
+			}
+			return ready, nil
+		}
+		return false, nil
+	})
+
+	return err
 }
 
 // waitForCleanup waits until there are no CoherenceInternal resources left in the test namespace.
