@@ -63,15 +63,15 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 				original = nil
 			})
 
-			It("should copy the original Level", func() {
+			It("should copy the defaults Level", func() {
 				Expect(*clone.Level).To(Equal(*defaults.Level))
 			})
 
-			It("should copy the original ConfigFile", func() {
+			It("should copy the defaults ConfigFile", func() {
 				Expect(*clone.ConfigFile).To(Equal(*defaults.ConfigFile))
 			})
 
-			It("should copy the original ConfigMapName", func() {
+			It("should copy the defaults ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*defaults.ConfigMapName))
 			})
 		})
@@ -119,7 +119,7 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 				}
 			})
 
-			It("should copy the original Level", func() {
+			It("should copy the defaults Level", func() {
 				Expect(*clone.Level).To(Equal(*defaults.Level))
 			})
 
@@ -151,7 +151,7 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 				Expect(*clone.Level).To(Equal(*original.Level))
 			})
 
-			It("should copy the original ConfigFile", func() {
+			It("should copy the defaults ConfigFile", func() {
 				Expect(*clone.ConfigFile).To(Equal(*defaults.ConfigFile))
 			})
 
@@ -183,7 +183,7 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 				Expect(*clone.ConfigFile).To(Equal(*original.ConfigFile))
 			})
 
-			It("should copy the original ConfigMapName", func() {
+			It("should copy the defaults ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*defaults.ConfigMapName))
 			})
 		})

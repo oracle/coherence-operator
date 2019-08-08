@@ -183,11 +183,193 @@ spec:
                     value is   com.tangosol.net.DefaultCacheServer.
                   type: string
               type: object
+            management:
+              description: 'Management configures Coherence management over REST   Note:
+                Coherence management over REST will be available in 12.2.1.4.'
+              properties:
+                port:
+                  description: Port specifies the port used.
+                  format: int32
+                  type: integer
+                ssl:
+                  description: SSL configures SSL settings for a Coherence component
+                  properties:
+                    enabled:
+                      description: Enabled is a boolean flag indicating whether enables
+                        or disables SSL on the Coherence management over REST endpoint,
+                        the default is false (disabled).
+                      type: boolean
+                    keyPasswordFile:
+                      description: KeyStorePasswordFile is the name of the file in
+                        the k8s secret containing the key   password when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStore:
+                      description: Keystore is the name of the Java key store file
+                        in the k8s secret to use as the SSL keystore   when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreAlgorithm:
+                      description: KeyStoreAlgorithm is the name of the keystore algorithm
+                        for the keystore in the k8s secret   used when configuring
+                        component over REST to use SSL. If not set the default is
+                        SunX509
+                      type: string
+                    keyStorePasswordFile:
+                      description: KeyStorePasswordFile is the name of the file in
+                        the k8s secret containing the keystore   password when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreProvider:
+                      description: KeyStoreProvider is the name of the keystore provider
+                        for the keystore in the k8s secret   used when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreType:
+                      description: KeyStoreType is the name of the Java keystore type
+                        for the keystore in the k8s secret used   when configuring
+                        component over REST to use SSL. If not set the default is
+                        JKS.
+                      type: string
+                    requireClientCert:
+                      description: RequireClientCert is a boolean flag indicating
+                        whether the client certificate will be   authenticated by
+                        the server (two-way SSL) when configuring component over REST
+                        to use SSL.   If not set the default is false
+                      type: boolean
+                    secrets:
+                      description: Secrets is the name of the k8s secrets containing
+                        the Java key stores and password files.   This value MUST
+                        be provided if SSL is enabled on the Coherence management
+                        over ReST endpoint.
+                      type: string
+                    trustStore:
+                      description: TrustStore is the name of the Java trust store
+                        file in the k8s secret to use as the SSL   trust store when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreAlgorithm:
+                      description: TrustStoreAlgorithm is the name of the keystore
+                        algorithm for the trust store in the k8s   secret used when
+                        configuring component over REST to use SSL.  If not set the
+                        default is SunX509.
+                      type: string
+                    trustStorePasswordFile:
+                      description: TrustStorePasswordFile is the name of the file
+                        in the k8s secret containing the trust store   password when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreProvider:
+                      description: TrustStoreProvider is the name of the keystore
+                        provider for the trust store in the k8s   secret used when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreType:
+                      description: TrustStoreType is the name of the Java keystore
+                        type for the trust store in the k8s secret   used when configuring
+                        component over REST to use SSL. If not set the default is
+                        JKS.
+                      type: string
+                  required:
+                  - keyStore
+                  type: object
+              type: object
             maxHeap:
               description: MaxHeap is the min/max heap value to pass to the JVM. The
                 format should be the same as that used for Java's -Xms and -Xmx JVM
                 options. If not set the JVM defaults are used.
               type: string
+            metrics:
+              description: 'Metrics configures Coherence metrics publishing   Note:
+                Coherence metrics publishing will be available in 12.2.1.4.'
+              properties:
+                port:
+                  description: Port specifies the port used.
+                  format: int32
+                  type: integer
+                ssl:
+                  description: SSL configures SSL settings for a Coherence component
+                  properties:
+                    enabled:
+                      description: Enabled is a boolean flag indicating whether enables
+                        or disables SSL on the Coherence management over REST endpoint,
+                        the default is false (disabled).
+                      type: boolean
+                    keyPasswordFile:
+                      description: KeyStorePasswordFile is the name of the file in
+                        the k8s secret containing the key   password when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStore:
+                      description: Keystore is the name of the Java key store file
+                        in the k8s secret to use as the SSL keystore   when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreAlgorithm:
+                      description: KeyStoreAlgorithm is the name of the keystore algorithm
+                        for the keystore in the k8s secret   used when configuring
+                        component over REST to use SSL. If not set the default is
+                        SunX509
+                      type: string
+                    keyStorePasswordFile:
+                      description: KeyStorePasswordFile is the name of the file in
+                        the k8s secret containing the keystore   password when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreProvider:
+                      description: KeyStoreProvider is the name of the keystore provider
+                        for the keystore in the k8s secret   used when configuring
+                        component over REST to use SSL.
+                      type: string
+                    keyStoreType:
+                      description: KeyStoreType is the name of the Java keystore type
+                        for the keystore in the k8s secret used   when configuring
+                        component over REST to use SSL. If not set the default is
+                        JKS.
+                      type: string
+                    requireClientCert:
+                      description: RequireClientCert is a boolean flag indicating
+                        whether the client certificate will be   authenticated by
+                        the server (two-way SSL) when configuring component over REST
+                        to use SSL.   If not set the default is false
+                      type: boolean
+                    secrets:
+                      description: Secrets is the name of the k8s secrets containing
+                        the Java key stores and password files.   This value MUST
+                        be provided if SSL is enabled on the Coherence management
+                        over ReST endpoint.
+                      type: string
+                    trustStore:
+                      description: TrustStore is the name of the Java trust store
+                        file in the k8s secret to use as the SSL   trust store when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreAlgorithm:
+                      description: TrustStoreAlgorithm is the name of the keystore
+                        algorithm for the trust store in the k8s   secret used when
+                        configuring component over REST to use SSL.  If not set the
+                        default is SunX509.
+                      type: string
+                    trustStorePasswordFile:
+                      description: TrustStorePasswordFile is the name of the file
+                        in the k8s secret containing the trust store   password when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreProvider:
+                      description: TrustStoreProvider is the name of the keystore
+                        provider for the trust store in the k8s   secret used when
+                        configuring component over REST to use SSL.
+                      type: string
+                    trustStoreType:
+                      description: TrustStoreType is the name of the Java keystore
+                        type for the trust store in the k8s secret   used when configuring
+                        component over REST to use SSL. If not set the default is
+                        JKS.
+                      type: string
+                  required:
+                  - keyStore
+                  type: object
+              type: object
             overrideConfig:
               description: OverrideConfig is name of the Coherence operational configuration
                 override file, the default is tangosol-coherence-override.xml

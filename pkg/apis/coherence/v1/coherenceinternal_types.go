@@ -180,6 +180,14 @@ type CoherenceInternalStoreSpec struct {
 	// to the same volume configured for persistence data in the Persistence section.
 	// +optional
 	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
+	// Management configures Coherence management over REST
+	//   Note: Coherence management over REST will be available in 12.2.1.4.
+	// +optional
+	Management *PortSpec `json:"management,omitempty"`
+	// Metrics configures Coherence metrics publishing
+	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
+	// +optional
+	Metrics *PortSpec `json:"metrics,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -223,6 +231,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
 	out.Store.Persistence = role.Spec.Persistence
 	out.Store.Snapshot = role.Spec.Snapshot
+	out.Store.Management = role.Spec.Management
+	out.Store.Metrics = role.Spec.Metrics
 
 	// Set the labels
 	labels := make(map[string]string)

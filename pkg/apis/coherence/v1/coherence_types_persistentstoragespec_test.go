@@ -100,15 +100,15 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				original = nil
 			})
 
-			It("should copy the original Enabled", func() {
+			It("should copy the defaults Enabled", func() {
 				Expect(*clone.Enabled).To(Equal(*defaults.Enabled))
 			})
 
-			It("should copy the original PersistentVolumeClaim", func() {
+			It("should copy the defaults PersistentVolumeClaim", func() {
 				Expect(*clone.PersistentVolumeClaim).To(Equal(*defaults.PersistentVolumeClaim))
 			})
 
-			It("should copy the original Volume", func() {
+			It("should copy the defaults Volume", func() {
 				Expect(*clone.Volume).To(Equal(*defaults.Volume))
 			})
 		})
@@ -156,7 +156,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				}
 			})
 
-			It("should copy the original Enabled", func() {
+			It("should copy the defaults Enabled", func() {
 				Expect(*clone.Enabled).To(Equal(*defaults.Enabled))
 			})
 
@@ -188,7 +188,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				Expect(*clone.Enabled).To(Equal(*original.Enabled))
 			})
 
-			It("should copy the original PersistentVolumeClaim", func() {
+			It("should copy the defaults PersistentVolumeClaim", func() {
 				Expect(*clone.PersistentVolumeClaim).To(Equal(*defaults.PersistentVolumeClaim))
 			})
 
@@ -220,7 +220,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				Expect(*clone.PersistentVolumeClaim).To(Equal(*original.PersistentVolumeClaim))
 			})
 
-			It("should copy the original Volume", func() {
+			It("should copy the defaults Volume", func() {
 				Expect(*clone.Volume).To(Equal(*defaults.Volume))
 			})
 		})

@@ -1,7 +1,7 @@
 package v1
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Common Coherence API structs
@@ -88,7 +88,7 @@ type ImageSpec struct {
 	// One of Always, Never, IfNotPresent.
 	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
 	// +optional
-	ImagePullPolicy *v1.PullPolicy `json:"imagePullPolicy,omitempty"`
+	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this ImageSpec struct with any nil or not set values set
@@ -238,7 +238,7 @@ type PersistentStorageSpec struct {
 	// PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim
 	// for persistence data.
 	// +optional
-	PersistentVolumeClaim *v1.PersistentVolumeClaimSpec `json:"persistentVolumeClaim,omitempty"` // from k8s.io/api/core/v1
+	PersistentVolumeClaim *corev1.PersistentVolumeClaimSpec `json:"persistentVolumeClaim,omitempty"` // from k8s.io/api/core/v1
 	// Volume allows the configuration of a normal k8s volume mapping
 	// for persistence data instead of a persistent volume claim. If a value is defined
 	// for store.persistence.volume then no PVC will be created and persistence data
@@ -246,7 +246,7 @@ type PersistentStorageSpec struct {
 	// the consequences of this and how the guarantees given when using PVCs differ
 	// to the storage guarantees for the particular volume type configured here.
 	// +optional
-	Volume *v1.Volume `json:"volume,omitempty"` // from k8s.io/api/core/v1
+	Volume *corev1.Volume `json:"volume,omitempty"` // from k8s.io/api/core/v1
 }
 
 // DeepCopyWithDefaults returns a copy of this PersistentStorageSpec struct with any nil or not set values set
@@ -282,6 +282,217 @@ func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorag
 		clone.Volume = in.Volume
 	} else {
 		clone.Volume = defaults.Volume
+	}
+
+	return &clone
+}
+
+// ----- SSLSpec struct -----------------------------------------------------
+// SSLSpec defines the SSL settings for a Coherence component over REST endpoint.
+// +k8s:openapi-gen=true
+type SSLSpec struct {
+	// Enabled is a boolean flag indicating whether enables or disables SSL on the Coherence management
+	// over REST endpoint, the default is false (disabled).
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// Secrets is the name of the k8s secrets containing the Java key stores and password files.
+	//   This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint.
+	// +optional
+	Secrets *string `json:"secrets,omitempty"`
+	// Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
+	//   when configuring component over REST to use SSL.
+	// +optional
+	KeyStore *string `json:"keyStore,omitemtpy"`
+	// KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore
+	//   password when configuring component over REST to use SSL.
+	// +optional
+	KeyStorePasswordFile *string `json:"keyStorePasswordFile,omitempty"`
+	// KeyStorePasswordFile is the name of the file in the k8s secret containing the key
+	//   password when configuring component over REST to use SSL.
+	// +optional
+	KeyPasswordFile *string `json:"keyPasswordFile,omitempty"`
+	// KeyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
+	//   used when configuring component over REST to use SSL. If not set the default is SunX509
+	// +optional
+	KeyStoreAlgorithm *string `json:"keyStoreAlgorithm,omitempty"`
+	// KeyStoreProvider is the name of the keystore provider for the keystore in the k8s secret
+	//   used when configuring component over REST to use SSL.
+	// +optional
+	KeyStoreProvider *string `json:"keyStoreProvider,omitempty"`
+	// KeyStoreType is the name of the Java keystore type for the keystore in the k8s secret used
+	//   when configuring component over REST to use SSL. If not set the default is JKS.
+	// +optional
+	KeyStoreType *string `json:"keyStoreType,omitempty"`
+	// TrustStore is the name of the Java trust store file in the k8s secret to use as the SSL
+	//   trust store when configuring component over REST to use SSL.
+	// +optional
+	TrustStore *string `json:"trustStore,omitempty"`
+	// TrustStorePasswordFile is the name of the file in the k8s secret containing the trust store
+	//   password when configuring component over REST to use SSL.
+	// +optional
+	TrustStorePasswordFile *string `json:"trustStorePasswordFile,omitempty"`
+	// TrustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s
+	//   secret used when configuring component over REST to use SSL.  If not set the default is SunX509.
+	// +optional
+	TrustStoreAlgorithm *string `json:"trustStoreAlgorithm,omitempty"`
+	// TrustStoreProvider is the name of the keystore provider for the trust store in the k8s
+	//   secret used when configuring component over REST to use SSL.
+	// +optional
+	TrustStoreProvider *string `json:"trustStoreProvider,omitempty"`
+	// TrustStoreType is the name of the Java keystore type for the trust store in the k8s secret
+	//   used when configuring component over REST to use SSL. If not set the default is JKS.
+	// +optional
+	TrustStoreType *string `json:"trustStoreType,omitempty"`
+	// RequireClientCert is a boolean flag indicating whether the client certificate will be
+	//   authenticated by the server (two-way SSL) when configuring component over REST to use SSL.
+	//   If not set the default is false
+	// +optional
+	RequireClientCert *bool `json:"requireClientCert,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this SSLSpec struct with any nil or not set values set
+// by the corresponding value in the defaults SSLSpec struct.
+func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := SSLSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Secrets != nil {
+		clone.Secrets = in.Secrets
+	} else {
+		clone.Secrets = defaults.Secrets
+	}
+
+	if in.KeyStore != nil {
+		clone.KeyStore = in.KeyStore
+	} else {
+		clone.KeyStore = defaults.KeyStore
+	}
+
+	if in.KeyStorePasswordFile != nil {
+		clone.KeyStorePasswordFile = in.KeyStorePasswordFile
+	} else {
+		clone.KeyStorePasswordFile = defaults.KeyStorePasswordFile
+	}
+
+	if in.KeyPasswordFile != nil {
+		clone.KeyPasswordFile = in.KeyPasswordFile
+	} else {
+		clone.KeyPasswordFile = defaults.KeyPasswordFile
+	}
+
+	if in.KeyStoreAlgorithm != nil {
+		clone.KeyStoreAlgorithm = in.KeyStoreAlgorithm
+	} else {
+		clone.KeyStoreAlgorithm = defaults.KeyStoreAlgorithm
+	}
+
+	if in.KeyStoreProvider != nil {
+		clone.KeyStoreProvider = in.KeyStoreProvider
+	} else {
+		clone.KeyStoreProvider = defaults.KeyStoreProvider
+	}
+
+	if in.KeyStoreType != nil {
+		clone.KeyStoreType = in.KeyStoreType
+	} else {
+		clone.KeyStoreType = defaults.KeyStoreType
+	}
+
+	if in.TrustStore != nil {
+		clone.TrustStore = in.TrustStore
+	} else {
+		clone.TrustStore = defaults.TrustStore
+	}
+
+	if in.TrustStorePasswordFile != nil {
+		clone.TrustStorePasswordFile = in.TrustStorePasswordFile
+	} else {
+		clone.TrustStorePasswordFile = defaults.TrustStorePasswordFile
+	}
+
+	if in.TrustStoreAlgorithm != nil {
+		clone.TrustStoreAlgorithm = in.TrustStoreAlgorithm
+	} else {
+		clone.TrustStoreAlgorithm = defaults.TrustStoreAlgorithm
+	}
+
+	if in.TrustStoreProvider != nil {
+		clone.TrustStoreProvider = in.TrustStoreProvider
+	} else {
+		clone.TrustStoreProvider = defaults.TrustStoreProvider
+	}
+
+	if in.TrustStoreType != nil {
+		clone.TrustStoreType= in.TrustStoreType
+	} else {
+		clone.TrustStoreType = defaults.TrustStoreType
+	}
+
+	if in.RequireClientCert != nil {
+		clone.RequireClientCert = in.RequireClientCert
+	} else {
+		clone.RequireClientCert = defaults.RequireClientCert
+	}
+
+	return &clone
+}
+
+// ----- PortSpec struct ----------------------------------------------------
+// PortSpec defines the port settings for a Coherence component
+// +k8s:openapi-gen=true
+type PortSpec struct {
+	// Port specifies the port used.
+	// +optional
+	Port *int32 `json:"port,omitempty"`
+	// SSL configures SSL settings for a Coherence component
+	// +optional
+	SSL *SSLSpec `json:"ssl,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this PortSpec struct with any nil or not set values set
+// by the corresponding value in the defaults PortSpec struct.
+func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := PortSpec{}
+
+	if in.Port != nil {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
+	}
+
+	if in.SSL != nil {
+		clone.SSL = in.SSL
+	} else {
+		clone.SSL = defaults.SSL
 	}
 
 	return &clone

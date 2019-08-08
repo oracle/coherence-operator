@@ -28,7 +28,9 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":      schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
+		"./pkg/apis/coherence/v1.PortSpec":                   schema_pkg_apis_coherence_v1_PortSpec(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
+		"./pkg/apis/coherence/v1.SSLSpec":                    schema_pkg_apis_coherence_v1_SSLSpec(ref),
 		"./pkg/apis/coherence/v1.UserArtifactsImageSpec":     schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref),
 	}
 }
@@ -279,6 +281,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
 						},
 					},
+					"management": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
+					"metrics": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -296,7 +310,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -631,11 +645,23 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
 						},
 					},
+					"management": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
+					"metrics": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -864,11 +890,23 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
 						},
 					},
+					"management": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
+					"metrics": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -1140,6 +1178,33 @@ func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCall
 	}
 }
 
+func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- PortSpec struct ---------------------------------------------------- PortSpec defines the port settings for a Coherence component",
+				Properties: map[string]spec.Schema{
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Port specifies the port used.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"ssl": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SSL configures SSL settings for a Coherence component",
+							Ref:         ref("./pkg/apis/coherence/v1.SSLSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.SSLSpec"},
+	}
+}
+
 func schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1179,6 +1244,117 @@ func schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref common.ReferenceCallbac
 							Description: "Minimum consecutive failures for the probe to be considered failed after having succeeded.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_SSLSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- SSLSpec struct ----------------------------------------------------- SSLSpec defines the SSL settings for a Coherence component over REST endpoint.",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled is a boolean flag indicating whether enables or disables SSL on the Coherence management over REST endpoint, the default is false (disabled).",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"secrets": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Secrets is the name of the k8s secrets containing the Java key stores and password files.\n  This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyStore": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore\n  when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyStorePasswordFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore\n  password when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyPasswordFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "KeyStorePasswordFile is the name of the file in the k8s secret containing the key\n  password when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyStoreAlgorithm": {
+						SchemaProps: spec.SchemaProps{
+							Description: "KeyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret\n  used when configuring component over REST to use SSL. If not set the default is SunX509",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyStoreProvider": {
+						SchemaProps: spec.SchemaProps{
+							Description: "KeyStoreProvider is the name of the keystore provider for the keystore in the k8s secret\n  used when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"keyStoreType": {
+						SchemaProps: spec.SchemaProps{
+							Description: "KeyStoreType is the name of the Java keystore type for the keystore in the k8s secret used\n  when configuring component over REST to use SSL. If not set the default is JKS.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"trustStore": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TrustStore is the name of the Java trust store file in the k8s secret to use as the SSL\n  trust store when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"trustStorePasswordFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TrustStorePasswordFile is the name of the file in the k8s secret containing the trust store\n  password when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"trustStoreAlgorithm": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TrustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s\n  secret used when configuring component over REST to use SSL.  If not set the default is SunX509.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"trustStoreProvider": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TrustStoreProvider is the name of the keystore provider for the trust store in the k8s\n  secret used when configuring component over REST to use SSL.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"trustStoreType": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TrustStoreType is the name of the Java keystore type for the trust store in the k8s secret\n  used when configuring component over REST to use SSL. If not set the default is JKS.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"requireClientCert": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RequireClientCert is a boolean flag indicating whether the client certificate will be\n  authenticated by the server (two-way SSL) when configuring component over REST to use SSL.\n  If not set the default is false",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 				},

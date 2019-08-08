@@ -130,6 +130,14 @@ type CoherenceRoleSpec struct {
 	// to the same volume configured for persistence data in the Persistence section.
 	// +optional
 	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
+	// Management configures Coherence management over REST
+	//   Note: Coherence management over REST will be available in 12.2.1.4.
+	// +optional
+	Management *PortSpec `json:"management,omitempty"`
+	// Metrics configures Coherence metrics publishing
+	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
+	// +optional
+	Metrics *PortSpec `json:"metrics,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -273,6 +281,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Main = in.Main.DeepCopyWithDefaults(defaults.Main)
 	clone.Persistence = in.Persistence.DeepCopyWithDefaults(defaults.Persistence)
 	clone.Snapshot = in.Snapshot.DeepCopyWithDefaults(defaults.Snapshot)
+	clone.Management = in.Management.DeepCopyWithDefaults(defaults.Management)
+	clone.Metrics = in.Metrics.DeepCopyWithDefaults(defaults.Metrics)
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
 
 	return &clone

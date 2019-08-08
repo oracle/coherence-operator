@@ -57,11 +57,11 @@ var _ = Describe("Testing MainSpec struct", func() {
 				original = nil
 			})
 
-			It("should copy the original Class", func() {
+			It("should copy the defaults Class", func() {
 				Expect(*clone.Class).To(Equal(*defaults.Class))
 			})
 
-			It("should copy the original Arguements", func() {
+			It("should copy the defaults Arguements", func() {
 				Expect(*clone.Arguments).To(Equal(*defaults.Arguments))
 			})
 		})
@@ -101,7 +101,7 @@ var _ = Describe("Testing MainSpec struct", func() {
 				}
 			})
 
-			It("should copy the original Class", func() {
+			It("should copy the defaults Class", func() {
 				Expect(*clone.Class).To(Equal(*defaults.Class))
 			})
 
@@ -127,7 +127,7 @@ var _ = Describe("Testing MainSpec struct", func() {
 				Expect(*clone.Class).To(Equal(*original.Class))
 			})
 
-			It("should copy the original Arguements", func() {
+			It("should copy the defaults Arguements", func() {
 				Expect(*clone.Arguments).To(Equal(*defaults.Arguments))
 			})
 		})

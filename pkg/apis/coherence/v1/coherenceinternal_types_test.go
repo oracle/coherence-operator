@@ -142,6 +142,44 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 					},
 				},
+				Management: &coherence.PortSpec{
+					Port: int32Ptr(8080),
+					SSL:  &coherence.SSLSpec {
+						Enabled:                boolPtr(true),
+						Secrets:                stringPtr("ssl-secret"),
+						KeyStore:               stringPtr("keystore.jks"),
+						KeyStorePasswordFile:   stringPtr("storepassword.txt"),
+						KeyPasswordFile:        stringPtr("keypassword.txt"),
+						KeyStoreAlgorithm:      stringPtr("SunX509"),
+						KeyStoreProvider:       stringPtr("fooJCA"),
+						KeyStoreType:           stringPtr("JKS"),
+						TrustStore:             stringPtr("truststore-guardians.jks"),
+						TrustStorePasswordFile: stringPtr("trustpassword.txt"),
+						TrustStoreAlgorithm:    stringPtr("SunX509"),
+						TrustStoreProvider:     stringPtr("fooJCA"),
+						TrustStoreType:         stringPtr("JKS"),
+						RequireClientCert:      boolPtr(true),
+					},
+				},
+				Metrics: &coherence.PortSpec{
+					Port: int32Ptr(9090),
+					SSL:  &coherence.SSLSpec {
+						Enabled:                boolPtr(true),
+						Secrets:                stringPtr("ssl-secret"),
+						KeyStore:               stringPtr("keystore.jks"),
+						KeyStorePasswordFile:   stringPtr("storepassword.txt"),
+						KeyPasswordFile:        stringPtr("keypassword.txt"),
+						KeyStoreAlgorithm:      stringPtr("SunX509"),
+						KeyStoreProvider:       stringPtr("fooJCA"),
+						KeyStoreType:           stringPtr("JKS"),
+						TrustStore:             stringPtr("truststore-guardians.jks"),
+						TrustStorePasswordFile: stringPtr("trustpassword.txt"),
+						TrustStoreAlgorithm:    stringPtr("SunX509"),
+						TrustStoreProvider:     stringPtr("fooJCA"),
+						TrustStoreType:         stringPtr("JKS"),
+						RequireClientCert:      boolPtr(true),
+					},
+				},
 			},
 		}
 	})
@@ -289,6 +327,22 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store RevisionHistoryLimit", func() {
 				Expect(result.Store.RevisionHistoryLimit).To(Equal(role.Spec.RevisionHistoryLimit))
+			})
+
+			It("should set the Store Persistence", func() {
+				Expect(result.Store.Persistence).To(Equal(role.Spec.Persistence))
+			})
+
+			It("should set the Store Snapshot", func() {
+				Expect(result.Store.Snapshot).To(Equal(role.Spec.Snapshot))
+			})
+
+			It("should set the Store Management", func() {
+				Expect(result.Store.Management).To(Equal(role.Spec.Management))
+			})
+
+			It("should set the Store Metrics", func() {
+				Expect(result.Store.Metrics).To(Equal(role.Spec.Metrics))
 			})
 		})
 	})

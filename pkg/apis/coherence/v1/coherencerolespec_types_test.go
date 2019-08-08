@@ -148,6 +148,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				},
 			}
 
+			managementOne = &coherence.PortSpec{
+				Port: int32Ptr(8080),
+				SSL:  &coherence.SSLSpec{
+					Enabled:                boolPtr(true),
+					KeyStore:               stringPtr("keystore.jks"),
+					KeyStorePasswordFile:   stringPtr("keypassword.txt"),
+					KeyStoreType:           stringPtr("JKS"),
+					TrustStore:             stringPtr("trustore-guaradians.jks"),
+					TrustStorePasswordFile: stringPtr("trustpassword.txt"),
+					TrustStoreType:         stringPtr("JKS"),
+					RequireClientCert:      boolPtr(true),
+
+				},
+			}
+			managementTwo = &coherence.PortSpec{
+				Port: int32Ptr(8181),
+				SSL:  &coherence.SSLSpec{
+					Enabled: boolPtr(false),
+				},
+			}
+
+			metricsOne = &coherence.PortSpec{
+				Port: int32Ptr(9090),
+				SSL:  &coherence.SSLSpec{
+					Enabled:                boolPtr(true),
+					KeyStore:               stringPtr("keystore.jks"),
+					KeyStorePasswordFile:   stringPtr("keypassword.txt"),
+					KeyStoreType:           stringPtr("JKS"),
+					TrustStore:             stringPtr("trustore-guaradians.jks"),
+					TrustStorePasswordFile: stringPtr("trustpassword.txt"),
+					TrustStoreType:         stringPtr("JKS"),
+					RequireClientCert:      boolPtr(true),
+				},
+			}
+			metricsTwo = &coherence.PortSpec {
+				Port: int32Ptr(9191),
+			}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -171,6 +209,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				RevisionHistoryLimit: revisionHistoryLimitOne,
 				Persistence:          persistenceOne,
 				Snapshot:             snapshotOne,
+				Management:           managementOne,
+				Metrics:              metricsOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -196,6 +236,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				RevisionHistoryLimit: revisionHistoryLimitTwo,
 				Persistence:          persistenceTwo,
 				Snapshot:             snapshotTwo,
+				Management:           managementTwo,
+				Metrics:              metricsTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -513,6 +555,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Snapshot = defaults.Snapshot
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Management is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Management = nil
+			})
+
+			It("clone should be equal to the original with the Management field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Management = defaults.Management
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Metrics is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Metrics = nil
+			})
+
+			It("clone should be equal to the original with the Metrics field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Metrics = defaults.Metrics
 
 				Expect(clone).To(Equal(expected))
 			})
