@@ -9,7 +9,7 @@ targetNamespaces: ["default"]
 # The name of the service account that the operator will use to
 # make requests to the Kubernetes API server.
 # The name must be lowercase.
-serviceAccount: default
+serviceAccount: coherence-operator
 
 # imagePullSecrets provides support pulling images from private registries, the value references
 #   one or more secrets to be used when pulling images. Secrets must be manually created in the
@@ -36,7 +36,7 @@ serviceAccount: default
 #
 #   --set "imagePullSecrets={foo,bar}"
 #
-imagePullSecrets: []
+imagePullSecrets:
 
 # ---------------------------------------------------------------------------
 # Pod scheduling values
@@ -59,7 +59,7 @@ nodeSelector: {}
 #     effect: "NoSchedule"
 #
 #   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-tolerations: []
+tolerations:
 
 # ---------------------------------------------------------------------------
 # service groups the values used to configure the internal K8s service

@@ -129,6 +129,28 @@ e2e-test: build-dirs
 	@echo "deleting test namespace"
 	kubectl delete namespace ${TEST_NAMESPACE}
 
+# Executes the Go end-to-end Operator Helm chart tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# These tests require the Operator CRDs and will install them before tests start
+# and remove them afterwards.
+helm-test: export CGO_ENABLED = 0
+helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+helm-test: build
+	@echo "creating test namespace"
+	kubectl create namespace ${TEST_NAMESPACE}
+	@echo "Installing CRDs"
+	./hack/install.sh
+	@echo "executing Operator Helm Chart end-to-end tests"
+	if [ -z `which ginkgo` ]; then \
+		CMD=go; \
+	else \
+		CMD=ginkgo; \
+	fi; \
+	$$CMD test -v ./test/e2e/helm/...
+	@echo "Removing CRDs"
+	./hack/cleanup.sh
+	@echo "deleting test namespace"
+	kubectl delete namespace ${TEST_NAMESPACE}
 
 # This step will run the Operator SDK code generators.
 # These commands will generate the CRD files from the API structs and will

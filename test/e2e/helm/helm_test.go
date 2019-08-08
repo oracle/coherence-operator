@@ -13,11 +13,15 @@ import (
 	"time"
 )
 
+// This file is an example of how to write a test for installing the Operator Helm chart.
 var _ = Describe("Operator Helm Chart", func() {
 	var hm *helper.HelmReleaseManager
 	var err error
 
+	// Each "When" section is a single test...
 	When("installing Helm chart with empty values", func() {
+
+		// The JustBefore function is where the Helm install happens
 		JustBeforeEach(func() {
 			// Create the values to use
 			values := make(map[string]interface{})
@@ -31,12 +35,16 @@ var _ = Describe("Operator Helm Chart", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		// The JustAfter function will ensure the chart is uninstalled
 		JustAfterEach(func() {
 			// ensure that the chart is uninstalled
 			_, err := hm.UninstallRelease()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		// There should be ONLY ONE It section in this When section to do the assertions.
+		// If there were multiple IT sections the chart would be installed and uninstalled before and after each It
+		// because that is how Ginkgo works.
 		It("should deploy the Operator", func() {
 			ns := HelmHelper.Namespace
 			client := HelmHelper.KubeClient
