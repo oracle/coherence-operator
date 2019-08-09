@@ -25,7 +25,7 @@ Oracle enables organizations using Coherence to move their clusters into the clo
 The fastest way to experience the operator is to follow the [Quick Start guide](https://oracle.github.io/coherence-operator/docs/quickstart.html), or you can look through our  [documentation](https://oracle.github.io/coherence-operator/), or try out the [samples](https://oracle.github.io/coherence-operator/docs/samples/).
 
 -------
-The current release of the operator is 1.0. This release was published on .
+The current release of the operator is 1.0.0. This release was published on July 31, 2019.
 
 -------
 
