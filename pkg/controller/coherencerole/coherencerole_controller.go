@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"os"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -23,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"time"
 )
 
 // The name of this controller. This is used in events, log messages, etc.
@@ -53,6 +55,8 @@ const (
 
 	// The template used to create the CoherenceRole.Status.Selector
 	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
+
+	statusHaRetryEnv = "STATUS_HA_RETRY"
 )
 
 var log = logf.Log.WithName(controllerName)
@@ -68,11 +72,24 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 	scheme := mgr.GetScheme()
 	gvk := coh.GetCoherenceInternalGroupVersionKind(scheme)
 
+	// Parse the StatusHA retry time from the
+	retry := time.Minute
+	s := os.Getenv(statusHaRetryEnv)
+	if s != "" {
+		d, err := time.ParseDuration(s)
+		if err == nil {
+			retry = d
+		} else {
+			fmt.Printf("The value of %s env-var is not a valid duration '%s' using default retry time", statusHaRetryEnv, s)
+		}
+	}
+
 	return &ReconcileCoherenceRole{
-		client: mgr.GetClient(),
-		scheme: scheme,
-		gvk:    gvk,
-		events: mgr.GetRecorder(controllerName),
+		client:        mgr.GetClient(),
+		scheme:        scheme,
+		gvk:           gvk,
+		events:        mgr.GetRecorder(controllerName),
+		statusHARetry: retry,
 	}
 }
 
@@ -111,10 +128,11 @@ var _ reconcile.Reconciler = &ReconcileCoherenceRole{}
 type ReconcileCoherenceRole struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the api server
-	client client.Client
-	scheme *runtime.Scheme
-	gvk    schema.GroupVersionKind
-	events record.EventRecorder
+	client        client.Client
+	scheme        *runtime.Scheme
+	gvk           schema.GroupVersionKind
+	events        record.EventRecorder
+	statusHARetry time.Duration
 }
 
 // Reconcile reads that state of a CoherenceRole object and makes changes based on the state read
@@ -274,6 +292,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
 		}
 		logger.Info(fmt.Sprintf("Skipping update request. StatefulSet %s ReadyReplicas=%d expected Replicas=%d", sts.Name, readyReplicas, currentReplicas))
+		// Do not need to re-queue as when the StatefulSet changes reconcile will be called again.
 		return reconcile.Result{Requeue: false}, nil
 	}
 
@@ -476,17 +495,18 @@ func (r *ReconcileCoherenceRole) toCoherenceInternal(state *unstructured.Unstruc
 	return cohInternal, nil
 }
 
-// failed is the common error handler
+// handleErrAndRequeue is the common error handler
 func (r *ReconcileCoherenceRole) handleErrAndRequeue(err error, role *coh.CoherenceRole, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return r.failed(err, role, msg, true, logger)
 }
 
-// failed is the common error handler
+// handleErrAndFinish is the common error handler
 func (r *ReconcileCoherenceRole) handleErrAndFinish(err error, role *coh.CoherenceRole, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return r.failed(err, role, msg, false, logger)
 }
 
 // failed is the common error handler
+// ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
 func (r *ReconcileCoherenceRole) failed(err error, role *coh.CoherenceRole, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)

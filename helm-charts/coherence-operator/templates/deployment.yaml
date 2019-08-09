@@ -81,6 +81,10 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "coherence-operator"
+{{- if .Values.statusHARetry }}
+            - name: STATUS_HA_RETRY
+              value: {{ .Values.statusHARetry | quote }}
+{{- end }}
 {{- if .Values.logCaptureEnabled }}
             - name: EFK_INTEGRATION_ENABLED
               value: {{ .Values.logCaptureEnabled | quote }}

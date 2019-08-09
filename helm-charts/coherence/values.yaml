@@ -147,7 +147,7 @@ store:
   #     my-other-port: 1234
   #
   #   will add the port mappings to the Pod and Service for ports 8080 and 1234
-  ports:
+#  ports:
 
   # store.env is additional environment variable mappings that will be passed to
   #   the Coherence container in the Pod

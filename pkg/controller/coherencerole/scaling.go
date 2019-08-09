@@ -89,7 +89,7 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 
 	// Not StatusHA - wait one minute
 	logger.Info(fmt.Sprintf("Role %s is not StatusHA - re-queing scaling request", role.Name))
-	return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+	return reconcile.Result{Requeue: true, RequeueAfter: r.statusHARetry}, nil
 }
 
 // parallelScale will scale the role by the required amount in one request.
@@ -200,8 +200,12 @@ func IsPodStatusHA(podIP string) (bool, error) {
 					fields := &PartitionData{}
 					err = json.Unmarshal(data, &fields)
 					if err == nil {
-						if fields.HAStatusCode <= 1 || fields.RemainingDistributionCount != 0 {
-							return false, nil
+						// we must have more than one service member and backups > 0 to event think about being HA.
+						if fields.BackupCount > 0 && fields.ServiceNodeCount > 1 {
+							if fields.HAStatusCode <= 1 || fields.RemainingDistributionCount != 0 {
+								// we're not HA
+								return false, nil
+							}
 						}
 					} else {
 						if log.Enabled() {
@@ -220,17 +224,23 @@ func IsPodStatusHA(podIP string) (bool, error) {
 }
 
 const (
-	servicesFormat  = "http://%s:30000/management/coherence/cluster/services"
+	// The URL pattern for Coherence management services query.
+	servicesFormat = "http://%s:30000/management/coherence/cluster/services"
+	// The URL pattern for Coherence management partition assignment query.
 	partitionFormat = "http://%s:30000/management/coherence/cluster/services/%s/partition"
 )
 
+// A struct to use to hold the results of a Coherence management ReST query.
 type RestData struct {
 	Links []map[string]interface{}
 	Items []map[string]interface{}
 }
 
+// A struct to use to hold the results of a Coherence management ReST partition assignment query.
 type PartitionData struct {
 	HAStatus                   string `json:"HAStatus"`
 	HAStatusCode               int    `json:"HAStatusCode"`
 	RemainingDistributionCount int    `json:"remainingDistributionCount"`
+	BackupCount                int    `json:"backupCount"`
+	ServiceNodeCount           int    `json:"serviceNodeCount"`
 }

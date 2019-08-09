@@ -23,6 +23,7 @@
 
   <modules>
     <module>utils</module>
+    <module>test-image</module>
     <module>functional-tests</module>
   </modules>
 
