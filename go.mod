@@ -1,6 +1,7 @@
 module github.com/oracle/coherence-operator
 
 require (
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/loads v0.17.0
 	github.com/go-openapi/spec v0.19.0

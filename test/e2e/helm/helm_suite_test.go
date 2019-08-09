@@ -9,6 +9,8 @@ import (
 
 var HelmHelper *helper.HelmHelper
 
+// This is the Ginkgo test suite entry point. In here we configure the
+// HelmHelper that can then be used by the rest of the tests in the suite
 func TestCoherenceRoleControler(t *testing.T) {
 	RegisterFailHandler(Fail)
 
@@ -20,5 +22,6 @@ func TestCoherenceRoleControler(t *testing.T) {
 
 	HelmHelper = h
 
+	// Make Ginkgo run the rest of the test suite
 	RunSpecs(t, "Coherence Operator Helm Suite")
 }

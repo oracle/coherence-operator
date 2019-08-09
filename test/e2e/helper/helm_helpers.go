@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
@@ -107,6 +108,25 @@ func NewOperatorChartHelper() (*HelmHelper, error) {
 	return NewHelmHelper(chart)
 }
 
+// Obtain a new manager for managing a specific Operator Helm release with a release name and values.
+func (h *HelmHelper) NewOperatorHelmReleaseManager(releaseName string, values *OperatorValues) (*HelmReleaseManager, error) {
+	m := make(map[string]interface{})
+
+	if values != nil {
+		data, err := json.Marshal(values)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(data, &m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return h.NewHelmReleaseManager(releaseName, &m)
+}
+
 // Obtain a new manager for managing a specific Helm release with a release name and values.
 func (h *HelmHelper) NewHelmReleaseManager(releaseName string, values *map[string]interface{}) (*HelmReleaseManager, error) {
 	u := &unstructured.Unstructured{}
@@ -190,23 +210,6 @@ func (h *HelmReleaseManager) UninstallRelease() (*rel.Release, error) {
 }
 
 func createManager(cfg *rest.Config, namespace string) (manager.Manager, error) {
-	u, err := url.Parse(cfg.Host)
-	if err != nil {
-		return nil, err
-	}
-
-	ip, err := net.LookupIP(u.Hostname())
-	if err != nil {
-		return nil, err
-	}
-
-	// If this is Docker on Mac the host name resolves to loopback
-	// It seems that if we use the host name we may later get an x509 error
-	// but if we change the host to the loopback IP 127.0.0.1 it works fine
-	if ip[0].IsLoopback() {
-		cfg.Host = strings.Replace(cfg.Host, u.Hostname(), "127.0.0.1", 1)
-	}
-
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:      namespace,
 		MapperProvider: apiutil.NewDiscoveryRESTMapper,
@@ -246,5 +249,23 @@ func getKubeconfigAndNamespace(configPath string) (*rest.Config, string, error) 
 	if err != nil {
 		return nil, "", err
 	}
+
+	u, err := url.Parse(kubeconfig.Host)
+	if err != nil {
+		return nil, "", err
+	}
+
+	ip, err := net.LookupIP(u.Hostname())
+	if err != nil {
+		return nil, "", err
+	}
+
+	// If this is Docker on Mac the host name resolves to loopback
+	// It seems that if we use the host name we may later get an x509 error
+	// but if we change the host to the loopback IP 127.0.0.1 it works fine
+	if ip[0].IsLoopback() {
+		kubeconfig.Host = strings.Replace(kubeconfig.Host, u.Hostname(), "127.0.0.1", 1)
+	}
+
 	return kubeconfig, namespace, nil
 }
