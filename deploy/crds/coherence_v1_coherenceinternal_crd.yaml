@@ -577,6 +577,29 @@ spec:
                   description: A boolean flag indicating whether members of this role
                     are storage enabled. If not specified the default value is true.
                   type: boolean
+                volumeClaimTemplates:
+                  description: VolumeClaimTemplates defines extra PVC mappings that
+                    will be added to the Coherence Pod.   The content of this yaml
+                    should match the normal k8s volumeClaimTemplates section of a
+                    Pod definition   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+                  items:
+                    type: object
+                  type: array
+                volumeMounts:
+                  description: VolumeMounts defines extra volume mounts to map to
+                    the additional volumes or PVCs declared above   in store.volumes
+                    and store.volumeClaimTemplates
+                  items:
+                    type: object
+                  type: array
+                volumes:
+                  description: Volumes defines extra volume mappings that will be
+                    added to the Coherence Pod.   The content of this yaml should
+                    match the normal k8s volumes section of a Pod definition   as
+                    described in https://kubernetes.io/docs/concepts/storage/volumes/
+                  items:
+                    type: object
+                  type: array
                 wka:
                   description: The name of the headless service used for Coherence
                     WKA

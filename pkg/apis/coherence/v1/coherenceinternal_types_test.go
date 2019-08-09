@@ -192,6 +192,26 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						ExternalPort:   int32Ptr(9099),
 					},
 				},
+				Volumes: []corev1.Volume{
+					corev1.Volume{
+						Name:         "vol1",
+						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+					},
+				},
+				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+					corev1.PersistentVolumeClaim {
+						ObjectMeta: metav1.ObjectMeta { Name: "test-mount-1", },
+						Spec:       corev1.PersistentVolumeClaimSpec {
+							AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce",},
+							Resources:    corev1.ResourceRequirements{
+								Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+							},
+						},
+					},
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					corev1.VolumeMount { Name: "vol-mount-1", ReadOnly : false, MountPath : "/mountpath1", },
+				},
 				Service: &coherence.CoherenceServiceSpec{
 					ServiceSpec:        coherence.ServiceSpec{
 						Enabled:        boolPtr(true),
@@ -371,6 +391,18 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store JMX", func() {
 				Expect(result.Store.JMX).To(Equal(role.Spec.JMX))
+			})
+
+			It("should set the Store Volumes", func() {
+				Expect(result.Store.Volumes).To(Equal(role.Spec.Volumes))
+			})
+
+			It("should set the Store VolumeClaimTemplates", func() {
+				Expect(result.Store.VolumeClaimTemplates).To(Equal(role.Spec.VolumeClaimTemplates))
+			})
+
+			It("should set the Store VolumeMounts", func() {
+				Expect(result.Store.VolumeMounts).To(Equal(role.Spec.VolumeMounts))
 			})
 
 			It("should set the Store Service", func() {

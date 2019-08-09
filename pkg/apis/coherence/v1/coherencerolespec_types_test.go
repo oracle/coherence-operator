@@ -235,6 +235,49 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				MetricsHttpPort:    int32Ptr(9613),
 			}
 
+			volumesOne = []corev1.Volume{
+				corev1.Volume{
+					Name:         "vol1",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+			volumesTwo = []corev1.Volume{
+				corev1.Volume{
+					Name: "vol2",
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+				},
+			}
+
+			volumeClaimTemplatesOne = []corev1.PersistentVolumeClaim{
+				corev1.PersistentVolumeClaim {
+					ObjectMeta: metav1.ObjectMeta { Name: "test-mount-1", },
+					Spec:       corev1.PersistentVolumeClaimSpec {
+						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce",},
+						Resources:    corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
+						},
+					},
+				},
+			}
+			volumeClaimTemplatesTwo = []corev1.PersistentVolumeClaim{
+				corev1.PersistentVolumeClaim {
+					ObjectMeta: metav1.ObjectMeta { Name: "test-mount-2", },
+					Spec:       corev1.PersistentVolumeClaimSpec {
+						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteMany",},
+						Resources:    corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
+						},
+					},
+				},
+			}
+
+			volumeMountsOne = []corev1.VolumeMount{
+				corev1.VolumeMount { Name: "vol-mount-1", ReadOnly : false, MountPath : "/mountpath1", },
+			}
+			volumeMountsTwo = []corev1.VolumeMount{
+				corev1.VolumeMount { Name: "vol-mount-2", MountPath : "/mountpath2", },
+			}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -262,6 +305,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Metrics:              metricsOne,
 				JMX:                  jmxOne,
 				Service:              serviceOne,
+				Volumes:              volumesOne,
+				VolumeClaimTemplates: volumeClaimTemplatesOne,
+				VolumeMounts:         volumeMountsOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -291,6 +337,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Metrics:              metricsTwo,
 				JMX:                  jmxTwo,
 				Service:              serviceTwo,
+				Volumes:              volumesTwo,
+				VolumeClaimTemplates: volumeClaimTemplatesTwo,
+				VolumeMounts:         volumeMountsTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -684,6 +733,63 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Service = defaults.Service
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Volumes is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Volumes = nil
+			})
+
+			It("clone should be equal to the original with the Volumes field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Volumes = defaults.Volumes
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original VolumeClaimTemplates is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.VolumeClaimTemplates = nil
+			})
+
+			It("clone should be equal to the original with the VolumeClaimTemplates field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.VolumeClaimTemplates = defaults.VolumeClaimTemplates
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original VolumeMounts is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.VolumeMounts = nil
+			})
+
+			It("clone should be equal to the original with the VolumeMounts field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.VolumeMounts = defaults.VolumeMounts
 
 				Expect(clone).To(Equal(expected))
 			})

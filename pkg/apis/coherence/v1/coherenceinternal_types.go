@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -196,6 +197,20 @@ type CoherenceInternalStoreSpec struct {
 	// Service groups the values used to configure the K8s service
 	// +optional
 	Service *CoherenceServiceSpec `json:"service,omitempty"`
+	// Volumes defines extra volume mappings that will be added to the Coherence Pod.
+	//   The content of this yaml should match the normal k8s volumes section of a Pod definition
+	//   as described in https://kubernetes.io/docs/concepts/storage/volumes/
+	// +optional
+	Volumes []corev1.Volume `json:"volumes,omitempty"`
+	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
+	//   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
+	//   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// +optional
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	// VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
+	//   in store.volumes and store.volumeClaimTemplates
+	// +optional
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -275,13 +290,40 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 		out.Store.Env = env
 	}
 
-	// Set the Annptations
+	// Set the Annotations
 	if role.Spec.Annotations != nil {
 		annotations := make(map[string]string)
 		for k, v := range role.Spec.Annotations {
 			annotations[k] = v
 		}
 		out.Store.Annotations = annotations
+	}
+
+	// Set the Volumes
+	if role.Spec.Volumes != nil {
+		volumes := make([]corev1.Volume, len(role.Spec.Volumes))
+		for i := 0; i < len(role.Spec.Volumes); i++ {
+			volumes[i] = *role.Spec.Volumes[i].DeepCopy()
+		}
+		out.Store.Volumes = volumes
+	}
+
+	// Set the VolumeClaimTemplates
+	if role.Spec.VolumeClaimTemplates != nil {
+		volumeClaimTemplates := make([]corev1.PersistentVolumeClaim, len(role.Spec.VolumeClaimTemplates))
+		for i := 0; i < len(role.Spec.VolumeClaimTemplates); i++ {
+			volumeClaimTemplates[i] = *role.Spec.VolumeClaimTemplates[i].DeepCopy()
+		}
+		out.Store.VolumeClaimTemplates = volumeClaimTemplates
+	}
+
+	// Set the VolumeMounts
+	if role.Spec.VolumeMounts != nil {
+		volumeMounts := make([]corev1.VolumeMount, len(role.Spec.VolumeMounts))
+		for i := 0; i < len(role.Spec.VolumeMounts); i++ {
+			volumeMounts[i] = *role.Spec.VolumeMounts[i].DeepCopy()
+		}
+		out.Store.VolumeMounts = volumeMounts
 	}
 
 	return &out

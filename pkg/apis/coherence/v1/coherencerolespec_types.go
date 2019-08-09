@@ -2,6 +2,7 @@ package v1
 
 import (
 	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -146,6 +147,20 @@ type CoherenceRoleSpec struct {
 	// Service groups the values used to configure the K8s service
 	// +optional
 	Service *CoherenceServiceSpec `json:"service,omitempty"`
+	// Volumes defines extra volume mappings that will be added to the Coherence Pod.
+	//   The content of this yaml should match the normal k8s volumes section of a Pod definition
+	//   as described in https://kubernetes.io/docs/concepts/storage/volumes/
+	// +optional
+	Volumes []corev1.Volume `json:"volumes,omitempty"`
+	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
+	//   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
+	//   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// +optional
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	// VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
+	//   in store.volumes and store.volumeClaimTemplates
+	// +optional
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -277,6 +292,42 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.RevisionHistoryLimit = in.RevisionHistoryLimit
 	} else {
 		clone.RevisionHistoryLimit = defaults.RevisionHistoryLimit
+	}
+
+	if in.Volumes != nil {
+		clone.Volumes = make([]corev1.Volume, len(in.Volumes))
+		for i := 0; i < len(in.Volumes); i++ {
+			clone.Volumes[i] = *in.Volumes[i].DeepCopy()
+		}
+	} else if defaults.Volumes != nil {
+		clone.Volumes = make([]corev1.Volume, len(defaults.Volumes))
+		for i := 0; i < len(defaults.Volumes); i++ {
+			clone.Volumes[i] = *defaults.Volumes[i].DeepCopy()
+		}
+	}
+
+	if in.VolumeClaimTemplates != nil {
+		clone.VolumeClaimTemplates = make([]corev1.PersistentVolumeClaim, len(in.VolumeClaimTemplates))
+		for i := 0; i < len(in.VolumeClaimTemplates); i++ {
+			clone.VolumeClaimTemplates[i] = *in.VolumeClaimTemplates[i].DeepCopy()
+		}
+	} else if defaults.VolumeClaimTemplates != nil {
+		clone.VolumeClaimTemplates = make([]corev1.PersistentVolumeClaim, len(defaults.VolumeClaimTemplates))
+		for i := 0; i < len(defaults.Volumes); i++ {
+			clone.VolumeClaimTemplates[i] = *defaults.VolumeClaimTemplates[i].DeepCopy()
+		}
+	}
+
+	if in.VolumeMounts != nil {
+		clone.VolumeMounts = make([]corev1.VolumeMount, len(in.VolumeMounts))
+		for i := 0; i < len(in.VolumeMounts); i++ {
+			clone.VolumeMounts[i] = *in.VolumeMounts[i].DeepCopy()
+		}
+	} else if defaults.VolumeMounts != nil {
+		clone.VolumeMounts = make([]corev1.VolumeMount, len(defaults.VolumeMounts))
+		for i := 0; i < len(defaults.VolumeMounts); i++ {
+			clone.VolumeMounts[i] = *defaults.VolumeMounts[i].DeepCopy()
+		}
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)

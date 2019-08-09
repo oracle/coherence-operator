@@ -308,6 +308,45 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
+					"volumes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Volumes defines extra volume mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumes section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Volume"),
+									},
+								},
+							},
+						},
+					},
+					"volumeClaimTemplates": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.PersistentVolumeClaim"),
+									},
+								},
+							},
+						},
+					},
+					"volumeMounts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above\n  in store.volumes and store.volumeClaimTemplates",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -325,7 +364,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -684,11 +723,50 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
+					"volumes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Volumes defines extra volume mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumes section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Volume"),
+									},
+								},
+							},
+						},
+					},
+					"volumeClaimTemplates": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.PersistentVolumeClaim"),
+									},
+								},
+							},
+						},
+					},
+					"volumeMounts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above\n  in store.volumes and store.volumeClaimTemplates",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -941,11 +1019,50 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
+					"volumes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Volumes defines extra volume mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumes section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Volume"),
+									},
+								},
+							},
+						},
+					},
+					"volumeClaimTemplates": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.PersistentVolumeClaim"),
+									},
+								},
+							},
+						},
+					},
+					"volumeMounts": {
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above\n  in store.volumes and store.volumeClaimTemplates",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
