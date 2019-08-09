@@ -188,6 +188,14 @@ type CoherenceInternalStoreSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpec `json:"metrics,omitempty"`
+	// JMX defines the values used to enable and configure a separate set of cluster members
+	//   that will act as MBean server members and expose a JMX port via a dedicated service.
+	//   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
+	// +optional
+	JMX *JMXSpec `json:"jmx,omitempty"`
+	// Service groups the values used to configure the K8s service
+	// +optional
+	Service *CoherenceServiceSpec `json:"service,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -233,6 +241,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.Snapshot = role.Spec.Snapshot
 	out.Store.Management = role.Spec.Management
 	out.Store.Metrics = role.Spec.Metrics
+	out.Store.JMX = role.Spec.JMX
+	out.Store.Service = role.Spec.Service
 
 	// Set the labels
 	labels := make(map[string]string)

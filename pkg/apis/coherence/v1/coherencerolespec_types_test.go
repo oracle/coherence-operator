@@ -186,6 +186,55 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Port: int32Ptr(9191),
 			}
 
+			jmxOne = &coherence.JMXSpec{
+				Enabled:  boolPtr(true),
+				Replicas: int32Ptr(3),
+				MaxHeap:  stringPtr("2Gi"),
+				Service: &coherence.ServiceSpec{
+					Type:           stringPtr("LoadBalancerIP"),
+					Domain:         stringPtr("cluster.local"),
+					LoadBalancerIP: stringPtr("10.10.10.20"),
+					Annotations:    map[string]string{"foo": "1"},
+					ExternalPort:   int32Ptr(9099),
+				},
+			}
+			jmxTwo = &coherence.JMXSpec{
+				Enabled:  boolPtr(true),
+				Replicas: int32Ptr(6),
+				MaxHeap:  stringPtr("3Gi"),
+				Service:  &coherence.ServiceSpec{
+					Type:           stringPtr("ClusterIP"),
+					Domain:         stringPtr("cluster.local2"),
+					LoadBalancerIP: stringPtr("10.10.10.21"),
+					Annotations:    map[string]string{ "foo": "2"},
+					ExternalPort:   int32Ptr(9098),
+				},
+			}
+
+			serviceOne = &coherence.CoherenceServiceSpec{
+				ServiceSpec:        coherence.ServiceSpec{
+					Enabled:        boolPtr(true),
+					Type:           stringPtr("LoadBalancerIP"),
+					Domain:         stringPtr("cluster.local"),
+					LoadBalancerIP: stringPtr("10.10.10.20"),
+					Annotations:    map[string]string{ "foo": "1"},
+					ExternalPort:   int32Ptr(20000),
+				},
+				ManagementHttpPort: int32Ptr(30000),
+				MetricsHttpPort:    int32Ptr(9612),
+			}
+			serviceTwo = &coherence.CoherenceServiceSpec{
+				ServiceSpec:        coherence.ServiceSpec{
+					Enabled:        boolPtr(true),
+					Type:           stringPtr("ClusterIP"),
+					Domain:         stringPtr("cluster.local2"),
+					Annotations:    map[string]string{ "foo": "2"},
+					ExternalPort:   int32Ptr(20001),
+				},
+				ManagementHttpPort: int32Ptr(30001),
+				MetricsHttpPort:    int32Ptr(9613),
+			}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -211,6 +260,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Snapshot:             snapshotOne,
 				Management:           managementOne,
 				Metrics:              metricsOne,
+				JMX:                  jmxOne,
+				Service:              serviceOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -238,6 +289,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Snapshot:             snapshotTwo,
 				Management:           managementTwo,
 				Metrics:              metricsTwo,
+				JMX:                  jmxTwo,
+				Service:              serviceTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -593,6 +646,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Metrics = defaults.Metrics
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original JMX is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.JMX = nil
+			})
+
+			It("clone should be equal to the original with the JMX field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.JMX = defaults.JMX
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Service is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Service = nil
+			})
+
+			It("clone should be equal to the original with the Service field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Service = defaults.Service
 
 				Expect(clone).To(Equal(expected))
 			})

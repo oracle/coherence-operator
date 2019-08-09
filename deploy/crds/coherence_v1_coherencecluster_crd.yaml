@@ -136,6 +136,58 @@ spec:
                 store container This options will override the system options computed
                 in the start up script.
               type: string
+            jmx:
+              description: JMX defines the values used to enable and configure a separate
+                set of cluster members   that will act as MBean server members and
+                expose a JMX port via a dedicated service.   The JMX port exposed
+                will be using the JMXMP transport as RMI does not work properly in
+                containers.
+              properties:
+                enabled:
+                  description: Enabled enables or disables running the MBean server
+                    nodes.   If not set the default is false.
+                  type: boolean
+                maxHeap:
+                  description: MaxHeap is the min/max heap value to pass to the MBean
+                    server JVM.   The format should be the same as that used for Java's
+                    -Xms and -Xmx JVM options.   If not set the JVM defaults are used.
+                  type: string
+                replicas:
+                  description: Replicas is the number of MBean server nodes to run.   If
+                    not set the default is one.
+                  format: int32
+                  type: integer
+                service:
+                  description: Service groups the values used to configure the management
+                    service The default service external port is 9099.
+                  properties:
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      description: Annotations is free form yaml that will be added
+                        to the service annotations
+                      type: object
+                    domain:
+                      description: Domain is the external domain name The default
+                        is "cluster.local". +optioanl
+                      type: string
+                    enabled:
+                      description: Enabled controls whether to create the service
+                        yaml or not
+                      type: boolean
+                    externalPort:
+                      description: The service port value
+                      format: int32
+                      type: integer
+                    loadBalancerIP:
+                      description: LoadBalancerIP is the IP address of the load balancer
+                      type: string
+                    type:
+                      description: Type is the K8s service type (typically ClusterIP
+                        or LoadBalancer) The default is "ClusterIP".
+                      type: string
+                  type: object
+              type: object
             jvmArgs:
               description: JvmArgs specifies the options to pass to the Coherence
                 JVM. The default is to use the G1 collector.
@@ -576,6 +628,61 @@ spec:
                       the Coherence store container This options will override the
                       system options computed in the start up script.
                     type: string
+                  jmx:
+                    description: JMX defines the values used to enable and configure
+                      a separate set of cluster members   that will act as MBean server
+                      members and expose a JMX port via a dedicated service.   The
+                      JMX port exposed will be using the JMXMP transport as RMI does
+                      not work properly in containers.
+                    properties:
+                      enabled:
+                        description: Enabled enables or disables running the MBean
+                          server nodes.   If not set the default is false.
+                        type: boolean
+                      maxHeap:
+                        description: MaxHeap is the min/max heap value to pass to
+                          the MBean server JVM.   The format should be the same as
+                          that used for Java's -Xms and -Xmx JVM options.   If not
+                          set the JVM defaults are used.
+                        type: string
+                      replicas:
+                        description: Replicas is the number of MBean server nodes
+                          to run.   If not set the default is one.
+                        format: int32
+                        type: integer
+                      service:
+                        description: Service groups the values used to configure the
+                          management service The default service external port is
+                          9099.
+                        properties:
+                          annotations:
+                            additionalProperties:
+                              type: string
+                            description: Annotations is free form yaml that will be
+                              added to the service annotations
+                            type: object
+                          domain:
+                            description: Domain is the external domain name The default
+                              is "cluster.local". +optioanl
+                            type: string
+                          enabled:
+                            description: Enabled controls whether to create the service
+                              yaml or not
+                            type: boolean
+                          externalPort:
+                            description: The service port value
+                            format: int32
+                            type: integer
+                          loadBalancerIP:
+                            description: LoadBalancerIP is the IP address of the load
+                              balancer
+                            type: string
+                          type:
+                            description: Type is the K8s service type (typically ClusterIP
+                              or LoadBalancer) The default is "ClusterIP".
+                            type: string
+                        type: object
+                    type: object
                   jvmArgs:
                     description: JvmArgs specifies the options to pass to the Coherence
                       JVM. The default is to use the G1 collector.
@@ -921,6 +1028,46 @@ spec:
                       if StorageEnabled is set to false the default scaling will be
                       parallel.
                     type: string
+                  service:
+                    description: Service groups the values used to configure the K8s
+                      service
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations is free form yaml that will be added
+                          to the service annotations
+                        type: object
+                      domain:
+                        description: Domain is the external domain name The default
+                          is "cluster.local". +optioanl
+                        type: string
+                      enabled:
+                        description: Enabled controls whether to create the service
+                          yaml or not
+                        type: boolean
+                      externalPort:
+                        description: The service port value
+                        format: int32
+                        type: integer
+                      loadBalancerIP:
+                        description: LoadBalancerIP is the IP address of the load
+                          balancer
+                        type: string
+                      managementHttpPort:
+                        description: 'The management Http port as integer Default:
+                          30000'
+                        format: int32
+                        type: integer
+                      metricsHttpPort:
+                        description: 'The metrics http port as integer Default: 9612'
+                        format: int32
+                        type: integer
+                      type:
+                        description: Type is the K8s service type (typically ClusterIP
+                          or LoadBalancer) The default is "ClusterIP".
+                        type: string
+                    type: object
                   snapshot:
                     description: Snapshot values configure the on-disc persistence
                       data snapshot (backup) settings. The bool Enabled enables or
@@ -965,6 +1112,43 @@ spec:
                 specified or is true the default scaling will be safe, if StorageEnabled
                 is set to false the default scaling will be parallel.
               type: string
+            service:
+              description: Service groups the values used to configure the K8s service
+              properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  description: Annotations is free form yaml that will be added to
+                    the service annotations
+                  type: object
+                domain:
+                  description: Domain is the external domain name The default is "cluster.local".
+                    +optioanl
+                  type: string
+                enabled:
+                  description: Enabled controls whether to create the service yaml
+                    or not
+                  type: boolean
+                externalPort:
+                  description: The service port value
+                  format: int32
+                  type: integer
+                loadBalancerIP:
+                  description: LoadBalancerIP is the IP address of the load balancer
+                  type: string
+                managementHttpPort:
+                  description: 'The management Http port as integer Default: 30000'
+                  format: int32
+                  type: integer
+                metricsHttpPort:
+                  description: 'The metrics http port as integer Default: 9612'
+                  format: int32
+                  type: integer
+                type:
+                  description: Type is the K8s service type (typically ClusterIP or
+                    LoadBalancer) The default is "ClusterIP".
+                  type: string
+              type: object
             serviceAccountName:
               description: The name to use for the service account to use when RBAC
                 is enabled The role bindings must already have been created as this

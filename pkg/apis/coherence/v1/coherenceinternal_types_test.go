@@ -180,6 +180,30 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						RequireClientCert:      boolPtr(true),
 					},
 				},
+				JMX: &coherence.JMXSpec{
+					Enabled:  boolPtr(true),
+					Replicas: int32Ptr(3),
+					MaxHeap:  stringPtr("2Gi"),
+					Service: &coherence.ServiceSpec{
+						Type:           stringPtr("LoadBalancerIP"),
+						Domain:         stringPtr("cluster.local"),
+						LoadBalancerIP: stringPtr("10.10.10.20"),
+						Annotations:    map[string]string{"foo": "1"},
+						ExternalPort:   int32Ptr(9099),
+					},
+				},
+				Service: &coherence.CoherenceServiceSpec{
+					ServiceSpec:        coherence.ServiceSpec{
+						Enabled:        boolPtr(true),
+						Type:           stringPtr("LoadBalancerIP"),
+						Domain:         stringPtr("cluster.local"),
+						LoadBalancerIP: stringPtr("10.10.10.20"),
+						Annotations:    map[string]string{ "foo": "1"},
+						ExternalPort:   int32Ptr(20000),
+					},
+					ManagementHttpPort: int32Ptr(30000),
+					MetricsHttpPort:    int32Ptr(9612),
+				},
 			},
 		}
 	})
@@ -343,6 +367,14 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store Metrics", func() {
 				Expect(result.Store.Metrics).To(Equal(role.Spec.Metrics))
+			})
+
+			It("should set the Store JMX", func() {
+				Expect(result.Store.JMX).To(Equal(role.Spec.JMX))
+			})
+
+			It("should set the Store Service", func() {
+				Expect(result.Store.Service).To(Equal(role.Spec.Service))
 			})
 		})
 	})

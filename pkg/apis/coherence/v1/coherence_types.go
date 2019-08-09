@@ -498,6 +498,240 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 	return &clone
 }
 
+// ----- ServiceSpec struct -------------------------------------------------
+// ServiceSpec defines the settings for a Service
+// +k8s:openapi-gen=true
+type ServiceSpec struct {
+	// Enabled controls whether to create the service yaml or not
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// Type is the K8s service type (typically ClusterIP or LoadBalancer)
+	// The default is "ClusterIP".
+	// +optional
+	Type *string `json:"type,omitempty"`
+	// Domain is the external domain name
+	// The default is "cluster.local".
+	// +optioanl
+	Domain *string `json:"domain,omitempty"`
+	// LoadBalancerIP is the IP address of the load balancer
+	// +optional
+	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
+	// Annotations is free form yaml that will be added to the service annotations
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// The service port value
+	// +optional
+	ExternalPort *int32 `json:"externalPort,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this ServiceSpec struct with any nil or not set values set
+// by the corresponding value in the defaults PortSpec struct.
+func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := ServiceSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Type != nil {
+		clone.Type = in.Type
+	} else {
+		clone.Type = defaults.Type
+	}
+
+	if in.Domain != nil {
+		clone.Domain = in.Domain
+	} else {
+		clone.Domain = defaults.Domain
+	}
+
+	if in.LoadBalancerIP != nil {
+		clone.LoadBalancerIP = in.LoadBalancerIP
+	} else {
+		clone.LoadBalancerIP = defaults.LoadBalancerIP
+	}
+
+	if in.Annotations != nil {
+		clone.Annotations = in.Annotations
+	} else {
+		clone.Annotations = defaults.Annotations
+	}
+
+	if in.ExternalPort != nil {
+		clone.ExternalPort = in.ExternalPort
+	} else {
+		clone.ExternalPort = defaults.ExternalPort
+	}
+
+	return &clone
+}
+
+// ----- JMXSpec struct -----------------------------------------------------
+// JMXSpec defines the values used to enable and configure a separate set of cluster members
+//   that will act as MBean server members and expose a JMX port via a dedicated service.
+//   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
+// +k8s:openapi-gen=true
+type JMXSpec struct {
+	// Enabled enables or disables running the MBean server nodes.
+	//   If not set the default is false.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// Replicas is the number of MBean server nodes to run.
+	//   If not set the default is one.
+	// +optional
+	Replicas *int32 `json:"replicas,omitempty"`
+	// MaxHeap is the min/max heap value to pass to the MBean server JVM.
+	//   The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	//   If not set the JVM defaults are used.
+	// +optional
+	MaxHeap *string `json:"maxHeap,omitempty"`
+	// Service groups the values used to configure the management service
+	// The default service external port is 9099.
+	Service *ServiceSpec `json:"service,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JMXSpec struct with any nil or not set values set
+// by the corresponding value in the defaults PortSpec struct.
+func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JMXSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Replicas != nil {
+		clone.Replicas = in.Replicas
+	} else {
+		clone.Replicas = defaults.Replicas
+	}
+
+	if in.MaxHeap != nil {
+		clone.MaxHeap = in.MaxHeap
+	} else {
+		clone.MaxHeap = defaults.MaxHeap
+	}
+
+	if in.Service != nil {
+		clone.Service = in.Service
+	} else {
+		clone.Service = defaults.Service
+	}
+
+	return &clone
+}
+
+// ----- CoherenceServiceSpec struct ----------------------------------------
+// CoherenceServiceSpec groups the values used to configure the K8s service
+// +k8s:openapi-gen=true
+type CoherenceServiceSpec struct {
+	// The default service external port is 30000.
+	ServiceSpec `json:",inline"`
+	// The management Http port as integer
+	// Default: 30000
+	// +optional
+	ManagementHttpPort *int32 `json:"managementHttpPort,omitempty"`
+	// The metrics http port as integer
+	// Default: 9612
+	// +optional
+	MetricsHttpPort *int32 `json:"metricsHttpPort,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this CoherenceServiceSpec struct with any nil or not set values set
+// by the corresponding value in the defaults PortSpec struct.
+func (in *CoherenceServiceSpec) DeepCopyWithDefaults(defaults *CoherenceServiceSpec) *CoherenceServiceSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := CoherenceServiceSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Type != nil {
+		clone.Type = in.Type
+	} else {
+		clone.Type = defaults.Type
+	}
+
+	if in.Domain != nil {
+		clone.Domain = in.Domain
+	} else {
+		clone.Domain = defaults.Domain
+	}
+
+	if in.LoadBalancerIP != nil {
+		clone.LoadBalancerIP = in.LoadBalancerIP
+	} else {
+		clone.LoadBalancerIP = defaults.LoadBalancerIP
+	}
+
+	if in.Annotations != nil {
+		clone.Annotations = in.Annotations
+	} else {
+		clone.Annotations = defaults.Annotations
+	}
+
+	if in.ExternalPort != nil {
+		clone.ExternalPort = in.ExternalPort
+	} else {
+		clone.ExternalPort = defaults.ExternalPort
+	}
+
+	if in.ManagementHttpPort != nil {
+		clone.ManagementHttpPort = in.ManagementHttpPort
+	} else {
+		clone.ManagementHttpPort = defaults.ManagementHttpPort
+	}
+
+	if in.MetricsHttpPort != nil {
+		clone.MetricsHttpPort = in.MetricsHttpPort
+	} else {
+		clone.MetricsHttpPort = defaults.MetricsHttpPort
+	}
+
+	return &clone
+}
+
 // ----- ReadinessProbeSpec struct ------------------------------------------
 
 // ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe

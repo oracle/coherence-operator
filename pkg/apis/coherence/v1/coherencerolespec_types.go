@@ -138,6 +138,14 @@ type CoherenceRoleSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpec `json:"metrics,omitempty"`
+	// JMX defines the values used to enable and configure a separate set of cluster members
+	//   that will act as MBean server members and expose a JMX port via a dedicated service.
+	//   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
+	// +optional
+	JMX *JMXSpec `json:"jmx,omitempty"`
+	// Service groups the values used to configure the K8s service
+	// +optional
+	Service *CoherenceServiceSpec `json:"service,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -283,6 +291,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Snapshot = in.Snapshot.DeepCopyWithDefaults(defaults.Snapshot)
 	clone.Management = in.Management.DeepCopyWithDefaults(defaults.Management)
 	clone.Metrics = in.Metrics.DeepCopyWithDefaults(defaults.Metrics)
+	clone.JMX = in.JMX.DeepCopyWithDefaults(defaults.JMX)
+	clone.Service = in.Service.DeepCopyWithDefaults(defaults.Service)
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
 
 	return &clone

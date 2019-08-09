@@ -21,16 +21,19 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceRole":              schema_pkg_apis_coherence_v1_CoherenceRole(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleSpec":          schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleStatus":        schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
+		"./pkg/apis/coherence/v1.CoherenceServiceSpec":       schema_pkg_apis_coherence_v1_CoherenceServiceSpec(ref),
 		"./pkg/apis/coherence/v1.FluentdApplicationSpec":     schema_pkg_apis_coherence_v1_FluentdApplicationSpec(ref),
 		"./pkg/apis/coherence/v1.FluentdImageSpec":           schema_pkg_apis_coherence_v1_FluentdImageSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":                  schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.Images":                     schema_pkg_apis_coherence_v1_Images(ref),
+		"./pkg/apis/coherence/v1.JMXSpec":                    schema_pkg_apis_coherence_v1_JMXSpec(ref),
 		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":      schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
 		"./pkg/apis/coherence/v1.PortSpec":                   schema_pkg_apis_coherence_v1_PortSpec(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.SSLSpec":                    schema_pkg_apis_coherence_v1_SSLSpec(ref),
+		"./pkg/apis/coherence/v1.ServiceSpec":                schema_pkg_apis_coherence_v1_ServiceSpec(ref),
 		"./pkg/apis/coherence/v1.UserArtifactsImageSpec":     schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref),
 	}
 }
@@ -293,6 +296,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
 						},
 					},
+					"jmx": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
+							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service groups the values used to configure the K8s service",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -310,7 +325,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -657,11 +672,23 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
 						},
 					},
+					"jmx": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
+							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service groups the values used to configure the K8s service",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -902,11 +929,23 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
 						},
 					},
+					"jmx": {
+						SchemaProps: spec.SchemaProps{
+							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
+							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service groups the values used to configure the K8s service",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
+			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec"},
 	}
 }
 
@@ -953,6 +992,82 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref common.ReferenceCallba
 					},
 				},
 				Required: []string{"replicas", "currentReplicas", "readyReplicas"},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- CoherenceServiceSpec struct ---------------------------------------- CoherenceServiceSpec groups the values used to configure the K8s service",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled controls whether to create the service yaml or not",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Type is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"domain": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Domain is the external domain name The default is \"cluster.local\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"loadBalancerIP": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LoadBalancerIP is the IP address of the load balancer",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations is free form yaml that will be added to the service annotations",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"externalPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The service port value",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"managementHttpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The management Http port as integer Default: 30000",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"metricsHttpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The metrics http port as integer Default: 9612",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
 			},
 		},
 		Dependencies: []string{},
@@ -1082,6 +1197,47 @@ func schema_pkg_apis_coherence_v1_Images(ref common.ReferenceCallback) common.Op
 		},
 		Dependencies: []string{
 			"./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JMXSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- JMXSpec struct ----------------------------------------------------- JMXSpec defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled enables or disables running the MBean server nodes.\n  If not set the default is false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Replicas is the number of MBean server nodes to run.\n  If not set the default is one.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"maxHeap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxHeap is the min/max heap value to pass to the MBean server JVM.\n  The format should be the same as that used for Java's -Xms and -Xmx JVM options.\n  If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service groups the values used to configure the management service The default service external port is 9099.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.ServiceSpec"},
 	}
 }
 
@@ -1355,6 +1511,68 @@ func schema_pkg_apis_coherence_v1_SSLSpec(ref common.ReferenceCallback) common.O
 							Description: "RequireClientCert is a boolean flag indicating whether the client certificate will be\n  authenticated by the server (two-way SSL) when configuring component over REST to use SSL.\n  If not set the default is false",
 							Type:        []string{"boolean"},
 							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- ServiceSpec struct ------------------------------------------------- ServiceSpec defines the settings for a Service",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled controls whether to create the service yaml or not",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Type is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"domain": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Domain is the external domain name The default is \"cluster.local\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"loadBalancerIP": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LoadBalancerIP is the IP address of the load balancer",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations is free form yaml that will be added to the service annotations",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"externalPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The service port value",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},
