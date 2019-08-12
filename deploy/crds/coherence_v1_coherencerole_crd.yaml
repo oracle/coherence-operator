@@ -33,6 +33,10 @@ spec:
           type: object
         spec:
           properties:
+            affinity:
+              description: 'Pod scheduling values: Affinity, NodeSelector, Tolerations
+                Affinity controls Pod scheduling preferences.   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
+              type: object
             annotations:
               additionalProperties:
                 type: string
@@ -422,6 +426,12 @@ spec:
                   - keyStore
                   type: object
               type: object
+            nodeSelector:
+              additionalProperties:
+                type: string
+              description: 'NodeSelector is the Node labels for pod assignment   ref:
+                https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
+              type: object
             overrideConfig:
               description: OverrideConfig is name of the Coherence operational configuration
                 override file, the default is tangosol-coherence-override.xml
@@ -506,6 +516,18 @@ spec:
                 Default value is 3.
               format: int32
               type: integer
+            resources:
+              description: 'Resources is the optional resource requests and limits
+                for the containers  ref: http://kubernetes.io/docs/user-guide/compute-resources/  By
+                default the cpu requests is set to zero and the cpu limit set to 32.
+                This is because it appears that K8s defaults cpu to one and since
+                Java 10 the JVM now correctly picks up cgroup cpu limits then the
+                JVM will only see one cpu. By setting resources.requests.cpu=0 and
+                resources.limits.cpu=32 it ensures that the JVM will see the either
+                the number of cpus on the host if this is <= 32 or the JVM will see
+                32 cpus if the host has > 32 cpus. The limit is set to zero so that
+                there is no hard-limit applied.  No default memory limits are applied.'
+              type: object
             revisionHistoryLimit:
               description: RevisionHistoryLimit is the number of deployment revision
                 K8s keeps after rolling upgrades. The default value if not set is

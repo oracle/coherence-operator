@@ -58,8 +58,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			jvmArgsOne = "-XX:+UseG1GC"
 			jvmArgsTwo = ""
 
-			JavaOptsOne = "-Dcoherence.log.level=9"
-			JavaOptsTwo = "-Dcoherence.log.level=5"
+			javaOptsOne = "-Dcoherence.log.level=9"
+			javaOptsTwo = "-Dcoherence.log.level=5"
 
 			portsOne = map[string]int32{"port1": 8081, "port2": 8082}
 			portsTwo = map[string]int32{"port3": 8083, "port4": 8084}
@@ -159,7 +159,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 					TrustStorePasswordFile: stringPtr("trustpassword.txt"),
 					TrustStoreType:         stringPtr("JKS"),
 					RequireClientCert:      boolPtr(true),
-
 				},
 			}
 			managementTwo = &coherence.PortSpec{
@@ -278,6 +277,51 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				corev1.VolumeMount { Name: "vol-mount-2", MountPath : "/mountpath2", },
 			}
 
+			affinityOne = &corev1.Affinity {
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector {
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							corev1.NodeSelectorTerm{
+								MatchExpressions: []corev1.NodeSelectorRequirement{
+									corev1.NodeSelectorRequirement{
+										Key:      "kubernetes.io/e2e-az-name",
+										Operator: corev1.NodeSelectorOpIn,
+										Values:   []string{ "e2e-az1", "e2e-az2" },
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			affinityTwo = &corev1.Affinity {
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector {
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							corev1.NodeSelectorTerm{
+								MatchExpressions: []corev1.NodeSelectorRequirement{
+									corev1.NodeSelectorRequirement{
+										Key:      "kubernetes.io/e2e-az-name",
+										Operator: corev1.NodeSelectorOpIn,
+										Values:   []string{ "e2e-az3", "e2e-az4" },
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			nodeSelectorOne = map[string]string{"one": "1", "two": "2"}
+			nodeSelectorTwo = map[string]string{"three": "3", "four": "4"}
+
+			resourcesOne = &corev1.ResourceRequirements{
+				Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
+			}
+			resourcesTwo = &corev1.ResourceRequirements{
+				Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("8Gi")},
+			}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -293,7 +337,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Main:                 mainOne,
 				MaxHeap:              &maxHeapOne,
 				JvmArgs:              &jvmArgsOne,
-				JavaOpts:             &JavaOptsOne,
+				JavaOpts:             &javaOptsOne,
 				Ports:                nil,
 				Env:                  nil,
 				Annotations:          nil,
@@ -304,10 +348,13 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Management:           managementOne,
 				Metrics:              metricsOne,
 				JMX:                  jmxOne,
-				Service:              serviceOne,
 				Volumes:              volumesOne,
 				VolumeClaimTemplates: volumeClaimTemplatesOne,
 				VolumeMounts:         volumeMountsOne,
+				Affinity:             affinityOne,
+				NodeSelector:         nil,
+				Service:              serviceOne,
+				Resources:            resourcesOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -325,7 +372,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Main:                 mainTwo,
 				MaxHeap:              &maxHeapTwo,
 				JvmArgs:              &jvmArgsTwo,
-				JavaOpts:             &JavaOptsTwo,
+				JavaOpts:             &javaOptsTwo,
 				Ports:                nil,
 				Env:                  nil,
 				Annotations:          nil,
@@ -336,10 +383,13 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Management:           managementTwo,
 				Metrics:              metricsTwo,
 				JMX:                  jmxTwo,
-				Service:              serviceTwo,
 				Volumes:              volumesTwo,
 				VolumeClaimTemplates: volumeClaimTemplatesTwo,
 				VolumeMounts:         volumeMountsTwo,
+				Affinity:             affinityTwo,
+				NodeSelector:         nil,
+				Service:              serviceTwo,
+				Resources:            resourcesTwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -795,6 +845,44 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			})
 		})
 
+		When("the original Affinity is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Affinity = nil
+			})
+
+			It("clone should be equal to the original with the Affinity field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Affinity = defaults.Affinity
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Resources is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Resources = nil
+			})
+
+			It("clone should be equal to the original with the Resources field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Resources = defaults.Resources
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
 		When("the original ReadinessProbe is not set", func() {
 			BeforeEach(func() {
 				defaults = roleSpecTwo
@@ -1195,6 +1283,98 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Annotations = map[string]string{"anno1": "1", "anno2": "2", "anno4": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original NodeSelector is not set and default NodeSelector is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.NodeSelector = nil
+				defaults.NodeSelector = nodeSelectorTwo
+			})
+
+			It("clone should be equal to the original with the NodeSelector field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.NodeSelector = defaults.NodeSelector
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original NodeSelector is set and default NodeSelector is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.NodeSelector = nodeSelectorOne
+				defaults.NodeSelector = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+		})
+
+		When("the original NodeSelector is set and default NodeSelector is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.NodeSelector = nodeSelectorOne
+				defaults.NodeSelector = nodeSelectorTwo
+			})
+
+			It("clone should have the combined NodeSelector", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.NodeSelector = map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original NodeSelector has duplicate keys to the default NodeSelector", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.NodeSelector = map[string]string{"one": "1", "two": "2", "three": "changed"}
+				defaults.NodeSelector = map[string]string{"three": "3", "four": "4"}
+			})
+
+			It("clone should have the combined NodeSelector with the duplicate key mapped to the originals value", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.NodeSelector = map[string]string{"one": "1", "two": "2", "three": "changed", "four": "4"}
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original NodeSelector has duplicate keys to the default NodeSelector where the value is empty string", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+
+				original.NodeSelector = map[string]string{"one": "1", "two": "2", "three": ""}
+				defaults.NodeSelector = map[string]string{"three": "3", "four": "4"}
+			})
+
+			It("clone should have the combined NodeSelector with the duplicate key removed", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.NodeSelector = map[string]string{"one": "1", "two": "2", "four": "4"}
 
 				Expect(clone).To(Equal(expected))
 			})

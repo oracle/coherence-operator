@@ -32,6 +32,9 @@ spec:
           description: Spec contains the specification for a Coherence cluster. The
             format is the same as the values file for the Coherence Helm chart.
           properties:
+            affinity:
+              description: 'Affinity controls Pod scheduling preferences.   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
+              type: object
             cluster:
               description: The name of the cluster
               type: string
@@ -95,6 +98,24 @@ spec:
             logCaptureEnabled:
               description: Controls whether or not log capture via EFK stack is enabled.
               type: boolean
+            nodeSelector:
+              additionalProperties:
+                type: string
+              description: 'NodeSelector is the Node labels for pod assignment   ref:
+                https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
+              type: object
+            resources:
+              description: 'Resources is the optional resource requests and limits
+                for the containers  ref: http://kubernetes.io/docs/user-guide/compute-resources/  By
+                default the cpu requests is set to zero and the cpu limit set to 32.
+                This is because it appears that K8s defaults cpu to one and since
+                Java 10 the JVM now correctly picks up cgroup cpu limits then the
+                JVM will only see one cpu. By setting resources.requests.cpu=0 and
+                resources.limits.cpu=32 it ensures that the JVM will see the either
+                the number of cpus on the host if this is <= 32 or the JVM will see
+                32 cpus if the host has > 32 cpus. The limit is set to zero so that
+                there is no hard-limit applied.  No default memory limits are applied.'
+              type: object
             role:
               description: The role name of a Coherence cluster member
               type: string

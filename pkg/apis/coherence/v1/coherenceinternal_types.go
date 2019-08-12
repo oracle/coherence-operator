@@ -68,6 +68,25 @@ type CoherenceInternalSpec struct {
 	// The store settings
 	// +optional
 	Store *CoherenceInternalStoreSpec `json:"store,omitempty"`
+	// Affinity controls Pod scheduling preferences.
+	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// NodeSelector is the Node labels for pod assignment
+	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// Resources is the optional resource requests and limits for the containers
+	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
+	//
+	// By default the cpu requests is set to zero and the cpu limit set to 32. This
+	// is because it appears that K8s defaults cpu to one and since Java 10 the JVM
+	// now correctly picks up cgroup cpu limits then the JVM will only see one cpu.
+	// By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that
+	// the JVM will see the either the number of cpus on the host if this is <= 32 or
+	// the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero
+	// so that there is no hard-limit applied.
+	//
+	// No default memory limits are applied.
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Controls whether or not log capture via EFK stack is enabled.
 	// +optional
 	LogCaptureEnabled bool `json:"logCaptureEnabled,omitempty"`
@@ -228,6 +247,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.ServiceAccountName = cluster.Spec.ServiceAccountName
 	out.ImagePullSecrets = cluster.Spec.ImagePullSecrets
 	out.Role = role.Spec.GetRoleName()
+	out.Affinity = role.Spec.Affinity
+	out.Resources = role.Spec.Resources
 
 	// Set the images from the cluster and role
 	if role.Spec.Images != nil {
@@ -297,6 +318,15 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 			annotations[k] = v
 		}
 		out.Store.Annotations = annotations
+	}
+
+	// Set the NodeSelector
+	if role.Spec.NodeSelector != nil {
+		nodeSelector := make(map[string]string)
+		for k, v := range role.Spec.NodeSelector {
+			nodeSelector[k] = v
+		}
+		out.NodeSelector = nodeSelector
 	}
 
 	// Set the Volumes

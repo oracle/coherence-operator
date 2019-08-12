@@ -161,6 +161,26 @@ type CoherenceRoleSpec struct {
 	//   in store.volumes and store.volumeClaimTemplates
 	// +optional
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	// Pod scheduling values: Affinity, NodeSelector, Tolerations
+	// Affinity controls Pod scheduling preferences.
+	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// NodeSelector is the Node labels for pod assignment
+	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// Resources is the optional resource requests and limits for the containers
+	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
+	//
+	// By default the cpu requests is set to zero and the cpu limit set to 32. This
+	// is because it appears that K8s defaults cpu to one and since Java 10 the JVM
+	// now correctly picks up cgroup cpu limits then the JVM will only see one cpu.
+	// By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that
+	// the JVM will see the either the number of cpus on the host if this is <= 32 or
+	// the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero
+	// so that there is no hard-limit applied.
+	//
+	// No default memory limits are applied.
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -294,6 +314,18 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.RevisionHistoryLimit = defaults.RevisionHistoryLimit
 	}
 
+	if in.Affinity != nil {
+		clone.Affinity = in.Affinity
+	} else {
+		clone.Affinity = defaults.Affinity
+	}
+
+	if in.Resources != nil {
+		clone.Resources = in.Resources
+	} else {
+		clone.Resources = defaults.Resources
+	}
+
 	if in.Volumes != nil {
 		clone.Volumes = make([]corev1.Volume, len(in.Volumes))
 		for i := 0; i < len(in.Volumes); i++ {
@@ -334,6 +366,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Ports = in.mergeMapInt32(in.Ports, defaults.Ports)
 	clone.Env = in.mergeMap(in.Env, defaults.Env)
 	clone.Annotations = in.mergeMap(in.Annotations, defaults.Annotations)
+	clone.NodeSelector = in.mergeMap(in.NodeSelector, defaults.NodeSelector)
 
 	clone.Images = in.Images.DeepCopyWithDefaults(defaults.Images)
 	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)

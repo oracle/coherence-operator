@@ -212,6 +212,27 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				VolumeMounts: []corev1.VolumeMount{
 					corev1.VolumeMount { Name: "vol-mount-1", ReadOnly : false, MountPath : "/mountpath1", },
 				},
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								corev1.NodeSelectorTerm{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										corev1.NodeSelectorRequirement{
+											Key:      "kubernetes.io/e2e-az-name",
+											Operator: corev1.NodeSelectorOpIn,
+											Values:   []string{"e2e-az1", "e2e-az2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				NodeSelector: map[string]string{"one": "1", "two": "2"},
+				Resources: &corev1.ResourceRequirements{
+					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
+				},
 				Service: &coherence.CoherenceServiceSpec{
 					ServiceSpec:        coherence.ServiceSpec{
 						Enabled:        boolPtr(true),
@@ -403,6 +424,18 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the Store VolumeMounts", func() {
 				Expect(result.Store.VolumeMounts).To(Equal(role.Spec.VolumeMounts))
+			})
+
+			It("should set the Affinity", func() {
+				Expect(result.Affinity).To(Equal(role.Spec.Affinity))
+			})
+
+			It("should set the NodeSelector", func() {
+				Expect(result.NodeSelector).To(Equal(role.Spec.NodeSelector))
+			})
+
+			It("should set the Resources", func() {
+				Expect(result.Resources).To(Equal(role.Spec.Resources))
 			})
 
 			It("should set the Store Service", func() {
