@@ -22,6 +22,14 @@ override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
 override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
 
+ifeq (, $(shell which ginkgo))
+GO_TEST_CMD=go
+else
+GO_TEST_CMD=ginkgo
+endif
+
+.PHONY: all build-dirs build test generate push
+
 all: build
 
 # Ensures that build output directories exist
@@ -84,12 +92,7 @@ build: build-dirs
 test: export CGO_ENABLED = 0
 test: build-dirs
 	@echo "Running operator tests"
-	if [ -z `which ginkgo` ]; then \
-		CMD=go; \
-	else \
-		CMD=ginkgo; \
-	fi; \
-	$$CMD test -v ./cmd/... ./pkg/...
+	$(GO_TEST_CMD) test -v ./cmd/... ./pkg/...
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a local operator instance (i.e. the operator is not deployed to k8s).
@@ -141,12 +144,7 @@ helm-test: build
 	@echo "Installing CRDs"
 	./hack/install.sh
 	@echo "executing Operator Helm Chart end-to-end tests"
-	if [ -z `which ginkgo` ]; then \
-		CMD=go; \
-	else \
-		CMD=ginkgo; \
-	fi; \
-	$$CMD test -v ./test/e2e/helm/...
+	$(GO_TEST_CMD) test -v ./test/e2e/helm/...
 	@echo "Removing CRDs"
 	./hack/cleanup.sh
 	@echo "deleting test namespace"
@@ -167,5 +165,3 @@ generate:
 push:
 	@echo "Pushing $(OPERATOR_IMAGE)"
 	docker push $(OPERATOR_IMAGE)
-
-.PHONY: all build-dirs build test generate push
