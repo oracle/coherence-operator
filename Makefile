@@ -10,7 +10,7 @@ COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74630
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
-OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:${VERSION}
+OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION)
 HELM_UTILS_IMAGE ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:2.0.0-SNAPSHOT-utils
 
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
@@ -57,9 +57,9 @@ build: build-dirs
 	@echo "Creating Helm chart distributions"
 	# Copy the Helm charts from their source location to the distribution folder
 	rm -rf $(CHART_DIR); mkdir $(CHART_DIR); cp -R ./helm-charts/* $(CHART_DIR)
-	cp ./deploy/role.yaml            $(CHART_DIR)/coherence-operator/templates/role.yaml
-	cp ./deploy/role_binding.yaml    $(CHART_DIR)/coherence-operator/templates/role_binding.yaml
-	cp ./deploy/service_account.yaml $(CHART_DIR)/coherence-operator/templates/service_account.yaml
+	for i in role.yaml role_binding.yaml service_account.yaml; do \
+		cp ./deploy/$${i} $(CHART_DIR)/coherence-operator/templates/$${i}; \
+	done
 
 	# Do a search and replace of properties in selected files in the Helm charts
 	# This is done because the Helm charts can be large and processing every file
@@ -70,7 +70,7 @@ build: build-dirs
 		echo "Replacing properties in file $${filename}"; \
 		if [[ -f $${filename} ]]; then \
 			temp_file=$(BUILD_OUTPUT)/temp.out; \
-			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' ${BUILD_PROPS} $${filename} > $${temp_file}; \
+			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
 			mv $${temp_file} $${filename}; \
 		fi; \
 	done
@@ -104,14 +104,14 @@ e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: build-dirs
 	@echo "creating test namespace"
-	kubectl create namespace ${TEST_NAMESPACE}
+	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/local --namespace ${TEST_NAMESPACE} --up-local \
+	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	@echo "deleting test namespace"
-	kubectl delete namespace ${TEST_NAMESPACE}
+	kubectl delete namespace $(TEST_NAMESPACE)
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a deployed operator instance (i.e. the operator Docker image is
@@ -123,14 +123,14 @@ e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: build-dirs
 	@echo "creating test namespace"
-	kubectl create namespace ${TEST_NAMESPACE}
+	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/remote --namespace ${TEST_NAMESPACE} \
+	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-SNAPSHOT \
 		--verbose --debug \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	@echo "deleting test namespace"
-	kubectl delete namespace ${TEST_NAMESPACE}
+	kubectl delete namespace $(TEST_NAMESPACE)
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
@@ -140,7 +140,7 @@ helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 helm-test: build
 	@echo "creating test namespace"
-	kubectl create namespace ${TEST_NAMESPACE}
+	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "Installing CRDs"
 	./hack/install.sh
 	@echo "executing Operator Helm Chart end-to-end tests"
@@ -148,7 +148,7 @@ helm-test: build
 	@echo "Removing CRDs"
 	./hack/cleanup.sh
 	@echo "deleting test namespace"
-	kubectl delete namespace ${TEST_NAMESPACE}
+	kubectl delete namespace $(TEST_NAMESPACE)
 
 # This step will run the Operator SDK code generators.
 # These commands will generate the CRD files from the API structs and will
