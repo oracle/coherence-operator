@@ -315,6 +315,13 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			nodeSelectorOne = map[string]string{"one": "1", "two": "2"}
 			nodeSelectorTwo = map[string]string{"three": "3", "four": "4"}
 
+			tolerationsOne = []corev1.Toleration{
+				corev1.Toleration{ Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule" },
+			}
+			tolerationsTwo = []corev1.Toleration{
+				corev1.Toleration{ Operator: "Exists" },
+			}
+
 			resourcesOne = &corev1.ResourceRequirements{
 				Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 			}
@@ -353,6 +360,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				VolumeMounts:         volumeMountsOne,
 				Affinity:             affinityOne,
 				NodeSelector:         nil,
+				Tolerations:          tolerationsOne,
 				Service:              serviceOne,
 				Resources:            resourcesOne,
 			}
@@ -388,6 +396,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				VolumeMounts:         volumeMountsTwo,
 				Affinity:             affinityTwo,
 				NodeSelector:         nil,
+				Tolerations:          tolerationsTwo,
 				Service:              serviceTwo,
 				Resources:            resourcesTwo,
 			}
@@ -859,6 +868,25 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected without changing original
 				expected := original.DeepCopy()
 				expected.Affinity = defaults.Affinity
+
+				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original Tolerations is not set", func() {
+			BeforeEach(func() {
+				defaults = roleSpecTwo
+				// original is a deep copy of roleSpecOne so that we can change the
+				// original without changing roleSpecOne
+				original = roleSpecOne.DeepCopy()
+				original.Tolerations = nil
+			})
+
+			It("clone should be equal to the original with the Tolerations field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.Tolerations = defaults.Tolerations
 
 				Expect(clone).To(Equal(expected))
 			})

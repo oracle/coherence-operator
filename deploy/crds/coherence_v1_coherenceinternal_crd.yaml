@@ -626,6 +626,14 @@ spec:
                     WKA
                   type: string
               type: object
+            tolerations:
+              description: 'Tolerations is for nodes that have taints on them.   Useful
+                if you want to dedicate nodes to just run the coherence container
+                For example:   tolerations:   - key: "key"     operator: "Equal"     value:
+                "value"     effect: "NoSchedule"    ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/'
+              items:
+                type: object
+              type: array
             userArtifacts:
               description: The user artifacts image settings
               properties:

@@ -367,6 +367,19 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"tolerations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Toleration"),
+									},
+								},
+							},
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
@@ -390,7 +403,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -543,6 +556,19 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							},
 						},
 					},
+					"tolerations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Toleration"),
+									},
+								},
+							},
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
@@ -573,7 +599,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec", "./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.ResourceRequirements"},
+			"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec", "./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration"},
 	}
 }
 
@@ -1130,6 +1156,19 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							},
 						},
 					},
+					"tolerations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Toleration"),
+									},
+								},
+							},
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
@@ -1140,7 +1179,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 

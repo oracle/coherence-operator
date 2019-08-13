@@ -168,6 +168,17 @@ type CoherenceRoleSpec struct {
 	// NodeSelector is the Node labels for pod assignment
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// Tolerations is for nodes that have taints on them.
+	//   Useful if you want to dedicate nodes to just run the coherence container
+	// For example:
+	//   tolerations:
+	//   - key: "key"
+	//     operator: "Equal"
+	//     value: "value"
+	//     effect: "NoSchedule"
+	//
+	//   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
 	//
@@ -359,6 +370,18 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.VolumeMounts = make([]corev1.VolumeMount, len(defaults.VolumeMounts))
 		for i := 0; i < len(defaults.VolumeMounts); i++ {
 			clone.VolumeMounts[i] = *defaults.VolumeMounts[i].DeepCopy()
+		}
+	}
+
+	if in.Tolerations != nil {
+		clone.Tolerations = make([]corev1.Toleration, len(in.Tolerations))
+		for i := 0; i < len(in.Tolerations); i++ {
+			clone.Tolerations[i] = *in.Tolerations[i].DeepCopy()
+		}
+	} else if defaults.Tolerations != nil {
+		clone.Tolerations = make([]corev1.Toleration, len(defaults.Tolerations))
+		for i := 0; i < len(defaults.Tolerations); i++ {
+			clone.Tolerations[i] = *defaults.Tolerations[i].DeepCopy()
 		}
 	}
 

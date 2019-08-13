@@ -230,6 +230,9 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					},
 				},
 				NodeSelector: map[string]string{"one": "1", "two": "2"},
+				Tolerations: []corev1.Toleration{
+					corev1.Toleration{ Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule" },
+				},
 				Resources: &corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 				},
@@ -432,6 +435,10 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the NodeSelector", func() {
 				Expect(result.NodeSelector).To(Equal(role.Spec.NodeSelector))
+			})
+
+			It("should set the Tolerations", func() {
+				Expect(result.Tolerations).To(Equal(role.Spec.Tolerations))
 			})
 
 			It("should set the Resources", func() {

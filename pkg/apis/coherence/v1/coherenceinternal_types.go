@@ -74,6 +74,17 @@ type CoherenceInternalSpec struct {
 	// NodeSelector is the Node labels for pod assignment
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// Tolerations is for nodes that have taints on them.
+	//   Useful if you want to dedicate nodes to just run the coherence container
+	// For example:
+	//   tolerations:
+	//   - key: "key"
+	//     operator: "Equal"
+	//     value: "value"
+	//     effect: "NoSchedule"
+	//
+	//   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
 	//
@@ -327,6 +338,15 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 			nodeSelector[k] = v
 		}
 		out.NodeSelector = nodeSelector
+	}
+
+	// Set the Tolerations
+	if role.Spec.Tolerations != nil {
+		tolerations := make([]corev1.Toleration, len(role.Spec.Tolerations))
+		for i := 0; i < len(role.Spec.Tolerations); i++ {
+			tolerations[i] = *role.Spec.Tolerations[i].DeepCopy()
+		}
+		out.Tolerations = tolerations
 	}
 
 	// Set the Volumes

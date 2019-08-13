@@ -1148,6 +1148,14 @@ spec:
                       will be safe, if StorageEnabled is set to false scaling will
                       be parallel.
                     type: boolean
+                  tolerations:
+                    description: 'Tolerations is for nodes that have taints on them.   Useful
+                      if you want to dedicate nodes to just run the coherence container
+                      For example:   tolerations:   - key: "key"     operator: "Equal"     value:
+                      "value"     effect: "NoSchedule"    ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/'
+                    items:
+                      type: object
+                    type: array
                   volumeClaimTemplates:
                     description: VolumeClaimTemplates defines extra PVC mappings that
                       will be added to the Coherence Pod.   The content of this yaml
@@ -1256,6 +1264,14 @@ spec:
                 is true the scaling will be safe, if StorageEnabled is set to false
                 scaling will be parallel.
               type: boolean
+            tolerations:
+              description: 'Tolerations is for nodes that have taints on them.   Useful
+                if you want to dedicate nodes to just run the coherence container
+                For example:   tolerations:   - key: "key"     operator: "Equal"     value:
+                "value"     effect: "NoSchedule"    ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/'
+              items:
+                type: object
+              type: array
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines extra PVC mappings that will
                 be added to the Coherence Pod.   The content of this yaml should match
