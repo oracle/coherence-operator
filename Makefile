@@ -24,28 +24,34 @@ override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
 override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
 
 ifeq (, $(shell which ginkgo))
-GO_TEST_CMD=go
+GO_TEST_CMD = go
 else
-GO_TEST_CMD=ginkgo
+GO_TEST_CMD = ginkgo
 endif
 
-.PHONY: all build-dirs build test e2e-local-test e2e-test install-crds uninstall-crds generate push
+# Do a search and replace of properties in selected files in the Helm charts
+# This is done because the Helm charts can be large and processing every file
+# makes the build slower
+define replaceprop
+	filename="$(CHART_DIR)/$(1)"; \
+	echo "Replacing properties in file $${filename}"; \
+	if [[ -f $${filename} ]]; then \
+		temp_file=$(BUILD_OUTPUT)/temp.out; \
+		awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
+		mv $${temp_file} $${filename}; \
+	fi
+endef
+
+.PHONY: all build test e2e-local-test e2e-test install-crds uninstall-crds generate push clean
 
 all: build
 
-# Ensures that build output directories exist
-build-dirs:
+$(BUILD_PROPS):
+	# Ensures that build output directories exist
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
 	@mkdir -p $(TEST_LOGS_DIR)
-
-# Builds the project, helm charts and Docker image
-build: export CGO_ENABLED = 0
-build: export GOARCH = $(ARCH)
-build: export GOOS = $(OS)
-build: export GO111MODULE = on
-build: build-dirs
-	@echo "Building: $(OPERATOR_IMAGE)"
+	@mkdir -p $(CHART_DIR)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
@@ -54,44 +60,59 @@ build: build-dirs
 	PROMETHEUS_HELMCHART_VERSION=$(PROMETHEUS_HELMCHART_VERSION)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
-	# create Helm charts
-	@echo "Creating Helm chart distributions"
-	# Copy the Helm charts from their source location to the distribution folder
-	rm -rf $(CHART_DIR); mkdir $(CHART_DIR); cp -R ./helm-charts/* $(CHART_DIR)
-	for i in role.yaml role_binding.yaml service_account.yaml; do \
-		cp ./deploy/$${i} $(CHART_DIR)/coherence-operator/templates/$${i}; \
-	done
+# Builds the project, helm charts and Docker image
+build: export CGO_ENABLED = 0
+build: export GOARCH = $(ARCH)
+build: export GOOS = $(OS)
+build: export GO111MODULE = on
+build: $(BUILD_OUTPUT)/bin/operator
 
-	# Do a search and replace of properties in selected files in the Helm charts
-	# This is done because the Helm charts can be large and processing every file
-	# makes the build slower
-	for i in coherence/Chart.yaml coherence/values.yaml coherence-operator/Chart.yaml coherence-operator/values.yaml \
-			coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml; do \
-		filename="$(CHART_DIR)/$${i}"; \
-		echo "Replacing properties in file $${filename}"; \
-		if [[ -f $${filename} ]]; then \
-			temp_file=$(BUILD_OUTPUT)/temp.out; \
-			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
-			mv $${temp_file} $${filename}; \
-		fi; \
-	done
+GOS=$(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 
-	# For each Helm chart folder package the chart into a .tar.gz
-	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	for chart in `ls -1ad $(CHART_DIR)/*`; do \
-		chartname=$$(basename $${chart}); \
-		echo "Creating Helm chart package $${chart}"; \
-		helm lint $${chart}; \
-		tar -czf $(CHART_DIR)/$${chartname}-$(VERSION).tar.gz $${chart}; \
-	done
-
+$(BUILD_OUTPUT)/bin/operator: $(GOS) $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
+	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	operator-sdk build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
 
+COH_CHARTS=$(shell find helm-charts/coherence -type f)
+
+$(CHART_DIR)/coherence-$(VERSION).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
+	# Copy the Helm charts from their source location to the distribution folder
+	cp -R ./helm-charts/coherence $(CHART_DIR)
+
+	$(call replaceprop,coherence/Chart.yaml)
+	$(call replaceprop,coherence/values.yaml)
+
+	# For each Helm chart folder package the chart into a .tar.gz
+	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+	echo "Creating Helm chart package $(CHART_DIR)/coherence"
+	helm lint $(CHART_DIR)/coherence
+	tar -czf $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence
+
+COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
+
+$(CHART_DIR)/coherence-operator-$(VERSION).tar.gz: $(COP_CHARTS) $(BUILD_PROPS)
+	# Copy the Helm charts from their source location to the distribution folder
+	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
+	for i in role.yaml role_binding.yaml service_account.yaml; do \
+		cp ./deploy/$${i} $(CHART_DIR)/coherence-operator/templates/$${i}; \
+	done
+
+	$(call replaceprop,coherence-operator/Chart.yaml)
+	$(call replaceprop,coherence-operator/values.yaml)
+	$(call replaceprop,coherence-operator/requirements.yaml)
+	$(call replaceprop,coherence-operator/templates/deployment.yaml)
+
+	# For each Helm chart folder package the chart into a .tar.gz
+	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
+	helm lint $(CHART_DIR)/coherence-operator
+	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz $(CHART_DIR)/coherence-operator
+
 # Executes the Go unit tests that do not require a k8s cluster
 test: export CGO_ENABLED = 0
-test: build-dirs
+test: build
 	@echo "Running operator tests"
 	$(GO_TEST_CMD) test -v ./cmd/... ./pkg/...
 
@@ -103,7 +124,7 @@ test: build-dirs
 # tests start and remove them afterwards.
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
-e2e-local-test: build-dirs
+e2e-local-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
@@ -122,7 +143,7 @@ e2e-local-test: build-dirs
 # tests start and remove them afterwards.
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
-e2e-test: build-dirs
+e2e-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
@@ -179,3 +200,6 @@ generate:
 push:
 	@echo "Pushing $(OPERATOR_IMAGE)"
 	docker push $(OPERATOR_IMAGE)
+
+clean:
+	rm -rf build/_output
