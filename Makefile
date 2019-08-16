@@ -29,17 +29,26 @@ else
 GO_TEST_CMD = ginkgo
 endif
 
+GOS=$(shell find pkg -type f -name "*.go" ! -name "*_test.go")
+COH_CHARTS=$(shell find helm-charts/coherence -type f)
+COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
+DEPLOYS=$(shell find deploy -type f -name "*.yaml")
+CRDS=$(shell find deploy/crds -name "*_crd.yaml")
+RBAC=deploy/service_account.yaml deploy/role.yaml deploy/role_binding.yaml
+
 # Do a search and replace of properties in selected files in the Helm charts
 # This is done because the Helm charts can be large and processing every file
 # makes the build slower
 define replaceprop
-	filename="$(CHART_DIR)/$(1)"; \
-	echo "Replacing properties in file $${filename}"; \
-	if [[ -f $${filename} ]]; then \
-		temp_file=$(BUILD_OUTPUT)/temp.out; \
-		awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
-		mv $${temp_file} $${filename}; \
-	fi
+	for i in $(1); do \
+		filename="$(CHART_DIR)/$${i}"; \
+		echo "Replacing properties in file $${filename}"; \
+		if [[ -f $${filename} ]]; then \
+			temp_file=$(BUILD_OUTPUT)/temp.out; \
+			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
+			mv $${temp_file} $${filename}; \
+		fi \
+	done
 endef
 
 .PHONY: all build test e2e-local-test e2e-test install-crds uninstall-crds generate push clean
@@ -61,54 +70,45 @@ $(BUILD_PROPS):
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
 # Builds the project, helm charts and Docker image
-build: export CGO_ENABLED = 0
-build: export GOARCH = $(ARCH)
-build: export GOOS = $(OS)
-build: export GO111MODULE = on
 build: $(BUILD_OUTPUT)/bin/operator
 
-GOS=$(shell find pkg -type f -name "*.go" ! -name "*_test.go")
-
-$(BUILD_OUTPUT)/bin/operator: $(GOS) $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
+$(BUILD_OUTPUT)/bin/operator: export CGO_ENABLED = 0
+$(BUILD_OUTPUT)/bin/operator: export GOARCH = $(ARCH)
+$(BUILD_OUTPUT)/bin/operator: export GOOS = $(OS)
+$(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	operator-sdk build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
 
-COH_CHARTS=$(shell find helm-charts/coherence -type f)
-
-$(CHART_DIR)/coherence-$(VERSION).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
-	# Copy the Helm charts from their source location to the distribution folder
-	cp -R ./helm-charts/coherence $(CHART_DIR)
-
-	$(call replaceprop,coherence/Chart.yaml)
-	$(call replaceprop,coherence/values.yaml)
-
-	# For each Helm chart folder package the chart into a .tar.gz
-	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	echo "Creating Helm chart package $(CHART_DIR)/coherence"
-	helm lint $(CHART_DIR)/coherence
-	tar -czf $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence
-
-COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
-
-$(CHART_DIR)/coherence-operator-$(VERSION).tar.gz: $(COP_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence-operator-$(VERSION).tar.gz: $(COP_CHARTS) $(BUILD_PROPS) $(RBAC)
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
-	for i in role.yaml role_binding.yaml service_account.yaml; do \
-		cp ./deploy/$${i} $(CHART_DIR)/coherence-operator/templates/$${i}; \
+	for i in $(RBAC); do \
+		f=`basename $${i}`; \
+		cp $${i} $(CHART_DIR)/coherence-operator/templates/$${f}; \
 	done
 
-	$(call replaceprop,coherence-operator/Chart.yaml)
-	$(call replaceprop,coherence-operator/values.yaml)
-	$(call replaceprop,coherence-operator/requirements.yaml)
-	$(call replaceprop,coherence-operator/templates/deployment.yaml)
+	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
 
 	# For each Helm chart folder package the chart into a .tar.gz
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
 	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz $(CHART_DIR)/coherence-operator
+
+$(CHART_DIR)/coherence-$(VERSION).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
+	# Copy the Helm charts from their source location to the distribution folder
+	cp -R ./helm-charts/coherence $(CHART_DIR)
+
+	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
+
+	# For each Helm chart folder package the chart into a .tar.gz
+	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+	echo "Creating Helm chart package $(CHART_DIR)/coherence"
+	helm lint $(CHART_DIR)/coherence
+	tar -czf $(CHART_DIR)/coherence-$(VERSION).tar.gz $(CHART_DIR)/coherence
 
 # Executes the Go unit tests that do not require a k8s cluster
 test: export CGO_ENABLED = 0
@@ -178,14 +178,14 @@ helm-test: build
 
 # Install CRDs
 install-crds: uninstall-crds
-	for i in coherence_v1_coherencerole_crd.yaml coherence_v1_coherencecluster_crd.yaml coherence_v1_coherenceinternal_crd.yaml; do \
-		kubectl create -f deploy/crds/$${i}; \
+	for i in $(CRDS); do \
+		kubectl create -f $${i}; \
 	done
 
 # Uninstall CRDs
 uninstall-crds:
-	for i in coherence_v1_coherenceinternal_crd.yaml coherence_v1_coherencerole_crd.yaml coherence_v1_coherencecluster_crd.yaml; do \
-		kubectl delete -f deploy/crds/$${i} || true; \
+	for i in $(CRDS); do \
+		kubectl delete -f $${i} || true; \
 	done
 
 # This step will run the Operator SDK code generators.
