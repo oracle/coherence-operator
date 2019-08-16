@@ -29,7 +29,7 @@ else
 GO_TEST_CMD=ginkgo
 endif
 
-.PHONY: all build-dirs build test generate push
+.PHONY: all build-dirs build test e2e-local-test e2e-test install-crds uninstall-crds generate push
 
 all: build
 
@@ -78,7 +78,7 @@ build: build-dirs
 
 	# For each Helm chart folder package the chart into a .tar.gz
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	for chart in `ls -1ad $(BUILD_OUTPUT)/helm-charts/*`; do \
+	for chart in `ls -1ad $(CHART_DIR)/*`; do \
 		chartname=$$(basename $${chart}); \
 		echo "Creating Helm chart package $${chart}"; \
 		helm lint $${chart}; \
