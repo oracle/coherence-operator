@@ -97,10 +97,10 @@ https://github.com/operator-framework/operator-sdk/blob/v0.9.0/doc/operator-scop
 
 Prior to any testing the CRDs need to be installed in the k8s cluster. Although the Operator runs in a single
 namespace CRDs are a global (non-namespaced) resource. The simplest way to install the CRDs is to run the
-provided shell script:
+make target:
 [source,bash]
 ----
-./hack/install.sh
+make install-crds
 ----
 This script will first delete any old installs of the CRDs and then install the new versions.
 
@@ -134,10 +134,10 @@ this way. To make sure all of the processes are dead you can run the kill script
 
 === Clean-up
 
-After running the operato the CRDs can be removed from the k8s cluster by running the clean-up script:
+After running the operato the CRDs can be removed from the k8s cluster by running the make target:
 [source,bash]
 ----
-./hack/cleanup.sh
+make uninstall-crds
 ----
 
 === Debugging Locally

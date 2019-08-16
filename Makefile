@@ -11,11 +11,12 @@ HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74630
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION)
-HELM_UTILS_IMAGE ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:2.0.0-SNAPSHOT-utils
+HELM_UTILS_IMAGE ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION)-utils
 
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
-TEST_NAMESPACE ?= operator-e2e-test
+# default as in test/e2e/helper/proj_helpers.go
+TEST_NAMESPACE ?= operator-test
 
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
@@ -138,17 +139,30 @@ e2e-test: build-dirs
 # and remove them afterwards.
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "Installing CRDs"
-	./hack/install.sh
+	$(MAKE) install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
 	$(GO_TEST_CMD) test -v ./test/e2e/helm/...
 	@echo "Removing CRDs"
-	./hack/cleanup.sh
+	$(MAKE) uninstall-crds
 	@echo "deleting test namespace"
 	kubectl delete namespace $(TEST_NAMESPACE)
+
+# Install CRDs
+install-crds: uninstall-crds
+	for i in coherence_v1_coherencerole_crd.yaml coherence_v1_coherencecluster_crd.yaml coherence_v1_coherenceinternal_crd.yaml; do \
+		kubectl create -f deploy/crds/$${i}; \
+	done
+
+# Uninstall CRDs
+uninstall-crds:
+	for i in coherence_v1_coherenceinternal_crd.yaml coherence_v1_coherencerole_crd.yaml coherence_v1_coherencecluster_crd.yaml; do \
+		kubectl delete -f deploy/crds/$${i} || true; \
+	done
 
 # This step will run the Operator SDK code generators.
 # These commands will generate the CRD files from the API structs and will
