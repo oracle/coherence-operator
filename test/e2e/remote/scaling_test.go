@@ -6,9 +6,8 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -59,6 +58,11 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	)
 	g := NewGomegaWithT(t)
 
+	testImage := os.Getenv("TEST_USER_IMAGE")
+	if testImage == "" {
+		t.Fatal("The TEST_USER_IMAGE environment variable must point to a valid Coherence test image")
+	}
+
 	// Cannot execute this test using a local operator because safe scaling requires
 	// the operator to make ReST calls to Pods which it can only do when properly
 	// deployed into the k8s cluster.
@@ -70,10 +74,18 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
+	artifacts := &coherence.UserArtifactsImageSpec{ImageSpec: coherence.ImageSpec{Image: &testImage}}
+	config := "test-cache-config.xml"
+	main := "com.oracle.coherence.k8s.testing.RestServer"
+
 	roleOne := coherence.CoherenceRoleSpec{
 		Role:          roleName,
 		Replicas:      &replicasStart,
 		ScalingPolicy: &policy,
+		Images:        &coherence.Images{UserArtifacts: artifacts},
+		Ports:         map[string]int32{"rest": 8080},
+		CacheConfig:   &config,
+		Main:          &coherence.MainSpec{Class: &main},
 	}
 
 	cluster := coherence.CoherenceCluster{
@@ -89,9 +101,19 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 		},
 	}
 
-	installSimpleCluster(t, ctx, cluster)
+	// Do the canary test unless parallel scaling down
+	doCanary := replicasStart < replicasScale || policy != coherence.ParallelScaling
 
 	f := framework.Global
+
+	installSimpleCluster(t, ctx, cluster)
+
+	if doCanary {
+		t.Log("Initialising canary cache")
+		err = startCanary(namespace, clusterName, roleName)
+		g.Expect(err).NotTo(HaveOccurred())
+	}
+
 	role, err := helper.GetCoherenceRole(f, namespace, clusterName+"-"+roleName)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -99,14 +121,19 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	err = f.Client.Update(goctx.TODO(), role)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	assertRole(t, cluster, role.Spec)
+	assertRoleEventuallyInDesiredState(t, cluster, role.Spec)
 
+	if doCanary {
+		t.Log("Checking canary cache")
+		err = checkCanary(namespace, clusterName, roleName)
+		g.Expect(err).NotTo(HaveOccurred())
+	}
 }
 
 func cleanup(t *testing.T, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
 	if err == nil {
-		dumpOperatorLog(t, namespace)
+		helper.DumpOperatorLog(namespace, t.Name(), t)
 	}
 	ctx.Cleanup()
 }
@@ -124,16 +151,16 @@ func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster coherenc
 
 	if len(cluster.Spec.Roles) > 0 {
 		for _, r := range cluster.Spec.Roles {
-			assertRole(t, cluster, r)
+			assertRoleEventuallyInDesiredState(t, cluster, r)
 		}
 	} else {
-		assertRole(t, cluster, cluster.Spec.CoherenceRoleSpec)
+		assertRoleEventuallyInDesiredState(t, cluster, cluster.Spec.CoherenceRoleSpec)
 	}
 }
 
-// assertRole asserts that a CoherenceRole exists and has the correct spec and that the underlying StatefulSet
-// exists with the correct status and ready replicas.
-func assertRole(t *testing.T, cluster coherence.CoherenceCluster, r coherence.CoherenceRoleSpec) {
+// assertRoleEventuallyInDesiredState asserts that a CoherenceRole exists and has the correct spec and that the
+// underlying StatefulSet exists with the correct status and ready replicas.
+func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.CoherenceCluster, r coherence.CoherenceRoleSpec) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 	fullName := r.GetFullRoleName(&cluster)
@@ -154,42 +181,49 @@ func assertRole(t *testing.T, cluster coherence.CoherenceCluster, r coherence.Co
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }
 
-// Dump the Operator Pod log to a file.
-func dumpOperatorLog(t *testing.T, namespace string) {
+// Initialise the canary test in the role being scaled.
+func startCanary(namespace, clusterName, roleName string) error {
+	return canary(namespace, clusterName, roleName, "canaryStart")
+}
+
+// Invoke the canary test in the role being scaled.
+func checkCanary(namespace, clusterName, roleName string) error {
+	return canary(namespace, clusterName, roleName, "canaryCheck")
+}
+
+// Make a canary ReST PUT call to Pod zero of the role.
+func canary(namespace, clusterName, roleName, endpoint string) error {
+	podName := fmt.Sprintf("%s-%s-0", clusterName, roleName)
 	f := framework.Global
 
-	t.Log("Dumping Operator log for test " + t.Name())
-
-	logs := os.Getenv("TEST_LOGS")
-	if logs == "" {
-		t.Log("Cannot capture Operator logs as log folder env var TEST_LOGS is not set")
-		return
-	}
-
-	list, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=coherence-operator"})
-	if err == nil {
-		if len(list.Items) > 0 {
-			logOpts := corev1.PodLogOptions{}
-			pod := list.Items[0]
-
-			res := f.KubeClient.CoreV1().Pods(namespace).GetLogs(pod.Name, &logOpts)
-			s, err := res.Stream()
-			if err == nil {
-				name := logs + "/" + strings.ReplaceAll(t.Name(), "/", "_")
-				err = os.MkdirAll(name, os.ModePerm)
-				if err == nil {
-					out, err := os.Create(name + "/operator.log")
-					if err == nil {
-						_, err = io.Copy(out, s)
-					}
-				}
-			}
-		} else {
-			t.Log("Could not capture Operator Pod log. No Pods found.")
-		}
-	}
-
+	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
 	if err != nil {
-		t.Logf("Could not capture Operator Pod log due to error: %s\n", err.Error())
+		return err
 	}
+
+	forwarder, ports, err := helper.StartPortForwarderForPod(pod)
+	if err != nil {
+		return err
+	}
+
+	defer forwarder.Close()
+
+	url := fmt.Sprintf("http://127.0.0.1:%d/%s", ports["rest"], endpoint)
+	client := &http.Client{}
+	request, err := http.NewRequest(http.MethodPut, url, strings.NewReader(""))
+	if err != nil {
+		return err
+	}
+
+	request.ContentLength = 0
+	resp, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("expected http response %d but received %d from '%s'", http.StatusOK, resp.StatusCode, url)
+	}
+
+	return nil
 }

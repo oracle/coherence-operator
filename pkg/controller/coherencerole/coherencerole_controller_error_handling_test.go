@@ -6,6 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
@@ -20,10 +21,10 @@ import (
 // tests will run without requiring a k8s cluster.
 var _ = Describe("coherencerole_controller", func() {
 	const (
-		testNamespace   = "coherence-test"
-		testClusterName = "test-cluster"
-		roleName        = "storage"
-		fullRoleName    = testClusterName + "-" + roleName
+		namespace    = "coherence-test"
+		clusterName  = "test-cluster"
+		roleName     = "storage"
+		fullRoleName = clusterName + "-" + roleName
 	)
 
 	var (
@@ -39,8 +40,8 @@ var _ = Describe("coherencerole_controller", func() {
 
 		defaultCluster = &coherence.CoherenceCluster{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: testNamespace,
-				Name:      testClusterName,
+				Namespace: namespace,
+				Name:      clusterName,
 			},
 		}
 	)
@@ -72,7 +73,7 @@ var _ = Describe("coherencerole_controller", func() {
 
 		request := reconcile.Request{
 			NamespacedName: types.NamespacedName{
-				Namespace: testNamespace,
+				Namespace: namespace,
 				Name:      fullRoleName,
 			},
 		}
@@ -94,7 +95,7 @@ var _ = Describe("coherencerole_controller", func() {
 		BeforeEach(func() {
 			cluster = defaultCluster
 			roleNew = nil
-			errors.AddGetError(stubs.ErrorIf{KeyIs: &types.NamespacedName{Namespace: testNamespace, Name: fullRoleName}}, err)
+			errors.AddGetError(stubs.ErrorIf{KeyIs: &types.NamespacedName{Namespace: namespace, Name: fullRoleName}}, err)
 		})
 
 		When("reconcile is called", func() {
@@ -111,7 +112,7 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should not create any CoherenceInternals", func() {
-				mgr.AssertCoherenceInternals(testNamespace, 0)
+				mgr.AssertCoherenceInternals(namespace, 0)
 			})
 		})
 	})
@@ -121,7 +122,7 @@ var _ = Describe("coherencerole_controller", func() {
 			cluster = nil
 
 			roleNew = &coherence.CoherenceRole{
-				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: fullRoleName},
 				Spec: coherence.CoherenceRoleSpec{
 					Role: roleName,
 				},
@@ -138,7 +139,7 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should fire a failed event", func() {
-				msg := fmt.Sprintf(invalidRoleEventMessage, fullRoleName, testClusterName)
+				msg := fmt.Sprintf(invalidRoleEventMessage, fullRoleName, clusterName)
 				event := mgr.AssertEvent()
 
 				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
@@ -149,12 +150,12 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should update the CoherenceRole's status to failed", func() {
-				role := mgr.AssertCoherenceRoleExists(testNamespace, fullRoleName)
+				role := mgr.AssertCoherenceRoleExists(namespace, fullRoleName)
 				Expect(role.Status.Status).To(Equal(coherence.RoleStatusFailed))
 			})
 
 			It("should not create any CoherenceInternals", func() {
-				mgr.AssertCoherenceInternals(testNamespace, 0)
+				mgr.AssertCoherenceInternals(namespace, 0)
 			})
 		})
 	})
@@ -166,13 +167,13 @@ var _ = Describe("coherencerole_controller", func() {
 			cluster = defaultCluster
 
 			roleNew = &coherence.CoherenceRole{
-				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: fullRoleName},
 				Spec: coherence.CoherenceRoleSpec{
 					Role: roleName,
 				},
 			}
 
-			errors.AddGetError(stubs.ErrorIf{KeyIs: &types.NamespacedName{Namespace: testNamespace, Name: fullRoleName}}, err)
+			errors.AddGetError(stubs.ErrorIf{KeyIs: &types.NamespacedName{Namespace: namespace, Name: clusterName}}, err)
 		})
 
 		When("reconcile is called", func() {
@@ -184,12 +185,64 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(result.Result).To(Equal(reconcile.Result{Requeue: true}))
 			})
 
-			It("should not fire an event", func() {
+			It("should fire a failed event", func() {
+				msg := fmt.Sprintf(failedToGetParentCluster, clusterName, fullRoleName, err.Error())
+				event := mgr.AssertEvent()
+
+				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
+				Expect(event.Reason).To(Equal(eventReasonFailed))
+				Expect(event.Message).To(Equal(msg))
+
 				mgr.AssertNoRemainingEvents()
 			})
 
 			It("should not create any CoherenceInternals", func() {
-				mgr.AssertCoherenceInternals(testNamespace, 0)
+				mgr.AssertCoherenceInternals(namespace, 0)
+			})
+		})
+	})
+
+	When("the k8s client returns an error getting the Helm values for a CoherenceRole", func() {
+		var err error = stubs.FakeError{Msg: "error getting values"}
+
+		BeforeEach(func() {
+			cluster = defaultCluster
+
+			roleNew = &coherence.CoherenceRole{
+				ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: fullRoleName},
+				Spec: coherence.CoherenceRoleSpec{
+					Role: roleName,
+				},
+			}
+
+			errors.AddGetError(stubs.ErrorIf{
+				KeyIs:  &types.NamespacedName{Namespace: namespace, Name: fullRoleName},
+				TypeIs: &unstructured.Unstructured{},
+			}, err)
+		})
+
+		When("reconcile is called", func() {
+			It("should not return error", func() {
+				Expect(result.Error).NotTo(HaveOccurred())
+			})
+
+			It("should re-queue the request", func() {
+				Expect(result.Result).To(Equal(reconcile.Result{Requeue: true}))
+			})
+
+			It("should fire a failed event", func() {
+				msg := fmt.Sprintf(failedToGetHelmValuesMessage, fullRoleName, err.Error())
+				event := mgr.AssertEvent()
+
+				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
+				Expect(event.Reason).To(Equal(eventReasonFailed))
+				Expect(event.Message).To(Equal(msg))
+
+				mgr.AssertNoRemainingEvents()
+			})
+
+			It("should not create any CoherenceInternals", func() {
+				mgr.AssertCoherenceInternals(namespace, 0)
 			})
 		})
 	})

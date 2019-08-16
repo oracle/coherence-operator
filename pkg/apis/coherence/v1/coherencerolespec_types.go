@@ -234,6 +234,32 @@ func (in *CoherenceRoleSpec) GetRoleName() string {
 
 // DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set
 // by the corresponding value in the defaults spec.
+func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
+	if in == nil {
+		return SafeScaling
+	}
+
+	policy := SafeScaling
+
+	if in.ScalingPolicy == nil {
+		// the scaling policy is not set the look at the storage enabled flag
+		if in.StorageEnabled == nil || *in.StorageEnabled {
+			// storage enabled is either not set or is true so do safe scaling
+			policy = ParallelUpSafeDownScaling
+		} else {
+			// storage enabled is false so do parallel scaling
+			policy = ParallelScaling
+		}
+	} else {
+		// scaling policy is set so use it
+		policy = *in.ScalingPolicy
+	}
+
+	return policy
+}
+
+// DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set
+// by the corresponding value in the defaults spec.
 func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *CoherenceRoleSpec {
 	if in == nil {
 		if defaults != nil {

@@ -1,4 +1,3 @@
-// The fakes package contains methods to create fakes and stubs for controller tests
 package fakes
 
 import (

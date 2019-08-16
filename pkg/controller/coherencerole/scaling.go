@@ -17,21 +17,7 @@ import (
 
 // scale will scale a role up or down
 func (r *ReconcileCoherenceRole) scale(role *coh.CoherenceRole, cohInternal *unstructured.Unstructured, existing *coh.CoherenceInternal, desired int32, current int32, sts *appsv1.StatefulSet) (reconcile.Result, error) {
-	var policy coh.ScalingPolicy
-
-	if role.Spec.ScalingPolicy == nil {
-		// the scaling policy is not set the look at the storage enabled flag
-		if role.Spec.StorageEnabled == nil || *role.Spec.StorageEnabled {
-			// storage enabled is either not set or is true so do safe scaling
-			policy = coh.ParallelUpSafeDownScaling
-		} else {
-			// storage enabled is false so do parallel scaling
-			policy = coh.ParallelScaling
-		}
-	} else {
-		// scaling policy is set so use it
-		policy = *role.Spec.ScalingPolicy
-	}
+	policy := role.Spec.GetEffectiveScalingPolicy()
 
 	switch policy {
 	case coh.SafeScaling:

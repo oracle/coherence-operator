@@ -6,9 +6,11 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"os"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -34,6 +36,11 @@ var tenSeconds int32 = 10
 var Readiness = &coherence.ReadinessProbeSpec{
 	InitialDelaySeconds: &tenSeconds,
 	PeriodSeconds:       &tenSeconds,
+}
+
+type Logger interface {
+	Log(args ...interface{})
+	Logf(format string, args ...interface{})
 }
 
 func CreateTestContext(t *testing.T) *framework.TestCtx {
@@ -251,4 +258,45 @@ func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) erro
 	})
 
 	return err
+}
+
+// Dump the Operator Pod log to a file.
+func DumpOperatorLog(namespace, directory string, logger Logger) {
+	f := framework.Global
+	list, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=coherence-operator"})
+	if err == nil {
+		if len(list.Items) > 0 {
+			pod := list.Items[0]
+			DumpPodLog(&pod, directory, logger)
+		} else {
+			logger.Log("Could not capture Operator Pod log. No Pods found.")
+		}
+	}
+
+	if err != nil {
+		logger.Logf("Could not capture Operator Pod log due to error: %s\n", err.Error())
+	}
+}
+
+// Dump the Pod log to a file.
+func DumpPodLog(pod *corev1.Pod, directory string, logger Logger) {
+	f := framework.Global
+
+	logs := os.Getenv("TEST_LOGS")
+	if logs == "" {
+		logger.Log("cannot capture logs as log folder env var TEST_LOGS is not set")
+	}
+
+	res := f.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
+	s, err := res.Stream()
+	if err == nil {
+		name := logs + "/" + directory
+		err = os.MkdirAll(name, os.ModePerm)
+		if err == nil {
+			out, err := os.Create(name + "/" + pod.Name + ".log")
+			if err == nil {
+				_, err = io.Copy(out, s)
+			}
+		}
+	}
 }

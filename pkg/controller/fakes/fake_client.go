@@ -46,7 +46,7 @@ type ErrorIf struct {
 	// The optional key to match when deciding whether to return an error.
 	KeyIs *client.ObjectKey
 	// The optional type to match when deciding whether to return an error.
-	TypeIs *runtime.Object
+	TypeIs runtime.Object
 }
 
 // matches returns true if this ErrorOpts is a match for the key and object.
@@ -55,15 +55,24 @@ func (o ErrorIf) Matches(key client.ObjectKey, obj runtime.Object) bool {
 		return true
 	}
 
-	if o.KeyIs != nil && o.KeyIs.Namespace == key.Namespace && o.KeyIs.Name == key.Name {
-		return true
+	var keyMatch bool
+	var typeMatch bool
+
+	if o.KeyIs != nil {
+		keyMatch = o.KeyIs.Namespace == key.Namespace && o.KeyIs.Name == key.Name
+	} else {
+		keyMatch = true
 	}
 
-	if o.TypeIs != nil && reflect.TypeOf(o.TypeIs) == reflect.TypeOf(obj) {
-		return true
+	if o.TypeIs != nil {
+		t1 := reflect.TypeOf(o.TypeIs)
+		t2 := reflect.TypeOf(obj)
+		typeMatch = t1.String() == t2.String()
+	} else {
+		typeMatch = true
 	}
 
-	return false
+	return keyMatch && typeMatch
 }
 
 // FakeError is a simple error implementation.

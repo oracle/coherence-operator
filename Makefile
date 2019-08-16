@@ -124,12 +124,13 @@ test: build
 # tests start and remove them afterwards.
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
-		--verbose --debug \
+		--verbose --debug  --go-test-flags "-timeout=60m" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	@echo "deleting test namespace"
@@ -143,12 +144,13 @@ e2e-local-test: build
 # tests start and remove them afterwards.
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
+e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
-		--image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-SNAPSHOT \
+		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m" \
 		--verbose --debug \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	@echo "deleting test namespace"
@@ -161,6 +163,7 @@ e2e-test: build
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 helm-test: build
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)

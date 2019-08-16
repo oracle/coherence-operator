@@ -38,8 +38,8 @@ const (
 	updateFailedMessage          string = "update CoherenceInternal %s from CoherenceRole %s failed\n%s"
 	deleteMessage                string = "deleted CoherenceInternal %s from CoherenceRole %s successful"
 	deleteFailedMessage          string = "delete CoherenceInternal %s from CoherenceRole %s failed\n%s"
-	failedToGetHelmValuesMessage string = "Failed to get Helm values for CoherenceRole %s failed\n%s"
-	failedToGetParentCluster     string = "Failed to get parent CoherenceCluster %s for CoherenceRole %s failed\n%s"
+	failedToGetHelmValuesMessage string = "Failed to get Helm values for CoherenceRole %s due to error\n%s"
+	failedToGetParentCluster     string = "Failed to get parent CoherenceCluster %s for CoherenceRole %s due to error\n%s"
 	failedToReconcileRole        string = "Failed to reconcile CoherenceRole %s due to error\n%s"
 	failedToScaleRole            string = "Failed to scale CoherenceRole %s from %d to %d due to error\n%s"
 
@@ -299,6 +299,8 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	desiredReplicas := role.Spec.GetReplicas()
 	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
 	isUpgrade := r.isUpgrade(&existing.Spec, desiredRole)
+
+	// ToDo: If desiredReplicas == 0 then we must delete the CoherenceRole.
 
 	if currentReplicas < desiredReplicas {
 		// Scaling UP

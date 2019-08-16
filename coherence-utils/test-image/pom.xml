@@ -24,7 +24,7 @@
   <name>coherence-operator-testimage</name>
 
   <properties>
-    <operator.test.image>${test.image.prefix}operator-test-image</operator.test.image>
+    <operator.test.image>${test.image.prefix}oracle/operator-test-image</operator.test.image>
 
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
