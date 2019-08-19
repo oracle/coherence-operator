@@ -10,67 +10,16 @@ def setBuildStatus(String message, String state, String project_url, String sha)
     ]);
 }
 
-def testStep(String wsdir, String nspId, String additionalArgument) {
-    echo 'Kubernetes Tests'
-    withCredentials([
-        string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
-        string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
-        string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
-        string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER'),
-        string(credentialsId: 'ocr-docker-email',    variable: 'OCR_DOCKER_EMAIL'),
-        string(credentialsId: 'ocr-docker-password', variable: 'OCR_DOCKER_PASSWORD'),
-        string(credentialsId: 'ocr-docker-username', variable: 'OCR_DOCKER_USERNAME'),
-        string(credentialsId: 'ocr-docker-server',   variable: 'OCR_DOCKER_SERVER')]) {
-        sh """
-            for i in test-cop-$nspId test-cop2-$nspId
-            do
-                kubectl create namespace \$i || true
-                kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-                    --namespace \$i \
-                    --docker-server=\$DOCKER_SERVER \
-                    --docker-username=\$DOCKER_USERNAME \
-                    --docker-password="\$DOCKER_PASSWORD" \
-                    --docker-email=\$DOCKER_EMAIL || true
-                kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-                    --namespace \$i \
-                    --docker-server=\$OCR_DOCKER_SERVER \
-                    --docker-username=\$OCR_DOCKER_USERNAME \
-                    --docker-password="\$OCR_DOCKER_PASSWORD" \
-                    --docker-email=\$OCR_DOCKER_EMAIL || true
-            done
-        """
-        withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-            sh """
-                cd $wsdir
-                export HELM_BINARY=`which helm`
-                export KUBECTL_BINARY=`which kubectl`
-                mvn -Dbedrock.helm="\$HELM_BINARY" \
-                    -Dk8s.kubectl="\$KUBECTL_BINARY" \
-                    -Dop.image.pull.policy=Always \
-                    -Dci.build=$nspId \
-                    -Dk8s.image.pull.secret=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret \
-                    -Dk8s.create.namespace=false \
-                    -Dhelm.install.maxRetry=6 \
-                    install -P helm-test -pl functional-tests $additionalArgument
-            """
-        }
-    }
-}
-
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
         archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,coherence-utils/utils/target/test-output/**/*,coherence-utils/utils/target/surefire-reports/**/*,coherence-utils/utils/target/failsafe-reports/**/*,coherence-utils/functional-tests/target/test-output/**/*,coherence-utils/functional-tests/target/surefire-reports/**/*,coherence-utils/functional-tests/target/failsafe-reports/**/*'
+        sh '''
+            helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
+            kubectl delete clusterrole test-cop-sw-coherence-operator-cluster-role || true
+            kubectl delete clusterrolebinding test-cop-sw-coherence-operator-cluster-role-binding || true
+            kubectl delete namespace $TEST_NAMESPACE || true
+        '''
     }
-    //dir (env.WORKSPACE) {
-    //    archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'functional-tests/target/test-output/**/*,functional-tests/target/surefire-reports/**/*,functional-tests/target/failsafe-reports/**/*,_ws2/functional-tests/target/test-output/**/*,_ws2/functional-tests/target/surefire-reports/**/*,_ws2/functional-tests/target/failsafe-reports/**/*'
-    //}
-    //sh '''
-    //    for i in test-cop-$BUILD_NUMBER test-cop2-$BUILD_NUMBER test-cop-${BUILD_NUMBER}-2 test-cop2-${BUILD_NUMBER}-2
-    //    do
-    //        helm delete --purge $(helm ls --namespace $i --short) || true
-    //        kubectl delete namespace $i || true
-    //    done
-    //'''
 }
 
 pipeline {
@@ -176,6 +125,40 @@ pipeline {
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     make push
                 '''
+            }
+        }
+        stage('helm-test') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
+                    string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                    string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER'),
+                    string(credentialsId: 'ocr-docker-email',    variable: 'OCR_DOCKER_EMAIL'),
+                    string(credentialsId: 'ocr-docker-password', variable: 'OCR_DOCKER_PASSWORD'),
+                    string(credentialsId: 'ocr-docker-username', variable: 'OCR_DOCKER_USERNAME'),
+                    string(credentialsId: 'ocr-docker-server',   variable: 'OCR_DOCKER_SERVER')]) {
+                    sh '''
+                        kubectl create namespace $TEST_NAMESPACE || true
+                        kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                            --namespace $TEST_NAMESPACE \
+                            --docker-server=$DOCKER_SERVER \
+                            --docker-username=$DOCKER_USERNAME \
+                            --docker-password="$DOCKER_PASSWORD" \
+                            --docker-email=$DOCKER_EMAIL || true
+                        kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                            --namespace $TEST_NAMESPACE \
+                            --docker-server=$OCR_DOCKER_SERVER \
+                            --docker-username=$OCR_DOCKER_USERNAME \
+                            --docker-password="$OCR_DOCKER_PASSWORD" \
+                            --docker-email=$OCR_DOCKER_EMAIL || true
+
+                        export http_proxy=$HTTP_PROXY
+                        export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                        export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                        make helm-test
+                    '''
+                }
             }
         }
     }
