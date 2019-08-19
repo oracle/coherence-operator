@@ -13,7 +13,6 @@ rules:
   - events
   - configmaps
   - secrets
-  - nodes
   verbs:
   - '*'
 - apiGroups:

@@ -112,16 +112,22 @@ func NewOperatorChartHelper() (*HelmHelper, error) {
 func (h *HelmHelper) NewOperatorHelmReleaseManager(releaseName string, values *OperatorValues) (*HelmReleaseManager, error) {
 	m := make(map[string]interface{})
 
-	if values != nil {
-		data, err := json.Marshal(values)
-		if err != nil {
-			return nil, err
-		}
+	if values == nil {
+		values = &OperatorValues{}
+	}
 
-		err = json.Unmarshal(data, &m)
-		if err != nil {
-			return nil, err
-		}
+	if values.ImagePullSecrets == nil {
+		values.ImagePullSecrets = GetImagePullSecrets()
+	}
+
+	data, err := json.Marshal(values)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		return nil, err
 	}
 
 	return h.NewHelmReleaseManager(releaseName, &m)

@@ -4,10 +4,12 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
 	TestNamespaceEnv = "TEST_NAMESPACE"
+	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
 
 	defaultNamespace = "operator-test"
 
@@ -25,6 +27,10 @@ func GetTestNamespace() string {
 		ns = defaultNamespace
 	}
 	return ns
+}
+
+func GetImagePullSecrets() []string {
+	return strings.Split(os.Getenv(ImagePullSecretsEnv), ",")
 }
 
 func FindProjectRootDir() (string, error) {

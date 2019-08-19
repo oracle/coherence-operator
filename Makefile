@@ -18,6 +18,8 @@ PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
 
+IMAGE_PULL_SECRETS ?=
+
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
@@ -160,13 +162,13 @@ e2e-test: build
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # These tests require the Operator CRDs and will install them before tests start
 # and remove them afterwards.
+# Note that the namespace will be created by Helm if it does not exist.
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
+helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: build
-	@echo "creating test namespace"
-	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "Installing CRDs"
 	$(MAKE) install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
