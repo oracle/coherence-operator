@@ -55,9 +55,9 @@ Refer to the following sections in the Quick Start Guide for software versions a
 
 * Runtime Environment Prerequisites
 
-  * [Software Requirements](../quickstart.md#software-and-version-prerequisites) - Helm and Kubernetes versions
+  * [Software Requirements](../quickstart.md#software-requirements) - Helm and Kubernetes versions
 
-  * [Runtime Environment Requirements](../quickstart.md#runtime-environment-prerequisites) - Helm and Kubernetes configuration
+  * [Runtime Environment Requirements](../quickstart.md#runtime-environment-requirements) - Helm and Kubernetes configuration
 
 * Environment Configuration
 
