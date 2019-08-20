@@ -50,12 +50,12 @@ func TestClusterWithSingleRoleWithSingleMember(t *testing.T) {
 	err = f.Client.Create(goctx.TODO(), &cluster, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	role, err := helper.WaitForCoherenceRole(t, f, namespace, roleFullName, helper.RetryInterval, helper.Timeout)
+	role, err := helper.WaitForCoherenceRole(f, namespace, roleFullName, helper.RetryInterval, helper.Timeout, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(role.Spec.GetRoleName()).To(Equal(roleName))
 	g.Expect(role.Spec.GetReplicas()).To(Equal(replicas))
 
-	sts, err := helper.WaitForStatefulSet(t, f.KubeClient, namespace, roleFullName, replicas, helper.RetryInterval, helper.Timeout)
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, namespace, roleFullName, replicas, helper.RetryInterval, helper.Timeout, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }

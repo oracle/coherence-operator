@@ -69,7 +69,7 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	g.Expect(framework.Global.LocalOperator).To(BeFalse())
 
 	ctx := helper.CreateTestContext(t)
-	defer cleanup(t, ctx)
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -130,14 +130,6 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	}
 }
 
-func cleanup(t *testing.T, ctx *framework.TestCtx) {
-	namespace, err := ctx.GetNamespace()
-	if err == nil {
-		helper.DumpOperatorLog(namespace, t.Name(), t)
-	}
-	ctx.Cleanup()
-}
-
 // installSimpleCluster installs a cluster and asserts that the underlying StatefulSet resources reach the correct state.
 func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster coherence.CoherenceCluster) {
 	g := NewGomegaWithT(t)
@@ -167,7 +159,7 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 
 	t.Logf("Asserting CoherenceRole %s exists\n", fullName)
 
-	role, err := helper.WaitForCoherenceRole(t, f, cluster.Namespace, fullName, helper.RetryInterval, helper.Timeout)
+	role, err := helper.WaitForCoherenceRole(f, cluster.Namespace, fullName, helper.RetryInterval, helper.Timeout, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(role.Spec.GetRoleName()).To(Equal(r.GetRoleName()))
 	g.Expect(role.Spec.GetReplicas()).To(Equal(r.GetReplicas()))
@@ -176,7 +168,7 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	sts, err := helper.WaitForStatefulSet(t, f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5)
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }

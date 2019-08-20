@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TestNamespaceEnv = "TEST_NAMESPACE"
+	TestNamespaceEnv    = "TEST_NAMESPACE"
 	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
 
 	defaultNamespace = "operator-test"
@@ -19,6 +19,7 @@ const (
 	coherenceChart = chartDir + string(os.PathSeparator) + "coherence"
 	operatorChart  = chartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs       = outDir + string(os.PathSeparator) + "test-logs"
+	certs          = outDir + string(os.PathSeparator) + "certs"
 )
 
 func GetTestNamespace() string {
@@ -103,4 +104,13 @@ func FindTestLogsDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + testLogs, nil
+}
+
+func FindTestCertsDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	return pd + string(os.PathSeparator) + certs, nil
 }

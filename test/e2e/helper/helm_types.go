@@ -33,9 +33,9 @@ type OperatorValues struct {
 	// Service groups the values used to configure the internal K8s service.
 	// +optional
 	Service *OperatorServiceSpec `json:"service,omitempty"`
-	// Image groups the values used to configure the image used
+	// CoherenceOperator groups the values used to configure the operator
 	// +optional
-	CoherenceOperator *coh.ImageSpec `json:"coherenceOperator,omitempty"`
+	CoherenceOperator *OperatorSpec `json:"coherenceOperator,omitempty"`
 	// Controls whether or not log capture via EFK stack is enabled.
 	// +optional
 	LogCaptureEnabled bool `json:"logCaptureEnabled,omitempty"`
@@ -55,6 +55,20 @@ type OperatorValues struct {
 	// Specifies values for Kibana Dashboard Imports if logCaptureEnabled is true
 	// +optional
 	DashboardImport *DashboardImportSpec `json:"dashboardImport,omitempty"`
+}
+
+// OperatorSpec defines the settings for the Operator.
+type OperatorSpec struct {
+	coh.ImageSpec `json:",inline"`
+	SSL           *OperatorSSL `json:"ssl,omitempty"`
+}
+
+// OperatorSSL defines the SSL settings for the Operator.
+type OperatorSSL struct {
+	Secrets  *string `json:"secrets,omitempty"`
+	KeyFile  *string `json:"keyFile,omitempty"`
+	CertFile *string `json:"certFile,omitempty"`
+	CaFile   *string `json:"caFile,omitempty"`
 }
 
 // LoadFromYaml loads the data from the specified YAML file into this OperatorValues

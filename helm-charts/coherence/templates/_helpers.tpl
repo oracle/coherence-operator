@@ -50,7 +50,7 @@ Define the Coherence cluster name for this install.
 Define the Coherence role name for this install.
 */}}
 {{- define "coherence.role" -}}
-{{ .Values.role | default "CoherenceServer" }}
+{{ .Values.role | default "storage" }}
 {{- end -}}
 
 {{/*
@@ -61,6 +61,7 @@ generated from this chart.
 {{- define "coherence.release_labels" }}
 coherenceDeployment: {{ template "coherence.fullname" . }}
 coherenceCluster: {{ template "coherence.clusterName" . }}
+coherenceRole: {{ template "coherence.role" . }}
 heritage: {{ .Release.Service }}
 release: {{ .Release.Name }}
 chart: {{ template "coherence.chart" . }}

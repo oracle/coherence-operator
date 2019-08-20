@@ -76,7 +76,7 @@ service:
   # annotations is free form yaml that will be added to the service annotations
   annotations:
 
-# Image groups the values used to configure the image used
+# coherenceOperator groups the values used to configure the Operator
 coherenceOperator:
   # docker image pull the image from
   image: "${OPERATOR_IMAGE}"
@@ -84,9 +84,21 @@ coherenceOperator:
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
 
-# The level of Java logging that should be enabled in the operator.
-# Valid values are: "SEVERE", "WARNING", "INFO", "CONFIG", "FINE", "FINER", and "FINEST".
-javaLoggingLevel: INFO
+  # coherenceOperator.ssl configures SSL settings used to configure Coherence clusters that require
+  #   SSL for management over ReST and/or metrics.
+  ssl:
+    # coherenceOperator.ssl.secrets is the name of the k8s secret containing the key and certs files that will be
+    #   used by the Operator when connecting to Coherence Management over ReST endpoints that have SSL enabled.
+    secrets:
+    # keyFile is the name of the client key file in the k8s secret used by the Operator when connecting to a Coherence
+    #   Pod's management endpoint if that Pod has SSL enabled.
+    keyFile:
+    # certFile is the name of the client certificate file in the k8s secret used by the Operator when connecting to a
+    #   Coherence Pod's management endpoint if that Pod has SSL enabled.
+    certFile:
+    # caFile is the name of the cert file in the k8s secret for the certificate authority used by the Operator when
+    #   connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled.
+    caFile:
 
 # Controls whether or not log capture via EFK stack is enabled.
 logCaptureEnabled: false

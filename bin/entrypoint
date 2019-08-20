@@ -9,4 +9,31 @@ if ! whoami &>/dev/null; then
   fi
 fi
 
-exec ${OPERATOR} run helm --watches-file=/opt/${USER_NAME:-coherence}/watches.yaml $@
+ARGS="--watches-file=/opt/${USER_NAME:-coherence}/watches.yaml"
+
+
+if [[ "${SSL_CERTS_DIR}" != "" ]]
+then
+    if [[ "${SSL_CERTS_DIR:${#SSL_CERTS_DIR}-1}" != "/" ]]
+    then
+        SSL_CERTS_DIR="${SSL_CERTS_DIR}/"
+    fi
+else
+    SSL_CERTS_DIR=""
+fi
+
+if [[ "${SSL_KEY_FILE}" != "" ]]
+then
+    ARGS="${ARGS} --ssl-key-file=${SSL_CERTS_DIR}${SSL_KEY_FILE}"
+fi
+if [[ "${SSL_CERT_FILE}" != "" ]]
+then
+    ARGS="${ARGS} --ssl-cert-file=${SSL_CERTS_DIR}${SSL_CERT_FILE}"
+fi
+if [[ "${SSL_CA_FILE}" != "" ]]
+then
+    ARGS="${ARGS} --ssl-ca-file=${SSL_CERTS_DIR}${SSL_CA_FILE}"
+fi
+
+
+exec ${OPERATOR} run helm ${ARGS} $@

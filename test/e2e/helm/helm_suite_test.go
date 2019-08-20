@@ -17,7 +17,7 @@ func TestCoherenceRoleControler(t *testing.T) {
 	// Create a helper.HelmHelper
 	h, err := helper.NewOperatorChartHelper()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	HelmHelper = h

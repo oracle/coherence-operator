@@ -15,10 +15,22 @@ HELM_UTILS_IMAGE ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION)-
 
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
+# Extra arguments to pass to the go test command for the various test steps.
+# For example, when running make e2e-test we can run just a single test such
+# as the zone test using the go test -run=regex argument like this
+#   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
+GO_TEST_FLAGS ?=
+
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
 
 IMAGE_PULL_SECRETS ?=
+
+# The image pul policy used when deploying the Operator for e2e tests.
+# When running locally this can be set to Never but when running in a k8s
+# cluster where the k8s nodes need to pull the latest just built image it
+# should be set to Always
+IMAGE_PULL_POLICY  ?= Never
 
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
@@ -116,7 +128,7 @@ $(CHART_DIR)/coherence-$(VERSION).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
 test: export CGO_ENABLED = 0
 test: build
 	@echo "Running operator tests"
-	$(GO_TEST_CMD) test -v ./cmd/... ./pkg/...
+	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/...
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a local operator instance (i.e. the operator is not deployed to k8s).
@@ -132,7 +144,7 @@ e2e-local-test: build
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
-		--verbose --debug  --go-test-flags "-timeout=60m" \
+		--verbose --debug  --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	@echo "deleting test namespace"
@@ -147,13 +159,13 @@ e2e-local-test: build
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
-e2e-test: build
+e2e-test: build operator-manifest
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
-		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m" \
-		--verbose --debug \
+		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
+		--verbose --debug --namespaced-manifest=$(BUILD_OUTPUT)/manifest/test-manifest.yaml \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	@echo "deleting test namespace"
 	kubectl delete namespace $(TEST_NAMESPACE)
@@ -171,8 +183,10 @@ helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: build
 	@echo "Installing CRDs"
 	$(MAKE) install-crds
+	@echo "Generating test keys and certs"
+	./hack/keys.sh
 	@echo "executing Operator Helm Chart end-to-end tests"
-	$(GO_TEST_CMD) test -v ./test/e2e/helm/...
+	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./test/e2e/helm/...
 	@echo "Removing CRDs"
 	$(MAKE) uninstall-crds
 	@echo "deleting test namespace"
@@ -208,3 +222,21 @@ push:
 
 clean:
 	rm -rf build/_output
+
+# Create the k8s yaml manifest that will be used by the Operator SDK to install the Operator when running e2e tests.
+# This is created by combining various yaml files and doing some sed replacements.
+operator-manifest: build
+	@mkdir -p $(BUILD_OUTPUT)/manifest
+	cat deploy/operator.yaml > $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	cat deploy/service_account.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	cat deploy/role.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	cat deploy/role_binding.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	cat helm-charts/coherence-operator/templates/rbac.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
+	sed -i -e 's/imagePullPolicy: Never/imagePullPolicy: $(IMAGE_PULL_POLICY)/g' build/_output/manifest/test-manifest.yaml
+	sed -i -e 's/{{ .Release.Namespace }}/$(TEST_NAMESPACE)/g' build/_output/manifest/test-manifest.yaml
+	sed -i -e 's/{{ .Release.Name }}/test-release/g' build/_output/manifest/test-manifest.yaml
+	sed -i -e 's/{{ .Values.serviceAccount }}/coherence-operator/g' build/_output/manifest/test-manifest.yaml

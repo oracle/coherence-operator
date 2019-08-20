@@ -3,10 +3,12 @@ package helper
 
 import (
 	goctx "context"
+	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/pkg/apis"
-	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"io"
+	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +35,7 @@ var (
 
 var tenSeconds int32 = 10
 
-var Readiness = &coherence.ReadinessProbeSpec{
+var Readiness = &coh.ReadinessProbeSpec{
 	InitialDelaySeconds: &tenSeconds,
 	PeriodSeconds:       &tenSeconds,
 }
@@ -54,7 +56,7 @@ func CreateTestContext(t *testing.T) *framework.TestCtx {
 	}
 
 	testCtx.AddCleanupFn(func() error {
-		return waitForCleanup(t, f, namespace)
+		return waitForCleanup(f, namespace)
 	})
 
 	cleanup := framework.CleanupOptions{TestContext: testCtx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval}
@@ -65,7 +67,7 @@ func CreateTestContext(t *testing.T) *framework.TestCtx {
 		return nil
 	}
 
-	clusterList := &coherence.CoherenceClusterList{}
+	clusterList := &coh.CoherenceClusterList{}
 
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, clusterList)
 	if err != nil {
@@ -81,24 +83,24 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
-func WaitForStatefulSet(t *testing.T, kubeclient kubernetes.Interface, namespace, name string, replicas int32, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, name string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				t.Logf("Waiting for availability of %s StatefulSet - NotFound\n", name)
+				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", name)
 				return false, nil
 			}
-			t.Logf("Waiting for availability of %s StatefulSet - %s\n", name, err.Error())
+			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", name, err.Error())
 			return false, err
 		}
 
 		if sts.Status.ReadyReplicas == replicas {
 			return true, nil
 		}
-		t.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", name, sts.Status.ReadyReplicas, replicas)
+		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", name, sts.Status.ReadyReplicas, replicas)
 		return false, nil
 	})
 
@@ -106,17 +108,17 @@ func WaitForStatefulSet(t *testing.T, kubeclient kubernetes.Interface, namespace
 }
 
 // WaitForCoherenceRole waits for a CoherenceRole to be created.
-func WaitForCoherenceRole(t *testing.T, f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration) (*coherence.CoherenceRole, error) {
-	var role *coherence.CoherenceRole
+func WaitForCoherenceRole(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.CoherenceRole, error) {
+	var role *coh.CoherenceRole
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		role, err = GetCoherenceRole(f, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				t.Logf("Waiting for availability of CoherenceRole %s - NotFound\n", name)
+				logger.Logf("Waiting for availability of CoherenceRole %s - NotFound\n", name)
 				return false, nil
 			}
-			t.Logf("Waiting for availability of CoherenceRole %s - %s\n", name, err.Error())
+			logger.Logf("Waiting for availability of CoherenceRole %s - %s\n", name, err.Error())
 			return false, err
 		}
 
@@ -127,9 +129,9 @@ func WaitForCoherenceRole(t *testing.T, f *framework.Framework, namespace, name 
 }
 
 // GetCoherenceRole gets the specified CoherenceRole
-func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coherence.CoherenceRole, error) {
+func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coh.CoherenceRole, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
-	role := &coherence.CoherenceRole{
+	role := &coh.CoherenceRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -155,11 +157,23 @@ func WaitForOperatorPods(kubeclient kubernetes.Interface, namespace string, retr
 	return pods, err
 }
 
-// List the Operator Pods that exist - this is Pods with the label "name=coherence-operator"
+// List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
 func ListOperatorPods(kubeclient kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{
 		LabelSelector: "name=coherence-operator",
 	}
+
+	list, err := kubeclient.CoreV1().Pods(namespace).List(opts)
+	if err != nil {
+		return []corev1.Pod{}, err
+	}
+
+	return list.Items, nil
+}
+
+// List the Coherence Cluster Pods that exist - this is Pods with the label "coherenceCluster=<cluster>,coherenceRole=<role>"
+func ListCoherencePods(kubeclient kubernetes.Interface, namespace, cluster, role string) ([]corev1.Pod, error) {
+	opts := metav1.ListOptions{LabelSelector: "coherenceCluster=" + cluster + ",coherenceRole=" + role}
 
 	list, err := kubeclient.CoreV1().Pods(namespace).List(opts)
 	if err != nil {
@@ -195,24 +209,24 @@ func WaitForPodReady(kubeclient kubernetes.Interface, namespace, name string, re
 // waitForCleanup waits until there are no CoherenceInternal resources left in the test namespace.
 // The default clean-up hooks only wait for deletion of resources directly created via the test client
 // but CoherenceInternal resources and corresponding Helm installs are created internally.
-func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) error {
-	t.Logf("Waiting for clean-up of CoherenceInternal resources in namespace %s\n", namespace)
+func waitForCleanup(f *framework.Framework, namespace string) error {
+	fmt.Printf("Waiting for clean-up of CoherenceInternal resources in namespace %s\n", namespace)
 
 	// wait for all CoherenceInternal resources to be deleted
 	opts := &client.ListOptions{}
 	opts.InNamespace(namespace)
 
-	list := &coherence.CoherenceClusterList{}
+	list := &coh.CoherenceClusterList{}
 	err := f.Client.List(goctx.TODO(), opts, list)
 	if err != nil {
 		return err
 	}
 
 	for _, c := range list.Items {
-		t.Logf("Deleting CoherenceCluster %s in namespace %s", c.Name, c.Namespace)
+		fmt.Printf("Deleting CoherenceCluster %s in namespace %s", c.Name, c.Namespace)
 		err = f.Client.Delete(goctx.TODO(), &c)
 		if err != nil {
-			t.Logf("Error deleting CoherenceCluster %s - %s\n", c.Name, err.Error())
+			fmt.Printf("Error deleting CoherenceCluster %s - %s\n", c.Name, err.Error())
 		}
 	}
 
@@ -222,15 +236,15 @@ func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) erro
 
 	err = f.Client.Client.List(goctx.TODO(), opts, &u)
 	if err != nil {
-		t.Logf("Error listing CoherenceInternal resources - %s\n", err.Error())
+		fmt.Printf("Error listing CoherenceInternal resources - %s\n", err.Error())
 	} else {
 		if len(u.Items) > 0 {
-			t.Logf("Remaining CoherenceInternal resources in namespace %s:\n", namespace)
-			for _, ci := range u.Items {
-				t.Log(ci.GetName())
+			fmt.Printf("Remaining CoherenceInternal resources in namespace %s (%d):\n", namespace, len(u.Items))
+			for i, ci := range u.Items {
+				fmt.Printf("%d: %s\n", i, ci.GetName())
 			}
 		} else {
-			t.Logf("Zero CoherenceInternal resources remain in namespace %s\n", namespace)
+			fmt.Printf("Zero CoherenceInternal resources remain in namespace %s\n", namespace)
 		}
 	}
 
@@ -240,11 +254,11 @@ func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) erro
 		err = f.Client.List(goctx.TODO(), opts, &u)
 		if err == nil {
 			if len(u.Items) > 0 {
-				t.Logf("Waiting for deletion of %d CoherenceInternal resources\n", len(u.Items))
+				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(u.Items))
 
 				for _, ci := range u.Items {
 					ci.SetFinalizers(empty)
-					t.Logf("Removing finalizers on CoherenceInternal resources %s\n", ci.GetName())
+					fmt.Printf("Removing finalizers on CoherenceInternal resources %s\n", ci.GetName())
 					_ = f.Client.Update(goctx.TODO(), &ci)
 				}
 
@@ -252,7 +266,30 @@ func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) erro
 			}
 			return true, nil
 		} else {
-			t.Logf("Error waiting for deletion of CoherenceInternal resources: %s\n", err.Error())
+			fmt.Printf("Error waiting for deletion of CoherenceInternal resources: %s\n", err.Error())
+			return false, nil
+		}
+	})
+
+	return err
+}
+
+// WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
+func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, logger Logger) error {
+	// wait for all CoherenceInternal resources to be deleted
+	opts := &client.ListOptions{}
+	opts.InNamespace(namespace)
+
+	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		list, err := ListOperatorPods(kubeClient, namespace)
+		if err == nil {
+			if len(list) > 0 {
+				logger.Logf("Waiting for deletion of %d Coherence Operator Pods\n", len(list))
+				return false, nil
+			}
+			return true, nil
+		} else {
+			logger.Logf("Error waiting for deletion of Coherence Operator Pods: %s\n", err.Error())
 			return false, nil
 		}
 	})
@@ -261,13 +298,12 @@ func waitForCleanup(t *testing.T, f *framework.Framework, namespace string) erro
 }
 
 // Dump the Operator Pod log to a file.
-func DumpOperatorLog(namespace, directory string, logger Logger) {
-	f := framework.Global
-	list, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=coherence-operator"})
+func DumpOperatorLog(kubeClient kubernetes.Interface, namespace, directory string, logger Logger) {
+	list, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=coherence-operator"})
 	if err == nil {
 		if len(list.Items) > 0 {
 			pod := list.Items[0]
-			DumpPodLog(&pod, directory, logger)
+			DumpPodLog(kubeClient, &pod, directory, logger)
 		} else {
 			logger.Log("Could not capture Operator Pod log. No Pods found.")
 		}
@@ -279,15 +315,13 @@ func DumpOperatorLog(namespace, directory string, logger Logger) {
 }
 
 // Dump the Pod log to a file.
-func DumpPodLog(pod *corev1.Pod, directory string, logger Logger) {
-	f := framework.Global
-
+func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory string, logger Logger) {
 	logs := os.Getenv("TEST_LOGS")
 	if logs == "" {
 		logger.Log("cannot capture logs as log folder env var TEST_LOGS is not set")
 	}
 
-	res := f.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
+	res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
 	s, err := res.Stream()
 	if err == nil {
 		name := logs + "/" + directory
@@ -299,4 +333,118 @@ func DumpPodLog(pod *corev1.Pod, directory string, logger Logger) {
 			}
 		}
 	}
+}
+
+// Ensure that the k8s secret has been deleted
+func EnsureSecretDeleted(kubeClient kubernetes.Interface, namespace, name string) error {
+	err := kubeClient.CoreV1().Secrets(namespace).Delete(name, &metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	return nil
+}
+
+// Create a k8s secret that can be used for SSL testing.
+func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*OperatorSSL, *coh.SSLSpec, error) {
+	certs, err := FindTestCertsDir()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// ensure the certs dir exists
+	_, err = os.Stat(certs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	keystore := "keystore.jks"
+	storepass := "storepass.txt"
+	keypass := "keypass.txt"
+	truststore := "truststore.jks"
+	trustpass := "storepass.txt"
+	keyFile := "groot.key"
+	certFile := "groot.crt"
+	caCert := "guardians-ca.crt"
+
+	opSSL := OperatorSSL{}
+	cohSSL := coh.SSLSpec{}
+	secret := &corev1.Secret{}
+	secret.SetNamespace(namespace)
+	secret.SetName(name)
+
+	secret.Data = make(map[string][]byte)
+
+	opSSL.KeyFile = &keyFile
+	secret.Data[keyFile], err = readCertFile(certs + "/groot.key")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	opSSL.KeyFile = &certFile
+	secret.Data[certFile], err = readCertFile(certs + "/groot.crt")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	opSSL.KeyFile = &caCert
+	secret.Data[caCert], err = readCertFile(certs + "/guardians-ca.crt")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cohSSL.KeyStore = &keystore
+	secret.Data[keystore], err = readCertFile(certs + "/groot.jks")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cohSSL.KeyStorePasswordFile = &storepass
+	secret.Data[storepass], err = readCertFile(certs + "/storepassword.txt")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cohSSL.KeyPasswordFile = &keypass
+	secret.Data[keypass], err = readCertFile(certs + "/keypassword.txt")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cohSSL.TrustStore = &truststore
+	secret.Data[keypass], err = readCertFile(certs + "/truststore-guardians.jks")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cohSSL.TrustStorePasswordFile = &trustpass
+	secret.Data[trustpass], err = readCertFile(certs + "/trustpassword.txt")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	_, err = kubeClient.CoreV1().Secrets(namespace).Create(secret)
+	return &opSSL, &cohSSL, err
+}
+
+func readCertFile(name string) ([]byte, error) {
+	f, err := os.Create(name)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadAll(f)
+}
+
+// Dump the operator logs and clean-up the test context
+func DumpOperatorLogsAndCleanup(t *testing.T, ctx *framework.TestCtx) {
+	namespace, err := ctx.GetNamespace()
+	if err == nil {
+		DumpOperatorLog(framework.Global.KubeClient, namespace, t.Name(), t)
+	}
+	ctx.Cleanup()
 }

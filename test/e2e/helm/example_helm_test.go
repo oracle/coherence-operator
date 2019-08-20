@@ -51,6 +51,11 @@ var _ = Describe("Operator Helm Chart", func() {
 			// ensure that the chart is uninstalled
 			_, err := hm.UninstallRelease()
 			Expect(err).ToNot(HaveOccurred())
+
+			// Wait for the Operator Pods to die as terminating Pods can mess up the next test that runs
+			// if it is too quick after this test.
+			err = helper.WaitForOperatorCleanup(HelmHelper.KubeClient, HelmHelper.Namespace, GinkgoT())
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		// There should be ONLY ONE It section in this When section to do the assertions.

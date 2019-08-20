@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
+	"github.com/oracle/coherence-operator/pkg/apis"
 	"github.com/pborman/uuid"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -54,6 +55,11 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 	namespace := GetTestNamespace()
 
 	mgr, err := createManager(cfg, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	err = apis.AddToScheme(mgr.GetScheme())
 	if err != nil {
 		return nil, err
 	}

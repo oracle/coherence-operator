@@ -2,10 +2,9 @@ package coherencerole
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"io/ioutil"
+	mgmt "github.com/oracle/coherence-operator/pkg/management"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -156,77 +155,32 @@ func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1
 func IsPodStatusHA(podIP string) (bool, error) {
 	cl := &http.Client{}
 
-	url := fmt.Sprintf(servicesFormat, podIP)
-	response, err := cl.Get(url)
+	services, _, err := mgmt.GetServices(cl, podIP, 30000)
 	if err != nil {
 		if log.Enabled() {
-			log.Info("Error accessing podIP " + podIP + " URL " + url + "\n" + err.Error())
-		}
-		return false, err
-	}
-
-	data, _ := ioutil.ReadAll(response.Body)
-	services := RestData{}
-
-	err = json.Unmarshal(data, &services)
-	if err != nil {
-		if log.Enabled() {
-			log.Info("Error parsing services json returned from podIP " + podIP + " URL " + url + "\n" + string(data) + "\n" + err.Error())
+			log.Info("Error querying services from podIP " + podIP + "\n" + err.Error())
 		}
 		return false, err
 	}
 
 	for _, service := range services.Items {
-		if service["type"] == "DistributedCache" {
-			url = fmt.Sprintf(partitionFormat, podIP, service["name"])
-			response, err := cl.Get(url)
+		if service.Type == "DistributedCache" {
+			part, rc, err := mgmt.GetPartitionAssignment(cl, podIP, 30000, service.Name)
 			if err == nil {
-				if response.StatusCode == 200 {
-					data, _ = ioutil.ReadAll(response.Body)
-					fields := &PartitionData{}
-					err = json.Unmarshal(data, &fields)
-					if err == nil {
-						// we must have more than one service member and backups > 0 to event think about being HA.
-						if fields.BackupCount > 0 && fields.ServiceNodeCount > 1 {
-							if fields.HAStatusCode <= 1 || fields.RemainingDistributionCount != 0 {
-								// we're not HA
-								return false, nil
-							}
+				if rc == http.StatusOK {
+					// we must have more than one service member and backups > 0 to event think about being HA.
+					if part.BackupCount > 0 && part.ServiceNodeCount > 1 {
+						if part.HAStatusCode <= 1 || part.RemainingDistributionCount != 0 {
+							// we're not HA
+							return false, nil
 						}
-					} else {
-						if log.Enabled() {
-							log.Info("Error checking StatusHA on podIP " + podIP + "\n" + err.Error())
-						}
-						return false, err
 					}
 				}
 			} else {
-				log.Info("Error accessing podIP " + podIP + " URL " + url + "\n" + err.Error())
+				log.Info("Error accessing podIP " + podIP + "\n" + err.Error())
 			}
 		}
 	}
 
 	return true, nil
-}
-
-const (
-	// The URL pattern for Coherence management services query.
-	servicesFormat = "http://%s:30000/management/coherence/cluster/services"
-	// The URL pattern for Coherence management partition assignment query.
-	partitionFormat = "http://%s:30000/management/coherence/cluster/services/%s/partition"
-)
-
-// A struct to use to hold the results of a Coherence management ReST query.
-type RestData struct {
-	Links []map[string]interface{}
-	Items []map[string]interface{}
-}
-
-// A struct to use to hold the results of a Coherence management ReST partition assignment query.
-type PartitionData struct {
-	HAStatus                   string `json:"HAStatus"`
-	HAStatusCode               int    `json:"HAStatusCode"`
-	RemainingDistributionCount int    `json:"remainingDistributionCount"`
-	BackupCount                int    `json:"backupCount"`
-	ServiceNodeCount           int    `json:"serviceNodeCount"`
 }

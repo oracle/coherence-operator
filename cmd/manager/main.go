@@ -329,13 +329,12 @@ func ensureOperatorConfig(namespace string, mgr manager.Manager, flags *flags.Co
 	}
 
 	if errors.IsNotFound(err) {
-		// for some reason we're getting here even if the secret exists!!
-		err = client.Delete(context.TODO(), secret)
-		if err != nil {
-			return err
-		}
+		// for some reason we're getting here even if the secret exists so delete it!!
+		_ = client.Delete(context.TODO(), secret)
+		log.Info("Creating secret " + configName + " in namespace " + namespace)
 		err = client.Create(context.TODO(), secret)
 	} else {
+		log.Info("Updating secret " + configName + " in namespace " + namespace)
 		err = client.Update(context.TODO(), secret)
 	}
 

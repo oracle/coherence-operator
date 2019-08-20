@@ -28,6 +28,15 @@ type CoherenceOperatorFlags struct {
 	ElasticSearchCredentials string
 	// The name of the image to use for Operator Utilities, e.g. the backup Pod.
 	ImageName string
+	// keyFile is the name of the client key file in the k8s secret used by the Operator when connecting to a Coherence
+	//  Pod's management endpoint if that Pod has SSL enabled.
+	SSLKeyFile string
+	// certFile is the name of the client certificate file in the k8s secret used by the Operator when connecting to a
+	//  Coherence Pod's management endpoint if that Pod has SSL enabled.
+	SSLCertFile string
+	// caFile is the name of the cert file in the k8s secret for the certificate authority used by the Operator when
+	//  connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled.
+	SSLCAFile string
 }
 
 // cohf is the struct containing the command line flags.
@@ -86,9 +95,27 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ..
 		"",
 		strings.Join(append(helpTextPrefix, "The name of the Operator Utils Docker image"), " "),
 	)
+
+	flagSet.StringVar(&f.SSLKeyFile,
+		"ssl-key-file",
+		"",
+		strings.Join(append(helpTextPrefix, "The name of the client key file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
+	)
+
+	flagSet.StringVar(&f.SSLCertFile,
+		"ssl-cert-file",
+		"",
+		strings.Join(append(helpTextPrefix, "The name of the client certificate file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
+	)
+
+	flagSet.StringVar(&f.SSLCAFile,
+		"ssl-ca-file",
+		"",
+		strings.Join(append(helpTextPrefix, "The name of the cert file in the k8s secret for the certificate authority used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
+	)
 }
 
-// GetOperatorFlags returns the
+// GetOperatorFlags returns the Operator command line flags.
 func GetOperatorFlags() *CoherenceOperatorFlags {
 	return cohf
 }

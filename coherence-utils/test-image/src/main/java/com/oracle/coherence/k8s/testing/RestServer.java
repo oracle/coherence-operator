@@ -19,6 +19,14 @@ import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.WebServer;
 
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObjectBuilder;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * @author jk  2019.08.09
  */
@@ -35,6 +43,8 @@ public class RestServer
                                                                .port(8080)
                                                                .build();
         Routing routing = Routing.builder()
+                                 .put("/env", RestServer::env)
+                                 .put("/props", RestServer::props)
                                  .put("/suspend", RestServer::suspend)
                                  .put("/resume", RestServer::resume)
                                  .put("/canaryStart", RestServer::canaryStart)
@@ -54,6 +64,29 @@ public class RestServer
                 });
 
         DefaultCacheServer.main(args);
+        }
+
+    static void env(ServerRequest req, ServerResponse res)
+        {
+        JsonObjectBuilder builder = s_jsonFactory.createObjectBuilder();
+
+        System.getenv().forEach(builder::add);
+
+        res.send(builder.build());
+        }
+
+    static void props(ServerRequest req, ServerResponse res)
+        {
+        JsonObjectBuilder builder  = s_jsonFactory.createObjectBuilder();
+        Properties        props    = System.getProperties();
+        Set<String>       setNames = new TreeSet<>(props.stringPropertyNames());
+
+        for (String sName : setNames)
+            {
+            builder.add(sName, props.getProperty(sName));
+            }
+
+        res.send(builder.build());
         }
 
     static void suspend(ServerRequest req, ServerResponse res)
@@ -102,4 +135,8 @@ public class RestServer
             res.status(Http.Status.BAD_REQUEST_400).send("Expected " + nPart + " entries but there are only " + nSize);
             }
         }
+
+    // ----- data members ---------------------------------------------------
+
+    private static final JsonBuilderFactory s_jsonFactory = Json.createBuilderFactory(Collections.emptyMap());
     }

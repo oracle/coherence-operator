@@ -70,6 +70,9 @@ spec:
               containerPort: 8383
             - name: "oper-metrics"
               containerPort: 8686
+# ---------------------------------------------------------------------------
+#         environment variables
+# ---------------------------------------------------------------------------
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -108,4 +111,45 @@ spec:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchpassword
+{{- end }}
+{{- if .Values.coherenceOperator.ssl }}
+    {{- if .Values.coherenceOperator.ssl.secrets }}
+            - name: SSL_CERTS_DIR
+              value: "/coherence/certs"
+    {{- end }}
+    {{- if .Values.coherenceOperator.ssl.keyFile }}
+            - name: SSL_KEY_FILE
+              value: {{ .Values.coherenceOperator.ssl.keyFile | quote }}
+    {{- end }}
+    {{- if .Values.coherenceOperator.ssl.certFile }}
+            - name: SSL_CERT_FILE
+              value: {{ .Values.coherenceOperator.ssl.certFile | quote }}
+    {{- end }}
+    {{- if .Values.coherenceOperator.ssl.caFile }}
+            - name: SSL_CA_FILE
+              value: {{ .Values.coherenceOperator.ssl.caFile | quote }}
+    {{- end }}
+{{- end }}
+# ---------------------------------------------------------------------------
+#         volume mounts
+# ---------------------------------------------------------------------------
+          volumeMounts:
+{{- if .Values.coherenceOperator.ssl }}
+  {{- if .Values.coherenceOperator.ssl.secrets }}
+            - name: ssl-config
+              mountPath: /coherence/certs
+              readOnly: true
+  {{- end }}
+{{- end }}
+# ---------------------------------------------------------------------------
+#     volumes mappings
+# ---------------------------------------------------------------------------
+      volumes:
+{{- if .Values.coherenceOperator.ssl }}
+  {{- if .Values.coherenceOperator.ssl.secrets }}
+      - name: ssl-config
+        secret:
+          secretName: {{ .Values.coherenceOperator.ssl.secrets }}
+          defaultMode: 0777
+  {{- end }}
 {{- end }}
