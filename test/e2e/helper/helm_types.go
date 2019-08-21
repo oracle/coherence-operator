@@ -55,6 +55,9 @@ type OperatorValues struct {
 	// Specifies values for Kibana Dashboard Imports if logCaptureEnabled is true
 	// +optional
 	DashboardImport *DashboardImportSpec `json:"dashboardImport,omitempty"`
+	// Specifies values for Prometheus Operator
+	// +optional
+	Prometheusoperator *PrometheusOperatorSpec `json:"prometheusoperator,omitempty"`
 }
 
 // OperatorSpec defines the settings for the Operator.
@@ -69,6 +72,10 @@ type OperatorSSL struct {
 	KeyFile  *string `json:"keyFile,omitempty"`
 	CertFile *string `json:"certFile,omitempty"`
 	CaFile   *string `json:"caFile,omitempty"`
+}
+
+type PrometheusOperatorSpec struct {
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // LoadFromYaml loads the data from the specified YAML file into this OperatorValues
@@ -87,6 +94,30 @@ func (v *OperatorValues) LoadFromYaml(file string) error {
 	}
 
 	return yaml.Unmarshal(data, v)
+}
+
+// ToYaml marshals this OperatorValues to yaml
+func (v *OperatorValues) ToYaml() ([]byte, error) {
+	if v == nil {
+		return nil, errors.New("attempted to marshall nil OperatorValues to yaml")
+	}
+
+	return yaml.Marshal(v)
+}
+
+// ToYaml marshals this OperatorValues to yaml
+func (v *OperatorValues) ToMap(m *map[string]interface{}) error {
+	if v == nil {
+		return errors.New("attempted to convert nil OperatorValues to a map")
+	}
+
+	d, err := v.ToYaml()
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(d, m)
+	return err
 }
 
 type DashboardImportSpec struct {

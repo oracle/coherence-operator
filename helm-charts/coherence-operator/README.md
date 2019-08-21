@@ -32,9 +32,6 @@ $ helm delete sample-coherence-operator
 The command removes all the Kubernetes components associated with the chart
 and deletes the release.
 
-We also need to remove the internal secret in targetNamespaces, which is
-`{ default }` by default.
-
 ```
 $ kubectl delete secret coherence-monitoring-config
 ```
@@ -46,7 +43,6 @@ chart and their default values.
 
 | Parameter | Description | Default |
 | --------- | ----------- | ------- |
-| `targetNamespaces` | A list of target namespaces the operator manages | `["default"]` |
 | `serviceAccount` | Service account used to access Kubernetes API | `default` |
 | `imagePullSecrets` | Secret for pull images from private registries |  |
 | `imagePullSecretsSeparator` | Separator for secret for pull images from private registries | `$` |

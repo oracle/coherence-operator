@@ -2,10 +2,6 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
-# A list of target namespaces the operator manages
-# The names must be lowercase. An empty list means "all namespaces."
-targetNamespaces: ["default"]
-
 # The name of the service account that the operator will use to
 # make requests to the Kubernetes API server.
 # The name must be lowercase.
@@ -43,11 +39,11 @@ imagePullSecrets:
 
 # affinity controls Pod scheduling preferences.
 #   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-affinity: {}
+affinity:
 
 # nodeSelector is the Node labels for pod assignment
 # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
-nodeSelector: {}
+nodeSelector:
 
 # tolerations is for nodes that have taints on them.
 #   Useful if you want to dedicate nodes to just run the coherence container
@@ -64,6 +60,7 @@ tolerations:
 # ---------------------------------------------------------------------------
 # service groups the values used to configure the internal K8s service
 service:
+  enabled: false
   # name of the service. It must be unique among services.
   # If not set the operator will use the service name "coherence-operator-service".
   name:
@@ -110,7 +107,7 @@ dashboardImport:
     enabled: false
     username: myuser
     password: mypass
-  dashboards: {}
+  dashboards:
 
 # Specify the docker image containing Elasticsearch.
 # These parameters are ignored if 'logCaptureEnabled' is false
@@ -154,7 +151,7 @@ kibana:
   imagePullPolicy:
 
 # Install coherence-service-monitor to enable prometheus scraping of coherence
-# services installed in targetNamespaces.
+# clusters.
 # Disable this setting to enable using prometheus_io annotations in
 # prometheusoperator.
 # This parameter is ignored if 'prometheusoperator.enabled' is false.

@@ -1,8 +1,1 @@
 Coherence Operator successfully installed.
-{{- if .Values.targetNamespaces }}
-
-Monitoring namespaces:
-  {{- range .Values.targetNamespaces }}
-  {{ . | quote }}
-  {{- end }}
-{{- end }}

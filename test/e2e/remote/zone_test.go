@@ -18,12 +18,6 @@ import (
 // Verify that a CoherenceCluster deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
 func TestZone(t *testing.T) {
-	var (
-		clusterName        = "test-cluster"
-		roleName           = "one"
-		roleFullName       = clusterName + "-" + roleName
-		replicas     int32 = 3
-	)
 	g := NewGomegaWithT(t)
 
 	f := framework.Global
@@ -34,36 +28,28 @@ func TestZone(t *testing.T) {
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	roleOne := coherence.CoherenceRoleSpec{
-		Role:     roleName,
-		Replicas: &replicas,
-	}
-
-	cluster := coherence.CoherenceCluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      clusterName,
-		},
-		Spec: coherence.CoherenceClusterSpec{
-			CoherenceRoleSpec: coherence.CoherenceRoleSpec{
-				ReadinessProbe: helper.Readiness,
-			},
-			Roles: []coherence.CoherenceRoleSpec{roleOne},
-		},
-	}
+	// load the test CoherenceCluster from a yaml files
+	cluster, err := coherence.NewCoherenceClusterFromYaml("common-coherence-cluster.yaml", "zone-test-coherence-cluster.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
 
 	// deploy the CoherenceCluster
 	err = f.Client.Create(goctx.TODO(), &cluster, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
+	role := cluster.Spec.Roles[0]
+	replicas := role.GetReplicas()
+
 	// Wait for the StatefulSet for the role to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, namespace, roleFullName, replicas, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, namespace, cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePods(f.KubeClient, namespace, clusterName, roleName)
+	pods, err := helper.ListCoherencePods(f.KubeClient, namespace, cluster.Name, role.GetRoleName())
 	g.Expect(err).NotTo(HaveOccurred())
+
+	// capture the Pod log in case we need it for debugging
+	helper.DumpPodLog(f.KubeClient, &pods[0], t.Name(), t)
 
 	// Port forward to the first Pod
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
@@ -82,9 +68,13 @@ func TestZone(t *testing.T) {
 		node, err := f.KubeClient.CoreV1().Nodes().Get(member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		zone := node.GetLabels()["failure-domain.beta.kubernetes.io/zone"]
-		if zone == "" {
-			zone = "n/a"
+
+		if zone != "" {
+			g.Expect(member.SiteName).To(Equal(zone))
+		} else {
+			// when running locally (for example in Docker on MacOS) the node might not
+			// have a zone unless one has been explicitly set by the developer.
+			g.Expect(member.SiteName).To(Equal("n/a"))
 		}
-		g.Expect(member.SiteName).To(Equal(zone))
 	}
 }

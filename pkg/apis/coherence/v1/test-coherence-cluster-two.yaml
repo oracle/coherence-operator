@@ -1,0 +1,14 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster-two
+spec:
+  imagePullSecrets:
+    - foo
+  readinessProbe:
+    initialDelaySeconds: 60
+  roles:
+  - role: one
+    replicas: 3
+  - role: two
+    replicas: 3

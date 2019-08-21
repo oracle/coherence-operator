@@ -8,7 +8,6 @@ import (
 	hoflags "github.com/operator-framework/operator-sdk/pkg/helm/flags"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
-	"github.com/oracle/coherence-operator/pkg/net"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
 	"os"
 	"runtime"
@@ -288,31 +287,7 @@ func ensureOperatorConfig(namespace string, mgr manager.Manager, flags *flags.Co
 		return err
 	}
 
-	var service string
-	var port int32
-
-	if flags.ServiceName != "" {
-		// use the service name if it was specifically set
-		service = flags.ServiceName
-	} else if flags.RestHost != "0.0.0.0" {
-		// if no service name was set but ReST is bound to a specific address then use that
-		service = flags.RestHost
-	} else {
-		// ReST is bound to 0.0.0.0 so use any of our local addresses.
-		// This does not guarantee we're reachable but would be OK in local testing
-		ip, err := net.GetLocalAddress()
-		if err == nil && ip != nil {
-			service = fmt.Sprint(ip.String())
-		}
-	}
-
-	if flags.ServicePort != -1 {
-		port = flags.ServicePort
-	} else {
-		port = flags.RestPort
-	}
-
-	hostAndPort := fmt.Sprintf("%s:%d", service, port)
+	hostAndPort := cohrest.GetHostAndPort()
 	log.Info("Operator Configuration: 'operatorhost' value set to " + hostAndPort)
 
 	secret := &v1.Secret{}

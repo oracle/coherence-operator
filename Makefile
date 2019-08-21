@@ -26,12 +26,6 @@ TEST_NAMESPACE ?= operator-test
 
 IMAGE_PULL_SECRETS ?=
 
-# The image pul policy used when deploying the Operator for e2e tests.
-# When running locally this can be set to Never but when running in a k8s
-# cluster where the k8s nodes need to pull the latest just built image it
-# should be set to Always
-IMAGE_PULL_POLICY  ?= Never
-
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
@@ -49,6 +43,10 @@ COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
 DEPLOYS=$(shell find deploy -type f -name "*.yaml")
 CRDS=$(shell find deploy/crds -name "*_crd.yaml")
 RBAC=deploy/service_account.yaml deploy/role.yaml deploy/role_binding.yaml
+
+TEST_MANIFEST_DIR    := $(BUILD_OUTPUT)/manifest
+TEST_MANIFEST_FILE   := test-manifest.yaml
+TEST_MANIFEST_VALUES ?=
 
 # Do a search and replace of properties in selected files in the Helm charts
 # This is done because the Helm charts can be large and processing every file
@@ -159,13 +157,14 @@ e2e-local-test: build
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
+e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-test: build operator-manifest
 	@echo "creating test namespace"
 	kubectl create namespace $(TEST_NAMESPACE)
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
-		--verbose --debug --namespaced-manifest=$(BUILD_OUTPUT)/manifest/test-manifest.yaml \
+		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	@echo "deleting test namespace"
 	kubectl delete namespace $(TEST_NAMESPACE)
@@ -225,18 +224,10 @@ clean:
 
 # Create the k8s yaml manifest that will be used by the Operator SDK to install the Operator when running e2e tests.
 # This is created by combining various yaml files and doing some sed replacements.
-operator-manifest: build
-	@mkdir -p $(BUILD_OUTPUT)/manifest
-	cat deploy/operator.yaml > $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	cat deploy/service_account.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	cat deploy/role.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	cat deploy/role_binding.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	echo "---" >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	cat helm-charts/coherence-operator/templates/rbac.yaml >> $(BUILD_OUTPUT)/manifest/test-manifest.yaml
-	sed -i -e 's/imagePullPolicy: Never/imagePullPolicy: $(IMAGE_PULL_POLICY)/g' build/_output/manifest/test-manifest.yaml
-	sed -i -e 's/{{ .Release.Namespace }}/$(TEST_NAMESPACE)/g' build/_output/manifest/test-manifest.yaml
-	sed -i -e 's/{{ .Release.Name }}/test-release/g' build/_output/manifest/test-manifest.yaml
-	sed -i -e 's/{{ .Values.serviceAccount }}/coherence-operator/g' build/_output/manifest/test-manifest.yaml
+operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
+operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
+operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
+	@mkdir -p $(TEST_MANIFEST_DIR)
+	go run ./cmd/helmutil/

@@ -18,9 +18,7 @@ var _ = Describe("Operator Helm Chart with SSL", func() {
 		hm *helper.HelmReleaseManager
 
 		secretName = "test-ssl-secret"
-		keyFile    = "test.key"
-		certFile   = "test.cert"
-		caFile     = "test.ca"
+		ssl        *helper.OperatorSSL
 	)
 
 	When("installing Helm chart with SSL values", func() {
@@ -29,7 +27,7 @@ var _ = Describe("Operator Helm Chart with SSL", func() {
 		JustBeforeEach(func() {
 			// create a dummy secret
 			err := helper.EnsureSecretDeleted(HelmHelper.KubeClient, HelmHelper.Namespace, secretName)
-			ssl, _, err := helper.CreateSslSecret(HelmHelper.KubeClient, HelmHelper.Namespace, secretName)
+			ssl, _, err = helper.CreateSslSecret(HelmHelper.KubeClient, HelmHelper.Namespace, secretName)
 			Expect(err).ToNot(HaveOccurred())
 
 			// Create the values to use
@@ -68,9 +66,25 @@ var _ = Describe("Operator Helm Chart with SSL", func() {
 			// Assert SSL environment variables
 			container := pods[0].Spec.Containers[0]
 			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_CERTS_DIR", Value: "/coherence/certs"}))
-			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_KEY_FILE", Value: keyFile}))
-			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_CERT_FILE", Value: certFile}))
-			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_CA_FILE", Value: caFile}))
+			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_KEY_FILE", Value: *ssl.KeyFile}))
+			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_CERT_FILE", Value: *ssl.CertFile}))
+			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "SSL_CA_FILE", Value: *ssl.CaFile}))
+
+			Expect(len(pods[0].Spec.Volumes)).NotTo(Equal(0))
+
+			// find the ssl secret volume
+			var sslVol *corev1.Volume
+			for _, vol := range pods[0].Spec.Volumes {
+				if vol.Name == "ssl-config" {
+					sslVol = &vol
+					break
+				}
+			}
+
+			// assert that the SSL secret volume is correct
+			Expect(sslVol).NotTo(BeNil())
+			Expect(sslVol.Secret).NotTo(BeNil())
+			Expect(sslVol.Secret.SecretName).To(Equal(*ssl.Secrets))
 		})
 	})
 })

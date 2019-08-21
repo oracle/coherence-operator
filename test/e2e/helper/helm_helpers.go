@@ -47,7 +47,7 @@ type HelmReleaseManager struct {
 // Obtain a new HelmHelper for managing the specified Helm chart.
 // The helper will use the currently configured Kubernetes config.
 func NewHelmHelper(chartDir string) (*HelmHelper, error) {
-	cfg, _, err := getKubeconfigAndNamespace("")
+	cfg, _, err := GetKubeconfigAndNamespace("")
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func createManager(cfg *rest.Config, namespace string) (manager.Manager, error) 
 // GetKubeconfigAndNamespace returns the *rest.Config and default namespace defined in the
 // kubeconfig at the specified path. If no path is provided, returns the default *rest.Config
 // and namespace
-func getKubeconfigAndNamespace(configPath string) (*rest.Config, string, error) {
+func GetKubeconfigAndNamespace(configPath string) (*rest.Config, string, error) {
 	var clientConfig clientcmd.ClientConfig
 	var apiConfig *clientcmdapi.Config
 	var err error

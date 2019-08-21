@@ -104,7 +104,7 @@ func (f *PortForwarder) Start() error {
 		return errors.New("PortForwarder has a blank PodName field")
 	}
 
-	config, defaultNS, err := getKubeconfigAndNamespace("")
+	config, defaultNS, err := GetKubeconfigAndNamespace("")
 	if err != nil {
 		return err
 	}

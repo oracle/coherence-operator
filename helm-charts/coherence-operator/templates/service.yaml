@@ -1,7 +1,9 @@
-# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved. */}}
+{{/* Licensed under the Universal Permissive License v 1.0 as shown at               */}}
+{{/* http://oss.oracle.com/licenses/upl.                                             */}}
 
+{{- if .Values.service }}
+  {{- if .Values.service.enabled }}
 kind: Service
 apiVersion: v1
 metadata:
@@ -38,3 +40,5 @@ spec:
   selector:
     coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
     component: coherence-operator
+  {{- end }}
+{{- end }}

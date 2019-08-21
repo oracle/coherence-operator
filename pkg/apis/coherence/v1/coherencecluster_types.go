@@ -1,7 +1,10 @@
 package v1
 
 import (
+	"github.com/ghodss/yaml"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -93,4 +96,37 @@ func (c *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
 	} else if name == c.Spec.CoherenceRoleSpec.GetRoleName() {
 		c.Spec.CoherenceRoleSpec = spec
 	}
+}
+
+// Load this CoherenceCluster from the specified yaml file
+func (c *CoherenceCluster) FromYaml(files ...string) error {
+	if c == nil || files == nil {
+		return nil
+	}
+
+	for _, file := range files {
+		_, err := os.Stat(file)
+		if err != nil {
+			return err
+		}
+
+		data, err := ioutil.ReadFile(file)
+		if err != nil {
+			return err
+		}
+
+		err = yaml.Unmarshal(data, c)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
+func NewCoherenceClusterFromYaml(file ...string) (CoherenceCluster, error) {
+	c := CoherenceCluster{}
+	err := c.FromYaml(file...)
+	return c, err
 }

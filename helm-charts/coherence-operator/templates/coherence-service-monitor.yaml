@@ -1,6 +1,6 @@
-# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved. */}}
+{{/* Licensed under the Universal Permissive License v 1.0 as shown at               */}}
+{{/* http://oss.oracle.com/licenses/upl.                                             */}}
 
 {{- if and .Values.prometheusoperator.enabled .Values.coherenceServiceMonitorEnabled}}
 ## ServiceMonitor for Coherence Service
@@ -18,14 +18,8 @@ spec:
       component: "coherence-service"
 
   namespaceSelector:
-{{- if .Values.targetNamespaces }}
-    # prometheus will only scrape coherence services running in target namespaces
-    any: false
-    matchNames: [ {{ join ", " .Values.targetNamespaces }} ]
-{{- else }}
     # prometheus will scrape coherence services in all namespaces
     any: true
-{{- end }}
 
   endpoints:
   - port: coherence-metrics-http

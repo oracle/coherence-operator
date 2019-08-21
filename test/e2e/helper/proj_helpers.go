@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	TestNamespaceEnv    = "TEST_NAMESPACE"
-	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
+	TestNamespaceEnv      = "TEST_NAMESPACE"
+	TestManifestEnv       = "TEST_MANIFEST"
+	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
+	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
 
 	defaultNamespace = "operator-test"
 
@@ -20,6 +22,7 @@ const (
 	operatorChart  = chartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs       = outDir + string(os.PathSeparator) + "test-logs"
 	certs          = outDir + string(os.PathSeparator) + "certs"
+	manifest       = outDir + string(os.PathSeparator) + "manifest"
 )
 
 func GetTestNamespace() string {
@@ -30,8 +33,28 @@ func GetTestNamespace() string {
 	return ns
 }
 
+func GetTestManifestFileName() (string, error) {
+	man := os.Getenv(TestManifestEnv)
+	if man == "" {
+		dir, err := FindTestManifestDir()
+		if err != nil {
+			return "", err
+		}
+		man = dir + string(os.PathSeparator) + "test-manifest.yaml"
+	}
+	return man, nil
+}
+
+func GetTestManifestValuesFileName() string {
+	return os.Getenv(TestManifestValuesEnv)
+}
+
 func GetImagePullSecrets() []string {
-	return strings.Split(os.Getenv(ImagePullSecretsEnv), ",")
+	s := os.Getenv(ImagePullSecretsEnv)
+	if s == "" {
+		return nil
+	}
+	return strings.Split(s, ",")
 }
 
 func FindProjectRootDir() (string, error) {
@@ -113,4 +136,13 @@ func FindTestCertsDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + certs, nil
+}
+
+func FindTestManifestDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	return pd + string(os.PathSeparator) + manifest, nil
 }

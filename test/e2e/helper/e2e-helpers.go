@@ -82,6 +82,11 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 	return &framework.CleanupOptions{TestContext: ctx, Timeout: Timeout, RetryInterval: RetryInterval}
 }
 
+// WaitForStatefulSetForRole waits for a StatefulSet to be created for the specified role.
+func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(&cluster), role.GetReplicas(), retryInterval, timeout, logger)
+}
+
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
 func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, name string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
@@ -366,32 +371,36 @@ func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*
 	certFile := "groot.crt"
 	caCert := "guardians-ca.crt"
 
-	opSSL := OperatorSSL{}
-	cohSSL := coh.SSLSpec{}
 	secret := &corev1.Secret{}
 	secret.SetNamespace(namespace)
 	secret.SetName(name)
 
 	secret.Data = make(map[string][]byte)
 
+	opSSL := OperatorSSL{}
+
+	opSSL.Secrets = &name
 	opSSL.KeyFile = &keyFile
 	secret.Data[keyFile], err = readCertFile(certs + "/groot.key")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	opSSL.KeyFile = &certFile
+	opSSL.CertFile = &certFile
 	secret.Data[certFile], err = readCertFile(certs + "/groot.crt")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	opSSL.KeyFile = &caCert
+	opSSL.CaFile = &caCert
 	secret.Data[caCert], err = readCertFile(certs + "/guardians-ca.crt")
 	if err != nil {
 		return nil, nil, err
 	}
 
+	cohSSL := coh.SSLSpec{}
+
+	cohSSL.Secrets = &name
 	cohSSL.KeyStore = &keystore
 	secret.Data[keystore], err = readCertFile(certs + "/groot.jks")
 	if err != nil {
