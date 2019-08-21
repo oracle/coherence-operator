@@ -139,8 +139,6 @@ func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster coherenc
 	err := f.Client.Create(goctx.TODO(), &cluster, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	t.Logf("Installing CoherenceCluster %s:\n%#v\n", cluster.Name, cluster)
-
 	if len(cluster.Spec.Roles) > 0 {
 		for _, r := range cluster.Spec.Roles {
 			assertRoleEventuallyInDesiredState(t, cluster, r)

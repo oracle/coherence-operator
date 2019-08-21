@@ -40,6 +40,7 @@ func TestClusterWithSingleRoleWithSingleMember(t *testing.T) {
 			Name:      clusterName,
 		},
 		Spec: coherence.CoherenceClusterSpec{
+			ImagePullSecrets: helper.GetImagePullSecrets(),
 			CoherenceRoleSpec: coherence.CoherenceRoleSpec{
 				ReadinessProbe: helper.Readiness,
 			},
