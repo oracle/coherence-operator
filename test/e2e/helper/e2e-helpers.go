@@ -56,7 +56,7 @@ func CreateTestContext(t *testing.T) *framework.TestCtx {
 	}
 
 	testCtx.AddCleanupFn(func() error {
-		return waitForCleanup(f, namespace)
+		return WaitForCoherenceInternalCleanup(f, namespace)
 	})
 
 	cleanup := framework.CleanupOptions{TestContext: testCtx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval}
@@ -214,7 +214,7 @@ func WaitForPodReady(kubeclient kubernetes.Interface, namespace, name string, re
 // waitForCleanup waits until there are no CoherenceInternal resources left in the test namespace.
 // The default clean-up hooks only wait for deletion of resources directly created via the test client
 // but CoherenceInternal resources and corresponding Helm installs are created internally.
-func waitForCleanup(f *framework.Framework, namespace string) error {
+func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) error {
 	fmt.Printf("Waiting for clean-up of CoherenceInternal resources in namespace %s\n", namespace)
 
 	// wait for all CoherenceInternal resources to be deleted
@@ -349,6 +349,11 @@ func EnsureSecretDeleted(kubeClient kubernetes.Interface, namespace, name string
 	return nil
 }
 
+// Get the test k8s secret that can be used for SSL testing.
+func GetTestSslSecret() (*OperatorSSL, *coh.SSLSpec, error) {
+	return CreateSslSecret(nil, GetTestNamespace(), GetTestSSLSecretName())
+}
+
 // Create a k8s secret that can be used for SSL testing.
 func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*OperatorSSL, *coh.SSLSpec, error) {
 	certs, err := FindTestCertsDir()
@@ -366,10 +371,10 @@ func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*
 	storepass := "storepass.txt"
 	keypass := "keypass.txt"
 	truststore := "truststore.jks"
-	trustpass := "storepass.txt"
-	keyFile := "groot.key"
-	certFile := "groot.crt"
-	caCert := "guardians-ca.crt"
+	trustpass := "trustpass.txt"
+	keyFile := "operator.key"
+	certFile := "operator.crt"
+	caCert := "operator-ca.crt"
 
 	secret := &corev1.Secret{}
 	secret.SetNamespace(namespace)
@@ -431,7 +436,11 @@ func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*
 		return nil, nil, err
 	}
 
-	_, err = kubeClient.CoreV1().Secrets(namespace).Create(secret)
+	// We do not want to overwrite the existing test secret
+	if kubeClient != nil && name != GetTestSSLSecretName() {
+		_, err = kubeClient.CoreV1().Secrets(namespace).Create(secret)
+	}
+
 	return &opSSL, &cohSSL, err
 }
 

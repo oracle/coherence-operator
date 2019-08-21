@@ -29,7 +29,7 @@ func TestZone(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// load the test CoherenceCluster from a yaml files
-	cluster, err := coherence.NewCoherenceClusterFromYaml("common-coherence-cluster.yaml", "zone-test-coherence-cluster.yaml")
+	cluster, err := coherence.NewCoherenceClusterFromYaml(namespace, "common-coherence-cluster.yaml", "zone-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// deploy the CoherenceCluster

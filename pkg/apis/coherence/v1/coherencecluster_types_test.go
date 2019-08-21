@@ -93,7 +93,7 @@ var _ = Describe("Testing CoherenceCluster", func() {
 		)
 
 		JustBeforeEach(func() {
-			cluster, err = coherence.NewCoherenceClusterFromYaml(file...)
+			cluster, err = coherence.NewCoherenceClusterFromYaml("test-ns", file...)
 		})
 
 		When("file is valid", func() {

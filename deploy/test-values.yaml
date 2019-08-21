@@ -10,7 +10,7 @@ imagePullSecrets:
   - ocr-k8s-operator-development-secret
 
 coherenceOperator:
-  imagePullPolicy: Always
+  imagePullPolicy: Never
   ssl:
     secrets: coherence-ssl-secret
     keyFile: operator.key

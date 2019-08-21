@@ -150,6 +150,5 @@ spec:
       - name: ssl-config
         secret:
           secretName: {{ .Values.coherenceOperator.ssl.secrets }}
-          defaultMode: 0777
   {{- end }}
 {{- end }}

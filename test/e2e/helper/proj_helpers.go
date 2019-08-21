@@ -10,6 +10,7 @@ import (
 const (
 	TestNamespaceEnv      = "TEST_NAMESPACE"
 	TestManifestEnv       = "TEST_MANIFEST"
+	TestSslSecretEnv      = "TEST_SSL_SECRET"
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
 
@@ -47,6 +48,10 @@ func GetTestManifestFileName() (string, error) {
 
 func GetTestManifestValuesFileName() string {
 	return os.Getenv(TestManifestValuesEnv)
+}
+
+func GetTestSSLSecretName() string {
+	return os.Getenv(TestSslSecretEnv)
 }
 
 func GetImagePullSecrets() []string {

@@ -46,7 +46,8 @@ RBAC=deploy/service_account.yaml deploy/role.yaml deploy/role_binding.yaml
 
 TEST_MANIFEST_DIR    := $(BUILD_OUTPUT)/manifest
 TEST_MANIFEST_FILE   := test-manifest.yaml
-TEST_MANIFEST_VALUES ?=
+TEST_MANIFEST_VALUES ?= deploy/test-values.yaml
+TEST_SSL_SECRET      := coherence-ssl-secret
 
 # Do a search and replace of properties in selected files in the Helm charts
 # This is done because the Helm charts can be large and processing every file
@@ -137,9 +138,7 @@ test: build
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
-e2e-local-test: build
-	@echo "creating test namespace"
-	kubectl create namespace $(TEST_NAMESPACE)
+e2e-local-test: build reset-namespace
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
@@ -158,9 +157,8 @@ e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
-e2e-test: build operator-manifest
-	@echo "creating test namespace"
-	kubectl create namespace $(TEST_NAMESPACE)
+e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
@@ -179,11 +177,10 @@ helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-helm-test: build
+helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+helm-test: build reset-namespace create-ssl-secrets
 	@echo "Installing CRDs"
 	$(MAKE) install-crds
-	@echo "Generating test keys and certs"
-	./hack/keys.sh
 	@echo "executing Operator Helm Chart end-to-end tests"
 	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./test/e2e/helm/...
 	@echo "Removing CRDs"
@@ -223,7 +220,6 @@ clean:
 	rm -rf build/_output
 
 # Create the k8s yaml manifest that will be used by the Operator SDK to install the Operator when running e2e tests.
-# This is created by combining various yaml files and doing some sed replacements.
 operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
 operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
@@ -231,3 +227,36 @@ operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
 operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
 	@mkdir -p $(TEST_MANIFEST_DIR)
 	go run ./cmd/helmutil/
+
+# Generate the keys and certs used in tests.
+$(BUILD_OUTPUT)/certs:
+	@echo "Generating test keys and certs"
+	./hack/keys.sh
+
+# Delete and re-create the test namespace
+reset-namespace: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+reset-namespace:
+	@echo "Deleting test namespace $(TEST_NAMESPACE)"
+	kubectl delete namespace $(TEST_NAMESPACE) && echo "deleted namespace" || echo ""
+	@echo "Creating test namespace $(TEST_NAMESPACE)"
+	kubectl create namespace $(TEST_NAMESPACE)
+
+
+# Create the k8s secret to use in SSL/TLS testing.
+create-ssl-secrets: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+create-ssl-secrets: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+create-ssl-secrets: $(BUILD_OUTPUT)/certs
+	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
+	kubectl --namespace $(TEST_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || echo ""
+	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
+	kubectl create secret generic $(TEST_SSL_SECRET) \
+		--namespace $(TEST_NAMESPACE) \
+		--from-file=keystore.jks=build/_output/certs/icarus.jks \
+		--from-file=storepass.txt=build/_output/certs/storepassword.txt \
+		--from-file=keypass.txt=build/_output/certs/keypassword.txt \
+		--from-file=truststore.jks=build/_output/certs/truststore-guardians.jks \
+		--from-file=trustpass.txt=build/_output/certs/trustpassword.txt \
+		--from-file=operator.key=build/_output/certs/icarus.key \
+		--from-file=operator.crt=build/_output/certs/icarus.crt \
+		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
+
