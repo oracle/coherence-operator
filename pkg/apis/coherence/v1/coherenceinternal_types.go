@@ -256,7 +256,6 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.ClusterSize = role.Spec.GetReplicas()
 	out.Cluster = cluster.Name
 	out.ServiceAccountName = cluster.Spec.ServiceAccountName
-	out.ImagePullSecrets = cluster.Spec.ImagePullSecrets
 	out.Role = role.Spec.GetRoleName()
 	out.Affinity = role.Spec.Affinity
 	out.Resources = role.Spec.Resources
@@ -340,6 +339,12 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 		out.NodeSelector = nodeSelector
 	}
 
+	// Set the ImagePullSecrets
+	if cluster.Spec.ImagePullSecrets != nil {
+		imagePullSecrets := make([]string, len(cluster.Spec.ImagePullSecrets))
+		copy(imagePullSecrets, cluster.Spec.ImagePullSecrets)
+		out.ImagePullSecrets = imagePullSecrets
+	}
 	// Set the Tolerations
 	if role.Spec.Tolerations != nil {
 		tolerations := make([]corev1.Toleration, len(role.Spec.Tolerations))
