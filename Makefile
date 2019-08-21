@@ -19,7 +19,7 @@ PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
 #   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
-GO_TEST_FLAGS ?= -v
+GO_TEST_FLAGS ?= -singleNamespace
 
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
