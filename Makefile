@@ -25,6 +25,8 @@ GO_TEST_FLAGS_E2E := -timeout=60m $(GO_TEST_FLAGS)
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
 
+CREATE_TEST_NAMESPACE ?= true
+
 IMAGE_PULL_SECRETS ?=
 
 override BUILD_OUTPUT  := ./build/_output
@@ -65,7 +67,7 @@ define replaceprop
 	done
 endef
 
-.PHONY: all build test e2e-local-test e2e-test install-crds uninstall-crds generate push clean
+.PHONY: all build test e2e-local-test e2e-test install-crds uninstall-crds generate push clean operator-manifest reset-namespace create-ssl-secrets
 
 all: build
 
@@ -139,7 +141,7 @@ test: build
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: build reset-namespace
 	@echo "executing end-to-end tests"
@@ -147,8 +149,7 @@ e2e-local-test: build reset-namespace
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
-	@echo "deleting test namespace"
-	kubectl delete namespace $(TEST_NAMESPACE)
+	$(MAKE) delete-namespace
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a deployed operator instance (i.e. the operator Docker image is
@@ -169,8 +170,7 @@ e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 		--image $(OPERATOR_IMAGE) --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
-	@echo "deleting test namespace"
-	kubectl delete namespace $(TEST_NAMESPACE)
+	$(MAKE) delete-namespace
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
@@ -178,29 +178,27 @@ e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 # and remove them afterwards.
 # Note that the namespace will be created by Helm if it does not exist.
 helm-test: export CGO_ENABLED = 0
-helm-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: build reset-namespace create-ssl-secrets
-	@echo "Installing CRDs"
 	$(MAKE) install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
 	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./test/e2e/helm/...
-	@echo "Removing CRDs"
 	$(MAKE) uninstall-crds
-	@echo "deleting test namespace"
-	kubectl delete namespace $(TEST_NAMESPACE)
+	$(MAKE) delete-namespace
 
 # Install CRDs
 install-crds: uninstall-crds
+	@echo "Installing CRDs"
 	for i in $(CRDS); do \
 		kubectl create -f $${i}; \
 	done
 
 # Uninstall CRDs
 uninstall-crds:
+	@echo "Removing CRDs"
 	for i in $(CRDS); do \
 		kubectl delete -f $${i} || true; \
 	done
@@ -239,20 +237,23 @@ $(BUILD_OUTPUT)/certs:
 	./hack/keys.sh
 
 # Delete and re-create the test namespace
-reset-namespace: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-reset-namespace:
-	@echo "Deleting test namespace $(TEST_NAMESPACE)"
-	kubectl delete namespace $(TEST_NAMESPACE) && echo "deleted namespace" || echo ""
+reset-namespace: delete-namespace
+ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Creating test namespace $(TEST_NAMESPACE)"
 	kubectl create namespace $(TEST_NAMESPACE)
+endif
 
+# Delete the test namespace
+delete-namespace:
+ifeq ($(CREATE_TEST_NAMESPACE),true)
+	@echo "Deleting test namespace $(TEST_NAMESPACE)"
+	kubectl delete namespace $(TEST_NAMESPACE) && echo "deleted namespace" || true
+endif
 
 # Create the k8s secret to use in SSL/TLS testing.
-create-ssl-secrets: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-create-ssl-secrets: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 create-ssl-secrets: $(BUILD_OUTPUT)/certs
 	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
-	kubectl --namespace $(TEST_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || echo ""
+	kubectl --namespace $(TEST_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
 	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
 	kubectl create secret generic $(TEST_SSL_SECRET) \
 		--namespace $(TEST_NAMESPACE) \
