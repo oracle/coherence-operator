@@ -113,11 +113,6 @@ pipeline {
                 sh 'make e2e-local-test'
             }
         }
-        stage('e2e-test') {
-            steps {
-                sh 'make e2e-test'
-            }
-        }
         stage('push-operator') {
             steps {
                 sh '''
@@ -125,6 +120,11 @@ pipeline {
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     make push
                 '''
+            }
+        }
+        stage('e2e-test') {
+            steps {
+                sh 'make e2e-test'
             }
         }
         stage('helm-test') {
