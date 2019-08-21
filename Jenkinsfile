@@ -99,6 +99,7 @@ pipeline {
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make build
                 '''
             }
@@ -110,7 +111,10 @@ pipeline {
         }
         stage('e2e-local-test') {
             steps {
-                sh 'make e2e-local-test'
+                sh '''
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-local-test
+                '''
             }
         }
         stage('push-operator') {
@@ -124,7 +128,10 @@ pipeline {
         }
         stage('e2e-test') {
             steps {
-                sh 'make e2e-test'
+                sh '''
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-test
+                '''
             }
         }
         stage('helm-test') {
