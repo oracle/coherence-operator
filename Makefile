@@ -19,7 +19,8 @@ PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
 #   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
-GO_TEST_FLAGS ?= -singleNamespace
+GO_TEST_FLAGS ?=
+GO_TEST_FLAGS_E2E := -timeout=60m $(GO_TEST_FLAGS)
 
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
@@ -139,11 +140,11 @@ e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-e2e-test: export GO_TEST_FLAGS := $(GO_TEST_FLAGS)
+e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: build reset-namespace
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
-		--verbose --debug  --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	@echo "deleting test namespace"
@@ -161,11 +162,11 @@ e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-i
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-e2e-test: export GO_TEST_FLAGS := $(GO_TEST_FLAGS)
+e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
-		--image $(OPERATOR_IMAGE) --go-test-flags "-timeout=60m $(GO_TEST_FLAGS)" \
+		--image $(OPERATOR_IMAGE) --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	@echo "deleting test namespace"
