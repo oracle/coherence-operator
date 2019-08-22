@@ -156,17 +156,9 @@ type CoherenceInternalStoreSpec struct {
 	// This options will override the system options computed in the start up script.
 	// +optional
 	JavaOpts *string `json:"javaOpts,omitempty"`
-	// Ports is additional port mappings that will be added to the Pod
-	// To specify extra ports add them as port name value pairs the same as they
-	// would be added to a Pod containers spec, for example these values:
-	//
-	// ports:
-	//   my-http-port: 8080
-	//   my-other-port: 1234
-	//
-	// will add the port mappings to the Pod and Service for ports 8080 and 1234
+	// Ports specifies additional port mappings for the Pod and additional Services for those ports
 	// +optional
-	Ports map[string]int32 `json:"ports,omitempty"`
+	Ports []NamedPortSpec `json:"ports,omitempty"`
 	// Env is additional environment variable mappings that will be passed to
 	// the Coherence container in the Pod
 	// To specify extra variables add them as name value pairs the same as they
@@ -214,19 +206,16 @@ type CoherenceInternalStoreSpec struct {
 	// Management configures Coherence management over REST
 	//   Note: Coherence management over REST will be available in 12.2.1.4.
 	// +optional
-	Management *PortSpec `json:"management,omitempty"`
+	Management *PortSpecWithSSL `json:"management,omitempty"`
 	// Metrics configures Coherence metrics publishing
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
-	Metrics *PortSpec `json:"metrics,omitempty"`
+	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
 	// JMX defines the values used to enable and configure a separate set of cluster members
 	//   that will act as MBean server members and expose a JMX port via a dedicated service.
 	//   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
 	// +optional
 	JMX *JMXSpec `json:"jmx,omitempty"`
-	// Service groups the values used to configure the K8s service
-	// +optional
-	Service *CoherenceServiceSpec `json:"service,omitempty"`
 	// Volumes defines extra volume mappings that will be added to the Coherence Pod.
 	//   The content of this yaml should match the normal k8s volumes section of a Pod definition
 	//   as described in https://kubernetes.io/docs/concepts/storage/volumes/
@@ -288,7 +277,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.Management = role.Spec.Management
 	out.Store.Metrics = role.Spec.Metrics
 	out.Store.JMX = role.Spec.JMX
-	out.Store.Service = role.Spec.Service
+	out.Store.Ports = role.Spec.Ports
 
 	// Set the labels
 	labels := make(map[string]string)
@@ -302,15 +291,6 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	labels[CoherenceRoleLabel] = role.Spec.GetRoleName()
 
 	out.Store.Labels = labels
-
-	// Set the Ports
-	if role.Spec.Ports != nil {
-		ports := make(map[string]int32)
-		for k, v := range role.Spec.Ports {
-			ports[k] = v
-		}
-		out.Store.Ports = ports
-	}
 
 	// Set the Env
 	if role.Spec.Env != nil {

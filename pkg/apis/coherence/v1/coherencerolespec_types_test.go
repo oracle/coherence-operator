@@ -16,6 +16,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 	Context("Copying an CoherenceRoleSpec using DeepCopyWithDefaults", func() {
 		var (
+			clusterIP    = corev1.ServiceTypeClusterIP
+			loadBalancer = corev1.ServiceTypeLoadBalancer
+
 			roleNameOne = "one"
 			roleNameTwo = "two"
 
@@ -60,9 +63,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 			javaOptsOne = "-Dcoherence.log.level=9"
 			javaOptsTwo = "-Dcoherence.log.level=5"
-
-			portsOne = map[string]int32{"port1": 8081, "port2": 8082}
-			portsTwo = map[string]int32{"port3": 8083, "port4": 8084}
 
 			envOne = map[string]string{"foo1": "1", "foo2": "2"}
 			envTwo = map[string]string{"foo3": "3", "foo4": "4"}
@@ -148,9 +148,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				},
 			}
 
-			managementOne = &coherence.PortSpec{
-				Port: int32Ptr(8080),
-				SSL:  &coherence.SSLSpec{
+			managementOne = &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 8080,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("foo"),
+						Port: int32Ptr(80),
+					},
+				},
+				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					KeyStore:               stringPtr("keystore.jks"),
 					KeyStorePasswordFile:   stringPtr("keypassword.txt"),
@@ -161,16 +167,29 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 					RequireClientCert:      boolPtr(true),
 				},
 			}
-			managementTwo = &coherence.PortSpec{
-				Port: int32Ptr(8181),
-				SSL:  &coherence.SSLSpec{
+
+			managementTwo = &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 8081,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("foo"),
+						Port: int32Ptr(81),
+					},
+				},
+				SSL: &coherence.SSLSpec{
 					Enabled: boolPtr(false),
 				},
 			}
 
-			metricsOne = &coherence.PortSpec{
-				Port: int32Ptr(9090),
-				SSL:  &coherence.SSLSpec{
+			metricsOne = &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 9090,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("foo"),
+						Port: int32Ptr(90),
+					},
+				},
+				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					KeyStore:               stringPtr("keystore.jks"),
 					KeyStorePasswordFile:   stringPtr("keypassword.txt"),
@@ -181,8 +200,14 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 					RequireClientCert:      boolPtr(true),
 				},
 			}
-			metricsTwo = &coherence.PortSpec {
-				Port: int32Ptr(9191),
+			metricsTwo = &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 9191,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("foo"),
+						Port: int32Ptr(91),
+					},
+				},
 			}
 
 			jmxOne = &coherence.JMXSpec{
@@ -190,80 +215,129 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Replicas: int32Ptr(3),
 				MaxHeap:  stringPtr("2Gi"),
 				Service: &coherence.ServiceSpec{
-					Type:           stringPtr("LoadBalancerIP"),
-					Domain:         stringPtr("cluster.local"),
+					Type:           &loadBalancer,
 					LoadBalancerIP: stringPtr("10.10.10.20"),
 					Annotations:    map[string]string{"foo": "1"},
-					ExternalPort:   int32Ptr(9099),
+					Port:           int32Ptr(9099),
 				},
 			}
 			jmxTwo = &coherence.JMXSpec{
 				Enabled:  boolPtr(true),
 				Replicas: int32Ptr(6),
 				MaxHeap:  stringPtr("3Gi"),
-				Service:  &coherence.ServiceSpec{
-					Type:           stringPtr("ClusterIP"),
-					Domain:         stringPtr("cluster.local2"),
+				Service: &coherence.ServiceSpec{
+					Type:           &clusterIP,
 					LoadBalancerIP: stringPtr("10.10.10.21"),
-					Annotations:    map[string]string{ "foo": "2"},
-					ExternalPort:   int32Ptr(9098),
+					Annotations:    map[string]string{"foo": "2"},
+					Port:           int32Ptr(9098),
 				},
 			}
 
-			serviceOne = &coherence.CoherenceServiceSpec{
-				ServiceSpec:        coherence.ServiceSpec{
-					Enabled:        boolPtr(true),
-					Type:           stringPtr("LoadBalancerIP"),
-					Domain:         stringPtr("cluster.local"),
-					LoadBalancerIP: stringPtr("10.10.10.20"),
-					Annotations:    map[string]string{ "foo": "1"},
-					ExternalPort:   int32Ptr(20000),
+			clientAffinity = corev1.ServiceAffinityClientIP
+			tpLocal        = corev1.ServiceExternalTrafficPolicyTypeLocal
+
+			portOne = coherence.NamedPortSpec{
+				Name: "one",
+				PortSpec: coherence.PortSpec{
+					Port: 1000,
+					Service: &coherence.ServiceSpec{
+						Enabled:                  boolPtr(true),
+						Name:                     stringPtr("svc-one"),
+						Port:                     int32Ptr(1100),
+						Type:                     &clusterIP,
+						LoadBalancerIP:           stringPtr("10.10.100.10"),
+						Annotations:              map[string]string{"ann-key": "one"},
+						SessionAffinity:          &clientAffinity,
+						LoadBalancerSourceRanges: []string{"key", "one"},
+						ExternalName:             stringPtr("ext-one"),
+						ExternalTrafficPolicy:    &tpLocal,
+						HealthCheckNodePort:      int32Ptr(2000),
+						PublishNotReadyAddresses: boolPtr(true),
+						SessionAffinityConfig: &corev1.SessionAffinityConfig{
+							ClientIP: &corev1.ClientIPConfig{TimeoutSeconds: int32Ptr(60)},
+						},
+					},
 				},
-				ManagementHttpPort: int32Ptr(30000),
-				MetricsHttpPort:    int32Ptr(9612),
 			}
-			serviceTwo = &coherence.CoherenceServiceSpec{
-				ServiceSpec:        coherence.ServiceSpec{
-					Enabled:        boolPtr(true),
-					Type:           stringPtr("ClusterIP"),
-					Domain:         stringPtr("cluster.local2"),
-					Annotations:    map[string]string{ "foo": "2"},
-					ExternalPort:   int32Ptr(20001),
+
+			portTwo = coherence.NamedPortSpec{
+				Name: "two",
+				PortSpec: coherence.PortSpec{
+					Port: 1200,
+					Service: &coherence.ServiceSpec{
+						Enabled:                  boolPtr(true),
+						Name:                     stringPtr("svc-two"),
+						Port:                     int32Ptr(1120),
+						Type:                     &clusterIP,
+						LoadBalancerIP:           stringPtr("10.10.100.20"),
+						Annotations:              map[string]string{"ann-key": "two"},
+						SessionAffinity:          &clientAffinity,
+						LoadBalancerSourceRanges: []string{"key", "two"},
+						ExternalName:             stringPtr("ext-two"),
+						ExternalTrafficPolicy:    &tpLocal,
+						HealthCheckNodePort:      int32Ptr(2200),
+						PublishNotReadyAddresses: boolPtr(true),
+						SessionAffinityConfig: &corev1.SessionAffinityConfig{
+							ClientIP: &corev1.ClientIPConfig{TimeoutSeconds: int32Ptr(120)},
+						},
+					},
 				},
-				ManagementHttpPort: int32Ptr(30001),
-				MetricsHttpPort:    int32Ptr(9613),
+			}
+
+			portThree = coherence.NamedPortSpec{
+				Name: "three",
+				PortSpec: coherence.PortSpec{
+					Port: 1300,
+					Service: &coherence.ServiceSpec{
+						Enabled:                  boolPtr(true),
+						Name:                     stringPtr("svc-three"),
+						Port:                     int32Ptr(1130),
+						Type:                     &clusterIP,
+						LoadBalancerIP:           stringPtr("10.10.100.30"),
+						Annotations:              map[string]string{"ann-key": "three"},
+						SessionAffinity:          &clientAffinity,
+						LoadBalancerSourceRanges: []string{"key", "three"},
+						ExternalName:             stringPtr("ext-three"),
+						ExternalTrafficPolicy:    &tpLocal,
+						HealthCheckNodePort:      int32Ptr(2300),
+						PublishNotReadyAddresses: boolPtr(true),
+						SessionAffinityConfig: &corev1.SessionAffinityConfig{
+							ClientIP: &corev1.ClientIPConfig{TimeoutSeconds: int32Ptr(180)},
+						},
+					},
+				},
 			}
 
 			volumesOne = []corev1.Volume{
-				corev1.Volume{
+				{
 					Name:         "vol1",
 					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 				},
 			}
 			volumesTwo = []corev1.Volume{
-				corev1.Volume{
-					Name: "vol2",
+				{
+					Name:         "vol2",
 					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 				},
 			}
 
 			volumeClaimTemplatesOne = []corev1.PersistentVolumeClaim{
-				corev1.PersistentVolumeClaim {
-					ObjectMeta: metav1.ObjectMeta { Name: "test-mount-1", },
-					Spec:       corev1.PersistentVolumeClaimSpec {
-						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce",},
-						Resources:    corev1.ResourceRequirements{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-mount-1"},
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
+						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 						},
 					},
 				},
 			}
 			volumeClaimTemplatesTwo = []corev1.PersistentVolumeClaim{
-				corev1.PersistentVolumeClaim {
-					ObjectMeta: metav1.ObjectMeta { Name: "test-mount-2", },
-					Spec:       corev1.PersistentVolumeClaimSpec {
-						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteMany",},
-						Resources:    corev1.ResourceRequirements{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-mount-2"},
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteMany"},
+						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 						},
 					},
@@ -271,22 +345,22 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			}
 
 			volumeMountsOne = []corev1.VolumeMount{
-				corev1.VolumeMount { Name: "vol-mount-1", ReadOnly : false, MountPath : "/mountpath1", },
+				{Name: "vol-mount-1", ReadOnly: false, MountPath: "/mountpath1"},
 			}
 			volumeMountsTwo = []corev1.VolumeMount{
-				corev1.VolumeMount { Name: "vol-mount-2", MountPath : "/mountpath2", },
+				{Name: "vol-mount-2", MountPath: "/mountpath2"},
 			}
 
-			affinityOne = &corev1.Affinity {
+			affinityOne = &corev1.Affinity{
 				NodeAffinity: &corev1.NodeAffinity{
-					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector {
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 						NodeSelectorTerms: []corev1.NodeSelectorTerm{
-							corev1.NodeSelectorTerm{
+							{
 								MatchExpressions: []corev1.NodeSelectorRequirement{
-									corev1.NodeSelectorRequirement{
+									{
 										Key:      "kubernetes.io/e2e-az-name",
 										Operator: corev1.NodeSelectorOpIn,
-										Values:   []string{ "e2e-az1", "e2e-az2" },
+										Values:   []string{"e2e-az1", "e2e-az2"},
 									},
 								},
 							},
@@ -294,16 +368,16 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 					},
 				},
 			}
-			affinityTwo = &corev1.Affinity {
+			affinityTwo = &corev1.Affinity{
 				NodeAffinity: &corev1.NodeAffinity{
-					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector {
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 						NodeSelectorTerms: []corev1.NodeSelectorTerm{
-							corev1.NodeSelectorTerm{
+							{
 								MatchExpressions: []corev1.NodeSelectorRequirement{
-									corev1.NodeSelectorRequirement{
+									{
 										Key:      "kubernetes.io/e2e-az-name",
 										Operator: corev1.NodeSelectorOpIn,
-										Values:   []string{ "e2e-az3", "e2e-az4" },
+										Values:   []string{"e2e-az3", "e2e-az4"},
 									},
 								},
 							},
@@ -316,10 +390,10 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			nodeSelectorTwo = map[string]string{"three": "3", "four": "4"}
 
 			tolerationsOne = []corev1.Toleration{
-				corev1.Toleration{ Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule" },
+				{Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule"},
 			}
 			tolerationsTwo = []corev1.Toleration{
-				corev1.Toleration{ Operator: "Exists" },
+				{Operator: "Exists"},
 			}
 
 			resourcesOne = &corev1.ResourceRequirements{
@@ -361,7 +435,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Affinity:             affinityOne,
 				NodeSelector:         nil,
 				Tolerations:          tolerationsOne,
-				Service:              serviceOne,
 				Resources:            resourcesOne,
 			}
 
@@ -397,7 +470,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Affinity:             affinityTwo,
 				NodeSelector:         nil,
 				Tolerations:          tolerationsTwo,
-				Service:              serviceTwo,
 				Resources:            resourcesTwo,
 			}
 
@@ -778,25 +850,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			})
 		})
 
-		When("the original Service is not set", func() {
-			BeforeEach(func() {
-				defaults = roleSpecTwo
-				// original is a deep copy of roleSpecOne so that we can change the
-				// original without changing roleSpecOne
-				original = roleSpecOne.DeepCopy()
-				original.Service = nil
-			})
-
-			It("clone should be equal to the original with the Service field from the defaults", func() {
-				// expected is a deep copy of original so that we can change the
-				// expected without changing original
-				expected := original.DeepCopy()
-				expected.Service = defaults.Service
-
-				Expect(clone).To(Equal(expected))
-			})
-		})
-
 		When("the original Volumes is not set", func() {
 			BeforeEach(func() {
 				defaults = roleSpecTwo
@@ -1066,14 +1119,14 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
 				original.Ports = nil
-				defaults.Ports = portsTwo
+				defaults.Ports = []coherence.NamedPortSpec{portOne, portTwo}
 			})
 
 			It("clone should be equal to the original with the Ports field from the defaults", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Ports = defaults.Ports
+				expected.Ports = []coherence.NamedPortSpec{portOne, portTwo}
 
 				Expect(clone).To(Equal(expected))
 			})
@@ -1084,7 +1137,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// original and defaults are deep copies so that we can change them
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
-				original.Ports = portsOne
+				original.Ports = []coherence.NamedPortSpec{portOne, portTwo}
 				defaults.Ports = nil
 			})
 
@@ -1098,35 +1151,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// original and defaults are deep copies so that we can change them
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
-				original.Ports = portsOne
-				defaults.Ports = portsTwo
+				original.Ports = []coherence.NamedPortSpec{portOne, portTwo}
+				defaults.Ports = []coherence.NamedPortSpec{portThree}
 			})
 
 			It("clone should have the combined Ports", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 8083, "port4": 8084}
-
-				Expect(clone).To(Equal(expected))
-			})
-		})
-
-		When("the original Ports has duplicate keys to the default Ports", func() {
-			BeforeEach(func() {
-				// original and defaults are deep copies so that we can change them
-				defaults = roleSpecTwo.DeepCopy()
-				original = roleSpecOne.DeepCopy()
-
-				original.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 18083}
-				defaults.Ports = map[string]int32{"port3": 8083, "port4": 8084}
-			})
-
-			It("clone should have the combined Ports with the duplicate key mapped to the originals value", func() {
-				// expected is a deep copy of original so that we can change the
-				// expected without changing original
-				expected := original.DeepCopy()
-				expected.Ports = map[string]int32{"port1": 8081, "port2": 8082, "port3": 18083, "port4": 8084}
+				expected.Ports = []coherence.NamedPortSpec{portOne, portTwo}
 
 				Expect(clone).To(Equal(expected))
 			})

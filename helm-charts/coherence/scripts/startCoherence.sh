@@ -268,20 +268,12 @@ commonConfiguration()
     PROPS="${PROPS} -Dcoherence.member=${COH_MEMBER_NAME}"
     PROPS="${PROPS} -Dcoherence.cluster=${COH_CLUSTER_NAME}"
 
-#   Configure the extend port property (and if a cache config is not set then set the extend cache configuration)
-    if [[ "${COH_EXTEND_PORT}" != "" ]]
-    then
-        PROPS="${PROPS} -Dcoherence.extend.port=${COH_EXTEND_PORT}"
-        if [[ -z "${COH_CACHE_CONFIG}" ]]
-        then
-            PROPS="${PROPS} -Dcoherence.cacheconfig=extend-cache-config.xml"
-        fi
-    fi
-
 #   Configure the cache configuration file to use
     if [[ -n "${COH_CACHE_CONFIG}" ]]
     then
         PROPS="${PROPS} -Dcoherence.cacheconfig=${COH_CACHE_CONFIG}"
+    else
+        PROPS="${PROPS} -Dcoherence.cacheconfig=coherence-cache-config.xml"
     fi
 
 #   Configure the port to publish metrics on

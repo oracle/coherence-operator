@@ -90,10 +90,11 @@ public abstract class Probe
                         .stream()
                         .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
 
-        int cNode   = (int) map.get(ATTRIB_NODE_COUNT);
-        int cBackup = (int) map.get(ATTRIB_BACKUPS);
+        Number cNode   = (Number) map.get(ATTRIB_NODE_COUNT);
+        Number cBackup = (Number) map.get(ATTRIB_BACKUPS);
 
-        if (cNode > 1 && cBackup > 0)
+
+        if (cNode != null && cNode.intValue() > 1 && cBackup != null && cBackup.intValue() > 0)
             {
             fStatusHA = !Objects.equals(STATUS_ENDANGERED, map.get(ATTRIB_HASTATUS));
             }

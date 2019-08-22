@@ -1,7 +1,7 @@
-# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
-
+{{/*# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
+{{/*# Licensed under the Universal Permissive License v 1.0 as shown at*/}}
+{{/*# http://oss.oracle.com/licenses/upl.*/}}
+{{/* */}}
 {{- if .Values.store }}
   {{- if .Values.store.jmx }}
     {{- if and .Values.store.jmx.enabled .Values.store.jmx.service }}
@@ -29,7 +29,7 @@ spec:
   ports:
     - name: jmx
       protocol: TCP
-      port: {{ .Values.store.jmx.service.externalPort | default 9099 }}
+      port: {{ .Values.store.jmx.service.port | default 9099 }}
       targetPort: "jmx-port"
   selector:
     coherenceDeployment: {{ template "coherence.fullname" . }}

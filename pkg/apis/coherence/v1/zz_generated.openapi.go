@@ -21,7 +21,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceRole":              schema_pkg_apis_coherence_v1_CoherenceRole(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleSpec":          schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleStatus":        schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
-		"./pkg/apis/coherence/v1.CoherenceServiceSpec":       schema_pkg_apis_coherence_v1_CoherenceServiceSpec(ref),
 		"./pkg/apis/coherence/v1.FluentdApplicationSpec":     schema_pkg_apis_coherence_v1_FluentdApplicationSpec(ref),
 		"./pkg/apis/coherence/v1.FluentdImageSpec":           schema_pkg_apis_coherence_v1_FluentdImageSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":                  schema_pkg_apis_coherence_v1_ImageSpec(ref),
@@ -29,8 +28,10 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.JMXSpec":                    schema_pkg_apis_coherence_v1_JMXSpec(ref),
 		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
+		"./pkg/apis/coherence/v1.NamedPortSpec":              schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":      schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
 		"./pkg/apis/coherence/v1.PortSpec":                   schema_pkg_apis_coherence_v1_PortSpec(ref),
+		"./pkg/apis/coherence/v1.PortSpecWithSSL":            schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.SSLSpec":                    schema_pkg_apis_coherence_v1_SSLSpec(ref),
 		"./pkg/apis/coherence/v1.ServiceSpec":                schema_pkg_apis_coherence_v1_ServiceSpec(ref),
@@ -218,13 +219,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 					},
 					"ports": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Ports specifies additional port mappings for the Pod and additional Services for those ports",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"integer"},
-										Format: "int32",
+										Ref: ref("./pkg/apis/coherence/v1.NamedPortSpec"),
 									},
 								},
 							},
@@ -287,25 +287,19 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 					"management": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"metrics": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"jmx": {
 						SchemaProps: spec.SchemaProps{
 							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
 							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service groups the values used to configure the K8s service",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
 					"volumes": {
@@ -403,7 +397,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -711,13 +705,12 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 					},
 					"ports": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Ports specifies additional port mappings for the Pod and additional Services for those ports",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"integer"},
-										Format: "int32",
+										Ref: ref("./pkg/apis/coherence/v1.NamedPortSpec"),
 									},
 								},
 							},
@@ -780,25 +773,19 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 					"management": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"metrics": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"jmx": {
 						SchemaProps: spec.SchemaProps{
 							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
 							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service groups the values used to configure the K8s service",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
 					"volumes": {
@@ -844,7 +831,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1007,13 +994,12 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					},
 					"ports": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Ports is additional port mappings that will be added to the Pod To specify extra ports add them as port name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nports:\n  my-http-port: 8080\n  my-other-port: 1234\n\nwill add the port mappings to the Pod and Service for ports 8080 and 1234",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Ports specifies additional port mappings for the Pod and additional Services for those ports",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"integer"},
-										Format: "int32",
+										Ref: ref("./pkg/apis/coherence/v1.NamedPortSpec"),
 									},
 								},
 							},
@@ -1076,25 +1062,19 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					"management": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"metrics": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"jmx": {
 						SchemaProps: spec.SchemaProps{
 							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
 							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service groups the values used to configure the K8s service",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceServiceSpec"),
 						},
 					},
 					"volumes": {
@@ -1179,7 +1159,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceServiceSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1226,82 +1206,6 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref common.ReferenceCallba
 					},
 				},
 				Required: []string{"replicas", "currentReplicas", "readyReplicas"},
-			},
-		},
-		Dependencies: []string{},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_CoherenceServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "----- CoherenceServiceSpec struct ---------------------------------------- CoherenceServiceSpec groups the values used to configure the K8s service",
-				Properties: map[string]spec.Schema{
-					"enabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Enabled controls whether to create the service yaml or not",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"type": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Type is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"domain": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Domain is the external domain name The default is \"cluster.local\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"loadBalancerIP": {
-						SchemaProps: spec.SchemaProps{
-							Description: "LoadBalancerIP is the IP address of the load balancer",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"annotations": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Annotations is free form yaml that will be added to the service annotations",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"externalPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The service port value",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"managementHttpPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The management Http port as integer Default: 30000",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"metricsHttpPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The metrics http port as integer Default: 9612",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-				},
 			},
 		},
 		Dependencies: []string{},
@@ -1536,6 +1440,40 @@ func schema_pkg_apis_coherence_v1_MainSpec(ref common.ReferenceCallback) common.
 	}
 }
 
+func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- NamedPortSpec struct ---------------------------------------------------- NamedPortSpec defines a named port for a Coherence component",
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name specifies the name of th port.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Port specifies the port used.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service specifies the service used to expose the port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.ServiceSpec"},
+	}
+}
+
 func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1581,6 +1519,39 @@ func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.
 							Format:      "int32",
 						},
 					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service specifies the service used to expose the port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.ServiceSpec"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- PortSpecWithSSL struct ---------------------------------------------------- PortSpecWithSSL defines a port with SSL settings for a Coherence component",
+				Properties: map[string]spec.Schema{
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Port specifies the port used.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service specifies the service used to expose the port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
 					"ssl": {
 						SchemaProps: spec.SchemaProps{
 							Description: "SSL configures SSL settings for a Coherence component",
@@ -1591,7 +1562,7 @@ func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.SSLSpec"},
+			"./pkg/apis/coherence/v1.SSLSpec", "./pkg/apis/coherence/v1.ServiceSpec"},
 	}
 }
 
@@ -1767,16 +1738,23 @@ func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) comm
 							Format:      "",
 						},
 					},
-					"type": {
+					"name": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Type is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".",
+							Description: "An optional name to use to override the generated service name.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"domain": {
+					"port": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Domain is the external domain name The default is \"cluster.local\".",
+							Description: "The service port value",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Type is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1802,17 +1780,66 @@ func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) comm
 							},
 						},
 					},
-					"externalPort": {
+					"sessionAffinity": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The service port value",
+							Description: "Supports \"ClientIP\" and \"None\". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"loadBalancerSourceRanges": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature.\" More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"externalName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "externalName is the external reference that kubedns or equivalent will return as a CNAME record for this service. No proxying will be involved. Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123) and requires Type to be ExternalName.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"externalTrafficPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "externalTrafficPolicy denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints. \"Local\" preserves the client source IP and avoids a second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced traffic spreading. \"Cluster\" obscures the client source IP and may cause a second hop to another node, but should have good overall load-spreading.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"healthCheckNodePort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "healthCheckNodePort specifies the healthcheck nodePort for the service. If not specified, HealthCheckNodePort is created by the service api backend with the allocated nodePort. Will use user-specified nodePort value if specified by the client. Only effects when Type is set to LoadBalancer and ExternalTrafficPolicy is set to Local.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"publishNotReadyAddresses": {
+						SchemaProps: spec.SchemaProps{
+							Description: "publishNotReadyAddresses, when set to true, indicates that DNS implementations must publish the notReadyAddresses of subsets for the Endpoints associated with the Service. The default value is false. The primary use case for setting this field is to use a StatefulSet's Headless Service to propagate SRV records for its Pods without respect to their readiness for purpose of peer discovery.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"sessionAffinityConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "sessionAffinityConfig contains the configurations of session affinity.",
+							Ref:         ref("k8s.io/api/core/v1.SessionAffinityConfig"),
 						},
 					},
 				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.SessionAffinityConfig"},
 	}
 }
 

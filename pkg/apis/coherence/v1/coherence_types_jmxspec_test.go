@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var _ = Describe("Testing JMXSpec struct", func() {
@@ -13,18 +14,19 @@ var _ = Describe("Testing JMXSpec struct", func() {
 		var defaults *coherence.JMXSpec
 		var clone *coherence.JMXSpec
 		var expected *coherence.JMXSpec
+		var clusterIP = corev1.ServiceTypeClusterIP
+		var loadBalancer = corev1.ServiceTypeLoadBalancer
 
 		NewJMXSpecOne := func() *coherence.JMXSpec {
 			return &coherence.JMXSpec{
 				Enabled:  boolPtr(true),
 				Replicas: int32Ptr(3),
 				MaxHeap:  stringPtr("2Gi"),
-				Service:  &coherence.ServiceSpec{
-					Type:           stringPtr("LoadBalancerIP"),
-					Domain:         stringPtr("cluster.local"),
+				Service: &coherence.ServiceSpec{
+					Type:           &clusterIP,
 					LoadBalancerIP: stringPtr("10.10.10.20"),
-					Annotations:    map[string]string{ "foo": "1"},
-					ExternalPort:   int32Ptr(9099),
+					Annotations:    map[string]string{"foo": "1"},
+					Port:           int32Ptr(9099),
 				},
 			}
 		}
@@ -34,12 +36,11 @@ var _ = Describe("Testing JMXSpec struct", func() {
 				Enabled:  boolPtr(true),
 				Replicas: int32Ptr(6),
 				MaxHeap:  stringPtr("3Gi"),
-				Service:  &coherence.ServiceSpec{
-					Type:           stringPtr("ClusterIP"),
-					Domain:         stringPtr("cluster.local2"),
+				Service: &coherence.ServiceSpec{
+					Type:           &loadBalancer,
 					LoadBalancerIP: stringPtr("10.10.10.21"),
-					Annotations:    map[string]string{ "foo": "2"},
-					ExternalPort:   int32Ptr(9098),
+					Annotations:    map[string]string{"foo": "2"},
+					Port:           int32Ptr(9098),
 				},
 			}
 		}

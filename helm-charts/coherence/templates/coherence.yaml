@@ -1,7 +1,7 @@
-# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
-
+{{/*# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
+{{/*# Licensed under the Universal Permissive License v 1.0 as shown at*/}}
+{{/*# http://oss.oracle.com/licenses/upl.*/}}
+{{/* */}}
 {{- $utilsImage := required "A value is required for the value .Values.coherenceUtils.image" .Values.coherenceUtils.image -}}
 {{- $cohImage := required "A value is required for the value .Values.coherence.image" .Values.coherence.image -}}
 {{- $extLibDir := "/u01/oracle/oracle_home/coherence/ext/lib" -}}

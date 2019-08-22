@@ -142,10 +142,6 @@ store:
   #   would be added to a Pod containers spec, for example these
   #   values:
   #
-  #   ports:
-  #     my-http-port: 8080
-  #     my-other-port: 1234
-  #
   #   will add the port mappings to the Pod and Service for ports 8080 and 1234
 #  ports:
 
@@ -236,7 +232,20 @@ store:
   # store.management configures Coherence management over ReST
   #   Note: Coherence management over ReST will be available in 12.2.1.4.
   management:
+    # store.management.port is the port in the Pod that will be used to expose management over ReST.
     port:
+    # store.management.service groups the values used to configure the K8s service to use to expose management over ReST.
+    service:
+      # store.management.service.enabled controls whether to create the service or not
+      enabled: false
+      # store.management.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
+      type: "ClusterIP"
+      # store.management.service.loadBalancerIP is the IP address of the load balancer
+      loadBalancerIP:
+      # store.metrics.service.annotations is free form yaml that will be added to the service annotations
+      annotations:
+      # store.management.service.port is the service port value
+      port:
     # store.management.ssl configures SSL settings for the Coherence management over ReST
     ssl:
       # store.management.ssl.enabled enables or disables SSL on the Coherence management over ReST endpoint,
@@ -286,7 +295,20 @@ store:
   # store.metrics configures Coherence metrics publishing
   #   Note: Coherence metrics publishing will be available in 12.2.1.4.
   metrics:
+    # store.metrics.port is the port in the Pod that will be used to expose management over ReST.
     port:
+    # store.metrics.service groups the values used to configure the K8s service to use to expose management over ReST.
+    service:
+      # store.metrics.service.enabled controls whether to create the service yaml or not
+      enabled: false
+      # store.metrics.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
+      type: "ClusterIP"
+      # store.metrics.service.loadBalancerIP is the IP address of the load balancer
+      loadBalancerIP:
+      # store.metrics.service.annotations is free form yaml that will be added to the service annotations
+      annotations:
+      # store.metrics.service.port is the service port value
+      port:
     # store.metrics.ssl configures SSL settings for the Coherence metrics endpoints
     ssl:
       # store.metrics.ssl.enabled enables or disables SSL on the Coherence metrics endpoint
@@ -355,16 +377,14 @@ store:
     service:
       # store.jmx.service.enabled controls whether to create the service yaml or not
       enabled: true
+      # store.jmx.service.port is the JMX service port value, if not set defaults to 9099
+      port:
       # store.jmx.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
       type: "ClusterIP"
-      # store.jmx.service.domain is the external domain name
-      domain: "cluster.local"
       # store.jmx.service.loadBalancerIP is the IP address of the load balancer
       loadBalancerIP:
       # store.jmx.annotations is free form yaml that will be added to the service annotations
       annotations:
-      # The JMX service port value, if not set defaults to 9099
-      externalPort:
 
   # store.volumes defines extra volume mappings that will be added to the Coherence Pod.
   #   The content of this yaml should match the normal k8s volumes section of a Pod definition
@@ -424,29 +444,6 @@ nodeSelector: {}
 #
 #   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 tolerations:
-
-# ---------------------------------------------------------------------------
-# service groups the values used to configure the K8s service
-service:
-  # service.enabled controls whether to create the service yaml or not
-  enabled: true
-  # service.type is the K8s service type (typically ClusterIP or LoadBalancer)
-  type: "ClusterIP"
-  # service.domain is the external domain name
-  domain: "cluster.local"
-  # service.loadBalancerIP is the IP address of the load balancer
-  loadBalancerIP:
-  # annotations is free form yaml that will be added to the service annotations
-  annotations:
-  # The extend service port value
-  # Default: 20000
-  externalPort:
-  # The management Http port as integer
-  # Default: 30000
-  managementHttpPort:
-  # The metrics http port as integer
-  # Default: 9612
-  metricsHttpPort:
 
 # ---------------------------------------------------------------------------
 # resources is the optional resource requests and limits for the containers

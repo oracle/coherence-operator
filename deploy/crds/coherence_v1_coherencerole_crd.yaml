@@ -169,21 +169,73 @@ spec:
                       description: Annotations is free form yaml that will be added
                         to the service annotations
                       type: object
-                    domain:
-                      description: Domain is the external domain name The default
-                        is "cluster.local". +optioanl
-                      type: string
                     enabled:
                       description: Enabled controls whether to create the service
                         yaml or not
                       type: boolean
-                    externalPort:
-                      description: The service port value
+                    externalName:
+                      description: externalName is the external reference that kubedns
+                        or equivalent will return as a CNAME record for this service.
+                        No proxying will be involved. Must be a valid RFC-1123 hostname
+                        (https://tools.ietf.org/html/rfc1123) and requires Type to
+                        be ExternalName.
+                      type: string
+                    externalTrafficPolicy:
+                      description: externalTrafficPolicy denotes if this Service desires
+                        to route external traffic to node-local or cluster-wide endpoints.
+                        "Local" preserves the client source IP and avoids a second
+                        hop for LoadBalancer and Nodeport type services, but risks
+                        potentially imbalanced traffic spreading. "Cluster" obscures
+                        the client source IP and may cause a second hop to another
+                        node, but should have good overall load-spreading.
+                      type: string
+                    healthCheckNodePort:
+                      description: healthCheckNodePort specifies the healthcheck nodePort
+                        for the service. If not specified, HealthCheckNodePort is
+                        created by the service api backend with the allocated nodePort.
+                        Will use user-specified nodePort value if specified by the
+                        client. Only effects when Type is set to LoadBalancer and
+                        ExternalTrafficPolicy is set to Local.
                       format: int32
                       type: integer
                     loadBalancerIP:
                       description: LoadBalancerIP is the IP address of the load balancer
                       type: string
+                    loadBalancerSourceRanges:
+                      description: 'If specified and supported by the platform, this
+                        will restrict traffic through the cloud-provider load-balancer
+                        will be restricted to the specified client IPs. This field
+                        will be ignored if the cloud-provider does not support the
+                        feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      description: An optional name to use to override the generated
+                        service name.
+                      type: string
+                    port:
+                      description: The service port value
+                      format: int32
+                      type: integer
+                    publishNotReadyAddresses:
+                      description: publishNotReadyAddresses, when set to true, indicates
+                        that DNS implementations must publish the notReadyAddresses
+                        of subsets for the Endpoints associated with the Service.
+                        The default value is false. The primary use case for setting
+                        this field is to use a StatefulSet's Headless Service to propagate
+                        SRV records for its Pods without respect to their readiness
+                        for purpose of peer discovery.
+                      type: boolean
+                    sessionAffinity:
+                      description: 'Supports "ClientIP" and "None". Used to maintain
+                        session affinity. Enable client IP based session affinity.
+                        Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
+                      type: string
+                    sessionAffinityConfig:
+                      description: sessionAffinityConfig contains the configurations
+                        of session affinity.
+                      type: object
                     type:
                       description: Type is the K8s service type (typically ClusterIP
                         or LoadBalancer) The default is "ClusterIP".
@@ -247,6 +299,87 @@ spec:
                   description: Port specifies the port used.
                   format: int32
                   type: integer
+                service:
+                  description: Service specifies the service used to expose the port.
+                  properties:
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      description: Annotations is free form yaml that will be added
+                        to the service annotations
+                      type: object
+                    enabled:
+                      description: Enabled controls whether to create the service
+                        yaml or not
+                      type: boolean
+                    externalName:
+                      description: externalName is the external reference that kubedns
+                        or equivalent will return as a CNAME record for this service.
+                        No proxying will be involved. Must be a valid RFC-1123 hostname
+                        (https://tools.ietf.org/html/rfc1123) and requires Type to
+                        be ExternalName.
+                      type: string
+                    externalTrafficPolicy:
+                      description: externalTrafficPolicy denotes if this Service desires
+                        to route external traffic to node-local or cluster-wide endpoints.
+                        "Local" preserves the client source IP and avoids a second
+                        hop for LoadBalancer and Nodeport type services, but risks
+                        potentially imbalanced traffic spreading. "Cluster" obscures
+                        the client source IP and may cause a second hop to another
+                        node, but should have good overall load-spreading.
+                      type: string
+                    healthCheckNodePort:
+                      description: healthCheckNodePort specifies the healthcheck nodePort
+                        for the service. If not specified, HealthCheckNodePort is
+                        created by the service api backend with the allocated nodePort.
+                        Will use user-specified nodePort value if specified by the
+                        client. Only effects when Type is set to LoadBalancer and
+                        ExternalTrafficPolicy is set to Local.
+                      format: int32
+                      type: integer
+                    loadBalancerIP:
+                      description: LoadBalancerIP is the IP address of the load balancer
+                      type: string
+                    loadBalancerSourceRanges:
+                      description: 'If specified and supported by the platform, this
+                        will restrict traffic through the cloud-provider load-balancer
+                        will be restricted to the specified client IPs. This field
+                        will be ignored if the cloud-provider does not support the
+                        feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      description: An optional name to use to override the generated
+                        service name.
+                      type: string
+                    port:
+                      description: The service port value
+                      format: int32
+                      type: integer
+                    publishNotReadyAddresses:
+                      description: publishNotReadyAddresses, when set to true, indicates
+                        that DNS implementations must publish the notReadyAddresses
+                        of subsets for the Endpoints associated with the Service.
+                        The default value is false. The primary use case for setting
+                        this field is to use a StatefulSet's Headless Service to propagate
+                        SRV records for its Pods without respect to their readiness
+                        for purpose of peer discovery.
+                      type: boolean
+                    sessionAffinity:
+                      description: 'Supports "ClientIP" and "None". Used to maintain
+                        session affinity. Enable client IP based session affinity.
+                        Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
+                      type: string
+                    sessionAffinityConfig:
+                      description: sessionAffinityConfig contains the configurations
+                        of session affinity.
+                      type: object
+                    type:
+                      description: Type is the K8s service type (typically ClusterIP
+                        or LoadBalancer) The default is "ClusterIP".
+                      type: string
+                  type: object
                 ssl:
                   description: SSL configures SSL settings for a Coherence component
                   properties:
@@ -343,6 +476,87 @@ spec:
                   description: Port specifies the port used.
                   format: int32
                   type: integer
+                service:
+                  description: Service specifies the service used to expose the port.
+                  properties:
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      description: Annotations is free form yaml that will be added
+                        to the service annotations
+                      type: object
+                    enabled:
+                      description: Enabled controls whether to create the service
+                        yaml or not
+                      type: boolean
+                    externalName:
+                      description: externalName is the external reference that kubedns
+                        or equivalent will return as a CNAME record for this service.
+                        No proxying will be involved. Must be a valid RFC-1123 hostname
+                        (https://tools.ietf.org/html/rfc1123) and requires Type to
+                        be ExternalName.
+                      type: string
+                    externalTrafficPolicy:
+                      description: externalTrafficPolicy denotes if this Service desires
+                        to route external traffic to node-local or cluster-wide endpoints.
+                        "Local" preserves the client source IP and avoids a second
+                        hop for LoadBalancer and Nodeport type services, but risks
+                        potentially imbalanced traffic spreading. "Cluster" obscures
+                        the client source IP and may cause a second hop to another
+                        node, but should have good overall load-spreading.
+                      type: string
+                    healthCheckNodePort:
+                      description: healthCheckNodePort specifies the healthcheck nodePort
+                        for the service. If not specified, HealthCheckNodePort is
+                        created by the service api backend with the allocated nodePort.
+                        Will use user-specified nodePort value if specified by the
+                        client. Only effects when Type is set to LoadBalancer and
+                        ExternalTrafficPolicy is set to Local.
+                      format: int32
+                      type: integer
+                    loadBalancerIP:
+                      description: LoadBalancerIP is the IP address of the load balancer
+                      type: string
+                    loadBalancerSourceRanges:
+                      description: 'If specified and supported by the platform, this
+                        will restrict traffic through the cloud-provider load-balancer
+                        will be restricted to the specified client IPs. This field
+                        will be ignored if the cloud-provider does not support the
+                        feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      description: An optional name to use to override the generated
+                        service name.
+                      type: string
+                    port:
+                      description: The service port value
+                      format: int32
+                      type: integer
+                    publishNotReadyAddresses:
+                      description: publishNotReadyAddresses, when set to true, indicates
+                        that DNS implementations must publish the notReadyAddresses
+                        of subsets for the Endpoints associated with the Service.
+                        The default value is false. The primary use case for setting
+                        this field is to use a StatefulSet's Headless Service to propagate
+                        SRV records for its Pods without respect to their readiness
+                        for purpose of peer discovery.
+                      type: boolean
+                    sessionAffinity:
+                      description: 'Supports "ClientIP" and "None". Used to maintain
+                        session affinity. Enable client IP based session affinity.
+                        Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
+                      type: string
+                    sessionAffinityConfig:
+                      description: sessionAffinityConfig contains the configurations
+                        of session affinity.
+                      type: object
+                    type:
+                      description: Type is the K8s service type (typically ClusterIP
+                        or LoadBalancer) The default is "ClusterIP".
+                      type: string
+                  type: object
                 ssl:
                   description: SSL configures SSL settings for a Coherence component
                   properties:
@@ -472,15 +686,102 @@ spec:
                 use when using POF serializer
               type: string
             ports:
-              additionalProperties:
-                format: int32
-                type: integer
-              description: 'Ports is additional port mappings that will be added to
-                the Pod To specify extra ports add them as port name value pairs the
-                same as they would be added to a Pod containers spec, for example
-                these values:  ports:   my-http-port: 8080   my-other-port: 1234  will
-                add the port mappings to the Pod and Service for ports 8080 and 1234'
-              type: object
+              description: Ports specifies additional port mappings for the Pod and
+                additional Services for those ports
+              items:
+                properties:
+                  name:
+                    description: Name specifies the name of th port.
+                    type: string
+                  port:
+                    description: Port specifies the port used.
+                    format: int32
+                    type: integer
+                  service:
+                    description: Service specifies the service used to expose the
+                      port.
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations is free form yaml that will be added
+                          to the service annotations
+                        type: object
+                      enabled:
+                        description: Enabled controls whether to create the service
+                          yaml or not
+                        type: boolean
+                      externalName:
+                        description: externalName is the external reference that kubedns
+                          or equivalent will return as a CNAME record for this service.
+                          No proxying will be involved. Must be a valid RFC-1123 hostname
+                          (https://tools.ietf.org/html/rfc1123) and requires Type
+                          to be ExternalName.
+                        type: string
+                      externalTrafficPolicy:
+                        description: externalTrafficPolicy denotes if this Service
+                          desires to route external traffic to node-local or cluster-wide
+                          endpoints. "Local" preserves the client source IP and avoids
+                          a second hop for LoadBalancer and Nodeport type services,
+                          but risks potentially imbalanced traffic spreading. "Cluster"
+                          obscures the client source IP and may cause a second hop
+                          to another node, but should have good overall load-spreading.
+                        type: string
+                      healthCheckNodePort:
+                        description: healthCheckNodePort specifies the healthcheck
+                          nodePort for the service. If not specified, HealthCheckNodePort
+                          is created by the service api backend with the allocated
+                          nodePort. Will use user-specified nodePort value if specified
+                          by the client. Only effects when Type is set to LoadBalancer
+                          and ExternalTrafficPolicy is set to Local.
+                        format: int32
+                        type: integer
+                      loadBalancerIP:
+                        description: LoadBalancerIP is the IP address of the load
+                          balancer
+                        type: string
+                      loadBalancerSourceRanges:
+                        description: 'If specified and supported by the platform,
+                          this will restrict traffic through the cloud-provider load-balancer
+                          will be restricted to the specified client IPs. This field
+                          will be ignored if the cloud-provider does not support the
+                          feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
+                        items:
+                          type: string
+                        type: array
+                      name:
+                        description: An optional name to use to override the generated
+                          service name.
+                        type: string
+                      port:
+                        description: The service port value
+                        format: int32
+                        type: integer
+                      publishNotReadyAddresses:
+                        description: publishNotReadyAddresses, when set to true, indicates
+                          that DNS implementations must publish the notReadyAddresses
+                          of subsets for the Endpoints associated with the Service.
+                          The default value is false. The primary use case for setting
+                          this field is to use a StatefulSet's Headless Service to
+                          propagate SRV records for its Pods without respect to their
+                          readiness for purpose of peer discovery.
+                        type: boolean
+                      sessionAffinity:
+                        description: 'Supports "ClientIP" and "None". Used to maintain
+                          session affinity. Enable client IP based session affinity.
+                          Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
+                        type: string
+                      sessionAffinityConfig:
+                        description: sessionAffinityConfig contains the configurations
+                          of session affinity.
+                        type: object
+                      type:
+                        description: Type is the K8s service type (typically ClusterIP
+                          or LoadBalancer) The default is "ClusterIP".
+                        type: string
+                    type: object
+                type: object
+              type: array
             readinessProbe:
               description: 'The readiness probe config to be used for the Pods in
                 this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
@@ -545,43 +846,6 @@ spec:
                 specified or is true the default scaling will be safe, if StorageEnabled
                 is set to false the default scaling will be parallel.
               type: string
-            service:
-              description: Service groups the values used to configure the K8s service
-              properties:
-                annotations:
-                  additionalProperties:
-                    type: string
-                  description: Annotations is free form yaml that will be added to
-                    the service annotations
-                  type: object
-                domain:
-                  description: Domain is the external domain name The default is "cluster.local".
-                    +optioanl
-                  type: string
-                enabled:
-                  description: Enabled controls whether to create the service yaml
-                    or not
-                  type: boolean
-                externalPort:
-                  description: The service port value
-                  format: int32
-                  type: integer
-                loadBalancerIP:
-                  description: LoadBalancerIP is the IP address of the load balancer
-                  type: string
-                managementHttpPort:
-                  description: 'The management Http port as integer Default: 30000'
-                  format: int32
-                  type: integer
-                metricsHttpPort:
-                  description: 'The metrics http port as integer Default: 9612'
-                  format: int32
-                  type: integer
-                type:
-                  description: Type is the K8s service type (typically ClusterIP or
-                    LoadBalancer) The default is "ClusterIP".
-                  type: string
-              type: object
             snapshot:
               description: Snapshot values configure the on-disc persistence data
                 snapshot (backup) settings. The bool Enabled enables or disabled a

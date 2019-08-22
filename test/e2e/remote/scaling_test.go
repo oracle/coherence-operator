@@ -83,9 +83,11 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 		Replicas:      &replicasStart,
 		ScalingPolicy: &policy,
 		Images:        &coherence.Images{UserArtifacts: artifacts},
-		Ports:         map[string]int32{"rest": 8080},
-		CacheConfig:   &config,
-		Main:          &coherence.MainSpec{Class: &main},
+		Ports: []coherence.NamedPortSpec{
+			{Name: "rest", PortSpec: coherence.PortSpec{Port: 8080}},
+		},
+		CacheConfig: &config,
+		Main:        &coherence.MainSpec{Class: &main},
 	}
 
 	cluster := coherence.CoherenceCluster{

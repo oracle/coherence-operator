@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var _ = Describe("Testing ServiceSpec struct", func() {
@@ -14,25 +15,26 @@ var _ = Describe("Testing ServiceSpec struct", func() {
 		var clone *coherence.ServiceSpec
 		var expected *coherence.ServiceSpec
 
+		var clusterIP = corev1.ServiceTypeClusterIP
+		var loadBalancer = corev1.ServiceTypeLoadBalancer
+
 		NewServiceSpecOne := func() *coherence.ServiceSpec {
 			return &coherence.ServiceSpec{
 				Enabled:        boolPtr(true),
-				Type:           stringPtr("LoadBalancerIP"),
-				Domain:         stringPtr("cluster.local"),
+				Type:           &clusterIP,
+				Port:           int32Ptr(80),
 				LoadBalancerIP: stringPtr("10.10.10.20"),
-				Annotations:    map[string]string{ "foo": "1"},
-				ExternalPort:   int32Ptr(9099),
+				Annotations:    map[string]string{"foo": "1"},
 			}
 		}
 
 		NewServiceSpecTwo := func() *coherence.ServiceSpec {
 			return &coherence.ServiceSpec{
 				Enabled:        boolPtr(true),
-				Type:           stringPtr("ClusterIP"),
-				Domain:         stringPtr("cluster.local2"),
+				Type:           &loadBalancer,
+				Port:           int32Ptr(8080),
 				LoadBalancerIP: stringPtr("10.10.10.21"),
-				Annotations:    map[string]string{ "foo": "2"},
-				ExternalPort:   int32Ptr(9098),
+				Annotations:    map[string]string{"foo": "2"},
 			}
 		}
 
@@ -45,8 +47,8 @@ var _ = Describe("Testing ServiceSpec struct", func() {
 				Expect(*clone.Type).To(Equal(*expected.Type))
 			})
 
-			It("should have correct Domain", func() {
-				Expect(*clone.Domain).To(Equal(*expected.Domain))
+			It("should have correct Port", func() {
+				Expect(*clone.Port).To(Equal(*expected.Port))
 			})
 
 			It("should have correct LoadBalancerIP", func() {
@@ -55,10 +57,6 @@ var _ = Describe("Testing ServiceSpec struct", func() {
 
 			It("should have correct Annotations", func() {
 				Expect(clone.Annotations).To(Equal(expected.Annotations))
-			})
-
-			It("should have correct ExternalPort", func() {
-				Expect(*clone.ExternalPort).To(Equal(*expected.ExternalPort))
 			})
 		}
 
@@ -133,14 +131,14 @@ var _ = Describe("Testing ServiceSpec struct", func() {
 			ValidateResult()
 		})
 
-		When("original Domain is nil", func() {
+		When("original Port is nil", func() {
 			BeforeEach(func() {
 				original = NewServiceSpecOne()
-				original.Domain = nil
+				original.Port = nil
 				defaults = NewServiceSpecTwo()
 
 				expected = NewServiceSpecOne()
-				expected.Domain = defaults.Domain
+				expected.Port = defaults.Port
 			})
 
 			ValidateResult()
@@ -166,19 +164,6 @@ var _ = Describe("Testing ServiceSpec struct", func() {
 
 				expected = NewServiceSpecOne()
 				expected.Annotations = defaults.Annotations
-			})
-
-			ValidateResult()
-		})
-
-		When("original ExternalPort is nil", func() {
-			BeforeEach(func() {
-				original = NewServiceSpecOne()
-				original.ExternalPort = nil
-				defaults = NewServiceSpecTwo()
-
-				expected = NewServiceSpecOne()
-				expected.ExternalPort = defaults.ExternalPort
 			})
 
 			ValidateResult()

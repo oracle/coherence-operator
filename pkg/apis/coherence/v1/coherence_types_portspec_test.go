@@ -6,18 +6,24 @@ import (
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 )
 
-var _ = Describe("Testing PortSpec struct", func() {
+var _ = Describe("Testing PortSpecWithSSL struct", func() {
 
-	Context("Copying a PortSpec using DeepCopyWithDefaults", func() {
-		var original *coherence.PortSpec
-		var defaults *coherence.PortSpec
-		var clone *coherence.PortSpec
-		var expected *coherence.PortSpec
+	Context("Copying a PortSpecWithSSL using DeepCopyWithDefaults", func() {
+		var original *coherence.PortSpecWithSSL
+		var defaults *coherence.PortSpecWithSSL
+		var clone *coherence.PortSpecWithSSL
+		var expected *coherence.PortSpecWithSSL
 
-		NewPortSpecOne := func() *coherence.PortSpec {
-			return &coherence.PortSpec{
-				Port: int32Ptr(8080),
-				SSL:  &coherence.SSLSpec {
+		NewPortSpecOne := func() *coherence.PortSpecWithSSL {
+			return &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 8080,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("foo"),
+						Port: int32Ptr(80),
+					},
+				},
+				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					Secrets:                stringPtr("ssl-secret"),
 					KeyStore:               stringPtr("keystore.jks"),
@@ -36,10 +42,16 @@ var _ = Describe("Testing PortSpec struct", func() {
 			}
 		}
 
-		NewPortSpecTwo := func() *coherence.PortSpec {
-			return &coherence.PortSpec {
-				Port: int32Ptr(9090),
-				SSL:  &coherence.SSLSpec {
+		NewPortSpecTwo := func() *coherence.PortSpecWithSSL {
+			return &coherence.PortSpecWithSSL{
+				PortSpec: coherence.PortSpec{
+					Port: 9090,
+					Service: &coherence.ServiceSpec{
+						Name: stringPtr("bar"),
+						Port: int32Ptr(90),
+					},
+				},
+				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					Secrets:                stringPtr("ssl-secret2"),
 					KeyStore:               stringPtr("keystore.jks"),
@@ -60,7 +72,7 @@ var _ = Describe("Testing PortSpec struct", func() {
 
 		ValidateResult := func() {
 			It("should have correct Port", func() {
-				Expect(*clone.Port).To(Equal(*expected.Port))
+				Expect(clone.Port).To(Equal(expected.Port))
 			})
 
 			It("should have correct SSL", func() {
@@ -116,7 +128,7 @@ var _ = Describe("Testing PortSpec struct", func() {
 		When("original Port is nil", func() {
 			BeforeEach(func() {
 				original = NewPortSpecOne()
-				original.Port = nil
+				original.Port = 0
 				defaults = NewPortSpecTwo()
 
 				expected = NewPortSpecOne()

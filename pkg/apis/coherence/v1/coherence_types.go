@@ -440,7 +440,7 @@ func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
 	}
 
 	if in.TrustStoreType != nil {
-		clone.TrustStoreType= in.TrustStoreType
+		clone.TrustStoreType = in.TrustStoreType
 	} else {
 		clone.TrustStoreType = defaults.TrustStoreType
 	}
@@ -460,10 +460,10 @@ func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
 type PortSpec struct {
 	// Port specifies the port used.
 	// +optional
-	Port *int32 `json:"port,omitempty"`
-	// SSL configures SSL settings for a Coherence component
+	Port int32 `json:"port,omitempty"`
+	// Service specifies the service used to expose the port.
 	// +optional
-	SSL *SSLSpec `json:"ssl,omitempty"`
+	Service *ServiceSpec `json:"service,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this PortSpec struct with any nil or not set values set
@@ -483,10 +483,106 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 
 	clone := PortSpec{}
 
-	if in.Port != nil {
+	if in.Port != 0 {
 		clone.Port = in.Port
 	} else {
 		clone.Port = defaults.Port
+	}
+
+	if in.Service != nil {
+		clone.Service = in.Service
+	} else {
+		clone.Service = defaults.Service
+	}
+
+	return &clone
+}
+
+// ----- NamedPortSpec struct ----------------------------------------------------
+// NamedPortSpec defines a named port for a Coherence component
+// +k8s:openapi-gen=true
+type NamedPortSpec struct {
+	// Name specifies the name of th port.
+	// +optional
+	Name     string `json:"name,omitempty"`
+	PortSpec `json:",inline"`
+}
+
+// DeepCopyWithDefaults returns a copy of this NamedPortSpec struct with any nil or not set values set
+// by the corresponding value in the defaults NamedPortSpec struct.
+func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPortSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := NamedPortSpec{}
+
+	if in.Name != "" {
+		clone.Name = in.Name
+	} else {
+		clone.Name = defaults.Name
+	}
+
+	if in.Port != 0 {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
+	}
+
+	if in.Service != nil {
+		clone.Service = in.Service
+	} else {
+		clone.Service = defaults.Service
+	}
+
+	return &clone
+}
+
+// ----- PortSpecWithSSL struct ----------------------------------------------------
+// PortSpecWithSSL defines a port with SSL settings for a Coherence component
+// +k8s:openapi-gen=true
+type PortSpecWithSSL struct {
+	PortSpec `json:",inline"`
+	// SSL configures SSL settings for a Coherence component
+	// +optional
+	SSL *SSLSpec `json:"ssl,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this PortSpecWithSSL struct with any nil or not set values set
+// by the corresponding value in the defaults PortSpecWithSSL struct.
+func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *PortSpecWithSSL {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		} else {
+			return nil
+		}
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := PortSpecWithSSL{}
+
+	if in.Port != 0 {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
+	}
+
+	if in.Service != nil {
+		clone.Service = in.Service.DeepCopyWithDefaults(defaults.Service)
+	} else {
+		clone.Service = defaults.Service
 	}
 
 	if in.SSL != nil {
@@ -505,27 +601,78 @@ type ServiceSpec struct {
 	// Enabled controls whether to create the service yaml or not
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
+	// An optional name to use to override the generated service name.
+	// +optional
+	Name *string `json:"name,omitempty"`
+	// The service port value
+	// +optional
+	Port *int32 `json:"port,omitempty"`
 	// Type is the K8s service type (typically ClusterIP or LoadBalancer)
 	// The default is "ClusterIP".
 	// +optional
-	Type *string `json:"type,omitempty"`
-	// Domain is the external domain name
-	// The default is "cluster.local".
-	// +optioanl
-	Domain *string `json:"domain,omitempty"`
+	Type *corev1.ServiceType `json:"type,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
 	// Annotations is free form yaml that will be added to the service annotations
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
-	// The service port value
+	// Supports "ClientIP" and "None". Used to maintain session affinity.
+	// Enable client IP based session affinity.
+	// Must be ClientIP or None.
+	// Defaults to None.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
 	// +optional
-	ExternalPort *int32 `json:"externalPort,omitempty"`
+	SessionAffinity *corev1.ServiceAffinity `json:"sessionAffinity,omitempty"`
+	// If specified and supported by the platform, this will restrict traffic through the cloud-provider
+	// load-balancer will be restricted to the specified client IPs. This field will be ignored if the
+	// cloud-provider does not support the feature."
+	// More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+	// +optional
+	LoadBalancerSourceRanges []string `json:"loadBalancerSourceRanges,omitempty" protobuf:"bytes,9,opt,name=loadBalancerSourceRanges"`
+	// externalName is the external reference that kubedns or equivalent will
+	// return as a CNAME record for this service. No proxying will be involved.
+	// Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123)
+	// and requires Type to be ExternalName.
+	// +optional
+	ExternalName *string `json:"externalName,omitempty" protobuf:"bytes,10,opt,name=externalName"`
+	// externalTrafficPolicy denotes if this Service desires to route external
+	// traffic to node-local or cluster-wide endpoints. "Local" preserves the
+	// client source IP and avoids a second hop for LoadBalancer and Nodeport
+	// type services, but risks potentially imbalanced traffic spreading.
+	// "Cluster" obscures the client source IP and may cause a second hop to
+	// another node, but should have good overall load-spreading.
+	// +optional
+	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicyType `json:"externalTrafficPolicy,omitempty"`
+	// healthCheckNodePort specifies the healthcheck nodePort for the service.
+	// If not specified, HealthCheckNodePort is created by the service api
+	// backend with the allocated nodePort. Will use user-specified nodePort value
+	// if specified by the client. Only effects when Type is set to LoadBalancer
+	// and ExternalTrafficPolicy is set to Local.
+	// +optional
+	HealthCheckNodePort *int32 `json:"healthCheckNodePort,omitempty"`
+	// publishNotReadyAddresses, when set to true, indicates that DNS implementations
+	// must publish the notReadyAddresses of subsets for the Endpoints associated with
+	// the Service. The default value is false.
+	// The primary use case for setting this field is to use a StatefulSet's Headless Service
+	// to propagate SRV records for its Pods without respect to their readiness for purpose
+	// of peer discovery.
+	// +optional
+	PublishNotReadyAddresses *bool `json:"publishNotReadyAddresses,omitempty"`
+	// sessionAffinityConfig contains the configurations of session affinity.
+	// +optional
+	SessionAffinityConfig *corev1.SessionAffinityConfig `json:"sessionAffinityConfig,omitempty"`
+}
+
+// Set the Type of the service.
+func (in *ServiceSpec) SetServiceType(t corev1.ServiceType) {
+	if in != nil {
+		in.Type = &t
+	}
 }
 
 // DeepCopyWithDefaults returns a copy of this ServiceSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpec struct.
+// by the corresponding value in the defaults PortSpecWithSSL struct.
 func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec {
 	if in == nil {
 		if defaults != nil {
@@ -553,10 +700,16 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 		clone.Type = defaults.Type
 	}
 
-	if in.Domain != nil {
-		clone.Domain = in.Domain
+	if in.Name != nil {
+		clone.Name = in.Name
 	} else {
-		clone.Domain = defaults.Domain
+		clone.Name = defaults.Name
+	}
+
+	if in.Port != nil {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
 	}
 
 	if in.LoadBalancerIP != nil {
@@ -571,10 +724,52 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 		clone.Annotations = defaults.Annotations
 	}
 
-	if in.ExternalPort != nil {
-		clone.ExternalPort = in.ExternalPort
+	if in.Port != nil {
+		clone.Port = in.Port
 	} else {
-		clone.ExternalPort = defaults.ExternalPort
+		clone.Port = defaults.Port
+	}
+
+	if in.SessionAffinity != nil {
+		clone.SessionAffinity = in.SessionAffinity
+	} else {
+		clone.SessionAffinity = defaults.SessionAffinity
+	}
+
+	if in.LoadBalancerSourceRanges != nil {
+		clone.LoadBalancerSourceRanges = in.LoadBalancerSourceRanges
+	} else {
+		clone.LoadBalancerSourceRanges = defaults.LoadBalancerSourceRanges
+	}
+
+	if in.ExternalName != nil {
+		clone.ExternalName = in.ExternalName
+	} else {
+		clone.ExternalName = defaults.ExternalName
+	}
+
+	if in.ExternalTrafficPolicy != nil {
+		clone.ExternalTrafficPolicy = in.ExternalTrafficPolicy
+	} else {
+		clone.ExternalTrafficPolicy = defaults.ExternalTrafficPolicy
+	}
+
+	if in.HealthCheckNodePort != nil {
+		clone.HealthCheckNodePort = in.HealthCheckNodePort
+	} else {
+		clone.HealthCheckNodePort = defaults.HealthCheckNodePort
+	}
+
+	if in.PublishNotReadyAddresses != nil {
+		clone.PublishNotReadyAddresses = in.PublishNotReadyAddresses
+	} else {
+		clone.PublishNotReadyAddresses = defaults.PublishNotReadyAddresses
+	}
+
+	if in.SessionAffinityConfig != nil {
+		clone.SessionAffinityConfig = in.SessionAffinityConfig
+	} else {
+		clone.SessionAffinityConfig = defaults.SessionAffinityConfig
 	}
 
 	return &clone
@@ -605,7 +800,7 @@ type JMXSpec struct {
 }
 
 // DeepCopyWithDefaults returns a copy of this JMXSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpec struct.
+// by the corresponding value in the defaults PortSpecWithSSL struct.
 func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
 	if in == nil {
 		if defaults != nil {
@@ -643,90 +838,6 @@ func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
 		clone.Service = in.Service
 	} else {
 		clone.Service = defaults.Service
-	}
-
-	return &clone
-}
-
-// ----- CoherenceServiceSpec struct ----------------------------------------
-// CoherenceServiceSpec groups the values used to configure the K8s service
-// +k8s:openapi-gen=true
-type CoherenceServiceSpec struct {
-	// The default service external port is 30000.
-	ServiceSpec `json:",inline"`
-	// The management Http port as integer
-	// Default: 30000
-	// +optional
-	ManagementHttpPort *int32 `json:"managementHttpPort,omitempty"`
-	// The metrics http port as integer
-	// Default: 9612
-	// +optional
-	MetricsHttpPort *int32 `json:"metricsHttpPort,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this CoherenceServiceSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpec struct.
-func (in *CoherenceServiceSpec) DeepCopyWithDefaults(defaults *CoherenceServiceSpec) *CoherenceServiceSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		} else {
-			return nil
-		}
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := CoherenceServiceSpec{}
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
-	}
-
-	if in.Type != nil {
-		clone.Type = in.Type
-	} else {
-		clone.Type = defaults.Type
-	}
-
-	if in.Domain != nil {
-		clone.Domain = in.Domain
-	} else {
-		clone.Domain = defaults.Domain
-	}
-
-	if in.LoadBalancerIP != nil {
-		clone.LoadBalancerIP = in.LoadBalancerIP
-	} else {
-		clone.LoadBalancerIP = defaults.LoadBalancerIP
-	}
-
-	if in.Annotations != nil {
-		clone.Annotations = in.Annotations
-	} else {
-		clone.Annotations = defaults.Annotations
-	}
-
-	if in.ExternalPort != nil {
-		clone.ExternalPort = in.ExternalPort
-	} else {
-		clone.ExternalPort = defaults.ExternalPort
-	}
-
-	if in.ManagementHttpPort != nil {
-		clone.ManagementHttpPort = in.ManagementHttpPort
-	} else {
-		clone.ManagementHttpPort = defaults.ManagementHttpPort
-	}
-
-	if in.MetricsHttpPort != nil {
-		clone.MetricsHttpPort = in.MetricsHttpPort
-	} else {
-		clone.MetricsHttpPort = defaults.MetricsHttpPort
 	}
 
 	return &clone

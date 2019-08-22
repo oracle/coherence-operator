@@ -62,8 +62,4 @@ generated from this chart.
 coherenceDeployment: {{ template "coherence.fullname" . }}
 coherenceCluster: {{ template "coherence.clusterName" . }}
 coherenceRole: {{ template "coherence.role" . }}
-heritage: {{ .Release.Service }}
-release: {{ .Release.Name }}
-chart: {{ template "coherence.chart" . }}
-app: {{ template "coherence.name" . }}
 {{- end }}
