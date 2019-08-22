@@ -154,17 +154,16 @@ spec:
           image: {{ .Values.coherence.image | quote }}
           imagePullPolicy: {{ .Values.coherence.imagePullPolicy | default "IfNotPresent" }}
           ports:
-            - name: "extend-port"
-              containerPort: 20000
-            - name: "mgmt-http-port"
+            - name: "mgmt-port"
               containerPort: 30000
             - name: "metrics-port"
               containerPort: 9612
 {{- if .Values.store -}}
   {{- if .Values.store.ports -}}
-    {{- range $name, $port := .Values.store.ports }}
-            - name: {{ $name | quote }}
-              containerPort: {{ $port }}
+    {{- range $port := .Values.store.ports }}
+            - name: {{ $port.name | quote }}
+              containerPort: {{ $port.port }}
+              protocol: {{ $port.protocol | default "TCP" }}
     {{- end }}
   {{- end }}
 {{- end }}

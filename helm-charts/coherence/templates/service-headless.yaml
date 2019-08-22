@@ -17,7 +17,7 @@ spec:
     - name: coherence
       protocol: TCP
       port: 30000
-      targetPort: "mgmt-http-port"
+      targetPort: "mgmt-port"
   selector:
     coherenceDeployment: {{ template "coherence.fullname" . }}
     component: coherencePod

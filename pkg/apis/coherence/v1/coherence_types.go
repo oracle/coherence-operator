@@ -461,6 +461,9 @@ type PortSpec struct {
 	// Port specifies the port used.
 	// +optional
 	Port int32 `json:"port,omitempty"`
+	// Protocol for container port. Must be UDP or TCP. Defaults to "TCP"
+	// +optional
+	Protocol *string `json:"protocol,omitempty"`
 	// Service specifies the service used to expose the port.
 	// +optional
 	Service *ServiceSpec `json:"service,omitempty"`
@@ -487,6 +490,12 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 		clone.Port = in.Port
 	} else {
 		clone.Port = defaults.Port
+	}
+
+	if in.Protocol != nil {
+		clone.Protocol = in.Protocol
+	} else {
+		clone.Protocol = defaults.Protocol
 	}
 
 	if in.Service != nil {
@@ -537,6 +546,12 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 		clone.Port = defaults.Port
 	}
 
+	if in.Protocol != nil {
+		clone.Protocol = in.Protocol
+	} else {
+		clone.Protocol = defaults.Protocol
+	}
+
 	if in.Service != nil {
 		clone.Service = in.Service
 	} else {
@@ -577,6 +592,12 @@ func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *Port
 		clone.Port = in.Port
 	} else {
 		clone.Port = defaults.Port
+	}
+
+	if in.Protocol != nil {
+		clone.Protocol = in.Protocol
+	} else {
+		clone.Protocol = defaults.Protocol
 	}
 
 	if in.Service != nil {
@@ -629,13 +650,13 @@ type ServiceSpec struct {
 	// cloud-provider does not support the feature."
 	// More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
 	// +optional
-	LoadBalancerSourceRanges []string `json:"loadBalancerSourceRanges,omitempty" protobuf:"bytes,9,opt,name=loadBalancerSourceRanges"`
+	LoadBalancerSourceRanges []string `json:"loadBalancerSourceRanges,omitempty"`
 	// externalName is the external reference that kubedns or equivalent will
 	// return as a CNAME record for this service. No proxying will be involved.
 	// Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123)
 	// and requires Type to be ExternalName.
 	// +optional
-	ExternalName *string `json:"externalName,omitempty" protobuf:"bytes,10,opt,name=externalName"`
+	ExternalName *string `json:"externalName,omitempty"`
 	// externalTrafficPolicy denotes if this Service desires to route external
 	// traffic to node-local or cluster-wide endpoints. "Local" preserves the
 	// client source IP and avoids a second hop for LoadBalancer and Nodeport

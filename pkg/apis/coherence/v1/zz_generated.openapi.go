@@ -1460,6 +1460,13 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 							Format:      "int32",
 						},
 					},
+					"protocol": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"service": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Service specifies the service used to expose the port.",
@@ -1519,6 +1526,13 @@ func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.
 							Format:      "int32",
 						},
 					},
+					"protocol": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"service": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Service specifies the service used to expose the port.",
@@ -1544,6 +1558,13 @@ func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) 
 							Description: "Port specifies the port used.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"protocol": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"service": {

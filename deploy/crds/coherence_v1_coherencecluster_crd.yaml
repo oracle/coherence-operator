@@ -301,6 +301,10 @@ spec:
                   description: Port specifies the port used.
                   format: int32
                   type: integer
+                protocol:
+                  description: Protocol for container port. Must be UDP or TCP. Defaults
+                    to "TCP"
+                  type: string
                 service:
                   description: Service specifies the service used to expose the port.
                   properties:
@@ -478,6 +482,10 @@ spec:
                   description: Port specifies the port used.
                   format: int32
                   type: integer
+                protocol:
+                  description: Protocol for container port. Must be UDP or TCP. Defaults
+                    to "TCP"
+                  type: string
                 service:
                   description: Service specifies the service used to expose the port.
                   properties:
@@ -699,6 +707,10 @@ spec:
                     description: Port specifies the port used.
                     format: int32
                     type: integer
+                  protocol:
+                    description: Protocol for container port. Must be UDP or TCP.
+                      Defaults to "TCP"
+                    type: string
                   service:
                     description: Service specifies the service used to expose the
                       port.
@@ -1128,6 +1140,10 @@ spec:
                         description: Port specifies the port used.
                         format: int32
                         type: integer
+                      protocol:
+                        description: Protocol for container port. Must be UDP or TCP.
+                          Defaults to "TCP"
+                        type: string
                       service:
                         description: Service specifies the service used to expose
                           the port.
@@ -1311,6 +1327,10 @@ spec:
                         description: Port specifies the port used.
                         format: int32
                         type: integer
+                      protocol:
+                        description: Protocol for container port. Must be UDP or TCP.
+                          Defaults to "TCP"
+                        type: string
                       service:
                         description: Service specifies the service used to expose
                           the port.
@@ -1539,6 +1559,10 @@ spec:
                           description: Port specifies the port used.
                           format: int32
                           type: integer
+                        protocol:
+                          description: Protocol for container port. Must be UDP or
+                            TCP. Defaults to "TCP"
+                          type: string
                         service:
                           description: Service specifies the service used to expose
                             the port.

@@ -58,7 +58,7 @@ func TestZone(t *testing.T) {
 
 	// Do a Management over ReST query for the cluster members
 	cl := &http.Client{}
-	members, _, err := management.GetMembers(cl, "127.0.0.1", ports["mgmt-http-port"])
+	members, _, err := management.GetMembers(cl, "127.0.0.1", ports["mgmt-port"])
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the site for each member matches the Node's zone label
