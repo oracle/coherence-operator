@@ -141,13 +141,14 @@ test: build
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
+e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-local-test: build reset-namespace
+e2e-local-test: build reset-namespace operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml" \
+		--local-operator-flags "--watches-file=local-watches.yaml" --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
 
