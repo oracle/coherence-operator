@@ -28,6 +28,7 @@ TEST_NAMESPACE ?= operator-test
 CREATE_TEST_NAMESPACE ?= true
 
 IMAGE_PULL_SECRETS ?=
+IMAGE_PULL_POLICY  ?= Never
 
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
@@ -143,6 +144,7 @@ e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: build reset-namespace operator-manifest
 	@echo "executing end-to-end tests"
@@ -164,6 +166,7 @@ e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-i
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
@@ -183,6 +186,7 @@ helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: build reset-namespace create-ssl-secrets
 	$(MAKE) install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
@@ -230,6 +234,12 @@ operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_
 operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
 operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
 	@mkdir -p $(TEST_MANIFEST_DIR)
+	echo "---" > $(TEST_MANIFEST_DIR)/global-manifest.yaml
+	cat deploy/crds/coherence_v1_coherencecluster_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
+	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
+	cat deploy/crds/coherence_v1_coherencerole_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
+	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
+	cat deploy/crds/coherence_v1_coherenceinternal_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
 	go run ./cmd/helmutil/
 
 # Generate the keys and certs used in tests.

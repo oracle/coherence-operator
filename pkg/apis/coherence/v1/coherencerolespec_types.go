@@ -153,9 +153,11 @@ type CoherenceRoleSpec struct {
 	// Pod scheduling values: Affinity, NodeSelector, Tolerations
 	// Affinity controls Pod scheduling preferences.
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+	// +optional
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 	// NodeSelector is the Node labels for pod assignment
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// Tolerations is for nodes that have taints on them.
 	//   Useful if you want to dedicate nodes to just run the coherence container
@@ -167,6 +169,7 @@ type CoherenceRoleSpec struct {
 	//     effect: "NoSchedule"
 	//
 	//   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -180,7 +183,16 @@ type CoherenceRoleSpec struct {
 	// so that there is no hard-limit applied.
 	//
 	// No default memory limits are applied.
+	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// The handler to use to determine whether a role is Status HA.
+	// If not set the default handler will be used.
+	// In most use-cases the default handler would suffice but in
+	// advanced use-cases where the application code has a different
+	// concept of Status HA to just checking Coherence services then
+	// a different handler may be specified.
+	// +optional
+	StatusHA *StatusHAHandler `json:"statusHA,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -245,6 +257,15 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	}
 
 	return policy
+}
+
+// Returns the StatusHAHandler to use for checking Status HA for the role.
+// This method will not return nil.
+func (in *CoherenceRoleSpec) GetStatusHAHandler() *StatusHAHandler {
+	if in == nil || in.StatusHA == nil {
+		return GetDefaultStatusHAHandler()
+	}
+	return in.StatusHA
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set
@@ -356,6 +377,12 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.Ports = in.Ports
 	} else {
 		clone.Ports = defaults.Ports
+	}
+
+	if in.StatusHA != nil {
+		clone.StatusHA = in.StatusHA
+	} else {
+		clone.StatusHA = defaults.StatusHA
 	}
 
 	if in.Volumes != nil {

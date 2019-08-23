@@ -8,9 +8,17 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/rest"
+	"k8s.io/kubernetes/pkg/probe"
+	httpprobe "k8s.io/kubernetes/pkg/probe/http"
+	tcprobe "k8s.io/kubernetes/pkg/probe/tcp"
 	"net/http"
+	"net/url"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -43,7 +51,8 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 		logger.Info(fmt.Sprintf("Role %s is not StatusHA - re-queing scaling request. Stateful set ready replicas is %d", role.Name, sts.Status.ReadyReplicas))
 	}
 
-	ha := current == 1 || r.IsStatusHA(role, sts)
+	checker := StatusHAChecker{Client: r.client, Config: r.mgr.GetConfig()}
+	ha := current == 1 || checker.IsStatusHA(role, sts)
 
 	if ha {
 		var replicas int32
@@ -109,8 +118,49 @@ func (r *ReconcileCoherenceRole) parallelScale(role *coh.CoherenceRole, cohInter
 	return reconcile.Result{}, nil
 }
 
+type StatusHAChecker struct {
+	Client         client.Client
+	Config         *rest.Config
+	getPodHostName func(pod corev1.Pod) string
+	translatePort  func(name string, port int) int
+}
+
+func (in *StatusHAChecker) SetGetPodHostName(fn func(pod corev1.Pod) string) {
+	if in == nil {
+		return
+	}
+	in.getPodHostName = fn
+}
+
+func (in *StatusHAChecker) GetPodHostName(pod corev1.Pod) string {
+	if in.getPodHostName == nil {
+		return pod.Status.HostIP
+	}
+	return in.getPodHostName(pod)
+}
+
+func (in *StatusHAChecker) SetTranslatePort(fn func(name string, port int) int) {
+	if in == nil {
+		return
+	}
+	in.translatePort = fn
+}
+
+func (in *StatusHAChecker) TranslatePort(name string, port int) int {
+	if in.translatePort == nil {
+		return port
+	}
+	return in.translatePort(name, port)
+}
+
 // IsStatusHA will return true if the cluster represented by the role is StatusHA.
-func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
+func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
+	handler := role.Spec.GetStatusHAHandler()
+
+	if !handler.IsEnabled() {
+		return true
+	}
+
 	list := corev1.PodList{}
 	opts := client.ListOptions{}
 	opts.InNamespace(role.Namespace)
@@ -120,7 +170,7 @@ func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1
 		log.Info("Checking StatefulSet "+sts.Name+" for StatusHA", "Namespace", role.Name, "Name", role.Name)
 	}
 
-	err := r.client.List(context.TODO(), &opts, &list)
+	err := in.Client.List(context.TODO(), &opts, &list)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false
@@ -135,13 +185,15 @@ func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1
 
 	for _, pod := range list.Items {
 		if pod.Status.Phase == "Running" {
-			ip := pod.Status.PodIP
-			ha, err := IsPodStatusHA(ip)
 			if log.Enabled() {
 				log.Info("Checking pod " + pod.Name + " for StatusHA")
 			}
+			ha, err := in.IsPodStatusHA(pod, handler)
 			if err == nil {
+				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t)", pod.Name, ha))
 				return ha
+			} else {
+				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t) error %s", pod.Name, ha, err.Error()))
 			}
 		} else {
 			log.Info("Skipping StatusHA checking for pod " + pod.Name + " as Pod status not in running phase")
@@ -151,36 +203,157 @@ func (r *ReconcileCoherenceRole) IsStatusHA(role *coh.CoherenceRole, sts *appsv1
 	return false
 }
 
-// Determine whether a Pod's Coherence Services are StatusHA.
-func IsPodStatusHA(podIP string) (bool, error) {
-	cl := &http.Client{}
+// Determine whether a Pod is StatusHA using the configured StausHA handler.
+func (in *StatusHAChecker) IsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+	if handler.Exec != nil {
+		return in.ExecIsPodStatusHA(pod, handler)
+	} else if handler.HTTPGet != nil {
+		return in.HttpIsPodStatusHA(pod, handler)
+	} else if handler.TCPSocket != nil {
+		return in.TcpIsPodStatusHA(pod, handler)
+	}
+	return true, nil
+}
 
-	services, _, err := mgmt.GetServices(cl, podIP, 30000)
+func (in *StatusHAChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+	req := &mgmt.ExecRequest{
+		Pod:       pod.Name,
+		Container: "coherence",
+		Namespace: pod.Namespace,
+		Command:   handler.Exec.Command,
+		Arg:       []string{},
+		Timeout:   handler.GetTimeout(),
+	}
+
+	exitCode, _, _, err := mgmt.PodExec(req, in.Config)
+
+	log.Info(fmt.Sprintf("StatusHA check Exec: '%s' result=%d error=%s", strings.Join(handler.Exec.Command, ", "), exitCode, err))
+
 	if err != nil {
-		if log.Enabled() {
-			log.Info("Error querying services from podIP " + podIP + "\n" + err.Error())
-		}
 		return false, err
 	}
 
-	for _, service := range services.Items {
-		if service.Type == "DistributedCache" {
-			part, rc, err := mgmt.GetPartitionAssignment(cl, podIP, 30000, service.Name)
-			if err == nil {
-				if rc == http.StatusOK {
-					// we must have more than one service member and backups > 0 to event think about being HA.
-					if part.BackupCount > 0 && part.ServiceNodeCount > 1 {
-						if part.HAStatusCode <= 1 || part.RemainingDistributionCount != 0 {
-							// we're not HA
-							return false, nil
-						}
-					}
-				}
+	return exitCode == 0, nil
+}
+
+func (in *StatusHAChecker) HttpIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+	var (
+		scheme corev1.URIScheme
+		host   string
+		port   int
+		path   string
+	)
+
+	action := handler.HTTPGet
+
+	if action.Scheme == "" {
+		scheme = corev1.URISchemeHTTP
+	} else {
+		scheme = action.Scheme
+	}
+
+	if action.Host == "" {
+		host = in.GetPodHostName(pod)
+	} else {
+		host = action.Host
+	}
+
+	port, err := in.findPort(pod, action.Port)
+	if err != nil {
+		return false, err
+	}
+
+	if strings.HasPrefix(action.Path, "/") {
+		path = action.Path[1:]
+	} else {
+		path = action.Path
+	}
+
+	u, err := url.Parse(fmt.Sprintf("%s://%s:%d/%s", scheme, host, port, path))
+	if err != nil {
+		return false, err
+	}
+
+	header := http.Header{}
+	if action.HTTPHeaders != nil {
+		for _, h := range action.HTTPHeaders {
+			hh, found := header[h.Name]
+			if found {
+				header[h.Name] = append(hh, h.Value)
 			} else {
-				log.Info("Error accessing podIP " + podIP + "\n" + err.Error())
+				header[h.Name] = []string{h.Value}
 			}
 		}
 	}
 
-	return true, nil
+	p := httpprobe.New()
+	result, _, err := p.Probe(u, header, handler.GetTimeout())
+
+	log.Info(fmt.Sprintf("StatusHA check URL: %s result=%s error=%s", u.String(), result, err))
+
+	return result == probe.Success, err
+}
+
+func (in *StatusHAChecker) TcpIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+	var (
+		host string
+		port int
+	)
+
+	action := handler.TCPSocket
+
+	if action.Host == "" {
+		host = in.GetPodHostName(pod)
+	} else {
+		host = action.Host
+	}
+
+	port, err := in.findPort(pod, action.Port)
+	if err != nil {
+		return false, err
+	}
+
+	p := tcprobe.New()
+	result, _, err := p.Probe(host, port, handler.GetTimeout())
+
+	log.Info(fmt.Sprintf("StatusHA check TCP: %s:%d result=%s error=%s", host, port, result, err))
+
+	return result == probe.Success, err
+}
+
+func (in *StatusHAChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
+	if port.Type == intstr.Int {
+		return port.IntValue(), nil
+	} else {
+		s := port.String()
+		i, err := strconv.Atoi(s)
+		if err == nil {
+			// string is an int
+			return i, nil
+		} else {
+			// string is a port name
+			return in.findPortInPod(pod, s)
+		}
+	}
+}
+
+func (in *StatusHAChecker) findPortInPod(pod corev1.Pod, name string) (int, error) {
+	for _, container := range pod.Spec.Containers {
+		if container.Name == "coherence" {
+			return in.findPortInContainer(pod, container, name)
+		}
+	}
+
+	return -1, fmt.Errorf("cannot find coherence container in Pod '%s'", pod.Name)
+}
+
+func (in *StatusHAChecker) findPortInContainer(pod corev1.Pod, container corev1.Container, name string) (int, error) {
+	for _, port := range container.Ports {
+		if port.Name == name {
+			p := in.TranslatePort(port.Name, int(port.ContainerPort))
+			return p, nil
+		}
+	}
+
+	return -1, fmt.Errorf("cannot find port '%s' in coherence container in Pod '%s'", name, pod.Name)
 }

@@ -403,6 +403,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("8Gi")},
 			}
 
+			statusHAOne = &coherence.StatusHAHandler{Handler: corev1.Handler{Exec: &corev1.ExecAction{Command: []string{"one"}}}}
+			statusHATwo = &coherence.StatusHAHandler{Handler: corev1.Handler{Exec: &corev1.ExecAction{Command: []string{"two"}}}}
+
 			roleSpecOne = &coherence.CoherenceRoleSpec{
 				Role:                 roleNameOne,
 				Replicas:             replicasOne,
@@ -436,6 +439,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				NodeSelector:         nil,
 				Tolerations:          tolerationsOne,
 				Resources:            resourcesOne,
+				StatusHA:             statusHAOne,
 			}
 
 			roleSpecTwo = &coherence.CoherenceRoleSpec{
@@ -471,6 +475,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				NodeSelector:         nil,
 				Tolerations:          tolerationsTwo,
 				Resources:            resourcesTwo,
+				StatusHA:             statusHATwo,
 			}
 
 			original *coherence.CoherenceRoleSpec
@@ -1162,6 +1167,79 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				expected.Ports = []coherence.NamedPortSpec{portOne, portTwo}
 
 				Expect(clone).To(Equal(expected))
+			})
+		})
+
+		When("the original StatusHA is not set and default StatusHA is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				original.StatusHA = nil
+			})
+
+			It("clone should be equal to the original with the StatusHA field from the defaults", func() {
+				// expected is a deep copy of original so that we can change the
+				// expected without changing original
+				expected := original.DeepCopy()
+				expected.StatusHA = defaults.StatusHA
+				Expect(clone).To(Equal(expected))
+			})
+
+			It("clone StatusHA should equal the defaults StatusHA", func() {
+				Expect(clone.GetStatusHAHandler()).To(Equal(defaults.GetStatusHAHandler()))
+			})
+		})
+
+		When("the original StatusHA handler is set and default StatusHA handler is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				defaults.StatusHA = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+
+			It("clone StatusHA handler should equal the original StatusHA handler", func() {
+				Expect(clone.GetStatusHAHandler()).To(Equal(original.GetStatusHAHandler()))
+			})
+		})
+
+		When("the original StatusHA is set and default StatusHA is set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+
+			It("clone StatusHA handler should equal the original StatusHA handler", func() {
+				Expect(clone.GetStatusHAHandler()).To(Equal(original.GetStatusHAHandler()))
+			})
+		})
+
+		When("the original StatusHA is not set and default StatusHA is not set", func() {
+			BeforeEach(func() {
+				// original and defaults are deep copies so that we can change them
+				defaults = roleSpecTwo.DeepCopy()
+				original = roleSpecOne.DeepCopy()
+				defaults.StatusHA = nil
+				original.StatusHA = nil
+			})
+
+			It("clone should be equal to the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+
+			It("clone StatusHA handler should equal the global default StatusHA handler", func() {
+				expected := coherence.GetDefaultStatusHAHandler()
+				Expect(clone.GetStatusHAHandler()).To(Equal(expected))
 			})
 		})
 

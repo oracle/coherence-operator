@@ -197,8 +197,6 @@ spec:
               value: "true"
             - name: COH_EXTRA_CLASSPATH
               value: {{ printf "%s/*:%s" $extLibDir $extConfDir | quote }}
-            - name: COH_EXTEND_PORT
-              value: "20000"
             - name: COH_MGMT_HTTP_PORT
               value: "30000"
             - name: COH_METRICS_PORT

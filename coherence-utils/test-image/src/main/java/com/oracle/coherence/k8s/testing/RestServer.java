@@ -43,12 +43,13 @@ public class RestServer
                                                                .port(8080)
                                                                .build();
         Routing routing = Routing.builder()
-                                 .put("/env", RestServer::env)
-                                 .put("/props", RestServer::props)
+                                 .get("/ready", RestServer::ready)
+                                 .get("/env", RestServer::env)
+                                 .get("/props", RestServer::props)
                                  .put("/suspend", RestServer::suspend)
                                  .put("/resume", RestServer::resume)
                                  .put("/canaryStart", RestServer::canaryStart)
-                                 .put("/canaryCheck", RestServer::canaryCheck)
+                                 .get("/canaryCheck", RestServer::canaryCheck)
                                  .build();
 
         WebServer.create(configuration, routing)
@@ -66,27 +67,51 @@ public class RestServer
         DefaultCacheServer.main(args);
         }
 
+    static void ready(ServerRequest req, ServerResponse res)
+        {
+        res.status(200);
+        res.send("OK");
+        }
+
     static void env(ServerRequest req, ServerResponse res)
         {
-        JsonObjectBuilder builder = s_jsonFactory.createObjectBuilder();
+        try
+            {
+            JsonObjectBuilder builder = s_jsonFactory.createObjectBuilder();
 
-        System.getenv().forEach(builder::add);
+            System.getenv().forEach(builder::add);
 
-        res.send(builder.build());
+            res.send(builder.build());
+            }
+        catch (Throwable thrown)
+            {
+            thrown.printStackTrace();
+            res.status(Http.Status.INTERNAL_SERVER_ERROR_500);
+            res.send(thrown.getMessage());
+            }
         }
 
     static void props(ServerRequest req, ServerResponse res)
         {
-        JsonObjectBuilder builder  = s_jsonFactory.createObjectBuilder();
-        Properties        props    = System.getProperties();
-        Set<String>       setNames = new TreeSet<>(props.stringPropertyNames());
-
-        for (String sName : setNames)
+        try
             {
-            builder.add(sName, props.getProperty(sName));
-            }
+            JsonObjectBuilder builder  = s_jsonFactory.createObjectBuilder();
+            Properties        props    = System.getProperties();
+            Set<String>       setNames = new TreeSet<>(props.stringPropertyNames());
 
-        res.send(builder.build());
+            for (String sName : setNames)
+                {
+                builder.add(sName, props.getProperty(sName));
+                }
+
+            res.send(builder.build());
+            }
+        catch (Throwable thrown)
+            {
+            thrown.printStackTrace();
+            res.status(Http.Status.INTERNAL_SERVER_ERROR_500);
+            res.send(thrown.getMessage());
+            }
         }
 
     static void suspend(ServerRequest req, ServerResponse res)

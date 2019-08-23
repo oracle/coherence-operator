@@ -146,12 +146,12 @@ func (c *CoherenceCluster) loadYaml(files ...string) error {
 
 		data, err := ioutil.ReadFile(file)
 		if err != nil {
-			return err
+			return errors.New("Failed to read file " + file + " caused by " + err.Error())
 		}
 
 		err = yaml.Unmarshal(data, c)
 		if err != nil {
-			return err
+			return errors.New("Failed to parse yaml file " + file + " caused by " + err.Error())
 		}
 	}
 

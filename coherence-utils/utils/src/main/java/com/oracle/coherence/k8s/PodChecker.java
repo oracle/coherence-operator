@@ -53,6 +53,9 @@ public class PodChecker
                 case readiness:
                     fResult = readiness();
                     break;
+                case statusha:
+                    fResult = statusHA();
+                    break;
                 case liveness:
                     fResult = liveness();
                     break;
@@ -79,6 +82,19 @@ public class PodChecker
         try (Probe probe = findActiveProbe())
             {
             return probe.isReady();
+            }
+        }
+
+    /**
+     * Perform the StatusHA test using the first available {@link Probe}.
+     *
+     * @return  zero if the Pod is ready
+     */
+    boolean statusHA()
+        {
+        try (Probe probe = findActiveProbe())
+            {
+            return probe.isStatusHA();
             }
         }
 
@@ -143,6 +159,11 @@ public class PodChecker
          * Perform a readiness test.
          */
         readiness,
+
+        /**
+         * Perform a StausHA test.
+         */
+        statusha,
 
         /**
          * Perform a liveness test.

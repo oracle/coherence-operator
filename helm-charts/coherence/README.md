@@ -114,9 +114,6 @@ Coherence 12.2.1.4.
 | `service.domain` | The external domain name | `cluster.local` |
 | `service.loadBalancerIP` | The IP address of the load balancer| |
 | `service.annotations` | Service annotations (in Yaml) | |
-| `service.externalPort` | The Extend service port| `20000`|
-| `service.managementPort` | The management http port | `30000` |
-| `service.metricsHttpPort` | The metrics http port | `9612` |
 | `resources.requests.cpu` | See (http://kubernetes.io/docs/user-guide/compute-resources) | `0` |
 | `resources.limits.cpu` | See (http://kubernetes.io/docs/user-guide/compute-resources) | `32`|
 | `coherence.image` | Coherence image to be pulled | `"oracle/coherence:12.2.1.3"` |

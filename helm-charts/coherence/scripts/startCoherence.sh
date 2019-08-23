@@ -296,7 +296,7 @@ commonConfiguration()
                 SITE=""
                 ;;
             http://*)
-                SITE=$(curl ${COH_SITE_INFO_LOCATION})
+                SITE=$(curl --silent ${COH_SITE_INFO_LOCATION})
                 if [[ $? != 0 ]]
                 then
                     SITE=""

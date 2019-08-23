@@ -90,6 +90,7 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 		gvk:           gvk,
 		events:        mgr.GetRecorder(controllerName),
 		statusHARetry: retry,
+		mgr:           mgr,
 	}
 }
 
@@ -133,6 +134,7 @@ type ReconcileCoherenceRole struct {
 	gvk           schema.GroupVersionKind
 	events        record.EventRecorder
 	statusHARetry time.Duration
+	mgr           manager.Manager
 }
 
 // Reconcile reads that state of a CoherenceRole object and makes changes based on the state read

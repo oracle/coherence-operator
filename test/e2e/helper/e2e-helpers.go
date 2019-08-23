@@ -83,8 +83,8 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 }
 
 // WaitForStatefulSetForRole waits for a StatefulSet to be created for the specified role.
-func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
-	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(&cluster), role.GetReplicas(), retryInterval, timeout, logger)
+func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster *coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), role.GetReplicas(), retryInterval, timeout, logger)
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.

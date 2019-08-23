@@ -2,6 +2,8 @@ package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
+	"time"
 )
 
 // Common Coherence API structs
@@ -862,6 +864,58 @@ func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
 	}
 
 	return &clone
+}
+
+// ----- StatusHAHandler ----------------------------------------------------
+
+// StatusHAHandler is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
+// StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state
+// before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled
+// to false then no check will take place and a role will be assumed to be safe).
+// +k8s:openapi-gen=true
+type StatusHAHandler struct {
+	corev1.Handler `json:",inline"`
+	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
+	// Defaults to 1 second. Minimum value is 1.
+	// +optional
+	TimeoutSeconds int `json:"timeoutSeconds,omitempty"`
+	// An optional flag to enable or disable the StatusHA check.
+	// The default value if not set is true.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+var defaultStatusHA = StatusHAHandler{
+	Enabled:        pointer.BoolPtr(true),
+	TimeoutSeconds: 1,
+	Handler: corev1.Handler{
+		Exec:      &corev1.ExecAction{Command: []string{"/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha"}},
+		HTTPGet:   nil,
+		TCPSocket: nil,
+	},
+}
+
+// Returns true if this handler is enabled.
+func (in *StatusHAHandler) IsEnabled() bool {
+	if in == nil {
+		return false
+	}
+
+	return in.Enabled == nil || *in.Enabled
+}
+
+// Returns the timeout value in seconds.
+func (in *StatusHAHandler) GetTimeout() time.Duration {
+	if in == nil || in.TimeoutSeconds <= 0 {
+		return time.Second
+	}
+
+	return time.Second * time.Duration(in.TimeoutSeconds)
+}
+
+// Obtain a default StatusHAHandler
+func GetDefaultStatusHAHandler() *StatusHAHandler {
+	return defaultStatusHA.DeepCopy()
 }
 
 // ----- ReadinessProbeSpec struct ------------------------------------------

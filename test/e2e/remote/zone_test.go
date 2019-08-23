@@ -40,7 +40,7 @@ func TestZone(t *testing.T) {
 	replicas := role.GetReplicas()
 
 	// Wait for the StatefulSet for the role to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, namespace, cluster, role, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
