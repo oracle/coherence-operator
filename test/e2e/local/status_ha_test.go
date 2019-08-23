@@ -104,6 +104,7 @@ func createStatusHACluster(t *testing.T, namespace, yamlFile string) *coh.Cohere
 		pullPolicy = corev1.PullPolicy(pp)
 	}
 
+	cluster.Spec.ImagePullSecrets = helper.GetImagePullSecrets()
 	role := cluster.Spec.Roles[0]
 	role.Images = &coh.Images{
 		UserArtifacts: &coh.UserArtifactsImageSpec{

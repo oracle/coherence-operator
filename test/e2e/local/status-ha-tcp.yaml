@@ -9,9 +9,6 @@ spec:
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10
-    imagePullSecrets:
-      - coherence-k8s-operator-development-secret
-      - ocr-k8s-operator-development-secret
     images:
       userArtifacts:
         image: ChangeMe

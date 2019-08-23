@@ -9,9 +9,6 @@ spec:
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10
-    imagePullSecrets:
-      - coherence-k8s-operator-development-secret
-      - ocr-k8s-operator-development-secret
     statusHA:
       exec:
         command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha" ]
