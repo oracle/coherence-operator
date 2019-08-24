@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
 )
 
 var _ = Describe("Testing CoherenceCluster", func() {
@@ -93,7 +94,7 @@ var _ = Describe("Testing CoherenceCluster", func() {
 		)
 
 		JustBeforeEach(func() {
-			cluster, err = coherence.NewCoherenceClusterFromYaml("test-ns", file...)
+			cluster, err = helper.NewCoherenceClusterFromYaml("test-ns", file...)
 		})
 
 		When("file is valid", func() {
