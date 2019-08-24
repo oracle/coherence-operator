@@ -1,9 +1,13 @@
 package helper
 
 import (
+	"github.com/ghodss/yaml"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -150,4 +154,107 @@ func FindTestManifestDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + manifest, nil
+}
+
+// NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
+func NewCoherenceClusterFromYaml(namespace string, file ...string) (coh.CoherenceCluster, error) {
+	c := coh.CoherenceCluster{}
+	l := coherenceClusterLoader{}
+	err := l.loadYaml(&c, file...)
+
+	if namespace != "" {
+		c.SetNamespace(namespace)
+	}
+
+	return c, err
+}
+
+type coherenceClusterLoader struct {
+}
+
+// Load this CoherenceCluster from the specified yaml file
+func (in *coherenceClusterLoader) FromYaml(cluster *coh.CoherenceCluster, files ...string) error {
+	return in.loadYaml(cluster, files...)
+}
+
+func (in *coherenceClusterLoader) loadYaml(cluster *coh.CoherenceCluster, files ...string) error {
+	if in == nil || files == nil {
+		return nil
+	}
+
+	// try loading common-coherence-cluster.yaml first as this contains various values common
+	// to all test structures as well as values replaced by test environment variables.
+	_, c, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(c)
+	common := dir + string(os.PathSeparator) + "common-coherence-cluster.yaml"
+	err := in.loadYamlFromFile(cluster, common)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		err := in.loadYamlFromFile(cluster, file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (in *coherenceClusterLoader) loadYamlFromFile(cluster *coh.CoherenceCluster, file string) error {
+	if in == nil || file == "" {
+		return nil
+	}
+
+	actualFile, err := in.findActualFile(file)
+	if err != nil {
+		return err
+	}
+
+	data, err := ioutil.ReadFile(actualFile)
+	if err != nil {
+		return errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
+	}
+
+	// expand any ${env-var} references in the yaml file
+	s := os.ExpandEnv(string(data))
+
+	err = yaml.Unmarshal([]byte(s), cluster)
+	if err != nil {
+		return errors.New("Failed to parse yaml file " + actualFile + " caused by " + err.Error())
+	}
+
+	return nil
+}
+
+func (in *coherenceClusterLoader) findActualFile(file string) (string, error) {
+	_, err := os.Stat(file)
+	if err == nil {
+		return file, nil
+	}
+
+	// files does not exist
+	if !strings.HasPrefix(file, "/") {
+		// the file does not exist and is not absolute so try relative to a location
+		// in the call stack by walking up the stack and trying each location.
+		i := 0
+		for {
+			_, caller, _, ok := runtime.Caller(i)
+			if ok {
+				dir := filepath.Dir(caller)
+				f := dir + string(os.PathSeparator) + file
+				_, e := os.Stat(f)
+				if e == nil {
+					return f, nil
+				}
+			} else {
+				// no more call stack
+				break
+			}
+			i = i + 1
+		}
+	}
+
+	return "", err
 }

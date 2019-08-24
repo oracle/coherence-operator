@@ -1,14 +1,7 @@
 package v1
 
 import (
-	"errors"
-	"github.com/ghodss/yaml"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -66,94 +59,38 @@ func init() {
 	SchemeBuilder.Register(&CoherenceCluster{}, &CoherenceClusterList{})
 }
 
-func (c *CoherenceCluster) GetWkaServiceName() string {
-	if c == nil {
+func (in *CoherenceCluster) GetWkaServiceName() string {
+	if in == nil {
 		return ""
 	}
-	return c.Name + WKAServiceNameSuffix
+	return in.Name + WKAServiceNameSuffix
 }
 
 // Obtain the CoherenceRoleSpec for the specified role name
-func (c *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
-	if len(c.Spec.Roles) > 0 {
-		for _, role := range c.Spec.Roles {
+func (in *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
+	if len(in.Spec.Roles) > 0 {
+		for _, role := range in.Spec.Roles {
 			if role.GetRoleName() == name {
 				return role
 			}
 		}
-	} else if name == c.Spec.CoherenceRoleSpec.GetRoleName() {
-		return c.Spec.CoherenceRoleSpec
+	} else if name == in.Spec.CoherenceRoleSpec.GetRoleName() {
+		return in.Spec.CoherenceRoleSpec
 	}
 	return CoherenceRoleSpec{}
 }
 
 // Set the CoherenceRoleSpec
-func (c *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
+func (in *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
 	name := spec.GetRoleName()
-	if len(c.Spec.Roles) > 0 {
-		for index, role := range c.Spec.Roles {
+	if len(in.Spec.Roles) > 0 {
+		for index, role := range in.Spec.Roles {
 			if role.GetRoleName() == name {
-				c.Spec.Roles[index] = spec
+				in.Spec.Roles[index] = spec
 				break
 			}
 		}
-	} else if name == c.Spec.CoherenceRoleSpec.GetRoleName() {
-		c.Spec.CoherenceRoleSpec = spec
+	} else if name == in.Spec.CoherenceRoleSpec.GetRoleName() {
+		in.Spec.CoherenceRoleSpec = spec
 	}
-}
-
-// Load this CoherenceCluster from the specified yaml file
-func (c *CoherenceCluster) FromYaml(files ...string) error {
-	return c.loadYaml(files...)
-}
-
-// NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
-func NewCoherenceClusterFromYaml(namespace string, file ...string) (CoherenceCluster, error) {
-	c := CoherenceCluster{}
-	err := c.loadYaml(file...)
-
-	if namespace != "" {
-		c.SetNamespace(namespace)
-	}
-
-	return c, err
-}
-
-func (c *CoherenceCluster) loadYaml(files ...string) error {
-	if c == nil || files == nil {
-		return nil
-	}
-
-	for _, file := range files {
-		_, err := os.Stat(file)
-		if err != nil {
-			if !strings.HasPrefix(file, "/") {
-				// the file does not exist so try relative to the caller's file location.
-				_, caller, _, ok := runtime.Caller(2)
-				if ok {
-					dir := filepath.Dir(caller)
-					file = dir + string(os.PathSeparator) + file
-					_, e := os.Stat(file)
-					if e != nil {
-						return errors.New(err.Error() + "\n" + e.Error())
-					}
-				}
-			} else {
-				// file does not exist
-				return err
-			}
-		}
-
-		data, err := ioutil.ReadFile(file)
-		if err != nil {
-			return errors.New("Failed to read file " + file + " caused by " + err.Error())
-		}
-
-		err = yaml.Unmarshal(data, c)
-		if err != nil {
-			return errors.New("Failed to parse yaml file " + file + " caused by " + err.Error())
-		}
-	}
-
-	return nil
 }

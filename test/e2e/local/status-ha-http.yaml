@@ -11,8 +11,8 @@ spec:
       periodSeconds: 10
     images:
       userArtifacts:
-        image: ChangeMe
-        imagePullPolicy: Never
+        image: ${TEST_USER_IMAGE}
+        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
     cacheConfig: test-cache-config.xml
     main:
       class: com.oracle.coherence.k8s.testing.RestServer

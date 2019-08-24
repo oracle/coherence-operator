@@ -3,7 +3,6 @@ package remote
 import (
 	goctx "context"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"net/http"
@@ -29,7 +28,7 @@ func TestZone(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// load the test CoherenceCluster from a yaml files
-	cluster, err := coherence.NewCoherenceClusterFromYaml(namespace, "common-coherence-cluster.yaml", "zone-test.yaml")
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "zone-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// deploy the CoherenceCluster

@@ -90,7 +90,7 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd coherence-utils
-                        mvn -B clean install -P helm-test -P push-test-image -Dmaven.test.skip=true
+                        mvn -B clean install -P helm-test -P docker -P push-test-image -Dmaven.test.skip=true
                     '''
                 }
             }
@@ -167,6 +167,7 @@ pipeline {
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export IMAGE_PULL_POLICY=Always
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make e2e-test
@@ -178,6 +179,7 @@ pipeline {
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
