@@ -2,6 +2,7 @@ package local
 
 import (
 	goctx "context"
+	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
@@ -53,6 +54,8 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 
 	ns, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
+
+	fmt.Printf("StatusHA Test installing cluster:\n%+v\n", tc.Cluster)
 
 	err = f.Client.Create(goctx.TODO(), tc.Cluster, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
