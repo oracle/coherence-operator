@@ -204,6 +204,8 @@ install-crds: uninstall-crds
 # Uninstall CRDs
 uninstall-crds:
 	@echo "Removing CRDs"
+	kubectl delete crd coherenceinternals.coherence.oracle.com &
+	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 	for i in $(CRDS); do \
 		kubectl delete -f $${i} || true; \
 	done

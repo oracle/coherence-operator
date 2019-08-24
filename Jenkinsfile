@@ -18,6 +18,7 @@ def archiveAndCleanup() {
             kubectl delete clusterrole test-cop-sw-coherence-operator-cluster-role || true
             kubectl delete clusterrolebinding test-cop-sw-coherence-operator-cluster-role-binding || true
             kubectl delete namespace $TEST_NAMESPACE || true
+            make uninstall-crds || true
         '''
     }
 }
