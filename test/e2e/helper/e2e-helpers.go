@@ -3,6 +3,7 @@ package helper
 
 import (
 	goctx "context"
+	"encoding/json"
 	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/pkg/apis"
@@ -84,30 +85,55 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 
 // WaitForStatefulSetForRole waits for a StatefulSet to be created for the specified role.
 func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster *coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
-	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), role.GetReplicas(), retryInterval, timeout, logger)
+	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), cluster.Name, role.Role, role.GetReplicas(), retryInterval, timeout, logger)
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
-func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, name string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName, clusterName, roleName string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
+		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", name)
+				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", stsName)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", name, err.Error())
+			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", stsName, err.Error())
 			return false, err
 		}
 
 		if sts.Status.ReadyReplicas == replicas {
 			return true, nil
 		}
-		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", name, sts.Status.ReadyReplicas, replicas)
+		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", stsName, sts.Status.ReadyReplicas, replicas)
 		return false, nil
 	})
+
+	// if there is an error (probably after waiting has timed out) at least attempt to dump the StatfulSet state
+	if err != nil {
+		sts, e := kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
+		if e != nil {
+			d, _ := json.Marshal(sts)
+			logger.Logf("Error waiting for full availability of StatefulSet %s: StatefulSet state:\n%s", stsName, string(d))
+		} else {
+			logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet state due to:\n%s", stsName, e.Error())
+		}
+
+		pods, e := ListCoherencePods(kubeclient, namespace, clusterName, roleName)
+		if e != nil {
+			if len(pods) > 0 {
+				for _, pod := range pods {
+					d, _ := json.Marshal(sts)
+					logger.Logf("Error waiting for full availability of StatefulSet %s: StatefulSet Pod %s state:\n%s", stsName, pod.Name, string(d))
+				}
+			} else {
+				logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state as no Pods were found", stsName)
+			}
+		} else {
+			logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state due to:\n%s", stsName, e.Error())
+		}
+	}
 
 	return sts, err
 }

@@ -147,21 +147,21 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	logger.Info("Reconciling CoherenceRole")
 
 	// Fetch the CoherenceRole role
-	role := &coh.CoherenceRole{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, role)
+	role, found, err := r.getRole(request.Namespace, request.Name)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			logger.Info("CoherenceRole not found - assuming normal deletion")
-			return reconcile.Result{Requeue: false}, nil
-		}
 		// Error reading the object - requeue the request.
 		// We can't call the error handler as we do not even have a role.
 		// We log the error and do not requeue the request.
 		logger.Error(err, "Error getting CoherenceRole to reconcile")
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(failedToReconcileRole, role.Name, err), logger)
+	}
+
+	if !found {
+		// Request object not found, could have been deleted after reconcile request.
+		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+		// Return and don't requeue
+		logger.Info("CoherenceRole not found - assuming normal deletion")
+		return reconcile.Result{Requeue: false}, nil
 	}
 
 	clusterName := role.GetCoherenceClusterName()
@@ -193,6 +193,19 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 		// The Helm values was found so this is an update
 		return r.updateRole(cluster, role, helmValues)
 	}
+}
+
+// createRole creates a new Helm values structure in k8s, which will in turn trigger a Helm install.
+func (r *ReconcileCoherenceRole) getRole(namespace, name string) (*coh.CoherenceRole, bool, error) {
+	role := &coh.CoherenceRole{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, role)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return role, false, nil
+		}
+		return role, false, err
+	}
+	return role, true, nil
 }
 
 // createRole creates a new Helm values structure in k8s, which will in turn trigger a Helm install.

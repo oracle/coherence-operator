@@ -140,7 +140,7 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, cluster.Namespace, &cluster, role.Spec, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }
