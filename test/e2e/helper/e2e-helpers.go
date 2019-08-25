@@ -112,30 +112,68 @@ func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName, clu
 
 	// if there is an error (probably after waiting has timed out) at least attempt to dump the StatfulSet state
 	if err != nil {
-		sts, e := kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
-		if e != nil {
-			d, _ := json.Marshal(sts)
-			logger.Logf("Error waiting for full availability of StatefulSet %s: StatefulSet state:\n%s", stsName, string(d))
+		s, e := DumpStatefulSetState(kubeclient, namespace, stsName, clusterName, roleName, logger)
+		if e == nil {
+			logger.Logf("Error waiting for full availability of %s StatefulSet - state dumped to %s", stsName, s)
 		} else {
-			logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet state due to:\n%s", stsName, e.Error())
-		}
-
-		pods, e := ListCoherencePods(kubeclient, namespace, clusterName, roleName)
-		if e != nil {
-			if len(pods) > 0 {
-				for _, pod := range pods {
-					d, _ := json.Marshal(sts)
-					logger.Logf("Error waiting for full availability of StatefulSet %s: StatefulSet Pod %s state:\n%s", stsName, pod.Name, string(d))
-				}
-			} else {
-				logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state as no Pods were found", stsName)
-			}
-		} else {
-			logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state due to:\n%s", stsName, e.Error())
+			logger.Logf("Error waiting for full availability of %s StatefulSet - error dump ing state logs %s", stsName, e.Error())
 		}
 	}
 
 	return sts, err
+}
+
+// WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
+func DumpStatefulSetState(kubeclient kubernetes.Interface, namespace, stsName, clusterName, roleName string, logger Logger) (string, error) {
+	testLogsDir, err := FindTestLogsDir()
+	if err != nil {
+		logger.Logf("Cannot dump StatefulSet logs - cannot get logs directory due to %s", err.Error())
+		return "", err
+	}
+
+	_, err = os.Stat(testLogsDir)
+	if err != nil {
+		// logs dir does not exist
+		return "", err
+	}
+
+	logsDir := testLogsDir + string(os.PathSeparator) + stsName + string(time.Now().UnixNano())
+
+	err = os.Mkdir(logsDir, os.ModeDir)
+	if err != nil {
+		// logs dir does not exist
+		return "", err
+	}
+
+	sts, err := kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
+	if err == nil {
+		d, _ := json.Marshal(sts)
+		err = ioutil.WriteFile(logsDir+string(os.PathSeparator)+"StatefulSet-"+sts.Name, d, 0644)
+		if err != nil {
+			logger.Logf("Error writing StatefulSet %s state due to %s\n%s", stsName, err.Error(), string(d))
+		}
+	} else {
+		logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet state due to:\n%s", stsName, err.Error())
+	}
+
+	pods, e := ListCoherencePods(kubeclient, namespace, clusterName, roleName)
+	if e == nil {
+		if len(pods) > 0 {
+			for _, pod := range pods {
+				d, _ := json.Marshal(sts)
+				err = ioutil.WriteFile(logsDir+string(os.PathSeparator)+"Pod-"+pod.Name, d, 0644)
+				if err != nil {
+					logger.Logf("Error writing Pod %s state due to %s\n%s", stsName, err.Error(), string(d))
+				}
+			}
+		} else {
+			logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state as no Pods were found", stsName)
+		}
+	} else {
+		logger.Logf("Error waiting for full availability of StatefulSet %s: Cannot dump StatefulSet Pod state due to:\n%s", stsName, e.Error())
+	}
+
+	return logsDir, nil
 }
 
 // WaitForCoherenceRole waits for a CoherenceRole to be created.
