@@ -151,13 +151,15 @@ e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest
+e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest $(BUILD_OUTPUT)/tools/bin/go2xunit
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
+	$(BUILD_OUTPUT)/tools/bin/go2xunit -fail -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-local-test.xml
+
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a deployed operator instance (i.e. the operator Docker image is
@@ -174,13 +176,14 @@ e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-test: build reset-namespace create-ssl-secrets operator-manifest
+e2e-test: build reset-namespace create-ssl-secrets operator-manifest $(BUILD_OUTPUT)/tools/bin/go2xunit
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--image $(OPERATOR_IMAGE) --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	$(MAKE) delete-namespace
+	$(BUILD_OUTPUT)/tools/bin/go2xunit -fail -input $(TEST_LOGS)/operator-e2e-test.out -output $(TEST_LOGS)/operator-e2e-test.xml
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
@@ -286,3 +289,6 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator.crt=build/_output/certs/icarus.crt \
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
 
+# Ensure that go2xunit is installed
+$(BUILD_OUTPUT)/tools/bin/go2xunit:
+	GOPATH=$(BUILD_OUTPUT)/tools; go get github.com/tebeka/go2xunit
