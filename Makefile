@@ -161,7 +161,7 @@ e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-local-test.xml
+	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-local-test -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-local-test.xml
 
 
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -186,7 +186,7 @@ e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-test.xml
+	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-test -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-test.xml
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
