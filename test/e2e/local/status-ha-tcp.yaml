@@ -1,7 +1,7 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: status-ha-test-tcp
+  name: status-ha-tcp-test
 spec:
   roles:
   - role: storage

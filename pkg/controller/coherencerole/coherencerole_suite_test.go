@@ -3,6 +3,7 @@ package coherencerole
 import (
 	"encoding/json"
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -13,7 +14,8 @@ import (
 
 func TestCoherenceRoleControler(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CoherenceRole Controller Suite")
+	junitReporter := reporters.NewJUnitReporter("test-report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "CoherenceRole Controller Suite", []Reporter{junitReporter})
 }
 
 // UnstructuredToCoherenceInternalSpec converts an Unstructured to a CoherenceInternalSpec.

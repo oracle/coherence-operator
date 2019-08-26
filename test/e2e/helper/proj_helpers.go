@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"fmt"
 	"github.com/ghodss/yaml"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
@@ -157,10 +158,15 @@ func FindTestManifestDir() (string, error) {
 }
 
 // NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
-func NewCoherenceClusterFromYaml(namespace string, file ...string) (coh.CoherenceCluster, error) {
+func NewCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
 	c := coh.CoherenceCluster{}
+
+	if len(files) == 0 {
+		return c, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
+	}
+
 	l := coherenceClusterLoader{}
-	err := l.loadYaml(&c, file...)
+	err := l.loadYaml(&c, files...)
 
 	if namespace != "" {
 		c.SetNamespace(namespace)

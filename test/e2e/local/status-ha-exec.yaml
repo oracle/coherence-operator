@@ -1,7 +1,7 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: status-ha-test-exec
+  name: status-ha-exec-test
 spec:
   roles:
   - role: storage

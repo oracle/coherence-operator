@@ -13,6 +13,7 @@ require (
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/pflag v1.0.3
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 	golang.org/x/tools v0.0.0-20190408170212-12dd9f86f350
 	k8s.io/api v0.0.0-20190612125737-db0771252981
 	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236

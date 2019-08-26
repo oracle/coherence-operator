@@ -1,6 +1,7 @@
 package coherencecluster
 
 import (
+	"github.com/onsi/ginkgo/reporters"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -9,5 +10,6 @@ import (
 
 func TestCoherenceCluster(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CoherenceCluster Controller Suite")
+	junitReporter := reporters.NewJUnitReporter("test-report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "CoherenceCluster Controller Suite", []Reporter{junitReporter})
 }

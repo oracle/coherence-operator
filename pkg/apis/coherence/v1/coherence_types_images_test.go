@@ -87,6 +87,17 @@ var _ = Describe("Testing Images struct", func() {
 			})
 		})
 
+		When("all fields in the original are set and default is empty", func() {
+			BeforeEach(func() {
+				original = imagesOne.DeepCopy()
+				defaults = &coherence.Images{}
+			})
+
+			It("the clone should equal the original", func() {
+				Expect(clone).To(Equal(original))
+			})
+		})
+
 		When("the original Coherence field is nil", func() {
 			BeforeEach(func() {
 				original = imagesOne.DeepCopy()

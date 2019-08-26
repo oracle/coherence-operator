@@ -2,6 +2,7 @@ package helm_test
 
 import (
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"testing"
@@ -23,5 +24,6 @@ func TestCoherenceRoleControler(t *testing.T) {
 	HelmHelper = h
 
 	// Make Ginkgo run the rest of the test suite
-	RunSpecs(t, "Coherence Operator Helm Suite")
+	junitReporter := reporters.NewJUnitReporter("test-report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Coherence Operator Helm Suite", []Reporter{junitReporter})
 }
