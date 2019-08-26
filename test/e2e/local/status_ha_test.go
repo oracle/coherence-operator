@@ -3,6 +3,7 @@ package local
 import (
 	goctx "context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -10,6 +11,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/klog"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"testing"
 	"time"
@@ -27,6 +29,10 @@ func TestStatusHA(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	logf.SetLogger(zap.Logger())
+
+	flags := &flag.FlagSet{}
+	klog.InitFlags(flags)
+	_ = flags.Set("v", "4")
 
 	clusterDefault, err := helper.NewCoherenceClusterFromYaml(ns, "status-ha-default.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
