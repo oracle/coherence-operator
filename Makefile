@@ -204,11 +204,11 @@ install-crds: uninstall-crds
 # Uninstall CRDs
 uninstall-crds:
 	@echo "Removing CRDs"
-	kubectl delete crd coherenceinternals.coherence.oracle.com &
-	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 	for i in $(CRDS); do \
-		kubectl delete -f $${i} || true; \
+		(kubectl delete -f $${i} & ); \
 	done
+	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+
 
 # This step will run the Operator SDK code generators.
 # These commands will generate the CRD files from the API structs and will
