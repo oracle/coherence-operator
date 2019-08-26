@@ -45,10 +45,6 @@ else
 GO_TEST_CMD = ginkgo
 endif
 
-ifeq (,$(GOPATH))
-    GOPATH=$(realpath $(BUILD_OUTPUT))/tools/go
-endif
-
 GOS=$(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 COH_CHARTS=$(shell find helm-charts/coherence -type f)
 COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
@@ -155,14 +151,13 @@ e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest $(GOPATH)/bin/go2xunit
+e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
-	$(GOPATH)/bin/go2xunit -fail -input $(TEST_LOGS)/operator-e2e-local-test.out -output $(TEST_LOGS)/operator-e2e-local-test.xml
 
 
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -180,14 +175,13 @@ e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-test: build reset-namespace create-ssl-secrets operator-manifest $(GOPATH)/bin/go2xunit
+e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--image $(OPERATOR_IMAGE) --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	$(MAKE) delete-namespace
-	$(GOPATH)/bin/go2xunit -fail -input $(TEST_LOGS)/operator-e2e-test.out -output $(TEST_LOGS)/operator-e2e-test.xml
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
@@ -292,11 +286,3 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator.key=build/_output/certs/icarus.key \
 		--from-file=operator.crt=build/_output/certs/icarus.crt \
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
-
-# Ensure that go2xunit is installed
-$(GOPATH)/bin/go2xunit:
-	@echo "GOPATH is $(GOPATH)"
-	GO111MODULE=off; go get github.com/tebeka/go2xunit
-
-jk: $(GOPATH)/bin/go2xunit
-	@echo "foo"
