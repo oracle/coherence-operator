@@ -4,11 +4,13 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
+	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"testing"
 	"time"
 
@@ -23,6 +25,8 @@ type StatusHATestCase struct {
 func TestStatusHA(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
+
+	logf.SetLogger(zap.Logger())
 
 	clusterDefault, err := helper.NewCoherenceClusterFromYaml(ns, "status-ha-default.yaml")
 	g.Expect(err).NotTo(HaveOccurred())

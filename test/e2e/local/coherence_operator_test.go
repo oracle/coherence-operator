@@ -25,7 +25,7 @@ func TestClusterWithSingleRoleWithSingleMember(t *testing.T) {
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer ctx.Cleanup()
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
