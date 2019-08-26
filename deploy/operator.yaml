@@ -1,31 +1,73 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: coherence-operator
+  labels:
+    app: coherence-operator
+    component: coherence-operator
+    name: coherence-operator
+    release: operator
+  name: operator-coherence-operator
+  ownerReferences:
+  - apiVersion: coherence.oracle.com/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Operator
+    name: test
+    uid: ed170fa4-9419-45a3-8a80-72bd2ba34032
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: coherence-operator
+      coherenceOperatorCluster: operator-coherence-operator
+      component: coherence-operator
   template:
     metadata:
       labels:
+        app: coherence-operator
+        coherenceOperatorCluster: operator-coherence-operator
+        component: coherence-operator
         name: coherence-operator
+        release: operator
     spec:
-      serviceAccountName: coherence-operator
       containers:
-        - name: coherence-operator
-          # Replace this with the built image name
-          image: iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-SNAPSHOT
-          imagePullPolicy: Never
-          env:
-            - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: "coherence-operator"
+      - env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: coherence-operator
+        - name: SSL_CERTS_DIR
+          value: /coherence/certs
+        - name: SSL_KEY_FILE
+          value: operator.key
+        - name: SSL_CERT_FILE
+          value: operator.crt
+        - name: SSL_CA_FILE
+          value: operator-ca.crt
+        image: iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-SNAPSHOT
+        imagePullPolicy: Never
+        name: coherence-operator
+        ports:
+        - containerPort: 8000
+          name: rest
+        - containerPort: 8383
+          name: metrics
+        - containerPort: 8686
+          name: oper-metrics
+        volumeMounts:
+        - mountPath: /coherence/certs
+          name: ssl-config
+          readOnly: true
+      imagePullSecrets:
+      - name: coherence-k8s-operator-development-secret
+      - name: ocr-k8s-operator-development-secret
+      serviceAccountName: coherence-operator
+      volumes:
+      - name: ssl-config
+        secret:
+          secretName: coherence-ssl-secret
