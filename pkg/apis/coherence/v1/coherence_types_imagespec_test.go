@@ -50,6 +50,27 @@ var _ = Describe("Testing ImageSpec struct", func() {
 			})
 		})
 
+		When("defaults is empty", func() {
+			BeforeEach(func() {
+				always := v1.PullAlways
+
+				original = &coherence.ImageSpec{
+					Image:           stringPtr("foo:1.0"),
+					ImagePullPolicy: &always,
+				}
+
+				defaults = &coherence.ImageSpec{}
+			})
+
+			It("should copy the original Image", func() {
+				Expect(*clone.Image).To(Equal(*original.Image))
+			})
+
+			It("should copy the original ImagePullPolicy", func() {
+				Expect(*clone.ImagePullPolicy).To(Equal(*original.ImagePullPolicy))
+			})
+		})
+
 		When("original is nil", func() {
 			BeforeEach(func() {
 				always := v1.PullAlways

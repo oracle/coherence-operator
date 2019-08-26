@@ -1,7 +1,7 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: status-ha-test-tcp
+  name: status-ha-tcp-test
 spec:
   roles:
   - role: storage
@@ -11,8 +11,8 @@ spec:
       periodSeconds: 10
     images:
       userArtifacts:
-        image: ChangeMe
-        imagePullPolicy: Never
+        image: ${TEST_USER_IMAGE}
+        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
     cacheConfig: test-cache-config.xml
     main:
       class: com.oracle.coherence.k8s.testing.RestServer

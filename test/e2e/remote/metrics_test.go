@@ -54,7 +54,7 @@ func TestMetrics(t *testing.T) {
 	ssl.RequireClientCert = pointer.BoolPtr(true)
 
 	// load the test CoherenceCluster from a yaml files
-	clusterWithoutSSL, err := coh.NewCoherenceClusterFromYaml(namespace, "common-coherence-cluster.yaml", "metrics-test.yaml")
+	clusterWithoutSSL, err := helper.NewCoherenceClusterFromYaml(namespace, "metrics-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Copy clusterWithoutSSL and configure it to use SSL at the Spec level in all roles

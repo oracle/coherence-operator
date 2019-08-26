@@ -8,7 +8,6 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -58,50 +57,23 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	)
 	g := NewGomegaWithT(t)
 
-	testImage := os.Getenv("TEST_USER_IMAGE")
-	if testImage == "" {
-		t.Fatal("The TEST_USER_IMAGE environment variable must point to a valid Coherence test image")
-	}
-
-	// Cannot execute this test using a local operator because safe scaling requires
-	// the operator to make ReST calls to Pods which it can only do when properly
-	// deployed into the k8s cluster.
-	g.Expect(framework.Global.LocalOperator).To(BeFalse())
-
 	ctx := helper.CreateTestContext(t)
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	artifacts := &coherence.UserArtifactsImageSpec{ImageSpec: coherence.ImageSpec{Image: &testImage}}
-	config := "test-cache-config.xml"
-	main := "com.oracle.coherence.k8s.testing.RestServer"
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-test.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
 
-	roleOne := coherence.CoherenceRoleSpec{
-		Role:          roleName,
-		Replicas:      &replicasStart,
-		ScalingPolicy: &policy,
-		Images:        &coherence.Images{UserArtifacts: artifacts},
-		Ports: []coherence.NamedPortSpec{
-			{Name: "rest", PortSpec: coherence.PortSpec{Port: 8080}},
-		},
-		CacheConfig: &config,
-		Main:        &coherence.MainSpec{Class: &main},
-	}
-
-	cluster := coherence.CoherenceCluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      clusterName,
-		},
-		Spec: coherence.CoherenceClusterSpec{
-			CoherenceRoleSpec: coherence.CoherenceRoleSpec{
-				ReadinessProbe: helper.Readiness,
-			},
-			Roles: []coherence.CoherenceRoleSpec{roleOne},
-		},
-	}
+	// Get the role and update it's replica count and scaling policy
+	roleSpec := cluster.Spec.Roles[0]
+	roleSpec.SetReplicas(replicasStart)
+	roleSpec.ScalingPolicy = &policy
+	// NOTE: we MUST set the role back into the role array because in the cluster
+	// because in Go (unlike some other languages) we seem to have a COPY of what
+	// is in the role array.
+	cluster.Spec.Roles[0] = roleSpec
 
 	// Do the canary test unless parallel scaling down
 	doCanary := replicasStart < replicasScale || policy != coherence.ParallelScaling
@@ -168,7 +140,7 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, cluster.Namespace, &cluster, role.Spec, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }

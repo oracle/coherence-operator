@@ -3,10 +3,12 @@ package helper
 
 import (
 	goctx "context"
+	"encoding/json"
 	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
@@ -84,28 +86,28 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 
 // WaitForStatefulSetForRole waits for a StatefulSet to be created for the specified role.
 func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster *coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
-	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), role.GetReplicas(), retryInterval, timeout, logger)
+	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), cluster.Name, role.Role, role.GetReplicas(), retryInterval, timeout, logger)
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
-func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, name string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName, clusterName, roleName string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
+		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", name)
+				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", stsName)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", name, err.Error())
+			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", stsName, err.Error())
 			return false, err
 		}
 
 		if sts.Status.ReadyReplicas == replicas {
 			return true, nil
 		}
-		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", name, sts.Status.ReadyReplicas, replicas)
+		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", stsName, sts.Status.ReadyReplicas, replicas)
 		return false, nil
 	})
 
@@ -464,5 +466,324 @@ func DumpOperatorLogsAndCleanup(t *testing.T, ctx *framework.TestCtx) {
 	if err == nil {
 		DumpOperatorLog(framework.Global.KubeClient, namespace, t.Name(), t)
 	}
+	DumpState(namespace, t.Name(), t)
 	ctx.Cleanup()
+}
+
+func DumpState(namespace, dir string, logger Logger) {
+	dumpCoherenceClusters(namespace, dir, logger)
+	dumpCoherenceRoles(namespace, dir, logger)
+	dumpCoherenceInternals(namespace, dir, logger)
+	dumpStatefulSets(namespace, dir, logger)
+	dumpPods(namespace, dir, logger)
+}
+
+func dumpCoherenceClusters(namespace, dir string, logger Logger) {
+	const message = "Could not dump CoherenceClusters for namespace %s due to %s\n"
+
+	f := framework.Global
+	listOpts := &client.ListOptions{}
+	listOpts.InNamespace(namespace)
+	list := coh.CoherenceClusterList{}
+	err := f.Client.List(context.TODO(), listOpts, &list)
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "cluster-list.txt")
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "CoherenceCluster-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No CoherenceClusters resources found in namespace "+namespace)
+	}
+}
+
+func dumpCoherenceRoles(namespace, dir string, logger Logger) {
+	const message = "Could not dump CoherenceRoles for namespace %s due to %s\n"
+
+	f := framework.Global
+	listOpts := &client.ListOptions{}
+	listOpts.InNamespace(namespace)
+	list := coh.CoherenceRoleList{}
+	err := f.Client.List(context.TODO(), listOpts, &list)
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "role-list.txt")
+	if err != nil {
+		fmt.Printf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "CoherenceRole-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No CoherenceRoles resources found in namespace "+namespace)
+	}
+}
+
+func dumpCoherenceInternals(namespace, dir string, logger Logger) {
+	const message = "Could not dump CoherenceInternals for namespace %s due to %s\n"
+
+	f := framework.Global
+	listOpts := &client.ListOptions{}
+	listOpts.InNamespace(namespace)
+	list := unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+	err := f.Client.List(context.TODO(), listOpts, &list)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "internal-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "CoherenceInternal-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No CoherenceInternals resources found in namespace "+namespace)
+	}
+}
+
+func dumpStatefulSets(namespace, dir string, logger Logger) {
+	const message = "Could not dump StatefulSets for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.AppsV1().StatefulSets(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "sts-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "StatefulSet-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+	}
+}
+
+func dumpPods(namespace, dir string, logger Logger) {
+	const message = "Could not dump Pods for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "pod-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Pod-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+	}
+}
+
+func ensureLogsDir(subDir string) (string, error) {
+	logs, err := FindTestLogsDir()
+	if err != nil {
+		return "", err
+	}
+
+	dir := logs + string(os.PathSeparator) + subDir
+	err = os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return "", err
+	}
+
+	return dir, err
 }

@@ -12,6 +12,7 @@ def setBuildStatus(String message, String state, String project_url, String sha)
 
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
+        junit "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-test.xml"
         archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,coherence-utils/utils/target/test-output/**/*,coherence-utils/utils/target/surefire-reports/**/*,coherence-utils/utils/target/failsafe-reports/**/*,coherence-utils/functional-tests/target/test-output/**/*,coherence-utils/functional-tests/target/surefire-reports/**/*,coherence-utils/functional-tests/target/failsafe-reports/**/*'
         sh '''
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
@@ -90,7 +91,7 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                         cd coherence-utils
-                        mvn -B clean install -P helm-test -P push-test-image -Dmaven.test.skip=true
+                        mvn -B clean install -P helm-test -P docker -P push-test-image -Dmaven.test.skip=true
                     '''
                 }
             }
@@ -167,6 +168,7 @@ pipeline {
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
@@ -180,6 +182,7 @@ pipeline {
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml

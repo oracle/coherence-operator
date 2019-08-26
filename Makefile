@@ -22,13 +22,17 @@ PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 GO_TEST_FLAGS ?=
 GO_TEST_FLAGS_E2E := -timeout=60m $(GO_TEST_FLAGS)
 
+# This is the Coherence image that will be used in the Go tests.
+# Changing this variable will allow test builds to be run against differet Coherence versions
+TEST_COHERENCE_IMAGE ?= $(HELM_COHERENCE_IMAGE)
+
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
 
 CREATE_TEST_NAMESPACE ?= true
 
 IMAGE_PULL_SECRETS ?=
-IMAGE_PULL_POLICY  ?= Never
+IMAGE_PULL_POLICY  ?=
 
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
@@ -48,10 +52,11 @@ DEPLOYS=$(shell find deploy -type f -name "*.yaml")
 CRDS=$(shell find deploy/crds -name "*_crd.yaml")
 RBAC=deploy/service_account.yaml deploy/role.yaml deploy/role_binding.yaml
 
-TEST_MANIFEST_DIR    := $(BUILD_OUTPUT)/manifest
-TEST_MANIFEST_FILE   := test-manifest.yaml
-TEST_MANIFEST_VALUES ?= deploy/test-values.yaml
-TEST_SSL_SECRET      := coherence-ssl-secret
+TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
+TEST_MANIFEST_FILE        := test-manifest.yaml
+TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
+TEST_MANIFEST_VALUES      ?= deploy/test-values.yaml
+TEST_SSL_SECRET           := coherence-ssl-secret
 
 # Do a search and replace of properties in selected files in the Helm charts
 # This is done because the Helm charts can be large and processing every file
@@ -143,6 +148,8 @@ e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
+e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
@@ -150,9 +157,11 @@ e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml" --namespaced-manifest=$(TEST_MANIFEST) \
+		--local-operator-flags "--watches-file=local-watches.yaml" \
+		--namespaced-manifest=$(TEST_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
+
 
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a deployed operator instance (i.e. the operator Docker image is
@@ -164,15 +173,16 @@ e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+e2e-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
-		--image $(OPERATOR_IMAGE) --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--verbose --debug --namespaced-manifest=$(TEST_MANIFEST) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
 	$(MAKE) delete-namespace
 
@@ -184,6 +194,7 @@ e2e-test: build reset-namespace create-ssl-secrets operator-manifest
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
+helm-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -278,4 +289,3 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator.key=build/_output/certs/icarus.key \
 		--from-file=operator.crt=build/_output/certs/icarus.crt \
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
-

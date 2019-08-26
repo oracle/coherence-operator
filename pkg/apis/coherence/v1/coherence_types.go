@@ -1026,6 +1026,7 @@ func (in *UserArtifactsImageSpec) DeepCopyWithDefaults(defaults *UserArtifactsIm
 	}
 
 	clone := UserArtifactsImageSpec{}
+	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
 
 	if in.LibDir != nil {
 		clone.LibDir = in.LibDir

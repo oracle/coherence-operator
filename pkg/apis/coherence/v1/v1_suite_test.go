@@ -1,6 +1,7 @@
 package v1_test
 
 import (
+	"github.com/onsi/ginkgo/reporters"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -9,5 +10,6 @@ import (
 
 func TestApiV1(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "API V1 Suite")
+	junitReporter := reporters.NewJUnitReporter("test-report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "API V1 Suite", []Reporter{junitReporter})
 }

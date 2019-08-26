@@ -1,14 +1,11 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: status-ha-http-test
+  name: test-cluster
 spec:
   roles:
-  - role: storage
-    replicas: 1
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 10
+  - role: one
+    replicas: 3
     images:
       userArtifacts:
         image: ${TEST_USER_IMAGE}
@@ -16,10 +13,3 @@ spec:
     cacheConfig: test-cache-config.xml
     main:
       class: com.oracle.coherence.k8s.testing.RestServer
-    ports:
-    - name: rest
-      port: 8080
-    statusHA:
-      httpGet:
-        path: ready
-        port: rest

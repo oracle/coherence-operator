@@ -6,6 +6,7 @@ import (
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -56,7 +57,7 @@ func TestClusterWithSingleRoleWithSingleMember(t *testing.T) {
 	g.Expect(role.Spec.GetRoleName()).To(Equal(roleName))
 	g.Expect(role.Spec.GetReplicas()).To(Equal(replicas))
 
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, namespace, roleFullName, replicas, helper.RetryInterval, helper.Timeout, t)
+	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role.Spec, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }
