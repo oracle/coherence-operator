@@ -3,10 +3,8 @@ module github.com/oracle/coherence-operator
 require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
-	github.com/go-openapi/loads v0.17.0
-	github.com/go-openapi/spec v0.19.0
-	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/validate v0.18.0
+	github.com/go-test/deep v1.0.3
 	github.com/onsi/ginkgo v1.7.0
 	github.com/onsi/gomega v1.4.3
 	github.com/operator-framework/operator-sdk v0.9.1-0.20190724001845-d6e1aba9fa51
@@ -15,7 +13,6 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/tebeka/go2xunit v1.4.10
 	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
-	golang.org/x/tools v0.0.0-20190408170212-12dd9f86f350
 	k8s.io/api v0.0.0-20190612125737-db0771252981
 	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad

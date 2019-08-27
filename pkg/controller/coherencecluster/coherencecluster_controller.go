@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/go-test/deep"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"k8s.io/api/core/v1"
@@ -22,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strings"
 )
 
 const (
@@ -251,13 +253,15 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 // updateRole updates an existing cluster role.
 func (r *ReconcileCoherenceCluster) updateRole(p params) (reconcile.Result, error) {
 	logger := p.reqLogger.WithValues("Role", p.existingRole.GetName())
-	logger.Info("Update CoherenceRole")
 
 	if reflect.DeepEqual(p.existingRole.Spec, p.desiredRole) {
 		// nothing to do
 		logger.Info("Existing Role is at the desired spec")
 		return reconcile.Result{}, nil
 	}
+
+	diff := deep.Equal(p.existingRole.Spec, p.desiredRole)
+	logger.Info("Updating CoherenceRole - diff\n    " + strings.Join(diff, "\n    "+"\n"))
 
 	// Create the CoherenceRole resource in k8s which will be detected by the role controller
 	p.existingRole.Spec = p.desiredRole
