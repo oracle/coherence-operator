@@ -3,6 +3,7 @@ package coherencerole
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
@@ -278,6 +279,10 @@ func (r *ReconcileCoherenceRole) createRole(cluster *coh.CoherenceCluster, role 
 
 	// Create the CoherenceInternal resource in k8s which will be detected
 	// by the Helm operator and trigger a Helm install
+
+	d, _ := json.Marshal(helmValues)
+	logger.Info("Creating CoherenceInternal\n------------\n" + string(d) + "\n------------\n")
+
 	if err := r.client.Create(context.TODO(), helmValues); err != nil {
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
 	}
