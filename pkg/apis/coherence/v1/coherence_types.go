@@ -887,7 +887,7 @@ type StatusHAHandler struct {
 
 var defaultStatusHA = StatusHAHandler{
 	Enabled:        pointer.BoolPtr(true),
-	TimeoutSeconds: 1,
+	TimeoutSeconds: 10,
 	Handler: corev1.Handler{
 		Exec:      &corev1.ExecAction{Command: []string{"/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha"}},
 		HTTPGet:   nil,
