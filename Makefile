@@ -151,7 +151,7 @@ e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest
+e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -179,7 +179,7 @@ e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-test: build reset-namespace create-ssl-secrets operator-manifest
+e2e-test: build reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
