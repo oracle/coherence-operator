@@ -24,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"sync"
 	"time"
 )
 
@@ -91,6 +92,8 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 		events:        mgr.GetRecorder(controllerName),
 		statusHARetry: retry,
 		mgr:           mgr,
+		resourceLocks: make(map[types.NamespacedName]bool),
+		mutex:         sync.Mutex{},
 	}
 }
 
@@ -135,6 +138,38 @@ type ReconcileCoherenceRole struct {
 	events        record.EventRecorder
 	statusHARetry time.Duration
 	mgr           manager.Manager
+	resourceLocks map[types.NamespacedName]bool
+	mutex         sync.Mutex
+}
+
+// Attempt to lock the requested resource.
+func (r *ReconcileCoherenceRole) lock(request reconcile.Request) bool {
+	if r == nil {
+		return false
+	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	_, found := r.resourceLocks[request.NamespacedName]
+	if found {
+		log.Info("Resource " + request.Namespace + "/" + request.Name + " is locked")
+		return false
+	}
+
+	r.resourceLocks[request.NamespacedName] = true
+	log.Info("Acquired lock for resource " + request.Namespace + "/" + request.Name)
+	return true
+}
+
+// Unlock the requested resource
+func (r *ReconcileCoherenceRole) unlock(request reconcile.Request) {
+	if r != nil {
+		r.mutex.Lock()
+		defer r.mutex.Unlock()
+
+		log.Info("Released lock for resource " + request.Namespace + "/" + request.Name)
+		delete(r.resourceLocks, request.NamespacedName)
+	}
 }
 
 // Reconcile reads that state of a CoherenceRole object and makes changes based on the state read
@@ -145,6 +180,15 @@ type ReconcileCoherenceRole struct {
 func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
 	logger.Info("Reconciling CoherenceRole")
+
+	// Attempt to lock the requested resource. If the resource is locked then another
+	// request for the same resource is already in progress so requeue this one.
+	if ok := r.lock(request); !ok {
+		logger.Info("Resource " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
+		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+	}
+	// Make sure that the request is unlocked when this method exits
+	defer r.unlock(request)
 
 	// Fetch the CoherenceRole role
 	role, found, err := r.getRole(request.Namespace, request.Name)
