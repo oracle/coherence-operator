@@ -263,8 +263,8 @@ operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz $(BUILD_PRO
 	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
 	cat deploy/crds/coherence_v1_coherenceinternal_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
 	temp_file=$(BUILD_OUTPUT)/temp.out; \
-	sed -i "" 's|TEST_NAMESPACE|$(TEST_NAMESPACE)|g' $(TEST_MANIFEST_DIR)/global-manifest.yaml
-
+	awk '{sub(/TEST_NAMESPACE/,"$(TEST_NAMESPACE)")}1' $(TEST_MANIFEST_DIR)/global-manifest.yaml > $${temp_file}; \
+	mv $${temp_file} $(TEST_MANIFEST_DIR)/global-manifest.yaml
 	go run ./cmd/helmutil/
 
 # Generate the keys and certs used in tests.

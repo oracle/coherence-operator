@@ -18,7 +18,7 @@ def archiveAndCleanup() {
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
             kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator-cluster-role || true
             kubectl delete clusterrolebinding $TEST_NAMESPACE-coherence-operator-cluster-role-binding || true
-            kubectl delete namespace $TEST_NAMESPACE --force --grace-period= 0 || true
+            kubectl delete namespace $TEST_NAMESPACE --force --grace-period=0 || true
             make uninstall-crds || true
         '''
     }
