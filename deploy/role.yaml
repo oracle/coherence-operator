@@ -50,17 +50,6 @@ rules:
 - apiGroups:
   - coherence.oracle.com
   resources:
-  - coherenceclusters
-  - coherenceroles
-  - coherenceroles/finalizers
-  - coherenceinternals
-  - coherenceinternals/finalizers
+  - '*'
   verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
