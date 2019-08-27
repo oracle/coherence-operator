@@ -13,6 +13,4 @@ spec:
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 5
-  imagePullSecrets:
-    - coherence-k8s-operator-development-secret
-    - ocr-k8s-operator-development-secret
+  imagePullSecrets: [${IMAGE_PULL_SECRETS}]

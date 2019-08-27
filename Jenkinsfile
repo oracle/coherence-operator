@@ -16,8 +16,8 @@ def archiveAndCleanup() {
         archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,coherence-utils/utils/target/test-output/**/*,coherence-utils/utils/target/surefire-reports/**/*,coherence-utils/utils/target/failsafe-reports/**/*,coherence-utils/functional-tests/target/test-output/**/*,coherence-utils/functional-tests/target/surefire-reports/**/*,coherence-utils/functional-tests/target/failsafe-reports/**/*'
         sh '''
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
-            kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator-cluster-role || true
-            kubectl delete clusterrolebinding $TEST_NAMESPACE-coherence-operator-cluster-role-binding || true
+            kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator || true
+            kubectl delete clusterrolebinding $TEST_NAMESPACE-coherence-operator-cluster || true
             kubectl delete namespace $TEST_NAMESPACE --force --grace-period=0 || true
             make uninstall-crds || true
         '''

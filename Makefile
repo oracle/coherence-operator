@@ -145,7 +145,6 @@ test: build
 # These tests require the Operator CRDs and will install them before
 # tests start and remove them afterwards.
 e2e-local-test: export CGO_ENABLED = 0
-e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
@@ -159,11 +158,11 @@ e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest unins
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS)/operator-e2e-local-test.out
+		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-local-test/ \
-	    -input $(TEST_LOGS)/operator-e2e-local-test.out \
-	    -output $(TEST_LOGS)/operator-e2e-local-test.xml
+	    -input $(TEST_LOGS_DIR)/operator-e2e-local-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-e2e-local-test.xml
 
 
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -173,7 +172,6 @@ e2e-local-test: build reset-namespace create-ssl-secrets operator-manifest unins
 # These tests require the Operator CRDs and will install them before
 # tests start and remove them afterwards.
 e2e-test: export CGO_ENABLED = 0
-e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
@@ -188,11 +186,11 @@ e2e-test: build reset-namespace create-ssl-secrets operator-manifest uninstall-c
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS)/operator-e2e-test.out
+		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
 	$(MAKE) delete-namespace
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-test/ \
-	    -input $(TEST_LOGS)/operator-e2e-test.out \
-	    -output $(TEST_LOGS)/operator-e2e-test.xml
+	    -input $(TEST_LOGS_DIR)/operator-e2e-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-e2e-test.xml
 
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.

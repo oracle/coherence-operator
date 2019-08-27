@@ -27,3 +27,6 @@ _output/
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Output from Ginkgo JUnit reporter
+pkg/**/test-report.xml
