@@ -2,14 +2,12 @@
 package rest
 
 import (
-	"context"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/net"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"net/http"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
@@ -23,12 +21,12 @@ const (
 var log = logf.Log.WithName("rest-server")
 
 // The k8s client
-var k8sClient client.Client
+var k8sClient *kubernetes.Clientset
 
 // StartRestServer starts a ReST server to server Coherence Operator requests,
 // for example node zone information.
 func StartRestServer(mgr manager.Manager, host string, port int32) {
-	k8sClient = mgr.GetClient()
+	k8sClient = kubernetes.NewForConfigOrDie(mgr.GetConfig())
 
 	http.HandleFunc("/zone/", getZoneForNode)
 
@@ -73,27 +71,23 @@ func GetHostAndPort() string {
 	return fmt.Sprintf("%s:%d", service, port)
 }
 
-// getZoneForNode is a GET request that returns the zone label for a k8s node
-// or a 404 response if the node does not exist.
+// getZoneForNode is a GET request that returns the zone label for a k8s node.
 func getZoneForNode(w http.ResponseWriter, r *http.Request) {
-	node := &corev1.Node{}
+	var zone string
 
 	pos := strings.LastIndex(r.URL.Path, "/")
 	name := r.URL.Path[1+pos:]
-	err := k8sClient.Get(context.TODO(), client.ObjectKey{Namespace: "", Name: name}, node)
+	node, err := k8sClient.CoreV1().Nodes().Get(name, metav1.GetOptions{})
 
-	if err != nil {
+	if err == nil {
+		zone = node.Labels[zoneLabel]
+	} else {
 		log.Error(err, "Error getting node "+name+" from k8s")
-		if errors.IsNotFound(err) {
-			w.WriteHeader(404)
-			fmt.Println(w, "Node "+name+" does not exist")
-		} else {
-			w.WriteHeader(500)
-			fmt.Println(w, "An error occurred getting node information from k8s")
-		}
+		zone = ""
 	}
 
-	if _, err = fmt.Fprint(w, node.Labels[zoneLabel]); err != nil {
+	w.WriteHeader(200)
+	if _, err = fmt.Fprint(w, zone); err != nil {
 		log.Error(err, "Error writing zone response for node "+name)
 	}
 }

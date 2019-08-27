@@ -58,6 +58,9 @@ type OperatorValues struct {
 	// Specifies values for Prometheus Operator
 	// +optional
 	Prometheusoperator *PrometheusOperatorSpec `json:"prometheusoperator,omitempty"`
+	// Specifies whether to generate the ClusterRole yaml.
+	// +optional
+	EnableClusterRole *bool `json:"enableClusterRole,omitempty"`
 }
 
 // OperatorSpec defines the settings for the Operator.
@@ -76,6 +79,13 @@ type OperatorSSL struct {
 
 type PrometheusOperatorSpec struct {
 	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// Set whether to generate the ClusterRole yaml.
+func (v *OperatorValues) SetEnableClusterRole(enabled bool) {
+	if v != nil {
+		v.EnableClusterRole = &enabled
+	}
 }
 
 // LoadFromYaml loads the data from the specified YAML file into this OperatorValues

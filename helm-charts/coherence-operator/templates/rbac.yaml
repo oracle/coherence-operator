@@ -1,0 +1,35 @@
+{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved. */}}
+{{/* Licensed under the Universal Permissive License v 1.0 as shown at               */}}
+{{/* http://oss.oracle.com/licenses/upl.                                             */}}
+{{- if or (kindIs "invalid" .Values.enableClusterRole) .Values.enableClusterRole -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Namespace }}-coherence-operator
+  labels:
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+    component: coherence-operator-cluster-role
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - nodes
+    verbs:
+    - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Namespace }}-coherence-operator
+  labels:
+{{- include "coherence-operator.release_labels" . | indent 4 }}
+    component: coherence-operator-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Namespace }}-coherence-operator
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

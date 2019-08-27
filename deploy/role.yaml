@@ -13,8 +13,6 @@ rules:
   - events
   - configmaps
   - secrets
-  - namespaces
-  - nodes
   verbs:
   - '*'
 - apiGroups:
@@ -60,5 +58,6 @@ rules:
   - coherenceclusters
   - coherenceroles
   - coherenceinternals
+  - coherenceinternals/finalizers
   verbs:
   - '*'

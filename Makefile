@@ -54,7 +54,6 @@ RBAC=deploy/service_account.yaml deploy/role.yaml deploy/role_binding.yaml
 
 TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
 TEST_MANIFEST_FILE        := test-manifest.yaml
-TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
 TEST_MANIFEST_VALUES      ?= deploy/test-values.yaml
 TEST_SSL_SECRET           := coherence-ssl-secret
 
@@ -148,7 +147,6 @@ e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-local-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
-e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -176,7 +174,6 @@ e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_LOGS = $(TEST_LOGS_DIR)
 e2e-test: export TEST_USER_IMAGE = $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
-e2e-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -254,12 +251,6 @@ operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_
 operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
 operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
 	@mkdir -p $(TEST_MANIFEST_DIR)
-	echo "---" > $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherencecluster_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherencerole_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherenceinternal_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
 	go run ./cmd/helmutil/
 
 # Generate the keys and certs used in tests.

@@ -19,6 +19,7 @@ main()
     shift
     MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
     MAIN_ARGS=""
+    GET_SITE=true
 
     case "${COMMAND}" in
         server) server ;;
@@ -184,6 +185,8 @@ probe()
     shift
     MAIN_ARGS=${@}
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false"
+#   The probe does not require the site
+    GET_SITE=""
     }
 
 
@@ -289,30 +292,33 @@ commonConfiguration()
     fi
 
 #   Configure the Coherence member's site and rack
-    if [[ "${COH_SITE_INFO_LOCATION}" != "" ]]
+    if [[ "${GET_SITE}" != "" ]]
     then
-        case "${COH_SITE_INFO_LOCATION}" in
-            http://\$*)
-                SITE=""
-                ;;
-            http://*)
-                SITE=$(curl --silent ${COH_SITE_INFO_LOCATION})
-                if [[ $? != 0 ]]
-                then
-                    SITE=""
-                fi
-                ;;
-            *)
-                if [[ -f "${COH_SITE_INFO_LOCATION}" ]]
-                then
-                    SITE=`cat ${COH_SITE_INFO_LOCATION}`
-                fi
-        esac
+      if [[ "${COH_SITE_INFO_LOCATION}" != "" ]]
+      then
+          case "${COH_SITE_INFO_LOCATION}" in
+              http://\$*)
+                  SITE=""
+                  ;;
+              http://*)
+                  SITE=$(curl --silent ${COH_SITE_INFO_LOCATION})
+                  if [[ $? != 0 ]]
+                  then
+                      SITE=""
+                  fi
+                  ;;
+              *)
+                  if [[ -f "${COH_SITE_INFO_LOCATION}" ]]
+                  then
+                      SITE=`cat ${COH_SITE_INFO_LOCATION}`
+                  fi
+          esac
 
-        if [[ -n "${SITE}" ]]
-        then
-            PROPS="${PROPS} -Dcoherence.site=${SITE} -Dcoherence.rack=${SITE}"
-        fi
+          if [[ -n "${SITE}" ]]
+          then
+              PROPS="${PROPS} -Dcoherence.site=${SITE} -Dcoherence.rack=${SITE}"
+          fi
+      fi
     fi
 
 #   Configure the POF configuration file to use

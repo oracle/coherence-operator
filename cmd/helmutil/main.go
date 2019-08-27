@@ -60,6 +60,8 @@ func main() {
 	}
 
 	values := helper.OperatorValues{}
+	values.SetEnableClusterRole(false)
+
 	vf := helper.GetTestManifestValuesFileName()
 	if vf != "" {
 		err = values.LoadFromYaml(vf)
