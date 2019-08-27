@@ -171,7 +171,7 @@ pipeline {
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
-                    make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
+                    make e2e-test
                 '''
             }
         }

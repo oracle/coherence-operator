@@ -20,7 +20,7 @@ PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 # as the zone test using the go test -run=regex argument like this
 #   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
 GO_TEST_FLAGS ?=
-GO_TEST_FLAGS_E2E := -timeout=60m $(GO_TEST_FLAGS)
+GO_TEST_FLAGS_E2E := -timeout=100m $(GO_TEST_FLAGS)
 
 # This is the Coherence image that will be used in the Go tests.
 # Changing this variable will allow test builds to be run against differet Coherence versions
