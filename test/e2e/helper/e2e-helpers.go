@@ -767,6 +767,8 @@ func dumpPods(namespace, dir string, logger Logger) {
 				logger.Logf(message, namespace, err.Error())
 				return
 			}
+
+			DumpPodLog(f.KubeClient, &item, logsDir, logger)
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
