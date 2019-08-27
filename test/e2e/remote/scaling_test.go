@@ -147,16 +147,16 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 
 // Initialise the canary test in the role being scaled.
 func startCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryStart")
+	return canary(namespace, clusterName, roleName, "canaryStart", http.MethodPut)
 }
 
 // Invoke the canary test in the role being scaled.
 func checkCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryCheck")
+	return canary(namespace, clusterName, roleName, "canaryCheck", http.MethodGet)
 }
 
 // Make a canary ReST PUT call to Pod zero of the role.
-func canary(namespace, clusterName, roleName, endpoint string) error {
+func canary(namespace, clusterName, roleName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-%s-0", clusterName, roleName)
 	f := framework.Global
 
@@ -174,7 +174,7 @@ func canary(namespace, clusterName, roleName, endpoint string) error {
 
 	url := fmt.Sprintf("http://127.0.0.1:%d/%s", ports["rest"], endpoint)
 	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodPut, url, strings.NewReader(""))
+	request, err := http.NewRequest(method, url, strings.NewReader(""))
 	if err != nil {
 		return err
 	}
