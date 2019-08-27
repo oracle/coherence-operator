@@ -476,6 +476,9 @@ func DumpState(namespace, dir string, logger Logger) {
 	dumpCoherenceInternals(namespace, dir, logger)
 	dumpStatefulSets(namespace, dir, logger)
 	dumpPods(namespace, dir, logger)
+	dumpRoles(namespace, dir, logger)
+	dumpRoleBindings(namespace, dir, logger)
+	dumpServiceAccounts(namespace, dir, logger)
 }
 
 func dumpCoherenceClusters(namespace, dir string, logger Logger) {
@@ -713,6 +716,177 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+	}
+}
+
+func dumpRoles(namespace, dir string, logger Logger) {
+	const message = "Could not dump Roles for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.RbacV1().Roles(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "role-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Role-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No Role resources found in namespace "+namespace)
+	}
+}
+
+func dumpRoleBindings(namespace, dir string, logger Logger) {
+	const message = "Could not dump RoleBindings for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.RbacV1().RoleBindings(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "role-binding-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "RoleBinding-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No RoleBinding resources found in namespace "+namespace)
+	}
+}
+
+func dumpServiceAccounts(namespace, dir string, logger Logger) {
+	const message = "Could not dump ServiceAccounts for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.CoreV1().ServiceAccounts(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "service-accounts-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "ServiceAccount-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprint(listFile, "No ServiceAccount resources found in namespace "+namespace)
 	}
 }
 
