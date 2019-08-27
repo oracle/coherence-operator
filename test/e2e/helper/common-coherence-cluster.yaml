@@ -12,7 +12,7 @@ spec:
       imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   readinessProbe:
     initialDelaySeconds: 10
-    periodSeconds: 10
+    periodSeconds: 5
   imagePullSecrets:
     - coherence-k8s-operator-development-secret
     - ocr-k8s-operator-development-secret
