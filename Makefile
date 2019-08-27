@@ -252,20 +252,11 @@ clean:
 operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
 operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+operator-manifest: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
-operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz $(BUILD_PROPS)
+operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION).tar.gz
 	@mkdir -p $(TEST_MANIFEST_DIR)
-	cat deploy/rbac/rbac.yaml > $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherencecluster_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherencerole_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	echo "---" >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	cat deploy/crds/coherence_v1_coherenceinternal_crd.yaml >> $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	temp_file=$(BUILD_OUTPUT)/temp.out; \
-	awk '{sub(/TEST_NAMESPACE/,"$(TEST_NAMESPACE)")}1' $(TEST_MANIFEST_DIR)/global-manifest.yaml > $${temp_file}; \
-	mv $${temp_file} $(TEST_MANIFEST_DIR)/global-manifest.yaml
-	go run ./cmd/helmutil/
+	go run ./cmd/manifestutil/
 
 # Generate the keys and certs used in tests.
 $(BUILD_OUTPUT)/certs:

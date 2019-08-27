@@ -15,6 +15,7 @@ import (
 const (
 	TestNamespaceEnv      = "TEST_NAMESPACE"
 	TestManifestEnv       = "TEST_MANIFEST"
+	TestGlobalManifestEnv = "TEST_GLOBAL_MANIFEST"
 	TestSslSecretEnv      = "TEST_SSL_SECRET"
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
@@ -28,6 +29,8 @@ const (
 	operatorChart  = chartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs       = outDir + string(os.PathSeparator) + "test-logs"
 	certs          = outDir + string(os.PathSeparator) + "certs"
+	deploy         = "deploy"
+	crds           = deploy + string(os.PathSeparator) + "crds"
 	manifest       = outDir + string(os.PathSeparator) + "manifest"
 )
 
@@ -47,6 +50,18 @@ func GetTestManifestFileName() (string, error) {
 			return "", err
 		}
 		man = dir + string(os.PathSeparator) + "test-manifest.yaml"
+	}
+	return man, nil
+}
+
+func GetTestGlobalManifestFileName() (string, error) {
+	man := os.Getenv(TestGlobalManifestEnv)
+	if man == "" {
+		dir, err := FindTestManifestDir()
+		if err != nil {
+			return "", err
+		}
+		man = dir + string(os.PathSeparator) + "global-manifest.yaml"
 	}
 	return man, nil
 }
@@ -92,6 +107,14 @@ func FindBuildDir() (string, error) {
 		return "", err
 	}
 	return pd + string(os.PathSeparator) + buildDir, nil
+}
+
+func FindCrdDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+	return pd + string(os.PathSeparator) + crds, nil
 }
 
 func FindBuildOutputDir() (string, error) {

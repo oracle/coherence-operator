@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/operator-framework/operator-sdk/pkg/helm/client"
+	"github.com/operator-framework/operator-sdk/pkg/helm/engine"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/pborman/uuid"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,9 +26,7 @@ import (
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-
-	"github.com/operator-framework/operator-sdk/pkg/helm/client"
-	"github.com/operator-framework/operator-sdk/pkg/helm/engine"
+	"strings"
 )
 
 // This method is used by the Operator build to generate a yaml manifest that
@@ -37,9 +38,7 @@ func main() {
 	namespace := helper.GetTestNamespace()
 	cfg, _, err := helper.GetKubeconfigAndNamespace("")
 	clientv1, err := v1.NewForConfig(cfg)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	storageBackend := storage.Init(driver.NewSecrets(clientv1.Secrets(namespace)))
 
@@ -50,35 +49,25 @@ func main() {
 	})
 
 	tillerKubeClient, err := client.NewFromManager(mgr)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	chartDir, err := helper.FindOperatorHelmChartDir()
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	values := helper.OperatorValues{}
-	values.SetEnableClusterRole(false)
+	//values.SetEnableClusterRole(false)
 
 	vf := helper.GetTestManifestValuesFileName()
 	if vf != "" {
 		err = values.LoadFromYaml(vf)
-		if err != nil {
-			panic(err)
-		}
+		panicIfErr(err)
 	} else {
 		err = values.LoadFromYaml(chartDir + string(os.PathSeparator) + "values.yaml")
-		if err != nil {
-			panic(err)
-		}
+		panicIfErr(err)
 	}
 
 	cr, err := values.ToYaml()
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "Operator"})
@@ -89,14 +78,10 @@ func main() {
 	u.SetName("test")
 
 	releaseServer, err := getReleaseServer(u, storageBackend, tillerKubeClient)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	chart, err := loadChart(chartDir)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	chart.Dependencies = make([]*cpb.Chart, 0)
 
@@ -112,25 +97,62 @@ func main() {
 	}
 
 	dryRunResponse, err := releaseServer.InstallRelease(context.TODO(), dryRunReq)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 
 	fName, err := helper.GetTestManifestFileName()
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
+
+	globalName, err := helper.GetTestGlobalManifestFileName()
+	panicIfErr(err)
 
 	f, err := os.Create(fName)
-	if err != nil {
-		panic(err)
+	panicIfErr(err)
+
+	global, err := os.Create(globalName)
+	panicIfErr(err)
+
+	parts := strings.Split(dryRunResponse.Release.Manifest, "---")
+
+	for _, part := range parts {
+		if strings.Contains(part, "kind: ClusterRole") {
+			_, err = global.WriteString("\n---\n")
+			panicIfErr(err)
+			_, err = global.WriteString(part)
+			panicIfErr(err)
+		} else {
+			_, err = f.WriteString("\n---\n")
+			panicIfErr(err)
+			_, err = f.WriteString(part)
+			panicIfErr(err)
+		}
 	}
 
-	_, err = f.WriteString(dryRunResponse.Release.Manifest)
+	crds, err := helper.FindCrdDir()
+	panicIfErr(err)
+	crdFiles, err := ioutil.ReadDir(crds)
+	panicIfErr(err)
+
+	for _, file := range crdFiles {
+		if strings.HasSuffix(file.Name(), "_crd.yaml") {
+			_, err = global.WriteString("\n---\n")
+			panicIfErr(err)
+			data, err := ioutil.ReadFile(crds + string(os.PathSeparator) + file.Name())
+			panicIfErr(err)
+			_, err = global.Write(data)
+			panicIfErr(err)
+		}
+	}
+
+	_ = f.Close()
+	_ = global.Close()
+}
+
+func panicIfErr(err error) {
 	if err != nil {
+		fmt.Println("****** Error:")
+		fmt.Println(err)
 		panic(err)
 	}
-	_ = f.Close()
 }
 
 // getReleaseServer creates a ReleaseServer configured with a rendering engine that adds ownerrefs to rendered assets
