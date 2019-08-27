@@ -6,6 +6,9 @@ spec:
   roles:
   - role: one
     replicas: 3
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
     images:
       userArtifacts:
         image: ${TEST_USER_IMAGE}
@@ -13,3 +16,6 @@ spec:
     cacheConfig: test-cache-config.xml
     main:
       class: com.oracle.coherence.k8s.testing.RestServer
+    ports:
+    - name: rest
+      port: 8080
