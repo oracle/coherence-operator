@@ -145,7 +145,6 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
 					},
 					Volume: &corev1.Volume{
-						Name:         "vol1",
 						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 					},
 				},
@@ -162,7 +161,6 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
 					},
 					Volume: &corev1.Volume{
-						Name:         "vol1",
 						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 					},
 				},
@@ -419,11 +417,19 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			})
 
 			It("should set the Store Persistence", func() {
-				Expect(result.Store.Persistence).To(Equal(role.Spec.Persistence))
+				expectedPersistence := role.Spec.Persistence.DeepCopy();
+				if expectedPersistence.Volume != nil {
+					expectedPersistence.Volume.Name = "persistence-volume"
+				}
+				Expect(result.Store.Persistence).To(Equal(expectedPersistence))
 			})
 
 			It("should set the Store Snapshot", func() {
-				Expect(result.Store.Snapshot).To(Equal(role.Spec.Snapshot))
+				expectedSnapshot := role.Spec.Snapshot.DeepCopy();
+				if expectedSnapshot.Volume != nil {
+					expectedSnapshot.Volume.Name = "snapshot-volume"
+				}
+				Expect(result.Store.Snapshot).To(Equal(expectedSnapshot))
 			})
 
 			It("should set the Store Management", func() {

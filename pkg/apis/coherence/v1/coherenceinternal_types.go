@@ -272,8 +272,20 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.JavaOpts = role.Spec.JavaOpts
 	out.Store.PodManagementPolicy = role.Spec.PodManagementPolicy
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
-	out.Store.Persistence = role.Spec.Persistence
-	out.Store.Snapshot = role.Spec.Snapshot
+	if role.Spec.Persistence != nil {
+		out.Store.Persistence = role.Spec.Persistence.DeepCopy();
+		if out.Store.Persistence.Volume != nil {
+			// override the persistence volume name
+			out.Store.Persistence.Volume.Name = "persistence-volume"
+		}
+	}
+	if role.Spec.Snapshot != nil {
+		out.Store.Snapshot = role.Spec.Snapshot.DeepCopy();
+		if out.Store.Snapshot.Volume != nil {
+			// override the snapshot volume name
+			out.Store.Snapshot.Volume.Name = "snapshot-volume"
+		}
+	}
 	out.Store.Management = role.Spec.Management
 	out.Store.Metrics = role.Spec.Metrics
 	out.Store.JMX = role.Spec.JMX
