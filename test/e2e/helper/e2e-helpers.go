@@ -86,11 +86,11 @@ func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
 
 // WaitForStatefulSetForRole waits for a StatefulSet to be created for the specified role.
 func WaitForStatefulSetForRole(kubeclient kubernetes.Interface, namespace string, cluster *coh.CoherenceCluster, role coh.CoherenceRoleSpec, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
-	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), cluster.Name, role.Role, role.GetReplicas(), retryInterval, timeout, logger)
+	return WaitForStatefulSet(kubeclient, namespace, role.GetFullRoleName(cluster), role.GetReplicas(), retryInterval, timeout, logger)
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
-func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName, clusterName, roleName string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -165,24 +165,25 @@ func WaitForOperatorPods(kubeclient kubernetes.Interface, namespace string, retr
 }
 
 // List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
-func ListOperatorPods(kubeclient kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
-	opts := metav1.ListOptions{
-		LabelSelector: "name=coherence-operator",
-	}
-
-	list, err := kubeclient.CoreV1().Pods(namespace).List(opts)
-	if err != nil {
-		return []corev1.Pod{}, err
-	}
-
-	return list.Items, nil
+func ListOperatorPods(client kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
+	return ListPodsWithLabelSelector(client, namespace, "name=coherence-operator")
 }
 
-// List the Coherence Cluster Pods that exist - this is Pods with the label "coherenceCluster=<cluster>,coherenceRole=<role>"
-func ListCoherencePods(kubeclient kubernetes.Interface, namespace, cluster, role string) ([]corev1.Pod, error) {
-	opts := metav1.ListOptions{LabelSelector: "coherenceCluster=" + cluster + ",coherenceRole=" + role}
+// List the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
+func ListCoherencePodsForCluster(client kubernetes.Interface, namespace, cluster string) ([]corev1.Pod, error) {
+	return ListPodsWithLabelSelector(client, namespace, fmt.Sprintf("coherenceCluster=%s", cluster))
+}
 
-	list, err := kubeclient.CoreV1().Pods(namespace).List(opts)
+// List the Coherence Cluster Pods that exist for a role - this is Pods with the label "coherenceCluster=<cluster>,coherenceRole=<role>"
+func ListCoherencePodsForRole(client kubernetes.Interface, namespace, cluster, role string) ([]corev1.Pod, error) {
+	return ListPodsWithLabelSelector(client, namespace, fmt.Sprintf("coherenceCluster=%s,coherenceRole=%s", cluster, role))
+}
+
+// List the Coherence Cluster Pods that exist for a given label selector.
+func ListPodsWithLabelSelector(client kubernetes.Interface, namespace, selector string) ([]corev1.Pod, error) {
+	opts := metav1.ListOptions{LabelSelector: selector}
+
+	list, err := client.CoreV1().Pods(namespace).List(opts)
 	if err != nil {
 		return []corev1.Pod{}, err
 	}
@@ -191,9 +192,9 @@ func ListCoherencePods(kubeclient kubernetes.Interface, namespace, cluster, role
 }
 
 // WaitForPodReady waits for a Pods to be ready.
-func WaitForPodReady(kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+func WaitForPodReady(client kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		p, err := kubeclient.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
+		p, err := client.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
@@ -945,7 +946,7 @@ func dumpPods(namespace, dir string, logger Logger) {
 			DumpPodLog(f.KubeClient, &item, dir, logger)
 		}
 	} else {
-		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+		_, _ = fmt.Fprint(listFile, "No Pod resources found in namespace "+namespace)
 	}
 }
 

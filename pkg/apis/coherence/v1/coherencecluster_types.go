@@ -66,6 +66,29 @@ func (in *CoherenceCluster) GetWkaServiceName() string {
 	return in.Name + WKAServiceNameSuffix
 }
 
+// Obtain a map of the CoherenceRoleSpec structs in the cluster.
+// These CoherenceRoleSpec instances are copies of those in this
+// cluster and not references.
+func (in *CoherenceCluster) GetRoles() map[string]CoherenceRoleSpec {
+	m := make(map[string]CoherenceRoleSpec)
+	if in == nil {
+		return m
+	}
+
+	if len(in.Spec.Roles) == 0 {
+		spec := in.Spec.CoherenceRoleSpec
+		m[spec.GetRoleName()] = *spec.DeepCopy()
+	} else {
+		defaults := in.Spec.CoherenceRoleSpec
+		for _, role := range in.Spec.Roles {
+			spec := role.DeepCopyWithDefaults(&defaults)
+			m[spec.GetRoleName()] = *spec
+		}
+	}
+
+	return m
+}
+
 // Obtain the CoherenceRoleSpec for the specified role name
 func (in *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 	if len(in.Spec.Roles) > 0 {
@@ -93,4 +116,13 @@ func (in *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
 	} else if name == in.Spec.CoherenceRoleSpec.GetRoleName() {
 		in.Spec.CoherenceRoleSpec = spec
 	}
+}
+
+// Obtain the total number of replicas across all roles in the cluster
+func (in *CoherenceCluster) GetClusterSize() int {
+	var size = 0
+	for _, role := range in.GetRoles() {
+		size = size + int(role.GetReplicas())
+	}
+	return size
 }

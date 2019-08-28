@@ -515,6 +515,11 @@ build-all-images: build-operator build-utils-image build-test-image
 push-all-images: push-operator-image push-utils-image push-test-image
 
 # ---------------------------------------------------------------------------
+# Push all of the Docker images that are released
+# ---------------------------------------------------------------------------
+push-release-images: push-operator-image push-utils-image
+
+# ---------------------------------------------------------------------------
 # Build everything
 # ---------------------------------------------------------------------------
 build-all: build-mvn build-operator

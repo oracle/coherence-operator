@@ -2,13 +2,9 @@ package remote
 
 import (
 	goctx "context"
-	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -76,7 +72,7 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 
 	if doCanary {
 		t.Log("Initialising canary cache")
-		err = startCanary(namespace, clusterName, roleName)
+		err = helper.StartCanary(namespace, clusterName, roleName)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -91,7 +87,7 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 
 	if doCanary {
 		t.Log("Checking canary cache")
-		err = checkCanary(namespace, clusterName, roleName)
+		err = helper.CheckCanary(namespace, clusterName, roleName)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 }
@@ -135,51 +131,4 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.Coherenc
 	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, cluster.Namespace, &cluster, role.Spec, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
-}
-
-// Initialise the canary test in the role being scaled.
-func startCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryStart", http.MethodPut)
-}
-
-// Invoke the canary test in the role being scaled.
-func checkCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryCheck", http.MethodGet)
-}
-
-// Make a canary ReST PUT call to Pod zero of the role.
-func canary(namespace, clusterName, roleName, endpoint, method string) error {
-	podName := fmt.Sprintf("%s-%s-0", clusterName, roleName)
-	f := framework.Global
-
-	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	forwarder, ports, err := helper.StartPortForwarderForPod(pod)
-	if err != nil {
-		return err
-	}
-
-	defer forwarder.Close()
-
-	url := fmt.Sprintf("http://127.0.0.1:%d/%s", ports["rest"], endpoint)
-	client := &http.Client{}
-	request, err := http.NewRequest(method, url, strings.NewReader(""))
-	if err != nil {
-		return err
-	}
-
-	request.ContentLength = 0
-	resp, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("expected http response %d but received %d from '%s'", http.StatusOK, resp.StatusCode, url)
-	}
-
-	return nil
 }

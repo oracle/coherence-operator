@@ -9,18 +9,35 @@ import (
 )
 
 const (
+	// The URL pattern for Coherence management cluster query.
+	clusterFormat = "http://%s:%d/management/coherence/cluster"
 	// The URL pattern for Coherence management members query.
 	membersFormat = "http://%s:%d/management/coherence/cluster/members"
 	// The URL pattern for Coherence management services query.
 	servicesFormat = "http://%s:%d/management/coherence/cluster/services"
 	// The URL pattern for Coherence management partition assignment query.
 	partitionFormat = "http://%s:%d/management/coherence/cluster/services/%s/partition"
+
+	// The default name of the management port in a Coherence container.
+	PORT_NAME = "mgmt-port"
 )
 
 // A struct to use to hold the results of a generic Coherence management ReST query.
 type RestData struct {
 	Links []map[string]string
 	Items []map[string]interface{}
+}
+
+// A struct to use to hold the results of a generic Coherence management ReST cluster query.
+type ClusterData struct {
+	Links         []map[string]string `json:"Links"`
+	RefreshTime   string              `json:"refreshTime"`
+	LicenseMode   string              `json:"licenseMode"`
+	ClusterSize   int                 `json:"clusterSize"`
+	LocalMemberId int                 `json:"localMemberId"`
+	Version       string              `json:"version"`
+	Running       bool                `json:"running"`
+	ClusterName   string              `json:"clusterName"`
 }
 
 // A struct to use to hold the results of a Coherence management ReST services query
@@ -73,6 +90,15 @@ type MemberData struct {
 	Id           int                 `json:"id"`
 	NodeId       string              `json:"nodeId"`
 	LoggingLevel int                 `json:"loggingLevel"`
+}
+
+// Perform a Management over ReST cluster query http://localhost:30000/management/coherence/cluster
+// and return the results, the http response status and any error.
+func GetCluster(cl *http.Client, host string, port int32) (*ClusterData, int, error) {
+	url := fmt.Sprintf(clusterFormat, host, port)
+	data := &ClusterData{}
+	status, err := query(cl, url, data)
+	return data, status, err
 }
 
 // Perform a Management over ReST members query http://localhost:30000/management/coherence/cluster/members
