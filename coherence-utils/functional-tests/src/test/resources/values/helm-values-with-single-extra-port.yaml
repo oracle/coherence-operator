@@ -1,5 +1,0 @@
-# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
-
-store:
-  ports:
-    foo: 8080

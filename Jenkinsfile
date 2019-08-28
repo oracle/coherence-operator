@@ -12,8 +12,8 @@ def setBuildStatus(String message, String state, String project_url, String sha)
 
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
-        junit "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-test.xml"
-        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,coherence-utils/utils/target/test-output/**/*,coherence-utils/utils/target/surefire-reports/**/*,coherence-utils/utils/target/failsafe-reports/**/*,coherence-utils/functional-tests/target/test-output/**/*,coherence-utils/functional-tests/target/surefire-reports/**/*,coherence-utils/functional-tests/target/failsafe-reports/**/*'
+        junit "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-test.xml,java/**/surefire-reports/*.xml,java/**/failsafe-reports/*.xml"
+        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,java/utils/target/test-output/**/*,java/utils/target/surefire-reports/**/*,java/utils/target/failsafe-reports/**/*,java/functional-tests/target/test-output/**/*,java/functional-tests/target/surefire-reports/**/*,java/functional-tests/target/failsafe-reports/**/*'
         sh '''
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
             kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator || true
@@ -44,9 +44,9 @@ pipeline {
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
-        stage('build-utils') {
+        stage('build') {
             steps {
-                echo 'Docker Build utils'
+                echo 'Build'
                 script {
                     setBuildStatus("Build in Progress...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
                 }
@@ -56,22 +56,60 @@ pipeline {
                         unset HTTPS_PROXY
                         unset NO_PROXY
                     fi
-                    helm init --client-only
                 '''
-                sh 'docker swarm leave --force || true'
-                sh 'docker swarm init'
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
-                        cd coherence-utils
-                        mvn generate-resources
-                        mvn -Pdocker clean install
+                    make clean
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make build-all
                     '''
                 }
             }
         }
-        stage('push-utils') {
+        stage('test') {
+            steps {
+                echo 'Tests'
+                script {
+                    setBuildStatus("Tests in Progress...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                    make clean
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make test-all
+                    '''
+                }
+            }
+        }
+        stage('build-images') {
+            steps {
+                echo 'Build Docker Images'
+                script {
+                    setBuildStatus("Building Docker images...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                        export http_proxy=$HTTP_PROXY
+                        export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                        make build-all-images
+                    '''
+                }
+            }
+        stage('push-images') {
             steps {
                 echo 'Docker Push'
+                script {
+                    setBuildStatus("Pushing Docker images...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 withCredentials([
                     string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
                     string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
@@ -79,49 +117,20 @@ pipeline {
                     withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
                             docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                            cd coherence-utils
-                            mvn -B -Dmaven.test.skip=true -P docker -P docker-push clean install
+                            export http_proxy=$HTTP_PROXY
+                            export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                            make push-all-images
                         '''
                     }
                 }
             }
         }
-        stage('build-push-test') {
-            steps {
-                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    sh '''
-                        cd coherence-utils
-                        mvn -B clean install -P helm-test -P docker -P push-test-image -Dmaven.test.skip=true
-                    '''
-                }
-            }
-        }
-        stage('build-go') {
-            steps {
-                sh '''
-                    export http_proxy=$HTTP_PROXY
-                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
-                    make build
-                '''
-            }
-        }
-        stage('test') {
-            steps {
-                sh 'make test'
-            }
-        }
-        stage('push-operator') {
-            steps {
-                sh '''
-                    export http_proxy=$HTTP_PROXY
-                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    make push
-                '''
-            }
-        }
         stage('create-secrets') {
             steps {
+                echo 'Create K8s secrets'
+                script {
+                    setBuildStatus("Creating K8s secrets...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 withCredentials([
                     string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
                     string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
@@ -151,6 +160,10 @@ pipeline {
         }
         stage('e2e-local-test') {
             steps {
+                echo 'Operator end-to-end local tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end local tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
@@ -164,6 +177,10 @@ pipeline {
         }
         stage('e2e-test') {
             steps {
+                echo 'Operator end-to-end tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false
@@ -177,6 +194,10 @@ pipeline {
         }
         stage('helm-test') {
             steps {
+                echo 'Operator Helm tests'
+                script {
+                    setBuildStatus("Running Operator Helm tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
                 sh '''
                     export http_proxy=$HTTP_PROXY
                     export CREATE_TEST_NAMESPACE=false

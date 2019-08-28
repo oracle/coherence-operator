@@ -1,7 +1,0 @@
-# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
-
-targetNamespaces: [ ${k8s.target.namespaces} ]
-
-serviceAccount: my-coh-operator
-
-logCaptureEnabled: true
