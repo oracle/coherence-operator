@@ -1,4 +1,4 @@
-package remote
+package local
 
 import (
 	"context"
@@ -124,21 +124,21 @@ func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec)
 	// For each Pod test whether we can connect to metrics
 	for _, pod := range pods {
 		if isSSL {
-			err = requestMetricsWithSSL(t, pod, tc)
+			err = requestMetricsWithSSL(pod, tc)
 			if tc.ShouldSucceed {
 				g.Expect(err).NotTo(HaveOccurred())
 			} else {
 				g.Expect(err).To(HaveOccurred())
 			}
 		} else {
-			err = requestMetricsWithoutSSL(t, pod)
+			err = requestMetricsWithoutSSL(pod)
 			g.Expect(err).NotTo(HaveOccurred())
 		}
 	}
 }
 
 // test connecting to an SSL enabled Pod.
-func requestMetricsWithSSL(t *testing.T, pod corev1.Pod, tc MetricsTestCase) error {
+func requestMetricsWithSSL(pod corev1.Pod, tc MetricsTestCase) error {
 	certDir, err := helper.FindTestCertsDir()
 	if err != nil {
 		return err
@@ -170,17 +170,17 @@ func requestMetricsWithSSL(t *testing.T, pod corev1.Pod, tc MetricsTestCase) err
 		},
 	}
 
-	return assertMetricsRequest(t, pod, client, "https")
+	return assertMetricsRequest(pod, client, "https")
 }
 
 // test connecting to a plain http Pod.
-func requestMetricsWithoutSSL(t *testing.T, pod corev1.Pod) error {
+func requestMetricsWithoutSSL(pod corev1.Pod) error {
 	client := &http.Client{}
-	return assertMetricsRequest(t, pod, client, "http")
+	return assertMetricsRequest(pod, client, "http")
 }
 
 // make a metrics request.
-func assertMetricsRequest(t *testing.T, pod corev1.Pod, client *http.Client, protocol string) error {
+func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string) error {
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
 	if err != nil {
 		return err

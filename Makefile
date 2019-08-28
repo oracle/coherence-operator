@@ -219,6 +219,40 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 	    -input $(TEST_LOGS_DIR)/operator-e2e-local-test.out \
 	    -output $(TEST_LOGS_DIR)/operator-e2e-local-test.xml
 
+# ---------------------------------------------------------------------------
+# Run e2e local test in debug mode.
+# This assumes that "make run-debug" has already been run so that a local
+# Operator is running in debug mode and that the k8s namespace has been
+# configured.
+#
+# Typically this step would be run with the GO_TEST_FLAGS variable set to
+# run a specific test. For example to just run the ZoneTest...
+#
+# make debug-e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
+#
+# ...where the -run argument is passed to go test and contains a reg-ex
+# matching the name of the individual test to run.
+#
+# The reg-ex used to identify a test can also be used to run individual
+# sub-tests. For example the status_ha_test.go file has a test called
+# TestStatusHA that has a sub-test called HttpStatusHAHandler.
+# To run this sub-test...
+#
+# make debug-e2e-test GO_TEST_FLAGS='-run=^TestStatusHA/HttpStatusHAHandler$$'
+#
+# ---------------------------------------------------------------------------
+debug-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+debug-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+debug-e2e-local-test:
+	operator-sdk test local ./test/e2e/local \
+	    --namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags \
+		"$(GO_TEST_FLAGS_E2E)" --no-setup
+
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -250,6 +284,47 @@ e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest un
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-test/ \
 	    -input $(TEST_LOGS_DIR)/operator-e2e-test.out \
 	    -output $(TEST_LOGS_DIR)/operator-e2e-test.xml
+
+# ---------------------------------------------------------------------------
+# Run e2e test in debug mode.
+# This assumes that "make run-debug" has already been run so that a local
+# Operator is running in debug mode and that the k8s namespace has been
+# configured.
+#
+# NOTE: The majority of e2e-test tests will FAIL if run woth a local operator
+# due to the fact that either the Operator needs to access a Pod directly
+# (for example in scaling tests) or the Pod needs to contact the Operator
+# directly (for example in the zone tests). Due to the network constraints
+# in k8s the Pods and Opererator cannot see eachother. For some debugging
+# scenarios this may be OK but BEWARE!!
+#
+# Typically this step would be run with the GO_TEST_FLAGS variable set to
+# run a specific test. For example to just run the ZoneTest...
+#
+# make debug-e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
+#
+# ...where the -run argument is passed to go test and contains a reg-ex
+# matching the name of the individual test to run.
+#
+# The reg-ex used to identify a test can also be used to run individual
+# sub-tests. For example the scaling_test.go file has a test called
+# TestScaling that has a sub-test called DownSafeScaling.
+# To run this sub-test...
+#
+# make debug-e2e-test GO_TEST_FLAGS='-run=^TestScaling/DownSafeScaling$$'
+#
+# ---------------------------------------------------------------------------
+debug-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+debug-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+debug-e2e-test:
+	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
+
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Helm chart tests.
@@ -443,3 +518,26 @@ push-all-images: push-operator-image push-utils-image push-test-image
 # Build everything
 # ---------------------------------------------------------------------------
 build-all: build-mvn build-operator
+
+
+# ---------------------------------------------------------------------------
+# Run the Operator in debug mode
+# Running this task will start the Operator and pause it until a Delve
+# is attached.
+#
+# To exit out of the local Operator you can use ctrl-c or ctrl-z but
+# sometimes this leaves orphaned processes on the local machine so
+# ensure these are killed run "make debug-stop"
+# ---------------------------------------------------------------------------
+run-debug: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
+	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
+	--operator-flags="--watches-file=local-watches.yaml" \
+	--enable-delve \
+	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+
+# ---------------------------------------------------------------------------
+# Kill any locally running Operator
+# ---------------------------------------------------------------------------
+debug-stop:
+	./hack/kill-local.sh
