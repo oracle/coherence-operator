@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"testing"
 )
 
 var _ = Describe("Testing CoherenceCluster", func() {
@@ -171,3 +172,62 @@ var _ = Describe("Testing CoherenceCluster", func() {
 		})
 	})
 })
+
+func TestDefaultCluster(t *testing.T) {
+	g := NewGomegaWithT(t)
+	cluster := coherence.CoherenceCluster{}
+	g.Expect(cluster.GetClusterSize()).To(Equal(int(coherence.DefaultReplicas)))
+}
+
+func TestRoleWithDefaultReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	role := coherence.CoherenceRoleSpec{Role: "foo"}
+	cluster := coherence.CoherenceCluster{
+		Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{role}},
+	}
+	g.Expect(cluster.GetClusterSize()).To(Equal(int(coherence.DefaultReplicas)))
+}
+
+func TestRoleWithReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	role := coherence.CoherenceRoleSpec{Role: "foo"}
+	role.SetReplicas(20)
+	cluster := coherence.CoherenceCluster{
+		Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{role}},
+	}
+	g.Expect(cluster.GetClusterSize()).To(Equal(20))
+}
+
+func TestTwoRoleWithDefaultReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	roleOne := coherence.CoherenceRoleSpec{Role: "foo"}
+	roleTwo := coherence.CoherenceRoleSpec{Role: "bar"}
+	cluster := coherence.CoherenceCluster{
+		Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{roleOne, roleTwo}},
+	}
+	g.Expect(cluster.GetClusterSize()).To(Equal(6))
+}
+
+func TestTwoRoleWithSameReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	roleOne := coherence.CoherenceRoleSpec{Role: "foo"}
+	roleOne.SetReplicas(1)
+	roleTwo := coherence.CoherenceRoleSpec{Role: "bar"}
+	roleTwo.SetReplicas(1)
+	cluster := coherence.CoherenceCluster{
+		Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{roleOne, roleTwo}},
+	}
+	g.Expect(cluster.GetClusterSize()).To(Equal(2))
+}
+
+func TestTwoRoleWithDifferentReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	roleOne := coherence.CoherenceRoleSpec{Role: "foo"}
+	roleOne.SetReplicas(10)
+	roleTwo := coherence.CoherenceRoleSpec{Role: "bar"}
+	roleTwo.SetReplicas(20)
+	cluster := coherence.CoherenceCluster{
+		Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{roleOne, roleTwo}},
+	}
+	g.Expect(cluster.GetClusterSize()).To(Equal(30))
+}

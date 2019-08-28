@@ -4,7 +4,7 @@ metadata:
   name: test-cluster
 spec:
   roles:
-    - name: data
+    - role: data
       replicas: 1
-    - name: proxy
+    - role: proxy
       replicas: 1

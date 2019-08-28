@@ -24,7 +24,7 @@ func TestNoRoleOneReplica(t *testing.T) {
 }
 
 func TestOneRoleDefaultReplicas(t *testing.T) {
-	assertCluster(t, "cluster-one-role-default-replicas.yaml", map[string]int32{"data": coh.DefaultReplicas})
+	assertCluster(t, "cluster-one-role-default-replica.yaml", map[string]int32{"data": coh.DefaultReplicas})
 }
 
 func TestOneRoleOneReplicas(t *testing.T) {
@@ -32,18 +32,18 @@ func TestOneRoleOneReplicas(t *testing.T) {
 }
 
 func TestOneRoleTwoReplicas(t *testing.T) {
-	assertCluster(t, "cluster-one-role-two-replicas.yaml", map[string]int32{"data": 2})
+	assertCluster(t, "cluster-one-role-two-replica.yaml", map[string]int32{"data": 2})
 }
 
-func TestTwoRoleDefaultReplicas(t *testing.T) {
+func TestTwoRolesDefaultReplicas(t *testing.T) {
 	assertCluster(t, "cluster-two-roles-default-replica.yaml", map[string]int32{"data": coh.DefaultReplicas, "proxy": coh.DefaultReplicas})
 }
 
-func TestTwoRoleOneReplicas(t *testing.T) {
+func TestTwoRolesOneReplicas(t *testing.T) {
 	assertCluster(t, "cluster-two-roles-one-replica.yaml", map[string]int32{"data": 1, "proxy": 1})
 }
 
-func TestTwoRoleTwoReplicas(t *testing.T) {
+func TestTwoRolesTwoReplicas(t *testing.T) {
 	assertCluster(t, "cluster-two-roles-different-replica.yaml", map[string]int32{"data": 2, "proxy": 1})
 }
 

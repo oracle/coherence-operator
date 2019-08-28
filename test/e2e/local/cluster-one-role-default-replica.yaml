@@ -4,4 +4,4 @@ metadata:
   name: test-cluster
 spec:
   roles:
-    - name: data
+    - role: data
