@@ -5,6 +5,6 @@ metadata:
 spec:
   roles:
     - name: data
-      replicas: 1
-    - name: proxy
       replicas: 2
+    - name: proxy
+      replicas: 1

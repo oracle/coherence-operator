@@ -1,4 +1,3 @@
-// The clustering package contains functional tests related to Coherence clustering.
 package local
 
 import (
@@ -20,21 +19,33 @@ func TestMinimalCoherenceCluster(t *testing.T) {
 	assertCluster(t, "cluster-minimal.yaml", map[string]int32{coh.DefaultRoleName: coh.DefaultReplicas})
 }
 
-//func TestNoRoleOneReplica(t *testing.T) {
-//	assertCluster(t, "cluster-no-role-one-replica.yaml", map[string]int32{coh.DefaultRoleName : 1})
-//}
-//
-//func TestOneRoleDefaultReplicas(t *testing.T) {
-//	assertCluster(t, "cluster-one-role-default-replicas.yaml", map[string]int32{"data" : coh.DefaultReplicas})
-//}
-//
-//func TestOneRoleOneReplicas(t *testing.T) {
-//	assertCluster(t, "cluster-one-role-one-replica.yaml", map[string]int32{"data" : 1})
-//}
-//
-//func TestOneRoleTwoReplicas(t *testing.T) {
-//	assertCluster(t, "cluster-one-role-two-replicas.yaml", map[string]int32{"data" : 2})
-//}
+func TestNoRoleOneReplica(t *testing.T) {
+	assertCluster(t, "cluster-no-role-one-replica.yaml", map[string]int32{coh.DefaultRoleName: 1})
+}
+
+func TestOneRoleDefaultReplicas(t *testing.T) {
+	assertCluster(t, "cluster-one-role-default-replicas.yaml", map[string]int32{"data": coh.DefaultReplicas})
+}
+
+func TestOneRoleOneReplicas(t *testing.T) {
+	assertCluster(t, "cluster-one-role-one-replica.yaml", map[string]int32{coh.DefaultRoleName: 1})
+}
+
+func TestOneRoleTwoReplicas(t *testing.T) {
+	assertCluster(t, "cluster-one-role-two-replicas.yaml", map[string]int32{"data": 2})
+}
+
+func TestTwoRoleDefaultReplicas(t *testing.T) {
+	assertCluster(t, "cluster-two-roles-default-replica.yaml", map[string]int32{"data": coh.DefaultReplicas, "proxy": coh.DefaultReplicas})
+}
+
+func TestTwoRoleOneReplicas(t *testing.T) {
+	assertCluster(t, "cluster-two-roles-one-replica.yaml", map[string]int32{"data": 1, "proxy": 1})
+}
+
+func TestTwoRoleTwoReplicas(t *testing.T) {
+	assertCluster(t, "cluster-two-roles-different-replica.yaml", map[string]int32{"data": 2, "proxy": 1})
+}
 
 // ----- helpers ------------------------------------------------------------
 
