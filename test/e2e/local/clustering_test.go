@@ -1,9 +1,10 @@
 // The clustering package contains functional tests related to Coherence clustering.
-package clustering
+package local
 
 import (
 	"context"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	mgmt "github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"net/http"
@@ -13,11 +14,45 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// TestClustering verifies that different CoherenceCluster configurations form a cluster.
+// ----- tests --------------------------------------------------------------
+
 func TestMinimalCoherenceCluster(t *testing.T) {
+	assertCluster(t, "cluster-minimal.yaml", map[string]int32{coh.DefaultRoleName: coh.DefaultReplicas})
+}
+
+//func TestNoRoleOneReplica(t *testing.T) {
+//	assertCluster(t, "cluster-no-role-one-replica.yaml", map[string]int32{coh.DefaultRoleName : 1})
+//}
+//
+//func TestOneRoleDefaultReplicas(t *testing.T) {
+//	assertCluster(t, "cluster-one-role-default-replicas.yaml", map[string]int32{"data" : coh.DefaultReplicas})
+//}
+//
+//func TestOneRoleOneReplicas(t *testing.T) {
+//	assertCluster(t, "cluster-one-role-one-replica.yaml", map[string]int32{"data" : 1})
+//}
+//
+//func TestOneRoleTwoReplicas(t *testing.T) {
+//	assertCluster(t, "cluster-one-role-two-replicas.yaml", map[string]int32{"data" : 2})
+//}
+
+// ----- helpers ------------------------------------------------------------
+
+// Test that a cluster can be created using the specified yaml.
+func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 	f := framework.Global
+
+	// work out the total expected roles and cluster size
+	totalRoles := 0
+	clusterSize := 0
+	for _, size := range expectedRoles {
+		clusterSize = clusterSize + int(size)
+		if size > 0 {
+			totalRoles = totalRoles + 1
+		}
+	}
 
 	// Create the Operator SDK test context (this will deploy the Operator)
 	ctx := helper.CreateTestContext(t)
@@ -28,7 +63,11 @@ func TestMinimalCoherenceCluster(t *testing.T) {
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "clustering-minimal.yaml")
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
+
+	// verify the cluster size is expected
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cluster.GetClusterSize()).To(Equal(clusterSize))
 
 	// deploy the CoherenceCluster
 	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
@@ -40,9 +79,12 @@ func TestMinimalCoherenceCluster(t *testing.T) {
 	for _, role := range roles {
 		roleName := role.GetFullRoleName(&cluster)
 		// Wait for a CoherenceRole to be created - we expect one for a minimal CoherenceCluster
-		_, err := helper.WaitForCoherenceRole(f, namespace, roleName, time.Second*10, time.Minute*2, t)
+		role, err := helper.WaitForCoherenceRole(f, namespace, roleName, time.Second*10, time.Minute*2, t)
 		g.Expect(err).NotTo(HaveOccurred())
 
+		expectedReplicas, found := expectedRoles[role.Spec.GetRoleName()]
+		g.Expect(found).To(BeTrue(), "Found Role with unexpected name '"+roleName+"'")
+		g.Expect(role.Spec.GetReplicas()).To(Equal(expectedReplicas))
 	}
 
 	// Assert that a StatefulSet of the correct number or replicas is created for each role in the cluster
@@ -58,8 +100,7 @@ func TestMinimalCoherenceCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the correct number of Pods is returned
-	size := cluster.GetClusterSize()
-	g.Expect(len(pods)).To(Equal(size))
+	g.Expect(len(pods)).To(Equal(clusterSize))
 
 	// Start a port-forwarder that will forward ALL ports on a Pod (the first pod in the list)
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
@@ -72,5 +113,5 @@ func TestMinimalCoherenceCluster(t *testing.T) {
 	clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PORT_NAME])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(status).To(Equal(http.StatusOK))
-	g.Expect(clusterData.ClusterSize).To(Equal(size))
+	g.Expect(clusterData.ClusterSize).To(Equal(clusterSize))
 }

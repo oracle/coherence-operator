@@ -1,4 +1,4 @@
-package status_ha
+package local
 
 import (
 	goctx "context"
