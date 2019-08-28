@@ -104,6 +104,7 @@ pipeline {
                     '''
                 }
             }
+        }
         stage('push-images') {
             steps {
                 echo 'Docker Push'
