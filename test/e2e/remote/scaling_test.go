@@ -19,29 +19,21 @@ import (
 // This test is an example of using sub-tests to run the test with different test cases.
 func TestScaling(t *testing.T) {
 	testCases := []struct {
-		start  int32
-		end    int32
-		policy coherence.ScalingPolicy
+		testName string
+		start    int32
+		end      int32
+		policy   coherence.ScalingPolicy
 	}{
-		{1, 3, coherence.ParallelScaling},           // scale up
-		{1, 3, coherence.ParallelUpSafeDownScaling}, // scale up
-		{1, 3, coherence.SafeScaling},               // scale up
-		{3, 1, coherence.ParallelScaling},           // scale down
-		{3, 1, coherence.ParallelUpSafeDownScaling}, // scale down
-		{3, 1, coherence.SafeScaling},               // scale down
+		{"UpParallelScaling", 1, 3, coherence.ParallelScaling},
+		{"UpParallelUpSafeDownScaling", 1, 3, coherence.ParallelUpSafeDownScaling},
+		{"UpSafeScaling", 1, 3, coherence.SafeScaling},
+		{"DownParallelScaling", 3, 1, coherence.ParallelScaling},
+		{"DownParallelUpSafeDownScaling", 3, 1, coherence.ParallelUpSafeDownScaling},
+		{"DownSafeScaling", 3, 1, coherence.SafeScaling},
 	}
 
 	for _, tc := range testCases {
-		var dir string
-		if tc.start > tc.end {
-			dir = "Down"
-		} else {
-			dir = "Up"
-		}
-
-		name := fmt.Sprintf("%s from %d to %d with policy %s", dir, tc.start, tc.end, tc.policy)
-
-		t.Run(name, func(t *testing.T) {
+		t.Run(tc.testName, func(t *testing.T) {
 			assertScale(t, tc.policy, tc.start, tc.end)
 		})
 	}

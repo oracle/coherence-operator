@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.kubernetes</groupId>
+  <artifactId>operator-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>2.0.0</version>
+
+  <description>Oracle Coherence Kubernetes Operator Project</description>
+  <name>coherence-operator parent</name>
+
+  <modules>
+    <module>coherence-utils</module>
+    <module>operator-test</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+
+    <!-- library dependency versions -->
+    <bedrock.version>5.0.11</bedrock.version>
+    <commons.compress.version>1.18</commons.compress.version>
+    <commonjava.directory.version>0.3.1</commonjava.directory.version>
+    <glassfish.copyright.version>2.1</glassfish.copyright.version>
+    <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
+    <helidon.version>1.2.0</helidon.version>
+    <hamcrest.version>1.3</hamcrest.version>
+    <!-- normally we want jackson.version and jackson.databind.version to be the same. -->
+    <jackson.version>2.9.9</jackson.version>
+    <jackson.databind.version>2.9.9.1</jackson.databind.version>
+    <junit.version>4.12</junit.version>
+    <javax.activation.version>1.2.0</javax.activation.version>
+    <javax.xml.bind.version>2.3.0</javax.xml.bind.version>
+    <jersey.version>2.25</jersey.version>
+    <kubernetes.client.java.version>3.0.0</kubernetes.client.java.version>
+    <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
+    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
+    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
+    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
+    <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
+    <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
+    <mockito.version>2.18.3</mockito.version>
+
+    <!--  The Coherence jar version (compile time dependency) -->
+    <coherence.version>12.2.1-4-0-74512</coherence.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.kubernetes</groupId>
+        <artifactId>client-java</artifactId>
+        <version>${kubernetes.client.java.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence-rest</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-jackson</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${javax.xml.bind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.activation</groupId>
+        <artifactId>javax.activation</artifactId>
+        <version>${javax.activation.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.databind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.external</groupId>
+        <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+        <version>${glassfish.jmxmp.version}</version>
+      </dependency>
+
+      <!-- test dependencies -->
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.2.1-testing-support</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-docker</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-k8s</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.5</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons.compress.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deploy.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven.assembly.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven.exec.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>test</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.commonjava.maven.plugins</groupId>
+          <artifactId>directory-maven-plugin</artifactId>
+          <version>${commonjava.directory.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.glassfish.copyright</groupId>
+          <artifactId>glassfish-copyright-maven-plugin</artifactId>
+          <version>${glassfish.copyright.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.commonjava.maven.plugins</groupId>
+        <artifactId>directory-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-top-parent-basedir</id>
+            <goals>
+              <goal>highest-basedir</goal>
+            </goals>
+            <phase>validate</phase>
+            <configuration>
+              <property>top.parent.basedir</property>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.glassfish.copyright</groupId>
+        <artifactId>glassfish-copyright-maven-plugin</artifactId>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <configuration>
+              <excludeFile>${top.parent.basedir}/src/copyright/EXCLUDE.txt</excludeFile>
+              <ignoreYear>false</ignoreYear>
+              <templateFile>${top.parent.basedir}/src/copyright/HEADER.txt</templateFile>
+            </configuration>
+            <goals>
+              <goal>copyright</goal>
+              <goal>check</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+       </plugin>
+    </plugins>
+  </build>
+</project>
