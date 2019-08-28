@@ -1,4 +1,4 @@
-package local
+package metrics
 
 import (
 	"context"
@@ -118,7 +118,7 @@ func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec)
 	isSSL := role.Metrics != nil && role.Metrics.SSL != nil && *role.Metrics.SSL.Enabled
 
 	// Get the cluster Pods
-	pods, err := helper.ListCoherencePods(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())
+	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// For each Pod test whether we can connect to metrics

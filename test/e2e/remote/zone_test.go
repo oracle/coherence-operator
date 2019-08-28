@@ -44,7 +44,7 @@ func TestZone(t *testing.T) {
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePods(f.KubeClient, namespace, cluster.Name, role.GetRoleName())
+	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, namespace, cluster.Name, role.GetRoleName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// capture the Pod log in case we need it for debugging

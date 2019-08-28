@@ -1,4 +1,4 @@
-package local
+package status_ha
 
 import (
 	goctx "context"
@@ -80,7 +80,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePods(f.KubeClient, ns, tc.Cluster.Name, roleSpec.GetRoleName())
+	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.Name, roleSpec.GetRoleName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// capture the Pod log in case we need it for debugging

@@ -209,7 +209,7 @@ e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
+	operator-sdk test local ./test/e2e/local/... --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
@@ -248,7 +248,7 @@ debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test:
-	operator-sdk test local ./test/e2e/local \
+	operator-sdk test local ./test/e2e/local/... \
 	    --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags \
 		"$(GO_TEST_FLAGS_E2E)" --no-setup
@@ -275,7 +275,7 @@ e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
+	operator-sdk test local ./test/e2e/remote/... --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
@@ -321,7 +321,7 @@ debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test:
-	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
+	operator-sdk test local ./test/e2e/remote/... --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
 
