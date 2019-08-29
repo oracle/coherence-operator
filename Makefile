@@ -107,8 +107,7 @@ define replaceprop
 	done
 endef
 
-.PHONY: all build test-operator e2e-local-test e2e-test install-crds uninstall-crds generate push-operator-image clean operator-manifest reset-namespace create-ssl-secrets
-
+.PHONY: all
 all: build-all-images
 
 # ---------------------------------------------------------------------------
@@ -133,6 +132,7 @@ $(BUILD_PROPS):
 # ---------------------------------------------------------------------------
 # Builds the project, helm charts and Docker image
 # ---------------------------------------------------------------------------
+.PHONY: build-operator
 build-operator: $(BUILD_OUTPUT)/bin/operator
 
 # ---------------------------------------------------------------------------
@@ -151,6 +151,7 @@ $(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator copy artifacts utility
 # ---------------------------------------------------------------------------
+.PHONY: build-copy-artifacts
 build-copy-artifacts: $(BUILD_OUTPUT)/bin/copyartifacts
 
 $(BUILD_OUTPUT)/bin/copyartifacts: export CGO_ENABLED = 0
@@ -164,6 +165,7 @@ $(BUILD_OUTPUT)/bin/copyartifacts: $(GOS) $(DEPLOYS)
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator utils init utility
 # ---------------------------------------------------------------------------
+.PHONY: build-utils-init
 build-utils-init: $(BUILD_OUTPUT)/bin/utilsinit
 
 $(BUILD_OUTPUT)/bin/utilsinit: export CGO_ENABLED = 0
@@ -187,10 +189,12 @@ $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz: $(COP_CHARTS) $(BUILD_PR
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
+	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence-operator
 
 # ---------------------------------------------------------------------------
 # Build the Operator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
+.PHONY: helm-chart
 helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz
 	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence-operator
 
@@ -213,6 +217,7 @@ $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
 # ---------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
 # ---------------------------------------------------------------------------
+.PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
 test-operator: build-operator
 	@echo "Running operator tests"
@@ -228,6 +233,7 @@ test-operator: build-operator
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
@@ -271,6 +277,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 # make debug-e2e-test GO_TEST_FLAGS='-run=^TestStatusHA/HttpStatusHAHandler$$'
 #
 # ---------------------------------------------------------------------------
+.PHONY: debug-e2e-local-test
 debug-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -295,6 +302,7 @@ debug-e2e-local-test:
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: e2e-test
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
@@ -346,6 +354,7 @@ e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest un
 # make debug-e2e-test GO_TEST_FLAGS='-run=^TestScaling/DownSafeScaling$$'
 #
 # ---------------------------------------------------------------------------
+.PHONY: debug-e2e-test
 debug-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 debug-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -368,6 +377,7 @@ debug-e2e-test:
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: helm-test
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 helm-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
@@ -387,6 +397,7 @@ helm-test: build-operator reset-namespace create-ssl-secrets
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: install-crds
 install-crds: uninstall-crds
 	@echo "Installing CRDs"
 	for i in $(CRDS); do \
@@ -398,6 +409,7 @@ install-crds: uninstall-crds
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: uninstall-crds
 uninstall-crds:
 	@echo "Removing CRDs"
 	for i in $(CRDS); do \
@@ -413,6 +425,7 @@ uninstall-crds:
 # This step would require running if any of the structs in the files under
 # the pkg/apis directory have been changed.
 # ---------------------------------------------------------------------------
+.PHONY: generate
 generate:
 	@echo "Generating deep copy code"
 	operator-sdk generate k8s
@@ -422,6 +435,7 @@ generate:
 # ---------------------------------------------------------------------------
 # Clean-up all of the build artifacts
 # ---------------------------------------------------------------------------
+.PHONY: clean
 clean:
 	rm -rf build/_output
 	mvn -f java clean
@@ -430,6 +444,7 @@ clean:
 # Create the k8s yaml manifest that will be used by the Operator SDK to
 # install the Operator when running e2e tests.
 # ---------------------------------------------------------------------------
+.PHONY: operator-manifest
 operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
 operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
@@ -449,6 +464,7 @@ $(BUILD_OUTPUT)/certs:
 # ---------------------------------------------------------------------------
 # Delete and re-create the test namespace
 # ---------------------------------------------------------------------------
+.PHONY: reset-namespace
 reset-namespace: delete-namespace
 ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Creating test namespace $(TEST_NAMESPACE)"
@@ -458,6 +474,7 @@ endif
 # ---------------------------------------------------------------------------
 # Delete the test namespace
 # ---------------------------------------------------------------------------
+.PHONY: delete-namespace
 delete-namespace:
 ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Deleting test namespace $(TEST_NAMESPACE)"
@@ -467,6 +484,7 @@ endif
 # ---------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.
 # ---------------------------------------------------------------------------
+.PHONY: create-ssl-secrets
 create-ssl-secrets: $(BUILD_OUTPUT)/certs
 	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
 	kubectl --namespace $(TEST_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
@@ -485,23 +503,27 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ---------------------------------------------------------------------------
 # Build the Java artifacts
 # ---------------------------------------------------------------------------
+.PHONY: build-mvn
 build-mvn:
 	mvn -f java package -DskipTests
 
 # ---------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ---------------------------------------------------------------------------
+.PHONY: test-mvn
 test-mvn: build-mvn
 	mvn -f java verify
 
 # ---------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
 # ---------------------------------------------------------------------------
+.PHONY: test-all
 test-all: test-mvn test-operator
 
 # ---------------------------------------------------------------------------
 # Push the Operator Docker image
 # ---------------------------------------------------------------------------
+.PHONY: push-operator-image
 push-operator-image: build-operator
 	@echo "Pushing $(OPERATOR_IMAGE)"
 	docker push $(OPERATOR_IMAGE)
@@ -509,6 +531,7 @@ push-operator-image: build-operator
 # ---------------------------------------------------------------------------
 # Build the Operator Utils Docker image
 # ---------------------------------------------------------------------------
+.PHONY: build-utils-image
 build-utils-image: export UTILS_IMAGE := $(UTILS_IMAGE)
 build-utils-image: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 build-utils-image: build-mvn build-copy-artifacts build-utils-init
@@ -519,6 +542,7 @@ build-utils-image: build-mvn build-copy-artifacts build-utils-init
 # ---------------------------------------------------------------------------
 # Push the Operator Utils Docker image
 # ---------------------------------------------------------------------------
+.PHONY: push-utils-image
 push-utils-image: export UTILS_IMAGE := $(UTILS_IMAGE)
 push-utils-image:
 	@echo "Pushing $(UTILS_IMAGE)"
@@ -527,6 +551,7 @@ push-utils-image:
 # ---------------------------------------------------------------------------
 # Build the Operator Test Docker image
 # ---------------------------------------------------------------------------
+.PHONY: build-test-image
 build-test-image: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 build-test-image: build-mvn
 	docker build -t $(TEST_USER_IMAGE) java/operator-test/target/docker
@@ -535,6 +560,7 @@ build-test-image: build-mvn
 # ---------------------------------------------------------------------------
 # Push the Operator Utils Docker image
 # ---------------------------------------------------------------------------
+.PHONY: push-test-image
 push-test-image: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 push-test-image:
 	@echo "Pushing $(TEST_USER_IMAGE)"
@@ -543,21 +569,25 @@ push-test-image:
 # ---------------------------------------------------------------------------
 # Build all of the Docker images
 # ---------------------------------------------------------------------------
+.PHONY: build-all-images
 build-all-images: build-operator build-utils-image build-test-image
 
 # ---------------------------------------------------------------------------
 # Push all of the Docker images
 # ---------------------------------------------------------------------------
+.PHONY: push-all-images
 push-all-images: push-operator-image push-utils-image push-test-image
 
 # ---------------------------------------------------------------------------
 # Push all of the Docker images that are released
 # ---------------------------------------------------------------------------
+.PHONY: push-release-images
 push-release-images: push-operator-image push-utils-image
 
 # ---------------------------------------------------------------------------
 # Build everything
 # ---------------------------------------------------------------------------
+.PHONY: build-all
 build-all: build-mvn build-operator
 
 
@@ -570,6 +600,7 @@ build-all: build-mvn build-operator
 # sometimes this leaves orphaned processes on the local machine so
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
+.PHONY: run-debug
 run-debug: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
@@ -580,6 +611,7 @@ run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-
 # ---------------------------------------------------------------------------
 # Kill any locally running Operator
 # ---------------------------------------------------------------------------
+.PHONY: debug-stop
 debug-stop:
 	./hack/kill-local.sh
 
@@ -589,6 +621,7 @@ debug-stop:
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: operator-helm-install
 operator-helm-install: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets uninstall-crds install-crds
 	helm install --name operator --namespace $(TEST_NAMESPACE) $(CHART_DIR)/coherence-operator
@@ -599,5 +632,6 @@ operator-helm-install: operator-helm-delete build-operator reset-namespace creat
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
+.PHONY: operator-helm-delete
 operator-helm-delete:
 	helm delete --purge operator || true
