@@ -170,15 +170,21 @@ func (f *FakeManager) AssertCoherenceRoleExists(namespace, name string) *coheren
 }
 
 // AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace
-func (f *FakeManager) AssertCoherenceRoles(namespace string, count int) {
-	list := &coherence.CoherenceRoleList{}
+func (f *FakeManager) GetCoherenceRoles(namespace string) coherence.CoherenceRoleList {
+	list := coherence.CoherenceRoleList{}
 
 	opts := client.ListOptions{
 		Namespace: namespace,
 	}
 
-	err := f.Client.List(context.TODO(), &opts, list)
+	err := f.Client.List(context.TODO(), &opts, &list)
 	Expect(err).To(BeNil())
+	return list
+}
+
+// AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace
+func (f *FakeManager) AssertCoherenceRoles(namespace string, count int) {
+	list := f.GetCoherenceRoles(namespace)
 	Expect(len(list.Items)).To(Equal(count))
 }
 
@@ -211,8 +217,14 @@ func (f *FakeManager) AssertCoherenceInternalExists(namespace, name string) *uns
 
 // AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace
 func (f *FakeManager) AssertCoherenceInternals(namespace string, count int) {
+	list := f.GetCoherenceInternals(namespace)
+	Expect(len(list.Items)).To(Equal(count))
+}
+
+// GetCoherenceInternals obtains the CoherenceInternals for the specified namespace
+func (f *FakeManager) GetCoherenceInternals(namespace string) unstructured.UnstructuredList {
 	gvk := coherence.GetCoherenceInternalGroupVersionKind(f.Scheme)
-	list := &unstructured.UnstructuredList{}
+	list := unstructured.UnstructuredList{}
 
 	list.SetGroupVersionKind(gvk)
 	list.SetKind("CoherenceInternalList")
@@ -221,25 +233,8 @@ func (f *FakeManager) AssertCoherenceInternals(namespace string, count int) {
 		Namespace: namespace,
 	}
 
-	_ = f.Client.List(context.TODO(), &opts, list)
-	//Expect(err).To(BeNil())
-	Expect(len(list.Items)).To(Equal(count))
-}
-
-// AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace for a cluster name
-func (f *FakeManager) AssertCoherenceInternalForRole(namespace, clusterName string, roleName string, count int) {
-	list := &unstructured.UnstructuredList{}
-
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
-
-	err := opts.SetLabelSelector(coherence.CoherenceClusterLabel + "=" + clusterName)
-	Expect(err).To(BeNil())
-
-	err = f.Client.List(context.TODO(), &opts, list)
-	Expect(err).To(BeNil())
-	Expect(len(list.Items)).To(Equal(count))
+	_ = f.Client.List(context.TODO(), &opts, &list)
+	return list
 }
 
 // AssertWkaService asserts that a headless service to use for WKA exists for a given cluster in a namespace.

@@ -218,7 +218,11 @@ func (in *CoherenceRoleSpec) SetReplicas(replicas int32) {
 
 // Obtain the full name for  a role.
 func (in *CoherenceRoleSpec) GetFullRoleName(cluster *CoherenceCluster) string {
-	return cluster.Name + "-" + in.GetRoleName()
+	if in == nil {
+		return ""
+	}
+
+	return cluster.GetFullRoleName(in.GetRoleName())
 }
 
 // Obtain the name for a role.
