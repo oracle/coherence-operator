@@ -54,6 +54,11 @@ func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
+// NewClusterReconciler returns a new reconcile.Reconciler.
+func NewClusterReconciler(mgr manager.Manager) reconcile.Reconciler {
+	return newReconciler(mgr)
+}
+
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileCoherenceCluster{

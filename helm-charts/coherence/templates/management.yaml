@@ -18,8 +18,7 @@ metadata:
     component: coherence-jmx
 spec:
   replicas: {{ .Values.store.jmx.replicas | default 1 | int }}
-  updateStrategy:
-    type: RollingUpdate
+  strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 1
@@ -28,7 +27,6 @@ spec:
     matchLabels:
       coherenceDeployment: {{ template "coherence.fullname" . }}
       component: coherenceJMXPod
-  serviceName: {{ template "coherence.name" . }}
   template:
     metadata:
       labels:
@@ -93,8 +91,7 @@ spec:
           volumeMounts:
           - name: utils-dir
             mountPath: /utils
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "/files/init.sh" ]
+          command: [ "/files/utils-init" ]
 # ---------------------------------------------------------------------------
 #  Container: user-artifacts
 # ---------------------------------------------------------------------------
@@ -121,8 +118,7 @@ spec:
             mountPath: {{ $extConfDir | quote }}
           - name: coherence-scripts
             mountPath: /scripts
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "/scripts/copyArtifacts.sh" ]
+          command: [ "/utils/copy"]
   {{- end }}
 {{- end }}
       containers:
@@ -322,8 +318,7 @@ spec:
       volumes:
 #       The logs directory
         - name: log-dir
-          emptyDir:
-            medium:
+          emptyDir: {}
 #       The utility files and scripts directory
         - name: utils-dir
           emptyDir: {}

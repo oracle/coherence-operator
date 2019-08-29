@@ -73,6 +73,23 @@ spec:
 {{- if .Values.affinity }}
       affinity:
 {{ toYaml .Values.affinity | indent 8 }}
+{{- else }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: coherenceCluster
+                  operator: In
+                  values:
+                  - {{ template "coherence.clusterName" . }}
+                - key: coherenceRole
+                  operator: In
+                  values:
+                  - {{ template "coherence.role" . }}
+              topologyKey: failure-domain.beta.kubernetes.io/zone
 {{- end }}
 {{- if .Values.nodeSelector }}
       nodeSelector:
@@ -114,8 +131,7 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "/files/init.sh" ]
+          command: [ "/files/utils-init" ]
 # ---------------------------------------------------------------------------
 #  Container: user-artifacts
 # ---------------------------------------------------------------------------
@@ -140,10 +156,7 @@ spec:
             mountPath: {{ $extLibDir | quote }}
           - name: user-conf-dir
             mountPath: {{ $extConfDir | quote }}
-          - name: coherence-scripts
-            mountPath: /scripts
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "/scripts/copyArtifacts.sh" ]
+          command: [ "/utils/copy"]
   {{- end }}
 {{- end }}
       containers:

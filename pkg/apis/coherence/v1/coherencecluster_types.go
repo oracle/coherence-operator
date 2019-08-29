@@ -89,6 +89,14 @@ func (in *CoherenceCluster) GetRoles() map[string]CoherenceRoleSpec {
 	return m
 }
 
+// Obtain the full name for  a role.
+func (in *CoherenceCluster) GetFullRoleName(role string) string {
+	if in == nil {
+		return role
+	}
+	return in.Name + "-" + role
+}
+
 // Obtain the CoherenceRoleSpec for the specified role name
 func (in *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 	if len(in.Spec.Roles) > 0 {

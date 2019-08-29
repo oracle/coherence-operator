@@ -69,6 +69,11 @@ func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
+// NewRoleReconciler returns a new reconcile.Reconciler.
+func NewRoleReconciler(mgr manager.Manager) reconcile.Reconciler {
+	return newReconciler(mgr)
+}
+
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 	scheme := mgr.GetScheme()

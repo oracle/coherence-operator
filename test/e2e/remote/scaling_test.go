@@ -2,9 +2,13 @@ package remote
 
 import (
 	goctx "context"
+	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"io/ioutil"
+	"sigs.k8s.io/testing_frameworks/integration"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,27 +22,57 @@ func TestScaling(t *testing.T) {
 		testName string
 		start    int32
 		end      int32
-		policy   coherence.ScalingPolicy
+		policy   cohv1.ScalingPolicy
 	}{
-		{"UpParallelScaling", 1, 3, coherence.ParallelScaling},
-		{"UpParallelUpSafeDownScaling", 1, 3, coherence.ParallelUpSafeDownScaling},
-		{"UpSafeScaling", 1, 3, coherence.SafeScaling},
-		{"DownParallelScaling", 3, 1, coherence.ParallelScaling},
-		{"DownParallelUpSafeDownScaling", 3, 1, coherence.ParallelUpSafeDownScaling},
-		{"DownSafeScaling", 3, 1, coherence.SafeScaling},
+		{"UpParallelScaling", 1, 3, cohv1.ParallelScaling},
+		{"UpParallelUpSafeDownScaling", 1, 3, cohv1.ParallelUpSafeDownScaling},
+		{"UpSafeScaling", 1, 3, cohv1.SafeScaling},
+		{"DownParallelScaling", 3, 1, cohv1.ParallelScaling},
+		{"DownParallelUpSafeDownScaling", 3, 1, cohv1.ParallelUpSafeDownScaling},
+		{"DownSafeScaling", 3, 1, cohv1.SafeScaling},
+	}
+
+	scaler := func(t *testing.T, role *cohv1.CoherenceRole, replicas int32) error {
+		role.Spec.SetReplicas(replicas)
+		f := framework.Global
+		return f.Client.Update(goctx.TODO(), role)
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			assertScale(t, tc.policy, tc.start, tc.end)
+			assertScale(t, tc.policy, tc.start, tc.end, scaler)
 		})
 	}
 }
 
+func TestScalingWithKubectl(t *testing.T) {
+
+	scaler := func(t *testing.T, role *cohv1.CoherenceRole, replicas int32) error {
+		versionArg := "--resource-version=" + role.ResourceVersion
+		replicasArg := fmt.Sprintf("--replicas=%d", replicas)
+		roleArg := "coherencerole/" + role.GetName()
+		kubectl := integration.KubeCtl{}
+		args := []string{"-n", role.GetNamespace(), "scale", replicasArg, versionArg, roleArg}
+
+		t.Logf("Executing kubectl %s", strings.Join(args, " "))
+
+		stdout, stderr, err := kubectl.Run(args...)
+		o, _ := ioutil.ReadAll(stdout)
+		t.Logf("kubectl scale stdout:\n%s\n", string(o))
+		e, _ := ioutil.ReadAll(stderr)
+		t.Logf("kubectl scale stderr:\n%s\n", string(e))
+		return err
+	}
+
+	assertScale(t, cohv1.ParallelUpSafeDownScaling, 1, 3, scaler)
+}
+
 // ----- helper methods ------------------------------------------------
 
+type ScaleFunction func(t *testing.T, role *cohv1.CoherenceRole, replicas int32) error
+
 // Assert that a cluster can be created and scaled using the specified policy.
-func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, replicasScale int32) {
+func assertScale(t *testing.T, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
 	var (
 		clusterName = "test-cluster"
 		roleName    = "one"
@@ -64,7 +98,7 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	cluster.Spec.Roles[0] = roleSpec
 
 	// Do the canary test unless parallel scaling down
-	doCanary := replicasStart < replicasScale || policy != coherence.ParallelScaling
+	doCanary := replicasStart < replicasScale || policy != cohv1.ParallelScaling
 
 	f := framework.Global
 
@@ -79,11 +113,10 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 	role, err := helper.GetCoherenceRole(f, namespace, clusterName+"-"+roleName)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	role.Spec.SetReplicas(replicasScale)
-	err = f.Client.Update(goctx.TODO(), role)
+	err = scaler(t, role, replicasScale)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	assertRoleEventuallyInDesiredState(t, cluster, role.Spec)
+	assertRoleEventuallyInDesiredState(t, cluster, role.Spec, replicasScale)
 
 	if doCanary {
 		t.Log("Checking canary cache")
@@ -93,7 +126,7 @@ func assertScale(t *testing.T, policy coherence.ScalingPolicy, replicasStart, re
 }
 
 // installSimpleCluster installs a cluster and asserts that the underlying StatefulSet resources reach the correct state.
-func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster coherence.CoherenceCluster) {
+func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster cohv1.CoherenceCluster) {
 	g := NewGomegaWithT(t)
 
 	f := framework.Global
@@ -103,32 +136,36 @@ func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster coherenc
 
 	if len(cluster.Spec.Roles) > 0 {
 		for _, r := range cluster.Spec.Roles {
-			assertRoleEventuallyInDesiredState(t, cluster, r)
+			assertRoleEventuallyInDesiredState(t, cluster, r, r.GetReplicas())
 		}
 	} else {
-		assertRoleEventuallyInDesiredState(t, cluster, cluster.Spec.CoherenceRoleSpec)
+		r := cluster.Spec.CoherenceRoleSpec
+		assertRoleEventuallyInDesiredState(t, cluster, r, r.GetReplicas())
 	}
 }
 
 // assertRoleEventuallyInDesiredState asserts that a CoherenceRole exists and has the correct spec and that the
 // underlying StatefulSet exists with the correct status and ready replicas.
-func assertRoleEventuallyInDesiredState(t *testing.T, cluster coherence.CoherenceCluster, r coherence.CoherenceRoleSpec) {
+func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceCluster, r cohv1.CoherenceRoleSpec, replicas int32) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 	fullName := r.GetFullRoleName(&cluster)
 
 	t.Logf("Asserting CoherenceRole %s exists\n", fullName)
 
-	role, err := helper.WaitForCoherenceRole(f, cluster.Namespace, fullName, helper.RetryInterval, helper.Timeout, t)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(role.Spec.GetRoleName()).To(Equal(r.GetRoleName()))
-	g.Expect(role.Spec.GetReplicas()).To(Equal(r.GetReplicas()))
+	t.Logf("Asserting CoherenceRole %s exists with %d replicas\n", fullName, replicas)
 
-	replicas := r.GetReplicas()
+	// create a RoleStateCondition that checks a role's replica count
+	condition := helper.ReplicasRoleCondition(replicas)
+
+	// wait for the role to match the condition
+	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*5, t)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, cluster.Namespace, &cluster, role.Spec, time.Second*10, time.Minute*5, t)
+	// wait for the StatefulSet to have three replicas
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 }

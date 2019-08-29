@@ -114,8 +114,51 @@ func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName stri
 	return sts, err
 }
 
+// A function that takes a role and determines whether it meets a condition
+type RoleStateCondition interface {
+	Test(*coh.CoherenceRole) bool
+	String() string
+}
+
+// An always true RoleStateCondition
+type alwayRoleCondition struct{}
+
+func (a alwayRoleCondition) Test(*coh.CoherenceRole) bool {
+	return true
+}
+
+func (a alwayRoleCondition) String() string {
+	return "true"
+}
+
+func AlwayRoleCondition() RoleStateCondition {
+	return alwayRoleCondition{}
+}
+
+// An always true RoleStateCondition
+type replicasRoleCondition struct {
+	replicas int32
+}
+
+func (a replicasRoleCondition) Test(*coh.CoherenceRole) bool {
+	return true
+}
+
+func (a replicasRoleCondition) String() string {
+	return fmt.Sprintf("replicas == %d", a.replicas)
+}
+
+func ReplicasRoleCondition(replicas int32) RoleStateCondition {
+	return replicasRoleCondition{replicas: replicas}
+}
+
 // WaitForCoherenceRole waits for a CoherenceRole to be created.
 func WaitForCoherenceRole(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.CoherenceRole, error) {
+	return WaitForCoherenceRoleCondition(f, namespace, name, alwayRoleCondition{}, retryInterval, timeout, logger)
+}
+
+// WaitForCoherenceRole waits for a CoherenceRole to be created.
+func WaitForCoherenceRoleCondition(f *framework.Framework, namespace, name string, conditon RoleStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.CoherenceRole, error) {
 	var role *coh.CoherenceRole
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -128,8 +171,14 @@ func WaitForCoherenceRole(f *framework.Framework, namespace, name string, retryI
 			logger.Logf("Waiting for availability of CoherenceRole %s - %s\n", name, err.Error())
 			return false, err
 		}
-
-		return true, nil
+		valid := true
+		if conditon != nil {
+			valid = conditon.Test(role)
+			if !valid {
+				logger.Logf("Waiting for CoherenceRole %s to meet condition '%s'\n", name, conditon.String())
+			}
+		}
+		return valid, nil
 	})
 
 	return role, err
