@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"storage.k8s.io/v1beta1","kind":"StorageClass","metadata":{"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"false"},"name":"localsc","namespace":""},"provisioner":"kubernetes.io/no-provisioner"}
+    storageclass.beta.kubernetes.io/is-default-class: "false"
+  name: localsc
+  selfLink: /apis/storage.k8s.io/v1/storageclasses/localsc
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer

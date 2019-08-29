@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>samples-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>default-proxy-sample</artifactId>
+  <name>Coherence*Extend Sample - Default Proxy</name>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!-- module dependencies -->
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>com.oracle.coherence.kubernetes</groupId>
+      <artifactId>samples-testing-support</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-k8s</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testResources>
+      <!-- process values/*.yaml test resources with filtering -->
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+        <includes>
+          <include>*.yaml</include>
+        </includes>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
+    <plugins>
+      <!-- run QueryPlus via mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${maven.exec.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
+          <systemProperties>
+            <systemProperty>
+              <key>coherence.distributed.localstorage</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cacheconfig</key>
+              <value>client-cache-config.xml</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.tcmpenabled</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cluster</key>
+              <value>proxy-tier-cluster</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

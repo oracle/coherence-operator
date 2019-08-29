@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.kubernetes</groupId>
+  <artifactId>samples-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <description>Oracle Coherence Kubernetes Operator Samples Project</description>
+  <name>Samples Parent</name>
+
+  <modules>
+    <module>testing-support</module>
+    <module>coherence-deployments/extend/proxy-tier</module>
+    <module>coherence-deployments/extend/multiple</module>
+    <module>coherence-deployments/extend/default</module>
+    <module>coherence-deployments/extend/ssl</module>
+    <module>coherence-deployments/storage-disabled/interceptor</module>
+    <module>coherence-deployments/storage-disabled/other</module>
+    <module>coherence-deployments/elastic-data/default</module>
+    <module>coherence-deployments/elastic-data/external</module>
+    <module>coherence-deployments/sidecar</module>
+    <module>coherence-deployments/federation/within-cluster</module>
+    <module>operator/rolling-upgrade</module>
+    <module>operator/logging/custom-logs</module>
+    <module>operator/metrics/ssl</module>
+    <module>management/rest/ssl</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+
+    <!-- library dependency versions -->
+    <bedrock.version>5.0.10</bedrock.version>
+    <commons.compress.version>1.18</commons.compress.version>
+    <hamcrest.version>1.3</hamcrest.version>
+    <helidon.version>1.0.0</helidon.version>
+    <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
+    <jackson.version>2.9.9</jackson.version>
+    <jline.version>2.14.6</jline.version>
+    <junit.version>4.12</junit.version>
+    <javax.activation.version>1.2.0</javax.activation.version>
+    <javax.xml.bind.version>2.3.0</javax.xml.bind.version>
+    <jersey.version>2.25</jersey.version>
+    <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
+    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
+    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
+    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
+    <maven.jar.plugin.version>3.1.2</maven.jar.plugin.version>
+    <maven.jib.plugin.version>1.1.0</maven.jib.plugin.version>
+    <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
+    <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
+    <mockito.version>2.18.3</mockito.version>
+
+    <!--- test properties -->
+    <ci.build>${env.CI_BUILD_ID}</ci.build>
+    <!-- Set the namespace from the CI build id to ensure tests use a unique namespace -->
+    <k8s.namespace>test-sample-${ci.build}</k8s.namespace>
+    <!-- Set the target namespaces for coherence -->
+    <k8s.target.namespaces>test-sample-${ci.build}</k8s.target.namespaces>
+    <!-- the k8s configuration file to use (default to ~/.kube/config) -->
+    <k8s.config/>
+    <!-- the k8s context to use (defaults to the current context) -->
+    <k8s.context/>
+    <!-- the k8s docker-registry secret name continuing the image pull credentials -->
+    <k8s.image.pull.secret/>
+    <!--&lt;!&ndash; flag indicating whether to create the pull secrets &ndash;&gt;-->
+    <k8s.create.secret>false</k8s.create.secret>
+    <!-- the username to use when creating pull secrets -->
+    <k8s.secret.user/>
+    <!-- the email to use when creating pull secrets -->
+    <k8s.secret.email/>
+    <!-- the location of the Kubernetes CLI (default to /usr/local/bin/kubectl in Bedrock) -->
+    <k8s.kubectl/>
+    <!-- the credentials (wcr token) to use when creating pull secrets -->
+    <k8s.secret.credentials/>
+    <!-- flag indicating whether to create and destroy the k8s namespace used for testing -->
+    <k8s.create.namespace>true</k8s.create.namespace>
+    <!-- minimiun port used for k8s port forward, note that by default k8s uses 30000-32767 for node port -->
+    <k8s.min.forward.port>40000</k8s.min.forward.port>
+    <!-- the timeout for Helm commands (in seconds) -->
+    <helm.timeout>300</helm.timeout>
+    <!-- location of the Helm config (default "~/.helm") -->
+    <helm.home/>
+    <!-- the address of Tiller. -->
+    <helm.tiller.host/>
+    <!-- The k8s namespace that Tiller is running in -->
+    <helm.tiller.namespace/>
+    <!-- the name of the Operator Helm chart to test -->
+    <operator.helm.chart.name>coherence-operator</operator.helm.chart.name>
+    <!-- the name of the Coherence Helm chart to test -->
+    <coherence.helm.chart.name>coherence</coherence.helm.chart.name>
+    <!-- the helm chart repository base to test-->
+    <k8s.coherence.chart.repo></k8s.coherence.chart.repo>
+    <!-- the helm chart versions to test -->
+    <k8s.chart.test.versions></k8s.chart.test.versions>
+    <!-- the location of the Helm CLI (default to /usr/local/bin/helm) -->
+    <bedrock.helm>/usr/local/bin/helm</bedrock.helm>
+    <!-- the image pull policy for Coherence Operator -->
+    <op.image.pull.policy/>
+
+    <coherence.image.prefix></coherence.image.prefix>
+    <!-- interim version until chart version is correctly pullable -->
+    <coherence.docker.version>12.2.1.3</coherence.docker.version>
+    <release.image.prefix>${test.image.prefix}</release.image.prefix>
+    <docker.push.tag.prefix>${release.image.prefix}oracle/</docker.push.tag.prefix>
+
+    <!-- if necessary, override with -D -->
+    <coherence.version>12.2.1-3-0</coherence.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- module dependencies -->
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.helidon.bundles</groupId>
+        <artifactId>helidon-bundles-webserver</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      
+      <!-- test dependencies -->
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.2.1-testing-support</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-docker</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.oracle.bedrock</groupId>
+        <artifactId>bedrock-runtime-k8s</artifactId>
+        <version>${bedrock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.5</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons.compress.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-jackson</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.external</groupId>
+        <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+        <version>${glassfish.jmxmp.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${javax.xml.bind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.activation</groupId>
+        <artifactId>javax.activation</artifactId>
+        <version>${javax.activation.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deploy.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven.assembly.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven.exec.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>test</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${maven.jib.plugin.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+       </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <!-- The Helm testing profile -->
+      <id>helm-test</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <failIfNoTests>false</failIfNoTests>
+              <useSystemClassLoader>true</useSystemClassLoader>
+              <useManifestOnlyJar>false</useManifestOnlyJar>
+              <systemProperties>
+                <k8s.namespace>${k8s.namespace}</k8s.namespace>
+                <k8s.target.namespaces>${k8s.target.namespaces}</k8s.target.namespaces>
+                <k8s.config>${k8s.config}</k8s.config>
+                <k8s.context>${k8s.context}</k8s.context>
+                <k8s.image.pull.secret>${k8s.image.pull.secret}</k8s.image.pull.secret>
+                <k8s.create.namespace>${k8s.create.namespace}</k8s.create.namespace>
+                <k8s.create.secret>${k8s.create.secret}</k8s.create.secret>
+                <k8s.kubectl>${k8s.kubectl}</k8s.kubectl>
+                <k8s.secret.user>${k8s.secret.user}</k8s.secret.user>
+                <k8s.secret.credentials>${k8s.secret.credentials}</k8s.secret.credentials>
+                <k8s.secret.email>${k8s.secret.email}</k8s.secret.email>
+                <k8s.min.forward.port>${k8s.min.forward.port}</k8s.min.forward.port>
+                <helm.timeout>${helm.timeout}</helm.timeout>
+                <helm.home>${helm.home}</helm.home>
+                <helm.tiller.host>${helm.tiller.host}</helm.tiller.host>
+                <helm.tiller.namespace>${helm.tiller.namespace}</helm.tiller.namespace>
+                <operator.helm.chart.package>${operator.helm.chart.package}</operator.helm.chart.package>
+                <operator.helm.chart.name>${operator.helm.chart.name}</operator.helm.chart.name>
+                <coherence.helm.chart.package>${coherence.helm.chart.package}</coherence.helm.chart.package>
+                <coherence.helm.chart.name>${coherence.helm.chart.name}</coherence.helm.chart.name>
+                <bedrock.helm>${bedrock.helm}</bedrock.helm>
+                <op.image.pull.policy>${op.image.pull.policy}</op.image.pull.policy>
+                <project.build.directory>${project.build.directory}</project.build.directory>
+                <docker.repo>${test.image.prefix}</docker.repo>
+                <test.image.prefix>${test.image.prefix}</test.image.prefix>
+                <http.proxyHost>${settings.proxies[0].host}</http.proxyHost>
+                <https.proxyHost>${settings.proxies[0].host}</https.proxyHost>
+                <http.proxyPort>${settings.proxies[0].port}</http.proxyPort>
+                <https.proxyPort>${settings.proxies[0].port}</https.proxyPort>
+                <http.nonProxyHosts>${settings.proxies[0].nonProxyHosts}</http.nonProxyHosts>
+                <docker.push.tag.prefix>${docker.push.tag.prefix}</docker.push.tag.prefix>
+                <project.artifactId>${project.artifactId}</project.artifactId>
+                <project.version>${project.version}</project.version>
+              </systemProperties>
+              <includes>
+                <include>/**/*IT.java</include>
+              </includes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <developers>
+    <developer>
+      <name>Tim Middleton</name>
+      <organization>Oracle</organization>
+      <email>tim.middleton@oracle.com</email>
+    </developer>
+  </developers>
+</project>
+

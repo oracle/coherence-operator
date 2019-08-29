@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>samples-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>samples-testing-support</artifactId>
+  <name>Samples Testing Support</name>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <user.artifacts.image>${test.image.prefix}user-artifacts</user.artifacts.image>
+    <user.artifacts.image.v1>1.0</user.artifacts.image.v1>
+    <user.artifacts.image.v2>2.0</user.artifacts.image.v2>
+    <user.test.image>${test.image.prefix}coh-client</user.test.image>
+    <user.test.image.version>2.0</user.test.image.version>
+    <user.fluentd.image>${test.image.prefix}fluentd</user.fluentd.image>
+    <user.fluentd.image.version>2.0</user.fluentd.image.version>
+    <javax.ws.rs.version>2.0.1</javax.ws.rs.version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>${javax.ws.rs.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.external</groupId>
+      <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-docker</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-k8s</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.activation</groupId>
+      <artifactId>javax.activation</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jar.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  
+</project>

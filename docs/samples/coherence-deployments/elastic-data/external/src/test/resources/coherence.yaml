@@ -1,0 +1,20 @@
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Any changes in the helm install commands in README must be changed here
+
+clusterSize: 1
+
+cluster: elastic-data-cluster
+
+store:
+  cacheConfig: elastic-data-cache-config.xml
+  javaOpts: -Dcoherence.flashjournal.dir=/elastic-data
+  overrideConfig: elastic-data-override.xml
+  logging:
+    level: 7
+
+userArtifacts:
+  image: %%USER_ARTIFACTS_IMAGE%%
+
+imagePullSecrets: sample-coherence-secret
+
+logCaptureEnabled: false

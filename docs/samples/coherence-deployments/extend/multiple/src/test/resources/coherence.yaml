@@ -1,0 +1,19 @@
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Any changes in the helm install commands in README must be changed here
+
+clusterSize: 3
+
+cluster: multiple-proxy-cluster
+
+store:
+  cacheConfig: storage-cache-config.xml
+  javaOpts: -Dcoherence.extend.port2=20001
+  ports:
+    custom-port: 20001
+
+userArtifacts:
+  image: %%USER_ARTIFACTS_IMAGE%%
+
+imagePullSecrets: sample-coherence-secret
+
+logCaptureEnabled: false
