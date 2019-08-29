@@ -157,10 +157,7 @@ spec:
             mountPath: {{ $extLibDir | quote }}
           - name: user-conf-dir
             mountPath: {{ $extConfDir | quote }}
-          - name: coherence-scripts
-            mountPath: /scripts
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "/scripts/copyArtifacts.sh" ]
+          command: [ "/utils/copy"]
   {{- end }}
 {{- end }}
       containers:

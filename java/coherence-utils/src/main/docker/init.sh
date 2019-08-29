@@ -19,8 +19,13 @@ mkdir ${UTIL_DIR}/scripts ${UTIL_DIR}/lib ${UTIL_DIR}/conf
 
 echo "Copying files to ${UTIL_DIR}"
 
-cp files/*.sh ${UTIL_DIR}/scripts/
+cp files/*.sh  ${UTIL_DIR}/scripts/
 cp files/*.jar ${UTIL_DIR}/lib/
+
+if [ -f files/copy ]; then
+    cp files/copy  ${UTIL_DIR}/copy
+    cmod +x ${UTIL_DIR}/copy
+fi
 
 if [ ! -d /snapshot ]; then
     mkdir /snapshot
