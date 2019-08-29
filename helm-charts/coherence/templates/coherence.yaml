@@ -73,6 +73,23 @@ spec:
 {{- if .Values.affinity }}
       affinity:
 {{ toYaml .Values.affinity | indent 8 }}
+{{- else }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: coherenceCluster
+                  operator: In
+                  values:
+                  - {{ template "coherence.clusterName" . }}
+                - key: coherenceRole
+                  operator: In
+                  values:
+                  - {{ template "coherence.role" . }}
+              topologyKey: failure-domain.beta.kubernetes.io/zone
 {{- end }}
 {{- if .Values.nodeSelector }}
       nodeSelector:
