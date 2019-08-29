@@ -64,6 +64,9 @@ CREATE_TEST_NAMESPACE ?= true
 IMAGE_PULL_SECRETS ?=
 IMAGE_PULL_POLICY  ?=
 
+# Env variable used by the kubectl test framework to locate the kubectl binary
+TEST_ASSET_KUBECTL ?= $(shell which kubectl)
+
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
@@ -159,6 +162,19 @@ $(BUILD_OUTPUT)/bin/copyartifacts: $(GOS) $(DEPLOYS)
 	go build -o $(BUILD_OUTPUT)/bin/copy ./cmd/copyartifacts
 
 # ---------------------------------------------------------------------------
+# Internal make step that builds the Operator utils init utility
+# ---------------------------------------------------------------------------
+build-utils-init: $(BUILD_OUTPUT)/bin/utilsinit
+
+$(BUILD_OUTPUT)/bin/utilsinit: export CGO_ENABLED = 0
+$(BUILD_OUTPUT)/bin/utilsinit: export GOARCH = $(ARCH)
+$(BUILD_OUTPUT)/bin/utilsinit: export GOOS = $(OS)
+$(BUILD_OUTPUT)/bin/utilsinit: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/utilsinit: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+$(BUILD_OUTPUT)/bin/utilsinit: $(GOS) $(DEPLOYS)
+	go build -o $(BUILD_OUTPUT)/bin/utils-init ./cmd/utilsinit
+
+# ---------------------------------------------------------------------------
 # Build the Coperator Helm chart
 # ---------------------------------------------------------------------------
 $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz: $(COP_CHARTS) $(BUILD_PROPS)
@@ -220,6 +236,7 @@ e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
@@ -260,6 +277,7 @@ debug-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-local-test:
 	operator-sdk test local ./test/e2e/local \
 	    --namespace $(TEST_NAMESPACE) \
@@ -286,6 +304,7 @@ e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
@@ -333,6 +352,7 @@ debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-test:
 	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -491,8 +511,9 @@ push-operator-image: build-operator
 # ---------------------------------------------------------------------------
 build-utils-image: export UTILS_IMAGE := $(UTILS_IMAGE)
 build-utils-image: export BUILD_OUTPUT := $(BUILD_OUTPUT)
-build-utils-image: build-mvn build-copy-artifacts
+build-utils-image: build-mvn build-copy-artifacts build-utils-init
 	cp $(BUILD_OUTPUT)/bin/copy java/coherence-utils/target/docker/copy
+	cp $(BUILD_OUTPUT)/bin/utils-init java/coherence-utils/target/docker/utils-init
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
 # ---------------------------------------------------------------------------

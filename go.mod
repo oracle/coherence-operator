@@ -24,6 +24,7 @@ require (
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7
 	sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/controller-tools v0.1.10
+	sigs.k8s.io/testing_frameworks v0.1.1
 	sigs.k8s.io/yaml v1.1.0
 )
 
