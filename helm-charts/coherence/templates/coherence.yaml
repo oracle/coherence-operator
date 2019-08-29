@@ -593,13 +593,11 @@ spec:
   {{- end }}
   {{- if .Values.store.persistence }}
     {{- if .Values.store.persistence.volume }}
-        - name: persistence-volume
 {{ toYaml .Values.store.persistence.volume | indent 10 }}
     {{- end }}
   {{- end }}
   {{- if .Values.store.snapshot }}
     {{- if .Values.store.snapshot.volume }}
-        - name: snapshot-volume
 {{ toYaml .Values.store.snapshot.volume | indent 10 }}
     {{- end }}
   {{- end }}
@@ -627,7 +625,7 @@ spec:
 {{- include "coherence.release_labels" . | indent 10 }}
           component: "coherence-vol"
       spec:
-        {{- if .Values.store.snapshot.persistentVolumeClaim }}
+        {{- if .Values.store.persistence.persistentVolumeClaim }}
 {{ toYaml .Values.store.persistence.persistentVolumeClaim | indent 8 }}
         {{- end }}
       {{- end }}
