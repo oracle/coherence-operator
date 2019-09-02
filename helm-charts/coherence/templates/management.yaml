@@ -170,7 +170,9 @@ spec:
                   key: operatorhost
                   optional: true
             - name: COH_SITE_INFO_LOCATION
-              value: http://$(OPERATOR_HOST):8000/zone/$(COH_MACHINE_NAME)
+              value: http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)
+            - name: COH_RACK_INFO_LOCATION
+              value: http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)
             - name: COH_CLUSTER_NAME
               value: {{ template "coherence.clusterName" . }}
             - name: COH_ROLE

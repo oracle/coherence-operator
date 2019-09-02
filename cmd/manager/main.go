@@ -52,6 +52,9 @@ const (
 // BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
 var BuildInfo string
 
+// restServer is the Operator ReST server.
+var restServer cohrest.Server
+
 // <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 // Change below variables to serve metrics on different host or port.
@@ -162,7 +165,7 @@ func main() {
 	}
 
 	// Start the Operator ReST endpoint
-	cohrest.StartRestServer(mgr, cohf.RestHost, cohf.RestPort)
+	restServer, err = cohrest.StartRestServer(mgr, cohf)
 
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
@@ -287,7 +290,7 @@ func ensureOperatorConfig(namespace string, mgr manager.Manager, flags *flags.Co
 		return err
 	}
 
-	hostAndPort := cohrest.GetHostAndPort()
+	hostAndPort := restServer.GetHostAndPort(flags)
 	log.Info("Operator Configuration: 'operatorhost' value set to " + hostAndPort)
 
 	secret := &v1.Secret{}

@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	stubs "github.com/oracle/coherence-operator/pkg/controller/fakes"
+	stubs "github.com/oracle/coherence-operator/pkg/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

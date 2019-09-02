@@ -96,7 +96,7 @@ var _ = Describe("Operator Helm Chart", func() {
 			restPort := ports["rest"]
 
 			// Do a GET on the Zone endpoint for the Pod's NodeName, we should get no error and a 200 response
-			resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/zone/%s", restPort, pod.Spec.NodeName))
+			resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/site/%s", restPort, pod.Spec.NodeName))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(200))
 		})

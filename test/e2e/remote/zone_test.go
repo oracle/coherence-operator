@@ -3,6 +3,7 @@ package remote
 import (
 	goctx "context"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"net/http"
@@ -16,7 +17,25 @@ import (
 
 // Verify that a CoherenceCluster deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
-func TestZone(t *testing.T) {
+func TestSiteLabel(t *testing.T) {
+	fn := func(member management.MemberData) string {
+		return member.SiteName
+	}
+
+	assertLabel(t, flags.DefaultSiteLabel, fn)
+}
+
+// Verify that a CoherenceCluster deployed by the Operator has the correct rack value
+// set from the Node's failure domain region.
+func TestRackLabel(t *testing.T) {
+	fn := func(member management.MemberData) string {
+		return member.RackName
+	}
+
+	assertLabel(t, flags.DefaultRackLabel, fn)
+}
+
+func assertLabel(t *testing.T, label string, fn func(management.MemberData) string) {
 	g := NewGomegaWithT(t)
 
 	f := framework.Global
@@ -66,14 +85,16 @@ func TestZone(t *testing.T) {
 		// The member's machine name is the k8s Node name
 		node, err := f.KubeClient.CoreV1().Nodes().Get(member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
-		zone := node.GetLabels()["failure-domain.beta.kubernetes.io/zone"]
+		zone := node.GetLabels()[label]
+
+		actual := fn(member)
 
 		if zone != "" {
-			g.Expect(member.SiteName).To(Equal(zone))
+			g.Expect(actual).To(Equal(zone))
 		} else {
 			// when running locally (for example in Docker on MacOS) the node might not
 			// have a zone unless one has been explicitly set by the developer.
-			g.Expect(member.SiteName).To(Equal("n/a"))
+			g.Expect(actual).To(Equal("n/a"))
 		}
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	stubs "github.com/oracle/coherence-operator/pkg/controller/fakes"
+	stubs "github.com/oracle/coherence-operator/pkg/fakes"
 )
 
 var _ = Describe("coherencecluster_controller", func() {

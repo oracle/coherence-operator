@@ -6,6 +6,29 @@ import (
 	"strings"
 )
 
+const (
+	DefaultSiteLabel       = "failure-domain.beta.kubernetes.io/zone"
+	DefaultRackLabel       = "failure-domain.beta.kubernetes.io/region"
+	DefaultRestHost        = "0.0.0.0"
+	DefaultRestPort  int32 = 8000
+
+	FlagRestHost       = "rest-host"
+	FlagRestPort       = "rest-port"
+	FlagServiceName    = "service-name"
+	FlagServicePort    = "service-port"
+	FlagLogIntegration = "log-integration"
+	FlagEsHost         = "es-host"
+	FlagEsPort         = "es-port"
+	FlagEsUser         = "es-user"
+	FlagEsPassword     = "es-password"
+	FlagSiteLabel      = "site-label"
+	FlagRackLabel      = "rack-label"
+	FlagAlwaysPullTags = "force-always-pull-tags"
+	FlagSslKeyFile     = "ssl-key-file"
+	FlagSslCertFile    = "ssl-cert-file"
+	FlagSslCaFile      = "ssl-ca-file"
+)
+
 // CoherenceOperatorFlags - Options to be used by a Coherence operator.
 type CoherenceOperatorFlags struct {
 	// The host name that the ReST server binds to.
@@ -26,8 +49,6 @@ type CoherenceOperatorFlags struct {
 	ElasticSearchUser string
 	// The credentials to use to connect to ElasticSearch.
 	ElasticSearchCredentials string
-	// The name of the image to use for Operator Utilities, e.g. the backup Pod.
-	ImageName string
 	// keyFile is the name of the client key file in the k8s secret used by the Operator when connecting to a Coherence
 	//  Pod's management endpoint if that Pod has SSL enabled.
 	SSLKeyFile string
@@ -37,6 +58,12 @@ type CoherenceOperatorFlags struct {
 	// caFile is the name of the cert file in the k8s secret for the certificate authority used by the Operator when
 	//  connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled.
 	SSLCAFile string
+	// The label to use to obtain the site value for a Node.
+	SiteLabel string
+	// The label to use to obtain the rack value for a Node.
+	RackLabel string
+	// If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS.
+	AlwaysPullSuffixes string
 }
 
 // cohf is the struct containing the command line flags.
@@ -46,70 +73,77 @@ var cohf = &CoherenceOperatorFlags{}
 // helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
 func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ...string) {
 	flagSet.StringVar(&f.RestHost,
-		"rest-host",
-		"0.0.0.0",
+		FlagRestHost,
+		DefaultRestHost,
 		strings.Join(append(helpTextPrefix, "The address that the ReST server will bind to"), " "),
 	)
 	flagSet.Int32Var(&f.RestPort,
-		"rest-port",
-		8000,
+		FlagRestPort,
+		DefaultRestPort,
 		strings.Join(append(helpTextPrefix, "The port that the ReST server will bind to"), " "),
 	)
 	flagSet.StringVar(&f.ServiceName,
-		"service-name",
+		FlagServiceName,
 		"",
 		strings.Join(append(helpTextPrefix, "The service name that operator clients use as the host name to make ReST calls back to the operator."), " "),
 	)
 	flagSet.Int32Var(&f.ServicePort,
-		"service-port",
+		FlagServicePort,
 		-1,
 		strings.Join(append(helpTextPrefix, "The service port that operator clients use in the host name to make ReST calls back to the operator. If not set defaults to the same as the ReST port"), " "),
 	)
 	flagSet.BoolVar(&f.LogIntegrationEnabled,
-		"log-integration",
+		FlagLogIntegration,
 		false,
 		strings.Join(append(helpTextPrefix, "A boolean indicating whether logging integration (e.g. EFK) is enabled"), " "),
 	)
 	flagSet.StringVar(&f.ElasticSearchHost,
-		"es-host",
+		FlagEsHost,
 		"",
 		strings.Join(append(helpTextPrefix, "The host name of the ElasticSearch server"), " "),
 	)
 	flagSet.Int32Var(&f.ElasticSearchPort,
-		"es-port",
+		FlagEsPort,
 		-1,
 		strings.Join(append(helpTextPrefix, "The port to use to connect to the ElasticSearch server"), " "),
 	)
 	flagSet.StringVar(&f.ElasticSearchUser,
-		"es-user",
+		FlagEsUser,
 		"",
 		strings.Join(append(helpTextPrefix, "The user name to use to connect to the ElasticSearch server"), " "),
 	)
-	flagSet.StringVar(&f.ElasticSearchUser,
-		"es-password",
+	flagSet.StringVar(&f.ElasticSearchCredentials,
+		FlagEsPassword,
 		"",
 		strings.Join(append(helpTextPrefix, "The credentials to use to connect to the ElasticSearch server"), " "),
 	)
-	flagSet.StringVar(&f.ImageName,
-		"utils-image",
-		"",
-		strings.Join(append(helpTextPrefix, "The name of the Operator Utils Docker image"), " "),
+	flagSet.StringVar(&f.SiteLabel,
+		FlagSiteLabel,
+		DefaultSiteLabel,
+		strings.Join(append(helpTextPrefix, "The node label to use when obtaining a value for a Pod's Coherence site."), " "),
 	)
-
+	flagSet.StringVar(&f.RackLabel,
+		FlagRackLabel,
+		DefaultRackLabel,
+		strings.Join(append(helpTextPrefix, "The node label to use when obtaining a value for a Pod's Coherence rack."), " "),
+	)
+	flagSet.StringVar(&f.AlwaysPullSuffixes,
+		FlagAlwaysPullTags,
+		"",
+		strings.Join(append(helpTextPrefix, "If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS."), " "),
+	)
 	flagSet.StringVar(&f.SSLKeyFile,
-		"ssl-key-file",
+		FlagSslKeyFile,
 		"",
 		strings.Join(append(helpTextPrefix, "The name of the client key file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
 	)
-
 	flagSet.StringVar(&f.SSLCertFile,
-		"ssl-cert-file",
+		FlagSslCertFile,
 		"",
 		strings.Join(append(helpTextPrefix, "The name of the client certificate file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
 	)
-
 	flagSet.StringVar(&f.SSLCAFile,
-		"ssl-ca-file",
+		FlagSslCaFile,
 		"",
 		strings.Join(append(helpTextPrefix, "The name of the cert file in the k8s secret for the certificate authority used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
 	)

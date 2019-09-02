@@ -8,7 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/utils/pointer"
 
-	stubs "github.com/oracle/coherence-operator/pkg/controller/fakes"
+	stubs "github.com/oracle/coherence-operator/pkg/fakes"
 )
 
 var _ = Describe("CoherenceCluster to Helm install verification suite", func() {

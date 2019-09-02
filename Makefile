@@ -635,3 +635,17 @@ operator-helm-install: operator-helm-delete build-operator reset-namespace creat
 .PHONY: operator-helm-delete
 operator-helm-delete:
 	helm delete --purge operator || true
+
+# ---------------------------------------------------------------------------
+# Delete all of the CoherenceClusters from the test namespace.
+# This step will patch the finalizers on all CoherenceInternal
+# resources to ensure that they are properly deleted.
+# ---------------------------------------------------------------------------
+delete-coherence-clusters: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+delete-coherence-clusters:
+	for i in $(kubectl -n  $(TEST_NAMESPACE) get coherencecluster -o name); do \
+		kubectl -n $(TEST_NAMESPACE) delete ${i}; \
+	done
+	for i in $(kubectl -n  $(TEST_NAMESPACE) get coherenceinternal -o name); do \
+		kubectl -n $(TEST_NAMESPACE) patch ${i}  -p '{"metadata":{"finalizers": []}}' --type=merge; \
+	done

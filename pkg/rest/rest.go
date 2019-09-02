@@ -2,46 +2,87 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
-	"github.com/oracle/coherence-operator/pkg/net"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	onet "github.com/oracle/coherence-operator/pkg/net"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"net"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 
-const (
-	zoneLabel = "failure-domain.beta.kubernetes.io/zone"
-)
-
 // The logger to use to log messages
 var log = logf.Log.WithName("rest-server")
 
-// The k8s client
-var k8sClient *kubernetes.Clientset
+type handler struct {
+	fn func(w http.ResponseWriter, r *http.Request)
+}
+
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.fn(w, r)
+}
+
+type Server interface {
+	// GetAddress returns the address that this server is listening on.
+	GetAddress() net.Addr
+	// GetAddress returns the address that this server is listening on.
+	GetPort() int32
+	// Close closes this server's listener
+	Close() error
+	// GetHostAndPort returns the address that the ReST server should be reached on by external processes
+	GetHostAndPort(*flags.CoherenceOperatorFlags) string
+}
 
 // StartRestServer starts a ReST server to server Coherence Operator requests,
 // for example node zone information.
-func StartRestServer(mgr manager.Manager, host string, port int32) {
-	k8sClient = kubernetes.NewForConfigOrDie(mgr.GetConfig())
+func StartRestServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Server, error) {
+	address := fmt.Sprintf("%s:%d", cf.RestHost, cf.RestPort)
+	s := server{cohFlags: cf, mgr: m}
 
-	http.HandleFunc("/zone/", getZoneForNode)
+	mux := http.NewServeMux()
+	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
+	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
+
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return nil, err
+	}
+
+	s.listener = listener
 
 	go func() {
-		address := fmt.Sprintf("%s:%d", host, port)
-		log.Info("http requests serving on " + address)
-		err := http.ListenAndServe(address, nil)
-		if err != nil {
-			panic("ListenAndServe: " + err.Error())
-		}
+		log.Info("Serving ReST requests on " + s.listener.Addr().String())
+		panic(http.Serve(s.listener, mux))
 	}()
+
+	return s, nil
+}
+
+type server struct {
+	cohFlags *flags.CoherenceOperatorFlags
+	listener net.Listener
+	mgr      manager.Manager
+}
+
+func (s server) GetAddress() net.Addr {
+	return s.listener.Addr()
+}
+
+func (s server) GetPort() int32 {
+	t, _ := net.ResolveTCPAddr(s.listener.Addr().Network(), s.listener.Addr().String())
+	return int32(t.Port)
+}
+
+func (s server) Close() error {
+	return s.listener.Close()
 }
 
 // GetHostAndPort returns the address and port that this endpoint can be reached on by external processes.
-func GetHostAndPort() string {
+func (s server) GetHostAndPort(cof *flags.CoherenceOperatorFlags) string {
 	f := flags.GetOperatorFlags()
 
 	var service string
@@ -56,7 +97,7 @@ func GetHostAndPort() string {
 	} else {
 		// ReST is bound to 0.0.0.0 so use any of our local addresses.
 		// This does not guarantee we're reachable but would be OK in local testing
-		ip, err := net.GetLocalAddress()
+		ip, err := onet.GetLocalAddress()
 		if err == nil && ip != nil {
 			service = fmt.Sprint(ip.String())
 		}
@@ -64,30 +105,45 @@ func GetHostAndPort() string {
 
 	if f.ServicePort != -1 {
 		port = f.ServicePort
-	} else {
+	} else if f.RestPort > 0 {
 		port = f.RestPort
+	} else {
+		port = s.GetPort()
 	}
 
 	return fmt.Sprintf("%s:%d", service, port)
 }
 
-// getZoneForNode is a GET request that returns the zone label for a k8s node.
-func getZoneForNode(w http.ResponseWriter, r *http.Request) {
-	var zone string
+// getSiteLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence site value.
+func (s server) getSiteLabelForNode(w http.ResponseWriter, r *http.Request) {
+	s.getLabelForNode(s.cohFlags.SiteLabel, w, r)
+}
 
+// getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
+func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
+	s.getLabelForNode(s.cohFlags.RackLabel, w, r)
+}
+
+// getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
+func (s server) getLabelForNode(label string, w http.ResponseWriter, r *http.Request) {
+	var value string
 	pos := strings.LastIndex(r.URL.Path, "/")
 	name := r.URL.Path[1+pos:]
-	node, err := k8sClient.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+
+	log.Info(fmt.Sprintf("Querying for node name='%s' URL: %s", name, r.URL.Path))
+
+	node := corev1.Node{}
+	err := s.mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: name}, &node)
 
 	if err == nil {
-		zone = node.Labels[zoneLabel]
+		value = node.Labels[label]
 	} else {
 		log.Error(err, "Error getting node "+name+" from k8s")
-		zone = ""
+		value = ""
 	}
 
 	w.WriteHeader(200)
-	if _, err = fmt.Fprint(w, zone); err != nil {
-		log.Error(err, "Error writing zone response for node "+name)
+	if _, err = fmt.Fprint(w, value); err != nil {
+		log.Error(err, "Error writing value response for node "+name)
 	}
 }

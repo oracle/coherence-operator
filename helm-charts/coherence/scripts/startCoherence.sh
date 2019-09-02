@@ -301,10 +301,13 @@ commonConfiguration()
                   SITE=""
                   ;;
               http://*)
-                  SITE=$(curl --silent ${COH_SITE_INFO_LOCATION})
+                  curl -i -w '\n' --silent -X GET ${COH_SITE_INFO_LOCATION}
+                  SITE=$(curl --silent -X GET ${COH_SITE_INFO_LOCATION})
                   if [[ $? != 0 ]]
                   then
                       SITE=""
+                  else
+                      echo "Site value: ${SITE}"
                   fi
                   ;;
               *)
@@ -313,10 +316,43 @@ commonConfiguration()
                       SITE=`cat ${COH_SITE_INFO_LOCATION}`
                   fi
           esac
+      fi
 
+      if [[ "${COH_RACK_INFO_LOCATION}" != "" ]]
+      then
+          case "${COH_RACK_INFO_LOCATION}" in
+              http://\$*)
+                  RACK=""
+                  ;;
+              http://*)
+                  RACK=$(curl --silent ${COH_RACK_INFO_LOCATION})
+                  if [[ $? != 0 ]]
+                  then
+                      RACK=""
+                  else
+                      echo "Rack value: ${RACK}"
+                  fi
+                  ;;
+              *)
+                  if [[ -f "${COH_RACK_INFO_LOCATION}" ]]
+                  then
+                      RACK=`cat ${COH_RACK_INFO_LOCATION}`
+                  fi
+          esac
+      fi
+
+      if [[ -n "${SITE}" ]]
+      then
+          PROPS="${PROPS} -Dcoherence.site=${SITE}"
+      fi
+
+      if [[ -n "${RACK}" ]]
+      then
+          PROPS="${PROPS} -Dcoherence.rack=${RACK}"
+      else
           if [[ -n "${SITE}" ]]
           then
-              PROPS="${PROPS} -Dcoherence.site=${SITE} -Dcoherence.rack=${SITE}"
+              PROPS="${PROPS} -Dcoherence.rack=${SITE}"
           fi
       fi
     fi

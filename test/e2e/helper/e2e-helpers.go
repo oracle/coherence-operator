@@ -373,9 +373,10 @@ func DumpOperatorLog(kubeClient kubernetes.Interface, namespace, directory strin
 
 // Dump the Pod log to a file.
 func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory string, logger Logger) {
-	logs := os.Getenv("TEST_LOGS")
-	if logs == "" {
-		logger.Log("cannot capture logs as log folder env var TEST_LOGS is not set")
+	logs, err := FindTestLogsDir()
+	if err != nil {
+		logger.Log("cannot capture logs due to " + err.Error())
+		return
 	}
 
 	res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
