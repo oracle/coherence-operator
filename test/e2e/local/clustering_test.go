@@ -89,7 +89,7 @@ func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32
 	// Assert that a CoherenceRole is created for each role in the cluster
 	for _, role := range roles {
 		roleName := role.GetFullRoleName(&cluster)
-		// Wait for a CoherenceRole to be created - we expect one for a minimal CoherenceCluster
+		// Wait for a CoherenceRole to be created
 		role, err := helper.WaitForCoherenceRole(f, namespace, roleName, time.Second*10, time.Minute*2, t)
 		g.Expect(err).NotTo(HaveOccurred())
 
@@ -121,7 +121,7 @@ func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32
 	defer pf.Close()
 
 	// Do a Management over ReST query to get the cluster size
-	clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PORT_NAME])
+	clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PortName])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(status).To(Equal(http.StatusOK))
 	g.Expect(clusterData.ClusterSize).To(Equal(clusterSize))

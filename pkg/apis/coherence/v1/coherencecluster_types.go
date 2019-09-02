@@ -130,7 +130,7 @@ func (in *CoherenceCluster) SetRole(spec CoherenceRoleSpec) {
 func (in *CoherenceCluster) GetClusterSize() int {
 	var size = 0
 	for _, role := range in.GetRoles() {
-		size = size + int(role.GetReplicas())
+		size += int(role.GetReplicas())
 	}
 	return size
 }

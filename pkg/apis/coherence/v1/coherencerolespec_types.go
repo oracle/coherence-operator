@@ -244,7 +244,7 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 		return SafeScaling
 	}
 
-	policy := SafeScaling
+	var policy ScalingPolicy
 
 	if in.ScalingPolicy == nil {
 		// the scaling policy is not set the look at the storage enabled flag
@@ -278,9 +278,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -466,46 +465,17 @@ func (in *CoherenceRoleSpec) mergeMap(m1, m2 map[string]string) map[string]strin
 
 	merged := make(map[string]string)
 
-	if m2 != nil {
-		for k, v := range m2 {
-			if v != "" {
-				merged[k] = v
-			}
-		}
-	}
-
-	if m1 != nil {
-		for k, v := range m1 {
-			if v != "" {
-				merged[k] = v
-			} else {
-				delete(merged, k)
-			}
-		}
-	}
-
-	return merged
-}
-
-// Return a map that is two maps merged.
-// If both maps are nil then nil is returned.
-// Where there are duplicate keys those in m1 take precedence.
-func (in *CoherenceRoleSpec) mergeMapInt32(m1, m2 map[string]int32) map[string]int32 {
-	if m1 == nil && m2 == nil {
-		return nil
-	}
-
-	merged := make(map[string]int32)
-
-	if m2 != nil {
-		for k, v := range m2 {
+	for k, v := range m2 {
+		if v != "" {
 			merged[k] = v
 		}
 	}
 
-	if m1 != nil {
-		for k, v := range m1 {
+	for k, v := range m1 {
+		if v != "" {
 			merged[k] = v
+		} else {
+			delete(merged, k)
 		}
 	}
 

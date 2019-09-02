@@ -7,7 +7,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -104,7 +103,6 @@ type ReconcileCoherenceCluster struct {
 	client client.Client
 	scheme *runtime.Scheme
 	events record.EventRecorder
-	flags  *flags.CoherenceOperatorFlags
 }
 
 // Reconcile reads that state of a CoherenceCluster object and makes changes based on the state read
@@ -185,11 +183,9 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 				if err != nil || result.Requeue {
 					return result, err
 				}
-			} else {
+			} else if err := r.createRole(parameters); err != nil {
 				// this is a request for a new cluster role
-				if err := r.createRole(parameters); err != nil {
-					return reconcile.Result{}, err
-				}
+				return reconcile.Result{}, err
 			}
 		}
 	}
@@ -365,18 +361,18 @@ func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.Coherence
 	defaultSpec := cluster.Spec.CoherenceRoleSpec
 	if len(cluster.Spec.Roles) == 0 {
 		return map[string]coherence.CoherenceRoleSpec{defaultSpec.GetRoleName(): defaultSpec}, []string{defaultSpec.GetRoleName()}
-	} else {
-		m := make(map[string]coherence.CoherenceRoleSpec)
-		names := make([]string, len(cluster.Spec.Roles))
-		index := 0
-		for _, role := range cluster.Spec.Roles {
-			clone := role.DeepCopyWithDefaults(&defaultSpec)
-			names[index] = role.GetRoleName()
-			m[names[index]] = *clone
-			index = index + 1
-		}
-		return m, names
 	}
+
+	m := make(map[string]coherence.CoherenceRoleSpec)
+	names := make([]string, len(cluster.Spec.Roles))
+	index := 0
+	for _, role := range cluster.Spec.Roles {
+		clone := role.DeepCopyWithDefaults(&defaultSpec)
+		names[index] = role.GetRoleName()
+		m[names[index]] = *clone
+		index++
+	}
+	return m, names
 }
 
 // findExistingRoles populates a map with all of the existing (deployed) cluster roles for the cluster name.

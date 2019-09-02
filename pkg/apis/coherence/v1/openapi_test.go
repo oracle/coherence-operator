@@ -80,6 +80,7 @@ func createValidator(t *testing.T, crdPath string) *validate.SchemaValidator {
 
 	crd := apiextensions.CustomResourceDefinition{}
 	err = yaml.Unmarshal(yamlFile, &crd)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	v, _, err := validation.NewSchemaValidator(crd.Spec.Validation)
 	g.Expect(err).ToNot(HaveOccurred())

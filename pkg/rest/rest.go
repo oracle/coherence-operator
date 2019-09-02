@@ -88,13 +88,14 @@ func (s server) GetHostAndPort(cof *flags.CoherenceOperatorFlags) string {
 	var service string
 	var port int32
 
-	if f.ServiceName != "" {
+	switch {
+	case f.ServiceName != "":
 		// use the service name if it was specifically set
 		service = f.ServiceName
-	} else if f.RestHost != "0.0.0.0" {
+	case f.RestHost != "0.0.0.0":
 		// if no service name was set but ReST is bound to a specific address then use that
 		service = f.RestHost
-	} else {
+	default:
 		// ReST is bound to 0.0.0.0 so use any of our local addresses.
 		// This does not guarantee we're reachable but would be OK in local testing
 		ip, err := onet.GetLocalAddress()
@@ -103,11 +104,12 @@ func (s server) GetHostAndPort(cof *flags.CoherenceOperatorFlags) string {
 		}
 	}
 
-	if f.ServicePort != -1 {
+	switch {
+	case f.ServicePort != -1:
 		port = f.ServicePort
-	} else if f.RestPort > 0 {
+	case f.RestPort > 0:
 		port = f.RestPort
-	} else {
+	default:
 		port = s.GetPort()
 	}
 

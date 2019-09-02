@@ -2,17 +2,12 @@ package management
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"net"
-	"net/url"
 	"strings"
 	"time"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/tools/remotecommand"
 	utilexec "k8s.io/client-go/util/exec"
 )
@@ -104,47 +99,4 @@ func newStringReader(ss []string) io.Reader {
 	formattedString := strings.Join(ss, "\n")
 	reader := strings.NewReader(formattedString)
 	return reader
-}
-
-// getKubeconfigAndNamespace returns the *rest.Config and default namespace defined in the
-// kubeconfig at the specified path. If no path is provided, returns the default *rest.Config
-// and namespace
-func getKubeconfigAndNamespace() (*rest.Config, string, error) {
-	var clientConfig clientcmd.ClientConfig
-	var apiConfig *clientcmdapi.Config
-	var err error
-
-	apiConfig, err = clientcmd.NewDefaultClientConfigLoadingRules().Load()
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get kubeconfig: %v", err)
-	}
-
-	clientConfig = clientcmd.NewDefaultClientConfig(*apiConfig, &clientcmd.ConfigOverrides{})
-	kubeconfig, err := clientConfig.ClientConfig()
-	if err != nil {
-		return nil, "", err
-	}
-	namespace, _, err := clientConfig.Namespace()
-	if err != nil {
-		return nil, "", err
-	}
-
-	u, err := url.Parse(kubeconfig.Host)
-	if err != nil {
-		return nil, "", err
-	}
-
-	ip, err := net.LookupIP(u.Hostname())
-	if err != nil {
-		return nil, "", err
-	}
-
-	// If this is Docker on Mac the host name resolves to loopback
-	// It seems that if we use the host name we may later get an x509 error
-	// but if we change the host to the loopback IP 127.0.0.1 it works fine
-	if ip[0].IsLoopback() {
-		kubeconfig.Host = strings.Replace(kubeconfig.Host, u.Hostname(), "127.0.0.1", 1)
-	}
-
-	return kubeconfig, namespace, nil
 }

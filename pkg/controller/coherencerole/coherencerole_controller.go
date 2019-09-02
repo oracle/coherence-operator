@@ -38,22 +38,15 @@ const (
 	createFailedMessage          string = "create CoherenceInternal '%s' from CoherenceRole '%s' failed\n%s"
 	updateMessage                string = "updated CoherenceInternal %s from CoherenceRole %s successful"
 	updateFailedMessage          string = "update CoherenceInternal %s from CoherenceRole %s failed\n%s"
-	deleteMessage                string = "deleted CoherenceInternal %s from CoherenceRole %s successful"
-	deleteFailedMessage          string = "delete CoherenceInternal %s from CoherenceRole %s failed\n%s"
 	failedToGetHelmValuesMessage string = "Failed to get Helm values for CoherenceRole %s due to error\n%s"
 	failedToGetParentCluster     string = "Failed to get parent CoherenceCluster %s for CoherenceRole %s due to error\n%s"
 	failedToReconcileRole        string = "Failed to reconcile CoherenceRole %s due to error\n%s"
 	failedToScaleRole            string = "Failed to scale CoherenceRole %s from %d to %d due to error\n%s"
 
-	eventReasonFailed       string = "failed"
-	eventReasonCreated      string = "SuccessfulCreate"
-	eventReasonFailedCreate string = "FailedCreate"
-	eventReasonUpdated      string = "SuccessfulUpdate"
-	eventReasonFailedUpdate string = "FailedUpdate"
-	eventReasonDeleted      string = "SuccessfulDelete"
-	eventReasonFailedDelete string = "FailedDelete"
-	eventReasonScale        string = "Scaling"
-	eventReasonScaleFailed  string = "ScalingFailed"
+	eventReasonFailed  string = "failed"
+	eventReasonCreated string = "SuccessfulCreate"
+	eventReasonUpdated string = "SuccessfulUpdate"
+	eventReasonScale   string = "Scaling"
 
 	// The template used to create the CoherenceRole.Status.Selector
 	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
@@ -222,24 +215,22 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return r.handleErrAndFinish(nil, role, fmt.Sprintf(invalidRoleEventMessage, role.Name, clusterName), logger)
-		} else {
-			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetParentCluster, clusterName, role.Name, err.Error()), logger)
 		}
+		return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetParentCluster, clusterName, role.Name, err.Error()), logger)
 	}
 
 	// find the existing Helm values structure in k8s (this will be an unstructured.Unstructured)
 	// it may not exist if this is a create request
 	helmValues, err := r.GetExistingHelmValues(role)
 
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Helm values was not found so this is an insert of a new role
-			return r.createRole(cluster, role)
-		} else {
-			// the error is a real error
-			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetHelmValuesMessage, role.Name, err.Error()), logger)
-		}
-	} else {
+	switch {
+	case err != nil && errors.IsNotFound(err):
+		// Helm values was not found so this is an insert of a new role
+		return r.createRole(cluster, role)
+	case err != nil:
+		// the error is a real error
+		return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToGetHelmValuesMessage, role.Name, err.Error()), logger)
+	default:
 		// The Helm values was found so this is an update
 		return r.updateRole(cluster, role, helmValues)
 	}
@@ -249,13 +240,15 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 func (r *ReconcileCoherenceRole) getRole(namespace, name string) (*coh.CoherenceRole, bool, error) {
 	role := &coh.CoherenceRole{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, role)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return role, false, nil
-		}
+
+	switch {
+	case err != nil && errors.IsNotFound(err):
+		return role, false, nil
+	case err != nil:
 		return role, false, err
+	default:
+		return role, true, nil
 	}
-	return role, true, nil
 }
 
 // createRole creates a new Helm values structure in k8s, which will in turn trigger a Helm install.
@@ -371,7 +364,8 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 
 	// ToDo: If desiredReplicas == 0 then we must delete the CoherenceRole.
 
-	if currentReplicas < desiredReplicas {
+	switch {
+	case currentReplicas < desiredReplicas:
 		// Scaling UP
 
 		// if scaling up and upgrading then upgrade first and scale second
@@ -385,14 +379,13 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 				// the reconcile method keep being re-queued until the cluster is once again
 				// in a stable state when the scale up will then happen.
 				return reconcile.Result{Requeue: true}, nil
-			} else {
-				return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 			}
+			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 		}
 
 		logger.Info(fmt.Sprintf("Request to scale up from %d to %d", currentReplicas, desiredReplicas))
 		return r.scale(role, helmValues, existing, desiredReplicas, currentReplicas, sts)
-	} else if currentReplicas > desiredReplicas {
+	case currentReplicas > desiredReplicas:
 		// Scaling DOWN
 
 		// if scaling down and upgrading then scale down first and upgrade second
@@ -407,16 +400,15 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 			// the reconcile method keep being re-queued until the cluster is once again
 			// in a stable state when the upgrade will then happen.
 			return reconcile.Result{Requeue: true}, nil
-		} else {
-			return result, err
 		}
-	} else if isUpgrade {
+		return result, err
+	case isUpgrade:
 		// no scaling, just a rolling upgrade
 		if err := r.upgrade(role, helmValues, currentReplicas, desiredRole); err != nil {
 			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 		}
 		return reconcile.Result{Requeue: false}, nil
-	} else if sts != nil {
+	case sts != nil:
 		// nothing to do to update or scale
 		// We probably arrived here due to a change in the StatefulSet for a role
 		// In this case we can potentially update the role's status based on what changed in the StatefulSet
@@ -475,7 +467,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 
 // Update the role's status based on the status of the StatefulSet.
 func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *appsv1.StatefulSet) error {
-	var err error = nil
+	var err error
 
 	if role.Status.CurrentReplicas != sts.Status.Replicas || role.Status.ReadyReplicas != sts.Status.ReadyReplicas {
 		// Update this CoherenceRole's status
@@ -599,7 +591,6 @@ func (r *ReconcileCoherenceRole) failed(err error, role *coh.CoherenceRole, msg 
 
 	if requeue {
 		return reconcile.Result{Requeue: true}, nil
-	} else {
-		return reconcile.Result{Requeue: false}, nil
 	}
+	return reconcile.Result{Requeue: false}, nil
 }

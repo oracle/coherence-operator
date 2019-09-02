@@ -19,7 +19,7 @@ const (
 	partitionFormat = "http://%s:%d/management/coherence/cluster/services/%s/partition"
 
 	// The default name of the management port in a Coherence container.
-	PORT_NAME = "mgmt-port"
+	PortName = "mgmt-port"
 )
 
 // A struct to use to hold the results of a generic Coherence management ReST query.
@@ -34,7 +34,7 @@ type ClusterData struct {
 	RefreshTime   string              `json:"refreshTime"`
 	LicenseMode   string              `json:"licenseMode"`
 	ClusterSize   int                 `json:"clusterSize"`
-	LocalMemberId int                 `json:"localMemberId"`
+	LocalMemberID int                 `json:"localMemberId"`
 	Version       string              `json:"version"`
 	Running       bool                `json:"running"`
 	ClusterName   string              `json:"clusterName"`
@@ -84,11 +84,11 @@ type MemberData struct {
 	SiteName     string              `json:"siteName"`
 	RackName     string              `json:"rackName"`
 	MachineName  string              `json:"machineName"`
-	MachineId    int                 `json:"machineId"`
+	MachineID    int                 `json:"machineId"`
 	MemberName   string              `json:"memberName"`
 	RoleName     string              `json:"roleName"`
-	Id           int                 `json:"id"`
-	NodeId       string              `json:"nodeId"`
+	ID           int                 `json:"id"`
+	NodeID       string              `json:"nodeId"`
 	LoggingLevel int                 `json:"loggingLevel"`
 }
 

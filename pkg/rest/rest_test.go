@@ -16,8 +16,10 @@ import (
 
 var _ = Describe("ReST Server", func() {
 	const (
-		siteLabel = "test/site"
-		rackLabel = "test/rack"
+		siteLabel      = "test/site"
+		rackLabel      = "test/rack"
+		urlSitePattern = "http://127.0.0.1:%d/site/%s"
+		urlRackPattern = "http://127.0.0.1:%d/rack/%s"
 	)
 	var (
 		server       rest.Server
@@ -65,7 +67,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the site should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/site/foo", server.GetPort())
+			url := fmt.Sprintf(urlSitePattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -76,7 +78,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the rack should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/rack/foo", server.GetPort())
+			url := fmt.Sprintf(urlRackPattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -94,7 +96,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the site should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/site/foo", server.GetPort())
+			url := fmt.Sprintf(urlSitePattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -105,7 +107,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the rack should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/rack/foo", server.GetPort())
+			url := fmt.Sprintf(urlRackPattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -122,7 +124,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the site should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/site/foo", server.GetPort())
+			url := fmt.Sprintf(urlSitePattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -133,7 +135,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the rack should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/rack/foo", server.GetPort())
+			url := fmt.Sprintf(urlRackPattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -160,7 +162,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the site should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/site/foo", server.GetPort())
+			url := fmt.Sprintf(urlSitePattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -171,7 +173,7 @@ var _ = Describe("ReST Server", func() {
 		})
 
 		It("the rack should be blank", func() {
-			url := fmt.Sprintf("http://127.0.0.1:%d/rack/foo", server.GetPort())
+			url := fmt.Sprintf(urlRackPattern, server.GetPort(), "foo")
 			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))

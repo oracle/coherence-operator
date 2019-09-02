@@ -37,6 +37,8 @@ import (
 func main() {
 	namespace := helper.GetTestNamespace()
 	cfg, _, err := helper.GetKubeconfigAndNamespace("")
+	panicIfErr(err)
+
 	clientv1, err := v1.NewForConfig(cfg)
 	panicIfErr(err)
 
@@ -47,6 +49,7 @@ func main() {
 		MapperProvider: apiutil.NewDiscoveryRESTMapper,
 		LeaderElection: false,
 	})
+	panicIfErr(err)
 
 	tillerKubeClient, err := client.NewFromManager(mgr)
 	panicIfErr(err)

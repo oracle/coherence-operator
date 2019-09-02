@@ -59,9 +59,8 @@ func (in *Images) DeepCopyWithDefaults(defaults *Images) *Images {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -99,9 +98,8 @@ func (in *ImageSpec) DeepCopyWithDefaults(defaults *ImageSpec) *ImageSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -154,9 +152,8 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -205,9 +202,8 @@ func (in *MainSpec) DeepCopyWithDefaults(defaults *MainSpec) *MainSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -257,9 +253,8 @@ func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorag
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -358,9 +353,8 @@ func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -477,9 +471,8 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -525,9 +518,8 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -579,9 +571,8 @@ func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *Port
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -700,9 +691,8 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -828,9 +818,8 @@ func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -948,9 +937,8 @@ func (in *ReadinessProbeSpec) DeepCopyWithDefaults(defaults *ReadinessProbeSpec)
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -1016,9 +1004,8 @@ func (in *UserArtifactsImageSpec) DeepCopyWithDefaults(defaults *UserArtifactsIm
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -1059,9 +1046,8 @@ func (in *FluentdImageSpec) DeepCopyWithDefaults(defaults *FluentdImageSpec) *Fl
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {
@@ -1094,9 +1080,8 @@ func (in *FluentdApplicationSpec) DeepCopyWithDefaults(defaults *FluentdApplicat
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if defaults == nil {

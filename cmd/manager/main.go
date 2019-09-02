@@ -52,9 +52,6 @@ const (
 // BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
 var BuildInfo string
 
-// restServer is the Operator ReST server.
-var restServer cohrest.Server
-
 // <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 // Change below variables to serve metrics on different host or port.
@@ -155,9 +152,6 @@ func main() {
 
 	// >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
 
-	// ensure that the configuration secret exists
-	err = ensureOperatorConfig(namespace, mgr, cohf)
-
 	// Configure the Helm operator
 	if err := setupHelm(mgr, namespace, hflags); err != nil {
 		log.Error(err, "Manager exited non-zero")
@@ -165,7 +159,17 @@ func main() {
 	}
 
 	// Start the Operator ReST endpoint
-	restServer, err = cohrest.StartRestServer(mgr, cohf)
+	restServer, err := cohrest.StartRestServer(mgr, cohf)
+	if err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// ensure that the configuration secret exists
+	if err := ensureOperatorSecret(namespace, mgr, restServer, cohf); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
 
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
@@ -279,8 +283,8 @@ func printBuildInfo(log logr.Logger) {
 	log.Info(fmt.Sprintf("Coherence Operator Build Time: %s", date))
 }
 
-// ensureOperatorConfig ensures that the Operator configuration secret exists in the namespace.
-func ensureOperatorConfig(namespace string, mgr manager.Manager, flags *flags.CoherenceOperatorFlags) error {
+// ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
+func ensureOperatorSecret(namespace string, mgr manager.Manager, restServer cohrest.Server, flags *flags.CoherenceOperatorFlags) error {
 	log.Info("Ensuring configuration secret")
 
 	client := mgr.GetClient()

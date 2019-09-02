@@ -5,7 +5,7 @@ import "net"
 func GetLocalAddress() (net.IP, error) {
 	var flagP2P = net.FlagUp | net.FlagPointToPoint
 	var mtuBest = 0
-	var ipBest net.IP = nil
+	var ipBest net.IP
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -13,7 +13,7 @@ func GetLocalAddress() (net.IP, error) {
 	}
 
 	for _, i := range ifaces {
-		if (i.Flags & flagP2P) != 0 && i.MTU > mtuBest {
+		if (i.Flags&flagP2P) != 0 && i.MTU > mtuBest {
 			addrs, err := i.Addrs()
 			if err != nil {
 				return nil, err

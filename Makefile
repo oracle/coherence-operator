@@ -643,9 +643,15 @@ operator-helm-delete:
 # ---------------------------------------------------------------------------
 delete-coherence-clusters: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 delete-coherence-clusters:
-	for i in $(kubectl -n  $(TEST_NAMESPACE) get coherencecluster -o name); do \
-		kubectl -n $(TEST_NAMESPACE) delete ${i}; \
+	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherencecluster -o name); do \
+		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
 	done
-	for i in $(kubectl -n  $(TEST_NAMESPACE) get coherenceinternal -o name); do \
-		kubectl -n $(TEST_NAMESPACE) patch ${i}  -p '{"metadata":{"finalizers": []}}' --type=merge; \
+	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherenceinternal -o name); do \
+		kubectl -n $(TEST_NAMESPACE) patch $${i}  -p '{"metadata":{"finalizers": []}}' --type=merge; \
 	done
+
+# ---------------------------------------------------------------------------
+# Executes golangci-lint to perform various code review checks on the source.
+# ---------------------------------------------------------------------------
+golangci:
+	golangci-lint run -v ./pkg/... ./cmd/...

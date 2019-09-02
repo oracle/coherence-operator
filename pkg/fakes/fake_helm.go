@@ -148,6 +148,9 @@ func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string,
 		MapperProvider: apiutil.NewDiscoveryRESTMapper,
 		LeaderElection: false,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	tillerKubeClient, err := client.NewFromManager(mgrReal)
 	if err != nil {

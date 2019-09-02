@@ -34,9 +34,8 @@ func (r *ReconcileCoherenceRole) scale(role *coh.CoherenceRole, cohInternal *uns
 	case coh.ParallelUpSafeDownScaling:
 		if desired > current {
 			return r.parallelScale(role, cohInternal, existing, desired, current)
-		} else {
-			return r.safeScale(role, cohInternal, existing, desired, current, sts)
 		}
+		return r.safeScale(role, cohInternal, existing, desired, current, sts)
 	default:
 		// shouldn't get here, but better safe than sorry
 		return r.safeScale(role, cohInternal, existing, desired, current, sts)
@@ -71,14 +70,12 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 			if replicas == desired {
 				// we're at the desired size so finished scaling
 				return reconcile.Result{Requeue: false}, nil
-			} else {
-				// scaled by one but not yet at the desired size - requeue request after one minute
-				return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 			}
-		} else {
-			// failed
-			return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToScaleRole, role.Name, current, replicas, err.Error()), logger)
+			// scaled by one but not yet at the desired size - requeue request after one minute
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 		}
+		// failed
+		return r.handleErrAndRequeue(err, role, fmt.Sprintf(failedToScaleRole, role.Name, current, replicas, err.Error()), logger)
 	}
 
 	// Not StatusHA - wait one minute
@@ -188,13 +185,13 @@ func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.State
 			if log.Enabled() {
 				log.Info("Checking pod " + pod.Name + " for StatusHA")
 			}
+
 			ha, err := in.IsPodStatusHA(pod, handler)
 			if err == nil {
 				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t)", pod.Name, ha))
 				return ha
-			} else {
-				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t) error %s", pod.Name, ha, err.Error()))
 			}
+			log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t) error %s", pod.Name, ha, err.Error()))
 		} else {
 			log.Info("Skipping StatusHA checking for pod " + pod.Name + " as Pod status not in running phase")
 		}
@@ -205,14 +202,16 @@ func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.State
 
 // Determine whether a Pod is StatusHA using the configured StausHA handler.
 func (in *StatusHAChecker) IsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
-	if handler.Exec != nil {
+	switch {
+	case handler.Exec != nil:
 		return in.ExecIsPodStatusHA(pod, handler)
-	} else if handler.HTTPGet != nil {
-		return in.HttpIsPodStatusHA(pod, handler)
-	} else if handler.TCPSocket != nil {
-		return in.TcpIsPodStatusHA(pod, handler)
+	case handler.HTTPGet != nil:
+		return in.HTTPIsPodStatusHA(pod, handler)
+	case handler.TCPSocket != nil:
+		return in.TCPIsPodStatusHA(pod, handler)
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 func (in *StatusHAChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
@@ -236,7 +235,7 @@ func (in *StatusHAChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.Status
 	return exitCode == 0, nil
 }
 
-func (in *StatusHAChecker) HttpIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+func (in *StatusHAChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
 	var (
 		scheme corev1.URIScheme
 		host   string
@@ -294,7 +293,7 @@ func (in *StatusHAChecker) HttpIsPodStatusHA(pod corev1.Pod, handler *coh.Status
 	return result == probe.Success, err
 }
 
-func (in *StatusHAChecker) TcpIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+func (in *StatusHAChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
 	var (
 		host string
 		port int
@@ -324,17 +323,16 @@ func (in *StatusHAChecker) TcpIsPodStatusHA(pod corev1.Pod, handler *coh.StatusH
 func (in *StatusHAChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
 	if port.Type == intstr.Int {
 		return port.IntValue(), nil
-	} else {
-		s := port.String()
-		i, err := strconv.Atoi(s)
-		if err == nil {
-			// string is an int
-			return i, nil
-		} else {
-			// string is a port name
-			return in.findPortInPod(pod, s)
-		}
 	}
+
+	s := port.String()
+	i, err := strconv.Atoi(s)
+	if err == nil {
+		// string is an int
+		return i, nil
+	}
+	// string is a port name
+	return in.findPortInPod(pod, s)
 }
 
 func (in *StatusHAChecker) findPortInPod(pod corev1.Pod, name string) (int, error) {
