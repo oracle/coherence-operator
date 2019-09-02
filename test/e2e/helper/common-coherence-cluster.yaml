@@ -14,3 +14,4 @@ spec:
     initialDelaySeconds: 10
     periodSeconds: 5
   imagePullSecrets: [${IMAGE_PULL_SECRETS}]
+  curlTimeout: 5

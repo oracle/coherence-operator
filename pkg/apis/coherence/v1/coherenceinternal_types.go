@@ -230,6 +230,9 @@ type CoherenceInternalStoreSpec struct {
 	//   in store.volumes and store.volumeClaimTemplates
 	// +optional
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	// The timeout in seconds used by curl when requesting site and rack info.
+	// +optional
+	CurlTimeout *int `json:"curlTimeout,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -272,15 +275,16 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.JavaOpts = role.Spec.JavaOpts
 	out.Store.PodManagementPolicy = role.Spec.PodManagementPolicy
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
+	out.Store.CurlTimeout = role.Spec.CurlTimeout
 	if role.Spec.Persistence != nil {
-		out.Store.Persistence = role.Spec.Persistence.DeepCopy();
+		out.Store.Persistence = role.Spec.Persistence.DeepCopy()
 		if out.Store.Persistence.Volume != nil {
 			// override the persistence volume name
 			out.Store.Persistence.Volume.Name = "persistence-volume"
 		}
 	}
 	if role.Spec.Snapshot != nil {
-		out.Store.Snapshot = role.Spec.Snapshot.DeepCopy();
+		out.Store.Snapshot = role.Spec.Snapshot.DeepCopy()
 		if out.Store.Snapshot.Volume != nil {
 			// override the snapshot volume name
 			out.Store.Snapshot.Volume.Name = "snapshot-volume"

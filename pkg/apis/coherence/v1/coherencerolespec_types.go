@@ -193,6 +193,9 @@ type CoherenceRoleSpec struct {
 	// a different handler may be specified.
 	// +optional
 	StatusHA *StatusHAHandler `json:"statusHA,omitempty"`
+	// The timeout in seconds used by curl when requesting site and rack info.
+	// +optional
+	CurlTimeout *int `json:"curlTimeout,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -326,6 +329,12 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.PofConfig = in.PofConfig
 	} else {
 		clone.PofConfig = defaults.PofConfig
+	}
+
+	if in.CurlTimeout != nil {
+		clone.CurlTimeout = in.CurlTimeout
+	} else {
+		clone.CurlTimeout = defaults.CurlTimeout
 	}
 
 	if in.OverrideConfig != nil {

@@ -239,6 +239,10 @@ spec:
             - name: COH_UTIL_DIR
               value: "/utils"
 {{- if .Values.store }}
+  {{- if .Values.store.curlTimeout }}
+            - name: CURL_TIMEOUT
+              value: {{ .Values.store.curlTimeout | quote }}
+  {{- end }}
   {{- if .Values.store.cacheConfig }}
             - name: COH_CACHE_CONFIG
               value: {{ .Values.store.cacheConfig | quote }}

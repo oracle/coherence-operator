@@ -301,8 +301,14 @@ commonConfiguration()
                   SITE=""
                   ;;
               http://*)
-                  curl -i -w '\n' --silent -X GET ${COH_SITE_INFO_LOCATION}
-                  SITE=$(curl --silent -X GET ${COH_SITE_INFO_LOCATION})
+                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  then
+                    TIMEOUT=${CURL_TIMEOUT}
+                  else
+                    TIMEOUT=30
+                  fi
+
+                  SITE=$(curl --silent -m ${TIMEOUT} -X GET ${COH_SITE_INFO_LOCATION})
                   if [[ $? != 0 ]]
                   then
                       SITE=""
@@ -325,7 +331,14 @@ commonConfiguration()
                   RACK=""
                   ;;
               http://*)
-                  RACK=$(curl --silent ${COH_RACK_INFO_LOCATION})
+                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  then
+                    TIMEOUT=${CURL_TIMEOUT}
+                  else
+                    TIMEOUT=30
+                  fi
+
+                  RACK=$(curl --silent -m ${TIMEOUT} ${COH_RACK_INFO_LOCATION})
                   if [[ $? != 0 ]]
                   then
                       RACK=""

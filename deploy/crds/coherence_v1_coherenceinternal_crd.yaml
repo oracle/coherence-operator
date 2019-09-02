@@ -141,6 +141,11 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
+                curlTimeout:
+                  description: The timeout in seconds used by curl when requesting
+                    site and rack info.
+                  format: int64
+                  type: integer
                 env:
                   additionalProperties:
                     type: string

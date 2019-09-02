@@ -61,6 +61,9 @@ store:
   #   the default is tangosol-coherence-override.xml
   overrideConfig:
 
+  # The timeout in seconds used by curl when requesting site and rack info in the start script
+  curlTimeout: 30
+
   # store.logging allows configuration of Coherence and java util logging.
   logging:
     # store.logging.level sets the Coherence log level. This value should be an integer in the range 1 to 9,

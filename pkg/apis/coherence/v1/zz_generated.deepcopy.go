@@ -400,6 +400,11 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.CurlTimeout != nil {
+		in, out := &in.CurlTimeout, &out.CurlTimeout
+		*out = new(int)
+		**out = **in
+	}
 	return
 }
 
@@ -654,6 +659,11 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 		in, out := &in.StatusHA, &out.StatusHA
 		*out = new(StatusHAHandler)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.CurlTimeout != nil {
+		in, out := &in.CurlTimeout, &out.CurlTimeout
+		*out = new(int)
+		**out = **in
 	}
 	return
 }

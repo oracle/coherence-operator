@@ -387,6 +387,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
 						},
 					},
+					"curlTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout in seconds used by curl when requesting site and rack info.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -834,6 +841,13 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							},
 						},
 					},
+					"curlTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout in seconds used by curl when requesting site and rack info.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 				},
 			},
 		},
@@ -1166,6 +1180,13 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 						SchemaProps: spec.SchemaProps{
 							Description: "The handler to use to determine whether a role is Status HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Status HA to just checking Coherence services then a different handler may be specified.",
 							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
+						},
+					},
+					"curlTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout in seconds used by curl when requesting site and rack info.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},
