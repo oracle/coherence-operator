@@ -10,6 +10,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/pborman/uuid"
+	"io"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,6 +42,8 @@ type FakeHelm interface {
 	// the operator reconciler chain to create a Helm install and returns the result of
 	// the install. The result will contain all of the resources created by the Helm install.
 	HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceCluster) (*HelmInstallResult, error)
+	// Perform a fake Operator helm install.
+	FakeOperatorHelmInstall(mgr *FakeManager, namespace string, values helper.OperatorValues) (*HelmInstallResult, error)
 }
 
 // NewFakeHelm creates a FakeHelm from a manager, a ReconcileCoherenceCluster and a ReconcileCoherenceRole
@@ -245,6 +248,8 @@ func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, response *helm.InstallRel
 	decoder := scheme.Codecs.UniversalDecoder()
 
 	parts := strings.Split(response.Release.Manifest, "\n---\n")
+	list := make([]runtime.Object, len(parts))
+	index := 0
 	for _, part := range parts {
 		trimmed := strings.TrimSpace(part)
 		if trimmed != "" {
@@ -268,18 +273,48 @@ func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, response *helm.InstallRel
 			if !ok {
 				m = make(map[string]runtime.Object)
 			}
+			list[index] = o
+			index++
 			m[u.GetName()] = o
 			resources[gvr] = m
 		}
 	}
 
-	return &HelmInstallResult{resources: resources, mgr: mgr, decoder: decoder}, nil
+	ordered := list[0:index]
+	return &HelmInstallResult{resources: resources, ordered: ordered, mgr: mgr, decoder: decoder}, nil
 }
 
 type HelmInstallResult struct {
 	resources map[schema.GroupVersionResource]map[string]runtime.Object
+	ordered   []runtime.Object
 	mgr       *FakeManager
 	decoder   runtime.Decoder
+}
+
+type HelmInstallResultFilter func(runtime.Object) bool
+
+func (h HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer) error {
+	var sep = []byte("\n---\n")
+
+	for _, res := range h.ordered {
+		if filter == nil || filter(res) {
+			_, err := w.Write(sep)
+			if err != nil {
+				return err
+			}
+
+			d, err := yaml.Marshal(res)
+			if err != nil {
+				return err
+			}
+			_, err = w.Write(d)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (h HelmInstallResult) Merge(other *HelmInstallResult) {

@@ -15,6 +15,7 @@ import (
 const (
 	TestNamespaceEnv      = "TEST_NAMESPACE"
 	TestManifestEnv       = "TEST_MANIFEST"
+	TestLocalManifestEnv  = "TEST_LOCAL_MANIFEST"
 	TestGlobalManifestEnv = "TEST_GLOBAL_MANIFEST"
 	TestSslSecretEnv      = "TEST_SSL_SECRET"
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
@@ -50,6 +51,18 @@ func GetTestManifestFileName() (string, error) {
 			return "", err
 		}
 		man = dir + string(os.PathSeparator) + "test-manifest.yaml"
+	}
+	return man, nil
+}
+
+func GetTestLocalManifestFileName() (string, error) {
+	man := os.Getenv(TestLocalManifestEnv)
+	if man == "" {
+		dir, err := FindTestManifestDir()
+		if err != nil {
+			return "", err
+		}
+		man = dir + string(os.PathSeparator) + "local-manifest.yaml"
 	}
 	return man, nil
 }

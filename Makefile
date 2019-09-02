@@ -86,6 +86,7 @@ CRDS=$(shell find deploy/crds -name "*_crd.yaml")
 
 TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
 TEST_MANIFEST_FILE        := test-manifest.yaml
+TEST_LOCAL_MANIFEST_FILE  := local-manifest.yaml
 TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
 TEST_MANIFEST_VALUES      ?= deploy/test-values.yaml
 TEST_SSL_SECRET           := coherence-ssl-secret
@@ -236,7 +237,7 @@ test-operator: build-operator
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -249,6 +250,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
+		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-local-test/ \
@@ -448,6 +450,7 @@ clean:
 operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
 operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
+operator-manifest: export TEST_LOCAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 operator-manifest: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
 operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz
@@ -592,7 +595,21 @@ build-all: build-mvn build-operator
 
 
 # ---------------------------------------------------------------------------
-# Run the Operator in debug mode
+# Run the Operator in locally.
+#
+# To exit out of the local Operator you can use ctrl-c or ctrl-z but
+# sometimes this leaves orphaned processes on the local machine so
+# ensure these are killed run "make debug-stop"
+# ---------------------------------------------------------------------------
+.PHONY: run
+run: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
+	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
+	--operator-flags="--watches-file=local-watches.yaml" \
+	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+
+# ---------------------------------------------------------------------------
+# Run the Operator in locally debug mode,
 # Running this task will start the Operator and pause it until a Delve
 # is attached.
 #
