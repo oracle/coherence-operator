@@ -299,7 +299,7 @@ type HelmInstallResult struct {
 
 type HelmInstallResultFilter func(runtime.Object) bool
 
-func (h HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer) error {
+func (h *HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer) error {
 	var sep = []byte("\n---\n")
 
 	for _, res := range h.ordered {
@@ -323,8 +323,15 @@ func (h HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer)
 	return nil
 }
 
-func (h HelmInstallResult) Merge(other *HelmInstallResult) {
-	if other == nil {
+func (h *HelmInstallResult) Size() int {
+	if h == nil {
+		return 0
+	}
+	return len(h.ordered)
+}
+
+func (h *HelmInstallResult) Merge(other *HelmInstallResult) {
+	if h == nil || other == nil {
 		return
 	}
 
@@ -344,9 +351,19 @@ func (h HelmInstallResult) Merge(other *HelmInstallResult) {
 			h.resources[k] = m
 		}
 	}
+
+	if h.ordered == nil {
+		h.ordered = []runtime.Object{}
+	}
+
+	h.ordered = append(h.ordered, other.ordered...)
 }
 
-func (h HelmInstallResult) Get(name string, o runtime.Object) error {
+func (h *HelmInstallResult) Get(name string, o runtime.Object) error {
+	if h == nil {
+		return fmt.Errorf("resource '%s' not found", name)
+	}
+
 	gvr, err := h.getGVRFromObject(o, h.mgr.GetScheme())
 	if err != nil {
 		return err
@@ -379,8 +396,8 @@ func (h HelmInstallResult) Get(name string, o runtime.Object) error {
 	return nil
 }
 
-func (h HelmInstallResult) List(list runtime.Object) error {
-	if h.resources == nil {
+func (h *HelmInstallResult) List(list runtime.Object) error {
+	if h == nil || h.resources == nil {
 		return nil
 	}
 
@@ -407,7 +424,7 @@ func (h HelmInstallResult) List(list runtime.Object) error {
 	return nil
 }
 
-func (h HelmInstallResult) getGVRFromObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionResource, error) {
+func (h *HelmInstallResult) getGVRFromObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionResource, error) {
 	gvk, err := apiutil.GVKForObject(obj, scheme)
 	if err != nil {
 		return schema.GroupVersionResource{}, err
