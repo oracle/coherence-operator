@@ -108,7 +108,7 @@ controllers, two are part of the operator source code and one is provided by the
 All controllers have a `Reconcile` function that is triggered by events from Kubernetes for resources that the
 controller is listening to.
 
-===== CoherenceCluster Controller
+==== CoherenceCluster Controller
 The CoherenceCluster controller manages instances of the CoherenceCluster CRD. The source for this controller is
 in the `pkg/controller/coherencecluster/coherencecluster_controller.go` file.
 The CoherenceCluster controller listens for events related to CoherenceCluster CRDs created or modified in the
@@ -134,7 +134,7 @@ cascade delete functionality that allows related resources to be deleted togethe
 a database). When a CoherenceCluster is deleted then any related CoherenceRoles will be deleted and also any resources
 that have those CoherenceRoles as owners (i.e. the corresponding CoherenceInternal resources)
 
-===== CoherenceRole Controller
+==== CoherenceRole Controller
 The CoherenceRole controller manages instances of the CoherenceRole CRD. The source for this controller is
 in the `pkg/controller/coherencerole/coherencerole_controller.go` file.
 
@@ -192,7 +192,7 @@ As with a CoherenceCluster, when a CoherenceRole is deleted its corresponding Co
 by a cascading delete in k8s. The CoherenceRole controller does not need to take any action on deletion.
 
 
-===== Helm Controller
+==== Helm Controller
 The final controller in the Coherence Operator is the Helm controller. This controller is actually part of the Operator SDK
 and the source is not in the Coherence Operator's source code tree. The Helm controller is configured to watch for a
 particular CRD and performs Helm install, delete and upgrades as resources based on that CRD are created, deleted or updated.
@@ -232,6 +232,7 @@ The `build-all-images` make target will build the Go and Java parts of the Opera
 
 === Testing
 
+==== Unit Tests
 The Coherence Operator contains tests that can be executed using `make`. The tests are plain Go tests and
 also https://github.com/onsi/ginkgo[Ginkgo] test suites.
 
@@ -242,20 +243,114 @@ make test-all
 ----
 This will build and execute all of the Go and Java tests, you do not need to have run a `make build` first.
 
+==== Go Unit Tests
 To only tun the Go tests use:
 [source,bash]
 ----
 make test-operator
 ----
 
+==== Java Unit Tests
 To only tun the Java tests use:
 [source,bash]
 ----
 make test-mvn
 ----
 
+==== End-to-End Tests
+End to end tests require the Operator to be running. There are three types of end-to-end tests, Helm tests, local
+tests and remote tests.
 
-==== Build Versions
+* Helm tests are tests that install the Coherence Operator Helm chart and then make assertions about the state fo the
+resulting install. These tests do not test functionality of the Operator itself.
+The Helm tests suite is run using make:
+[source,bash]
+----
+make helm-test
+----
+
+* Local tests, which is the majority ot the tests, can be executed with a locally running operator (i.e. the operator
+does not need to be deployed in a container in k8s). This makes the tests faster to run and also makes it possible
+to run the operator in a debugger while the test is executing
+The local end-to-end test suite is run using make:
+[source,bash]
+----
+make e2e-local-test
+----
+
+It is possible to run a sub-set of the tests or an individual test by using the `GO_TEST_FLAGS=<regex>` parameter.
+For example, to just run the `TestMinimalCoherenceCluster` clustering test in the `test/e2e/local/clustering_test.go`
+file:
+[source,bash]
+----
+make e2e-local-test GO_TEST_FLAGS='-run=^TestMinimalCoherenceCluster$$'
+----
+
+The reg-ex above matches exactly the `TestMinimalCoherenceCluster` test name because it uses the reg-ex start `^` and
+end `$` characters.
+
+For example, to run all of the clustering tests where the test name starts with `TestOneRole` we can use
+the reg-ex `^TestOneRole.*'`
+[source,bash]
+----
+make e2e-local-test  GO_TEST_FLAGS='-run=^TestOneRole.*'
+----
+
+*Note* Any `$` signs in the reg-ex need to be escaped by using a double dollar sign `$$`.
+
+The `GO_TEST_FLAGS` parameter can actually consist of any valid argument to be passed to the `go test` command. There is plenty of
+documentation on https://tip.golang.org/cmd/go/#hdr-Test_packages[go test]
+
+* Remote tests require the operator to actually be installed in a container in k8s. An example of this is the scaling
+tests because the operator needs to be able to directly reach the Pods. Very few end-to-end tests fall into this categrory.
+The local end-to-end test suite is run using make:
+[source,bash]
+----
+make e2e-test
+----
+
+As with local tests the `GO_TEST_FLAGS` parameter can be used to execute a sub-set of tests or a single test.
+
+
+== Debugging
+Assuming that you have an IDE capable of debugging Go and have
+https://github.com/go-delve/delve/tree/master/Documentation/installation[delve] installed you can debug the operator.
+When debugging an instance of the operator is run locally so functionality that will only work when the operator is
+deployed into k8s cannot be properly debugged.
+
+To start an instance of the operator that can be debugged use the make target `run-debug`, for example:
+[source,bash]
+----
+make run-debug
+----
+This will start the operator and listen for a debugger to connect on the default delve port `2345`.
+The operator will connect to whichever k8s cluster the current environment is configured to point to.
+
+=== Stopping the Debug Session
+To stop the local operator just use CTRL-Z or CTRL-C. Sometimes processes can be left around even after exiting in
+this way. To make sure all of the processes are dead you can run the kill script:
+[source,bash]
+----
+make debug-stop
+----
+
+=== Debugging Tests
+To debug the operator while running a particular tests first start the debugger as described above.
+Then use the debug make test target to execute the test.
+
+For example to debug the `TestMinimalCoherenceCluster` test first start the debug session:
+[source,bash]
+----
+make run-debug
+----
+Then execute the test with the `debug-e2e-local-test` make target:
+[source,bash]
+----
+make debug-e2e-local-test GO_TEST_FLAGS='-run=^TestMinimalCoherenceCluster$$'
+----
+
+
+== Build Versions
 
 By default the version number used to tag the Docker images and Helm charts is set in the `VERSION` property
 in the `Makefile` and in the `pom.xml` files in the `java/` directory.
@@ -319,14 +414,6 @@ To run a local copy of the operator that will connect to whatever you local kube
 make run
 ----
 
-If https://github.com/go-delve/delve/tree/master/Documentation/installation[delve] is installed then the
-operator can be run in debug mode so that a Go debugger can be attached.
-[source,bash]
-----
-make run-debug
-----
-
-
 ==== Stopping the Local Operator
 To stop the local operator just use CTRL-Z or CTRL-C. Sometimes processes can be left around even after exiting in
 this way. To make sure all of the processes are dead you can run the kill script:
@@ -343,28 +430,19 @@ After running the operator the CRDs can be removed from the k8s cluster by runni
 make uninstall-crds
 ----
 
-=== Debugging Locally
 
-When running locally in development it is often useful to be able to attach a debugger to the running code.
-To do this you need to have https://github.com/go-delve/delve/tree/master/Documentation/installation[delve]
-installed and then add the `--enable-delve` parameter to the `operator-sdk up` command.
+=== Deploying to Kubernetes
+The simplest and most reliable way to deploy the operator to K8s is to use the Helm chart.
+After building the operator the chart is created in the `build/_output/helm-charts/coherence-operator` directory.
+Using the Helm chart will ensure that all of the required RBAC rules are created when deploying to an environment
+where RBAC is enabled.
+The chart can be installed in the usual way with Helm
 [source,bash]
 ----
-export OPERATOR_NAME=coherence-operator
-operator-sdk up local --namespace=default \
-    --operator-flags="--watches-file=local-watches.yaml" \
-    --enable-delve
+helm install --name operator \
+  --namespace operator-test \
+  build/_output/helm-charts/coherence-operator
 ----
-This will start the operator in debug mode; the Go code will pause until a debugger connects on port 2345 which
-is the default debug port.
-
-A simpler way to run the operator in debug mode is to use the shell script:
-[source,bash]
-----
-./hack/debug.sh
-----
-As well as running the same `operator-sdk up` commands as above it also pipes the output to both the console
-and to the file `operator.out`
 
 
 == Project Structure
@@ -396,7 +474,7 @@ The following should not be moved:
 === Labeling Your K8s Node
 
 For local testing, for example in Docker Desktop it is useful to add the zone label to your local K8s node with
-the fault domain that is then used by the Coherence Pods to set their `zone` property.
+the fault domain that is then used by the Coherence Pods to set their `site` property.
 
 For example, if your local node is called `docker-desktop` you can use the following command to set
 the zone name to `twilight-zone`:
@@ -418,3 +496,23 @@ start the local proxy and display the required login token by running:
 ----
 This will display the authentication token, the local k8s dashboard URL and then start `kubectl proxy`.
 
+=== Stuck CoherenceInternal Resources
+Sometimes a CoherenceInternal resource becomes stuck in k8s. This is because the operator adds finalizers to the
+resources causing k8s to be unable to delete them. The simplest way to delete them is to use the `kubectl patch`
+command to remove the finalizer.
+
+For example, if there was a CoherenceInternal resource called `test-role` in namespace `testing` then
+the following command could be used.
+[source,bash]
+----
+kubectl -n testing patch coherenceinternal/test-role \
+  -p '{"metadata":{"finalizers": []}}' \
+  --type=merge;
+----
+
+Alternatively there is a make target that wil clean up and remove all CoherenceCLuster, CoherenceRole and CoherenceInternal
+resources from the test namespace.
+[source,bash]
+----
+make delete-coherence-clusters
+----
