@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 package coherencecluster
 
 import (
@@ -6,6 +12,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 
 	stubs "github.com/oracle/coherence-operator/pkg/fakes"
@@ -18,9 +25,12 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 	)
 
 	var (
-		mgr     *stubs.FakeManager
+		// A fake manager to use to obtain the k8s client
+		mgr *stubs.FakeManager
+		// The CoherenceCluster to create the Helm install from
 		cluster *cohv1.CoherenceCluster
-		result  *stubs.HelmInstallResult
+		// The result of the Helm install
+		result *stubs.HelmInstallResult
 	)
 
 	// Before each test run the fake Helm install using the cluster variable
@@ -42,6 +52,24 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 			cluster = &cohv1.CoherenceCluster{}
 			cluster.SetNamespace(testNamespace)
 			cluster.SetName(testClusterName)
+		})
+
+		It("should have created three resources", func() {
+			Expect(result.Size()).To(Equal(3))
+		})
+
+		It("should have created one ConfigMap", func() {
+			name := cluster.GetFullRoleName(cohv1.DefaultRoleName) + "-scripts"
+			cm := corev1.ConfigMap{}
+			err := result.Get(name, &cm)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should have created one headless Service", func() {
+			name := cluster.GetFullRoleName(cohv1.DefaultRoleName) + "-headless"
+			svc := corev1.Service{}
+			err := result.Get(name, &svc)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should have created one StatefulSet", func() {
@@ -89,6 +117,38 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 			cluster.Spec.Roles = []cohv1.CoherenceRoleSpec{roleOne, roleTwo}
 		})
 
+		It("should have created six resources", func() {
+			Expect(result.Size()).To(Equal(6))
+		})
+
+		It("should have created one ConfigMap for roleOne", func() {
+			name := cluster.GetFullRoleName(roleOneName) + "-scripts"
+			cm := corev1.ConfigMap{}
+			err := result.Get(name, &cm)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should have created one ConfigMap for roleTwo", func() {
+			name := cluster.GetFullRoleName(roleTwoName) + "-scripts"
+			cm := corev1.ConfigMap{}
+			err := result.Get(name, &cm)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should have created one headless Service for roleOne", func() {
+			name := cluster.GetFullRoleName(roleOneName) + "-headless"
+			svc := corev1.Service{}
+			err := result.Get(name, &svc)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should have created one headless Service for roleTwo", func() {
+			name := cluster.GetFullRoleName(roleTwoName) + "-headless"
+			svc := corev1.Service{}
+			err := result.Get(name, &svc)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("should have created two StatefulSet", func() {
 			list := appsv1.StatefulSetList{}
 			err := result.List(&list)
@@ -124,7 +184,7 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 
 // ----- helpers ------------------------------------------------------------
 
-// Shared function to find a StatefulSet in a Helm result
+// Shared function to find a StatefulSet in a Helm result.
 var findStatefulSet = func(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string) (appsv1.StatefulSet, error) {
 	name := cluster.GetFullRoleName(roleName)
 	sts := appsv1.StatefulSet{}
