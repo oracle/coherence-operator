@@ -668,7 +668,66 @@ delete-coherence-clusters:
 	done
 
 # ---------------------------------------------------------------------------
+# Obtain the golangci-lint binary
+# ---------------------------------------------------------------------------
+$(BUILD_OUTPUT)/bin/golangci-lint: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+$(BUILD_OUTPUT)/bin/golangci-lint:
+	@mkdir -p $(BUILD_OUTPUT)/bin
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_OUTPUT)/bin v1.17.1
+
+# ---------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
 # ---------------------------------------------------------------------------
-golangci:
-	golangci-lint run -v ./pkg/... ./cmd/...
+golangci: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+golangci: $(BUILD_OUTPUT)/bin/golangci-lint
+	$(BUILD_OUTPUT)/bin/golangci-lint run -v --deadline=5m  ./pkg/... ./cmd/...
+
+
+# ---------------------------------------------------------------------------
+# Downloads the copyright checker.
+# ---------------------------------------------------------------------------
+$(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+$(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar:
+	@mkdir -p $(BUILD_OUTPUT)/bin
+	curl -sSfL https://repo1.maven.org/maven2/org/glassfish/copyright/glassfish-copyright-maven-plugin/2.1/glassfish-copyright-maven-plugin-2.1.jar \
+		-o  $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
+
+# ---------------------------------------------------------------------------
+# Performs a copyright check.
+# To add exclusions add the file or folder pattern using the -X parameter.
+# Add directories to be scanned at the end of the parameter list.
+# ---------------------------------------------------------------------------
+copyright: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
+	@java -cp $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar \
+	  org.glassfish.copyright.Copyright -C etc/copyright.txt \
+	  -X .adoc \
+	  -X bin/ \
+	  -X build/_output/ \
+	  -X /Dockerfile \
+	  -X docs/ \
+	  -X etc/copyright.txt \
+	  -X go.mod \
+	  -X go.sum \
+	  -X helm-charts/coherence/templates/NOTES.txt \
+	  -X helm-charts/coherence-operator/charts/prometheus-operator/ \
+	  -X helm-charts/coherence-operator/templates/NOTES.txt \
+	  -X .iml \
+	  -X Jenkinsfile \
+	  -X .jks \
+	  -X .json \
+	  -X LICENSE.txt \
+	  -X Makefile \
+	  -X .md \
+	  -X .sh \
+	  -X temp/ \
+	  -X /test-report.xml \
+	  -X THIRD_PARTY_LICENSES.txt \
+	  -X .tpl \
+	  -X .yaml \
+	  -X zz_generated.
+
+# ---------------------------------------------------------------------------
+# Executes the code review targets.
+# ---------------------------------------------------------------------------
+code-review: golangci copyright

@@ -13,7 +13,7 @@ COPY build/_output/bin/operator ${OPERATOR}
 
 COPY bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
-COPY build/_output/helm-charts/ ${HOME}/helm-charts/
+COPY build/_output/helm-charts/coherence ${HOME}/helm-charts/coherence
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 

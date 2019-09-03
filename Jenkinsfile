@@ -44,6 +44,26 @@ pipeline {
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
+        stage('code-review') {
+            steps {
+                echo 'Code Review'
+                script {
+                    setBuildStatus("Code Review in Progress...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                    make code-review
+                    '''
+                }
+            }
+        }
         stage('build') {
             steps {
                 echo 'Build'

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 // NOTE: Boilerplate only.  Ignore this file.
 
 // Package v1 contains API Schema definitions for the coherence v1 API group
