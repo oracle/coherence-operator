@@ -17,12 +17,3 @@ var AddToSchemes runtime.SchemeBuilder
 func AddToScheme(s *runtime.Scheme) error {
 	return AddToSchemes.AddToScheme(s)
 }
-
-func Foo(i int) string {
-	// testing golint to detect bad code
-	if i == 0 {
-		return "i is zero"
-	} else {
-		return "i is not zero"
-	}
-}
