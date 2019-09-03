@@ -721,7 +721,6 @@ copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
 # ---------------------------------------------------------------------------
 .PHONY: code-review
 code-review: golangci copyright
-
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
 # ---------------------------------------------------------------------------
