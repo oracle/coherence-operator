@@ -282,7 +282,6 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 .PHONY: debug-e2e-local-test
 debug-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-debug-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
@@ -535,8 +534,6 @@ push-operator-image: build-operator
 # Build the Operator Utils Docker image
 # ---------------------------------------------------------------------------
 .PHONY: build-utils-image
-build-utils-image: export UTILS_IMAGE := $(UTILS_IMAGE)
-build-utils-image: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 build-utils-image: build-mvn build-copy-artifacts build-utils-init
 	cp $(BUILD_OUTPUT)/bin/copy java/coherence-utils/target/docker/copy
 	cp $(BUILD_OUTPUT)/bin/utils-init java/coherence-utils/target/docker/utils-init
@@ -546,7 +543,6 @@ build-utils-image: build-mvn build-copy-artifacts build-utils-init
 # Push the Operator Utils Docker image
 # ---------------------------------------------------------------------------
 .PHONY: push-utils-image
-push-utils-image: export UTILS_IMAGE := $(UTILS_IMAGE)
 push-utils-image:
 	@echo "Pushing $(UTILS_IMAGE)"
 	docker push $(UTILS_IMAGE)
@@ -555,7 +551,6 @@ push-utils-image:
 # Build the Operator Test Docker image
 # ---------------------------------------------------------------------------
 .PHONY: build-test-image
-build-test-image: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 build-test-image: build-mvn
 	docker build -t $(TEST_USER_IMAGE) java/operator-test/target/docker
 
@@ -564,7 +559,6 @@ build-test-image: build-mvn
 # Push the Operator Utils Docker image
 # ---------------------------------------------------------------------------
 .PHONY: push-test-image
-push-test-image: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 push-test-image:
 	@echo "Pushing $(TEST_USER_IMAGE)"
 	docker push $(TEST_USER_IMAGE)
@@ -602,7 +596,6 @@ build-all: build-mvn build-operator
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run
-run: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 run: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml" \
@@ -618,7 +611,6 @@ run: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-se
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml" \
@@ -639,7 +631,6 @@ debug-stop:
 # configured to use.
 # ---------------------------------------------------------------------------
 .PHONY: operator-helm-install
-operator-helm-install: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets uninstall-crds install-crds
 	helm install --name operator --namespace $(TEST_NAMESPACE) $(CHART_DIR)/coherence-operator
 
@@ -658,7 +649,7 @@ operator-helm-delete:
 # This step will patch the finalizers on all CoherenceInternal
 # resources to ensure that they are properly deleted.
 # ---------------------------------------------------------------------------
-delete-coherence-clusters: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+.PHONY: delete-coherence-clusters
 delete-coherence-clusters:
 	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherencecluster -o name); do \
 		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
@@ -670,7 +661,6 @@ delete-coherence-clusters:
 # ---------------------------------------------------------------------------
 # Obtain the golangci-lint binary
 # ---------------------------------------------------------------------------
-$(BUILD_OUTPUT)/bin/golangci-lint: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 $(BUILD_OUTPUT)/bin/golangci-lint:
 	@mkdir -p $(BUILD_OUTPUT)/bin
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_OUTPUT)/bin v1.17.1
@@ -678,7 +668,7 @@ $(BUILD_OUTPUT)/bin/golangci-lint:
 # ---------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
 # ---------------------------------------------------------------------------
-golangci: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+.PHONY: golangci
 golangci: $(BUILD_OUTPUT)/bin/golangci-lint
 	$(BUILD_OUTPUT)/bin/golangci-lint run -v --deadline=5m  ./pkg/... ./cmd/...
 
@@ -686,7 +676,6 @@ golangci: $(BUILD_OUTPUT)/bin/golangci-lint
 # ---------------------------------------------------------------------------
 # Downloads the copyright checker.
 # ---------------------------------------------------------------------------
-$(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar:
 	@mkdir -p $(BUILD_OUTPUT)/bin
 	curl -sSfL https://repo1.maven.org/maven2/org/glassfish/copyright/glassfish-copyright-maven-plugin/2.1/glassfish-copyright-maven-plugin-2.1.jar \
@@ -697,7 +686,7 @@ $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar:
 # To add exclusions add the file or folder pattern using the -X parameter.
 # Add directories to be scanned at the end of the parameter list.
 # ---------------------------------------------------------------------------
-copyright: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+.PHONY: copyright
 copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
 	@java -cp $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar \
 	  org.glassfish.copyright.Copyright -C etc/copyright.txt \
@@ -730,4 +719,5 @@ copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
 # ---------------------------------------------------------------------------
 # Executes the code review targets.
 # ---------------------------------------------------------------------------
+.PHONY: code-review
 code-review: golangci copyright
