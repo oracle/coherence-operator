@@ -27,7 +27,7 @@ def archiveAndCleanup() {
 def tagLatestGood() {
     dir (env.WORKSPACE) {
         sh '''
-            BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+            BRANCH=$(git branch | grep "\*" | cut -d ' ' -f2)
             TAG=${BRANCH}-ci-good
             git push origin :refs/tags/${TAG}
             git tag -f -a -m "Latest good CI build" ${TAG}
