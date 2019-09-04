@@ -1,0 +1,10 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+  - role: one
+    replicas: 1
+  - role: two
+    replicas: 1
