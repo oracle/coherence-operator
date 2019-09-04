@@ -30,6 +30,8 @@ setupReleaseBranch()
     pwd
     ls -ls
 
+    git config user.name "Coherence Bot"
+    git config user.email coherence-bot_ww@oracle.com
     git commit -a -m "Preparing for Release Version $RELEASE_VERSION"
     git tag $RELEASE_TAG
 

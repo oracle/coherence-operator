@@ -29,6 +29,8 @@ def tagLatestGood() {
         sh '''
             BRANCH=$(git branch | grep "\\*" | cut -d ' ' -f2)
             TAG=${BRANCH}-ci-good
+            git config user.name "Coherence Bot"
+            git config user.email coherence-bot_ww@oracle.com
             git push origin :refs/tags/${TAG}
             git tag -f -a -m "Latest good CI build" ${TAG}
             git push origin --tags
