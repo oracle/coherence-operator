@@ -143,7 +143,7 @@ $(BUILD_OUTPUT)/bin/operator: export CGO_ENABLED = 0
 $(BUILD_OUTPUT)/bin/operator: export GOARCH = $(ARCH)
 $(BUILD_OUTPUT)/bin/operator: export GOOS = $(OS)
 $(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz
+$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION_FULL).tgz $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
@@ -178,42 +178,42 @@ $(BUILD_OUTPUT)/bin/utilsinit: $(GOS) $(DEPLOYS)
 	go build -o $(BUILD_OUTPUT)/bin/utils-init ./cmd/utilsinit
 
 # ---------------------------------------------------------------------------
-# Build the Coperator Helm chart
+# Build the Coperator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz: $(COP_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
 
 	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
 
-	# For each Helm chart folder package the chart into a .tar.gz
+	# For each Helm chart folder package the chart into a .tgz
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
-	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence-operator
+	tar -C $(CHART_DIR)/coherence-operator -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz .
 
 # ---------------------------------------------------------------------------
 # Build the Operator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
 .PHONY: helm-chart
-helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz
-	tar -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence-operator
+helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
+
 
 # ---------------------------------------------------------------------------
 # Internal make step to build the Coherence Helm chart that is packaged
 # inside the Operator Docker image.
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz: $(COH_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence-$(VERSION_FULL).tgz: $(COH_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence $(CHART_DIR)
 
 	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
 
-	# For each Helm chart folder package the chart into a .tar.gz
+	# For each Helm chart folder package the chart into a .tgz
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence"
 	helm lint $(CHART_DIR)/coherence
-	tar -czf $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz $(CHART_DIR)/coherence
+	tar -C $(CHART_DIR)/coherence -czf $(CHART_DIR)/coherence-$(VERSION_FULL).tgz .
 
 # ---------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
@@ -452,7 +452,7 @@ operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_
 operator-manifest: export TEST_LOCAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 operator-manifest: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
-operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tar.gz
+operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@mkdir -p $(TEST_MANIFEST_DIR)
 	go run ./cmd/manifestutil/
 
@@ -596,7 +596,7 @@ build-all: build-mvn build-operator
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run
-run: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
+run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -611,7 +611,7 @@ run: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-se
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tar.gz reset-namespace create-ssl-secrets uninstall-crds install-crds
+run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml" \
 	--enable-delve \
@@ -721,3 +721,42 @@ copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
 # ---------------------------------------------------------------------------
 .PHONY: code-review
 code-review: golangci copyright
+
+# ---------------------------------------------------------------------------
+# Display the full version string for the artifacts that would be built.
+# ---------------------------------------------------------------------------
+.PHONY: version
+version:
+	@echo ${VERSION_FULL}
+
+# ---------------------------------------------------------------------------
+# Release the Coherence Operator Helm chart.
+# ---------------------------------------------------------------------------
+.PHONY: release-chart
+release-chart: helm-chart
+	git checkout gh-pages
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
+	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	git status
+	git add charts/*
+	git clean -d -f
+	git status
+	git commit -m "Release coherence-operator helm chart version: $(VERSION_FULL)"
+	git log -1
+	git push origin gh-pages
+	git checkout $(GIT_BRANCH)
+
+# ---------------------------------------------------------------------------
+# Tag Git for the release.
+# ---------------------------------------------------------------------------
+.PHONY: release-tag
+release-tag:
+	git push origin :refs/tags/v$(VERSION_FULL)
+	git tag -f -a -m "Release version $(VERSION_FULL)" v$(VERSION_FULL)
+	git push origin --tags
+
+# ---------------------------------------------------------------------------
+# Release the Coherence Operator.
+# ---------------------------------------------------------------------------
+.PHONY: release
+release-chart: release-tag build-all-images push-release-images release-chart

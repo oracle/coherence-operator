@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
@@ -137,7 +138,18 @@ func GetPartitionAssignment(cl *http.Client, host string, port int32, service st
 // Perform a Management over ReST query and parse the json response if the response code is 200
 // returning the response code any any error.
 func query(cl *http.Client, url string, v interface{}) (int, error) {
-	response, err := cl.Get(url)
+	var response *http.Response
+	var err error
+
+	// re-try a max of 5 times
+	for i := 0; i < 5; i++ {
+		response, err = cl.Get(url)
+		if err == nil {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+
 	if err != nil {
 		var status = http.StatusInternalServerError
 		if response != nil {

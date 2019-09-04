@@ -130,21 +130,21 @@ func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec)
 	// For each Pod test whether we can connect to metrics
 	for _, pod := range pods {
 		if isSSL {
-			err = requestMetricsWithSSL(pod, tc)
+			err = requestMetricsWithSSL(pod, tc, tc.ShouldSucceed)
 			if tc.ShouldSucceed {
 				g.Expect(err).NotTo(HaveOccurred())
 			} else {
 				g.Expect(err).To(HaveOccurred())
 			}
 		} else {
-			err = requestMetricsWithoutSSL(pod)
+			err = requestMetricsWithoutSSL(pod, true)
 			g.Expect(err).NotTo(HaveOccurred())
 		}
 	}
 }
 
 // test connecting to an SSL enabled Pod.
-func requestMetricsWithSSL(pod corev1.Pod, tc MetricsTestCase) error {
+func requestMetricsWithSSL(pod corev1.Pod, tc MetricsTestCase, retry bool) error {
 	certDir, err := helper.FindTestCertsDir()
 	if err != nil {
 		return err
@@ -176,17 +176,17 @@ func requestMetricsWithSSL(pod corev1.Pod, tc MetricsTestCase) error {
 		},
 	}
 
-	return assertMetricsRequest(pod, client, "https")
+	return assertMetricsRequest(pod, client, "https", retry)
 }
 
 // test connecting to a plain http Pod.
-func requestMetricsWithoutSSL(pod corev1.Pod) error {
+func requestMetricsWithoutSSL(pod corev1.Pod, retry bool) error {
 	client := &http.Client{}
-	return assertMetricsRequest(pod, client, "http")
+	return assertMetricsRequest(pod, client, "http", retry)
 }
 
 // make a metrics request.
-func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string) error {
+func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string, retry bool) error {
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
 	if err != nil {
 		return err
@@ -195,7 +195,18 @@ func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string) 
 	defer pf.Close()
 
 	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", protocol, ports["metrics-port"])
-	resp, err := client.Get(url)
+
+	var resp *http.Response
+
+	// try a max of 5 times
+	for i := 0; i < 5; i++ {
+		resp, err = client.Get(url)
+		if err == nil || !retry {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
 	if err != nil {
 		return err
 	}
