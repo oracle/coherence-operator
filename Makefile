@@ -728,3 +728,35 @@ code-review: golangci copyright
 .PHONY: version
 version:
 	@echo ${VERSION_FULL}
+
+# ---------------------------------------------------------------------------
+# Release the Coherence Operator Helm chart.
+# ---------------------------------------------------------------------------
+.PHONY: release-chart
+release-chart: helm-chart
+	git checkout gh-pages
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
+	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	git status
+	git add charts/*
+	git clean -d -f
+	git status
+	git commit -m "Release coherence-operator helm chart version: $(VERSION_FULL)"
+	git log -1
+	git push origin gh-pages
+	git checkout $(GIT_BRANCH)
+
+# ---------------------------------------------------------------------------
+# Tag Git for the release.
+# ---------------------------------------------------------------------------
+.PHONY: release-tag
+release-tag:
+	git push origin :refs/tags/v$(VERSION_FULL)
+	git tag -f -a -m "Release version $(VERSION_FULL)" v$(VERSION_FULL)
+	git push origin --tags
+
+# ---------------------------------------------------------------------------
+# Release the Coherence Operator.
+# ---------------------------------------------------------------------------
+.PHONY: release
+release-chart: release-tag build-all-images push-all-images release-chart
