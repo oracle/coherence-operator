@@ -24,6 +24,18 @@ def archiveAndCleanup() {
     }
 }
 
+def tagLatestGood() {
+    dir (env.WORKSPACE) {
+        sh '''
+            BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+            TAG=${BRANCH}-ci-good
+            git push origin :refs/tags/${TAG}
+            git tag -f -a -m "Latest good CI build" ${TAG}
+            git push origin --tags
+        '''
+    }
+}
+
 pipeline {
     agent {
         label 'Kubernetes'
@@ -238,6 +250,9 @@ pipeline {
             deleteDir()
         }
         success {
+            script {
+                tagLatestGood()
+            }
             setBuildStatus("Build succeeded", "SUCCESS", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
         }
         failure {
