@@ -87,6 +87,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			persistenceOne = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 					},
@@ -104,6 +105,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			persistenceTwo = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 					},
@@ -122,6 +124,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			snapshotOne = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 					},
@@ -139,6 +142,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			snapshotTwo = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 					},

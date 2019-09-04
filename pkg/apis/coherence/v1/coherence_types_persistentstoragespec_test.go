@@ -26,6 +26,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 			block      = corev1.PersistentVolumeBlock
 			filesystem = corev1.PersistentVolumeFilesystem
 			pvcOne     = &corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 				Resources: corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 				},
@@ -36,6 +37,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
 			}
 			pvcTwo = &corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
 				Resources: corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("3Gi")},
 				},
