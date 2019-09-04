@@ -11,11 +11,13 @@
 #
 # Required Set of Enviornment Varibales:
 # 1) BRANCH_NAME           : Name of the GIT branch to be used to run release.
-# 2) RELEASE_VERSION       : Release version to use.
-# 3) NEXT_SNAPSHOT_VERSION : Next snapshot version to use.
+# 2) RELEASE_SUFFIX        : The release suffix, e.g. RC1, alpha1 etc.
+# 3) NEXT_VERSION          : An optional next version to use if doing a full
+#                            release and bumping the version.
 # 4) RELEASE_IMAGE_PREFIX  : Docker repository prefix to be used for
 #                            Coherence Operator docker image.
-# 5) DRY_RUN               : To indicate whether to run script in dry mode.
+# 5) DRY_RUN               : To indicate whether to run script in dry mode,
+#                            defaults to true if not specified.
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -23,17 +25,11 @@
 # -----------------------------------------------------------------------------
 setupReleaseBranch()
   {
-  echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
-
   if [ -z $(git ls-remote -q --tags | grep $RELEASE_TAG) ]; then
-    mvn -DnewVersion=$RELEASE_VERSION versions:set versions:commit
 
     pwd
     ls -ls
-    sed "s|\${test.image.prefix}|${RELEASE_IMAGE_PREFIX}|" pom.xml
 
-    git config user.name "Coherence Bot"
-    git config user.email coherence-bot_ww@oracle.com
     git commit -a -m "Preparing for Release Version $RELEASE_VERSION"
     git tag $RELEASE_TAG
 
@@ -42,24 +38,24 @@ setupReleaseBranch()
     fi
 
     if [ 0 -eq $? ]; then
-      mvn -DnewVersion=$NEXT_SNAPSHOT_VERSION versions:set versions:commit
-      if [ -n "${RELEASE_IMAGE_PREFIX}" ]; then
-        sed "s|${RELEASE_IMAGE_PREFIX}|\${test.image.prefix}|" pom.xml
-      else
-        sed "s|<release.image.prefix></release.image.prefix>|<release.image.prefix>\${test.image.prefix}</release.image.prefix>|" pom.xml
+#     Only udate the version if NEXT_VERSION is set
+      if [[ "${NEXT_VERSION}" != "" ]]; then
+        awk '{sub(/^VERSION \?= [0-9]\.[0-9]\.[0-9]/,"VERSION ?= '${NEXT_VERSION}'")}1' Makefile > Makefile.temp
+        mv Makefile.temp Makefile
+        mvn -f java -DnewVersion=${NEXT_VERSION} versions:set versions:commit
+
+        git commit -a -m "Preparing for Next Development version."
+        if [ "false" = "$DRY_RUN" ]; then
+          git push
+        fi
+        return $?
       fi
- 
-      git commit -a -m "Preparing for Next Development version."
-      if [ "false" = "$DRY_RUN" ]; then
-        git push
-      fi
-      return $?
     else
       return 1
     fi
   else
     echo ""
-    echo "Git tag $RELEASE_TAG already exists so use existing release tag $RELEASE_TAG ..."
+    echo "Git tag $RELEASE_TAG already exists releasing from existing release tag $RELEASE_TAG ..."
     echo ""
   fi
   }
@@ -69,9 +65,6 @@ setupReleaseBranch()
 # -----------------------------------------------------------------------------
 buildReleaseBranch()
   {
-  java -version
-  mvn -version
-
   [ -n "${WORKSPACE}" ] || local WORKSPACE=`mktemp -d`
   export RELEASE_DIR=${WORKSPACE}/release-$RELEASE_TAG
   echo "RELEASE_DIR = $RELEASE_DIR"
@@ -86,20 +79,15 @@ buildReleaseBranch()
   git status
   pwd
 
-  MVN_ARGS="-Pdocker -DskipTests=true -DskipITs=true -Doperator.image.pullPolicy=IfNotPresent -Drelease.image.prefix=${RELEASE_IMAGE_PREFIX}"
+  make build-all-images VERSION_SUFFIX="${RELEASE_SUFFIX}"
 
-  echo "MVN_ARGS == $MVN_ARGS"
   if [ "false" = "$DRY_RUN" ]; then
-    mvn -Pdocker-push $MVN_ARGS clean install
-  else
-    mvn $MVN_ARGS clean install
+    make push-all-images VERSION_SUFFIX="${RELEASE_SUFFIX}"
   fi
 
   STATUS=$?
   if [ 0 -eq "$STATUS" ]; then
-    export COH_CHART=$(find operator/target -regex '.*coherence-[0-9].*-helm.tar.gz' -print)
-    echo COH_CHART=$COH_CHART
-    export COH_OP_CHART=$(find operator/target -regex '.*coherence-operator.*-helm.tar.gz' -print)
+    export COH_OP_CHART=$(find build/_output/helm-charts -regex '.*coherence-operator.*-helm.tar.gz' -print)
     echo COH_OP_CHART=$COH_OP_CHART
   fi
 
@@ -107,13 +95,13 @@ buildReleaseBranch()
   }
 
 # -----------------------------------------------------------------------------
-# Check for required environment variables pointing to coherence and
-# coherence operator charts after building the release branch.
+# Check for required environment variables pointing to the coherence operator
+# chart after building the release branch.
 # -----------------------------------------------------------------------------
 checkRequiredEnvVars()
   {
-  if [[ -z "$COH_CHART" || -z "$COH_OP_CHART" ]]; then
-    echo "Required envrionment variables COH_OP_CHART and COH_CHART pointing to coherence-operator and coherence chart respectively are not set."
+  if [[ -z "$COH_OP_CHART" ]]; then
+    echo "Required envrionment variable COH_OP_CHART pointing to coherence-operator chart is not set."
     return 1
   fi
   }
@@ -127,10 +115,7 @@ publishCharts()
     mkdir charts
   fi
 
-  echo "RELEASE_VERSION = $RELEASE_VERSION"
-
-  cp $COH_CHART charts/coherence-$RELEASE_VERSION.tgz
-  cp $COH_OP_CHART charts/coherence-operator-$RELEASE_VERSION.tgz
+  cp $COH_OP_CHART charts/
 
   git checkout gh-pages
   if [ 0 -ne "$?" ]; then
@@ -148,9 +133,9 @@ publishCharts()
 
   git config user.name "Coherence Bot"
   git config user.email coherence-bot_ww@oracle.com
-  git commit -m "Release coherence-operator and coherence helm charts version: $RELEASE_VERSION"
+  git commit -m "Release coherence-operator helm chart version: $RELEASE_VERSION"
   if [ 0 -ne $? ]; then
-    echo "Failed to commit the changes containing coherence-operator and coherence helm charts."
+    echo "Failed to commit the changes containing coherence-operator helm chart."
     return 1
   fi
 
@@ -174,15 +159,17 @@ errorMessage()
 DRY_RUN=${DRY_RUN:-true}
 echo "DRY_RUN = $DRY_RUN"
 
-if [[ -n "$BRANCH_NAME" && -n "$RELEASE_VERSION" && -n "$NEXT_SNAPSHOT_VERSION" ]]; then
+if [[ -n "$BRANCH_NAME" ]]; then
 
-  git checkout $BRANCH_NAME
+#  git checkout $BRANCH_NAME
+  RELEASE_VERSION=$(make version VERSION_SUFFIX="${RELEASE_SUFFIX}")
   RELEASE_TAG=v$RELEASE_VERSION
 
-  echo "RELEASE_VERSION = $RELEASE_VERSION"
-  echo "RELEASE_TAG = $RELEASE_TAG"
-  echo "NEXT_SNAPSHOT_VERSION = $NEXT_SNAPSHOT_VERSION"
-  echo "RELEASE_IMAGE_PREFIX = $RELEASE_IMAGE_PREFIX"
+  echo "RELEASE_SUFFIX = ${RELEASE_SUFFIX}"
+  echo "RELEASE_VERSION = ${RELEASE_VERSION}"
+  echo "RELEASE_TAG = ${RELEASE_TAG}"
+  echo "NEXT_VERSION = ${NEXT_VERSION}"
+  echo "RELEASE_IMAGE_PREFIX = ${RELEASE_IMAGE_PREFIX}"
 
   setupReleaseBranch
   SETUP_BRANCH_STATUS=$?
@@ -199,7 +186,7 @@ if [[ -n "$BRANCH_NAME" && -n "$RELEASE_VERSION" && -n "$NEXT_SNAPSHOT_VERSION" 
     errorMessage "Setting up release branch failed with exit " $SETUP_BRANCH_STATUS
   fi
 else
-  errorMessage "Required environment variables RELEASE_VERSION & NEXT_RELEASE_VERSION is not set so exit with status " 1
+  errorMessage "Required environment variable BRANCH_NAME is not set so exit with status " 1
 fi
 
 checkRequiredEnvVars
