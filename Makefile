@@ -759,4 +759,4 @@ release-tag:
 # Release the Coherence Operator.
 # ---------------------------------------------------------------------------
 .PHONY: release
-release-chart: release-tag build-all-images push-all-images release-chart
+release-chart: release-tag build-all-images push-release-images release-chart
