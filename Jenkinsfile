@@ -24,20 +24,6 @@ def archiveAndCleanup() {
     }
 }
 
-def tagLatestGood() {
-    dir (env.WORKSPACE) {
-        sh '''
-            BRANCH=$(git branch | grep "\\*" | cut -d ' ' -f2)
-            TAG=${BRANCH}-ci-good
-            git config user.name "Coherence Bot"
-            git config user.email coherence-bot_ww@oracle.com
-            git push origin :refs/tags/${TAG}
-            git tag -f -a -m "Latest good CI build" ${TAG}
-            git push origin --tags
-        '''
-    }
-}
-
 pipeline {
     agent {
         label 'Kubernetes'
@@ -58,6 +44,28 @@ pipeline {
         timeout(time: 4, unit: 'HOURS')
     }
     stages {
+        stage('tag') {
+            steps {
+                echo 'Tag Good Build'
+                script {
+                    setBuildStatus("Tagging latest good build...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                    BRANCH=$(git branch | grep "\\*" | cut -d ' ' -f2)
+                    TAG=${BRANCH}-ci-good
+                    git config user.name "Coherence Bot"
+                    git config user.email coherence-bot_ww@oracle.com
+                    git push origin :refs/tags/${TAG}
+                    git tag -f -a -m "Latest good CI build" ${TAG}
+                    git push origin --tags
+                '''
+            }
+        }
         stage('code-review') {
             steps {
                 echo 'Code Review'
@@ -252,9 +260,6 @@ pipeline {
             deleteDir()
         }
         success {
-            script {
-                tagLatestGood()
-            }
             setBuildStatus("Build succeeded", "SUCCESS", "${env.PROJECT_URL}", "${env.GIT_COMMIT}");
         }
         failure {
