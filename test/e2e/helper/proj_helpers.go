@@ -15,7 +15,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"testing"
 )
 
 const (
@@ -26,6 +28,7 @@ const (
 	TestSslSecretEnv      = "TEST_SSL_SECRET"
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
+	CoherenceVersionEnv   = "COHERENCE_VERSION"
 
 	defaultNamespace = "operator-test"
 
@@ -305,4 +308,47 @@ func (in *coherenceClusterLoader) findActualFile(file string) (string, error) {
 	}
 
 	return "", err
+}
+
+// Skip the specified test if the current Coherence version set in the COHERENCE_VERSION
+// environment variable is less than the specified version.
+func SkipIfCoherenceVersionLessThan(t *testing.T, version ...int) {
+	ok, err := IsCoherenceVersionAtLeast(version...)
+	switch {
+	case err == nil && !ok:
+		versionStr := os.Getenv(CoherenceVersionEnv)
+		t.Skip(fmt.Sprintf("Skipping test as COHERENCE_VERSION %s is less than requested version %v", versionStr, version))
+	case err != nil:
+		t.Fatalf(fmt.Sprintf("Failed to check COHERENCE_VERSION due to %s", err.Error()))
+	}
+}
+
+// Determine whether current Coherence version set in the COHERENCE_VERSION
+// environment variable is greater than the specified version or the
+// COHERENCE_VERSION environment variable has not been set.
+func IsCoherenceVersionAtLeast(version ...int) (bool, error) {
+	if len(version) == 0 {
+		return true, nil
+	}
+
+	versionStr := os.Getenv(CoherenceVersionEnv)
+	if versionStr == "" {
+		return true, nil
+	}
+	parts := strings.Split(versionStr, ".")
+
+	for i, v := range version {
+		if i >= len(parts) {
+			break
+		}
+		vp, err := strconv.Atoi(parts[i])
+		if err != nil {
+			return false, err
+		}
+		if vp < v {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

@@ -65,8 +65,7 @@ spec:
                   type: string
               type: object
             fluentd:
-              description: Specify the fluentd image These parameters are ignored
-                if 'LogCaptureEnabled' is false.
+              description: Specify the fluentd image
               properties:
                 application:
                   description: The fluentd application configuration
@@ -95,9 +94,6 @@ spec:
               items:
                 type: string
               type: array
-            logCaptureEnabled:
-              description: Controls whether or not log capture via EFK stack is enabled.
-              type: boolean
             nodeSelector:
               additionalProperties:
                 type: string
@@ -302,6 +298,10 @@ spec:
                         as a volume containing the logging  configuration file to
                         use.
                       type: string
+                    fluentdEnabled:
+                      description: Controls whether or not log capture via a Fluentd
+                        sidecar container to an EFK stack is enabled.
+                      type: boolean
                     level:
                       description: The default being 5 (info level).
                       format: int32

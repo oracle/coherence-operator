@@ -103,6 +103,20 @@ func (in *CoherenceCluster) GetFullRoleName(role string) string {
 	return in.Name + "-" + role
 }
 
+// Obtain the CoherenceRoleSpec for the first role spec.
+// This method is useful to obtain the role from a cluster
+// that only has a single role spec.
+func (in *CoherenceCluster) GetFirstRole() CoherenceRoleSpec {
+	if in == nil {
+		return CoherenceRoleSpec{}
+	}
+
+	if len(in.Spec.Roles) == 0 {
+		return in.Spec.CoherenceRoleSpec
+	}
+	return in.Spec.Roles[0]
+}
+
 // Obtain the CoherenceRoleSpec for the specified role name
 func (in *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 	if len(in.Spec.Roles) > 0 {

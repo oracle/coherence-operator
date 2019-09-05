@@ -583,16 +583,9 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
-					"logCaptureEnabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Controls whether or not log capture via EFK stack is enabled.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
 					"fluentd": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specify the fluentd image These parameters are ignored if 'LogCaptureEnabled' is false.",
+							Description: "Specify the fluentd image",
 							Ref:         ref("./pkg/apis/coherence/v1.FluentdImageSpec"),
 						},
 					},
@@ -1437,6 +1430,13 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 						SchemaProps: spec.SchemaProps{
 							Description: "ConfigMapName allows a config map to be mounted as a volume containing the logging\n configuration file to use.",
 							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"fluentdEnabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.",
+							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},

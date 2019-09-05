@@ -225,7 +225,7 @@ spec:
             - name: OPERATOR_HOST
               valueFrom:
                 secretKeyRef:
-                  name: coherence-monitoring-config
+                  name: coherence-operator-config
                   key: operatorhost
                   optional: true
             - name: COH_SITE_INFO_LOCATION
@@ -513,7 +513,7 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if .Values.logCaptureEnabled }}
+{{- if .Values.store.logging.fluentdEnabled }}
 # ---------------------------------------------------------------------------
 #  Container: fluentd
 # ---------------------------------------------------------------------------
@@ -624,7 +624,7 @@ spec:
 {{ toYaml .Values.store.volumes | indent 8 }}
   {{- end }}
 {{- end }}
-{{- if .Values.logCaptureEnabled }}
+{{- if .Values.store.logging.fluentdEnabled }}
         - name: fluentd-coherence-conf
           configMap:
             name: {{ template "coherence.fullname" . }}-efk-config

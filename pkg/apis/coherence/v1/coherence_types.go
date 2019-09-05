@@ -150,6 +150,12 @@ type LoggingSpec struct {
 	//  configuration file to use.
 	// +optional
 	ConfigMapName *string `json:"configMapName,omitempty"`
+	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
+	// If this flag i set to true it is expected that the coherence-monitoring-config secret exists in
+	// the namespace that the cluster is being deployed to. This secret is either created by the
+	// Coherence Operator Helm chart if it was installed with the correct parameters or it should
+	// have already been created manually.
+	FluentdEnabled *bool `json:"fluentdEnabled,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this LoggingSpec struct with any nil or not set values set
@@ -184,6 +190,12 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 		clone.ConfigMapName = in.ConfigMapName
 	} else {
 		clone.ConfigMapName = defaults.ConfigMapName
+	}
+
+	if in.FluentdEnabled != nil {
+		clone.FluentdEnabled = in.FluentdEnabled
+	} else {
+		clone.FluentdEnabled = defaults.FluentdEnabled
 	}
 
 	return &clone

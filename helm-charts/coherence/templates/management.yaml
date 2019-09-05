@@ -270,7 +270,7 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if .Values.logCaptureEnabled }}
+{{- if .Values.store.logging.fluentdEnabled }}
 # ---------------------------------------------------------------------------
 #  Container: fluentd
 # ---------------------------------------------------------------------------
@@ -346,7 +346,7 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if .Values.logCaptureEnabled }}
+{{- if .Values.store.logging.fluentdEnabled }}
         - name: fluentd-coherence-conf
           configMap:
             name: {{ template "coherence.fullname" . }}-efk-config

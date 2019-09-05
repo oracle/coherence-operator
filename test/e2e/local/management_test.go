@@ -40,6 +40,8 @@ type ManagementTestCase struct {
 // same test with different parameters. In this case different CoherenceCluster
 // configurations with management over rest configured with and without SSL.
 func TestManagementOverRest(t *testing.T) {
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 

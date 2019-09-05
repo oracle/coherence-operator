@@ -119,16 +119,19 @@ func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32
 	// assert that the correct number of Pods is returned
 	g.Expect(len(pods)).To(Equal(clusterSize))
 
-	// Start a port-forwarder that will forward ALL ports on a Pod (the first pod in the list)
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
-	g.Expect(err).NotTo(HaveOccurred())
+	// If the test is using Coherence >= 12.2.1.4 then do a Management over ReST query to assert the cluster size
+	ok, _ := helper.IsCoherenceVersionAtLeast(12, 2, 1, 4)
+	if ok {
+		// Start a port-forwarder that will forward ALL ports on a Pod (the first pod in the list)
+		pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+		g.Expect(err).NotTo(HaveOccurred())
 
-	// ensure the port-forwarder is closed when this method exits
-	defer pf.Close()
+		// ensure the port-forwarder is closed when this method exits
+		defer pf.Close()
 
-	// Do a Management over ReST query to get the cluster size
-	clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PortName])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(status).To(Equal(http.StatusOK))
-	g.Expect(clusterData.ClusterSize).To(Equal(clusterSize))
+		clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PortName])
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(status).To(Equal(http.StatusOK))
+		g.Expect(clusterData.ClusterSize).To(Equal(clusterSize))
+	}
 }

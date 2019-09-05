@@ -8,12 +8,11 @@
 package rest
 
 import (
-	"context"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	onet "github.com/oracle/coherence-operator/pkg/net"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8s "k8s.io/client-go/kubernetes"
 	"net"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -47,7 +46,13 @@ type Server interface {
 // for example node zone information.
 func StartRestServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Server, error) {
 	address := fmt.Sprintf("%s:%d", cf.RestHost, cf.RestPort)
-	s := server{cohFlags: cf, mgr: m}
+
+	client, err := k8s.NewForConfig(m.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	s := server{cohFlags: cf, client: client}
 
 	mux := http.NewServeMux()
 	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
@@ -71,7 +76,7 @@ func StartRestServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Serve
 type server struct {
 	cohFlags *flags.CoherenceOperatorFlags
 	listener net.Listener
-	mgr      manager.Manager
+	client   *k8s.Clientset
 }
 
 func (s server) GetAddress() net.Addr {
@@ -140,8 +145,7 @@ func (s server) getLabelForNode(label string, w http.ResponseWriter, r *http.Req
 
 	log.Info(fmt.Sprintf("Querying for node name='%s' URL: %s", name, r.URL.Path))
 
-	node := corev1.Node{}
-	err := s.mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: name}, &node)
+	node, err := s.client.CoreV1().Nodes().Get(name, metav1.GetOptions{})
 
 	if err == nil {
 		value = node.Labels[label]

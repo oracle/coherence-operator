@@ -37,9 +37,10 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 		When("defaults is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.LoggingSpec{
-					Level:         int32Ptr(9),
-					ConfigFile:    stringPtr("logging.properties"),
-					ConfigMapName: stringPtr("loggingMap"),
+					Level:          int32Ptr(9),
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: boolPtr(true),
 				}
 
 				defaults = nil
@@ -56,14 +57,19 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 			It("should copy the original ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*original.ConfigMapName))
 			})
+
+			It("should copy the original FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*original.FluentdEnabled))
+			})
 		})
 
 		When("original is nil", func() {
 			BeforeEach(func() {
 				defaults = &coherence.LoggingSpec{
-					Level:         int32Ptr(9),
-					ConfigFile:    stringPtr("logging.properties"),
-					ConfigMapName: stringPtr("loggingMap"),
+					Level:          int32Ptr(9),
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: boolPtr(true),
 				}
 
 				original = nil
@@ -80,20 +86,26 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 			It("should copy the defaults ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*defaults.ConfigMapName))
 			})
+
+			It("should copy the defaults FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*defaults.FluentdEnabled))
+			})
 		})
 
 		When("all original fields are set", func() {
 			BeforeEach(func() {
 				original = &coherence.LoggingSpec{
-					Level:         int32Ptr(9),
-					ConfigFile:    stringPtr("logging.properties"),
-					ConfigMapName: stringPtr("loggingMap"),
+					Level:          int32Ptr(9),
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: boolPtr(true),
 				}
 
 				defaults = &coherence.LoggingSpec{
-					Level:         int32Ptr(7),
-					ConfigFile:    stringPtr("logging2.properties"),
-					ConfigMapName: stringPtr("loggingMap2"),
+					Level:          int32Ptr(7),
+					ConfigFile:     stringPtr("logging2.properties"),
+					ConfigMapName:  stringPtr("loggingMap2"),
+					FluentdEnabled: boolPtr(false),
 				}
 			})
 
@@ -108,20 +120,26 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 			It("should copy the original ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*original.ConfigMapName))
 			})
+
+			It("should copy the original FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*original.FluentdEnabled))
+			})
 		})
 
 		When("original Level is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.LoggingSpec{
-					Level:         nil,
-					ConfigFile:    stringPtr("logging.properties"),
-					ConfigMapName: stringPtr("loggingMap"),
+					Level:          nil,
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: boolPtr(true),
 				}
 
 				defaults = &coherence.LoggingSpec{
-					Level:         int32Ptr(7),
-					ConfigFile:    stringPtr("logging2.properties"),
-					ConfigMapName: stringPtr("loggingMap2"),
+					Level:          int32Ptr(7),
+					ConfigFile:     stringPtr("logging2.properties"),
+					ConfigMapName:  stringPtr("loggingMap2"),
+					FluentdEnabled: boolPtr(false),
 				}
 			})
 
@@ -136,20 +154,26 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 			It("should copy the original ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*original.ConfigMapName))
 			})
+
+			It("should copy the original FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*original.FluentdEnabled))
+			})
 		})
 
 		When("original ConfigFile is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.LoggingSpec{
-					Level:         int32Ptr(9),
-					ConfigFile:    nil,
-					ConfigMapName: stringPtr("loggingMap"),
+					Level:          int32Ptr(9),
+					ConfigFile:     nil,
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: boolPtr(true),
 				}
 
 				defaults = &coherence.LoggingSpec{
-					Level:         int32Ptr(7),
-					ConfigFile:    stringPtr("logging2.properties"),
-					ConfigMapName: stringPtr("loggingMap2"),
+					Level:          int32Ptr(7),
+					ConfigFile:     stringPtr("logging2.properties"),
+					ConfigMapName:  stringPtr("loggingMap2"),
+					FluentdEnabled: boolPtr(false),
 				}
 			})
 
@@ -164,20 +188,26 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 			It("should copy the original ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*original.ConfigMapName))
 			})
+
+			It("should copy the original FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*original.FluentdEnabled))
+			})
 		})
 
 		When("original ConfigMapName is nil", func() {
 			BeforeEach(func() {
 				original = &coherence.LoggingSpec{
-					Level:         int32Ptr(9),
-					ConfigFile:    stringPtr("logging.properties"),
-					ConfigMapName: nil,
+					Level:          int32Ptr(9),
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  nil,
+					FluentdEnabled: boolPtr(true),
 				}
 
 				defaults = &coherence.LoggingSpec{
-					Level:         int32Ptr(7),
-					ConfigFile:    stringPtr("logging2.properties"),
-					ConfigMapName: stringPtr("loggingMap2"),
+					Level:          int32Ptr(7),
+					ConfigFile:     stringPtr("logging2.properties"),
+					ConfigMapName:  stringPtr("loggingMap2"),
+					FluentdEnabled: boolPtr(false),
 				}
 			})
 
@@ -191,6 +221,44 @@ var _ = Describe("Testing LoggingSpec struct", func() {
 
 			It("should copy the defaults ConfigMapName", func() {
 				Expect(*clone.ConfigMapName).To(Equal(*defaults.ConfigMapName))
+			})
+
+			It("should copy the original FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*original.FluentdEnabled))
+			})
+		})
+
+		When("original FluentdEnabled is nil", func() {
+			BeforeEach(func() {
+				original = &coherence.LoggingSpec{
+					Level:          int32Ptr(9),
+					ConfigFile:     stringPtr("logging.properties"),
+					ConfigMapName:  stringPtr("loggingMap"),
+					FluentdEnabled: nil,
+				}
+
+				defaults = &coherence.LoggingSpec{
+					Level:          int32Ptr(7),
+					ConfigFile:     stringPtr("logging2.properties"),
+					ConfigMapName:  stringPtr("loggingMap2"),
+					FluentdEnabled: boolPtr(true),
+				}
+			})
+
+			It("should copy the original Level", func() {
+				Expect(*clone.Level).To(Equal(*original.Level))
+			})
+
+			It("should copy the original ConfigFile", func() {
+				Expect(*clone.ConfigFile).To(Equal(*original.ConfigFile))
+			})
+
+			It("should copy the original ConfigMapName", func() {
+				Expect(*clone.ConfigMapName).To(Equal(*original.ConfigMapName))
+			})
+
+			It("should copy the defaults FluentdEnabled", func() {
+				Expect(*clone.FluentdEnabled).To(Equal(*defaults.FluentdEnabled))
 			})
 		})
 	})

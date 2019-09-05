@@ -29,11 +29,12 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
+	"sync"
 )
 
 const (
 	// The name of this controller. This is used in events, log messages, etc.
-	controllerName string = "coherencecluster-controller"
+	controllerName string = "coherencecluster.controller"
 
 	createEventMessage       string = "created CoherenceRole '%s' in CoherenceCluster '%s' successful"
 	createEventFailedMessage string = "create CoherenceRole '%s' in CoherenceCluster '%s' failed\n%s"
@@ -67,9 +68,11 @@ func NewClusterReconciler(mgr manager.Manager) reconcile.Reconciler {
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileCoherenceCluster{
-		client: mgr.GetClient(),
-		scheme: mgr.GetScheme(),
-		events: mgr.GetRecorder(controllerName),
+		client:        mgr.GetClient(),
+		scheme:        mgr.GetScheme(),
+		events:        mgr.GetRecorder(controllerName),
+		resourceLocks: make(map[types.NamespacedName]bool),
+		mutex:         sync.Mutex{},
 	}
 }
 
@@ -81,17 +84,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource CoherenceCluster
+	// Watch for changes to CoherenceCluster resources
 	err = c.Watch(&source.Kind{Type: &coherence.CoherenceCluster{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to secondary resource CoherenceRole and requeue the owner CoherenceCluster
-	err = c.Watch(&source.Kind{Type: &coherence.CoherenceRole{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &coherence.CoherenceCluster{},
-	})
 	if err != nil {
 		return err
 	}
@@ -106,9 +100,41 @@ var _ reconcile.Reconciler = &ReconcileCoherenceCluster{}
 type ReconcileCoherenceCluster struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the api server
-	client client.Client
-	scheme *runtime.Scheme
-	events record.EventRecorder
+	client        client.Client
+	scheme        *runtime.Scheme
+	events        record.EventRecorder
+	resourceLocks map[types.NamespacedName]bool
+	mutex         sync.Mutex
+}
+
+// Attempt to lock the requested resource.
+func (r *ReconcileCoherenceCluster) lock(request reconcile.Request) bool {
+	if r == nil {
+		return false
+	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	_, found := r.resourceLocks[request.NamespacedName]
+	if found {
+		log.Info("CoherenceCluster " + request.Namespace + "/" + request.Name + " is locked")
+		return false
+	}
+
+	r.resourceLocks[request.NamespacedName] = true
+	log.Info("Acquired lock for CoherenceCluster " + request.Namespace + "/" + request.Name)
+	return true
+}
+
+// Unlock the requested resource
+func (r *ReconcileCoherenceCluster) unlock(request reconcile.Request) {
+	if r != nil {
+		r.mutex.Lock()
+		defer r.mutex.Unlock()
+
+		log.Info("Released lock for CoherenceCluster " + request.Namespace + "/" + request.Name)
+		delete(r.resourceLocks, request.NamespacedName)
+	}
 }
 
 // Reconcile reads that state of a CoherenceCluster object and makes changes based on the state read
@@ -117,15 +143,24 @@ type ReconcileCoherenceCluster struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
-	reqLogger.Info("Reconciling CoherenceCluster")
+	logger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
+	logger.Info("Reconciling CoherenceCluster")
+
+	// Attempt to lock the requested resource. If the resource is locked then another
+	// request for the same resource is already in progress so requeue this one.
+	if ok := r.lock(request); !ok {
+		logger.Info("CoherenceCluster " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
+		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+	}
+	// Make sure that the request is unlocked when this method exits
+	defer r.unlock(request)
 
 	// Fetch the CoherenceCluster instance
 	cluster := &coherence.CoherenceCluster{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, cluster)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			reqLogger.Info("CoherenceCluster '" + request.Name + "' deleted")
+			logger.Info("CoherenceCluster '" + request.Name + "' deleted")
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -148,7 +183,7 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 	// remove any existing roles that are not in the desired spec
 	for name, role := range existingRoles {
 		if _, found := desiredRoles[name]; !found {
-			err = r.deleteRole(params{cluster: cluster, existingRole: role, reqLogger: reqLogger})
+			err = r.deleteRole(params{cluster: cluster, existingRole: role, reqLogger: logger})
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -160,7 +195,7 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		if role.GetReplicas() == 0 {
 			existingRole, found := existingRoles[role.GetRoleName()]
 			if found {
-				err = r.deleteRole(params{cluster: cluster, existingRole: existingRole, reqLogger: reqLogger})
+				err = r.deleteRole(params{cluster: cluster, existingRole: existingRole, reqLogger: logger})
 				if err != nil {
 					return reconcile.Result{}, err
 				}
@@ -180,7 +215,7 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 				cluster:      cluster,
 				desiredRole:  role,
 				existingRole: existingRole,
-				reqLogger:    reqLogger,
+				reqLogger:    logger,
 			}
 
 			if found {

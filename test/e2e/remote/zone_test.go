@@ -24,6 +24,9 @@ import (
 // Verify that a CoherenceCluster deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
 func TestSiteLabel(t *testing.T) {
+	// This test uses Management over ReST to verify the site
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+
 	fn := func(member management.MemberData) string {
 		return member.SiteName
 	}
@@ -34,6 +37,9 @@ func TestSiteLabel(t *testing.T) {
 // Verify that a CoherenceCluster deployed by the Operator has the correct rack value
 // set from the Node's failure domain region.
 func TestRackLabel(t *testing.T) {
+	// This test uses Management over ReST to verify the rack
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+
 	fn := func(member management.MemberData) string {
 		return member.RackName
 	}

@@ -57,22 +57,6 @@ nodeSelector:
 #   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 tolerations:
 
-# ---------------------------------------------------------------------------
-# service groups the values used to configure the internal K8s service
-service:
-  enabled: false
-  # name of the service. It must be unique among services.
-  # If not set the operator will use the service name "coherence-operator-service".
-  name:
-  # service.type is the K8s service type (typically ClusterIP or LoadBalancer)
-  type: "ClusterIP"
-  # service.domain is the external domain name
-  domain: "cluster.local"
-  # service.loadBalancerIP is the IP address of the load balancer
-  loadBalancerIP:
-  # annotations is free form yaml that will be added to the service annotations
-  annotations:
-
 # coherenceOperator groups the values used to configure the Operator
 coherenceOperator:
   # docker image pull the image from
@@ -81,24 +65,8 @@ coherenceOperator:
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
 
-  # coherenceOperator.ssl configures SSL settings used to configure Coherence clusters that require
-  #   SSL for management over ReST and/or metrics.
-  ssl:
-    # coherenceOperator.ssl.secrets is the name of the k8s secret containing the key and certs files that will be
-    #   used by the Operator when connecting to Coherence Management over ReST endpoints that have SSL enabled.
-    secrets:
-    # keyFile is the name of the client key file in the k8s secret used by the Operator when connecting to a Coherence
-    #   Pod's management endpoint if that Pod has SSL enabled.
-    keyFile:
-    # certFile is the name of the client certificate file in the k8s secret used by the Operator when connecting to a
-    #   Coherence Pod's management endpoint if that Pod has SSL enabled.
-    certFile:
-    # caFile is the name of the cert file in the k8s secret for the certificate authority used by the Operator when
-    #   connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled.
-    caFile:
-
-# Controls whether or not log capture via EFK stack is enabled.
-logCaptureEnabled: false
+# Controls whether to install the demo Elasticsearch and Kibana stack
+installEFK: false
 
 # Specifies values for Kibana Dashboard Imports if logCaptureEnabled is true
 dashboardImport:
@@ -110,7 +78,7 @@ dashboardImport:
   dashboards:
 
 # Specify the docker image containing Elasticsearch.
-# These parameters are ignored if 'logCaptureEnabled' is false
+# These parameters are ignored if 'installEFK' is false
 # or elasticsearchEndpoinit is set.
 elasticsearch:
   image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
@@ -118,8 +86,12 @@ elasticsearch:
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
 
-# Specify the information of an existing Elasticsearch.
-# These parameters are ignored if 'logCaptureEnabled' is false.
+# Specify the information of an existing Elasticsearch stack to use
+# if the demo EFK stack is not being used (i.e. installEFK is false).
+# If none of these values are entered no monitoring secret will be
+# created by the Helm chart. If Coherence clusters are created with
+# log capture enabled then the coherence-monitoring-config secret
+# must have been manually created.
 elasticsearchEndpoint:
   # The Elasticsearch host if there is an existing one.
   # Default: "elasticsearch.${namespace}.svc.cluster.local"
@@ -129,20 +101,12 @@ elasticsearchEndpoint:
   # Default: 9200
   port:
   # The Elasticsearch user to be accessed by fluentd.
-  # user:
+  user:
   # The Elasticsearch password to be accessed by fluentd.
-  # password:
-
-# Specify the fluentd image
-# These parameters are ignored if 'logCaptureEnabled' is false.
-fluentd:
-  image: fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
-  # imagePullPolicy controls the K8s container spec's pull policy
-  # If not set the pull policy is "IfNotPresent".
-  imagePullPolicy:
+  password:
 
 # Specify the docker image containing Kibana.
-# These parameters are ignored if 'logCaptureEnabled' is false
+# These parameters are ignored if 'installEFK' is false
 # or elasticsearchEndpoinit is set.
 kibana:
   image: docker.elastic.co/kibana/kibana-oss:6.6.0

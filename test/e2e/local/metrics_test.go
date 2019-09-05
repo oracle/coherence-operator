@@ -40,6 +40,8 @@ type MetricsTestCase struct {
 // same test with different parameters. In this case different CoherenceCluster
 // configurations with metrics configured with and without SSL.
 func TestMetrics(t *testing.T) {
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 

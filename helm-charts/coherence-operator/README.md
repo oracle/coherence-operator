@@ -57,8 +57,8 @@ chart and their default values.
 | `nodeSelector` | Node lables for pod assignment | `{}` |
 | `tolerations` | For nodes that have taints on them. See (https://kubernetes.io/docs/concepts/configuration/taint-and-toleration) | `[]` |
 | `javaLoggingLevel` | Java logging level | `"INFO"` |
-| `logCaptureEnabled` | Whether log capture via EFK stack is enabled | `false` |
-| `elasticsearch.image` | Elasticsearch Docker image url with tag | `docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0` |
+| `installEFK` | Whether to install the demo EFK stack. | `false` |
+| `elasticsearch.image` | Elasticsearch Docker image url with tag for the demo EFK stack | `docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0` |
 | `elasticsearch.imagePullPolicy` | Elasticsearch image pull policy | `"IfNotPresent"` |
 | `elasticsearchEndpoint.host` | Elasticsearch host installed separately | `"elasticsearch.${namespace}.svc.cluster.local` |
 | `elasticsearchEndpoint.port` | Elasticsearch port installed separately | `9200` |
@@ -66,7 +66,7 @@ chart and their default values.
 | `elasticsearchEndpoint.password` | Elasticsearch login credential for password when installed separately | |
 | `logstash.image` | Logstash Docker image url with tag | `docker.elastic.co/logstash/logstash-oss:6.6.0` |
 | `logstash.imagePullPolicy` | Logstash image pull policy | `"IfNotPresent"` |
-| `kibana.image` | Kibana Docker image url with tag | `docker.elastic.co/beats/filebeat:6.2.4` |
+| `kibana.image` | Kibana Docker image url with tag to use for the demo EFK stack | `docker.elastic.co/beats/filebeat:6.2.4` |
 | `kibana.imagePullPolicy` | Kibana image pull policy | `"IfNotPresent"` |
 | `filebeat.image` | FileBeat Docker image url with tag | `docker.elastic.co/beats/filebeat:6.2.4` |
 | `filebeat.imagePullPolicy` | Filebeat image pull policy | `"IfNotPresent"` |
