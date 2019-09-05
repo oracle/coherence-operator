@@ -30,9 +30,6 @@ const (
 	FlagSiteLabel      = "site-label"
 	FlagRackLabel      = "rack-label"
 	FlagAlwaysPullTags = "force-always-pull-tags"
-	FlagSslKeyFile     = "ssl-key-file"
-	FlagSslCertFile    = "ssl-cert-file"
-	FlagSslCaFile      = "ssl-ca-file"
 )
 
 // CoherenceOperatorFlags - Options to be used by a Coherence operator.
@@ -55,15 +52,6 @@ type CoherenceOperatorFlags struct {
 	ElasticSearchUser string
 	// The credentials to use to connect to ElasticSearch.
 	ElasticSearchCredentials string
-	// keyFile is the name of the client key file in the k8s secret used by the Operator when connecting to a Coherence
-	//  Pod's management endpoint if that Pod has SSL enabled.
-	SSLKeyFile string
-	// certFile is the name of the client certificate file in the k8s secret used by the Operator when connecting to a
-	//  Coherence Pod's management endpoint if that Pod has SSL enabled.
-	SSLCertFile string
-	// caFile is the name of the cert file in the k8s secret for the certificate authority used by the Operator when
-	//  connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled.
-	SSLCAFile string
 	// The label to use to obtain the site value for a Node.
 	SiteLabel string
 	// The label to use to obtain the rack value for a Node.
@@ -137,21 +125,6 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ..
 		FlagAlwaysPullTags,
 		"",
 		strings.Join(append(helpTextPrefix, "If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS."), " "),
-	)
-	flagSet.StringVar(&f.SSLKeyFile,
-		FlagSslKeyFile,
-		"",
-		strings.Join(append(helpTextPrefix, "The name of the client key file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
-	)
-	flagSet.StringVar(&f.SSLCertFile,
-		FlagSslCertFile,
-		"",
-		strings.Join(append(helpTextPrefix, "The name of the client certificate file in the k8s secret used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
-	)
-	flagSet.StringVar(&f.SSLCAFile,
-		FlagSslCaFile,
-		"",
-		strings.Join(append(helpTextPrefix, "The name of the cert file in the k8s secret for the certificate authority used by the Operator when connecting to a Coherence Pod's management endpoint if that Pod has SSL enabled"), " "),
 	)
 }
 

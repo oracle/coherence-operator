@@ -112,24 +112,6 @@ spec:
                   name: coherence-monitoring-config
                   key: elasticsearchpassword
 {{- end }}
-{{- if .Values.coherenceOperator.ssl }}
-    {{- if .Values.coherenceOperator.ssl.secrets }}
-            - name: SSL_CERTS_DIR
-              value: "/coherence/certs"
-    {{- end }}
-    {{- if .Values.coherenceOperator.ssl.keyFile }}
-            - name: SSL_KEY_FILE
-              value: {{ .Values.coherenceOperator.ssl.keyFile | quote }}
-    {{- end }}
-    {{- if .Values.coherenceOperator.ssl.certFile }}
-            - name: SSL_CERT_FILE
-              value: {{ .Values.coherenceOperator.ssl.certFile | quote }}
-    {{- end }}
-    {{- if .Values.coherenceOperator.ssl.caFile }}
-            - name: SSL_CA_FILE
-              value: {{ .Values.coherenceOperator.ssl.caFile | quote }}
-    {{- end }}
-{{- end }}
 # ---------------------------------------------------------------------------
 #         volume mounts
 # ---------------------------------------------------------------------------
