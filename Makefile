@@ -30,6 +30,7 @@ GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
 ARCH            ?= amd64
 OS              ?= linux
 UNAME_S         := $(shell uname -s)
+GOPROXY         ?= https://proxy.golang.org
 
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= iad.ocir.io/odx-stateservice/test/
@@ -40,6 +41,8 @@ HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74630
 OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
 UTILS_IMAGE      ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
 TEST_USER_IMAGE  := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
+
+RELEASE_DRY_RUN  ?= true
 
 # The version of the Prometheus Operator chart that is used as a sub-chart in the
 # Coherence Operator chart
@@ -735,6 +738,8 @@ version:
 .PHONY: release-chart
 release-chart: helm-chart
 	git checkout gh-pages
+	git branch gh-pages-$(VERSION_FULL)
+	git checkout gh-pages-$(VERSION_FULL)
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	git status
@@ -743,7 +748,11 @@ release-chart: helm-chart
 	git status
 	git commit -m "Release coherence-operator helm chart version: $(VERSION_FULL)"
 	git log -1
-	git push origin gh-pages
+ifeq (true, $(RELEASE_DRY_RUN))
+	@echo "release dry-run - would have pushed new gh-pages branch gh-pages-$(VERSION_FULL)"
+else
+	git push origin gh-pages-$(VERSION_FULL)
+endif
 	git checkout $(GIT_BRANCH)
 
 # ---------------------------------------------------------------------------
@@ -751,9 +760,14 @@ release-chart: helm-chart
 # ---------------------------------------------------------------------------
 .PHONY: release-tag
 release-tag:
+ifeq (true, $(RELEASE_DRY_RUN))
+	@echo "release dry-run - would have created release tag v$(VERSION_FULL)"
+else
+	@echo "creating release tag v$(VERSION_FULL)"
 	git push origin :refs/tags/v$(VERSION_FULL)
 	git tag -f -a -m "Release version $(VERSION_FULL)" v$(VERSION_FULL)
 	git push origin --tags
+endif
 
 # ---------------------------------------------------------------------------
 # Release the Coherence Operator.

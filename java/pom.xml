@@ -33,7 +33,6 @@
 
     <!-- library dependency versions -->
     <bedrock.version>5.0.11</bedrock.version>
-    <commons.compress.version>1.18</commons.compress.version>
     <commonjava.directory.version>0.3.1</commonjava.directory.version>
     <glassfish.copyright.version>2.1</glassfish.copyright.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
@@ -46,12 +45,9 @@
     <javax.activation.version>1.2.0</javax.activation.version>
     <javax.xml.bind.version>2.3.0</javax.xml.bind.version>
     <jersey.version>2.25</jersey.version>
-    <kubernetes.client.java.version>3.0.0</kubernetes.client.java.version>
     <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
-    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
-    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
     <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
     <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
@@ -64,20 +60,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.kubernetes</groupId>
-        <artifactId>client-java</artifactId>
-        <version>${kubernetes.client.java.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>com.oracle.coherence</groupId>
         <artifactId>coherence</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.oracle.coherence</groupId>
-        <artifactId>coherence-rest</artifactId>
         <version>${coherence.version}</version>
       </dependency>
 
@@ -140,20 +124,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.oracle.bedrock</groupId>
-        <artifactId>bedrock-runtime-docker</artifactId>
-        <version>${bedrock.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>com.oracle.bedrock</groupId>
-        <artifactId>bedrock-runtime-k8s</artifactId>
-        <version>${bedrock.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
@@ -164,20 +134,6 @@
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.5</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${commons.compress.version}</version>
-        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -213,20 +169,8 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>${maven.deploy.plugin.version}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>${maven.assembly.plugin.version}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>${maven.exec.plugin.version}</version>
         </plugin>
 
         <plugin>

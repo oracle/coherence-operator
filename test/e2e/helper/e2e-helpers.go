@@ -20,6 +20,8 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"testing"
 
@@ -84,6 +86,20 @@ func CreateTestContext(t *testing.T) *framework.TestCtx {
 	}
 
 	return testCtx
+}
+
+func NewUnstructuredCoherenceInternalList() unstructured.UnstructuredList {
+	u := unstructured.UnstructuredList{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+
+	return u
+}
+
+func NewUnstructuredCoherenceInternal() unstructured.Unstructured {
+	u := unstructured.Unstructured{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+
+	return u
 }
 
 func DefaultCleanup(ctx *framework.TestCtx) *framework.CleanupOptions {
@@ -219,6 +235,26 @@ func WaitForOperatorPods(kubeclient kubernetes.Interface, namespace string, retr
 	return pods, err
 }
 
+// WaitForDeletion waits for deletion of the specified resource.
+func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
+	key := types.NamespacedName{Namespace: namespace, Name: name}
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		err = f.Client.Get(context.TODO(), key, resource)
+		switch {
+		case err != nil && errors.IsNotFound(err):
+			return true, nil
+		case err != nil && !errors.IsNotFound(err):
+			return false, err
+		default:
+			fmt.Printf("Waiting for deletion of %s in namespace %s\n", name, namespace)
+			return false, nil
+		}
+	})
+
+	return err
+}
+
 // List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
 func ListOperatorPods(client kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
 	return ListPodsWithLabelSelector(client, namespace, "name=coherence-operator")
@@ -293,9 +329,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 		}
 	}
 
-	u := unstructured.UnstructuredList{}
-
-	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+	u := NewUnstructuredCoherenceInternalList()
 
 	err = f.Client.Client.List(goctx.TODO(), opts, &u)
 	if err != nil {
@@ -664,8 +698,7 @@ func dumpCoherenceInternals(namespace, dir string, logger Logger) {
 	f := framework.Global
 	listOpts := &client.ListOptions{}
 	listOpts.InNamespace(namespace)
-	list := unstructured.UnstructuredList{}
-	list.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+	list := NewUnstructuredCoherenceInternalList()
 	err := f.Client.List(context.TODO(), listOpts, &list)
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
