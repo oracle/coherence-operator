@@ -3,7 +3,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  curlTimeout: 60
+  curlTimeout: 120
   roles:
   - role: one
     replicas: 3

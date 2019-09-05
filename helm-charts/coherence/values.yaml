@@ -62,7 +62,7 @@ store:
   overrideConfig:
 
   # The timeout in seconds used by curl when requesting site and rack info in the start script
-  curlTimeout: 30
+  curlTimeout: 120
 
   # store.logging allows configuration of Coherence and java util logging.
   logging:

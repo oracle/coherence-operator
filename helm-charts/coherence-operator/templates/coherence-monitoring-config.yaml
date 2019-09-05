@@ -1,0 +1,25 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: coherence-monitoring-config
+type: Opaque
+data:
+  operatorhost: {{ printf "coherence-operator-service.%s.svc.cluster.local" .Release.Namespace | b64enc | quote }}
+{{- if .Values.logCaptureEnabled }}
+{{-   $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
+{{-   if .Values.elasticsearchEndpoint }}
+  elasticsearchhost: {{ .Values.elasticsearchEndpoint.host | default $eshost | toString | b64enc | quote }}
+  elasticsearchport: {{ .Values.elasticsearchEndpoint.port | default 9200 | toString | b64enc | quote  }}
+  elasticsearchuser: {{ .Values.elasticsearchEndpoint.user | default "" | toString | b64enc | quote }}
+  elasticsearchpassword: {{ .Values.elasticsearchEndpoint.password | default "" | toString | b64enc | quote }}
+{{-   else }}
+  elasticsearchhost: {{ $eshost | toString | b64enc| quote }}
+  elasticsearchport: {{ "9200" | b64enc | quote  }}
+  elasticsearchuser: {{ "" | b64enc | quote }}
+  elasticsearchpassword: {{ "" | b64enc | quote }}
+{{-   end }}
+{{- end }}
