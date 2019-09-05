@@ -104,11 +104,7 @@ type CoherenceInternalSpec struct {
 	//
 	// No default memory limits are applied.
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
-	// Controls whether or not log capture via EFK stack is enabled.
-	// +optional
-	LogCaptureEnabled bool `json:"logCaptureEnabled,omitempty"`
 	// Specify the fluentd image
-	// These parameters are ignored if 'LogCaptureEnabled' is false.
 	// +optional
 	Fluentd *FluentdImageSpec `json:"fluentd,omitempty"`
 	// The user artifacts image settings

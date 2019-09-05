@@ -858,6 +858,11 @@ func (in *LoggingSpec) DeepCopyInto(out *LoggingSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.FluentdEnabled != nil {
+		in, out := &in.FluentdEnabled, &out.FluentdEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
