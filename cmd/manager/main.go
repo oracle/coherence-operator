@@ -15,9 +15,11 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -52,7 +54,7 @@ import (
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
 const (
 	// configName is the name of the internal Coherence Operator configuration.
-	configName = "coherence-monitoring-config"
+	configName = "coherence-operator-config"
 )
 
 // BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
@@ -142,6 +144,33 @@ func main() {
 		os.Exit(1)
 	}
 
+	// >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
+
+	// we must start the Operator ReST endpoint before any controllers start
+	restServer, err := cohrest.StartRestServer(mgr, cohf)
+	if err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// wait until we can hit the server to ensure that it is up
+	log.Info("Waiting for rest server to start")
+	for i := 0; i < 10; i++ {
+		_, err = http.Get(fmt.Sprintf("http://localhost:%d/ready", restServer.GetPort()))
+		if err == nil {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	// ensure that the configuration secret exists
+	if err := ensureOperatorSecret(namespace, mgr, restServer, cohf); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
+
 	log.Info("Registering Components.")
 
 	// Setup Scheme for all resources
@@ -161,19 +190,6 @@ func main() {
 	// Configure the Helm operator
 	if err := setupHelm(mgr, namespace, hflags); err != nil {
 		log.Error(err, "Manager exited non-zero")
-		os.Exit(1)
-	}
-
-	// Start the Operator ReST endpoint
-	restServer, err := cohrest.StartRestServer(mgr, cohf)
-	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-
-	// ensure that the configuration secret exists
-	if err := ensureOperatorSecret(namespace, mgr, restServer, cohf); err != nil {
-		log.Error(err, "")
 		os.Exit(1)
 	}
 
@@ -306,15 +322,12 @@ func ensureOperatorSecret(namespace string, mgr manager.Manager, restServer cohr
 	secret := &v1.Secret{}
 	secret.SetNamespace(namespace)
 	secret.SetName(configName)
-	secret.StringData = make(map[string]string)
-	secret.StringData["operatorhost"] = hostAndPort
 
-	if flags.LogIntegrationEnabled {
-		secret.StringData["elasticsearchhost"] = flags.ElasticSearchHost
-		secret.StringData["elasticsearchport"] = fmt.Sprintf("%d", flags.ElasticSearchPort)
-		secret.StringData["elasticsearchuser"] = flags.ElasticSearchUser
-		secret.StringData["elasticsearchpassword"] = flags.ElasticSearchHost
+	if secret.StringData == nil {
+		secret.StringData = make(map[string]string)
 	}
+
+	secret.StringData["operatorhost"] = hostAndPort
 
 	if errors.IsNotFound(err) {
 		// for some reason we're getting here even if the secret exists so delete it!!

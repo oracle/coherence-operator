@@ -2,7 +2,7 @@
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at               */}}
 {{/* http://oss.oracle.com/licenses/upl.                                             */}}
 
-{{- if .Values.logCaptureEnabled }}
+{{- if .Values.installEFK }}
   {{- if not .Values.elasticsearchEndpoint.host }}
 apiVersion: apps/v1
 kind: Deployment
@@ -58,7 +58,8 @@ spec:
           - name: "LOGGING_QUIET"
             value: "true"
           ports:
-            - containerPort: 5601
+            - name: kibana
+              containerPort: 5601
       volumes:
         - name: {{ template "coherence-operator.fullname" . }}-dashboards
           configMap:
@@ -79,6 +80,7 @@ spec:
   type: NodePort
   ports:
     - port: 5601
+      targetPort: kibana
   selector:
     coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
     component: kibana

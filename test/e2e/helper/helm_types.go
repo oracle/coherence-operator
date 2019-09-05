@@ -44,16 +44,12 @@ type OperatorValues struct {
 	CoherenceOperator *OperatorSpec `json:"coherenceOperator,omitempty"`
 	// Controls whether or not log capture via EFK stack is enabled.
 	// +optional
-	LogCaptureEnabled bool `json:"logCaptureEnabled,omitempty"`
+	InstallEFK bool `json:"installEFK,omitempty"`
 	// Specify the docker image containing Elasticsearch.
 	// These parameters are ignored if 'logCaptureEnabled' is false
 	// or elasticsearchEndpoinit is set.
 	// +optional
 	Elasticsearch *coh.ImageSpec `json:"elasticsearch,omitempty"`
-	// Specify the fluentd image
-	// These parameters are ignored if 'logCaptureEnabled' is false.
-	// +optional
-	Fluentd *coh.ImageSpec `json:"fluentd,omitempty"`
 	// Specify the kibana image
 	// These parameters are ignored if 'logCaptureEnabled' is false.
 	// +optional

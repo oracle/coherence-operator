@@ -7,29 +7,61 @@
 package helm_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	"context"
+	"fmt"
 	. "github.com/onsi/gomega"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"testing"
+	"time"
 )
 
-var HelmHelper *helper.HelmHelper
+func TestMain(m *testing.M) {
+	framework.MainEntry(m)
+}
 
-// This is the Ginkgo test suite entry point. In here we configure the
-// HelmHelper that can then be used by the rest of the tests in the suite
-func TestCoherenceRoleControler(t *testing.T) {
-	RegisterFailHandler(Fail)
-
-	// Create a helper.HelmHelper
-	h, err := helper.NewOperatorChartHelper()
+func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, helmHelper *helper.HelmHelper) {
+	// ensure that the chart is uninstalled
+	_, err := hm.UninstallRelease()
 	if err != nil {
-		t.Fatal(err)
+		fmt.Println("Failed to uninstall helm release " + err.Error())
 	}
 
-	HelmHelper = h
+	// Wait for the Operator Pods to die as terminating Pods can mess up the next test that runs
+	// if it is too quick after this test.
+	err = helper.WaitForOperatorCleanup(helmHelper.KubeClient, helmHelper.Namespace, t)
+	if err != nil {
+		fmt.Println("Failed waiting for Operator clean-up " + err.Error())
+	}
+}
 
-	// Make Ginkgo run the rest of the test suite
-	junitReporter := reporters.NewJUnitReporter("test-report.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Coherence Operator Helm Suite", []Reporter{junitReporter})
+func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yamlFile string) (v1.CoherenceCluster, error) {
+	g := NewGomegaWithT(t)
+	f := framework.Global
+
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
+	g.Expect(err).NotTo(HaveOccurred())
+	// deploy the CoherenceCluster
+	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
+	if err != nil {
+		return cluster, err
+	}
+
+	// deploy the CoherenceCluster
+	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
+	if err != nil {
+		return cluster, err
+	}
+
+	// Wait for the StatefulSet(s)
+	roles := cluster.GetRoles()
+	for _, role := range roles {
+		_, err = helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role, time.Second*5, time.Minute*5, t)
+		if err != nil {
+			return cluster, err
+		}
+	}
+
+	return cluster, nil
 }

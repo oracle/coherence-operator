@@ -22,11 +22,6 @@ const (
 	FlagRestPort       = "rest-port"
 	FlagServiceName    = "service-name"
 	FlagServicePort    = "service-port"
-	FlagLogIntegration = "log-integration"
-	FlagEsHost         = "es-host"
-	FlagEsPort         = "es-port"
-	FlagEsUser         = "es-user"
-	FlagEsPassword     = "es-password"
 	FlagSiteLabel      = "site-label"
 	FlagRackLabel      = "rack-label"
 	FlagAlwaysPullTags = "force-always-pull-tags"
@@ -42,16 +37,6 @@ type CoherenceOperatorFlags struct {
 	ServiceName string
 	// The service port that the operator ReST clients should use. If not set defaults to the same as the ReST port.
 	ServicePort int32
-	// A flag indicating whether logging (e.g. ELK) integration is enabled.
-	LogIntegrationEnabled bool
-	// The host name for the ElasticSearch server.
-	ElasticSearchHost string
-	// The port for the ElasticSearch server.
-	ElasticSearchPort int32
-	// The username to use to connect to ElasticSearch.
-	ElasticSearchUser string
-	// The credentials to use to connect to ElasticSearch.
-	ElasticSearchCredentials string
 	// The label to use to obtain the site value for a Node.
 	SiteLabel string
 	// The label to use to obtain the rack value for a Node.
@@ -85,31 +70,6 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ..
 		FlagServicePort,
 		-1,
 		strings.Join(append(helpTextPrefix, "The service port that operator clients use in the host name to make ReST calls back to the operator. If not set defaults to the same as the ReST port"), " "),
-	)
-	flagSet.BoolVar(&f.LogIntegrationEnabled,
-		FlagLogIntegration,
-		false,
-		strings.Join(append(helpTextPrefix, "A boolean indicating whether logging integration (e.g. EFK) is enabled"), " "),
-	)
-	flagSet.StringVar(&f.ElasticSearchHost,
-		FlagEsHost,
-		"",
-		strings.Join(append(helpTextPrefix, "The host name of the ElasticSearch server"), " "),
-	)
-	flagSet.Int32Var(&f.ElasticSearchPort,
-		FlagEsPort,
-		-1,
-		strings.Join(append(helpTextPrefix, "The port to use to connect to the ElasticSearch server"), " "),
-	)
-	flagSet.StringVar(&f.ElasticSearchUser,
-		FlagEsUser,
-		"",
-		strings.Join(append(helpTextPrefix, "The user name to use to connect to the ElasticSearch server"), " "),
-	)
-	flagSet.StringVar(&f.ElasticSearchCredentials,
-		FlagEsPassword,
-		"",
-		strings.Join(append(helpTextPrefix, "The credentials to use to connect to the ElasticSearch server"), " "),
 	)
 	flagSet.StringVar(&f.SiteLabel,
 		FlagSiteLabel,

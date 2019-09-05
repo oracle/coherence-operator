@@ -36,26 +36,6 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 				Expect(cohFlags.AlwaysPullSuffixes).To(Equal(""))
 			})
 
-			It("should have empty elastic search credentials", func() {
-				Expect(cohFlags.ElasticSearchCredentials).To(Equal(""))
-			})
-
-			It("should have empty elastic search host", func() {
-				Expect(cohFlags.ElasticSearchHost).To(Equal(""))
-			})
-
-			It("should have negative elastic search port", func() {
-				Expect(cohFlags.ElasticSearchPort).To(Equal(int32(-1)))
-			})
-
-			It("should have empty elastic search user", func() {
-				Expect(cohFlags.ElasticSearchUser).To(Equal(""))
-			})
-
-			It("should set log integration to false ", func() {
-				Expect(cohFlags.LogIntegrationEnabled).To(Equal(false))
-			})
-
 			It("should have default rack label flag", func() {
 				Expect(cohFlags.RackLabel).To(Equal(flags.DefaultRackLabel))
 			})
@@ -84,18 +64,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 				restHost := "10.10.123.0"
 				args = []string{"--rest-host", restHost}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 restHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
+					RestHost:           restHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -110,18 +85,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rest-port", "9000"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 9000,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           9000,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -136,18 +106,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-name", "foo.com"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "foo.com",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "foo.com",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -162,200 +127,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-port", "80"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              80,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("log-integration set", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--log-integration"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    true,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("log-integration set to true", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--log-integration", "true"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    true,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("log-integration set to false", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--log-integration=false"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("es-host set", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--es-host", "es.com"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "es.com",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("es-port set", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--es-port", "2000"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        2000,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("es-user set", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--es-user", "admin"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "admin",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
-				}
-			})
-
-			It("should have the correct flags", func() {
-				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
-			})
-		})
-
-		When("es-password set", func() {
-			var expected flags.CoherenceOperatorFlags
-
-			BeforeEach(func() {
-				args = []string{"--es-password", "secret"}
-				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "secret",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        80,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -370,18 +148,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--site-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                "foo",
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          "foo",
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -396,18 +169,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rack-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                "foo",
-					AlwaysPullSuffixes:       "",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          "foo",
+					AlwaysPullSuffixes: "",
 				}
 			})
 
@@ -422,18 +190,13 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--force-always-pull-tags", "-ci,latest"}
 				expected = flags.CoherenceOperatorFlags{
-					RestHost:                 flags.DefaultRestHost,
-					RestPort:                 flags.DefaultRestPort,
-					ServiceName:              "",
-					ServicePort:              -1,
-					LogIntegrationEnabled:    false,
-					ElasticSearchHost:        "",
-					ElasticSearchPort:        -1,
-					ElasticSearchUser:        "",
-					ElasticSearchCredentials: "",
-					SiteLabel:                flags.DefaultSiteLabel,
-					RackLabel:                flags.DefaultRackLabel,
-					AlwaysPullSuffixes:       "-ci,latest",
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "-ci,latest",
 				}
 			})
 

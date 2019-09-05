@@ -225,7 +225,7 @@ spec:
             - name: OPERATOR_HOST
               valueFrom:
                 secretKeyRef:
-                  name: coherence-monitoring-config
+                  name: coherence-operator-config
                   key: operatorhost
                   optional: true
             - name: COH_SITE_INFO_LOCATION

@@ -377,7 +377,7 @@ debug-e2e-test:
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # These tests require the Operator CRDs and will install them before tests start
 # and remove them afterwards.
-# Note that the namespace will be created by Helm if it does not exist.
+# Note that the namespace will be created if it does not exist.
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
 # ---------------------------------------------------------------------------
@@ -389,12 +389,17 @@ helm-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-helm-test: build-operator reset-namespace create-ssl-secrets
-	$(MAKE) install-crds
+helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
-	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./test/e2e/helm/...
+	operator-sdk test local ./test/e2e/helm --namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-helm-test.out
 	$(MAKE) uninstall-crds
 	$(MAKE) delete-namespace
+	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-helm-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-e2e-helm-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml
 
 # ---------------------------------------------------------------------------
 # Install CRDs into Kubernetes.

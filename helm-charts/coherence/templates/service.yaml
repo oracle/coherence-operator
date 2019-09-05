@@ -12,7 +12,7 @@
 {{-     $portPort := required "A port value is required for every port in store.ports" $port.port -}}
 {{-     $serviceEnabled := true }}
 {{-     if $port.service }}
-{{-         $serviceEnabled = or (kindIs "invalid" $port.service.enabled) $port.service.enabled }}
+{{-         $serviceEnabled := or (kindIs "invalid" $port.service.enabled) $port.service.enabled }}
 {{-     end }}
 {{-     if $serviceEnabled }}
 {{ printf "\n---" }}

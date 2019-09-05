@@ -8,10 +8,10 @@ package helm_test
 
 import (
 	"fmt"
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/oracle/coherence-operator/test/e2e/helper/matchers"
 	"net/http"
+	"testing"
 
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 
@@ -21,91 +21,70 @@ import (
 	"time"
 )
 
-// This file is an example of how to write a test for installing the Operator Helm chart
-// using the Ginkgo test framework.
-var _ = Describe("Operator Helm Chart", func() {
-	var hm *helper.HelmReleaseManager
-	var err error
+// Test installing the Operator with the default values.
+func TestBasicHelmInstall(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-	// Normally in Ginkgo each "When" section is a set of related tests but for testing
-	// the Helm chart install we make it just a single test.
-	// To write multiple related tests in a single Go file put each test into its own When section
-	// inside a single Describe section.
-	When("installing Helm chart with empty values", func() {
+	// Create a helper.HelmHelper
+	helmHelper, err := helper.NewOperatorChartHelper()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// The JustBefore function is where the Helm install happens
-		JustBeforeEach(func() {
-			// Create the values to use
-			values := helper.OperatorValues{}
+	// Create the values to use (in this case empty)
+	values := helper.OperatorValues{}
 
-			// If we wanted to load a YAML file into the values then we can use
-			// the values.LoadFromYaml method with a file name relative to this
-			// test files location
-			//err = values.LoadFromYaml("test.yaml")
+	// If we wanted to load a YAML file into the values then we can use
+	// the values.LoadFromYaml method with a file name relative to this
+	// test files location
+	//err = values.LoadFromYaml("test.yaml")
+	//g.Expect(err).ToNot(HaveOccurred())
 
-			// Create a HelmReleaseManager with a release name and values
-			hm, err = HelmHelper.NewOperatorHelmReleaseManager("foo", &values)
-			Expect(err).ToNot(HaveOccurred())
+	// Create a HelmReleaseManager with a release name and values
+	hm, err := helmHelper.NewOperatorHelmReleaseManager("operator", &values)
+	g.Expect(err).ToNot(HaveOccurred())
 
-			// Install the chart
-			_, err = hm.InstallRelease()
-			Expect(err).ToNot(HaveOccurred())
-		})
+	// Defer cleanup (helm delete) to make sure it happens when this method exits
+	defer CleanupHelm(t, hm, helmHelper)
 
-		// The JustAfter function will ensure the chart is uninstalled
-		JustAfterEach(func() {
-			// ensure that the chart is uninstalled
-			_, err := hm.UninstallRelease()
-			Expect(err).ToNot(HaveOccurred())
+	// Install the chart
+	_, err = hm.InstallRelease()
+	g.Expect(err).ToNot(HaveOccurred())
 
-			// Wait for the Operator Pods to die as terminating Pods can mess up the next test that runs
-			// if it is too quick after this test.
-			err = helper.WaitForOperatorCleanup(HelmHelper.KubeClient, HelmHelper.Namespace, GinkgoT())
-			Expect(err).ToNot(HaveOccurred())
-		})
+	// The chart is installed but the Pod(s) may not exist yet so wait for it...
+	// (we wait a maximum of 5 minutes, retrying every 10 seconds)
+	pods, err := helper.WaitForOperatorPods(helmHelper.KubeClient, helmHelper.Namespace, time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(len(pods)).To(Equal(1))
 
-		// There should be ONLY ONE It section in this When section to do the assertions.
-		// If there were multiple IT sections the chart would be installed and uninstalled before and after each It
-		// because Ginkgo runs the JustBeforeEach and BeforeEach before every IT and runs JustAfterEach and AfterEach
-		// after every It.
-		It("should deploy the Operator", func() {
-			// The chart is installed but the Pod(s) may not exist yet so wait for it...
-			// (we wait a maximum of 5 minutes, retrying every 10 seconds)
-			pods, err := helper.WaitForOperatorPods(HelmHelper.KubeClient, HelmHelper.Namespace, time.Second*10, time.Minute*5)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(pods)).To(Equal(1))
+	// The Pod(s) exist so get one of them using the k8s client from the helper
+	// which is in the HelmHelper.KubeClient var configured in the suite .go file.
+	pod, err := helmHelper.KubeClient.CoreV1().Pods(helmHelper.Namespace).Get(pods[0].Name, metav1.GetOptions{})
+	g.Expect(err).ToNot(HaveOccurred())
 
-			// The Pod(s) exist so get one of them using the k8s client from the helper
-			// which is in the HelmHelper.KubeClient var configured in the suite .go file.
-			pod, err := HelmHelper.KubeClient.CoreV1().Pods(HelmHelper.Namespace).Get(pods[0].Name, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+	// The chart is installed but the Pod we have may not be ready yet so wait for it...
+	// (we wait a maximum of 5 minutes, retrying every 10 seconds)
+	err = helper.WaitForPodReady(helmHelper.KubeClient, pod.Namespace, pod.Name, time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
 
-			// The chart is installed but the Pod we have may not be ready yet so wait for it...
-			// (we wait a maximum of 5 minutes, retrying every 10 seconds)
-			err = helper.WaitForPodReady(HelmHelper.KubeClient, pod.Namespace, pod.Name, time.Second*10, time.Minute*5)
-			Expect(err).ToNot(HaveOccurred())
+	// Assert some things
+	container := pod.Spec.Containers[0]
+	g.Expect(container.Name).To(Equal("coherence-operator"))
+	g.Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "OPERATOR_NAME", Value: "coherence-operator"}))
 
-			// Assert some things
-			container := pod.Spec.Containers[0]
-			Expect(container.Name).To(Equal("coherence-operator"))
-			Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "OPERATOR_NAME", Value: "coherence-operator"}))
+	// Obtain a PortForwarder for the Pod - this will forward all of the ports defined in the Pod spec.
+	// The values returned are a PortForwarder, a map of port name to local port and any error
+	fwd, ports, err := helper.StartPortForwarderForPod(pod)
+	g.Expect(err).ToNot(HaveOccurred())
 
-			// Obtain a PortForwarder for the Pod - this will forward all of the ports defined in the Pod spec.
-			// The values returned are a PortForwarder, a map of port name to local port and any error
-			fwd, ports, err := helper.StartPortForwarderForPod(pod)
-			Expect(err).ToNot(HaveOccurred())
+	// Defer closing the PortForwarder so we clean-up properly
+	defer fwd.Close()
 
-			// Defer closing the PortForwarder so we clean-up properly
-			defer fwd.Close()
+	// The ReST port in the Operator container spec is named "rest"
+	restPort := ports["rest"]
 
-			// The ReST port in the Operator container spec is named "rest"
-			restPort := ports["rest"]
-
-			// Do a GET on the Zone endpoint for the Pod's NodeName, we should get no error and a 200 response
-			resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/site/%s", restPort, pod.Spec.NodeName))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(200))
-		})
-	})
-
-})
+	// Do a GET on the Zone endpoint for the Pod's NodeName, we should get no error and a 200 response
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/site/%s", restPort, pod.Spec.NodeName))
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(200))
+}
