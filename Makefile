@@ -38,9 +38,10 @@ COHERENCE_IMAGE_PREFIX ?= iad.ocir.io/odx-stateservice/test/
 HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74630
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
-OPERATOR_IMAGE   := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
-UTILS_IMAGE      ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
-TEST_USER_IMAGE  := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
+RELEASE_IMAGE_PREFIX ?= "iad.ocir.io/odx-stateservice/test/$(USER)/"
+OPERATOR_IMAGE       := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
+UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
+TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
 
 RELEASE_DRY_RUN  ?= true
 
