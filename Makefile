@@ -183,17 +183,31 @@ $(BUILD_OUTPUT)/bin/utilsinit: $(GOS) $(DEPLOYS)
 # ---------------------------------------------------------------------------
 # Build the Coperator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: helm-chart-crd $(COP_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
+	@echo "Copying Operator chart to $(CHART_DIR)/coherence-operator"
 	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
 
 	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
 
-	# For each Helm chart folder package the chart into a .tgz
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
 	tar -C $(CHART_DIR)/coherence-operator -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz .
+
+# ---------------------------------------------------------------------------
+# Run the Go utility that will copy the CRDs into the Operator chart and
+# reformat them as Helm temlate files.
+# ---------------------------------------------------------------------------
+helm-chart-crd: export CGO_ENABLED = 0
+helm-chart-crd: export GOARCH =
+helm-chart-crd: export GOOS =
+helm-chart-crd: export GO111MODULE = on
+helm-chart-crd: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+helm-chart-crd: $(GOS) $(DEPLOYS)
+helm-chart-crd:
+	@echo "Adding CRDs to Operator chart $(CHART_DIR)/coherence-operator"
+	go run ./cmd/crdutil/
 
 # ---------------------------------------------------------------------------
 # Build the Operator Helm chart and package it into a tar.gz
@@ -209,14 +223,8 @@ helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSI
 $(CHART_DIR)/coherence-$(VERSION_FULL).tgz: $(COH_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence $(CHART_DIR)
-
 	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
-
-	# For each Helm chart folder package the chart into a .tgz
-	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	echo "Creating Helm chart package $(CHART_DIR)/coherence"
 	helm lint $(CHART_DIR)/coherence
-	tar -C $(CHART_DIR)/coherence -czf $(CHART_DIR)/coherence-$(VERSION_FULL).tgz .
 
 # ---------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
