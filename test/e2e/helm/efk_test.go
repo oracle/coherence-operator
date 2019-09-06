@@ -343,6 +343,12 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 	err = result.Get("operator-coherence-operator-importscript", kbcm)
 	g.Expect(err).ToNot(HaveOccurred())
 
+	esdp.SetNamespace(namespace)
+	essvc.SetNamespace(namespace)
+	kbdp.SetNamespace(namespace)
+	kbsvc.SetNamespace(namespace)
+	kbcm.SetNamespace(namespace)
+
 	// deploy the EFK stack
 	err = f.Client.Create(context.TODO(), kbcm, helper.DefaultCleanup(ctx))
 	g.Expect(err).ToNot(HaveOccurred())
