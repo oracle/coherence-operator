@@ -366,6 +366,8 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 		err = result.Get("coherence-monitoring-config", sec)
 		g.Expect(err).ToNot(HaveOccurred())
 
+		sec.SetNamespace(namespace)
+
 		err = f.Client.Create(context.TODO(), sec, helper.DefaultCleanup(ctx))
 		g.Expect(err).ToNot(HaveOccurred())
 	}

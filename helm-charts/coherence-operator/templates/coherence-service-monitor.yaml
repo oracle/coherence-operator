@@ -15,17 +15,11 @@ spec:
   jobLabel: component
   selector:
     matchLabels:
-      component: "coherence-service"
-
-  namespaceSelector:
-    # prometheus will scrape coherence services in all namespaces
-    any: true
-
+      component: "coherence-service-metrics"
   endpoints:
-  - port: coherence-metrics-http
+  - port: metrics
     interval: 30s
     path: "/metrics"
-
     # blacklist these relabels produced to implement this ServiceMonitor
     metricRelabelings:
     - action: labeldrop
