@@ -42,11 +42,6 @@ func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yam
 
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
-	// deploy the CoherenceCluster
-	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
-	if err != nil {
-		return cluster, err
-	}
 
 	// deploy the CoherenceCluster
 	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))

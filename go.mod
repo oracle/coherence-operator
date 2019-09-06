@@ -1,9 +1,9 @@
 module github.com/oracle/coherence-operator
 
 require (
+	github.com/elastic/go-elasticsearch/v6 v6.8.3-0.20190731061920-efbed2e4c2f8
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
-	github.com/go-openapi/spec v0.19.0
 	github.com/go-openapi/validate v0.18.0
 	github.com/go-test/deep v1.0.3
 	github.com/onsi/ginkgo v1.7.0
@@ -20,7 +20,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/helm v2.13.1+incompatible
 	k8s.io/klog v0.3.1
-	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208
+	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
 	k8s.io/kubernetes v1.11.8-beta.0.0.20190124204751-3a10094374f2
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7
 	sigs.k8s.io/controller-runtime v0.1.12

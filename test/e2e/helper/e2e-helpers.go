@@ -419,15 +419,20 @@ func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory stri
 		return
 	}
 
-	res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
-	s, err := res.Stream()
-	if err == nil {
-		name := logs + "/" + directory
-		err = os.MkdirAll(name, os.ModePerm)
+	pathSep := string(os.PathSeparator)
+
+	for _, container := range pod.Spec.Containers {
+		res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
+		s, err := res.Stream()
 		if err == nil {
-			out, err := os.Create(name + "/" + pod.Name + ".log")
+			name := logs + pathSep + directory
+			err = os.MkdirAll(name, os.ModePerm)
 			if err == nil {
-				_, err = io.Copy(out, s)
+				logName := fmt.Sprintf("%s%s%s(%s).log", name, pathSep, pod.Name, container.Name)
+				out, err := os.Create(logName)
+				if err == nil {
+					_, err = io.Copy(out, s)
+				}
 			}
 		}
 	}

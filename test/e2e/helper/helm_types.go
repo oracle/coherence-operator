@@ -63,6 +63,9 @@ type OperatorValues struct {
 	// Specifies whether to generate the ClusterRole yaml.
 	// +optional
 	EnableClusterRole *bool `json:"enableClusterRole,omitempty"`
+	// The Helm full name override
+	// +optional
+	FullnameOverride *string `json:"fullnameOverride,omitempty"`
 }
 
 // OperatorSpec defines the settings for the Operator.
