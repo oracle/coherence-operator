@@ -7,14 +7,19 @@
 package helm_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v6/esapi"
 	. "github.com/onsi/gomega"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/fakes"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/kubernetes/pkg/apis/apps"
 	"net/http"
+	"os"
 	"testing"
 
 	es6 "github.com/elastic/go-elasticsearch/v6"
@@ -27,9 +32,26 @@ import (
 
 // Test installing the Operator with EFK enabled.
 func TestOperatorWithEFK(t *testing.T) {
-	g := NewGomegaWithT(t)
+	helmHelper, err := helper.NewOperatorChartHelper()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	// Create a helper.HelmHelper
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	// Create the values to use
+	values := helper.OperatorValues{
+		InstallEFK: true,
+	}
+
+	assertEFK(t, values, ctx, helmHelper)
+}
+
+// Test installing the Operator with an external EFK stack.
+func TestOperatorWithExternalEFK(t *testing.T) {
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)
@@ -37,11 +59,62 @@ func TestOperatorWithEFK(t *testing.T) {
 
 	namespace := helmHelper.Namespace
 	client := helmHelper.KubeClient
+	g := NewGomegaWithT(t)
 
-	// Create the values to use
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	// install the External EFK stack
+	installExternalEFK(t, ctx, false)
+
+	// Find the Elasticsearch Pod(s)
+	esPods, err := helper.ListPodsWithLabelSelector(client, namespace, "component=elasticsearch")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(len(esPods)).To(Equal(1))
+
+	esHost := esPods[0].Name
+
+	// Create the values to use with install EFK disabled and the ES endpoint set to the ES Pod
 	values := helper.OperatorValues{
-		InstallEFK: true,
+		InstallEFK:            false,
+		ElasticsearchEndpoint: &helper.ElasticsearchEndpointSpec{Host: &esHost},
 	}
+
+	assertEFK(t, values, ctx, helmHelper)
+}
+
+// Test installing the Operator with an external EFK stack.
+func TestOperatorWithExternalEFKAndMonitoringSecret(t *testing.T) {
+	helmHelper, err := helper.NewOperatorChartHelper()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	// install the External EFK stack
+	installExternalEFK(t, ctx, true)
+
+	// Create the values to use with install EFK disabled and No ES endpoint set.
+	// The Coherence clusters should get the ES endpoint from the pre-created secret
+	values := helper.OperatorValues{
+		InstallEFK: false,
+	}
+
+	assertEFK(t, values, ctx, helmHelper)
+}
+
+// Assert that the Operator Helm install works and a Coherence Cluster's logs appear in Elasticsearch and Kibana
+func assertEFK(t *testing.T, values helper.OperatorValues, ctx *framework.TestCtx, helmHelper *helper.HelmHelper) {
+	g := NewGomegaWithT(t)
+
+	namespace := helmHelper.Namespace
+	client := helmHelper.KubeClient
 
 	// Create a HelmReleaseManager with a release name and values
 	hm, err := helmHelper.NewOperatorHelmReleaseManager("op", &values)
@@ -92,11 +165,6 @@ func TestOperatorWithEFK(t *testing.T) {
 	// (we wait a maximum of 5 minutes, retrying every 5 seconds)
 	err = helper.WaitForPodReady(client, kPod.Namespace, kPod.Name, time.Second*5, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
-
-	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	// Deploy the Coherence cluster
 	cluster, err := DeployCoherenceCluster(t, ctx, namespace, "coherence-with-fluentd.yaml")
@@ -229,4 +297,70 @@ func ShouldHaveCoherenceClusterIndexInKibana(t *testing.T, kibana *corev1.Pod) {
 		}
 		return res.StatusCode == http.StatusOK, nil
 	})
+}
+
+// ----- helper methods -------------------------------------------------
+
+// Install an extenral EFK stack
+func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool) {
+	f := framework.Global
+	g := NewGomegaWithT(t)
+
+	namespace := helper.GetTestNamespace()
+
+	// We use the fake Operator Helm install with EFK enabled to obtain
+	// the yaml to use to install the EFK stack.
+	mgrFake := fakes.NewFakeManager()
+	values := helper.OperatorValues{}
+
+	chartDir, err := helper.FindOperatorHelmChartDir()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	err = values.LoadFromYaml(chartDir + string(os.PathSeparator) + "values.yaml")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	values.InstallEFK = true
+
+	helm := fakes.NewFakeHelm(mgrFake, nil, nil)
+	result, err := helm.FakeOperatorHelmInstall(mgrFake, namespace, values)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Find the bits we need from the Helm install result
+	esdp := &apps.Deployment{}
+	essvc := &corev1.Service{}
+	kbdp := &apps.Deployment{}
+	kbsvc := &corev1.Service{}
+	kbcm := &corev1.ConfigMap{}
+
+	err = result.Get("elasticsearch", esdp)
+	g.Expect(err).ToNot(HaveOccurred())
+	err = result.Get("elasticsearch", essvc)
+	g.Expect(err).ToNot(HaveOccurred())
+	err = result.Get("kibana", kbdp)
+	g.Expect(err).ToNot(HaveOccurred())
+	err = result.Get("kibana", kbsvc)
+	g.Expect(err).ToNot(HaveOccurred())
+	err = result.Get("operator-coherence-operator-importscript", kbcm)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// deploy the EFK stack
+	err = f.Client.Create(context.TODO(), kbcm, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+	err = f.Client.Create(context.TODO(), essvc, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+	err = f.Client.Create(context.TODO(), kbsvc, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+	err = f.Client.Create(context.TODO(), esdp, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+	err = f.Client.Create(context.TODO(), kbdp, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+
+	if includeSecret {
+		sec := &corev1.Secret{}
+		err = result.Get("coherence-monitoring-config", sec)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = f.Client.Create(context.TODO(), sec, helper.DefaultCleanup(ctx))
+		g.Expect(err).ToNot(HaveOccurred())
+	}
 }

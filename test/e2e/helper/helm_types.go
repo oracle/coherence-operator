@@ -50,6 +50,9 @@ type OperatorValues struct {
 	// or elasticsearchEndpoinit is set.
 	// +optional
 	Elasticsearch *coh.ImageSpec `json:"elasticsearch,omitempty"`
+	// The Elasticsearch endpoint details
+	// +optional
+	ElasticsearchEndpoint *ElasticsearchEndpointSpec `json:"elasticsearchEndpoint,omitempty"`
 	// Specify the kibana image
 	// These parameters are ignored if 'logCaptureEnabled' is false.
 	// +optional
@@ -80,6 +83,24 @@ type OperatorSSL struct {
 	KeyFile  *string `json:"keyFile,omitempty"`
 	CertFile *string `json:"certFile,omitempty"`
 	CaFile   *string `json:"caFile,omitempty"`
+}
+
+type ElasticsearchEndpointSpec struct {
+	// The Elasticsearch host if there is an existing one.
+	// Default: "elasticsearch.${namespace}.svc.cluster.local"
+	// where ${namespace} is the value of namespace for this release.
+	// +optional
+	Host *string `json:"secrets,omitempty"`
+	// The Elasticsearch port to be accessed by fluentd.
+	// Default: 9200
+	// +optional
+	Port *string `json:"secrets,omitempty"`
+	// The Elasticsearch user to be accessed by fluentd.
+	// +optional
+	User *string `json:"secrets,omitempty"`
+	// The Elasticsearch password to be accessed by fluentd.
+	// +optional
+	Password *string `json:"secrets,omitempty"`
 }
 
 type PrometheusOperatorSpec struct {
