@@ -15,9 +15,9 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/fakes"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/kubernetes/pkg/apis/apps"
 	"net/http"
 	"os"
 	"testing"
@@ -326,9 +326,9 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Find the bits we need from the Helm install result
-	esdp := &apps.Deployment{}
+	esdp := &appsv1.Deployment{}
 	essvc := &corev1.Service{}
-	kbdp := &apps.Deployment{}
+	kbdp := &appsv1.Deployment{}
 	kbsvc := &corev1.Service{}
 	kbcm := &corev1.ConfigMap{}
 
