@@ -5,4 +5,5 @@
 #
 FROM scratch
 
-COPY lib/  /files/lib/
+COPY logging.properties /files/conf/
+COPY lib/               /files/lib/
