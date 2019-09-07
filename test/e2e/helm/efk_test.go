@@ -301,7 +301,9 @@ func ShouldHaveCoherenceClusterIndexInKibana(t *testing.T, kibana *corev1.Pod) {
 
 // ----- helper methods -------------------------------------------------
 
-// Install an extenral EFK stack
+// Install an external EFK stack.
+// We do this by doing a fake Operator Helm install and then pulling out
+// the bits we need for the ELK stack and creating them using the k8s client.
 func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool) {
 	f := framework.Global
 	g := NewGomegaWithT(t)
@@ -330,7 +332,8 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 	essvc := &corev1.Service{}
 	kbdp := &appsv1.Deployment{}
 	kbsvc := &corev1.Service{}
-	kbcm := &corev1.ConfigMap{}
+	sccm := &corev1.ConfigMap{}
+	kbdbcm := &corev1.ConfigMap{}
 
 	err = result.Get("elasticsearch", esdp)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -340,17 +343,22 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 	g.Expect(err).ToNot(HaveOccurred())
 	err = result.Get("kibana", kbsvc)
 	g.Expect(err).ToNot(HaveOccurred())
-	err = result.Get("operator-coherence-operator-importscript", kbcm)
+	err = result.Get("operator-coherence-operator-importscript", sccm)
+	g.Expect(err).ToNot(HaveOccurred())
+	err = result.Get("operator-coherence-operator-dashboards", kbdbcm)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	esdp.SetNamespace(namespace)
 	essvc.SetNamespace(namespace)
 	kbdp.SetNamespace(namespace)
 	kbsvc.SetNamespace(namespace)
-	kbcm.SetNamespace(namespace)
+	sccm.SetNamespace(namespace)
+	kbdbcm.SetNamespace(namespace)
 
 	// deploy the EFK stack
-	err = f.Client.Create(context.TODO(), kbcm, helper.DefaultCleanup(ctx))
+	err = f.Client.Create(context.TODO(), sccm, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
+	err = f.Client.Create(context.TODO(), kbdbcm, helper.DefaultCleanup(ctx))
 	g.Expect(err).ToNot(HaveOccurred())
 	err = f.Client.Create(context.TODO(), essvc, helper.DefaultCleanup(ctx))
 	g.Expect(err).ToNot(HaveOccurred())

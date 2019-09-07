@@ -22,6 +22,8 @@ func TestMain(m *testing.M) {
 }
 
 func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, helmHelper *helper.HelmHelper) {
+	helper.DumpState(helmHelper.Namespace, t.Name(), t)
+
 	// ensure that the chart is uninstalled
 	_, err := hm.UninstallRelease()
 	if err != nil {
