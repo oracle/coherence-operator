@@ -133,6 +133,10 @@ func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName stri
 		return false, nil
 	})
 
+	if err != nil && sts != nil {
+		d, _ := json.Marshal(sts)
+		logger.Logf("Error waiting for StatefulSet\n%s", string(d))
+	}
 	return sts, err
 }
 
