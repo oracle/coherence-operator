@@ -47,7 +47,7 @@ func TestOperatorWithEFK(t *testing.T) {
 		InstallEFK: true,
 	}
 
-	assertEFK(t, values, ctx, helmHelper)
+	assertEFK(t, values, "op1", ctx, helmHelper)
 }
 
 // Test installing the Operator with an external EFK stack.
@@ -82,7 +82,7 @@ func TestOperatorWithExternalEFK(t *testing.T) {
 		ElasticsearchEndpoint: &helper.ElasticsearchEndpointSpec{Host: &esHost},
 	}
 
-	assertEFK(t, values, ctx, helmHelper)
+	assertEFK(t, values, "op2", ctx, helmHelper)
 }
 
 // Test installing the Operator with an external EFK stack.
@@ -106,18 +106,18 @@ func TestOperatorWithExternalEFKAndMonitoringSecret(t *testing.T) {
 		InstallEFK: false,
 	}
 
-	assertEFK(t, values, ctx, helmHelper)
+	assertEFK(t, values, "op3", ctx, helmHelper)
 }
 
 // Assert that the Operator Helm install works and a Coherence Cluster's logs appear in Elasticsearch and Kibana
-func assertEFK(t *testing.T, values helper.OperatorValues, ctx *framework.TestCtx, helmHelper *helper.HelmHelper) {
+func assertEFK(t *testing.T, values helper.OperatorValues, releaseName string, ctx *framework.TestCtx, helmHelper *helper.HelmHelper) {
 	g := NewGomegaWithT(t)
 
 	namespace := helmHelper.Namespace
 	client := helmHelper.KubeClient
 
 	// Create a HelmReleaseManager with a release name and values
-	hm, err := helmHelper.NewOperatorHelmReleaseManager("op", &values)
+	hm, err := helmHelper.NewOperatorHelmReleaseManager(releaseName, &values)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Defer cleanup (helm delete) to make sure it happens when this method exits
