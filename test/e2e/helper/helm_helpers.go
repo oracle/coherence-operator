@@ -25,6 +25,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	rel "k8s.io/helm/pkg/proto/hapi/release"
+	"k8s.io/utils/pointer"
 	"net"
 	"net/url"
 	"os"
@@ -131,6 +132,8 @@ func (h *HelmHelper) NewOperatorHelmReleaseManager(releaseName string, values *O
 	if values.ImagePullSecrets == nil {
 		values.ImagePullSecrets = GetImagePullSecrets()
 	}
+
+	values.FullnameOverride = pointer.StringPtr(releaseName)
 
 	data, err := json.Marshal(values)
 	if err != nil {

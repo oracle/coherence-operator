@@ -41,8 +41,10 @@ spec:
           image: {{ .Values.elasticsearch.image }}
           imagePullPolicy: {{ .Values.elasticsearch.imagePullPolicy | default "IfNotPresent" }}
           ports:
-            - containerPort: 9200
-            - containerPort: 9300
+            - name: "rest"
+              containerPort: 9200
+            - name: "es"
+              containerPort: 9300
 ---
 kind: Service
 apiVersion: v1
@@ -56,11 +58,11 @@ spec:
     - name: http
       protocol: TCP
       port: 9200
-      targetPort: 9200
+      targetPort: "rest"
     - name: https
       protocol: TCP
       port: 9300
-      targetPort: 9300
+      targetPort: "es"
   selector:
     coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
     component: elasticsearch

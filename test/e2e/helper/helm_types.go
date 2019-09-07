@@ -50,6 +50,9 @@ type OperatorValues struct {
 	// or elasticsearchEndpoinit is set.
 	// +optional
 	Elasticsearch *coh.ImageSpec `json:"elasticsearch,omitempty"`
+	// The Elasticsearch endpoint details
+	// +optional
+	ElasticsearchEndpoint *ElasticsearchEndpointSpec `json:"elasticsearchEndpoint,omitempty"`
 	// Specify the kibana image
 	// These parameters are ignored if 'logCaptureEnabled' is false.
 	// +optional
@@ -63,6 +66,9 @@ type OperatorValues struct {
 	// Specifies whether to generate the ClusterRole yaml.
 	// +optional
 	EnableClusterRole *bool `json:"enableClusterRole,omitempty"`
+	// The Helm full name override
+	// +optional
+	FullnameOverride *string `json:"fullnameOverride,omitempty"`
 }
 
 // OperatorSpec defines the settings for the Operator.
@@ -79,7 +85,39 @@ type OperatorSSL struct {
 	CaFile   *string `json:"caFile,omitempty"`
 }
 
+type ElasticsearchEndpointSpec struct {
+	// The Elasticsearch host if there is an existing one.
+	// Default: "elasticsearch.${namespace}.svc.cluster.local"
+	// where ${namespace} is the value of namespace for this release.
+	// +optional
+	Host *string `json:"host,omitempty"`
+	// The Elasticsearch port to be accessed by fluentd.
+	// Default: 9200
+	// +optional
+	Port *string `json:"port,omitempty"`
+	// The Elasticsearch user to be accessed by fluentd.
+	// +optional
+	User *string `json:"user,omitempty"`
+	// The Elasticsearch password to be accessed by fluentd.
+	// +optional
+	Password *string `json:"password,omitempty"`
+}
+
 type PrometheusOperatorSpec struct {
+	Enabled    *bool       `json:"enabled,omitempty"`
+	Prometheus *Prometheus `json:"prometheus,omitempty"`
+	Grafana    *Grafana    `json:"grafana,omitempty"`
+}
+
+type Prometheus struct {
+	PrometheusSpec *PrometheusSpec `json:"prometheusspec,omitempty"`
+}
+
+type PrometheusSpec struct {
+	ScrapeInterval *string `json:"scrapeInterval,omitempty"`
+}
+
+type Grafana struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
