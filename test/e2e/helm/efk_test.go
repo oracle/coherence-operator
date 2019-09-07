@@ -124,8 +124,10 @@ func assertEFK(t *testing.T, values helper.OperatorValues, releaseName string, c
 	defer CleanupHelm(t, hm, helmHelper)
 
 	// Install the chart
-	_, err = hm.InstallRelease()
+	rel, err := hm.InstallRelease()
 	g.Expect(err).ToNot(HaveOccurred())
+
+	t.Logf("Installed Operator Helm chart\n%s\n", rel.Manifest)
 
 	// The chart is installed but the Pod(s) may not exist yet so wait for it...
 	// (we wait a maximum of 5 minutes, retrying every 5 seconds)

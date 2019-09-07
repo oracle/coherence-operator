@@ -90,17 +90,17 @@ type ElasticsearchEndpointSpec struct {
 	// Default: "elasticsearch.${namespace}.svc.cluster.local"
 	// where ${namespace} is the value of namespace for this release.
 	// +optional
-	Host *string `json:"secrets,omitempty"`
+	Host *string `json:"host,omitempty"`
 	// The Elasticsearch port to be accessed by fluentd.
 	// Default: 9200
 	// +optional
-	Port *string `json:"secrets,omitempty"`
+	Port *string `json:"port,omitempty"`
 	// The Elasticsearch user to be accessed by fluentd.
 	// +optional
-	User *string `json:"secrets,omitempty"`
+	User *string `json:"user,omitempty"`
 	// The Elasticsearch password to be accessed by fluentd.
 	// +optional
-	Password *string `json:"secrets,omitempty"`
+	Password *string `json:"password,omitempty"`
 }
 
 type PrometheusOperatorSpec struct {
