@@ -57,24 +57,13 @@ func TestOperatorWithExternalEFK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	namespace := helmHelper.Namespace
-	client := helmHelper.KubeClient
-	g := NewGomegaWithT(t)
-
 	// Create the Operator SDK test context (this will deploy the Operator)
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	// install the External EFK stack
-	installExternalEFK(t, ctx, false)
-
-	// Find the Elasticsearch Pod(s)
-	esPods, err := helper.ListPodsWithLabelSelector(client, namespace, "component=elasticsearch")
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(len(esPods)).To(Equal(1))
-
-	esHost := esPods[0].Name
+	esHost := installExternalEFK(t, ctx, false)
 
 	// Create the values to use with install EFK disabled and the ES endpoint set to the ES Pod
 	values := helper.OperatorValues{
@@ -97,8 +86,8 @@ func TestOperatorWithExternalEFKAndMonitoringSecret(t *testing.T) {
 	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
-	// install the External EFK stack
-	installExternalEFK(t, ctx, true)
+	// install the External EFK stack and create the monitoring secret
+	_ = installExternalEFK(t, ctx, true)
 
 	// Create the values to use with install EFK disabled and No ES endpoint set.
 	// The Coherence clusters should get the ES endpoint from the pre-created secret
@@ -304,7 +293,8 @@ func ShouldHaveCoherenceClusterIndexInKibana(t *testing.T, kibana *corev1.Pod) {
 // Install an external EFK stack.
 // We do this by doing a fake Operator Helm install and then pulling out
 // the bits we need for the ELK stack and creating them using the k8s client.
-func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool) {
+// Returns the endpoint to use to contact Elasticsearch
+func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool) string {
 	f := framework.Global
 	g := NewGomegaWithT(t)
 
@@ -379,4 +369,6 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 		err = f.Client.Create(context.TODO(), sec, helper.DefaultCleanup(ctx))
 		g.Expect(err).ToNot(HaveOccurred())
 	}
+
+	return essvc.GetName()
 }
