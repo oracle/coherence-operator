@@ -747,10 +747,10 @@ release-chart: helm-chart
 	git add charts/*
 	git clean -d -f
 	git status
-	git commit -m "Release coherence-operator helm chart version: $(VERSION_FULL)"
+	git commit -m "adding coherence-operator helm chart version: $(VERSION_FULL)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed new gh-pages branch gh-pages-$(VERSION_FULL)"
+	@echo "release dry-run - would have pushed chart $(VERSION_FULL) to gh-pages"
 else
 	git push origin gh-pages-$(VERSION_FULL)
 endif
@@ -766,7 +766,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	@echo "creating release tag v$(VERSION_FULL)"
 	git push origin :refs/tags/v$(VERSION_FULL)
-	git tag -f -a -m "Release version $(VERSION_FULL)" v$(VERSION_FULL)
+	git tag -f -a -m "built $(VERSION_FULL)" v$(VERSION_FULL)
 	git push origin --tags
 endif
 
@@ -774,4 +774,4 @@ endif
 # Release the Coherence Operator.
 # ---------------------------------------------------------------------------
 .PHONY: release
-release: release-tag build-all-images push-release-images release-chart
+release: build-all-images release-tag push-release-images release-chart
