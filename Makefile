@@ -774,4 +774,9 @@ endif
 # Release the Coherence Operator.
 # ---------------------------------------------------------------------------
 .PHONY: release
-release: build-all-images release-tag push-release-images release-chart
+release: build-all-images release-tag release-chart
+ifeq (true, $(RELEASE_DRY_RUN))
+	@echo "release dry-run - would have pushed images for v$(VERSION_FULL)"
+else
+	$(MAKE) push-release-images
+endif
