@@ -166,7 +166,7 @@ func ShouldGetClusterSizeMetric(t *testing.T, pod corev1.Pod) {
 	g := NewGomegaWithT(t)
 
 	metrics := PrometheusVector{}
-	err := PrometheusQuery(pod, "/api/v1/query?query=vendor:coherence_cluster_size", &metrics)
+	err := PrometheusQuery(pod, "vendor:coherence_cluster_size", &metrics)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -177,7 +177,7 @@ func PrometheusQuery(pod corev1.Pod, query string, result interface{}) error {
 	}
 
 	if r.Status != "success" {
-		return fmt.Errorf("prometheus returned a non-success status '%s'\n%s", r.Status, string(r.Data))
+		return fmt.Errorf("prometheus returned a non-success status '%s' Data='%s'", r.Status, string(r.Data))
 	}
 
 	return r.GetData(result)
