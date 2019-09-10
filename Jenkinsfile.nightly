@@ -111,6 +111,7 @@ pipeline {
                     echo 'Skipping release step RELEASE_ON_SUCCESS=' + env.RELEASE_ON_SUCCESS
                 }
             }
+        }
     }
     post {
         always {
