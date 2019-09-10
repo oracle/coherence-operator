@@ -185,7 +185,7 @@ $(BUILD_OUTPUT)/bin/utilsinit: $(GOS) $(DEPLOYS)
 # ---------------------------------------------------------------------------
 # Build the Coperator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: helm-chart-crd $(COP_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
 	@echo "Copying Operator chart to $(CHART_DIR)/coherence-operator"
 	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
@@ -196,20 +196,6 @@ $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: helm-chart-crd $(COP_CHARTS
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
 	tar -C $(CHART_DIR)/coherence-operator -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz .
-
-# ---------------------------------------------------------------------------
-# Run the Go utility that will copy the CRDs into the Operator chart and
-# reformat them as Helm temlate files.
-# ---------------------------------------------------------------------------
-helm-chart-crd: export CGO_ENABLED = 0
-helm-chart-crd: export GOARCH =
-helm-chart-crd: export GOOS =
-helm-chart-crd: export GO111MODULE = on
-helm-chart-crd: export BUILD_OUTPUT := $(BUILD_OUTPUT)
-helm-chart-crd: $(GOS) $(DEPLOYS)
-helm-chart-crd:
-	@echo "Adding CRDs to Operator chart $(CHART_DIR)/coherence-operator"
-	go run ./cmd/crdutil/
 
 # ---------------------------------------------------------------------------
 # Build the Operator Helm chart and package it into a tar.gz
@@ -614,7 +600,7 @@ build-all: build-mvn build-operator
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run
-run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
+run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -629,7 +615,7 @@ run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secre
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
+run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	--enable-delve \
@@ -649,7 +635,7 @@ debug-stop:
 # configured to use.
 # ---------------------------------------------------------------------------
 .PHONY: operator-helm-install
-operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets uninstall-crds install-crds
+operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets
 	helm install --name operator --namespace $(TEST_NAMESPACE) $(CHART_DIR)/coherence-operator
 
 
