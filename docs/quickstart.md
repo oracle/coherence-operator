@@ -150,6 +150,8 @@ This action is required to pull the image correctly for the first time. After th
 
  When installing Coherence, refer to the secret and Kubernetes will use that secret when pulling the image.
 
+> **Note**: Kubernetes secrets are not global means any kubernetes secret is created will be scoped to a namesapce so if you do not specify namespace when creating kubernetes secret, kubernetes will create secret under `default` namespace. So, if you are installing coherence cluster in a specific namespace then you also need to create docker-registry secret in that namespace by passing --namespace option to `kubectl create secret` command mentioned above.
+
 ### Use Helm to Install Coherence
 
 Install the `coherence` helm chart using the secret 'oracle-container-registry-secret' which was created using the `kubectl create secret` command.
