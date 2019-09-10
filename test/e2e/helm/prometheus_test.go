@@ -177,7 +177,7 @@ func PrometheusQuery(pod corev1.Pod, query string, result interface{}) error {
 	}
 
 	if r.Status != "success" {
-		return fmt.Errorf("prometheus returned a non-success status '%s'", r.Status)
+		return fmt.Errorf("prometheus returned a non-success status '%s'\n%s", r.Status, string(r.Data))
 	}
 
 	return r.GetData(result)
