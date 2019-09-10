@@ -20,9 +20,9 @@ const (
 	filesDir                = pathSep + "files"
 	snapshotDir             = pathSep + "snapshot"
 	persistenceDir          = pathSep + "persistence"
-	persistenceActiveDir    = pathSep + "active"
-	persistenceTrashDir     = pathSep + "trash"
-	persistenceSnapshotsDir = pathSep + "snapshots"
+	persistenceActiveDir    = persistenceDir + pathSep + "active"
+	persistenceTrashDir     = persistenceDir + pathSep + "trash"
+	persistenceSnapshotsDir = persistenceDir + pathSep + "snapshots"
 )
 
 func main() {
