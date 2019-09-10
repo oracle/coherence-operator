@@ -26,6 +26,7 @@ endif
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
+GIT_BRANCH      := $(shell git branch | grep \* | cut -d ' ' -f2)
 
 ARCH            ?= amd64
 OS              ?= linux
@@ -739,8 +740,6 @@ version:
 .PHONY: release-chart
 release-chart: helm-chart
 	git checkout gh-pages
-	git branch gh-pages-$(VERSION_FULL)
-	git checkout gh-pages-$(VERSION_FULL)
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	git status
@@ -752,7 +751,7 @@ release-chart: helm-chart
 ifeq (true, $(RELEASE_DRY_RUN))
 	@echo "release dry-run - would have pushed chart $(VERSION_FULL) to gh-pages"
 else
-	git push origin gh-pages-$(VERSION_FULL)
+	git push origin gh-pages
 endif
 	git checkout $(GIT_BRANCH)
 
