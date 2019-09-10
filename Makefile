@@ -74,6 +74,7 @@ TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 override BUILD_OUTPUT  := ./build/_output
 override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
+override CRD_DIR       := deploy/crds
 override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
 
 ifeq (, $(shell which ginkgo))
@@ -260,7 +261,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
@@ -615,7 +616,7 @@ build-all: build-mvn build-operator
 .PHONY: run
 run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ---------------------------------------------------------------------------
@@ -630,7 +631,7 @@ run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secre
 .PHONY: run-debug
 run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds install-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 

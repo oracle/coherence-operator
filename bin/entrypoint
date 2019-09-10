@@ -9,6 +9,6 @@ if ! whoami &>/dev/null; then
   fi
 fi
 
-ARGS="--watches-file=/opt/${USER_NAME:-coherence}/watches.yaml"
+ARGS="--watches-file=/opt/${USER_NAME:-coherence}/watches.yaml --crd-files=/opt/${USER_NAME:-coherence}/crds"
 
 exec ${OPERATOR} run helm ${ARGS} $@
