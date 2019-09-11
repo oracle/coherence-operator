@@ -127,7 +127,7 @@ func assertEFK(t *testing.T, values helper.OperatorValues, releaseName string, c
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(len(esPods)).To(Equal(1))
 
-	// The Kibana Pod(s) exist so get one of them using the k8s client from the helper
+	// The Elasticsearch Pod(s) exist so get one of them using the k8s client from the helper
 	// which is in the client var configured in the suite .go file.
 	esPod, err := client.CoreV1().Pods(namespace).Get(esPods[0].Name, metav1.GetOptions{})
 	g.Expect(err).ToNot(HaveOccurred())

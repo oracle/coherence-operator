@@ -104,9 +104,15 @@ type ElasticsearchEndpointSpec struct {
 }
 
 type PrometheusOperatorSpec struct {
-	Enabled    *bool       `json:"enabled,omitempty"`
-	Prometheus *Prometheus `json:"prometheus,omitempty"`
-	Grafana    *Grafana    `json:"grafana,omitempty"`
+	Enabled            *bool         `json:"enabled,omitempty"`
+	PrometheusOperator *PrometheusOp `json:"prometheusOperator,omitempty"`
+	Prometheus         *Prometheus   `json:"prometheus,omitempty"`
+	Grafana            *Grafana      `json:"grafana,omitempty"`
+}
+
+type PrometheusOp struct {
+	CreateCustomResource  *bool `json:"createCustomResource,omitempty"`
+	CleanupCustomResource *bool `json:"cleanupCustomResource,omitempty"`
 }
 
 type Prometheus struct {

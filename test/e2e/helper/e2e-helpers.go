@@ -226,11 +226,11 @@ func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coh.Cohe
 }
 
 // WaitForOperatorPods waits for a Coherence Operator Pods to be created.
-func WaitForOperatorPods(kubeclient kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+func WaitForOperatorPods(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pods, err = ListOperatorPods(kubeclient, namespace)
+		pods, err = ListOperatorPods(k8s, namespace)
 		if err != nil {
 			return false, err
 		}
@@ -274,11 +274,31 @@ func ListCoherencePodsForRole(client kubernetes.Interface, namespace, cluster, r
 	return ListPodsWithLabelSelector(client, namespace, fmt.Sprintf("coherenceCluster=%s,coherenceRole=%s", cluster, role))
 }
 
+// WaitForPodsWithLabel waits for at least the required number of Pods matching the specified labels selector to be created.
+func WaitForPodsWithLabel(k8s kubernetes.Interface, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	var pods []corev1.Pod
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		if err != nil {
+			fmt.Printf("Waiting for at least %d Pods with label selector '%s' - failed due to %s\n", count, selector, err.Error())
+			return false, err
+		}
+		found := len(pods) >= count
+		if !found {
+			fmt.Printf("Waiting for at least %d Pods with label selector '%s' - found %d\n", count, selector, len(pods))
+		}
+		return found, nil
+	})
+
+	return pods, err
+}
+
 // List the Coherence Cluster Pods that exist for a given label selector.
-func ListPodsWithLabelSelector(client kubernetes.Interface, namespace, selector string) ([]corev1.Pod, error) {
+func ListPodsWithLabelSelector(k8s kubernetes.Interface, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
 
-	list, err := client.CoreV1().Pods(namespace).List(opts)
+	list, err := k8s.CoreV1().Pods(namespace).List(opts)
 	if err != nil {
 		return []corev1.Pod{}, err
 	}
@@ -287,9 +307,9 @@ func ListPodsWithLabelSelector(client kubernetes.Interface, namespace, selector 
 }
 
 // WaitForPodReady waits for a Pods to be ready.
-func WaitForPodReady(client kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		p, err := client.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
+		p, err := k8s.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
