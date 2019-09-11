@@ -44,6 +44,7 @@ UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSI
 TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
 
 RELEASE_DRY_RUN  ?= true
+PRE_RELEASE      ?= true
 
 # The version of the Prometheus Operator chart that is used as a sub-chart in the
 # Coherence Operator chart
@@ -740,10 +741,18 @@ version:
 release-chart: helm-chart
 	GIT_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
 	git checkout gh-pages
+ifeq (true, $(PRE_RELEASE))
+	mkdir -p charts-unstable || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
+	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	git status
+	git add charts-unstable/*
+else
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	git status
 	git add charts/*
+endif
 	git clean -d -f
 	git status
 	git commit -m "adding coherence-operator helm chart version: $(VERSION_FULL)"
