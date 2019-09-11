@@ -573,11 +573,57 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 	return &clone
 }
 
+// ----- DebugSpec struct ----------------------------------------------------------
+
+type DebugSpec struct {
+	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// Attach specifies the address of the debugger that the JVM should attempt to connect back to
+	// instead of listening on port 5005.
+	// +optional
+	Attach *string `json:"attach,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this DebugSpec struct with any nil or not set values set
+// by the corresponding value in the defaults DebugSpec struct.
+func (in *DebugSpec) DeepCopyWithDefaults(defaults *DebugSpec) *DebugSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := DebugSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Attach != nil {
+		clone.Attach = in.Attach
+	} else {
+		clone.Attach = defaults.Attach
+	}
+
+	return &clone
+}
+
 // ----- PortSpecWithSSL struct ----------------------------------------------------
+
 // PortSpecWithSSL defines a port with SSL settings for a Coherence component
 // +k8s:openapi-gen=true
 type PortSpecWithSSL struct {
-	PortSpec `json:",inline"`
+	// Enable or disable flag.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
 	// SSL configures SSL settings for a Coherence component
 	// +optional
 	SSL *SSLSpec `json:"ssl,omitempty"`
@@ -599,22 +645,10 @@ func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *Port
 
 	clone := PortSpecWithSSL{}
 
-	if in.Port != 0 {
-		clone.Port = in.Port
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
 	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.Protocol != nil {
-		clone.Protocol = in.Protocol
-	} else {
-		clone.Protocol = defaults.Protocol
-	}
-
-	if in.Service != nil {
-		clone.Service = in.Service.DeepCopyWithDefaults(defaults.Service)
-	} else {
-		clone.Service = defaults.Service
+		clone.Enabled = defaults.Enabled
 	}
 
 	if in.SSL != nil {

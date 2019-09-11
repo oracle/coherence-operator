@@ -171,15 +171,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					},
 				},
 				Management: &coherence.PortSpecWithSSL{
-					PortSpec: coherence.PortSpec{
-						Port: 8080,
-						Service: &coherence.ServiceSpec{
-							Enabled:        boolPtr(true),
-							Port:           int32Ptr(80),
-							Type:           &clusterIP,
-							LoadBalancerIP: stringPtr("10.10.100.99"),
-						},
-					},
+					Enabled: boolPtr(true),
 					SSL: &coherence.SSLSpec{
 						Enabled:                boolPtr(true),
 						Secrets:                stringPtr("ssl-secret"),
@@ -198,15 +190,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					},
 				},
 				Metrics: &coherence.PortSpecWithSSL{
-					PortSpec: coherence.PortSpec{
-						Port: 9090,
-						Service: &coherence.ServiceSpec{
-							Enabled:        boolPtr(true),
-							Port:           int32Ptr(90),
-							Type:           &loadBalancer,
-							LoadBalancerIP: stringPtr("10.10.100.100"),
-						},
-					},
+					Enabled: boolPtr(false),
 					SSL: &coherence.SSLSpec{
 						Enabled:                boolPtr(true),
 						Secrets:                stringPtr("ssl-secret"),
@@ -236,13 +220,13 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					},
 				},
 				Volumes: []corev1.Volume{
-					corev1.Volume{
+					{
 						Name:         "vol1",
 						VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 					},
 				},
 				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-					corev1.PersistentVolumeClaim{
+					{
 						ObjectMeta: metav1.ObjectMeta{Name: "test-mount-1"},
 						Spec: corev1.PersistentVolumeClaimSpec{
 							AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
@@ -253,15 +237,15 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					},
 				},
 				VolumeMounts: []corev1.VolumeMount{
-					corev1.VolumeMount{Name: "vol-mount-1", ReadOnly: false, MountPath: "/mountpath1"},
+					{Name: "vol-mount-1", ReadOnly: false, MountPath: "/mountpath1"},
 				},
 				Affinity: &corev1.Affinity{
 					NodeAffinity: &corev1.NodeAffinity{
 						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 							NodeSelectorTerms: []corev1.NodeSelectorTerm{
-								corev1.NodeSelectorTerm{
+								{
 									MatchExpressions: []corev1.NodeSelectorRequirement{
-										corev1.NodeSelectorRequirement{
+										{
 											Key:      "kubernetes.io/e2e-az-name",
 											Operator: corev1.NodeSelectorOpIn,
 											Values:   []string{"e2e-az1", "e2e-az2"},
@@ -274,7 +258,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				},
 				NodeSelector: map[string]string{"one": "1", "two": "2"},
 				Tolerations: []corev1.Toleration{
-					corev1.Toleration{Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule"},
+					{Key: "key", Operator: "Equal", Value: "value", Effect: "NoSchedule"},
 				},
 				Resources: &corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
@@ -423,7 +407,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			})
 
 			It("should set the Store Persistence", func() {
-				expectedPersistence := role.Spec.Persistence.DeepCopy();
+				expectedPersistence := role.Spec.Persistence.DeepCopy()
 				if expectedPersistence.Volume != nil {
 					expectedPersistence.Volume.Name = "persistence-volume"
 				}
@@ -431,7 +415,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			})
 
 			It("should set the Store Snapshot", func() {
-				expectedSnapshot := role.Spec.Snapshot.DeepCopy();
+				expectedSnapshot := role.Spec.Snapshot.DeepCopy()
 				if expectedSnapshot.Volume != nil {
 					expectedSnapshot.Volume.Name = "snapshot-volume"
 				}

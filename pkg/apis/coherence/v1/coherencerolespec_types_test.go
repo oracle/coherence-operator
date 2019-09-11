@@ -87,7 +87,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			persistenceOne = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+					AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 					},
@@ -105,7 +105,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			persistenceTwo = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+					AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 					},
@@ -124,7 +124,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			snapshotOne = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+					AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 					},
@@ -142,7 +142,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			snapshotTwo = &coherence.PersistentStorageSpec{
 				Enabled: boolPtr(true),
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+					AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 					Resources: corev1.ResourceRequirements{
 						Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("4Gi")},
 					},
@@ -159,13 +159,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			}
 
 			managementOne = &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 8080,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("foo"),
-						Port: int32Ptr(80),
-					},
-				},
+				Enabled: boolPtr(true),
 				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					KeyStore:               stringPtr("keystore.jks"),
@@ -179,26 +173,14 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			}
 
 			managementTwo = &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 8081,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("foo"),
-						Port: int32Ptr(81),
-					},
-				},
+				Enabled: boolPtr(false),
 				SSL: &coherence.SSLSpec{
 					Enabled: boolPtr(false),
 				},
 			}
 
 			metricsOne = &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 9090,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("foo"),
-						Port: int32Ptr(90),
-					},
-				},
+				Enabled: boolPtr(true),
 				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					KeyStore:               stringPtr("keystore.jks"),
@@ -211,13 +193,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				},
 			}
 			metricsTwo = &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 9191,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("foo"),
-						Port: int32Ptr(91),
-					},
-				},
+				Enabled: boolPtr(false),
 			}
 
 			jmxOne = &coherence.JMXSpec{

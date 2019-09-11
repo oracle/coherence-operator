@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * @author jk
  */
 public class RestProbe
-        extends Probe
+        extends BaseProbe
     {
     // ----- constructors ---------------------------------------------------
 

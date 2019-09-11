@@ -162,6 +162,16 @@ store:
   #   will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
   env:
 
+  # -------------------------------------------------------------------------
+  # store.debug groups the store JVM debugger settings
+  debug:
+    # store.debug.enabled enables store JVM debugging. If enabled the
+    # JVM will start the debugger on port 5005
+    enabled: false
+    # store.debug.attach specifies the address of the debugger that the
+    # JVM should attempt to connect back to instead of listening on port 5005.
+    attach:
+
   # store.annotations are free-form yaml that will be added to the store release as annotations
   #  Any annotations should be placed BELOW this annotations: key. For example if we wanted to
   #  include annotations for Prometheus it would look like this:
@@ -237,20 +247,8 @@ store:
   # store.management configures Coherence management over ReST
   #   Note: Coherence management over ReST will be available in 12.2.1.4.
   management:
-    # store.management.port is the port in the Pod that will be used to expose management over ReST.
-    port:
-    # store.management.service groups the values used to configure the K8s service to use to expose management over ReST.
-    service:
-      # store.management.service.enabled controls whether to create the service or not
-      enabled: false
-      # store.management.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
-      type: "ClusterIP"
-      # store.management.service.loadBalancerIP is the IP address of the load balancer
-      loadBalancerIP:
-      # store.metrics.service.annotations is free form yaml that will be added to the service annotations
-      annotations:
-      # store.management.service.port is the service port value
-      port:
+    # store.management.enabled enables or disables management over ReST.
+    enabled: false
     # store.management.ssl configures SSL settings for the Coherence management over ReST
     ssl:
       # store.management.ssl.enabled enables or disables SSL on the Coherence management over ReST endpoint,
@@ -300,20 +298,8 @@ store:
   # store.metrics configures Coherence metrics publishing
   #   Note: Coherence metrics publishing will be available in 12.2.1.4.
   metrics:
-    # store.metrics.port is the port in the Pod that will be used to expose management over ReST.
-    port:
-    # store.metrics.service groups the values used to configure the K8s service to use to expose management over ReST.
-    service:
-      # store.metrics.service.enabled controls whether to create the service yaml or not
-      enabled: false
-      # store.metrics.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
-      type: "ClusterIP"
-      # store.metrics.service.loadBalancerIP is the IP address of the load balancer
-      loadBalancerIP:
-      # store.metrics.service.annotations is free form yaml that will be added to the service annotations
-      annotations:
-      # store.metrics.service.port is the service port value
-      port:
+    # store.metrics.enabled enables or disables Coherence metrics.
+    enabled: false
     # store.metrics.ssl configures SSL settings for the Coherence metrics endpoints
     ssl:
       # store.metrics.ssl.enabled enables or disables SSL on the Coherence metrics endpoint

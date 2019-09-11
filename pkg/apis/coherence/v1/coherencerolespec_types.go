@@ -202,6 +202,9 @@ type CoherenceRoleSpec struct {
 	// The timeout in seconds used by curl when requesting site and rack info.
 	// +optional
 	CurlTimeout *int `json:"curlTimeout,omitempty"`
+	// The settings for enabling debug mode in the JVM.
+	// +optional
+	Debug *DebugSpec `json:"debug,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
