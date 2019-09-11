@@ -22,13 +22,7 @@ var _ = Describe("Testing PortSpecWithSSL struct", func() {
 
 		NewPortSpecOne := func() *coherence.PortSpecWithSSL {
 			return &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 8080,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("foo"),
-						Port: int32Ptr(80),
-					},
-				},
+				Enabled: boolPtr(true),
 				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					Secrets:                stringPtr("ssl-secret"),
@@ -50,13 +44,7 @@ var _ = Describe("Testing PortSpecWithSSL struct", func() {
 
 		NewPortSpecTwo := func() *coherence.PortSpecWithSSL {
 			return &coherence.PortSpecWithSSL{
-				PortSpec: coherence.PortSpec{
-					Port: 9090,
-					Service: &coherence.ServiceSpec{
-						Name: stringPtr("bar"),
-						Port: int32Ptr(90),
-					},
-				},
+				Enabled: boolPtr(false),
 				SSL: &coherence.SSLSpec{
 					Enabled:                boolPtr(true),
 					Secrets:                stringPtr("ssl-secret2"),
@@ -77,8 +65,8 @@ var _ = Describe("Testing PortSpecWithSSL struct", func() {
 		}
 
 		ValidateResult := func() {
-			It("should have correct Port", func() {
-				Expect(clone.Port).To(Equal(expected.Port))
+			It("should have correct Enabled flag", func() {
+				Expect(clone.Enabled).To(Equal(expected.Enabled))
 			})
 
 			It("should have correct SSL", func() {
@@ -131,14 +119,14 @@ var _ = Describe("Testing PortSpecWithSSL struct", func() {
 			ValidateResult()
 		})
 
-		When("original Port is nil", func() {
+		When("original Enabled flag is nil", func() {
 			BeforeEach(func() {
 				original = NewPortSpecOne()
-				original.Port = 0
+				original.Enabled = nil
 				defaults = NewPortSpecTwo()
 
 				expected = NewPortSpecOne()
-				expected.Port = defaults.Port
+				expected.Enabled = defaults.Enabled
 			})
 
 			ValidateResult()

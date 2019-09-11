@@ -8,6 +8,7 @@ package com.oracle.coherence.k8s;
 
 import com.tangosol.net.CacheFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,7 +27,8 @@ public class PodChecker
      */
     public PodChecker()
         {
-        f_listProbe = Arrays.asList(new RestProbe(),
+        f_listProbe = Arrays.asList(new OperatorMBeanProbe(),
+                                    new RestProbe(),
                                     new ClusterMemberProbe());
         }
 

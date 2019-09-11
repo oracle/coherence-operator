@@ -69,7 +69,7 @@ func TestMetrics(t *testing.T) {
 	clusterSSL := clusterWithoutSSL.DeepCopy()
 	// Set the SSL settings
 	clusterSSL.SetName("test-cluster-ssl")
-	clusterSSL.Spec.Metrics = &coh.PortSpecWithSSL{SSL: ssl}
+	clusterSSL.Spec.Metrics = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
 
 	// Create the test cases
 	testCases := []MetricsTestCase{

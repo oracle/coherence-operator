@@ -3,6 +3,8 @@ kind: CoherenceCluster
 metadata:
   name: test-metric
 spec:
+  metrics:
+    enabled: true
   roles:
   - role: one
     replicas: 1

@@ -394,6 +394,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "int32",
 						},
 					},
+					"debug": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The settings for enabling debug mode in the JVM.",
+							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -411,7 +417,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -841,11 +847,17 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Format:      "int32",
 						},
 					},
+					"debug": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The settings for enabling debug mode in the JVM.",
+							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1182,11 +1194,17 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Format:      "int32",
 						},
 					},
+					"debug": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The settings for enabling debug mode in the JVM.",
+							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1435,7 +1453,7 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 					},
 					"fluentdEnabled": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.",
+							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled. If this flag i set to true it is expected that the coherence-monitoring-config secret exists in the namespace that the cluster is being deployed to. This secret is either created by the Coherence Operator Helm chart if it was installed with the correct parameters or it should have already been created manually.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -1585,26 +1603,13 @@ func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "----- PortSpecWithSSL struct ---------------------------------------------------- PortSpecWithSSL defines a port with SSL settings for a Coherence component",
+				Description: "PortSpecWithSSL defines a port with SSL settings for a Coherence component",
 				Properties: map[string]spec.Schema{
-					"port": {
+					"enabled": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Port specifies the port used.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"protocol": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
-							Type:        []string{"string"},
+							Description: "Enable or disable flag.",
+							Type:        []string{"boolean"},
 							Format:      "",
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service specifies the service used to expose the port.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
 						},
 					},
 					"ssl": {
@@ -1617,7 +1622,7 @@ func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) 
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.SSLSpec", "./pkg/apis/coherence/v1.ServiceSpec"},
+			"./pkg/apis/coherence/v1.SSLSpec"},
 	}
 }
 

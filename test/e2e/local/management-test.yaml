@@ -3,6 +3,8 @@ kind: CoherenceCluster
 metadata:
   name: test-mgmt
 spec:
+  management:
+    enabled: true
   roles:
   - role: one
     replicas: 1

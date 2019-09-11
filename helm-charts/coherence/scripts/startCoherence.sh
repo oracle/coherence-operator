@@ -48,21 +48,26 @@ usage()
 # ---------------------------------------------------------------------------
 server()
     {
+    MAIN_CLASS="com.oracle.coherence.k8s.Main"
+
     if [[ -n "${COH_MAIN_CLASS}" ]]
     then
-        MAIN_CLASS=${COH_MAIN_CLASS}
+        MAIN_ARGS=${COH_MAIN_CLASS}
     else
-        MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
+        MAIN_ARGS="com.tangosol.net.DefaultCacheServer"
     fi
+
+    echo "Configuring cache server '${MAIN_ARGS}'"
 
     if [[ -n "${COH_MAIN_ARGS}" ]]
     then
-        MAIN_ARGS=${COH_MAIN_ARGS}
+        MAIN_ARGS="${MAIN_ARGS} ${COH_MAIN_ARGS}"
     fi
 
-    echo "Configuring cache server '${MAIN_CLASS}'"
-
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
+
+#   We must have this to allow the JMX readiness probe to connect.
+    PROPS="${PROPS} -Dcom.sun.management.jmxremote=true"
 
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
@@ -90,17 +95,27 @@ server()
         MEM_OPTS="-Xms${MAX_HEAP} -Xmx${MAX_HEAP}"
     fi
 
-#   Configure whether management and metrics is added to the classpath
-    if [[ "${COH_USE_REST}" != "" ]]
+#   Configure whether management is added to the classpath
+    if [[ "${COH_MGMT_ENABLED}" == "true" ]]
     then
-        CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-management.jar:${COHERENCE_HOME}/lib/coherence-metrics.jar"
-        PROPS="${PROPS} -Dcoherence.management.http=all -Dcoherence.metrics.http.enabled=true"
+        CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-management.jar"
+        PROPS="${PROPS} -Dcoherence.management.http=all"
+    fi
+
+#   Configure whether metrics is added to the classpath
+    if [[ "${COH_METRICS_ENABLED}" == "true" ]]
+    then
+        CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/coherence-metrics.jar"
+        PROPS="${PROPS} -Dcoherence.metrics.http.enabled=true"
     fi
 
 #   Configure whether to add third-party modules to the classpath
-    if [[ "${DEPENDENCY_MODULES}" != "" ]]
+    if [[ "${COH_MGMT_ENABLED}" == "true" || "${COH_METRICS_ENABLED}" == "true" ]]
     then
-        CLASSPATH="${CLASSPATH}:${DEPENDENCY_MODULES}/*"
+      if [[ "${DEPENDENCY_MODULES}" != "" ]]
+      then
+          CLASSPATH="${CLASSPATH}:${DEPENDENCY_MODULES}/*"
+      fi
     fi
     }
 
@@ -180,7 +195,7 @@ probe()
     COH_ROLE="probe"
     MAX_HEAP=""
     DEPENDENCY_MODULES=""
-    CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*"
+    CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*:${JAVA_HOME}/lib/tools.jar"
     MAIN_CLASS=${1}
     shift
     MAIN_ARGS=${@}
@@ -213,11 +228,26 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
         configure_pre_12_2_1_4
     fi
 
+#   If debug is enabled configure the JVM debug arguments
+    if [ "${DEBUG_ENABLED}" != "" ]
+    then
+      if [ "${DEBUG_ATTACH}" == "" ]
+      then
+#         The debugger should listen for connections on port 5055
+        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      else
+#         The debugger should connect back to the socket addess in DEBUG_ATTACH
+        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=n,address=${DEBUG_ATTACH},suspend=n,timeout=5000"
+      fi
+    else
+      JVM_DEBUG_ARGS=""
+    fi
+
 #   Create the full classpath to use
     CLASSPATH="${COH_EXTRA_CLASSPATH}:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar"
 
 #   Create the command line to use to start the JVM
-    CMD="${JAVA_HOME}/bin/java -cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} \
+    CMD="${JAVA_HOME}/bin/java -cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
         -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
         -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
         -Dcoherence.ttl=0 \

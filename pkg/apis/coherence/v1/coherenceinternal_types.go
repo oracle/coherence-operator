@@ -235,6 +235,9 @@ type CoherenceInternalStoreSpec struct {
 	// The timeout in seconds used by curl when requesting site and rack info.
 	// +optional
 	CurlTimeout *int `json:"curlTimeout,omitempty"`
+	// The settings for enabling debug mode in the JVM.
+	// +optional
+	Debug *DebugSpec `json:"debug,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -278,6 +281,8 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.PodManagementPolicy = role.Spec.PodManagementPolicy
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
 	out.Store.CurlTimeout = role.Spec.CurlTimeout
+	out.Store.Debug = role.Spec.Debug
+
 	if role.Spec.Persistence != nil {
 		out.Store.Persistence = role.Spec.Persistence.DeepCopy()
 		if out.Store.Persistence.Volume != nil {

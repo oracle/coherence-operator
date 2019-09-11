@@ -10,9 +10,8 @@ import (
 	"context"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	mgmt "github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"net/http"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"time"
 
@@ -119,19 +118,12 @@ func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32
 	// assert that the correct number of Pods is returned
 	g.Expect(len(pods)).To(Equal(clusterSize))
 
-	// If the test is using Coherence >= 12.2.1.4 then do a Management over ReST query to assert the cluster size
-	ok, _ := helper.IsCoherenceVersionAtLeast(12, 2, 1, 4)
-	if ok {
-		// Start a port-forwarder that will forward ALL ports on a Pod (the first pod in the list)
-		pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
-		g.Expect(err).NotTo(HaveOccurred())
+	// Verify that the WKA service has the same number of endpoints as the cluster size.
+	serviceName := cluster.GetWkaServiceName()
+	ep, err := f.KubeClient.CoreV1().Endpoints(namespace).Get(serviceName, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(ep.Subsets)).NotTo(BeZero())
 
-		// ensure the port-forwarder is closed when this method exits
-		defer pf.Close()
-
-		clusterData, status, err := mgmt.GetCluster(&http.Client{}, "127.0.0.1", ports[mgmt.PortName])
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(status).To(Equal(http.StatusOK))
-		g.Expect(clusterData.ClusterSize).To(Equal(clusterSize))
-	}
+	subset := ep.Subsets[0]
+	g.Expect(len(subset.Addresses)).To(Equal(clusterSize))
 }

@@ -171,6 +171,10 @@ spec:
               containerPort: 30000
             - name: "metrics-port"
               containerPort: 9612
+{{- if eq (default false .Values.store.debug.enabled) true }}
+            - name: "debug-port"
+              containerPort: 5005
+{{- end }}
 {{- if .Values.store -}}
   {{- if .Values.store.ports -}}
     {{- range $port := .Values.store.ports }}
@@ -206,8 +210,6 @@ spec:
             - name: COH_WKA
               value: {{ template "coherence.fullname" . }}-headless
 {{- end }}
-            - name: COH_USE_REST
-              value: "true"
             - name: COH_EXTRA_CLASSPATH
               value: {{ printf "%s/*:%s" $extLibDir $extConfDir | quote }}
             - name: COH_MGMT_HTTP_PORT
@@ -242,6 +244,16 @@ spec:
   {{- if .Values.store.curlTimeout }}
             - name: CURL_TIMEOUT
               value: {{ .Values.store.curlTimeout | quote }}
+  {{- end }}
+  {{- if .Values.store.debug }}
+    {{- if eq (default false .Values.store.debug.enabled) true }}
+            - name: DEBUG_ENABLED
+              value: "true"
+      {{- if .Values.store.debug.attach }}
+            - name: DEBUG_ATTACH
+              value: {{ .Values.store.debug.attach | quote }}
+      {{- end }}
+    {{- end }}
   {{- end }}
   {{- if .Values.store.cacheConfig }}
             - name: COH_CACHE_CONFIG
@@ -316,7 +328,9 @@ spec:
               value: "/scripts/logging.properties"
     {{- end }}
   {{- end }}
-  {{- if .Values.store.management.ssl }}
+            - name: COH_MGMT_ENABLED
+              value: {{ .Values.store.management.enabled | quote }}
+  {{- if and .Values.store.management.enabled .Values.store.management.ssl }}
     {{- if .Values.store.management.ssl.enabled }}
             - name: COH_MGMT_SSL_ENABLED
               value: {{ .Values.store.management.ssl.enabled | quote }}
@@ -374,7 +388,9 @@ spec:
               value: "true"
     {{- end }}
   {{- end }}
-  {{- if .Values.store.metrics.ssl }}
+            - name: COH_METRICS_ENABLED
+              value: {{ .Values.store.metrics.enabled | quote }}
+  {{- if and .Values.store.metrics.enabled .Values.store.metrics.ssl }}
     {{- if .Values.store.metrics.ssl.enabled }}
             - name: COH_METRICS_SSL_ENABLED
               value: {{ .Values.store.metrics.ssl.enabled | quote }}

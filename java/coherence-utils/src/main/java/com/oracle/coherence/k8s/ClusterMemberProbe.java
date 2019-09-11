@@ -11,7 +11,6 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
-import com.tangosol.util.filter.AlwaysFilter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +24,7 @@ import java.util.function.Supplier;
  * @author jk
  */
 public class ClusterMemberProbe
-        extends Probe
+        extends BaseProbe
     {
     // ----- constructors ---------------------------------------------------
 
@@ -59,8 +58,6 @@ public class ClusterMemberProbe
     @SuppressWarnings("unchecked")
     public boolean isClusterMember()
         {
-        CacheFactory.log(getClass().getSimpleName() + " isClusterMember()");
-
         Cluster     cluster       = f_supplierCluster.get();
         Set<Member> setMember     = cluster.getMemberSet();
         Member      memberLocal   = cluster.getLocalMember();
@@ -93,6 +90,11 @@ public class ClusterMemberProbe
             }
 
         return mapAttrValue;
+        }
+
+    @Override
+    public void close()
+        {
         }
 
     // ----- helper methods -------------------------------------------------
