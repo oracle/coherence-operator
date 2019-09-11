@@ -753,7 +753,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	git push origin gh-pages
 endif
-	@Echo "Released Helm chart."
+	@echo "Released Helm chart."
 	@echo "Current Git branch is gh-pages"
 	@echo "To return to the previous branch run:"
 	@echo "git checkout ${GIT_BRANCH}"
