@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/spf13/pflag"
 	"reflect"
 )
@@ -18,18 +19,29 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 	Context("When flags are valid", func() {
 		var args []string
 		var cohFlags flags.CoherenceOperatorFlags
+		var defaultCRDs string
+		var err error
 
 		JustBeforeEach(func() {
+			defaultCRDs, err = helper.FindCrdDir()
+			Expect(err).NotTo(HaveOccurred())
+			flags.SetDefaultCrdFiles(defaultCRDs)
+
 			flagSet := pflag.FlagSet{}
 			cohFlags = flags.CoherenceOperatorFlags{}
 			cohFlags.AddTo(&flagSet)
-			err := flagSet.Parse(args)
+			err = flagSet.Parse(args)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		When("no flags set", func() {
 			BeforeEach(func() {
 				args = []string{}
+			})
+
+			It("should have default CRD directory", func() {
+				crds := cohFlags.DefaultCrdFiles()
+				Expect(cohFlags.CrdFiles).To(Equal(crds))
 			})
 
 			It("should have empty always pull suffixes", func() {
@@ -57,6 +69,29 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			})
 		})
 
+		When("crd-files set", func() {
+			var expected flags.CoherenceOperatorFlags
+
+			BeforeEach(func() {
+				crds := "/test-crds"
+				args = []string{"--crd-files", crds}
+				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           crds,
+					RestHost:           flags.DefaultRestHost,
+					RestPort:           flags.DefaultRestPort,
+					ServiceName:        "",
+					ServicePort:        -1,
+					SiteLabel:          flags.DefaultSiteLabel,
+					RackLabel:          flags.DefaultRackLabel,
+					AlwaysPullSuffixes: "",
+				}
+			})
+
+			It("should have the correct flags", func() {
+				Expect(reflect.DeepEqual(cohFlags, expected)).To(BeTrue())
+			})
+		})
+
 		When("rest-host set", func() {
 			var expected flags.CoherenceOperatorFlags
 
@@ -64,6 +99,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 				restHost := "10.10.123.0"
 				args = []string{"--rest-host", restHost}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           restHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "",
@@ -85,6 +121,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rest-port", "9000"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           9000,
 					ServiceName:        "",
@@ -106,6 +143,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-name", "foo.com"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "foo.com",
@@ -127,6 +165,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-port", "80"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "",
@@ -148,6 +187,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--site-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "",
@@ -169,6 +209,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rack-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "",
@@ -190,6 +231,7 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--force-always-pull-tags", "-ci,latest"}
 				expected = flags.CoherenceOperatorFlags{
+					CrdFiles:           cohFlags.DefaultCrdFiles(),
 					RestHost:           flags.DefaultRestHost,
 					RestPort:           flags.DefaultRestPort,
 					ServiceName:        "",

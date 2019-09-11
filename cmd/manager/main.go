@@ -14,6 +14,7 @@ import (
 	hoflags "github.com/operator-framework/operator-sdk/pkg/helm/flags"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
 	"net/http"
 	"os"
@@ -21,9 +22,6 @@ import (
 	"strings"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
@@ -52,10 +50,6 @@ import (
 // file was changed from the original generated file.
 
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
-const (
-	// configName is the name of the internal Coherence Operator configuration.
-	configName = "coherence-operator-config"
-)
 
 // BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
 var BuildInfo string
@@ -149,7 +143,7 @@ func main() {
 	// we must start the Operator ReST endpoint before any controllers start
 	restServer, err := cohrest.StartRestServer(mgr, cohf)
 	if err != nil {
-		log.Error(err, "")
+		log.Error(err, "Error starting ReST server")
 		os.Exit(1)
 	}
 
@@ -163,8 +157,14 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 
+	// ensure that the CRDs exist
+	if err := operator.EnsureCRDs(mgr, cohf, log); err != nil {
+		log.Error(err, "Error ensuring that CRDs exist")
+		os.Exit(1)
+	}
+
 	// ensure that the configuration secret exists
-	if err := ensureOperatorSecret(namespace, mgr, restServer, cohf); err != nil {
+	if err := operator.EnsureOperatorSecret(namespace, mgr, restServer, cohf, log); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
@@ -303,41 +303,4 @@ func printBuildInfo(log logr.Logger) {
 	log.Info(fmt.Sprintf("Coherence Operator Version: %s", version))
 	log.Info(fmt.Sprintf("Coherence Operator Git commit: %s", commit))
 	log.Info(fmt.Sprintf("Coherence Operator Build Time: %s", date))
-}
-
-// ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func ensureOperatorSecret(namespace string, mgr manager.Manager, restServer cohrest.Server, flags *flags.CoherenceOperatorFlags) error {
-	log.Info("Ensuring configuration secret")
-
-	client := mgr.GetClient()
-
-	err := client.Get(context.TODO(), types.NamespacedName{Name: configName, Namespace: namespace}, &v1.Secret{})
-	if err != nil && !errors.IsNotFound(err) {
-		return err
-	}
-
-	hostAndPort := restServer.GetHostAndPort(flags)
-	log.Info("Operator Configuration: 'operatorhost' value set to " + hostAndPort)
-
-	secret := &v1.Secret{}
-	secret.SetNamespace(namespace)
-	secret.SetName(configName)
-
-	if secret.StringData == nil {
-		secret.StringData = make(map[string]string)
-	}
-
-	secret.StringData["operatorhost"] = hostAndPort
-
-	if errors.IsNotFound(err) {
-		// for some reason we're getting here even if the secret exists so delete it!!
-		_ = client.Delete(context.TODO(), secret)
-		log.Info("Creating secret " + configName + " in namespace " + namespace)
-		err = client.Create(context.TODO(), secret)
-	} else {
-		log.Info("Updating secret " + configName + " in namespace " + namespace)
-		err = client.Update(context.TODO(), secret)
-	}
-
-	return err
 }

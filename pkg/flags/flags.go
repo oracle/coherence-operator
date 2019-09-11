@@ -9,6 +9,8 @@ package flags
 import (
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/spf13/pflag"
+	"os"
+	"os/user"
 	"strings"
 )
 
@@ -18,6 +20,7 @@ const (
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
 
+	FlagCrdFiles       = "crd-files"
 	FlagRestHost       = "rest-host"
 	FlagRestPort       = "rest-port"
 	FlagServiceName    = "service-name"
@@ -27,8 +30,13 @@ const (
 	FlagAlwaysPullTags = "force-always-pull-tags"
 )
 
+// The default CRD location
+var defaultCrds string
+
 // CoherenceOperatorFlags - Options to be used by a Coherence operator.
 type CoherenceOperatorFlags struct {
+	// The directory where the Operator's CRD file are located.
+	CrdFiles string
 	// The host name that the ReST server binds to.
 	RestHost string
 	// The port that the ReST server binds to.
@@ -51,6 +59,11 @@ var cohf = &CoherenceOperatorFlags{}
 // AddTo - Add the reconcile period and watches file flags to the the flag-set
 // helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
 func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ...string) {
+	flagSet.StringVar(&f.CrdFiles,
+		FlagCrdFiles,
+		f.DefaultCrdFiles(),
+		strings.Join(append(helpTextPrefix, "The directory where the Operator's CRD file are located"), " "),
+	)
 	flagSet.StringVar(&f.RestHost,
 		FlagRestHost,
 		DefaultRestHost,
@@ -86,6 +99,31 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ..
 		"",
 		strings.Join(append(helpTextPrefix, "If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS."), " "),
 	)
+}
+
+func (f *CoherenceOperatorFlags) DefaultCrdFiles() string {
+	if f == nil {
+		return ""
+	}
+
+	if defaultCrds != "" {
+		return defaultCrds
+	}
+
+	crds := ""
+	u, err := user.Current()
+	if err == nil {
+		s := u.HomeDir + string(os.PathSeparator) + "crds"
+		_, err = os.Stat(s)
+		if err == nil {
+			crds = s
+		}
+	}
+	return crds
+}
+
+func SetDefaultCrdFiles(crds string) {
+	defaultCrds = crds
 }
 
 // GetOperatorFlags returns the Operator command line flags.
