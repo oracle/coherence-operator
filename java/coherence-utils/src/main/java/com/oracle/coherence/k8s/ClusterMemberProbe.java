@@ -106,17 +106,10 @@ public class ClusterMemberProbe
      */
     private MBeanServerProxy getMBeanServerProxy()
         {
-        if (m_proxy == null)
-            {
-            Cluster  cluster  = f_supplierCluster.get();
-            Registry registry = cluster.getManagement();
+        Cluster  cluster  = f_supplierCluster.get();
+        Registry registry = cluster.getManagement();
 
-            m_proxy = registry.getMBeanServerProxy();
-
-            m_proxy.isMBeanRegistered("foo");
-            }
-
-        return m_proxy;
+        return registry.getMBeanServerProxy();
         }
 
     // ----- constants ------------------------------------------------------
@@ -133,9 +126,4 @@ public class ClusterMemberProbe
      * The Coherence {@link Cluster}.
      */
     private final Supplier<Cluster> f_supplierCluster;
-
-    /**
-     * The Coherence MBean server proxy.
-     */
-    private MBeanServerProxy m_proxy;
     }
