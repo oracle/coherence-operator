@@ -229,6 +229,31 @@ pipeline {
                 '''
             }
         }
+        stage('release') {
+            when {
+                expression { env.RELEASE_ON_SUCCESS == 'true' }
+            }
+            steps {
+                echo 'Release'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    git config user.name "Coherence Bot"
+                    git config user.email coherence-bot_ww@oracle.com
+                    make clean
+                    make build-all-images
+                    make release DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
+                    '''
+                }
+            }
+        }
     }
     post {
         always {
