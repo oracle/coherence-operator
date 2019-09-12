@@ -47,6 +47,7 @@ public class RestServer
             server.createContext("/resume", RestServer::resume);
             server.createContext("/canaryStart", RestServer::canaryStart);
             server.createContext("/canaryCheck", RestServer::canaryCheck);
+            server.createContext("/canaryClear", RestServer::canaryClear);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -127,6 +128,7 @@ public class RestServer
         send(t, 200, "OK");
         }
 
+    @SuppressWarnings("unchecked")
     static void canaryCheck(HttpExchange t) throws IOException
         {
         NamedCache              cache   = CacheFactory.getCache("canary");
@@ -142,5 +144,16 @@ public class RestServer
             {
             send(t, 400, "Expected " + nPart + " entries but there are only " + nSize);
             }
+        }
+
+    @SuppressWarnings("unchecked")
+    static void canaryClear(HttpExchange t) throws IOException
+        {
+        NamedCache              cache   = CacheFactory.getCache("canary");
+        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+
+        cache.clear();
+
+        send(t, 200, "OK");
         }
     }

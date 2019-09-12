@@ -24,6 +24,11 @@ func CheckCanary(namespace, clusterName, roleName string) error {
 	return canary(namespace, clusterName, roleName, "canaryCheck", http.MethodGet)
 }
 
+// Clear the canary test in the role being scaled.
+func ClearCanary(namespace, clusterName, roleName string) error {
+	return canary(namespace, clusterName, roleName, "canaryClear", http.MethodPost)
+}
+
 // Make a canary ReST PUT call to Pod zero of the role.
 func canary(namespace, clusterName, roleName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-%s-0", clusterName, roleName)
