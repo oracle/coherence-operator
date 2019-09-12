@@ -248,7 +248,7 @@ pipeline {
                     git config user.name "Coherence Bot"
                     git config user.email coherence-bot_ww@oracle.com
                     make clean
-                    make build-all-images VERSION_SUFFIX=${RELEASE_SUFFIX}
+                    make build-all-images VERSION_SUFFIX=${RELEASE_SUFFIX} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO}
                     make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
                     '''
                 }
