@@ -745,8 +745,9 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
-	git clone $(GIT_REPO) --branch gh-pages --single-branch $(BUILD_OUTPUT)/gh-pages
-	cd $(BUILD_OUTPUT)/gh-pages
+	cd $(BUILD_OUTPUT)
+	git clone $(GITREPO) --branch gh-pages --single-branch gh-pages
+	cd gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
