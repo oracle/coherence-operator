@@ -93,10 +93,12 @@ pipeline {
             }
             steps {
                 echo 'Release'
-                def suffix = env.RELEASE_SUFFIX
-                if (env.RELEASE_SUFFIX == "DATE" ) {
-                    def now = new Date()
-                    suffix = now.format("yyMMdd.HHmm", TimeZone.getTimeZone('UTC'))
+                script {
+                    def suffix = env.RELEASE_SUFFIX
+                    if (env.RELEASE_SUFFIX == "DATE" ) {
+                        def now = new Date()
+                        suffix = now.format("yyMMddHHmm", TimeZone.getTimeZone('UTC'))
+                    }
                 }
                 sh '''
                     if [ -z "$HTTP_PROXY" ]; then
