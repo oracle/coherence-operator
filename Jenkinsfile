@@ -87,6 +87,148 @@ pipeline {
                 }
             }
         }
+        stage('test') {
+            steps {
+                echo 'Tests'
+                script {
+                    setBuildStatus("Tests in Progress...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make test-all
+                    '''
+                }
+            }
+        }
+        stage('build-images') {
+            steps {
+                echo 'Build Docker Images'
+                script {
+                    setBuildStatus("Building Docker images...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                        export http_proxy=$HTTP_PROXY
+                        export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                        make build-all-images
+                    '''
+                }
+            }
+        }
+        stage('push-images') {
+            steps {
+                echo 'Docker Push'
+                script {
+                    setBuildStatus("Pushing Docker images...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                withCredentials([
+                    string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                    string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
+                    withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                        sh '''
+                            docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                            export http_proxy=$HTTP_PROXY
+                            export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                            make push-all-images
+                        '''
+                    }
+                }
+            }
+        }
+        stage('create-secrets') {
+            steps {
+                echo 'Create K8s secrets'
+                script {
+                    setBuildStatus("Creating K8s secrets...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                withCredentials([
+                    string(credentialsId: 'coherence-operator-docker-email',    variable: 'DOCKER_EMAIL'),
+                    string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                    string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER'),
+                    string(credentialsId: 'ocr-docker-email',    variable: 'OCR_DOCKER_EMAIL'),
+                    string(credentialsId: 'ocr-docker-password', variable: 'OCR_DOCKER_PASSWORD'),
+                    string(credentialsId: 'ocr-docker-username', variable: 'OCR_DOCKER_USERNAME'),
+                    string(credentialsId: 'ocr-docker-server',   variable: 'OCR_DOCKER_SERVER')]) {
+                    sh '''
+                        kubectl create namespace $TEST_NAMESPACE || true
+                        kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+                            --namespace $TEST_NAMESPACE \
+                            --docker-server=$DOCKER_SERVER \
+                            --docker-username=$DOCKER_USERNAME \
+                            --docker-password="$DOCKER_PASSWORD" \
+                            --docker-email=$DOCKER_EMAIL || true
+                        kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+                            --namespace $TEST_NAMESPACE \
+                            --docker-server=$OCR_DOCKER_SERVER \
+                            --docker-username=$OCR_DOCKER_USERNAME \
+                            --docker-password="$OCR_DOCKER_PASSWORD" \
+                            --docker-email=$OCR_DOCKER_EMAIL || true
+                    '''
+                }
+            }
+        }
+        stage('e2e-local-test') {
+            steps {
+                echo 'Operator end-to-end local tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end local tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export IMAGE_PULL_POLICY=Always
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-local-test
+                '''
+            }
+        }
+        stage('e2e-test') {
+            steps {
+                echo 'Operator end-to-end tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-test
+                '''
+            }
+        }
+        stage('helm-test') {
+            steps {
+                echo 'Operator Helm tests'
+                script {
+                    setBuildStatus("Running Operator Helm tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make helm-test
+                '''
+            }
+        }
         stage('release') {
             when {
                 expression { env.RELEASE_ON_SUCCESS == 'true' }
