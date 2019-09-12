@@ -747,7 +747,7 @@ version:
 release-chart: helm-chart
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cd $(BUILD_OUTPUT)
-	git clone --single-branch --branch gh-pages $(GITREPO) gh-pages
+	git clone $(GITREPO) gh-pages
 	cd gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true

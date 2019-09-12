@@ -13,7 +13,7 @@ def setBuildStatus(String message, String state, String project_url, String sha)
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
         junit allowEmptyResults: true, testResults: "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-helm-test.xml,build/_output/test-logs/operator-e2e-test.xml,java/**/surefire-reports/*.xml,java/**/failsafe-reports/*.xml"
-        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,java/utils/target/test-output/**/*,java/utils/target/surefire-reports/**/*,java/utils/target/failsafe-reports/**/*,java/functional-tests/target/test-output/**/*,java/functional-tests/target/surefire-reports/**/*,java/functional-tests/target/failsafe-reports/**/*'
+        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/_output/helm-charts/**/*,build/_output/test-logs/**/*,deploy/**/*,java/utils/target/test-output/**/*,java/utils/target/surefire-reports/**/*,java/utils/target/failsafe-reports/**/*,java/functional-tests/target/test-output/**/*,java/functional-tests/target/surefire-reports/**/*,java/functional-tests/target/failsafe-reports/**/*'
         sh '''
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
             kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator || true
