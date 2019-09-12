@@ -345,6 +345,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 		return err
 	}
 
+	// Delete all of the CoherenceClusters
 	for _, c := range list.Items {
 		fmt.Printf("Deleting CoherenceCluster %s in namespace %s", c.Name, c.Namespace)
 		err = f.Client.Delete(goctx.TODO(), &c)
@@ -353,15 +354,62 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 		}
 	}
 
-	u := NewUnstructuredCoherenceInternalList()
+	// Wait for removal of the CoherenceClusters
+	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = f.Client.List(goctx.TODO(), opts, list)
+		if err == nil {
+			if len(list.Items) > 0 {
+				fmt.Printf("Waiting for deletion of %d CoherenceCluster resources\n", len(list.Items))
+				return false, nil
+			}
+			return true, nil
+		} else {
+			fmt.Printf("Error waiting for deletion of CoherenceCluster resources: %s\n", err.Error())
+			return false, nil
+		}
+	})
 
-	err = f.Client.Client.List(goctx.TODO(), opts, &u)
+	// Wait for removal of the CoherenceRoles
+	roles := &coh.CoherenceRoleList{}
+	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = f.Client.List(goctx.TODO(), opts, roles)
+		if err == nil {
+			if len(roles.Items) > 0 {
+				fmt.Printf("Waiting for deletion of %d CoherenceRole resources\n", len(roles.Items))
+				return false, nil
+			}
+			return true, nil
+		} else {
+			fmt.Printf("Error waiting for deletion of CoherenceRole resources: %s\n", err.Error())
+			return false, nil
+		}
+	})
+
+	uList := NewUnstructuredCoherenceInternalList()
+
+	// Wait for removal of the CoherenceInternals
+	err = wait.Poll(time.Second*5, time.Minute*1, func() (done bool, err error) {
+		err = f.Client.List(goctx.TODO(), opts, &uList)
+		if err == nil {
+			if len(uList.Items) > 0 {
+				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(uList.Items))
+				return false, nil
+			}
+			return true, nil
+		} else {
+			fmt.Printf("Error waiting for deletion of CoherenceInternal resources: %s\n", err.Error())
+			return false, nil
+		}
+	})
+
+	// List and print the remaining CoherenceInternals
+	err = f.Client.Client.List(goctx.TODO(), opts, &uList)
 	if err != nil {
 		fmt.Printf("Error listing CoherenceInternal resources - %s\n", err.Error())
 	} else {
-		if len(u.Items) > 0 {
-			fmt.Printf("Remaining CoherenceInternal resources in namespace %s (%d):\n", namespace, len(u.Items))
-			for i, ci := range u.Items {
+		if len(uList.Items) > 0 {
+			fmt.Printf("Remaining CoherenceInternal resources in namespace %s (%d):\n", namespace, len(uList.Items))
+			for i, ci := range uList.Items {
 				fmt.Printf("%d: %s\n", i, ci.GetName())
 			}
 		} else {
@@ -371,16 +419,18 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	var empty []string
 
+	// Force delete the remaining CoherenceInternals
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), opts, &u)
+		err = f.Client.List(goctx.TODO(), opts, &uList)
 		if err == nil {
-			if len(u.Items) > 0 {
-				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(u.Items))
+			if len(uList.Items) > 0 {
+				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(uList.Items))
 
-				for _, ci := range u.Items {
+				for _, ci := range uList.Items {
 					ci.SetFinalizers(empty)
-					fmt.Printf("Removing finalizers on CoherenceInternal resources %s\n", ci.GetName())
+					fmt.Printf("Removing finalizers and deleting CoherenceInternal resources %s\n", ci.GetName())
 					_ = f.Client.Update(goctx.TODO(), &ci)
+					_ = f.Client.Delete(goctx.TODO(), &ci)
 				}
 
 				return false, nil
