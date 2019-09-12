@@ -10,22 +10,29 @@
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 2.0.0
 
-# An optional version suffix. For a full release this should be set to blank,
-# for an interim release it should be set to a value to identify that release.
+# VERSION_SUFFIX is ann optional version suffix. For a full release this should be
+# set to blank, for an interim release it should be set to a value to identify that
+# release.
 # For example if building the third release candidate this value might be
 # set to VERSION_SUFFIX=RC3
+# If VERSION_SUFFIX = DATE then the suffix will be a timestamp of the form yyMMddhhmm
 # The default value for local and pipeline builds is "ci".
 VERSION_SUFFIX ?= ci
 
 # Set the full version string by combining the version and optional suffix
 ifeq (, $(VERSION_SUFFIX))
 VERSION_FULL := $(VERSION)
+else ifeq ("DATE", "$(VERSION_SUFFIX)")
+VERSION_FULL := $(VERSION)-$(shell date -u +%y%m%d%H%M)
 else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
+GITREPO         := https://github.com/oracle/coherence-operator.git
+
+CURRDIR         := $(shell pwd)
 
 ARCH            ?= amd64
 OS              ?= linux
@@ -44,6 +51,7 @@ UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSI
 TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
 
 RELEASE_DRY_RUN  ?= true
+PRE_RELEASE      ?= true
 
 # The version of the Prometheus Operator chart that is used as a sub-chart in the
 # Coherence Operator chart
@@ -132,7 +140,6 @@ $(BUILD_PROPS):
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	PROMETHEUS_HELMCHART_VERSION=$(PROMETHEUS_HELMCHART_VERSION)\n\
 	VERSION_FULL=$(VERSION_FULL)\n\
-	VERSION_SUFFIX=$(VERSION_SUFFIX)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
 # ---------------------------------------------------------------------------
@@ -738,23 +745,33 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
+	@echo "Releasing Helm chart $(VERSION_FULL)"
 	git checkout gh-pages
-	git branch gh-pages-$(VERSION_FULL)
-	git checkout gh-pages-$(VERSION_FULL)
+ifeq (true, $(PRE_RELEASE))
+	mkdir -p charts-unstable || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
+	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	ls -ls charts-unstable
+	git status
+	git add charts-unstable/*
+else
+	mkdir -p charts || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	ls -ls charts
 	git status
 	git add charts/*
+endif
 	git clean -d -f
 	git status
-	git commit -m "Release coherence-operator helm chart version: $(VERSION_FULL)"
+	git commit -m "adding Coherence Operator helm chart version: $(VERSION_FULL)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed new gh-pages branch gh-pages-$(VERSION_FULL)"
+	@echo "release dry-run - would have pushed chart $(VERSION_FULL) to gh-pages"
 else
-	git push origin gh-pages-$(VERSION_FULL)
+	git push origin gh-pages
 endif
-	git checkout $(GIT_BRANCH)
+
 
 # ---------------------------------------------------------------------------
 # Tag Git for the release.
@@ -766,7 +783,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	@echo "creating release tag v$(VERSION_FULL)"
 	git push origin :refs/tags/v$(VERSION_FULL)
-	git tag -f -a -m "Release version $(VERSION_FULL)" v$(VERSION_FULL)
+	git tag -f -a -m "built $(VERSION_FULL)" v$(VERSION_FULL)
 	git push origin --tags
 endif
 
@@ -774,4 +791,11 @@ endif
 # Release the Coherence Operator.
 # ---------------------------------------------------------------------------
 .PHONY: release
-release: release-tag build-all-images push-release-images release-chart
+release:
+
+ifeq (true, $(RELEASE_DRY_RUN))
+release: build-all-images release-tag release-chart
+	@echo "release dry-run: would have pushed images"
+else
+release: build-all-images release-tag release-chart push-release-images
+endif

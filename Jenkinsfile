@@ -12,8 +12,8 @@ def setBuildStatus(String message, String state, String project_url, String sha)
 
 def archiveAndCleanup() {
     dir (env.WORKSPACE) {
-        junit "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-helm-test.xml,build/_output/test-logs/operator-e2e-test.xml,java/**/surefire-reports/*.xml,java/**/failsafe-reports/*.xml"
-        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/**/*,deploy/**/*,java/utils/target/test-output/**/*,java/utils/target/surefire-reports/**/*,java/utils/target/failsafe-reports/**/*,java/functional-tests/target/test-output/**/*,java/functional-tests/target/surefire-reports/**/*,java/functional-tests/target/failsafe-reports/**/*'
+        junit allowEmptyResults: true, testResults: "pkg/**/test-report.xml,test/**/test-report.xml,build/_output/test-logs/operator-e2e-local-test.xml,build/_output/test-logs/operator-e2e-helm-test.xml,build/_output/test-logs/operator-e2e-test.xml,java/**/surefire-reports/*.xml,java/**/failsafe-reports/*.xml"
+        archiveArtifacts onlyIfSuccessful: false, allowEmptyArchive: true, artifacts: 'build/_output/helm-charts/**/*,build/_output/test-logs/**/*,deploy/**/*,java/utils/target/test-output/**/*,java/utils/target/surefire-reports/**/*,java/utils/target/failsafe-reports/**/*,java/functional-tests/target/test-output/**/*,java/functional-tests/target/surefire-reports/**/*,java/functional-tests/target/failsafe-reports/**/*'
         sh '''
             helm delete --purge $(helm ls --namespace $TEST_NAMESPACE --short) || true
             kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator || true
@@ -227,6 +227,31 @@ pipeline {
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make helm-test
                 '''
+            }
+        }
+        stage('release') {
+            when {
+                expression { env.RELEASE_ON_SUCCESS == 'true' }
+            }
+            steps {
+                echo 'Release'
+                sh '''
+                    if [ -z "$HTTP_PROXY" ]; then
+                        unset HTTP_PROXY
+                        unset HTTPS_PROXY
+                        unset NO_PROXY
+                    fi
+                '''
+                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                    sh '''
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    git config user.name "Coherence Bot"
+                    git config user.email coherence-bot_ww@oracle.com
+                    make clean
+                    make build-all-images VERSION_SUFFIX=${RELEASE_SUFFIX}
+                    make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
+                    '''
+                }
             }
         }
     }
