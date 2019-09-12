@@ -749,7 +749,7 @@ release-chart: helm-chart
 	cd $(BUILD_OUTPUT)
 	git clone $(GITREPO) gh-pages
 	cd gh-pages
-	git branch gh-pages
+	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
 	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
