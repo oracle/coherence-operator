@@ -79,34 +79,17 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Creating directory %s\n", snapshotDir)
-	err = os.MkdirAll(snapshotDir, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Creating directory %s\n", persistenceDir)
-	err = os.MkdirAll(persistenceDir, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Creating directory %s\n", persistenceActiveDir)
-	err = os.MkdirAll(persistenceActiveDir, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Creating directory %s\n", persistenceTrashDir)
-	err = os.MkdirAll(persistenceTrashDir, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Creating directory %s\n", persistenceSnapshotsDir)
-	err = os.MkdirAll(persistenceSnapshotsDir, os.ModePerm)
-	if err != nil {
-		panic(err)
+	dirnames := []string{snapshotDir, persistenceDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+	for _, dirname := range dirnames {
+		fmt.Printf("Creating directory %s\n", dirname)
+		err = os.MkdirAll(dirname, os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+		err = os.Chmod(dirname, os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	fmt.Println("Finished container initialisation")

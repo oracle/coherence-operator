@@ -1,0 +1,19 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  management:
+    enabled: true
+  roles:
+  - role: one
+    images:
+      userArtifacts:
+        image: ${TEST_USER_IMAGE}
+        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+    cacheConfig: test-cache-config.xml
+    main:
+      class: com.oracle.coherence.k8s.testing.RestServer
+    ports:
+    - name: rest
+      port: 8080
