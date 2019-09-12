@@ -748,6 +748,7 @@ release-chart: helm-chart
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cd $(BUILD_OUTPUT)
 	git clone $(GITREPO) gh-pages
+	git branch gh-pages
 ifeq (true, $(PRE_RELEASE))
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz gh-pages/charts-unstable/
 	cd gh-pages
