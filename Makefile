@@ -31,8 +31,7 @@ endif
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
 GITREPO         := https://github.com/oracle/coherence-operator.git
-
-CURR_DIR        := $(shell pwd)
+GITBRANCH       := $(shell git rev-parse --abbrev-ref HEAD)
 
 ARCH            ?= amd64
 OS              ?= linux
@@ -745,9 +744,7 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
-	cd $(BUILD_OUTPUT)
-	git clone $(GITREPO) --branch gh-pages --single-branch gh-pages
-	cd gh-pages
+	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
@@ -769,7 +766,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	git push origin gh-pages
 endif
-	cd ${CURR_DIR}
+	git checkout $(GITBRANCH)
 	@echo "Released Helm chart."
 	@echo "Current Git branch is gh-pages"
 	@echo "To return to the previous branch run:"
