@@ -93,6 +93,11 @@ pipeline {
             }
             steps {
                 echo 'Release'
+                def suffix = env.RELEASE_SUFFIX
+                if (env.RELEASE_SUFFIX == "DATE" ) {
+                    def now = new Date()
+                    suffix = now.format("yyMMdd.HHmm", TimeZone.getTimeZone('UTC'))
+                }
                 sh '''
                     if [ -z "$HTTP_PROXY" ]; then
                         unset HTTP_PROXY
@@ -101,11 +106,6 @@ pipeline {
                     fi
                 '''
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    def suffix = env.RELEASE_SUFFIX
-                    if (env.RELEASE_SUFFIX == "DATE" ) {
-                        def now = new Date()
-                        suffix = now.format("yyMMdd.HHmm", TimeZone.getTimeZone('UTC'))
-                    }
                     sh '''
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     git config user.name "Coherence Bot"
