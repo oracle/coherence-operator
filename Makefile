@@ -745,22 +745,20 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
+ifeq (true, $(PRE_RELEASE))
+	CHARTS=charts-unstable
+else
+	CHARTS=charts
+endif
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cd $(BUILD_OUTPUT)
 	git clone $(GITREPO) gh-pages
 	cd gh-pages
-ifeq (true, $(PRE_RELEASE))
-	mkdir -p charts-unstable || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
-	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz ${CHARTS}/
+	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/${CHARTS}
+	ls -ls ${CHARTS}
 	git status
-	git add charts-unstable/*
-else
-	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
-	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
-	git status
-	git add charts/*
-endif
+	git add ${CHARTS}/*
 	git clean -d -f
 	git status
 	git commit -m "adding coherence-operator helm chart version: $(VERSION_FULL)"
