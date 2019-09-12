@@ -746,19 +746,15 @@ version:
 .PHONY: release-chart
 release-chart: helm-chart
 	@echo "Releasing Helm chart $(VERSION_FULL)"
-	cd $(BUILD_OUTPUT)
-	git clone $(GITREPO) gh-pages
-	cd gh-pages
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
-	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
 	git status
 	git add charts-unstable/*
 else
-	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
-	cd gh-pages
+	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
 	git status
@@ -773,7 +769,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	git push origin gh-pages
 endif
-	cd $(CURRDIR)
+
 
 # ---------------------------------------------------------------------------
 # Tag Git for the release.
