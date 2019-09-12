@@ -739,8 +739,9 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
-	GIT_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
-	git checkout gh-pages
+	CURR_DIR=$(pwd)
+    git clone https://github.com/oracle/coherence-operator.git --branch gh-pages --single-branch $(BUILD_OUTPUT)/gh-pages
+	cd $(BUILD_OUTPUT)/gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
@@ -762,6 +763,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	git push origin gh-pages
 endif
+	cd ${CURR_DIR}
 	@echo "Released Helm chart."
 	@echo "Current Git branch is gh-pages"
 	@echo "To return to the previous branch run:"
