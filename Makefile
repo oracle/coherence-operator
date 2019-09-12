@@ -767,11 +767,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 else
 	git push origin gh-pages
 endif
-	git checkout $(GITBRANCH)
-	@echo "Released Helm chart."
-	@echo "Current Git branch is gh-pages"
-	@echo "To return to the previous branch run:"
-	@echo "git checkout ${GIT_BRANCH}"
+	git checkout ${GIT_BRANCH}
 
 # ---------------------------------------------------------------------------
 # Tag Git for the release.
@@ -791,9 +787,10 @@ endif
 # Release the Coherence Operator.
 # ---------------------------------------------------------------------------
 .PHONY: release
-release: build-all-images release-tag release-chart
+release:
+
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed images for v$(VERSION_FULL)"
+release: build-all-images release-tag release-chart
 else
-	$(MAKE) push-release-images
+release: build-all-images release-tag release-chart push-release-images
 endif
