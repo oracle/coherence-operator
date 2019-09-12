@@ -10,16 +10,20 @@
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 2.0.0
 
-# An optional version suffix. For a full release this should be set to blank,
-# for an interim release it should be set to a value to identify that release.
+# VERSION_SUFFIX is ann optional version suffix. For a full release this should be
+# set to blank, for an interim release it should be set to a value to identify that
+# release.
 # For example if building the third release candidate this value might be
 # set to VERSION_SUFFIX=RC3
+# If VERSION_SUFFIX = DATE then the suffix will be a timestamp of the form yyMMddhhmm
 # The default value for local and pipeline builds is "ci".
 VERSION_SUFFIX ?= ci
 
 # Set the full version string by combining the version and optional suffix
 ifeq (, $(VERSION_SUFFIX))
 VERSION_FULL := $(VERSION)
+else ifeq ("DATE", "$(VERSION_SUFFIX)")
+VERSION_FULL := $(VERSION)-$(shell date -u +%y%m%d%H%M)
 else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
@@ -133,7 +137,6 @@ $(BUILD_PROPS):
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	PROMETHEUS_HELMCHART_VERSION=$(PROMETHEUS_HELMCHART_VERSION)\n\
 	VERSION_FULL=$(VERSION_FULL)\n\
-	VERSION_SUFFIX=$(VERSION_SUFFIX)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
 # ---------------------------------------------------------------------------
