@@ -748,12 +748,14 @@ release-chart: helm-chart
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
+	mkdir -p charts-unstable || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
 	git status
 	git add charts-unstable/*
 else
+	mkdir -p charts || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
