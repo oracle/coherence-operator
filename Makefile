@@ -746,9 +746,9 @@ version:
 .PHONY: release-chart
 release-chart: helm-chart
 ifeq (true, $(PRE_RELEASE))
-	CHARTS=charts-unstable
+	export CHARTS=charts-unstable
 else
-	CHARTS=charts
+	export CHARTS=charts
 endif
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cd $(BUILD_OUTPUT)
