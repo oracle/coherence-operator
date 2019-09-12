@@ -30,6 +30,9 @@ endif
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
+GITREPO         := https://github.com/oracle/coherence-operator.git
+
+CURR_DIR        := $(shell pwd)
 
 ARCH            ?= amd64
 OS              ?= linux
@@ -742,8 +745,7 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
-	CURR_DIR=$(pwd)
-    git clone https://github.com/oracle/coherence-operator.git --branch gh-pages --single-branch $(BUILD_OUTPUT)/gh-pages
+	git clone $(GIT_REPO) --branch gh-pages --single-branch $(BUILD_OUTPUT)/gh-pages
 	cd $(BUILD_OUTPUT)/gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
