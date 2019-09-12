@@ -751,13 +751,13 @@ release-chart: helm-chart
 	cd gh-pages
 	git branch gh-pages
 ifeq (true, $(PRE_RELEASE))
-	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz gh-pages/charts-unstable/
+	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
 	git status
 	git add charts-unstable/*
 else
-	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz gh-pages/charts/
+	cp $(CURRDIR)/$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	cd gh-pages
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
