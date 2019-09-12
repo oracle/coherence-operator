@@ -107,7 +107,7 @@ pipeline {
                     git config user.email coherence-bot_ww@oracle.com
                     make clean
                     make build-all-images
-                    make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${suffix}
+                    make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
                     '''
                 }
             }
