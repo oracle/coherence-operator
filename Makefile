@@ -744,6 +744,8 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
 release-chart: helm-chart
+	@echo "Releasing Helm chart $(VERSION_FULL)"
+	cat build/_output/helm-charts/coherence-operator/values.yaml
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
