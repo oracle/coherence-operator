@@ -1,0 +1,54 @@
+= Execution
+
+== Running Coherence Operator Development
+
+There are two ways to run the Coherence Operator, either deployed into a k8s cluster or by using the Operator SDK
+to run it locally on your dev machine (assuming your dev machine has access to a k8s cluster such as Docker Desktop
+on MacOS).
+
+=== Namespaces
+*NOTE:* The Coherence Operator by default runs in and monitors a *single* namespace.
+This is different behaviour to v1.0 of the Coherence Operator.
+For more details see the Operator SDK document on
+https://github.com/operator-framework/operator-sdk/blob/v0.9.0/doc/operator-scope.md[Operator Scope].
+
+=== Running Locally
+
+During development running the Coherence Operator locally is by far the simplest option as it is faster and
+it also allows remote debugging if you are using a suitable IDE.
+
+To run a local copy of the operator that will connect to whatever you local kubernetes config is pointing to:
+[source,bash]
+----
+make run
+----
+
+==== Stopping the Local Operator
+To stop the local operator just use CTRL-Z or CTRL-C. Sometimes processes can be left around even after exiting in
+this way. To make sure all of the processes are dead you can run the kill script:
+[source,bash]
+----
+./hack/kill-local.sh
+----
+
+=== Clean-up
+
+After running the operator the CRDs can be removed from the k8s cluster by running the make target:
+[source,bash]
+----
+make uninstall-crds
+----
+
+
+=== Deploying to Kubernetes
+The simplest and most reliable way to deploy the operator to K8s is to use the Helm chart.
+After building the operator the chart is created in the `build/_output/helm-charts/coherence-operator` directory.
+Using the Helm chart will ensure that all of the required RBAC rules are created when deploying to an environment
+where RBAC is enabled.
+The chart can be installed in the usual way with Helm
+[source,bash]
+----
+helm install --name operator \
+  --namespace operator-test \
+  build/_output/helm-charts/coherence-operator
+----

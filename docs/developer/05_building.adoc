@@ -1,0 +1,125 @@
+= Building and Testing
+
+== How to Build the Coherence Operator
+
+The Operator SDK generates Go projects that use Go Modules and hence the Coherence Operator uses Go Modules too.
+The Coherence Operator can be checked out from Git to any location, it does not have to be under your `$GOPATH`.
+The first time that the project is built may require Go to fetch a number of dependencies and may take longer than
+usual to complete.
+
+
+The easiest way to build the whole project is using `make`.
+To build the Coherence Operator, package the Helm charts and create the various Docker images run the following
+command:
+
+[source,bash]
+----
+make build-all-images
+----
+
+The `build-all-images` make target will build the Go and Java parts of the Operator and create all of the images required.
+
+
+
+== Build Versions
+
+By default the version number used to tag the Docker images and Helm charts is set in the `VERSION` property
+in the `Makefile` and in the `pom.xml` files in the `java/` directory.
+
+The `Makefile` also contains a `VERSION_SUFFIX` variable that is used to add a suffix to the build. By default
+this suffix is `ci` so the default version of the build artifacts is `2.0.0-ci`. Change this suffix, for
+example when building a release candidate or a full release.
+
+For example, if building a release called `alpha2` the following command can be used:
+[source,bash]
+----
+make build-all-images VERSION_SUFFIX=alpha2
+----
+
+If building a full release without a suffix the following command can be used
+[source,bash]
+----
+make build-all-images VERSION_SUFFIX=""
+----
+
+
+=== Testing
+
+==== Unit Tests
+The Coherence Operator contains tests that can be executed using `make`. The tests are plain Go tests and
+also https://github.com/onsi/ginkgo[Ginkgo] test suites.
+
+To execute the unit and functional tests that do not require a k8s cluster you can execute the following command:
+[source,bash]
+----
+make test-all
+----
+This will build and execute all of the Go and Java tests, you do not need to have run a `make build` first.
+
+==== Go Unit Tests
+To only tun the Go tests use:
+[source,bash]
+----
+make test-operator
+----
+
+==== Java Unit Tests
+To only tun the Java tests use:
+[source,bash]
+----
+make test-mvn
+----
+
+==== End-to-End Tests
+End to end tests require the Operator to be running. There are three types of end-to-end tests, Helm tests, local
+tests and remote tests.
+
+* Helm tests are tests that install the Coherence Operator Helm chart and then make assertions about the state fo the
+resulting install. These tests do not test functionality of the Operator itself.
+The Helm tests suite is run using make:
+[source,bash]
+----
+make helm-test
+----
+
+* Local tests, which is the majority ot the tests, can be executed with a locally running operator (i.e. the operator
+does not need to be deployed in a container in k8s). This makes the tests faster to run and also makes it possible
+to run the operator in a debugger while the test is executing
+The local end-to-end test suite is run using make:
+[source,bash]
+----
+make e2e-local-test
+----
+
+It is possible to run a sub-set of the tests or an individual test by using the `GO_TEST_FLAGS=<regex>` parameter.
+For example, to just run the `TestMinimalCoherenceCluster` clustering test in the `test/e2e/local/clustering_test.go`
+file:
+[source,bash]
+----
+make e2e-local-test GO_TEST_FLAGS='-run=^TestMinimalCoherenceCluster$$'
+----
+
+The reg-ex above matches exactly the `TestMinimalCoherenceCluster` test name because it uses the reg-ex start `^` and
+end `$` characters.
+
+For example, to run all of the clustering tests where the test name starts with `TestOneRole` we can use
+the reg-ex `^TestOneRole.*'`
+[source,bash]
+----
+make e2e-local-test  GO_TEST_FLAGS='-run=^TestOneRole.*'
+----
+
+*Note* Any `$` signs in the reg-ex need to be escaped by using a double dollar sign `$$`.
+
+The `GO_TEST_FLAGS` parameter can actually consist of any valid argument to be passed to the `go test` command. There is plenty of
+documentation on https://tip.golang.org/cmd/go/#hdr-Test_packages[go test]
+
+* Remote tests require the operator to actually be installed in a container in k8s. An example of this is the scaling
+tests because the operator needs to be able to directly reach the Pods. Very few end-to-end tests fall into this categrory.
+The local end-to-end test suite is run using make:
+[source,bash]
+----
+make e2e-test
+----
+
+As with local tests the `GO_TEST_FLAGS` parameter can be used to execute a sub-set of tests or a single test.
