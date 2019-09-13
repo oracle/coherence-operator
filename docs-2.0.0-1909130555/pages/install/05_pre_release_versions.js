@@ -65,5 +65,52 @@ Helm will install into whichever is currently the default namespace for your Kub
 Helm will try to work out the latest version in the pre-release repo and as pre-release version numbers are not strictly
 sem-ver compliant this may be unreliable.</p>
 </div>
+
+<h3 id="_accessing_pre_release_coherence_operator_docker_images">Accessing Pre-Release Coherence Operator Docker Images</h3>
+<div class="section">
+<div class="admonition note">
+<p class="admonition-inline">Not all pre-release images are pushed to public repositories such as Docker Hub.
+Consequently when installing those versions of the Coherence Operator credentials and Kubernetes pull secrets will be required.</p>
+</div>
+<p>For example to access an image in the <code>iad.ocir.io/odx-stateservice</code> repository you would need to have your own credentials
+for that repository so that a secret can be created.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n &lt;namespace&gt; \                                     <span class="conum" data-value="1" />
+  create secret docker-registry coherence-operator-secret \  <span class="conum" data-value="2" />
+  --docker-server=$DOCKER_REPO \                             <span class="conum" data-value="3" />
+  --docker-username=$DOCKER_USERNAME \                       <span class="conum" data-value="4" />
+  --docker-password=$DOCKER_PASSWORD \                       <span class="conum" data-value="5" />
+  --docker-email=$DOCKER_EMAIL                               <span class="conum" data-value="6" /></markup>
+
+<ul class="colist">
+<li data-value="1">Replace &lt;namespace&gt; with the Kubernetes namespace that the Coherence Operator will be installed into.</li>
+<li data-value="2">In this example the name of the secret to be created is <code>coherence-operator-secret</code></li>
+<li data-value="3">Replace <code>$DOCKER_REPO</code> with the name of the Docker repository that the images are to be pulled from.</li>
+<li data-value="4">Replace <code>$DOCKER_USERNAME</code> with your username for that repository.</li>
+<li data-value="5">Replace <code>$DOCKER_PASSWORD</code> with your password for that repository.</li>
+<li data-value="6">Replace <code>$DOCKER_EMAIL</code> with your email (or even a fake email).</li>
+</ul>
+<p>See the <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">Kubernetes documentation</a>
+on pull secrets for more details.</p>
+
+<p>Once a secret has been created in the namespace the Coherence Operator can be installed with an extra value parameter
+to specify the secret to use:</p>
+
+<markup
+lang="bash"
+
+>helm install coherence-unstable/coherence-operator \
+    --version 2.0.0-1909130555 \
+    --namespace &lt;namespace&gt; \
+    --set imagePullSecrets=coherence-operator-secret \  <span class="conum" data-value="1" />
+    --name coherence-operator</markup>
+
+<ul class="colist">
+<li data-value="1">Set the pull secret to use to the same name that was created above.</li>
+</ul>
+</div>
 </div>
 </doc-view>
