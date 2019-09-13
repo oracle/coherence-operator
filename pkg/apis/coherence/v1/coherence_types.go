@@ -573,6 +573,68 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 	return &clone
 }
 
+// Merge merges two arrays of NamedPortSpec structs.
+// Any NamedPortSpec instances in both arrays that share the same name will be merged,
+// the field set in the primary NamedPortSpec will take presedence over those in the
+// secondary NamedPortSpec.
+func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
+	if primary == nil {
+		return secondary
+	}
+
+	if secondary == nil {
+		return primary
+	}
+
+	if len(primary) == 0 && len(secondary) == 0 {
+		return []NamedPortSpec{}
+	}
+
+	var mr []NamedPortSpec
+	mr = append(mr, primary...)
+
+	for _, p := range secondary {
+		found := false
+		for i, pp := range primary {
+			if pp.Name == p.Name {
+				clone := pp.DeepCopyWithDefaults(&p)
+				mr[i] = *clone
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			mr = append(mr, p)
+		}
+	}
+
+	return mr
+	//m := make(map[string]NamedPortSpec)
+	//for _, p := range primary {
+	//	m[p.Name] = p
+	//}
+	//
+	//for _, ps := range secondary {
+	//	pp, ok := m[ps.Name]
+	//	if ok {
+	//		cp := pp.DeepCopyWithDefaults(&ps)
+	//		m[ps.Name] = *cp
+	//	} else {
+	//		m[ps.Name] = ps
+	//	}
+	//}
+	//
+	//merged := make([]NamedPortSpec, len(m))
+	//i := 0
+	//for _, p := range m {
+	//	merged[i] = p
+	//	i++
+	//}
+	//
+	//return merged
+}
+
 // ----- DebugSpec struct ----------------------------------------------------------
 
 type DebugSpec struct {

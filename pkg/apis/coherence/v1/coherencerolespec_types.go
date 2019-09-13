@@ -395,7 +395,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	}
 
 	if in.Ports != nil {
-		clone.Ports = in.Ports
+		clone.Ports = MergeNamedPortSpecs(in.Ports, defaults.Ports)
 	} else {
 		clone.Ports = defaults.Ports
 	}
