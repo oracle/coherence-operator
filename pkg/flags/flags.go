@@ -15,8 +15,10 @@ import (
 )
 
 const (
-	DefaultSiteLabel       = "failure-domain.beta.kubernetes.io/zone"
-	DefaultRackLabel       = "failure-domain.beta.kubernetes.io/region"
+	zoneLabel = "failure-domain.beta.kubernetes.io/zone"
+	//	regionLabel            = "failure-domain.beta.kubernetes.io/region"
+	DefaultSiteLabel       = zoneLabel
+	DefaultRackLabel       = zoneLabel
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
 
