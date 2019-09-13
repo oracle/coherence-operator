@@ -89,11 +89,13 @@ else
 GO_TEST_CMD = ginkgo
 endif
 
-GOS=$(shell find pkg -type f -name "*.go" ! -name "*_test.go")
-COH_CHARTS=$(shell find helm-charts/coherence -type f)
-COP_CHARTS=$(shell find helm-charts/coherence-operator -type f)
-DEPLOYS=$(shell find deploy -type f -name "*.yaml")
-CRDS=$(shell find deploy/crds -name "*_crd.yaml")
+GOS        = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
+COPYGOS    = $(shell find cmd/copyartifacts -type f -name "*.go" ! -name "*_test.go")
+UTILGOS    = $(shell find cmd/utilsinit -type f -name "*.go" ! -name "*_test.go")
+COH_CHARTS = $(shell find helm-charts/coherence -type f)
+COP_CHARTS = $(shell find helm-charts/coherence-operator -type f)
+DEPLOYS    = $(shell find deploy -type f -name "*.yaml")
+CRDS       = $(shell find deploy/crds -name "*_crd.yaml")
 
 TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
 TEST_MANIFEST_FILE        := test-manifest.yaml
@@ -153,7 +155,7 @@ $(BUILD_OUTPUT)/bin/operator: export CGO_ENABLED = 0
 $(BUILD_OUTPUT)/bin/operator: export GOARCH = $(ARCH)
 $(BUILD_OUTPUT)/bin/operator: export GOOS = $(OS)
 $(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION_FULL).tgz $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
+$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
@@ -163,32 +165,30 @@ $(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-$(VERSION
 # Internal make step that builds the Operator copy artifacts utility
 # ---------------------------------------------------------------------------
 .PHONY: build-copy-artifacts
-build-copy-artifacts: $(BUILD_OUTPUT)/bin/copyartifacts
+build-copy-artifacts: $(BUILD_OUTPUT)/bin/copy
 
-$(BUILD_OUTPUT)/bin/copyartifacts: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/copyartifacts: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/copyartifacts: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/copyartifacts: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/copyartifacts: export BUILD_OUTPUT := $(BUILD_OUTPUT)
-$(BUILD_OUTPUT)/bin/copyartifacts: $(GOS) $(DEPLOYS)
+$(BUILD_OUTPUT)/bin/copy: export CGO_ENABLED = 0
+$(BUILD_OUTPUT)/bin/copy: export GOARCH = $(ARCH)
+$(BUILD_OUTPUT)/bin/copy: export GOOS = $(OS)
+$(BUILD_OUTPUT)/bin/copy: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/copy: $(GOS) $(DEPLOYS) $(COPYGOS)
 	go build -o $(BUILD_OUTPUT)/bin/copy ./cmd/copyartifacts
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator utils init utility
 # ---------------------------------------------------------------------------
 .PHONY: build-utils-init
-build-utils-init: $(BUILD_OUTPUT)/bin/utilsinit
+build-utils-init: $(BUILD_OUTPUT)/bin/utils-init
 
-$(BUILD_OUTPUT)/bin/utilsinit: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/utilsinit: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/utilsinit: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/utilsinit: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/utilsinit: export BUILD_OUTPUT := $(BUILD_OUTPUT)
-$(BUILD_OUTPUT)/bin/utilsinit: $(GOS) $(DEPLOYS)
+$(BUILD_OUTPUT)/bin/utils-init: export CGO_ENABLED = 0
+$(BUILD_OUTPUT)/bin/utils-init: export GOARCH = $(ARCH)
+$(BUILD_OUTPUT)/bin/utils-init: export GOOS = $(OS)
+$(BUILD_OUTPUT)/bin/utils-init: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/utils-init: $(GOS) $(DEPLOYS) $(UTILGOS)
 	go build -o $(BUILD_OUTPUT)/bin/utils-init ./cmd/utilsinit
 
 # ---------------------------------------------------------------------------
-# Build the Coperator Helm chart and package it into a tar.gz
+# Build the Coherence operator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
 $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
@@ -213,7 +213,8 @@ helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSI
 # Internal make step to build the Coherence Helm chart that is packaged
 # inside the Operator Docker image.
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-$(VERSION_FULL).tgz: $(COH_CHARTS) $(BUILD_PROPS)
+$(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
+	rm -rf $(CHART_DIR)/coherence
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence $(CHART_DIR)
 	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
@@ -605,7 +606,7 @@ build-all: build-mvn build-operator
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run
-run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds
+run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets uninstall-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -620,7 +621,7 @@ run: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secre
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl-secrets uninstall-crds
+run-debug: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets uninstall-crds
 	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	--enable-delve \
