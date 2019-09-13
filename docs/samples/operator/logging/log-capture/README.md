@@ -122,9 +122,10 @@ Run the `port-forward-kibana.sh` script in the
 ## Default Kibana Dashboards
 
 There are a number of Kibana dashboards created via the import process.
-| Dashboard          | Options                 | Description                                                                          |
-|--------------------|------------------------|--------------------------------------------------------------------------------------|
-| Coherence Operator | All Messages           | Shows all Coherence Operator messages                                                |
+
+| Dashboard | Options| Description|
+|-----------|------------|-----------------|
+| Coherence Operator | All Messages| Shows all Coherence Operator messages                                                |
 | Coherence Cluster  | All Messages           | Shows all messages                                                                   |
 | Coherence Cluster  | Errors and Warnings    | Shows only errors and warnings                                                       |
 | Coherence Cluster  | Persistence            | Shows partition related messages                                                    |
