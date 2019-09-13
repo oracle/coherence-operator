@@ -22,8 +22,6 @@ VERSION_SUFFIX ?= ci
 # Set the full version string by combining the version and optional suffix
 ifeq (, $(VERSION_SUFFIX))
 VERSION_FULL := $(VERSION)
-else ifeq ("DATE", "$(VERSION_SUFFIX)")
-VERSION_FULL := $(VERSION)-$(shell date -u +%y%m%d%H%M)
 else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif

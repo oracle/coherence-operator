@@ -35,9 +35,18 @@ pipeline {
         PROJECT_URL = "https://github.com/oracle/coherence-operator"
 
         COHERENCE_IMAGE_PREFIX = credentials('coherence-operator-coherence-image-prefix')
+
         TEST_IMAGE_PREFIX      = credentials('coherence-operator-test-image-prefix')
 
         TEST_NAMESPACE = "test-cop-${env.BUILD_NUMBER}"
+
+        RELEASE_SUFFIX = """${sh(
+                             if [[ "${RELEASE_SUFFIX}" == "DATE" ]]; then
+                                RELEASE_SUFFIX=date -u +%y%m%d%H%M
+                             fi
+                             returnStdout: true,
+                             script: 'echo "${RELEASE_SUFFIX}"'
+                         )}"""
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '28', numToKeepStr: '')
@@ -89,6 +98,9 @@ pipeline {
             }
         }
         stage('test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Tests'
                 script {
@@ -180,6 +192,9 @@ pipeline {
             }
         }
         stage('e2e-local-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Operator end-to-end local tests'
                 script {
@@ -197,6 +212,9 @@ pipeline {
             }
         }
         stage('e2e-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Operator end-to-end tests'
                 script {
@@ -214,6 +232,9 @@ pipeline {
             }
         }
         stage('helm-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Operator Helm tests'
                 script {
