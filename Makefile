@@ -739,6 +739,23 @@ version:
 	@echo ${VERSION_FULL}
 
 # ---------------------------------------------------------------------------
+# Build the documentation.
+# ---------------------------------------------------------------------------
+.PHONY: docs
+docs:
+	mvn -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION_FULL)
+
+# ---------------------------------------------------------------------------
+# Start a web server to serve the documentation.
+# ---------------------------------------------------------------------------
+.PHONY: serve-docs
+serve-docs:
+	@echo "Serving documentation on http://localhost:8080"
+	cd $(BUILD_OUTPUT)/docs; \
+	python -m SimpleHTTPServer 8080
+
+
+# ---------------------------------------------------------------------------
 # Release the Coherence Operator Helm chart.
 # ---------------------------------------------------------------------------
 .PHONY: release-chart

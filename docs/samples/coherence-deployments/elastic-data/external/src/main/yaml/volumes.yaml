@@ -1,8 +1,0 @@
-store:
-  volumeMounts:
-  # mount point in container
-  - mountPath: /elastic-data
-    name: elastic-data-volume
-  volumes:
-  - name: elastic-data-volume
-    emptyDir: {}
