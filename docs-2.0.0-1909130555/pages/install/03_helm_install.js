@@ -26,9 +26,9 @@ This will ensure that all of the correct resources are created in Kubernetes.</p
 <markup
 lang="bash"
 
->$ helm repo add coherence https://oracle.github.io/coherence-operator/charts
+>helm repo add coherence https://oracle.github.io/coherence-operator/charts
 
-$ helm repo update</markup>
+helm repo update</markup>
 
 </div>
 
@@ -39,7 +39,7 @@ $ helm repo update</markup>
 <markup
 lang="bash"
 
->$ helm install  \
+>helm install  \
     --namespace &lt;namespace&gt; \
     --name coherence-operator \
     coherence/coherence-operator</markup>
@@ -55,7 +55,7 @@ manage <code>CoherenceClusters</code></p>
 <markup
 lang="bash"
 
->$ helm delete --purge coherence-operator</markup>
+>helm delete --purge coherence-operator</markup>
 
 </div>
 </div>

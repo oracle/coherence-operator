@@ -16,7 +16,7 @@ It is distributed as a Docker image and Helm chart for easy installation and con
 <div class="section">
 <p>Traditionally a Coherence cluster is a number of distributed JVMs that communicate to form a single coherent cluster.
 In Kubernetes this concept still applies but can now be though of as a number of Pods that form a single cluster.
-Inside each Pod is a JVM running Coherence, or some custom application using Coherence.</p>
+Inside each <code>Pod</code> is a JVM running Coherence, or some custom application using Coherence.</p>
 
 <p>The Coherence Operator uses a Kubernetes Custom Resource Definition to represent a Coherence cluster
 (and the roles withing it, see below). Every field in the <code>CoherenceCluster</code> crd <code>Spec</code> is optional so a cluster

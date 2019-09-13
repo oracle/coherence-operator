@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as a Docker image <code>oracle/coherence-operator:2.0.0-1909130555</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as a Docker image <code>oracle/coherence-operator:2.0.0-1909131928</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>

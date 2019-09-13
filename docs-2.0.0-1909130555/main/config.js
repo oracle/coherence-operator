@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "about/01_overview",
-        release: "2.0.0-1909130555",
+        release: "2.0.0-1909131928",
         releases: [
-            "2.0.0-1909130555"
+            "2.0.0-1909131928"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -196,14 +196,86 @@ function createRoutes(){
         {
             path: '/developer/01_introduction',
             meta: {
-                h1: 'Coherence Operator',
-                title: 'Coherence Operator',
+                h1: 'Coherence Operator Development',
+                title: 'Coherence Operator Development',
                 description: null,
                 keywords: null,
                 customLayout: null,
                 hasNav: true
             },
             component: loadPage('developer-01_introduction', '/developer/01_introduction', {})
+        },
+        {
+            path: '/developer/03_high_level',
+            meta: {
+                h1: 'High Level Design',
+                title: 'High Level Design',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-03_high_level', '/developer/03_high_level', {})
+        },
+        {
+            path: '/developer/04_how_it_works',
+            meta: {
+                h1: 'How It Works',
+                title: 'How It Works',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-04_how_it_works', '/developer/04_how_it_works', {})
+        },
+        {
+            path: '/developer/05_building',
+            meta: {
+                h1: 'Building and Testing',
+                title: 'Building and Testing',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-05_building', '/developer/05_building', {})
+        },
+        {
+            path: '/developer/06_debugging',
+            meta: {
+                h1: 'Debugging',
+                title: 'Debugging',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-06_debugging', '/developer/06_debugging', {})
+        },
+        {
+            path: '/developer/07_execution',
+            meta: {
+                h1: 'Execution',
+                title: 'Execution',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-07_execution', '/developer/07_execution', {})
+        },
+        {
+            path: '/developer/08_useful',
+            meta: {
+                h1: 'Useful Info',
+                title: 'Useful Info',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('developer-08_useful', '/developer/08_useful', {})
         },
         {
             path: '/', redirect: '/about/01_overview'
@@ -264,7 +336,13 @@ function createNav(){
             action: 'build',
             group: '/developer',
             items: [
-                { href: '/developer/01_introduction', title: 'Coherence Operator' }
+                { href: '/developer/01_introduction', title: 'Coherence Operator Development' },
+                { href: '/developer/03_high_level', title: 'High Level Design' },
+                { href: '/developer/04_how_it_works', title: 'How It Works' },
+                { href: '/developer/05_building', title: 'Building and Testing' },
+                { href: '/developer/06_debugging', title: 'Debugging' },
+                { href: '/developer/07_execution', title: 'Execution' },
+                { href: '/developer/08_useful', title: 'Useful Info' }
             ]
         },
         { divider: true },
