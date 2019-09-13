@@ -1150,7 +1150,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Ports = []coherence.NamedPortSpec{portOne, portTwo}
+				expected.Ports = []coherence.NamedPortSpec{portOne, portTwo, portThree}
 
 				Expect(clone).To(Equal(expected))
 			})
