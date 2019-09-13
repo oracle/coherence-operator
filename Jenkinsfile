@@ -41,11 +41,8 @@ pipeline {
         TEST_NAMESPACE = "test-cop-${env.BUILD_NUMBER}"
 
         RELEASE_SUFFIX = """${sh(
-                             if [[ "${RELEASE_SUFFIX}" == "DATE" ]]; then
-                                RELEASE_SUFFIX=date -u +%y%m%d%H%M
-                             fi
                              returnStdout: true,
-                             script: 'echo "${RELEASE_SUFFIX}"'
+                             script: 'if [ "${RELEASE_SUFFIX}" == "DATE" ]; then echo $(date -u +%y%m%d%H%M); else echo ${RELEASE_SUFFIX}; fi'
                          )}"""
     }
     options {
