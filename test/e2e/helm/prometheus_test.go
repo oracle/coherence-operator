@@ -39,16 +39,17 @@ func TestOperatorWithPrometheus(t *testing.T) {
 	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
-	hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
-	fmt.Printf("Check for Prometheus CRDs - found=%t", hasCRDs)
+	//hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
+	//fmt.Printf("Check for Prometheus CRDs - found=%t", hasCRDs)
 
 	// Create the values to use to install the operator with Prometheus but without Grafana
 	values := helper.OperatorValues{
 		Prometheusoperator: &helper.PrometheusOperatorSpec{
 			Enabled: pointer.BoolPtr(true),
 			PrometheusOperator: &helper.PrometheusOp{
-				CreateCustomResource:  pointer.BoolPtr(!hasCRDs),
-				CleanupCustomResource: pointer.BoolPtr(!hasCRDs),
+				//CreateCustomResource:  pointer.BoolPtr(!hasCRDs),
+				//CleanupCustomResource: pointer.BoolPtr(!hasCRDs),
+				CreateCustomResource: pointer.BoolPtr(false),
 			},
 			Prometheus: &helper.Prometheus{
 				PrometheusSpec: &helper.PrometheusSpec{ScrapeInterval: pointer.StringPtr("5s")},
