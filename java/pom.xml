@@ -27,6 +27,8 @@
   </modules>
 
   <properties>
+    <operator.version>${project.version}</operator.version>
+    
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
@@ -52,6 +54,10 @@
     <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
+    <version.lib.asciidoctor.diagram>1.5.4.1</version.lib.asciidoctor.diagram>
+    <version.plugin.deploy>2.8.2</version.plugin.deploy>
+    <version.plugin.helidon-build-tools>1.0.10</version.plugin.helidon-build-tools>
+    <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
 
     <!--  The Coherence jar version (compile time dependency) -->
     <coherence.version>12.2.1-4-0-74512</coherence.version>
@@ -174,9 +180,21 @@
         </plugin>
 
         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>${version.plugin.deploy}</version>
+        </plugin>
+
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+            <version>${version.plugin.project-info-reports}</version>
         </plugin>
 
         <plugin>
@@ -202,6 +220,27 @@
           <groupId>org.glassfish.copyright</groupId>
           <artifactId>glassfish-copyright-maven-plugin</artifactId>
           <version>${glassfish.copyright.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <version>${version.plugin.helidon-build-tools}</version>
+          <configuration>
+            <siteConfigFile>${top.parent.basedir}/../docs/sitegen.yaml</siteConfigFile>
+            <siteSourceDirectory>${top.parent.basedir}/../docs</siteSourceDirectory>
+            <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
+            <siteArchiveExcludes>
+              <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+            </siteArchiveExcludes>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj-diagram</artifactId>
+              <version>${version.lib.asciidoctor.diagram}</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -252,6 +291,21 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
        </plugin>
+
+      <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <extensions>true</extensions>
+      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>docs</id>
+      <modules>
+        <module>docs</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

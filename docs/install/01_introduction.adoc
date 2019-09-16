@@ -1,0 +1,30 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Operator Installation
+
+The Coherence Operator is available as a Docker image `oracle/coherence-operator:{operator-version}` that can
+easily be installed into a Kubernetes cluster.
+
+== Installation Options
+
+There are two ways to install the Coherence Operator
+
+* <<install/03_helm_install.adoc, Using Helm>> using the Coherence Operator Helm chart
+
+* <<install/04_manual_install.adoc, Manually>> using Kubernetes APIs (e.g. `kubectl`)
