@@ -16,35 +16,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Create Coherence Clusters
-
-Creating a Coherence cluster using the Coherence Operator is as simple as creating any other Kubernetes resource.
-
-== Create CoherenceCluster Resources
-
-The Coherence Operator uses a Kubernetes `CustomResourceDefinition` named t`CoherenceCluster` o define the spec for a
-Coherence cluster.
-
-All of the fields of the `CoherenceCluster` crd are optional so a Coherence cluster can be created with yaml as
-simple as the following:
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: my-cluster  <1>
-----
-
-<1> The `metadata.name` field will be used as the Coherence cluster name.
-
-The yaml above will create a Coherence cluster with three storage enabled members. 
-There is not much that can actually be achived with this cluster because no ports are exposed outside of Kubernetes
-so the cluster is inaccessible. It could be accessed by other `Pods` in the same
-
-== Kubernetes Resource Relationships When Creating Coherence Clusters
+= Coherence Clusters K8s Resources
 
 When a `CoherenceCluster` is deployed into Kubernetes the Coherence Operator will create a number of other resources in Kubernetes.
+
+== Kubernetes Resource Relationships When Creating Coherence Clusters
 
 A `CoherenceCluster` is made up of one or more roles.
 In theory a `CoherenceCluster` could have zero roles but this would not by typical.

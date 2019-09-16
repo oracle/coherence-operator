@@ -629,8 +629,8 @@ run-debug: $(CHART_DIR)/coherence-$(VERSION_FULL).tgz reset-namespace create-ssl
 # ---------------------------------------------------------------------------
 # Kill any locally running Operator
 # ---------------------------------------------------------------------------
-.PHONY: debug-stop
-debug-stop:
+.PHONY: stop
+stop:
 	./hack/kill-local.sh
 
 
@@ -746,7 +746,7 @@ docs:
 	mvn -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION_FULL)
 
 # ---------------------------------------------------------------------------
-# Start a web server to serve the documentation.
+# Start a local web server to serve the documentation.
 # ---------------------------------------------------------------------------
 .PHONY: serve-docs
 serve-docs:
@@ -754,6 +754,33 @@ serve-docs:
 	cd $(BUILD_OUTPUT)/docs; \
 	python -m SimpleHTTPServer 8080
 
+# ---------------------------------------------------------------------------
+# Release the Coherence Operator Helm chart.
+# ---------------------------------------------------------------------------
+.PHONY: release-docs
+release-docs: docs
+	@echo "Releasing docs $(VERSION_FULL)"
+	git checkout gh-pages
+ifeq (true, $(PRE_RELEASE))
+	mkdir -p docs-unstable/$(VERSION_FULL) || true
+	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)
+	git status
+	git add docs-unstable/$(VERSION_FULL)/*
+else
+	mkdir docs/$(VERSION_FULL) || true
+	cp -R $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)
+	git status
+	git add docs/$(VERSION_FULL)/*
+endif
+	git clean -d -f
+	git status
+	git commit -m "adding Coherence Operator docs version: $(VERSION_FULL)"
+	git log -1
+ifeq (true, $(RELEASE_DRY_RUN))
+	@echo "release dry-run - would have pushed docs $(VERSION_FULL) to gh-pages"
+else
+	git push origin gh-pages
+endif
 
 # ---------------------------------------------------------------------------
 # Release the Coherence Operator Helm chart.
@@ -809,8 +836,8 @@ endif
 release:
 
 ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-tag release-chart
+release: build-all-images release-tag release-chart release-docs
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images release-tag release-chart push-release-images
+release: build-all-images release-tag release-chart release-docs push-release-images
 endif
