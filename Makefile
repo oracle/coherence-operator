@@ -684,21 +684,13 @@ golangci: $(BUILD_OUTPUT)/bin/golangci-lint
 
 
 # ---------------------------------------------------------------------------
-# Downloads the copyright checker.
-# ---------------------------------------------------------------------------
-$(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar:
-	@mkdir -p $(BUILD_OUTPUT)/bin
-	curl -sSfL https://repo1.maven.org/maven2/org/glassfish/copyright/glassfish-copyright-maven-plugin/2.1/glassfish-copyright-maven-plugin-2.1.jar \
-		-o  $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
-
-# ---------------------------------------------------------------------------
 # Performs a copyright check.
 # To add exclusions add the file or folder pattern using the -X parameter.
 # Add directories to be scanned at the end of the parameter list.
 # ---------------------------------------------------------------------------
 .PHONY: copyright
-copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
-	@java -cp $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar \
+copyright:
+	@java -cp etc/glassfish-copyright-maven-plugin-2.1.jar \
 	  org.glassfish.copyright.Copyright -C etc/copyright.txt \
 	  -X .adoc \
 	  -X bin/ \
@@ -713,6 +705,7 @@ copyright: $(BUILD_OUTPUT)/bin/glassfish-copyright-maven-plugin.jar
 	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
 	  -X Jenkinsfile \
+	  -X .jar \
 	  -X .jks \
 	  -X .json \
 	  -X LICENSE.txt \
