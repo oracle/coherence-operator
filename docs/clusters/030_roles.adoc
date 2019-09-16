@@ -1,0 +1,134 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Define Coherence Roles
+
+A `CoherenceCluster` is made up of one or more roles defined in its `spec`.
+
+== Define Coherence Roles
+
+A role is what is actually configured in the `CoherenceCluster` spec. In a traditional Coherence application that may have
+had a number of storage enabled members and a number of storage disable Coherence*Extend proxy members this cluster would
+have effectively had two roles, "storage" and "proxy".
+Some clusters may simply have just a storage role and some complex Coherence applications and clusters may have many roles
+and even different roles storage enabled for different caches/services within the same cluster.
+
+The Coherence Operator uses an internal crd named `CoherenceRole` to represent a role in a Coherence Cluster. 
+A `CoherenceRole` would not typically be modified directly outside of a handful of specialized operations, such as scaling.
+Any modification to a role would normally be done by modifying that role in the corresponding `CoherenceCluster` and leaving
+the COherence Operator to update the `CoherenceRole`. 
+
+== Defining a Coherence Role
+
+All `CoherenceCluster` resources will have at lest one role defined. This could be the implicit default role or it could
+be one more explicit roles.
+
+=== Implicit Default Role
+
+As mentioned previously, all of the fields in a `CoherenceCluster` `spec` are optional meaning that the yaml below is
+perfectly valid.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+----
+
+This yaml will create an implicit single role with a default role name of `storage` and a default replica count of three.
+
+The implicit role can be modified by specifying role related fields in the `CoherenceCluster` `spec`.
+The role name and replica count of the implicit role can be overridden using the corresponding fields
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  role: data   <1>
+  replicas: 6  <2>
+----
+
+<1> The role name is set with the `role` field, in this case the role name of the implicit role is now `data`
+<2> The replica count is set using the `replicas` field, in this case the implicit role will now have six replicas.
+
+Other role fields can also be used, for example, to set the cache configuration file use by the implicit roles:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  role: data
+  replicas: 6
+  cacheConfig: test-config.xml  <1>
+----
+
+<1> The `cacheConfig` field is used to set the cache configuration to `test-config.xml`.
+
+=== Explicit Roles
+
+It is possible to also create roles explicitly in the `roles` list of the `CoherenceCluster` `spec`.
+If creating a Coherence cluster with more than one role then all roles must be defined in the `roles` list.
+If creating a Coherence cluster with a single role it is optional whether the specification of that role is put into
+the `CoherenceCluster``spec` directly as shown above or whether the single role is added to the `roles` list.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:           <1>
+    - role: data   <2>
+      replicas: 6  <3>
+----
+
+<1> The yaml above defines a single explicit role in the `roles` list
+<2> When defining explict roles the role name is mandatory. The role name is set with the `role` field, in this case
+the role name of the role is `data`
+<3> The replica count is set using the `replicas` field, in this case the role will have six replicas.
+
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:           <1>
+    - role: data   <2>
+      replicas: 6  <3>
+    - role: proxy  <4>
+      replicas: 3  <5>
+----
+
+<1> The yaml above defines a two explicit roles in the `roles` list
+<2> The first role has a role name of `data`
+<3> and a replica count of six.
+<4> The second role has a role name of `proxy`
+<5> and a replica count of three.
+
+
