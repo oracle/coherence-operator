@@ -761,12 +761,13 @@ ifeq (true, $(PRE_RELEASE))
 	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
 	@echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
 	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
-	    if [[ "$${i}" != "docs/" ]]; then \
+	    if [[ "$${i}" != "docs-unstable/" ]]; then \
 	        IFS='/' read -ra NAME <<< "$${i}"; \
 			echo "<li><a href=https://oracle.github.io/coherence-operator/$${i}index.html>$${NAME[1]}</a></li>" >> docs/index.html; \
 		fi; \
     done; \
     echo "</ul></body></html>" >> docs-unstable/index.html
+	cat docs-unstable/index.html
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
