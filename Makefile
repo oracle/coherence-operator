@@ -758,7 +758,15 @@ release-ghpages: helm-chart docs
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable/$(VERSION_FULL) || true
-	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)
+	cp -r $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
+	@echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
+	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
+	    if [[ "$${i}" != "docs/" ]]; then \
+	        IFS='/' read -ra NAME <<< "$${i}"; \
+			echo "<li><a href=https://oracle.github.io/coherence-operator/$${i}index.html>$${NAME[1]}</a></li>" >> docs/index.html; \
+		fi; \
+    done; \
+    echo "</ul></body></html>" >> docs-unstable/index.html
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
@@ -767,10 +775,11 @@ ifeq (true, $(PRE_RELEASE))
 	ls -ls charts-unstable
 
 	git status
+	git add docs-unstable/*
 	git add charts-unstable/*
 else
 	mkdir docs/$(VERSION_FULL) || true
-	cp -R $(BUILD_OUTPUT)/docs/$(VERSION_FULL)
+	cp -r $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
 	ls -ls docs
 
 	mkdir -p charts || true
@@ -779,6 +788,7 @@ else
 	ls -ls charts
 
 	git status
+	git add docs/*
 	git add charts/*
 endif
 	git clean -d -f
