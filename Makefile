@@ -759,7 +759,7 @@ release-ghpages: helm-chart docs
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
-	@echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
+	echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
 	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
 	    if [[ "$${i}" != "docs-unstable/" ]]; then \
 	        IFS='/' read -ra NAME <<< "$${i}"; \
