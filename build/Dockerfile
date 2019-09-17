@@ -1,5 +1,8 @@
 FROM oraclelinux:7-slim
 
+LABEL "com.oracle.coherence.application"="operator"
+LABEL "com.oracle.coherence.version"="${VERSION_FULL}"
+
 ENV OPERATOR=/usr/local/bin/coherence-operator \
     USER_UID=1001 \
     USER_NAME=coherence \

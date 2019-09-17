@@ -41,6 +41,15 @@ The yaml above will create a Coherence cluster with three storage enabled member
 There is not much that can actually be achived with this cluster because no ports are exposed outside of Kubernetes
 so the cluster is inaccessible. It could be accessed by other `Pods` in the same
 
+== Coherence Roles
+
+A role is what is actually configured in the `CoherenceCluster` spec. In a traditional Coherence application that may have
+had a number of storage enabled members and a number of storage disable Coherence*Extend proxy members this cluster would
+have effectively had two roles, "storage" and "proxy".
+Some clusters may simply have just a storage role and some complex Coherence applications and clusters may have many roles
+and even different roles storage enabled for different caches/services within the same cluster.
+
+
 == Kubernetes Resource Relationships When Creating Coherence Clusters
 
 When a `CoherenceCluster` is deployed into Kubernetes the Coherence Operator will create a number of other resources in Kubernetes.
@@ -73,13 +82,6 @@ For each port that a role in a `CoherenceCluster` is configured to expose a corr
 The name of the `Service` will be `<cluster-name>-<role-name>-<port-name>` (although this can be overridden when specifying the port
 in the `CoherenceCLuster` spec for that role and port).
 
-== Coherence Roles
-
-A role is what is actually configured in the `CoherenceCluster` spec. In a traditional Coherence application that may have
-had a number of storage enabled members and a number of storage disable Coherence*Extend proxy members this cluster would
-have effectively had two roles, "storage" and "proxy".
-Some clusters may simply have just a storage role and some complex Coherence applications and clusters may have many roles
-and even different roles storage enabled for different caches/services within the same cluster.
 
 
 
