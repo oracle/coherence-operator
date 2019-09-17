@@ -110,7 +110,6 @@ spec:
 the role name of the role is `data`
 <3> The replica count is set using the `replicas` field, in this case the role will have six replicas.
 
-
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
@@ -132,3 +131,51 @@ spec:
 <5> and a replica count of three.
 
 
+=== Explicit Roles - Shared Values
+
+When defining explicit roles in the `roles` list any values added to the `CoherenceCluster` `spec` directly (where an
+implicit role would normally be configured) become default values shared by all roles in the `roles` list unless specifically
+overridden by a `role`. This makes it easier to maintain configuration common to all roles in a single location in the
+spec.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  replicas: 6  <3>
+  roles:
+    - role: data   <1>
+    - role: proxy  <2>
+----
+
+<1> The roles list contains two explicit roles, `data`
+<2> and `proxy`
+<3> The `replicas` value is set at the `spec` level and so will be shared by both of the explicit roles
+
+In the above example the cluster will have a total of 12 members, six for each role.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  replicas: 6  <2>
+  roles:
+    - role: data
+    - role: proxy
+    - role: web    <1>
+      replicas: 2  <3>
+----
+
+<1> Now a new `web` role has been introduced
+<2> The replicas count in the `spec` section will still apply to the `data` and `proxy` roles, whch will each have a
+replica count of 6
+<3> The `web` role has a specific `replicas` value which will override the `spec.replicas` value so the `web` role will
+have two replicas

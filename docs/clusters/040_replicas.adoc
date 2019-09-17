@@ -1,0 +1,93 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Role Replica Count
+
+== Setting the Replica Count for a Role
+
+The replica count for a role in a `CoherenceCluster` is set using the `replicas` field of a role spec.
+
+=== Implicit Role Replicas
+
+When using the implicit role configuration the `replicas` count is set directly in the `CoherenceCluster` `spec` section.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  replicas: 6  <1>
+----
+
+<1> In this case a cluster will be created with a single implicit role names `storage` with a replica count of six.
+This will result in a `StatefulSet` with six `Pods`.
+
+=== Explicit Role Replicas
+
+When using the explicit role configuration the `replicas` count is set for each role in the `CoherenceCluster` `spec`
+`roles` list.
+
+For example to create cluster with two explicit roles, `data` and `proxy`:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      replicas: 6  <1>
+    - role: proxy
+      replicas: 3  <2>
+----
+
+<1> The `data` role has a replica count of six
+<2> The `proxy` role has a replic count of three
+
+
+=== Explicit Role with Default Replicas
+
+When using the explicit role configuration a value for `replicas` count can be set in the `CoherenceCluster` `spec`
+section that will be used as the default `replicas` value for any `role` in the `roles` list that does not explicitly
+specify a value.
+
+For example to create cluster with three explicit roles, `data` and `proxy` and `web`:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  replicas: 6  <1>
+  roles:
+    - role: data
+    - role: proxy
+    - role: web
+      replicas: 3  <2>
+----
+
+<1> The default `replicas` value is set to six. The `data` and `proxy` roles do not have a `replicas` value so will use
+this default value and so will each have a `StatefulSet` with a replica count of six
+<2> The `web` role has an explicit `replicas` value of three so will have three replicas in its `StatefulSet`
