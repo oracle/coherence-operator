@@ -37,7 +37,7 @@ spec:
   replicas: 6  <1>
 ----
 
-<1> In this case a cluster will be created with a single implicit role names `storage` with a replica count of six.
+<1> In this case a cluster will be created with a single implicit role named `storage` with a replica count of six.
 This will result in a `StatefulSet` with six `Pods`.
 
 === Explicit Role Replicas
@@ -65,7 +65,7 @@ spec:
 <2> The `proxy` role has a replic count of three
 
 
-=== Explicit Role with Default Replicas
+=== Explicit Roles with Default Replicas
 
 When using the explicit role configuration a value for `replicas` count can be set in the `CoherenceCluster` `spec`
 section that will be used as the default `replicas` value for any `role` in the `roles` list that does not explicitly
