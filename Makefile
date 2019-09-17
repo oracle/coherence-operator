@@ -749,61 +749,48 @@ serve-docs:
 	python -m SimpleHTTPServer 8080
 
 # ---------------------------------------------------------------------------
-# Release the Coherence Operator Helm chart.
+# Release the Coherence Operator documentation and Helm chart to the
+# gh-pages branch.
 # ---------------------------------------------------------------------------
-.PHONY: release-docs
-release-docs:
-	@echo "Releasing docs $(VERSION_FULL)"
-	git checkout gh-pages
-ifeq (true, $(PRE_RELEASE))
-	mkdir -p docs-unstable/$(VERSION_FULL) || true
-	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)
-	git status
-	git add docs-unstable/$(VERSION_FULL)/*
-else
-	mkdir docs/$(VERSION_FULL) || true
-	cp -R $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)
-	git status
-	git add docs/$(VERSION_FULL)/*
-endif
-	git clean -d -f
-	git status
-	git commit -m "adding Coherence Operator docs version: $(VERSION_FULL)"
-	git log -1
-ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed docs $(VERSION_FULL) to gh-pages"
-else
-	git push origin gh-pages
-endif
-
-# ---------------------------------------------------------------------------
-# Release the Coherence Operator Helm chart.
-# ---------------------------------------------------------------------------
-.PHONY: release-chart
-release-chart:
+.PHONY: release-ghpages
+release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
+	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
+	mkdir -p docs-unstable || true
+	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
+	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
+	ls -ls docs-unstable
+
 	mkdir -p charts-unstable || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
+
 	git status
+	git add docs-unstable/*
 	git add charts-unstable/*
 else
+	mkdir docs/$(VERSION_FULL) || true
+	cp -r $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
+	ls -ls docs
+
 	mkdir -p charts || true
 	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
+
 	git status
+	git add docs/*
 	git add charts/*
 endif
 	git clean -d -f
 	git status
-	git commit -m "adding Coherence Operator helm chart version: $(VERSION_FULL)"
+	git commit -m "adding Coherence Operator docs and helm chart version: $(VERSION_FULL)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed chart $(VERSION_FULL) to gh-pages"
+	@echo "release dry-run - would have pushed docs and Helm chart $(VERSION_FULL) to gh-pages"
 else
 	git push origin gh-pages
 endif
@@ -830,8 +817,8 @@ endif
 release:
 
 ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images docs helm-chart release-tag release-docs release-chart
+release: build-all-images release-tag release-ghpages
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images docs helm-chart release-tag release-docs release-chart push-release-images
+release: build-all-images release-tag release-ghpages push-release-images
 endif
