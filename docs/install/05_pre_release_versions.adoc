@@ -46,11 +46,11 @@ The `-l` parameter shows all versions as opposed to just the latest versions if 
 
 
 A specific pre-release version of the Helm chart can be installed using the `--version` argument,
-for example to use version `2.0.0-1909130555`:
+for example to use version `2.0.0-alpha1`:
 [source,bash]
 ----
 helm install coherence-unstable/coherence-operator \
-    --version 2.0.0-1909130555 \    <1>
+    --version 2.0.0-alpha1 \    <1>
     --namespace <namespace> \       <2>
     --name coherence-operator
 ----

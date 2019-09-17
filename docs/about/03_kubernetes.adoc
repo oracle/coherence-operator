@@ -90,10 +90,10 @@ and three worker nodes running in Docker containers.
 [source,bash]
 ----
 docker ps
-d790d6b779ff        kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago        Up 23 hours                                                kind-worker2
-a096c8bf0c1a        kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago        Up 23 hours                                                kind-worker3
-4c01d94c29b7        kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago        Up 23 hours         56603/tcp, 127.0.0.1:56603->6443/tcp   kind-control-plane
-8f62284be151        kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago        Up 23 hours                                                kind-worker
+d790d6b779ff  kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago  Up 23 hours                                         kind-worker2
+a096c8bf0c1a  kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago  Up 23 hours                                         kind-worker3
+4c01d94c29b7  kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago  Up 23 hours   56603/tcp, 127.0.0.1:56603->6443/tcp  kind-control-plane
+8f62284be151  kindest/node:v1.15.3   "/usr/local/bin/entr…"   23 hours ago  Up 23 hours                                         kind-worker
 ----
 
 * As described in the Kind documentation now export `KUBECONFIG` for the Kind cluster
@@ -135,20 +135,20 @@ For example if the Operator has been built with `make all` there will be the fol
 
 [source,bash]
 ----
-docker images
+docker images --format "table {{.Repository}}\t{{.Tag}}"
 
-REPOSITORY                                                     TAG                               IMAGE ID            CREATED             SIZE
-iad.ocir.io/odx-stateservice/test/oracle/operator-test-image   {operator-version}-ci                          7d5b0e2baf86        44 minutes ago      6.66kB
-iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    {operator-version}-utils                    9bbf51c5c7fb        44 minutes ago      10.7MB
-iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    {operator-version}-ci                          d8783eaaed97        45 minutes ago      176MB
+REPOSITORY                                                     TAG
+iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.0-ci
+iad.ocir.io/odx-stateservice/test/oracle/operator-test-image   2.0.0-ci
+iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.0-ci-utils
 ----
 
 These images can be added to the Kind cluster with the commands:
 
 [source,bash]
 ----
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:{operator-version}-ci
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:{operator-version}-ci-utils
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/operator-test-image:{operator-version}-ci
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-ci
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-ci-utils
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/operator-test-image:2.0.0-ci
 ----
 
