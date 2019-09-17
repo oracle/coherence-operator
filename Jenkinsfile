@@ -262,11 +262,11 @@ pipeline {
                     fi
                 '''
                 withCredentials([
+                    string(credentialsId: 'coherence-operator-release-dockerhub-username', variable: 'DOCKER_HUB_USERNAME'),
+                    string(credentialsId: 'coherence-operator-release-dockerhub-password', variable: 'DOCKER_HUB_PASSWORD'),
                     string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
                     string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
                     string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
-                    string(credentialsId: 'coherence-operator-release-dockerhub-username', variable: 'DOCKER_HUB_USERNAME'),
-                    string(credentialsId: 'coherence-operator-release-dockerhub-password', variable: 'DOCKER_HUB_PASSWORD'),
                     withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                         sh '''
                         export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
