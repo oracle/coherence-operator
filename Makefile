@@ -755,19 +755,12 @@ serve-docs:
 .PHONY: release-ghpages
 release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
+	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
-	echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
-	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
-	    if [[ "$${i}" != "docs-unstable/" ]]; then \
-	        IFS='/' read -ra NAME <<< "$${i}"; \
-			echo "<li><a href=https://oracle.github.io/coherence-operator/$${i}index.html>$${NAME[1]}</a></li>" >> docs-unstable/index.html; \
-		fi; \
-    done; \
-    echo "</ul></body></html>" >> docs-unstable/index.html
-	cat docs-unstable/index.html
+	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
