@@ -757,8 +757,8 @@ release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
-	mkdir -p docs-unstable/$(VERSION_FULL) || true
-	cp -r $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
+	mkdir -p docs-unstable || true
+	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
 	@echo "<html><body><h2>Unstable Release Documentation</h2><ul>" > docs-unstable/index.html; \
 	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
 	    if [[ "$${i}" != "docs/" ]]; then \
