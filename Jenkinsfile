@@ -271,7 +271,7 @@ pipeline {
                         sh '''
                         export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                         docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                        docker login -u DOCKER_HUB_USERNAME -p DOCKER_HUB_PASSWORD
+                        docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
                         git config user.name "Coherence Bot"
                         git config user.email coherence-bot_ww@oracle.com
                         make clean
