@@ -261,15 +261,24 @@ pipeline {
                         unset NO_PROXY
                     fi
                 '''
-                withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
-                    sh '''
-                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    git config user.name "Coherence Bot"
-                    git config user.email coherence-bot_ww@oracle.com
-                    make clean
-                    make build-all-images VERSION_SUFFIX=${RELEASE_SUFFIX} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO}
-                    make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
-                    '''
+                withCredentials([
+                    string(credentialsId: 'coherence-operator-release-dockerhub-username', variable: 'DOCKER_HUB_USERNAME'),
+                    string(credentialsId: 'coherence-operator-release-dockerhub-password', variable: 'DOCKER_HUB_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-password', variable: 'DOCKER_PASSWORD'),
+                    string(credentialsId: 'coherence-operator-docker-username', variable: 'DOCKER_USERNAME'),
+                    string(credentialsId: 'coherence-operator-docker-server',   variable: 'DOCKER_SERVER')]) {
+                    withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
+                        sh '''
+                        export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                        docker login $DOCKER_SERVER -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                        docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+                        git config user.name "Coherence Bot"
+                        git config user.email coherence-bot_ww@oracle.com
+                        make clean
+                        make build-all-images VERSION_SUFFIX=${RELEASE_SUFFIX} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO}
+                        make release RELEASE_DRY_RUN=${DRY_RUN} RELEASE_IMAGE_PREFIX=${RELEASE_IMAGE_REPO} VERSION_SUFFIX=${RELEASE_SUFFIX}
+                        '''
+                    }
                 }
             }
         }
