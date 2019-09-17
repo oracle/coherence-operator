@@ -752,7 +752,7 @@ serve-docs:
 # Release the Coherence Operator Helm chart.
 # ---------------------------------------------------------------------------
 .PHONY: release-docs
-release-docs: docs
+release-docs:
 	@echo "Releasing docs $(VERSION_FULL)"
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
@@ -780,7 +780,7 @@ endif
 # Release the Coherence Operator Helm chart.
 # ---------------------------------------------------------------------------
 .PHONY: release-chart
-release-chart: helm-chart
+release-chart:
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	git checkout gh-pages
 ifeq (true, $(PRE_RELEASE))
@@ -830,8 +830,8 @@ endif
 release:
 
 ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-tag release-chart release-docs
+release: build-all-images docs helm-chart release-tag release-docs release-chart
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images release-tag release-chart release-docs push-release-images
+release: build-all-images docs helm-chart release-tag release-docs release-chart push-release-images
 endif
