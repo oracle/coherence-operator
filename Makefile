@@ -763,7 +763,7 @@ ifeq (true, $(PRE_RELEASE))
 	for i in $(sort $(dir $(wildcard docs-unstable/*/))); do \
 	    if [[ "$${i}" != "docs-unstable/" ]]; then \
 	        IFS='/' read -ra NAME <<< "$${i}"; \
-			echo "<li><a href=https://oracle.github.io/coherence-operator/$${i}index.html>$${NAME[1]}</a></li>" >> docs/index.html; \
+			echo "<li><a href=https://oracle.github.io/coherence-operator/$${i}index.html>$${NAME[1]}</a></li>" >> docs-unstable/index.html; \
 		fi; \
     done; \
     echo "</ul></body></html>" >> docs-unstable/index.html
