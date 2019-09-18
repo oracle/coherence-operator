@@ -136,7 +136,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to federation details for destination ${__cell_1}",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
+          "linkUrl": "/d/coh-federation-details?var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -283,7 +283,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to federation details for origin ${__cell_2}",
-          "linkUrl": "/d/coh-federation-details?refresh=10s&orgId=1&var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
+          "linkUrl": "/d/coh-federation-details?var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName&var-Destination=${__cell_2}",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -1530,7 +1530,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -1630,7 +1630,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

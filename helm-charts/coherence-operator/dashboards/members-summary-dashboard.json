@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 46,
-  "iteration": 1563526054959,
+  "id": 21,
+  "iteration": 1564115298551,
   "links": [
     {
       "icon": "dashboard",
@@ -138,7 +138,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -189,7 +189,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to machines summary",
-          "linkUrl": "/d/coh-machines-summary",
+          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "machine",
           "thresholds": [],
@@ -344,7 +344,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -421,7 +421,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?refresh=10s&orgId=1var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
@@ -641,14 +641,14 @@
         "avg": false,
         "current": false,
         "hideZero": true,
-        "max": true,
+        "max": false,
         "min": false,
         "rightSide": false,
         "show": true,
         "sort": "current",
         "sortDesc": true,
         "total": false,
-        "values": true
+        "values": false
       },
       "lines": false,
       "linewidth": 1,
@@ -664,8 +664,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"}) by (member) - sum(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"} offset 1m) by (member)",
+          "expr": "sum(idelta(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"}[1m])) by(member) > 0",
           "format": "time_series",
+          "instant": false,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -694,7 +695,7 @@
         {
           "decimals": 0,
           "format": "none",
-          "label": null,
+          "label": "",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -732,7 +733,7 @@
       "legend": {
         "alignAsTable": false,
         "avg": false,
-        "current": true,
+        "current": false,
         "hideEmpty": false,
         "hideZero": true,
         "max": false,
@@ -741,12 +742,12 @@
         "sort": "current",
         "sortDesc": true,
         "total": false,
-        "values": true
+        "values": false
       },
       "lines": false,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -757,7 +758,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}) by (member) - sum(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"} offset 1m) by (member)",
+          "expr": "sum(idelta(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -984,7 +985,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -995,6 +996,9 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
+          "text": "PrimaryCluster",
+          "value": "PrimaryCluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -1131,7 +1135,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1162,5 +1166,5 @@
   "timezone": "",
   "title": "Members Summary Dashboard",
   "uid": "coh-members-summary",
-  "version": 10
+  "version": 1
 }
