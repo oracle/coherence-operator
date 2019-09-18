@@ -29,7 +29,7 @@
   ],
   "panels": [
     {
-      "content": "<center><h3>This dashboard is purely used to generate useful alerts because of a limitation in Grafana that<br/>\ndoes not currently allow for using alerts when using template variables.\n<br/>\nThese items on this dashboard are not meant to be used for monitoring general monitoring.</h3></center>",
+      "content": "<center><h3>This dashboard is purely used to generate useful alerts because of a limitation in Grafana that<br/>\ndoes not currently allow for using alerts when using template variables.\n<br/>\nThese items on this dashboard are not meant to be used for general monitoring.</h3></center>",
       "gridPos": {
         "h": 4,
         "w": 24,
@@ -1411,7 +1411,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [],
@@ -1419,7 +1419,7 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

@@ -91,7 +91,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to cache details for ${__cell}",
-          "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-CacheName=${__cell}",
+          "linkUrl": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
@@ -110,7 +110,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -336,7 +336,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?refresh=10s&orgId=1&var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "coherence_service",
           "thresholds": [],
@@ -371,7 +371,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to cache details for ${__cell}",
-          "linkUrl": "/d/coh-cache-details?refresh=10s&orgId=1&var-ClusterName=$ClusterName&var-ServiceName=${__cell_2}&var-CacheName=${__cell}",
+          "linkUrl": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__cell_2}&var-CacheName=${__cell}",
           "mappingType": 1,
           "pattern": "cache",
           "thresholds": [],
@@ -426,7 +426,7 @@
       "type": "table"
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [
@@ -533,7 +533,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

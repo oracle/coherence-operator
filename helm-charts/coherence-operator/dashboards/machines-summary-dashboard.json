@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1556853493525,
+  "id": 29,
+  "iteration": 1564642461051,
   "links": [
     {
       "icon": "dashboard",
@@ -66,15 +66,13 @@
       "links": [],
       "mode": "html",
       "title": "",
-      "transparent": false,
       "type": "text"
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
-        "h": 5,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 2
@@ -213,25 +211,6 @@
           "unit": "decbytes"
         },
         {
-          "alias": "Machine",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": false,
-          "linkTooltip": "",
-          "linkUrl": "/d/coh-machines-summary",
-          "mappingType": 1,
-          "pattern": "machine",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
           "alias": "",
           "colorMode": null,
           "colors": [
@@ -307,13 +286,12 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "gridPos": {
-        "h": 9,
+        "h": 11,
         "w": 12,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 96,
       "legend": {
@@ -357,6 +335,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Free Physical Memory",
       "tooltip": {
@@ -401,14 +380,13 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "decimals": null,
       "fill": 1,
       "gridPos": {
-        "h": 9,
+        "h": 11,
         "w": 12,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "id": 97,
       "legend": {
@@ -461,6 +439,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Load Averages",
       "tooltip": {
@@ -501,8 +480,8 @@
       }
     }
   ],
-  "refresh": "10s",
-  "schemaVersion": 16,
+  "refresh": "30s",
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -582,7 +561,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -613,5 +592,5 @@
   "timezone": "",
   "title": "Machines Summary Dashboard",
   "uid": "coh-machines-summary",
-  "version": 2
+  "version": 1
 }
