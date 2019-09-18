@@ -1,0 +1,226 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Setting the Coherence Image
+
+
+== Setting the Coherence Image
+
+The Coherence Operator has a default setting for the Coherence image that will be used when by `Pods` in a `CoherenceCluster`.
+This default value can be overridden to enable roles in the cluster to use a different image.
+If the image being configured is from a registry requiring authentication see the section on <<clusters/070_private_repos.adoc,pulling from private registries>>.
+
+As well as setting the image name it is also sometimes useful to set the Coherence image's  <<pull-policy,image pull policy>>.
+
+
+===  Setting the Coherence Image for the Implicit Role
+
+When using the implicit role configuration the Coherence image to use is set directly in the `CoherenceCluster` `spec`
+`images.coherence.image`` section.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  images:
+    coherence:
+      image: container-registry.oracle.com/middleware/coherence/12.2.1.4  <1>
+----
+
+<1> The `coherence` container in the implicit role's `Pod` will use the Coherence image `container-registry.oracle.com/middleware/coherence/12.2.1.4`
+
+
+===  Setting the Coherence Image for Explicit Roles
+
+When using the explicit roles in a `CoherenceCluster` `roles` list the Coherence image to use is set for each role.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <1>
+    - role: proxy
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <2>
+----
+
+<1> The `coherence` container in the  `data` role `Pods` will use the Coherence
+image `container-registry.oracle.com/middleware/coherence/12.2.1.4.1`
+<2> The `coherence` container in the  `proxy` role `Pods` will use the Coherence
+image `container-registry.oracle.com/middleware/coherence/12.2.1.4.1`
+
+
+===  Setting the Coherence Image for Explicit Roles with a Default
+
+When using the explicit roles in a `CoherenceCluster` `roles` list the Coherence image to use can be set in the
+`CoherenceCluster` `spec` section and will apply to all roles unless specifically overridden for a `role` in the
+`roles` list.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  images:
+    coherence:
+      image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
+  roles:
+    - role: data
+    - role: proxy
+----
+
+<1> The image `container-registry.oracle.com/middleware/coherence/12.2.1.4.0` set in the `spec` section will be used by
+both the `data` and the `proxy` roles. The `coherence` container in all of the `Pods` will use this image.
+
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  images:
+    coherence:
+      image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
+  roles:
+    - role: data
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <2>
+    - role: proxy
+    - role: web
+----
+
+<1> The image `container-registry.oracle.com/middleware/coherence/12.2.1.4.0` set in the `spec` section will be used by
+both the `proxy` and the `web` roles. The `coherence` container in all of the `Pods` will use this image.
+<2> The `container-registry.oracle.com/middleware/coherence/12.2.1.4.1` image is specifically set for the `data` role
+so the `coherence` container in the `Pods` for the `data` role will use this image.
+
+
+[#pull-policy]
+== Setting the Coherence Image Pull Policy
+
+The image pull policy controls when (and if) Kubernetes will pull the Coherence image onto the node where the Coherence
+`Pods` are being schedules.
+See https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes imagePullPolicy] for more information.
+
+NOTE: The Kubernetes default pull policy is `IfNotPresent` unless the image tag is `:latest` in which case the default
+policy is `Always`. The `IfNotPresent` policy causes the Kubelet to skip pulling an image if it already exists.
+Note that you should avoid using the `:latest` tag, see
+https://kubernetes.io/docs/concepts/configuration/overview/#container-images[Kubernetes Best Practices for Configuration]
+for more information.
+
+The Coherence image's pull policy is set using the `imagePullPolicy` field in the `spec.images.coherence` section.
+
+For example:
+
+1. To set the `imagePullPolicy` for the implicit role.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  images:
+    coherence:
+      image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+      imagePullPolicy: Always <1>
+----
+
+<1> The image pull policy for the implicit role above has been set to `Always`
+
+
+2. To set the `imagePullPolicy` for the explicit roles in the `roles` list.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+          imagePullPolicy: Always <1>
+    - role: proxy
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+          imagePullPolicy: IfNotPresent <2>
+----
+
+<1> The image pull policy for the `data` role has been set to `Always`
+<2> The image pull policy for the `proxy` role above has been set to `IfNotPresent`
+
+
+3. To set the `imagePullPolicy` for the explicit roles with a default value.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  images:
+    coherence:
+      imagePullPolicy: Always <1>
+  roles:
+    - role: data
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+    - role: proxy
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+    - role: web
+      images:
+        coherence:
+          image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+          imagePullPolicy: IfNotPresent <2>
+----
+
+<1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because
+they do not specifically set the value in their specs.
+<2> The image pull policy for the `web` role above has been set to `IfNotPresent`
