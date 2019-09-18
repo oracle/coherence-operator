@@ -25,15 +25,15 @@
 [PILLARS]
 ====
 [CARD]
-.Quickstart
+.Install
 [link=install/01_introduction.adoc]
 --
 Installing and running the Coherence Operator.
 --
 
 [CARD]
-.Install
-[link=guides/01_overview.adoc]
+.Guides
+[link=guides/010_overview.adoc]
 --
 Follow step-by-step guides to using the Coherence Operator to manage Coherence clusters.
 --
@@ -46,21 +46,21 @@ Follow step-by-step guides to using the Coherence Operator to manage Coherence c
 
 [CARD]
 .ReST Management API
-[link=guides/03_management.adoc]
+[link=guides/080_management.adoc]
 --
 Managing Coherence clusters with management over ReST.
 --
 
 [CARD]
 .Coherence Metrics
-[link=guides/04_metrics.adoc]
+[link=guides/090_metrics.adoc]
 --
 Publishing metrics from Coherence clusters.
 --
 
 [CARD]
 .Clusters
-[link=clusters/01_introduction.adoc]
+[link=clusters/010_introduction.adoc]
 --
 Managing Coherence clusters.
 --

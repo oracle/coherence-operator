@@ -32,10 +32,10 @@ command:
 
 [source,bash]
 ----
-make build-all-images
+make all
 ----
 
-The `build-all-images` make target will build the Go and Java parts of the Operator and create all of the images required.
+The `all` make target will build the Go and Java parts of the Operator and create all of the images required.
 
 NOTE: There have been issues with Go not being able to resolve all of the module dependencies required to build the
 Coherence Operator. This can be resolved by setting the `GOPROXY` environment variable `GOPROXY=https://proxy.golang.org`

@@ -16,46 +16,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Overview
-:description: Coherence Operator documentation
-:keywords: oracle coherence, kubernetes, operator, documentation
+= Deploying Coherence Applications
 
-== Get going
+Whilst it is simple to deploy a Coherence cluster into Kubernetes in most cases there is also a requirement to add
+application code and configuration to the Coherence JVMs class path.
 
-[PILLARS]
-====
-[CARD]
-.Install
-[icon=settings,link=install/01_introduction.adoc]
---
-Installing and running the Coherence Operator.
---
+== Deploying Coherence Applications
 
-[CARD]
-.Guides
-[icon=explore,link=guides/010_overview.adoc]
---
-Follow step-by-step guides to using the Coherence Operator to manage Coherence clusters.
---
-====
-
-
-== In Depth
-
-[PILLARS]
-====
-
-[CARD]
-.Coherence Clusters
-[icon=widgets,link=clusters/01_introduction.adoc]
---
-In depth CoherenceCluster CRD documentation.
---
-
-[CARD]
-.Developer
-[icon=build,link=developer/01_introduction.adoc]
---
-Developer guide for building the Coherence Operator.
---
-====
