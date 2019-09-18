@@ -167,12 +167,14 @@ type CoherenceInternalStoreSpec struct {
 	// would be added to a Pod containers spec, for example these values:
 	//
 	// env:
-	//   FOO: "foo-value"
-	//   BAR: "bar-value"
+	//   - name "FOO"
+	//     value: "foo-value"
+	//   - name: "BAR"
+	//     value "bar-value"
 	//
 	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
 	// +optional
-	Env map[string]string `json:"env,omitempty"`
+	Env []corev1.EnvVar `json:"env,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
 	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
 	// include annotations for Prometheus it would look like this:
@@ -238,6 +240,12 @@ type CoherenceInternalStoreSpec struct {
 	// The settings for enabling debug mode in the JVM.
 	// +optional
 	Debug *DebugSpec `json:"debug,omitempty"`
+	// The Graal application type to execute.
+	// This field would be set if using the Coherence Graal image and running a none-Java
+	// application. For example if the application was a Node application this field
+	// would be set to "node".
+	// +optional
+	GraalApplicationType *string `json:"graalApplicationType,omitempty"`
 }
 
 // CoherenceInternalStatus defines the observed state of CoherenceInternal
@@ -282,6 +290,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.Store.RevisionHistoryLimit = role.Spec.RevisionHistoryLimit
 	out.Store.CurlTimeout = role.Spec.CurlTimeout
 	out.Store.Debug = role.Spec.Debug
+	out.Store.GraalApplicationType = role.Spec.GraalApplicationType
 
 	if role.Spec.Persistence != nil {
 		out.Store.Persistence = role.Spec.Persistence.DeepCopy()
@@ -317,11 +326,14 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 
 	// Set the Env
 	if role.Spec.Env != nil {
-		env := make(map[string]string)
-		for k, v := range role.Spec.Env {
-			env[k] = v
+		out.Store.Env = make([]corev1.EnvVar, len(role.Spec.Env))
+		for i, e := range role.Spec.Env {
+			out.Store.Env[i] = corev1.EnvVar{
+				Name:      e.Name,
+				Value:     e.Value,
+				ValueFrom: e.ValueFrom,
+			}
 		}
-		out.Store.Env = env
 	}
 
 	// Set the Annotations

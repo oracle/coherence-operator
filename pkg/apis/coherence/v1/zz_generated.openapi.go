@@ -233,13 +233,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 					},
 					"env": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  - name \"FOO\"\n    value: \"foo-value\"\n  - name: \"BAR\"\n    value \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
@@ -400,6 +399,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
 						},
 					},
+					"graalApplicationType": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -417,7 +423,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -731,13 +737,12 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 					},
 					"env": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  - name \"FOO\"\n    value: \"foo-value\"\n  - name: \"BAR\"\n    value \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
@@ -853,11 +858,18 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
 						},
 					},
+					"graalApplicationType": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1033,13 +1045,12 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					},
 					"env": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  FOO: \"foo-value\"\n  BAR: \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  - name \"FOO\"\n    value: \"foo-value\"\n  - name: \"BAR\"\n    value \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
@@ -1200,11 +1211,18 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
 						},
 					},
+					"graalApplicationType": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 

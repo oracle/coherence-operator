@@ -70,8 +70,8 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			javaOptsOne = "-Dcoherence.log.level=9"
 			javaOptsTwo = "-Dcoherence.log.level=5"
 
-			envOne = map[string]string{"foo1": "1", "foo2": "2"}
-			envTwo = map[string]string{"foo3": "3", "foo4": "4"}
+			envOne = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}}
+			envTwo = []corev1.EnvVar{{Name: "foo3", Value: "3"}, {Name: "foo4", Value: "4"}}
 
 			annotationsOne = map[string]string{"anno1": "1", "anno2": "2"}
 			annotationsTwo = map[string]string{"anno3": "3", "anno4": "4"}
@@ -1275,7 +1275,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "3", "foo4": "4"}
+				expected.Env = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}, {Name: "foo3", Value: "3"}, {Name: "foo4", Value: "4"}}
 
 				Expect(clone).To(Equal(expected))
 			})
@@ -1287,35 +1287,15 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 				defaults = roleSpecTwo.DeepCopy()
 				original = roleSpecOne.DeepCopy()
 
-				original.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "changed"}
-				defaults.Env = map[string]string{"foo3": "3", "foo4": "4"}
+				original.Env = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}, {Name: "foo3", Value: "changed"}}
+				defaults.Env = []corev1.EnvVar{{Name: "foo3", Value: "3"}, {Name: "foo4", Value: "4"}}
 			})
 
 			It("clone should have the combined Env with the duplicate key mapped to the originals value", func() {
 				// expected is a deep copy of original so that we can change the
 				// expected without changing original
 				expected := original.DeepCopy()
-				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": "changed", "foo4": "4"}
-
-				Expect(clone).To(Equal(expected))
-			})
-		})
-
-		When("the original Env has duplicate keys to the default Env where the value is empty string", func() {
-			BeforeEach(func() {
-				// original and defaults are deep copies so that we can change them
-				defaults = roleSpecTwo.DeepCopy()
-				original = roleSpecOne.DeepCopy()
-
-				original.Env = map[string]string{"foo1": "1", "foo2": "2", "foo3": ""}
-				defaults.Env = map[string]string{"foo3": "3", "foo4": "4"}
-			})
-
-			It("clone should have the combined Env with the duplicate key removed", func() {
-				// expected is a deep copy of original so that we can change the
-				// expected without changing original
-				expected := original.DeepCopy()
-				expected.Env = map[string]string{"foo1": "1", "foo2": "2", "foo4": "4"}
+				expected.Env = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}, {Name: "foo3", Value: "changed"}, {Name: "foo4", Value: "4"}}
 
 				Expect(clone).To(Equal(expected))
 			})

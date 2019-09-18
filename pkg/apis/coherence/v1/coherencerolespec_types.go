@@ -91,12 +91,14 @@ type CoherenceRoleSpec struct {
 	// would be added to a Pod containers spec, for example these values:
 	//
 	// env:
-	//   FOO: "foo-value"
-	//   BAR: "bar-value"
+	//   - name "FOO"
+	//     value: "foo-value"
+	//   - name: "BAR"
+	//     value "bar-value"
 	//
 	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
 	// +optional
-	Env map[string]string `json:"env,omitempty"`
+	Env []corev1.EnvVar `json:"env,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
 	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
 	// include annotations for Prometheus it would look like this:
@@ -205,6 +207,12 @@ type CoherenceRoleSpec struct {
 	// The settings for enabling debug mode in the JVM.
 	// +optional
 	Debug *DebugSpec `json:"debug,omitempty"`
+	// The Graal application type to execute.
+	// This field would be set if using the Coherence Graal image and running a none-Java
+	// application. For example if the application was a Node application this field
+	// would be set to "node".
+	// +optional
+	GraalApplicationType *string `json:"graalApplicationType,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -346,6 +354,12 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		clone.CurlTimeout = defaults.CurlTimeout
 	}
 
+	if in.GraalApplicationType != nil {
+		clone.GraalApplicationType = in.GraalApplicationType
+	} else {
+		clone.GraalApplicationType = defaults.GraalApplicationType
+	}
+
 	if in.OverrideConfig != nil {
 		clone.OverrideConfig = in.OverrideConfig
 	} else {
@@ -455,7 +469,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	}
 
 	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)
-	clone.Env = in.mergeMap(in.Env, defaults.Env)
+	clone.Env = in.mergeEnvVar(in.Env, defaults.Env)
 	clone.Annotations = in.mergeMap(in.Annotations, defaults.Annotations)
 	clone.NodeSelector = in.mergeMap(in.NodeSelector, defaults.NodeSelector)
 
@@ -470,6 +484,40 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.ReadinessProbe = in.ReadinessProbe.DeepCopyWithDefaults(defaults.ReadinessProbe)
 
 	return &clone
+}
+
+func (in *CoherenceRoleSpec) mergeEnvVar(primary, secondary []corev1.EnvVar) []corev1.EnvVar {
+	if primary == nil {
+		return secondary
+	}
+
+	if secondary == nil {
+		return primary
+	}
+
+	if len(primary) == 0 && len(secondary) == 0 {
+		return []corev1.EnvVar{}
+	}
+
+	var merged []corev1.EnvVar
+	merged = append(merged, primary...)
+
+	for _, p := range secondary {
+		found := false
+		for _, pp := range primary {
+			if pp.Name == p.Name {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			merged = append(merged, p)
+		}
+	}
+
+	return merged
+
 }
 
 // Return a map that is two maps merged.

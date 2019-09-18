@@ -187,10 +187,7 @@ spec:
           env:
 {{- if .Values.store -}}
   {{- if .Values.store.env -}}
-    {{- range $name, $val := .Values.store.env }}
-            - name: {{ $name | quote }}
-              value: {{ $val }}
-    {{- end }}
+{{ toYaml .Values.store.env | nindent 12 }}
   {{- end }}
   {{- if .Values.store.wkaRelease }}
 #           WKA set to existing Helm release headless service
@@ -241,6 +238,10 @@ spec:
             - name: COH_UTIL_DIR
               value: "/utils"
 {{- if .Values.store }}
+  {{- if .Values.store.graalApplicationType }}
+            - name: APP_TYPE
+              value: {{ .Values.store.graalApplicationType | quote }}
+  {{- end }}
   {{- if .Values.store.curlTimeout }}
             - name: CURL_TIMEOUT
               value: {{ .Values.store.curlTimeout | quote }}
