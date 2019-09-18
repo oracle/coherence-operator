@@ -1301,26 +1301,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			})
 		})
 
-		When("the original Env has duplicate keys to the default Env where the value is empty string", func() {
-			BeforeEach(func() {
-				// original and defaults are deep copies so that we can change them
-				defaults = roleSpecTwo.DeepCopy()
-				original = roleSpecOne.DeepCopy()
-
-				original.Env = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}, {Name: "foo3", Value: ""}}
-				defaults.Env = []corev1.EnvVar{{Name: "foo3", Value: "3"}, {Name: "foo4", Value: "4"}}
-			})
-
-			It("clone should have the combined Env with the duplicate key removed", func() {
-				// expected is a deep copy of original so that we can change the
-				// expected without changing original
-				expected := original.DeepCopy()
-				expected.Env = []corev1.EnvVar{{Name: "foo1", Value: "1"}, {Name: "foo2", Value: "2"}, {Name: "foo4", Value: "4"}}
-
-				Expect(clone).To(Equal(expected))
-			})
-		})
-
 		When("the original Annotations is not set and default Annotations is set", func() {
 			BeforeEach(func() {
 				// original and defaults are deep copies so that we can change them
