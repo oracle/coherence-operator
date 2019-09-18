@@ -61,6 +61,12 @@ store:
   #   the default is tangosol-coherence-override.xml
   overrideConfig:
 
+  # store.graalApplicationType is the Graal application type to execute.
+  #	This field would be set if using the Coherence Graal image and running a none-Java
+  #	application. For example if the application was a Node application this field
+  #	would be set to "node"
+  graalApplicationType: java
+
   # The timeout in seconds used by curl when requesting site and rack info in the start script
   curlTimeout: 120
 

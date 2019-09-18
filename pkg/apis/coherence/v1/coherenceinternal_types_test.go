@@ -136,7 +136,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 				JvmArgs:     stringPtr("-XX:+UseG1GC"),
 				JavaOpts:    stringPtr("-Dcoherence.log.level=9"),
 				Ports:       []coherence.NamedPortSpec{portOne, portTwo},
-				Env:         map[string]string{"FOO": "foo-value", "BAR": "bar-value"},
+				Env:         []corev1.EnvVar{{Name: "FOO", Value: "foo-value"}, {Name: "BAR", Value: "bar-value"}},
 				Annotations: map[string]string{"prometheus.io/scrape": "true", "prometheus.io/port": "2408"},
 				Persistence: &coherence.PersistentStorageSpec{
 					Enabled: boolPtr(true),
@@ -379,13 +379,7 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 			})
 
 			It("should set the Store Env", func() {
-				expected := make(map[string]string)
-
-				for k, v := range role.Spec.Env {
-					expected[k] = v
-				}
-
-				Expect(result.Store.Env).To(Equal(expected))
+				Expect(result.Store.Env).To(Equal(role.Spec.Env))
 			})
 
 			It("should set the Store Annotations", func() {

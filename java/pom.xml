@@ -24,6 +24,7 @@
   <modules>
     <module>coherence-utils</module>
     <module>operator-test</module>
+    <module>operator-script-test</module>
   </modules>
 
   <properties>
@@ -68,6 +69,16 @@
       <dependency>
         <groupId>com.oracle.coherence</groupId>
         <artifactId>coherence</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence-management</artifactId>
+        <version>${coherence.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence-metrics</artifactId>
         <version>${coherence.version}</version>
       </dependency>
 

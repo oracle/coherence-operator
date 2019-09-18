@@ -332,9 +332,9 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
+		*out = make([]corev1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Annotations != nil {
@@ -409,6 +409,11 @@ func (in *CoherenceInternalStoreSpec) DeepCopyInto(out *CoherenceInternalStoreSp
 		in, out := &in.Debug, &out.Debug
 		*out = new(DebugSpec)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.GraalApplicationType != nil {
+		in, out := &in.GraalApplicationType, &out.GraalApplicationType
+		*out = new(string)
+		**out = **in
 	}
 	return
 }
@@ -568,9 +573,9 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
+		*out = make([]corev1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Annotations != nil {
@@ -674,6 +679,11 @@ func (in *CoherenceRoleSpec) DeepCopyInto(out *CoherenceRoleSpec) {
 		in, out := &in.Debug, &out.Debug
 		*out = new(DebugSpec)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.GraalApplicationType != nil {
+		in, out := &in.GraalApplicationType, &out.GraalApplicationType
+		*out = new(string)
+		**out = **in
 	}
 	return
 }

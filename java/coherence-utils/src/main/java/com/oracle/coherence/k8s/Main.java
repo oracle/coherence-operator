@@ -6,15 +6,9 @@
 
 package com.oracle.coherence.k8s;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
-import java.util.function.Supplier;
 
 /**
  * A main class that is used to run some initialisation code before
@@ -56,111 +50,8 @@ public class Main
      *
      * @throws Exception if the MBean cannot be registered.
      */
-    static void registerHealthMBean() throws Exception
+    static void registerHealthMBean()
         {
-        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        Health      health = new Health();
-        server.registerMBean(health,  new ObjectName(HealthObjectName));
+        HealthMBeanFactory.registerHealthMBean();
         }
-
-    // ----- inner interface HealthMBean ------------------------------------
-
-    /**
-     * A health check MBean.
-     */
-    public interface HealthMBean
-        {
-        /**
-         * Returns {@code true} if the JVM is ready.
-         *
-         * @return {@code true} if the JVM is ready
-         */
-        boolean ready();
-
-        /**
-         * Returns {@code true} if the JVM is StatusHA.
-         *
-         * @return {@code true} if the JVM is StatusHA
-         */
-        boolean statusHA();
-
-        /**
-         * Returns {@code true} if the JVM is healthy.
-         *
-         * @return {@code true} if the JVM is healthy
-         */
-        boolean healthy();
-        }
-
-    // ----- inner interface Health -----------------------------------------
-
-    /**
-     * The health MBean implementation.
-     */
-    public static class Health implements HealthMBean
-        {
-        // ----- constructors -----------------------------------------------
-
-        Health()
-            {
-            this(CacheFactory::ensureCluster);
-            }
-
-        Health(Supplier<Cluster> supplier)
-            {
-            f_supplier = supplier;
-            f_probe    = new ClusterMemberProbe(supplier);
-            }
-
-        // ----- HealthMBean methods ----------------------------------------
-
-        @Override
-        public boolean ready()
-            {
-            return hasClusterMembers() && statusHA();
-            }
-
-        @Override
-        public boolean statusHA()
-            {
-            return f_probe.isStatusHA();
-            }
-
-        @Override
-        public boolean healthy()
-            {
-            return hasClusterMembers();
-            }
-
-        // ----- helper methods ---------------------------------------------
-
-        /**
-         * Determine whether there are any members in the cluster.
-         *
-         * @return  {@code true} if the Coherence cluster has members
-         */
-        private boolean hasClusterMembers()
-            {
-            return !f_supplier.get().getMemberSet().isEmpty();
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The {@link Cluster} supplier.
-         */
-        private final Supplier<Cluster> f_supplier;
-
-        /**
-         * The probe to use to obtain StatusHA.
-         */
-        private final ClusterMemberProbe f_probe;
-        }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The object name of the health MBean.
-     */
-    public static final String HealthObjectName = "CoherenceOperator:type=Health";
     }

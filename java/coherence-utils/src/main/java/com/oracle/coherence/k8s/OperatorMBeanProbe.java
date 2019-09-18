@@ -112,35 +112,57 @@ public class OperatorMBeanProbe
                 List<VirtualMachineDescriptor> vms = VirtualMachine.list();
                 for (VirtualMachineDescriptor desc : vms)
                     {
-                    if (!desc.displayName().contains(Main.class.getCanonicalName()))
+                    String name = desc.displayName();
+                    System.err.println("MBeanProbe: VM Name is '" + name + "'");
+                    if (name.isEmpty() || desc.displayName().contains(Main.class.getCanonicalName()))
                         {
-                        continue;
-                        }
-
-                    VirtualMachine vm;
-                    try
-                        {
-                        vm = VirtualMachine.attach(desc);
-                        }
-                    catch (Throwable e)
-                        {
-                        continue;
-                        }
-
-                    try
-                        {
-                        Properties props    = vm.getAgentProperties();
-                        String     sAddress = props.getProperty(PROP_ADDRESS);
-
-                        if (sAddress != null)
+                        VirtualMachine vm = null;
+                        try
                             {
-                            m_connector = JMXConnectorFactory.connect(new JMXServiceURL(sAddress));
-                            break;
+                            System.err.println("MBeanProbe: attaching to VM");
+                            vm = VirtualMachine.attach(desc);
+
+                            // If the name is empty we don't know whether this is our server or not
+                            // so check for a System property coherence.operator.server=true
+                            if (name.isEmpty())
+                                {
+                                Properties propsSys = vm.getSystemProperties();
+                                System.err.println("MBeanProbe: checking for coherence.operator.server property " + propsSys.getProperty("coherence.operator.server"));
+                                if (!"true".equalsIgnoreCase(propsSys.getProperty("coherence.operator.server")))
+                                    {
+                                    continue;
+                                    }
+                                }
+
+                            Properties props    = vm.getAgentProperties();
+                            String     sAddress = props.getProperty(PROP_ADDRESS);
+                            System.err.println("MBeanProbe: Connect address is '" + sAddress + "'");
+
+                            if (sAddress != null)
+                                {
+                                System.err.println("MBeanProbe: Connecting to JMX");
+                                m_connector = JMXConnectorFactory.connect(new JMXServiceURL(sAddress));
+                                break;
+                                }
                             }
-                        }
-                    catch (Exception e)
-                        {
-                        e.printStackTrace();
+                        catch (Exception e)
+                            {
+                            e.printStackTrace();
+                            }
+                        finally
+                            {
+                            if (vm != null)
+                                {
+                                try
+                                    {
+                                    vm.detach();
+                                    }
+                                catch (IOException e)
+                                    {
+                                    // ignored
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -166,7 +188,7 @@ public class OperatorMBeanProbe
             if (connector != null)
                 {
                 MBeanServerConnection serverConnection  = connector.getMBeanServerConnection();
-                return serverConnection.isRegistered(new ObjectName(Main.HealthObjectName));
+                return serverConnection.isRegistered(new ObjectName(HealthMBean.HEALTH_OBJECT_NAME));
                 }
             else
                 {
@@ -176,7 +198,7 @@ public class OperatorMBeanProbe
             }
         catch (IOException | MalformedObjectNameException e)
             {
-            System.err.println("Error checking for Operator MBean " + Main.HealthObjectName);
+            System.err.println("Error checking for Operator MBean " + HealthMBean.HEALTH_OBJECT_NAME);
             e.printStackTrace();
             return false;
             }
@@ -199,7 +221,7 @@ public class OperatorMBeanProbe
         if (connector != null)
             {
             MBeanServerConnection serverConnection  = connector.getMBeanServerConnection();
-            return serverConnection.invoke(new ObjectName(Main.HealthObjectName), sMethodName, aoParam, asSig);
+            return serverConnection.invoke(new ObjectName(HealthMBean.HEALTH_OBJECT_NAME), sMethodName, aoParam, asSig);
             }
         else
             {

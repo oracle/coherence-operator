@@ -156,15 +156,21 @@ spec:
                       type: boolean
                   type: object
                 env:
-                  additionalProperties:
-                    type: string
                   description: 'Env is additional environment variable mappings that
                     will be passed to the Coherence container in the Pod To specify
                     extra variables add them as name value pairs the same as they
-                    would be added to a Pod containers spec, for example these values:  env:   FOO:
-                    "foo-value"   BAR: "bar-value"  will add the environment variable
-                    mappings FOO="foo-value" and BAR="bar-value"'
-                  type: object
+                    would be added to a Pod containers spec, for example these values:  env:   -
+                    name "FOO"     value: "foo-value"   - name: "BAR"     value "bar-value"  will
+                    add the environment variable mappings FOO="foo-value" and BAR="bar-value"'
+                  items:
+                    type: object
+                  type: array
+                graalApplicationType:
+                  description: The Graal application type to execute. This field would
+                    be set if using the Coherence Graal image and running a none-Java
+                    application. For example if the application was a Node application
+                    this field would be set to "node".
+                  type: string
                 javaOpts:
                   description: JavaOpts is miscellaneous JVM options to pass to the
                     Coherence store container This options will override the system

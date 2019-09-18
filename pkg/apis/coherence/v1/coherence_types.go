@@ -610,29 +610,6 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 	}
 
 	return mr
-	//m := make(map[string]NamedPortSpec)
-	//for _, p := range primary {
-	//	m[p.Name] = p
-	//}
-	//
-	//for _, ps := range secondary {
-	//	pp, ok := m[ps.Name]
-	//	if ok {
-	//		cp := pp.DeepCopyWithDefaults(&ps)
-	//		m[ps.Name] = *cp
-	//	} else {
-	//		m[ps.Name] = ps
-	//	}
-	//}
-	//
-	//merged := make([]NamedPortSpec, len(m))
-	//i := 0
-	//for _, p := range m {
-	//	merged[i] = p
-	//	i++
-	//}
-	//
-	//return merged
 }
 
 // ----- DebugSpec struct ----------------------------------------------------------

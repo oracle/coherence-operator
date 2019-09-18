@@ -15,6 +15,7 @@ trap "echo TRAPed signal" HUP INT QUIT KILL TERM
 main()
     {
     SCRIPT_NAME=$(basename "${0}")
+    SCRIPT_DIR=$(dirname "$0")
     COMMAND=${1};
     shift
     MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
@@ -67,7 +68,7 @@ server()
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
 #   We must have this to allow the JMX readiness probe to connect.
-    PROPS="${PROPS} -Dcom.sun.management.jmxremote=true"
+    PROPS="${PROPS} -Dcom.sun.management.jmxremote=true -Dcoherence.operator.server=true"
 
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
@@ -127,6 +128,7 @@ console()
     {
     echo "Configuring Coherence console"
 
+    APP_TYPE="java"
     COH_ROLE="console"
     MAX_HEAP=""
     CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar$:${COH_UTIL_DIR}/lib/coherence-utils.jar"
@@ -142,6 +144,7 @@ queryplus()
     {
     echo "Configuring QueryPlus"
 
+    APP_TYPE="java"
     COH_ROLE="queryPlus"
     MAX_HEAP=""
     CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar:${COH_UTIL_DIR}/lib/coherence-utils.jar"
@@ -158,6 +161,7 @@ mbeanserver()
     {
     echo "Configuring MBeanConnector Server"
 
+    APP_TYPE="java"
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*"
     MAIN_CLASS="com.oracle.coherence.k8s.JmxmpServer"
     MAIN_ARGS=""
@@ -192,6 +196,7 @@ probe()
     {
     echo "Configuring readiness/liveness probe"
 
+    APP_TYPE="java"
     COH_ROLE="probe"
     MAX_HEAP=""
     DEPENDENCY_MODULES=""
@@ -247,11 +252,11 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
     CLASSPATH="${COH_EXTRA_CLASSPATH}:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar"
 
 #   Create the command line to use to start the JVM
-    CMD="${JAVA_HOME}/bin/java -cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
+    CMD="-cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
         -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
         -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
         -Dcoherence.ttl=0 \
-        ${PROPS} ${JAVA_OPTS} ${MAIN_CLASS} ${MAIN_ARGS}"
+        ${PROPS} ${JAVA_OPTS}"
 
 #   Dump the full set of environment variables to the console for logging/debugging
     echo "---------------------------------"
@@ -260,12 +265,52 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
     env
     echo "---------------------------------"
 
+    if [[ "${APP_TYPE}" == "" ]]
+    then
+      APP_TYPE="java"
+    fi
+
+    if [[ "${APP_TYPE}" == "java" ]]
+    then
+      runJava
+    else
+      runGraal
+    fi
+    }
+
+# ---------------------------------------------------------------------------
+# Executes the command as a plain Java command line.
+# ---------------------------------------------------------------------------
+runJava()
+    {
+    CMD="${JAVA_HOME}/bin/java ${CMD} ${MAIN_CLASS} ${MAIN_ARGS}"
+
     echo "---------------------------------"
     echo "Starting the Coherence ${COMMAND} using:"
     echo "${CMD}"
     echo "---------------------------------"
 
-#   Start the JVM
+    exec ${CMD}
+    }
+
+# ---------------------------------------------------------------------------
+# Executes the command as a Graal command line.
+# ---------------------------------------------------------------------------
+runGraal()
+    {
+    cp ${SCRIPT_DIR}/k8s-mbeans.xml ${COHERENCE_HOME}/conf/k8s-mbeans.xml
+
+    CMD=$(echo ${CMD} | sed -e "s/\-cp /--vm.cp /g")
+    CMD=$(echo ${CMD} | sed -e "s/\ -D/ --vm.D/g")
+    CMD=$(echo ${CMD} | sed -e "s/\ -XX/ --vm.XX/g")
+
+    CMD="${APP_TYPE} --polyglot --jvm ${CMD} --vm.Dcoherence.mbeans=k8s-mbeans.xml ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
+
+    echo "---------------------------------"
+    echo "Starting the Coherence Graal ${APP_TYPE} ${COMMAND} using:"
+    echo "${CMD}"
+    echo "---------------------------------"
+
     exec ${CMD}
     }
 
@@ -449,7 +494,7 @@ configure_pre_12_2_1_4()
 
     #   This is pre Coherence 12.2.1.4.0
     #   copy our AddressProvider overrides file onto the classpath
-    cp /scripts/k8s-coherence-nossl-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-nossl-override.xml
+    cp ${SCRIPT_DIR}/k8s-coherence-nossl-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-nossl-override.xml
 
     #   use our AddressProvider overrides file
     PROPS="${PROPS} -Dcoherence.override=k8s-coherence-nossl-override.xml"
@@ -470,7 +515,8 @@ configure_12_2_1_4()
 
 #   This is Coherence 12.2.1.4.0 or above so we support SSL management and metrics
 #   copy our AddressProvider and SSL overrides file onto the classpath
-    cp /scripts/k8s-coherence-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-override.xml
+    mkdir -p ${COHERENCE_HOME}/conf || true
+    cp ${SCRIPT_DIR}/k8s-coherence-override.xml ${COHERENCE_HOME}/conf/k8s-coherence-override.xml
 
 #   use our AP and SSL overrides file
     PROPS="${PROPS} -Dcoherence.override=k8s-coherence-override.xml"
