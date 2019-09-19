@@ -2,7 +2,7 @@
 {{/*# Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/*# http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
-{{- if .Values.store.logging.fluentdEnabled }}
+{{- if .Values.store.logging.fluentd.enabled }}
 {{- $clusterName := include "coherence.clusterName" . }}
 {{- $roleName := include "coherence.role" . }}
 apiVersion: v1
@@ -15,8 +15,8 @@ metadata:
 data:
   fluentd-coherence.conf: |
     # Optional application specific fluentd source(s)  i.e. Java Logger messages from server-side app classes such as entryprocessor, interceptor, ...
-{{- if .Values.fluentd.application.configFile }}
-    @include {{ .Values.fluentd.application.configFile }}
+{{- if .Values.store.logging.fluentd.configFile }}
+    @include {{ .Values.store.logging.fluentd.configFile }}
 {{- end }}
 
     # Ignore fluentd messages
@@ -59,15 +59,15 @@ data:
       logstash_prefix coherence-cluster
     </match>
 
-{{- if .Values.fluentd.application.tag }}
-    <match {{ .Values.fluentd.application.tag }} >
+{{- if .Values.fluentd.tag }}
+    <match {{ .Values.fluentd.tag }} >
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_HOST']}"
       port "#{ENV['ELASTICSEARCH_PORT']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
       password "#{ENV['ELASTICSEARCH_PASSWORD']}"
       logstash_format true
-      logstash_prefix {{ .Values.fluentd.application.tag }}
+      logstash_prefix {{ .Values.fluentd.tag }}
     </match>
 {{- end }}
 

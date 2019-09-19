@@ -303,6 +303,8 @@ runGraal()
     CMD=$(echo ${CMD} | sed -e "s/\-cp /--vm.cp /g")
     CMD=$(echo ${CMD} | sed -e "s/\ -D/ --vm.D/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -XX/ --vm.XX/g")
+    CMD=$(echo ${CMD} | sed -e "s/\ -Xms/ --vm.Xms/g")
+    CMD=$(echo ${CMD} | sed -e "s/\ -Xmx/ --vm.Xmx/g")
 
     CMD="${APP_TYPE} --polyglot --jvm ${CMD} --vm.Dcoherence.mbeans=k8s-mbeans.xml ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
 

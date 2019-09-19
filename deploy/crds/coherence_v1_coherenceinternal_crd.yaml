@@ -65,25 +65,30 @@ spec:
                   type: string
               type: object
             fluentd:
-              description: Specify the fluentd image
+              description: Specify the Fluentd log capture configuration
               properties:
-                application:
-                  description: The fluentd application configuration
-                  properties:
-                    configFile:
-                      description: The fluentd configuration file configuring source
-                        for application log.
-                      type: string
-                    tag:
-                      description: This value should be source.tag from fluentd.application.configFile.
-                      type: string
-                  type: object
+                configFile:
+                  description: The Fluentd configuration file configuring source for
+                    application log.
+                  type: string
+                enabled:
+                  description: Controls whether or not log capture via a Fluentd sidecar
+                    container to an EFK stack is enabled. If this flag i set to true
+                    it is expected that the coherence-monitoring-config secret exists
+                    in the namespace that the cluster is being deployed to. This secret
+                    is either created by the Coherence Operator Helm chart if it was
+                    installed with the correct parameters or it should have already
+                    been created manually.
+                  type: boolean
                 image:
                   description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                   type: string
                 imagePullPolicy:
                   description: 'Image pull policy. One of Always, Never, IfNotPresent.
                     More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+                tag:
+                  description: This value should be source.tag from fluentd.application.configFile.
                   type: string
               type: object
             fullnameOverride:
@@ -317,15 +322,34 @@ spec:
                         as a volume containing the logging  configuration file to
                         use.
                       type: string
-                    fluentdEnabled:
-                      description: Controls whether or not log capture via a Fluentd
-                        sidecar container to an EFK stack is enabled. If this flag
-                        i set to true it is expected that the coherence-monitoring-config
-                        secret exists in the namespace that the cluster is being deployed
-                        to. This secret is either created by the Coherence Operator
-                        Helm chart if it was installed with the correct parameters
-                        or it should have already been created manually.
-                      type: boolean
+                    fluentd:
+                      description: Configures whether Fluentd is enabled and the configuration
+                        of the Fluentd side-car container
+                      properties:
+                        configFile:
+                          description: The Fluentd configuration file configuring
+                            source for application log.
+                          type: string
+                        enabled:
+                          description: Controls whether or not log capture via a Fluentd
+                            sidecar container to an EFK stack is enabled. If this
+                            flag i set to true it is expected that the coherence-monitoring-config
+                            secret exists in the namespace that the cluster is being
+                            deployed to. This secret is either created by the Coherence
+                            Operator Helm chart if it was installed with the correct
+                            parameters or it should have already been created manually.
+                          type: boolean
+                        image:
+                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                          type: string
+                        imagePullPolicy:
+                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                          type: string
+                        tag:
+                          description: This value should be source.tag from fluentd.application.configFile.
+                          type: string
+                      type: object
                     level:
                       description: The default being 5 (info level).
                       format: int32

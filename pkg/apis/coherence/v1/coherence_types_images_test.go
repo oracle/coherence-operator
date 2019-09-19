@@ -21,23 +21,19 @@ var _ = Describe("Testing Images struct", func() {
 			specThree = &coherence.ImageSpec{Image: stringPtr("foo.3.0")}
 			specFour  = &coherence.ImageSpec{Image: stringPtr("foo.4.0")}
 
-			userOne   = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
-			userTwo   = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
-			fluentOne = &coherence.FluentdImageSpec{ImageSpec: coherence.ImageSpec{Image: stringPtr("fluent:1.0")}}
-			fluentTwo = &coherence.FluentdImageSpec{ImageSpec: coherence.ImageSpec{Image: stringPtr("fluent:2.0")}}
+			userOne = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
+			userTwo = &coherence.UserArtifactsImageSpec{ConfigDir: stringPtr("/conf")}
 
 			imagesOne = &coherence.Images{
 				Coherence:      specOne,
 				CoherenceUtils: specTwo,
 				UserArtifacts:  userOne,
-				Fluentd:        fluentOne,
 			}
 
 			imagesTwo = &coherence.Images{
 				Coherence:      specThree,
 				CoherenceUtils: specFour,
 				UserArtifacts:  userTwo,
-				Fluentd:        fluentTwo,
 			}
 
 			original *coherence.Images
@@ -147,22 +143,6 @@ var _ = Describe("Testing Images struct", func() {
 			It("the clone should equal the original with the UserArtifacts field from the defaults", func() {
 				expected := original.DeepCopy()
 				expected.UserArtifacts = defaults.UserArtifacts
-
-				Expect(clone).To(Equal(expected))
-			})
-		})
-
-		When("the original Fluentd field is nil", func() {
-			BeforeEach(func() {
-				original = imagesOne.DeepCopy()
-				defaults = imagesTwo.DeepCopy()
-
-				original.Fluentd = nil
-			})
-
-			It("the clone should equal the original with the Fluentd field from the defaults", func() {
-				expected := original.DeepCopy()
-				expected.Fluentd = defaults.Fluentd
 
 				Expect(clone).To(Equal(expected))
 			})

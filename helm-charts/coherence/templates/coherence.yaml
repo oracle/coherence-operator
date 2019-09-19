@@ -530,13 +530,13 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if .Values.store.logging.fluentdEnabled }}
+{{- if .Values.store.logging.fluentd.enabled }}
 # ---------------------------------------------------------------------------
 #  Container: fluentd
 # ---------------------------------------------------------------------------
         - name: fluentd
-          image: {{ .Values.fluentd.image }}
-          imagePullPolicy: {{ .Values.fluentd.imagePullPolicy | default "IfNotPresent" }}
+          image: {{ .Values.store.logging.fluentd.image }}
+          imagePullPolicy: {{ .Values.store.logging.fluentd.imagePullPolicy | default "IfNotPresent" }}
           args: ["-c", "/etc/fluent.conf"]
           env:
             - name: COHERENCE_POD_ID
@@ -641,7 +641,7 @@ spec:
 {{ toYaml .Values.store.volumes | indent 8 }}
   {{- end }}
 {{- end }}
-{{- if .Values.store.logging.fluentdEnabled }}
+{{- if .Values.store.logging.fluentd.enabled }}
         - name: fluentd-coherence-conf
           configMap:
             name: {{ template "coherence.fullname" . }}-efk-config

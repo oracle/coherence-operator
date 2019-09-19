@@ -54,9 +54,6 @@ type Images struct {
 	// that are added to the Coherence JVM's classpath.
 	// +optional
 	UserArtifacts *UserArtifactsImageSpec `json:"userArtifacts,omitempty"`
-	// Fluentd defines the settings for the fluentd image
-	// +optional
-	Fluentd *FluentdImageSpec `json:"fluentd,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this Images struct with any nil or not set values set
@@ -77,7 +74,6 @@ func (in *Images) DeepCopyWithDefaults(defaults *Images) *Images {
 	clone.Coherence = in.Coherence.DeepCopyWithDefaults(defaults.Coherence)
 	clone.CoherenceUtils = in.CoherenceUtils.DeepCopyWithDefaults(defaults.CoherenceUtils)
 	clone.UserArtifacts = in.UserArtifacts.DeepCopyWithDefaults(defaults.UserArtifacts)
-	clone.Fluentd = in.Fluentd.DeepCopyWithDefaults(defaults.Fluentd)
 
 	return &clone
 }
@@ -150,12 +146,10 @@ type LoggingSpec struct {
 	//  configuration file to use.
 	// +optional
 	ConfigMapName *string `json:"configMapName,omitempty"`
-	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
-	// If this flag i set to true it is expected that the coherence-monitoring-config secret exists in
-	// the namespace that the cluster is being deployed to. This secret is either created by the
-	// Coherence Operator Helm chart if it was installed with the correct parameters or it should
-	// have already been created manually.
-	FluentdEnabled *bool `json:"fluentdEnabled,omitempty"`
+	// Configures whether Fluentd is enabled and the configuration
+	// of the Fluentd side-car container
+	// +optional
+	Fluentd *FluentdSpec `json:"fluentd,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this LoggingSpec struct with any nil or not set values set
@@ -173,6 +167,7 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 	}
 
 	clone := LoggingSpec{}
+	clone.Fluentd = in.Fluentd.DeepCopyWithDefaults(defaults.Fluentd)
 
 	if in.Level != nil {
 		clone.Level = in.Level
@@ -190,12 +185,6 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 		clone.ConfigMapName = in.ConfigMapName
 	} else {
 		clone.ConfigMapName = defaults.ConfigMapName
-	}
-
-	if in.FluentdEnabled != nil {
-		clone.FluentdEnabled = in.FluentdEnabled
-	} else {
-		clone.FluentdEnabled = defaults.FluentdEnabled
 	}
 
 	return &clone
@@ -1121,43 +1110,19 @@ func (in *UserArtifactsImageSpec) DeepCopyWithDefaults(defaults *UserArtifactsIm
 	return &clone
 }
 
-// ----- FluentdImageSpec struct --------------------------------------------
+// ----- FluentdSpec struct -------------------------------------------------
 
-// FluentdImageSpec defines the settings for the fluentd image
+// FluentdSpec defines the settings for the fluentd image
 // +k8s:openapi-gen=true
-type FluentdImageSpec struct {
+type FluentdSpec struct {
 	ImageSpec `json:",inline"`
-	// The fluentd application configuration
-	Application *FluentdApplicationSpec `json:"application,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this FluentdImageSpec struct with any nil or not set values set
-// by the corresponding value in the defaults FluentdImageSpec struct.
-func (in *FluentdImageSpec) DeepCopyWithDefaults(defaults *FluentdImageSpec) *FluentdImageSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := FluentdImageSpec{}
-	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
-	clone.Application = in.Application.DeepCopyWithDefaults(defaults.Application)
-
-	return &clone
-}
-
-// ----- FluentdApplicationSpec struct --------------------------------------
-
-// FluentdImageSpec defines the settings for the fluentd application
-// +k8s:openapi-gen=true
-type FluentdApplicationSpec struct {
-	// The fluentd configuration file configuring source for application log.
+	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
+	// If this flag i set to true it is expected that the coherence-monitoring-config secret exists in
+	// the namespace that the cluster is being deployed to. This secret is either created by the
+	// Coherence Operator Helm chart if it was installed with the correct parameters or it should
+	// have already been created manually.
+	Enabled *bool `json:"enabled,omitempty"`
+	// The Fluentd configuration file configuring source for application log.
 	// +optional
 	ConfigFile *string `json:"configFile,omitempty"`
 	// This value should be source.tag from fluentd.application.configFile.
@@ -1165,9 +1130,9 @@ type FluentdApplicationSpec struct {
 	Tag *string `json:"tag,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this FluentdApplicationSpec struct with any nil or not set values set
-// by the corresponding value in the defaults FluentdApplicationSpec struct.
-func (in *FluentdApplicationSpec) DeepCopyWithDefaults(defaults *FluentdApplicationSpec) *FluentdApplicationSpec {
+// DeepCopyWithDefaults returns a copy of this FluentdSpec struct with any nil or not set values set
+// by the corresponding value in the defaults FluentdSpec struct.
+func (in *FluentdSpec) DeepCopyWithDefaults(defaults *FluentdSpec) *FluentdSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
@@ -1179,7 +1144,14 @@ func (in *FluentdApplicationSpec) DeepCopyWithDefaults(defaults *FluentdApplicat
 		return in.DeepCopy()
 	}
 
-	clone := FluentdApplicationSpec{}
+	clone := FluentdSpec{}
+	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
 
 	if in.ConfigFile != nil {
 		clone.ConfigFile = in.ConfigFile

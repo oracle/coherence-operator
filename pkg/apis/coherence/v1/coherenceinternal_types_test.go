@@ -99,16 +99,6 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 						LibDir:    stringPtr("/lib"),
 						ConfigDir: stringPtr("/conf"),
 					},
-					Fluentd: &coherence.FluentdImageSpec{
-						ImageSpec: coherence.ImageSpec{
-							Image:           stringPtr("fluentd:1.0"),
-							ImagePullPolicy: &ifNotPresent,
-						},
-						Application: &coherence.FluentdApplicationSpec{
-							ConfigFile: stringPtr("fluent.yaml"),
-							Tag:        stringPtr("fluentd-tag"),
-						},
-					},
 				},
 				StorageEnabled: boolPtr(false),
 				ScalingPolicy:  &safeScaling,
@@ -127,6 +117,15 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 					Level:         int32Ptr(9),
 					ConfigFile:    stringPtr("logging.properties"),
 					ConfigMapName: stringPtr("loggingMap"),
+					Fluentd: &coherence.FluentdSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image:           stringPtr("fluentd:1.0"),
+							ImagePullPolicy: &always,
+						},
+						Enabled:    boolPtr(true),
+						ConfigFile: stringPtr("one.yaml"),
+						Tag:        stringPtr("tag-one"),
+					},
 				},
 				Main: &coherence.MainSpec{
 					Class:     stringPtr("com.tangosol.net.DefaultCacheServer"),
@@ -312,10 +311,6 @@ var _ = Describe("Testing CoherenceInternal struct", func() {
 
 			It("should set the User Artifacts Image", func() {
 				Expect(result.UserArtifacts).To(Equal(role.Spec.Images.UserArtifacts))
-			})
-
-			It("should set the Fluentd Image", func() {
-				Expect(result.Fluentd).To(Equal(role.Spec.Images.Fluentd))
 			})
 
 			It("should set the Store WKA", func() {
