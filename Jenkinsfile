@@ -244,6 +244,10 @@ pipeline {
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml
+                    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml
+                    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml
+                    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml
                     make helm-test
                 '''
             }

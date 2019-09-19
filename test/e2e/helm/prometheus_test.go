@@ -40,7 +40,7 @@ func TestOperatorWithPrometheus(t *testing.T) {
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
-	fmt.Printf("Check for Prometheus CRDs - found=%t", hasCRDs)
+	fmt.Printf("Check for Prometheus CRDs - found=%t\n", hasCRDs)
 
 	// Create the values to use to install the operator with Prometheus but without Grafana
 	values := helper.OperatorValues{

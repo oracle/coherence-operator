@@ -59,15 +59,15 @@ data:
       logstash_prefix coherence-cluster
     </match>
 
-{{- if .Values.fluentd.tag }}
-    <match {{ .Values.fluentd.tag }} >
+{{- if .Values.store.logging.fluentd.tag }}
+    <match {{ .Values.store.logging.fluentd.tag }} >
       @type elasticsearch
       host "#{ENV['ELASTICSEARCH_HOST']}"
       port "#{ENV['ELASTICSEARCH_PORT']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
       password "#{ENV['ELASTICSEARCH_PASSWORD']}"
       logstash_format true
-      logstash_prefix {{ .Values.fluentd.tag }}
+      logstash_prefix {{ .Values.store.logging.fluentd.tag }}
     </match>
 {{- end }}
 

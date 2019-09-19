@@ -25,17 +25,17 @@
 [PILLARS]
 ====
 [CARD]
+.QuickStart
+[link=guides/quickstart.adoc]
+--
+Follow step-by-step quick start guide to using the Coherence Operator.
+--
+
+[CARD]
 .Install
 [link=install/01_introduction.adoc]
 --
 Installing and running the Coherence Operator.
---
-
-[CARD]
-.Guides
-[link=guides/010_overview.adoc]
---
-Follow step-by-step guides to using the Coherence Operator to manage Coherence clusters.
 --
 ====
 

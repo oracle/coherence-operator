@@ -1,0 +1,197 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Logging Configuration
+
+There are various settings in a Coherence role that control different aspects of logging, including the Coherence
+log level, configuration files and whether Fluentd log capture is enabled.
+
+== Logging Configuration
+
+Logging configuration for a role is defined in the `logging` section of the role's `spec`. There are a number of different
+fields used to configure different logging features. The `logging` configuration can be set at different places depending
+on whether the implicit role or explicit roles are being configured.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  logging:
+    level: 9
+    configFile:    app-logging.properties
+    configMapName: logging-cm
+    fluentd:
+      enabled: true
+      image: fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
+      imagePullPolicy: IfNotPresent
+      configFile: fluentd-config.yaml
+      tag: test-cluster
+----
+
+The fields in the example above are described in detail in the following sections.
+
+
+=== Coherence Log Level
+
+The Coherence log level is set with the `logging.level` field. This field is an integer value between zero and nine
+(see the Coherence documentation for a fuller explanation).
+
+To set the Coherence log level when defining the implicit role:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  logging:
+    level: 5 <1>
+----
+
+<1> The implicit role will have a Coherence log level of `5`
+
+To set the log level for explicit roles in the `roles` list:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      logging:
+        level: 9 <1>
+    - role: proxy
+      logging:
+        level: 5 <2>
+----
+
+<1> The `data` role will have a Coherence log level of `9`
+<2> The `proxy` role will have a Coherence log level of `5`
+
+To set the log level for explicit roles in the `roles` list:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  logging:
+    level: 9 <1>
+  roles:
+    - role: data
+    - role: proxy
+    - role: web
+      logging:
+        level: 5 <2>
+----
+
+<1> The `data` and `proxy` roles will use the default Coherence log level of `9`
+<2> The `web` role overrides the default Coherence log level setting it to `5`
+
+
+=== Logging Config File
+
+The default logging configuration for Coherence clusters started by the Coherence Operator is to set Coherence to used
+JDK logging; the JDK logger is then configured with a configuration file. The default configuration file is embedded into
+the Pod by the Coherence Operator but this default my be overridden; for example an application deployed into the cluster
+may require different logging configurations. The name of the file is provided in the `logging.configFile` field.
+The logging configuration file must be available to the JVM when it starts, either by providing it in
+<<clusters/065_application_image.adoc,application code>> or by <<clusters/150_volumes.adoc,mounting a volume>> containing
+the file, or by using a <<configmap,ConfigMap>>.
+
+To set the logging configuration file when defining the implicit role:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  logging:
+    configFile: app-logging.properties <1>
+----
+
+<1> The implicit role will use the `app-logging.properties` logging configuration file
+
+
+To set the logging configuration file when defining explicit roles in the `roles` list:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      logging:
+        configFile: data-logging.properties <1>
+    - role: proxy
+      logging:
+        configFile: proxy-logging.properties <2>
+----
+
+<1> The `data` role will use the `data-logging.properties` logging configuration file
+<2> The `proxy` role will use the `proxy-logging.properties` logging configuration file
+
+
+To set a default logging configuration file when defining explicit roles in the `roles` list:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  logging:
+    configFile: app-logging.properties <1>
+  roles:
+    - role: data
+    - role: proxy
+    - role: web
+      logging:
+        configFile: web-logging.properties <2>
+----
+
+<1> The `app-logging.properties` logging configuration file is set as the default ans will be used by the `data` and
+`proxy` roles.
+<2> The `web` role has a specific configuration file set and will use the `web-logging.properties` file
+
+
+[#configmap]
+=== Logging ConfigMap
+
+The `logging.ConfigMap` field can be used to specify the name of a `ConfigMap` that contains the logging configuration file
+to use. The `ConfigMap` should exist in the same namespace as the Coherence cluster.
+
+
+== Fluentd Logging Configuration
+The Coherence Operator allows Coherence cluster `Pods` to be configured with a Fluentd side-car container that will push
+Coherence logs to Elasticsearch. The configuration for Fluentd is in the `logging.fluentd` section of the spec.
