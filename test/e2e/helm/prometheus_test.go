@@ -9,7 +9,6 @@ package helm_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ghodss/yaml"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
@@ -68,9 +67,6 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Defer cleanup (helm delete) to make sure it happens when this method exits
 	defer CleanupHelm(t, hm, helmHelper)
-
-	y, err := yaml.Marshal(values)
-	fmt.Printf("Installing Operator chart into namespace %s with values.yanl\n%s\n", namespace, string(y))
 
 	// Install the chart
 	_, err = hm.InstallRelease()

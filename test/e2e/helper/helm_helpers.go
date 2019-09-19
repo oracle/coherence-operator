@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	"github.com/pborman/uuid"
@@ -123,8 +124,6 @@ func NewOperatorChartHelper() (*HelmHelper, error) {
 
 // Obtain a new manager for managing a specific Operator Helm release with a release name and values.
 func (h *HelmHelper) NewOperatorHelmReleaseManager(releaseName string, values *OperatorValues) (*HelmReleaseManager, error) {
-	m := make(map[string]interface{})
-
 	if values == nil {
 		values = &OperatorValues{}
 	}
@@ -140,16 +139,20 @@ func (h *HelmHelper) NewOperatorHelmReleaseManager(releaseName string, values *O
 		return nil, err
 	}
 
+	m := make(map[string]interface{})
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		return nil, err
 	}
 
-	return h.NewHelmReleaseManager(releaseName, &m)
+	y, err := yaml.Marshal(values)
+	fmt.Printf("Installing Operator chart release %s with values.yaml\n%s\n", releaseName, string(y))
+
+	return h.NewHelmReleaseManager(releaseName, m)
 }
 
 // Obtain a new manager for managing a specific Helm release with a release name and values.
-func (h *HelmHelper) NewHelmReleaseManager(releaseName string, values *map[string]interface{}) (*HelmReleaseManager, error) {
+func (h *HelmHelper) NewHelmReleaseManager(releaseName string, values map[string]interface{}) (*HelmReleaseManager, error) {
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "Operator"})
 	u.SetNamespace(h.Namespace)
