@@ -5,13 +5,8 @@ metadata:
 spec:
   logging:
     fluentd:
-      enabled: false
+      enabled: true
+      imagePullPolicy: Never
   roles:
     - role: data
-      logging:
-        fluentd:
-          enabled: true
     - role: proxy
-      logging:
-        fluentd:
-          enabled: true

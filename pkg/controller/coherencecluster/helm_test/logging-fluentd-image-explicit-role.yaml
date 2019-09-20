@@ -3,12 +3,9 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  logging:
-    level: 6
   roles:
     - role: data
       logging:
-        level: 9
-    - role: proxy
-      logging:
-        level: 9
+        fluentd:
+          enabled: true
+          image: fluentd:1.0

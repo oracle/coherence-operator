@@ -161,6 +161,7 @@ func (f *PortForwarder) Start() error {
 		if err = forwarder.ForwardPorts(); err != nil { // Locks until stopChan is closed.
 			pfError = err
 			fmt.Println(err)
+			close(readyChan)
 		}
 	}()
 

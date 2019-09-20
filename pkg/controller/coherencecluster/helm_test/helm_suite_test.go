@@ -28,6 +28,7 @@ const (
 	// The name fo the Coherence container in the StatefulSet
 	coherenceContainer = "coherence"
 	fluentdContainer   = "fluentd"
+	fluentdImage       = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
 )
 
 // Use the specified yaml files to create a CoherenceCluster and trigger a fake end-to-end
@@ -46,6 +47,13 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 	r, err := helm.HelmInstallFromCoherenceCluster(&cluster)
 
 	return r, &cluster, err
+}
+
+// Shared function to find a ConfigMap in a Helm result.
+func findConfigMap(result *stubs.HelmInstallResult, name string) (corev1.ConfigMap, error) {
+	cm := corev1.ConfigMap{}
+	err := result.Get(name, &cm)
+	return cm, err
 }
 
 // Shared function to find a StatefulSet in a Helm result.
