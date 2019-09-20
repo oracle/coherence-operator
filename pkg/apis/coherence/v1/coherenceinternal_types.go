@@ -104,9 +104,9 @@ type CoherenceInternalSpec struct {
 	//
 	// No default memory limits are applied.
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
-	// Specify the fluentd image
+	// Specify the Fluentd log capture configuration
 	// +optional
-	Fluentd *FluentdImageSpec `json:"fluentd,omitempty"`
+	Fluentd *FluentdSpec `json:"fluentd,omitempty"`
 	// The user artifacts image settings
 	// +optional
 	UserArtifacts *UserArtifactsImageSpec `json:"userArtifacts,omitempty"`
@@ -270,7 +270,6 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 		out.Coherence = role.Spec.Images.Coherence
 		out.CoherenceUtils = role.Spec.Images.CoherenceUtils
 		out.UserArtifacts = role.Spec.Images.UserArtifacts
-		out.Fluentd = role.Spec.Images.Fluentd
 	}
 
 	// Set the Store fields

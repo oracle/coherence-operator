@@ -4,12 +4,13 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package coherencecluster
+package helm_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/controller/coherencecluster"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -34,33 +35,33 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 		// The result of the Helm install
 		result *stubs.HelmInstallResult
 
-        // ----- helpers ------------------------------------------------------------
+		// ----- helpers ------------------------------------------------------------
 		NewPersistenceStorageSpec = func(enabled, pvc bool) *cohv1.PersistentStorageSpec {
-			if (!enabled) {
-				return &cohv1.PersistentStorageSpec{ Enabled: pointer.BoolPtr(false), }
+			if !enabled {
+				return &cohv1.PersistentStorageSpec{Enabled: pointer.BoolPtr(false)}
 			}
 			if pvc {
-				return &cohv1.PersistentStorageSpec{ Enabled: pointer.BoolPtr(true),
-					PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec {
-						AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+				return &cohv1.PersistentStorageSpec{Enabled: pointer.BoolPtr(true),
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 						Resources: corev1.ResourceRequirements{
-							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi"),},
+							Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 						},
 					},
 				}
 			}
 
 			twoGiResource := resource.MustParse("2Gi")
-			return &cohv1.PersistentStorageSpec{ Enabled: pointer.BoolPtr(true),
+			return &cohv1.PersistentStorageSpec{Enabled: pointer.BoolPtr(true),
 				Volume: &corev1.Volume{
-					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{ SizeLimit: &twoGiResource,}},
+					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &twoGiResource}},
 				},
 			}
 		}
 
 		createCluster = func(persistence *cohv1.PersistentStorageSpec, snapshot *cohv1.PersistentStorageSpec) {
 			roleOne := cohv1.CoherenceRoleSpec{Role: roleOneName, Replicas: pointer.Int32Ptr(1),
-				Persistence: persistence, Snapshot: snapshot, }
+				Persistence: persistence, Snapshot: snapshot}
 
 			cluster = &cohv1.CoherenceCluster{}
 			cluster.SetNamespace(testNamespace)
@@ -84,7 +85,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 				By("Checking StatefulSet PVC")
 				Expect(len(sts.Spec.VolumeClaimTemplates)).To(Equal(len(expectedPvcs)))
 				expectedPvcSet := make(map[string]bool)
-				for _, p := range(expectedPvcs) {
+				for _, p := range expectedPvcs {
 					expectedPvcSet[p] = true
 				}
 				pvcSet := make(map[string]bool)
@@ -110,7 +111,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 	// and capture the result to be asserted by the tests
 	JustBeforeEach(func() {
 		mgr = stubs.NewFakeManager()
-		cr := NewClusterReconciler(mgr)
+		cr := coherencecluster.NewClusterReconciler(mgr)
 		rr := coherencerole.NewRoleReconciler(mgr)
 		helm := stubs.NewFakeHelm(mgr, cr, rr)
 
@@ -127,7 +128,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 
 		It("should have two pvc and no corresponding volumes", assertInstall(
 			[]string{"persistence-volume", "snapshot-volume"},
-			map[string]bool{ "persistence-volume": false, "snapshot-volume": false}))
+			map[string]bool{"persistence-volume": false, "snapshot-volume": false}))
 	})
 
 	When("installing a CoherenceCluster with persistence/volume, and without snapshot", func() {
@@ -138,7 +139,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 
 		It("should have no pvc and only corresponding persistence-volume", assertInstall(
 			[]string{},
-			map[string]bool{ "persistence-volume": true, "snapshot-volume": false}))
+			map[string]bool{"persistence-volume": true, "snapshot-volume": false}))
 	})
 
 	When("installing a CoherenceCluster with persistence disabled, and snapshot/pvc", func() {
@@ -148,8 +149,8 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 		})
 
 		It("should have no pvc and only corresponding persistence-volume", assertInstall(
-			[]string{ "snapshot-volume" },
-			map[string]bool{ "persistence-volume": false, "snapshot-volume": false}))
+			[]string{"snapshot-volume"},
+			map[string]bool{"persistence-volume": false, "snapshot-volume": false}))
 	})
 
 	When("installing a CoherenceCluster without persistence and without snapshotc", func() {
@@ -160,7 +161,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 
 		It("should have no pvc and only corresponding persistence-volume", assertInstall(
 			[]string{},
-			map[string]bool{ "persistence-volume": false, "snapshot-volume": false}))
+			map[string]bool{"persistence-volume": false, "snapshot-volume": false}))
 	})
 
 	When("installing a CoherenceCluster without persistence and snapshot/volume", func() {
@@ -171,7 +172,6 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 
 		It("should have no pvc and only corresponding persistence-volume", assertInstall(
 			[]string{},
-			map[string]bool{ "persistence-volume": false, "snapshot-volume": true}))
+			map[string]bool{"persistence-volume": false, "snapshot-volume": true}))
 	})
 })
-

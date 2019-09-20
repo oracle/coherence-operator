@@ -49,8 +49,10 @@ func (c *ElasticSearchClient) WaitForCoherenceIndices(retryInterval, timeout tim
 		return es.Cat.Indices(es.Cat.Indices.WithPretty())
 	}
 
+	var res *esapi.Response
+
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		res, err := c.Query(fn)
+		res, err = c.Query(fn)
 		if err != nil {
 			logger.Logf("Waiting for Coherence indices in Elasticsearch - %s\n", err.Error())
 			return false, err
@@ -58,6 +60,16 @@ func (c *ElasticSearchClient) WaitForCoherenceIndices(retryInterval, timeout tim
 		ok := strings.Contains(strings.ToLower(res.String()), "coherence")
 		return ok, nil
 	})
+
+	if err != nil {
+		var s string
+		if res == nil {
+			s = "response is nil"
+		} else {
+			s = res.String()
+		}
+		logger.Logf("Error waiting for Coherence indices in Elasticsearch - error: '%s' response:\n%s\n", err.Error(), s)
+	}
 
 	return err
 }

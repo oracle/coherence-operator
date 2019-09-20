@@ -5,7 +5,8 @@ metadata:
 spec:
   logging:
     level: 9
-    fluentdEnabled: true
+    fluentd:
+      enabled: true
   roles:
   - role: storage
     replicas: 2

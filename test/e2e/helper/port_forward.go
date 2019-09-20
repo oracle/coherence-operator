@@ -99,6 +99,8 @@ func StartPortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32
 
 // Start the PortForwarder.
 func (f *PortForwarder) Start() error {
+	var pfError error
+
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
@@ -117,7 +119,7 @@ func (f *PortForwarder) Start() error {
 
 	roundTripper, upgrader, err := spdy.RoundTripperFor(config)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	ns := f.Namespace
@@ -142,14 +144,14 @@ func (f *PortForwarder) Start() error {
 
 	forwarder, err := portforward.New(dialer, f.Ports, f.stopChan, readyChan, out, errOut)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	go func() {
 		for range readyChan { // Kubernetes will close this channel when it has something to tell us.
 		}
 		if len(errOut.String()) != 0 {
-			panic(errOut.String())
+			fmt.Println(errOut.String())
 		} else if len(out.String()) != 0 {
 			fmt.Println(out.String())
 		}
@@ -157,7 +159,9 @@ func (f *PortForwarder) Start() error {
 
 	go func() {
 		if err = forwarder.ForwardPorts(); err != nil { // Locks until stopChan is closed.
-			panic(err)
+			pfError = err
+			fmt.Println(err)
+			close(readyChan)
 		}
 	}()
 
@@ -166,7 +170,7 @@ func (f *PortForwarder) Start() error {
 
 	f.Running = true
 
-	return nil
+	return pfError
 }
 
 // Close the PortForwarder.

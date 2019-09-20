@@ -148,7 +148,8 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should create a CoherenceInternal", func() {
-				u := mgr.AssertCoherenceInternalExists(testNamespace, fullRoleName)
+				u, err := mgr.AssertCoherenceInternalExists(testNamespace, fullRoleName)
+				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
 				Expect(roleSpec).To(Equal(expected))
@@ -221,7 +222,8 @@ var _ = Describe("coherencerole_controller", func() {
 			})
 
 			It("should update the CoherenceInternal", func() {
-				u := mgr.AssertCoherenceInternalExists(testNamespace, fullRoleName)
+				u, err := mgr.AssertCoherenceInternalExists(testNamespace, fullRoleName)
+				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
 				Expect(roleSpec).To(Equal(expected))

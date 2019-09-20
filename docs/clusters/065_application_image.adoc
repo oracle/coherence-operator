@@ -148,9 +148,10 @@ for more information.
 
 The application image's pull policy is set using the `imagePullPolicy` field in the `spec.images.coherence` section.
 
-For example:
 
-1. To set the `imagePullPolicy` for the implicit role.
+=== Setting the Image Pull Policy for the Implicit Role
+
+To set the `imagePullPolicy` for the implicit role:
 
 [source,yaml]
 ----
@@ -168,7 +169,9 @@ spec:
 <1> The image pull policy for the implicit role above has been set to `Always`
 
 
-2. To set the `imagePullPolicy` for the explicit roles in the `roles` list.
+=== Setting the Image Pull Policy for Explicit Roles
+
+To set the `imagePullPolicy` for the explicit roles in the `roles` list:
 
 [source,yaml]
 ----
@@ -194,7 +197,9 @@ spec:
 <2> The image pull policy for the `proxy` role above has been set to `IfNotPresent`
 
 
-3. To set the `imagePullPolicy` for the explicit roles with a default value.
+=== Setting the Image Pull Policy for Explicit Roles with Default
+
+To set the `imagePullPolicy` for the explicit roles with a default value:
 
 [source,yaml]
 ----

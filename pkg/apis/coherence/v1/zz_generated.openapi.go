@@ -21,8 +21,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceRole":              schema_pkg_apis_coherence_v1_CoherenceRole(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleSpec":          schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleStatus":        schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
-		"./pkg/apis/coherence/v1.FluentdApplicationSpec":     schema_pkg_apis_coherence_v1_FluentdApplicationSpec(ref),
-		"./pkg/apis/coherence/v1.FluentdImageSpec":           schema_pkg_apis_coherence_v1_FluentdImageSpec(ref),
+		"./pkg/apis/coherence/v1.FluentdSpec":                schema_pkg_apis_coherence_v1_FluentdSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":                  schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.Images":                     schema_pkg_apis_coherence_v1_Images(ref),
 		"./pkg/apis/coherence/v1.JMXSpec":                    schema_pkg_apis_coherence_v1_JMXSpec(ref),
@@ -597,8 +596,8 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 					},
 					"fluentd": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specify the fluentd image",
-							Ref:         ref("./pkg/apis/coherence/v1.FluentdImageSpec"),
+							Description: "Specify the Fluentd log capture configuration",
+							Ref:         ref("./pkg/apis/coherence/v1.FluentdSpec"),
 						},
 					},
 					"userArtifacts": {
@@ -612,7 +611,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec", "./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration"},
+			"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec", "./pkg/apis/coherence/v1.FluentdSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration"},
 	}
 }
 
@@ -1275,38 +1274,11 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref common.ReferenceCallba
 	}
 }
 
-func schema_pkg_apis_coherence_v1_FluentdApplicationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_coherence_v1_FluentdSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "FluentdImageSpec defines the settings for the fluentd application",
-				Properties: map[string]spec.Schema{
-					"configFile": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The fluentd configuration file configuring source for application log.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"tag": {
-						SchemaProps: spec.SchemaProps{
-							Description: "This value should be source.tag from fluentd.application.configFile.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_FluentdImageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "FluentdImageSpec defines the settings for the fluentd image",
+				Description: "FluentdSpec defines the settings for the fluentd image",
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
@@ -1322,17 +1294,31 @@ func schema_pkg_apis_coherence_v1_FluentdImageSpec(ref common.ReferenceCallback)
 							Format:      "",
 						},
 					},
-					"application": {
+					"enabled": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The fluentd application configuration",
-							Ref:         ref("./pkg/apis/coherence/v1.FluentdApplicationSpec"),
+							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled. If this flag i set to true it is expected that the coherence-monitoring-config secret exists in the namespace that the cluster is being deployed to. This secret is either created by the Coherence Operator Helm chart if it was installed with the correct parameters or it should have already been created manually.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"configFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Fluentd configuration file configuring source for application log.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"tag": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This value should be source.tag from fluentd.application.configFile.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
 			},
 		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.FluentdApplicationSpec"},
+		Dependencies: []string{},
 	}
 }
 
@@ -1387,17 +1373,11 @@ func schema_pkg_apis_coherence_v1_Images(ref common.ReferenceCallback) common.Op
 							Ref:         ref("./pkg/apis/coherence/v1.UserArtifactsImageSpec"),
 						},
 					},
-					"fluentd": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Fluentd defines the settings for the fluentd image",
-							Ref:         ref("./pkg/apis/coherence/v1.FluentdImageSpec"),
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.FluentdImageSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
+			"./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
 	}
 }
 
@@ -1469,17 +1449,17 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 							Format:      "",
 						},
 					},
-					"fluentdEnabled": {
+					"fluentd": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled. If this flag i set to true it is expected that the coherence-monitoring-config secret exists in the namespace that the cluster is being deployed to. This secret is either created by the Coherence Operator Helm chart if it was installed with the correct parameters or it should have already been created manually.",
-							Type:        []string{"boolean"},
-							Format:      "",
+							Description: "Configures whether Fluentd is enabled and the configuration of the Fluentd side-car container",
+							Ref:         ref("./pkg/apis/coherence/v1.FluentdSpec"),
 						},
 					},
 				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.FluentdSpec"},
 	}
 }
 

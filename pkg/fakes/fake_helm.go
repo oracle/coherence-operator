@@ -82,7 +82,10 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 		return nil, err
 	}
 
-	list := f.mgr.GetCoherenceRoles(cluster.GetNamespace())
+	list, err := f.mgr.GetCoherenceRoles(cluster.GetNamespace())
+	if err != nil {
+		return nil, err
+	}
 
 	var result *HelmInstallResult
 
@@ -99,7 +102,10 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 			return nil, err
 		}
 
-		values := f.mgr.AssertCoherenceInternalExists(role.Namespace, role.Name)
+		values, err := f.mgr.AssertCoherenceInternalExists(role.Namespace, role.Name)
+		if err != nil {
+			return nil, err
+		}
 
 		r, err := f.FakeHCoherenceHelmInstall(f.mgr, cluster.GetNamespace(), values)
 		if err != nil {

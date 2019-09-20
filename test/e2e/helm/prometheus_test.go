@@ -9,7 +9,6 @@ package helm_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ghodss/yaml"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
@@ -29,6 +28,10 @@ import (
 )
 
 func TestOperatorWithPrometheus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)
@@ -39,17 +42,15 @@ func TestOperatorWithPrometheus(t *testing.T) {
 	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
-	//hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
-	//fmt.Printf("Check for Prometheus CRDs - found=%t", hasCRDs)
+	hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
+	fmt.Printf("Check for Prometheus CRDs - found=%t\n", hasCRDs)
 
 	// Create the values to use to install the operator with Prometheus but without Grafana
 	values := helper.OperatorValues{
 		Prometheusoperator: &helper.PrometheusOperatorSpec{
 			Enabled: pointer.BoolPtr(true),
 			PrometheusOperator: &helper.PrometheusOp{
-				//CreateCustomResource:  pointer.BoolPtr(!hasCRDs),
-				//CleanupCustomResource: pointer.BoolPtr(!hasCRDs),
-				CreateCustomResource: pointer.BoolPtr(false),
+				CreateCustomResource: pointer.BoolPtr(!hasCRDs),
 			},
 			Prometheus: &helper.Prometheus{
 				PrometheusSpec: &helper.PrometheusSpec{ScrapeInterval: pointer.StringPtr("5s")},
@@ -70,9 +71,6 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Defer cleanup (helm delete) to make sure it happens when this method exits
 	defer CleanupHelm(t, hm, helmHelper)
-
-	y, err := yaml.Marshal(values)
-	fmt.Printf("Installing Operator chart into namespace %s with values.yanl\n%s\n", namespace, string(y))
 
 	// Install the chart
 	_, err = hm.InstallRelease()
