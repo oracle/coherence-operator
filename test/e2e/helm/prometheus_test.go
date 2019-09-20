@@ -28,6 +28,10 @@ import (
 )
 
 func TestOperatorWithPrometheus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)

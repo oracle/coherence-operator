@@ -32,6 +32,10 @@ import (
 
 // Test installing the Operator with EFK enabled.
 func TestOperatorWithEFK(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)
@@ -52,6 +56,10 @@ func TestOperatorWithEFK(t *testing.T) {
 
 // Test installing the Operator with an external EFK stack.
 func TestOperatorWithExternalEFK(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)
@@ -76,6 +84,10 @@ func TestOperatorWithExternalEFK(t *testing.T) {
 
 // Test installing the Operator with an external EFK stack.
 func TestOperatorWithExternalEFKAndMonitoringSecret(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
 	helmHelper, err := helper.NewOperatorChartHelper()
 	if err != nil {
 		t.Fatal(err)
