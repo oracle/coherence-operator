@@ -77,25 +77,26 @@ func findContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error
 }
 
 // Shared function to find a specific init-container in a StatefulSet spec
-func findInitContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error) {
-	for _, c := range sts.Spec.Template.Spec.InitContainers {
-		if c.Name == name {
-			return c, nil
-		}
-	}
+//func findInitContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error) {
+//	for _, c := range sts.Spec.Template.Spec.InitContainers {
+//		if c.Name == name {
+//			return c, nil
+//		}
+//	}
+//
+//	return corev1.Container{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "Container"}, name)
+//}
 
-	return corev1.Container{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "Container"}, name)
-}
+//// Shared function to find a specific init-container in a StatefulSet spec for a role in a cluster
+//func findInitContainerForRole(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string, containerName string) (corev1.Container, error) {
+//	sts, err := findStatefulSet(result, cluster, roleName)
+//	if err != nil {
+//		return corev1.Container{}, err
+//	}
+//	return findInitContainer(sts, containerName)
+//}
 
-// Shared function to find a specific init-container in a StatefulSet spec for a role in a cluster
-func findInitContainerForRole(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string, containerName string) (corev1.Container, error) {
-	sts, err := findStatefulSet(result, cluster, roleName)
-	if err != nil {
-		return corev1.Container{}, err
-	}
-	return findInitContainer(sts, containerName)
-}
-
+// Shared function to find a specific volume mount in a Container spec
 func findVolumeMount(container corev1.Container, name string) (corev1.VolumeMount, error) {
 	for _, v := range container.VolumeMounts {
 		if v.Name == name {
@@ -105,6 +106,8 @@ func findVolumeMount(container corev1.Container, name string) (corev1.VolumeMoun
 
 	return corev1.VolumeMount{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "VolumeMount"}, name)
 }
+
+// Shared function to find a specific volume in a StatefulSet spec
 func findVolume(sts appsv1.StatefulSet, name string) (corev1.Volume, error) {
 	for _, v := range sts.Spec.Template.Spec.Volumes {
 		if v.Name == name {
