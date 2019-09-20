@@ -160,7 +160,7 @@ func assertEFK(t *testing.T, values helper.OperatorValues, releaseName string, c
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// It can take a while for things to start to appear in Elasticsearch so wait...
-	err = cl.WaitForCoherenceIndices(time.Second*5, time.Minute*5, t)
+	err = cl.WaitForCoherenceIndices(time.Second*5, time.Minute*10, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// The rest of the tests are executed as sub-tests.

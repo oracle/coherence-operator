@@ -17,6 +17,44 @@ import (
 
 var emptyEnvVars []coreV1.EnvVar
 
+//HaveEnvVar asserts that a []EnvVar does not contain a specified EnvVar.
+func HaveEnvVarNamed(name string) types.GomegaMatcher {
+	return &HaveNamedEnvVarMatcher{Name: name}
+}
+
+// HaveNamedEnvVarMatcher is a Gomega matcher that asserts that an EnvVar
+// is not present in an EnvVar slice
+type HaveNamedEnvVarMatcher struct {
+	Name string
+}
+
+// Match asserts that a value is an EnvVar slice containing the expected EnvVar.
+func (h *HaveNamedEnvVarMatcher) Match(actual interface{}) (success bool, err error) {
+	if !isEnvVarSlice(actual) {
+		return false, fmt.Errorf("HaveEnvVar matcher expects a []EnvVar. Got:%s", format.Object(actual, 1))
+	}
+
+	v := reflect.ValueOf(actual)
+	l := v.Len()
+	for i := 0; i < l; i++ {
+		v := reflect.ValueOf(actual).Index(i)
+		ev := v.Interface().(coreV1.EnvVar)
+		if ev.Name == h.Name {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (h *HaveNamedEnvVarMatcher) FailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to contain an EnvVar named %s", h.Name)
+}
+
+func (h *HaveNamedEnvVarMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to not contain an EnvVar named %s", h.Name)
+}
+
 //HaveEnvVar asserts that a []EnvVar contains a specified EnvVar.
 func HaveEnvVar(expected coreV1.EnvVar) types.GomegaMatcher {
 	return &HaveEnvVarMatcher{EnvVar: expected}

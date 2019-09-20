@@ -4,12 +4,13 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package coherencecluster
+package helm_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/controller/coherencecluster"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -37,7 +38,7 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 	// and capture the result to be asserted by the tests
 	JustBeforeEach(func() {
 		mgr = stubs.NewFakeManager()
-		cr := NewClusterReconciler(mgr)
+		cr := coherencecluster.NewClusterReconciler(mgr)
 		rr := coherencerole.NewRoleReconciler(mgr)
 		helm := stubs.NewFakeHelm(mgr, cr, rr)
 
@@ -181,13 +182,3 @@ var _ = Describe("CoherenceCluster to Helm install verification suite", func() {
 		})
 	})
 })
-
-// ----- helpers ------------------------------------------------------------
-
-// Shared function to find a StatefulSet in a Helm result.
-var findStatefulSet = func(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string) (appsv1.StatefulSet, error) {
-	name := cluster.GetFullRoleName(roleName)
-	sts := appsv1.StatefulSet{}
-	err := result.Get(name, &sts)
-	return sts, err
-}

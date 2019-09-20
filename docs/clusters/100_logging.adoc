@@ -191,7 +191,10 @@ spec:
 The `logging.ConfigMap` field can be used to specify the name of a `ConfigMap` that contains the logging configuration file
 to use. The `ConfigMap` should exist in the same namespace as the Coherence cluster.
 
+TBD...
 
 == Fluentd Logging Configuration
 The Coherence Operator allows Coherence cluster `Pods` to be configured with a Fluentd side-car container that will push
 Coherence logs to Elasticsearch. The configuration for Fluentd is in the `logging.fluentd` section of the spec.
+
+TBD...
