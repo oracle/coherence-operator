@@ -262,7 +262,7 @@ var _ = Describe("coherencecluster_controller", func() {
 	When("a CoherenceCluster is updated", func() {
 		When("an existing role is updated", func() {
 			var existingRoleSpec coherence.CoherenceRoleSpec
-			var updatedgRoleSpec coherence.CoherenceRoleSpec
+			var updatedRoleSpec coherence.CoherenceRoleSpec
 
 			BeforeEach(func() {
 				existingRoleSpec = coherence.CoherenceRoleSpec{
@@ -271,10 +271,12 @@ var _ = Describe("coherencecluster_controller", func() {
 
 				imageName := "coherence:1.2.3"
 
-				updatedgRoleSpec = coherence.CoherenceRoleSpec{
+				updatedRoleSpec = coherence.CoherenceRoleSpec{
 					Role: "storage",
-					Images: &coherence.Images{
-						Coherence: &coherence.ImageSpec{Image: &imageName},
+					Coherence: &coherence.CoherenceSpec{
+						Images: &coherence.CoherenceImagesSpec{
+							Coherence: &coherence.ImageSpec{Image: &imageName},
+						},
 					},
 				}
 
@@ -295,7 +297,7 @@ var _ = Describe("coherencecluster_controller", func() {
 						Name:      testClusterName,
 					},
 					Spec: coherence.CoherenceClusterSpec{
-						Roles: []coherence.CoherenceRoleSpec{updatedgRoleSpec},
+						Roles: []coherence.CoherenceRoleSpec{updatedRoleSpec},
 					},
 				}
 			})
@@ -318,7 +320,7 @@ var _ = Describe("coherencecluster_controller", func() {
 					mgr.AssertCoherenceRoles(testNamespace, 1)
 					name := existingRoleSpec.GetFullRoleName(cluster)
 					role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-					Expect(role.Spec).To(Equal(updatedgRoleSpec))
+					Expect(role.Spec).To(Equal(updatedRoleSpec))
 				})
 
 				It("should fire a successful CoherenceRole update event", func() {

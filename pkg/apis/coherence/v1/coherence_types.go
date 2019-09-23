@@ -39,26 +39,42 @@ const (
 	CoherenceComponentLabel string = "component"
 )
 
-// ----- Images struct ------------------------------------------------------
+// ----- ApplicationSpec struct ---------------------------------------------
 
-// Images defines the different Docker images used in the role
+// The specification of the application deployed into the Coherence
+// role members.
 // +k8s:openapi-gen=true
-type Images struct {
-	// CoherenceImage is the details of the Coherence image to be used
+type ApplicationSpec struct {
+	// The application type to execute.
+	// This field would be set if using the Coherence Graal image and running a none-Java
+	// application. For example if the application was a Node application this field
+	// would be set to "node". The default is to run a plain Java application.
 	// +optional
-	Coherence *ImageSpec `json:"coherence,omitempty"`
-	// CoherenceUtils is the details of the Coherence utilities image to be used
+	Type *string `json:"type,omitempty"`
+	// Class is the Coherence container main class.  The default value is
+	// com.tangosol.net.DefaultCacheServer.
 	// +optional
-	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
-	// UserArtifacts configures the image containing jar files and configuration files
-	// that are added to the Coherence JVM's classpath.
+	MainClass *string `json:"mainClass,omitempty"`
+	// Args is the optional arguments to pass to the main class.
 	// +optional
-	UserArtifacts *UserArtifactsImageSpec `json:"userArtifacts,omitempty"`
+	Args []string `json:"args,omitempty"`
+	// The inlined application image definition
+	ImageSpec `json:",inline"`
+	// The folder in the custom artifacts Docker image containing jar
+	// files to be added to the classpath of the Coherence container.
+	// If not set the libDir is "/files/lib".
+	// +optional
+	LibDir *string `json:"libDir,omitempty"`
+	// The folder in the custom artifacts Docker image containing
+	// configuration files to be added to the classpath of the Coherence container.
+	// If not set the configDir is "/files/conf".
+	// +optional
+	ConfigDir *string `json:"configDir,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this Images struct with any nil or not set values set
-// by the corresponding value in the defaults Images struct.
-func (in *Images) DeepCopyWithDefaults(defaults *Images) *Images {
+// DeepCopyWithDefaults returns a copy of this ApplicationSpec struct with any nil or not set
+// values set by the corresponding value in the defaults Images struct.
+func (in *ApplicationSpec) DeepCopyWithDefaults(defaults *ApplicationSpec) *ApplicationSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
@@ -70,10 +86,257 @@ func (in *Images) DeepCopyWithDefaults(defaults *Images) *Images {
 		return in.DeepCopy()
 	}
 
-	clone := Images{}
+	clone := ApplicationSpec{}
+	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
+
+	if in.Type != nil {
+		clone.Type = in.Type
+	} else {
+		clone.Type = defaults.Type
+	}
+
+	if in.MainClass != nil {
+		clone.MainClass = in.MainClass
+	} else {
+		clone.MainClass = defaults.MainClass
+	}
+
+	if in.Args != nil {
+		clone.Args = in.Args
+	} else {
+		clone.Args = defaults.Args
+	}
+
+	if in.LibDir != nil {
+		clone.LibDir = in.LibDir
+	} else {
+		clone.LibDir = defaults.LibDir
+	}
+
+	if in.ConfigDir != nil {
+		clone.ConfigDir = in.ConfigDir
+	} else {
+		clone.ConfigDir = defaults.ConfigDir
+	}
+
+	return &clone
+}
+
+// ----- CoherenceSpec struct -----------------------------------------------
+
+// The Coherence specific configuration.
+// +k8s:openapi-gen=true
+type CoherenceSpec struct {
+	// The Coherence images configuration.
+	// +optional
+	Images *CoherenceImagesSpec `json:"images,omitempty"`
+	// A boolean flag indicating whether members of this role are storage enabled.
+	// This value will set the corresponding coherence.distributed.localstorage System property.
+	// If not specified the default value is true.
+	// This flag is also used to configure the ScalingPolicy value if a value is not specified. If the
+	// StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is
+	// set to false scaling will be parallel.
+	// +optional
+	StorageEnabled *bool `json:"storageEnabled,omitempty"`
+	// ScalingPolicy describes how the replicas of the cluster role will be scaled.
+	// The default if not specified is based upon the value of the StorageEnabled field.
+	// If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is
+	// set to false the default scaling will be parallel.
+	// +optional
+	ScalingPolicy *ScalingPolicy `json:"scalingPolicy,omitempty"`
+	// CacheConfig is the name of the cache configuration file to use
+	// +optional
+	CacheConfig *string `json:"cacheConfig,omitempty"`
+	// PofConfig is the name of the POF configuration file to use when using POF serializer
+	// +optional
+	PofConfig *string `json:"pofConfig,omitempty"`
+	// OverrideConfig is name of the Coherence operational configuration override file,
+	// the default is tangosol-coherence-override.xml
+	// +optional
+	OverrideConfig *string `json:"overrideConfig,omitempty"`
+	// Persistence values configure the on-disc data persistence settings.
+	// The bool Enabled enables or disabled on disc persistence of data.
+	// +optional
+	Persistence *PersistentStorageSpec `json:"persistence,omitempty"`
+	// Snapshot values configure the on-disc persistence data snapshot (backup) settings.
+	// The bool Enabled enables or disabled a different location for
+	// persistence snapshot data. If set to false then snapshot files will be written
+	// to the same volume configured for persistence data in the Persistence section.
+	// +optional
+	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
+	// Management configures Coherence management over REST
+	//   Note: Coherence management over REST will be available in 12.2.1.4.
+	// +optional
+	Management *PortSpecWithSSL `json:"management,omitempty"`
+	// Metrics configures Coherence metrics publishing
+	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
+	// +optional
+	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
+	// The handler to use to determine whether a role is Status HA.
+	// If not set the default handler will be used.
+	// In most use-cases the default handler would suffice but in
+	// advanced use-cases where the application code has a different
+	// concept of Status HA to just checking Coherence services then
+	// a different handler may be specified.
+	// +optional
+	StatusHA *StatusHAHandler `json:"statusHA,omitempty"`
+	// The timeout in seconds used by curl when requesting site and rack info.
+	// +optional
+	CurlTimeout *int `json:"curlTimeout,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this CoherenceSpec struct with any nil or not set
+// values set by the corresponding value in the defaults CoherenceSpec struct.
+func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *CoherenceSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := CoherenceSpec{}
+	clone.Images = in.Images.DeepCopyWithDefaults(defaults.Images)
+	clone.Persistence = in.Persistence.DeepCopyWithDefaults(defaults.Persistence)
+	clone.Snapshot = in.Snapshot.DeepCopyWithDefaults(defaults.Snapshot)
+	clone.Management = in.Management.DeepCopyWithDefaults(defaults.Management)
+	clone.Metrics = in.Metrics.DeepCopyWithDefaults(defaults.Metrics)
+
+	if in.StorageEnabled != nil {
+		clone.StorageEnabled = in.StorageEnabled
+	} else {
+		clone.StorageEnabled = defaults.StorageEnabled
+	}
+
+	if in.ScalingPolicy != nil {
+		clone.ScalingPolicy = in.ScalingPolicy
+	} else {
+		clone.ScalingPolicy = defaults.ScalingPolicy
+	}
+
+	if in.CacheConfig != nil {
+		clone.CacheConfig = in.CacheConfig
+	} else {
+		clone.CacheConfig = defaults.CacheConfig
+	}
+
+	if in.PofConfig != nil {
+		clone.PofConfig = in.PofConfig
+	} else {
+		clone.PofConfig = defaults.PofConfig
+	}
+
+	if in.OverrideConfig != nil {
+		clone.OverrideConfig = in.OverrideConfig
+	} else {
+		clone.OverrideConfig = defaults.OverrideConfig
+	}
+
+	if in.StatusHA != nil {
+		clone.StatusHA = in.StatusHA
+	} else {
+		clone.StatusHA = defaults.StatusHA
+	}
+
+	if in.CurlTimeout != nil {
+		clone.CurlTimeout = in.CurlTimeout
+	} else {
+		clone.CurlTimeout = defaults.CurlTimeout
+	}
+
+	return &clone
+}
+
+// ----- CoherenceImagesSpec struct -----------------------------------------
+
+// The Coherence specific images configuration.
+// +k8s:openapi-gen=true
+type CoherenceImagesSpec struct {
+	Coherence      *ImageSpec `json:"coherence,omitempty"`
+	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this CoherenceImagesSpec struct with any nil or not set
+// values set by the corresponding value in the defaults CoherenceImagesSpec struct.
+func (in *CoherenceImagesSpec) DeepCopyWithDefaults(defaults *CoherenceImagesSpec) *CoherenceImagesSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := CoherenceImagesSpec{}
 	clone.Coherence = in.Coherence.DeepCopyWithDefaults(defaults.Coherence)
 	clone.CoherenceUtils = in.CoherenceUtils.DeepCopyWithDefaults(defaults.CoherenceUtils)
-	clone.UserArtifacts = in.UserArtifacts.DeepCopyWithDefaults(defaults.UserArtifacts)
+
+	return &clone
+}
+
+// ----- JVMSpec struct -----------------------------------------------------
+
+// The JVM specific configuration.
+// +k8s:openapi-gen=true
+type JVMSpec struct {
+	// MaxHeap is the min/max heap value to pass to the JVM.
+	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	// If not set the JVM defaults are used.
+	// +optional
+	MaxHeap *string `json:"maxHeap,omitempty"`
+	// The optional GC parameters. If not set defaults to enabling the G1 collector.
+	// +optional
+	GC *string `json:"gc,omitempty"`
+	// Args specifies the options (System properties, -XX: args etc) to pass to the JVM.
+	// +optional
+	Args []string `json:"args,omitempty"`
+	// The settings for enabling debug mode in the JVM.
+	// +optional
+	Debug *DebugSpec `json:"debug,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JVMSpec struct with any nil or not set
+// values set by the corresponding value in the defaults JVMSpec struct.
+func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JVMSpec{}
+	clone.Debug = in.Debug.DeepCopyWithDefaults(defaults.Debug)
+
+	if in.MaxHeap != nil {
+		clone.MaxHeap = in.MaxHeap
+	} else {
+		clone.MaxHeap = defaults.MaxHeap
+	}
+
+	if in.GC != nil {
+		clone.GC = in.GC
+	} else {
+		clone.GC = defaults.GC
+	}
+
+	if in.Args != nil {
+		// Merge Args
+		clone.Args = append(in.Args, defaults.Args...)
+	} else {
+		clone.Args = defaults.Args
+	}
 
 	return &clone
 }
@@ -126,6 +389,7 @@ func (in *ImageSpec) DeepCopyWithDefaults(defaults *ImageSpec) *ImageSpec {
 }
 
 // ----- LoggingSpec struct -------------------------------------------------
+
 // LoggingSpec defines the settings for the Coherence Pod logging
 // +k8s:openapi-gen=true
 type LoggingSpec struct {
@@ -190,51 +454,8 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 	return &clone
 }
 
-// ----- MainSpec struct ----------------------------------------------------
-// MainSpec defines the specification of Coherence container main class.
-// +k8s:openapi-gen=true
-type MainSpec struct {
-	// Class is the Coherence container main class.  The default value is
-	//   com.tangosol.net.DefaultCacheServer.
-	// +optional
-	Class *string `json:"class,omitempty"`
-	// Arguments is the optional arguments for Coherence container main class.
-	// +optional
-	Arguments *string `json:"arguments,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this MainSpec struct with any nil or not set values set
-// by the corresponding value in the defaults MainSpecstruct.
-func (in *MainSpec) DeepCopyWithDefaults(defaults *MainSpec) *MainSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := MainSpec{}
-
-	if in.Class != nil {
-		clone.Class = in.Class
-	} else {
-		clone.Class = defaults.Class
-	}
-
-	if in.Arguments != nil {
-		clone.Arguments = in.Arguments
-	} else {
-		clone.Arguments = defaults.Arguments
-	}
-
-	return &clone
-}
-
 // ----- PersistentStorageSpec struct ---------------------------------------
+
 // PersistenceStorageSpec defines the persistence settings for the Coherence
 // +k8s:openapi-gen=true
 type PersistentStorageSpec struct {
@@ -251,7 +472,7 @@ type PersistentStorageSpec struct {
 	// the consequences of this and how the guarantees given when using PVCs differ
 	// to the storage guarantees for the particular volume type configured here.
 	// +optional
-	Volume *corev1.Volume `json:"volume,omitempty"` // from k8s.io/api/core/v1
+	Volume *corev1.VolumeSource `json:"volume,omitempty"` // from k8s.io/api/core/v1
 }
 
 // DeepCopyWithDefaults returns a copy of this PersistentStorageSpec struct with any nil or not set values set
@@ -292,6 +513,7 @@ func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorag
 }
 
 // ----- SSLSpec struct -----------------------------------------------------
+
 // SSLSpec defines the SSL settings for a Coherence component over REST endpoint.
 // +k8s:openapi-gen=true
 type SSLSpec struct {
@@ -603,6 +825,8 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 
 // ----- DebugSpec struct ----------------------------------------------------------
 
+// The JVM Debug specific configuration.
+// +k8s:openapi-gen=true
 type DebugSpec struct {
 	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
 	// +optional
@@ -868,73 +1092,6 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 	return &clone
 }
 
-// ----- JMXSpec struct -----------------------------------------------------
-// JMXSpec defines the values used to enable and configure a separate set of cluster members
-//   that will act as MBean server members and expose a JMX port via a dedicated service.
-//   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
-// +k8s:openapi-gen=true
-type JMXSpec struct {
-	// Enabled enables or disables running the MBean server nodes.
-	//   If not set the default is false.
-	// +optional
-	Enabled *bool `json:"enabled,omitempty"`
-	// Replicas is the number of MBean server nodes to run.
-	//   If not set the default is one.
-	// +optional
-	Replicas *int32 `json:"replicas,omitempty"`
-	// MaxHeap is the min/max heap value to pass to the MBean server JVM.
-	//   The format should be the same as that used for Java's -Xms and -Xmx JVM options.
-	//   If not set the JVM defaults are used.
-	// +optional
-	MaxHeap *string `json:"maxHeap,omitempty"`
-	// Service groups the values used to configure the management service
-	// The default service external port is 9099.
-	Service *ServiceSpec `json:"service,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this JMXSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpecWithSSL struct.
-func (in *JMXSpec) DeepCopyWithDefaults(defaults *JMXSpec) *JMXSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := JMXSpec{}
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
-	}
-
-	if in.Replicas != nil {
-		clone.Replicas = in.Replicas
-	} else {
-		clone.Replicas = defaults.Replicas
-	}
-
-	if in.MaxHeap != nil {
-		clone.MaxHeap = in.MaxHeap
-	} else {
-		clone.MaxHeap = defaults.MaxHeap
-	}
-
-	if in.Service != nil {
-		clone.Service = in.Service
-	} else {
-		clone.Service = defaults.Service
-	}
-
-	return &clone
-}
-
 // ----- StatusHAHandler ----------------------------------------------------
 
 // StatusHAHandler is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
@@ -1055,56 +1212,6 @@ func (in *ReadinessProbeSpec) DeepCopyWithDefaults(defaults *ReadinessProbeSpec)
 		clone.FailureThreshold = in.FailureThreshold
 	} else {
 		clone.FailureThreshold = defaults.FailureThreshold
-	}
-
-	return &clone
-}
-
-// ----- UserArtifactsImageSpec struct --------------------------------------
-
-// UserArtifactsImageSpec defines the settings for the user artifacts image
-// +k8s:openapi-gen=true
-type UserArtifactsImageSpec struct {
-	ImageSpec `json:",inline"`
-	// The folder in the custom artifacts Docker image containing jar
-	// files to be added to the classpath of the Coherence container.
-	// If not set the libDir is "/files/lib".
-	// +optional
-	LibDir *string `json:"libDir,omitempty"`
-	// The folder in the custom artifacts Docker image containing
-	// configuration files to be added to the classpath of the Coherence container.
-	// If not set the configDir is "/files/conf".
-	// +optional
-	ConfigDir *string `json:"configDir,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this UserArtifactsImageSpec struct with any nil or not set values set
-// by the corresponding value in the defaults UserArtifactsImageSpec struct.
-func (in *UserArtifactsImageSpec) DeepCopyWithDefaults(defaults *UserArtifactsImageSpec) *UserArtifactsImageSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := UserArtifactsImageSpec{}
-	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
-
-	if in.LibDir != nil {
-		clone.LibDir = in.LibDir
-	} else {
-		clone.LibDir = defaults.LibDir
-	}
-
-	if in.ConfigDir != nil {
-		clone.ConfigDir = in.ConfigDir
-	} else {
-		clone.ConfigDir = defaults.ConfigDir
 	}
 
 	return &clone

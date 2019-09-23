@@ -5,6 +5,8 @@ metadata:
 spec:
   roles:
     - role: data
-      cacheConfig: data-config.xml
+      coherence:
+        cacheConfig: data-config.xml
     - role: proxy
-      cacheConfig: proxy-config.xml
+      coherence:
+        cacheConfig: proxy-config.xml

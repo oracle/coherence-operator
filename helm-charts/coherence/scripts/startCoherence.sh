@@ -85,9 +85,9 @@ server()
     fi
 
 #   By default we use the G1 collector
-    if [[ "${JVM_ARGS}" == "" ]]
+    if [[ "${JVM_GC_OPTS}" == "" ]]
     then
-        JVM_ARGS="-XX:+UseG1GC"
+        JVM_GC_OPTS="-XX:+UseG1GC"
     fi
 
 #   If the MAX_HEAP variable is set use it to set the -Xms and -Xmx arguments
@@ -252,11 +252,11 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
     CLASSPATH="${COH_EXTRA_CLASSPATH}:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar"
 
 #   Create the command line to use to start the JVM
-    CMD="-cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
+    CMD="-cp ${CLASSPATH} ${JVM_GC_OPTS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
         -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
         -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
         -Dcoherence.ttl=0 \
-        ${PROPS} ${JAVA_OPTS}"
+        ${PROPS} ${JVM_ARGS}"
 
 #   Dump the full set of environment variables to the console for logging/debugging
     echo "---------------------------------"

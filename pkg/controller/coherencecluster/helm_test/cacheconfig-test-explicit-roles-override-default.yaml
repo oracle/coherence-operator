@@ -3,8 +3,10 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  cacheConfig: test-config.xml
+  coherence:
+    cacheConfig: test-config.xml
   roles:
     - role: data
     - role: proxy
-      cacheConfig: proxy-config.xml
+      coherence:
+        cacheConfig: proxy-config.xml

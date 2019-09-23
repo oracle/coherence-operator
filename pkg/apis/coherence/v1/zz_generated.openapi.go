@@ -11,31 +11,100 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"./pkg/apis/coherence/v1.CoherenceCluster":           schema_pkg_apis_coherence_v1_CoherenceCluster(ref),
-		"./pkg/apis/coherence/v1.CoherenceClusterSpec":       schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref),
-		"./pkg/apis/coherence/v1.CoherenceClusterStatus":     schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref),
-		"./pkg/apis/coherence/v1.CoherenceInternal":          schema_pkg_apis_coherence_v1_CoherenceInternal(ref),
-		"./pkg/apis/coherence/v1.CoherenceInternalSpec":      schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref),
-		"./pkg/apis/coherence/v1.CoherenceInternalStatus":    schema_pkg_apis_coherence_v1_CoherenceInternalStatus(ref),
-		"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec": schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref),
-		"./pkg/apis/coherence/v1.CoherenceRole":              schema_pkg_apis_coherence_v1_CoherenceRole(ref),
-		"./pkg/apis/coherence/v1.CoherenceRoleSpec":          schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
-		"./pkg/apis/coherence/v1.CoherenceRoleStatus":        schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
-		"./pkg/apis/coherence/v1.FluentdSpec":                schema_pkg_apis_coherence_v1_FluentdSpec(ref),
-		"./pkg/apis/coherence/v1.ImageSpec":                  schema_pkg_apis_coherence_v1_ImageSpec(ref),
-		"./pkg/apis/coherence/v1.Images":                     schema_pkg_apis_coherence_v1_Images(ref),
-		"./pkg/apis/coherence/v1.JMXSpec":                    schema_pkg_apis_coherence_v1_JMXSpec(ref),
-		"./pkg/apis/coherence/v1.LoggingSpec":                schema_pkg_apis_coherence_v1_LoggingSpec(ref),
-		"./pkg/apis/coherence/v1.MainSpec":                   schema_pkg_apis_coherence_v1_MainSpec(ref),
-		"./pkg/apis/coherence/v1.NamedPortSpec":              schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
-		"./pkg/apis/coherence/v1.PersistentStorageSpec":      schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
-		"./pkg/apis/coherence/v1.PortSpec":                   schema_pkg_apis_coherence_v1_PortSpec(ref),
-		"./pkg/apis/coherence/v1.PortSpecWithSSL":            schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
-		"./pkg/apis/coherence/v1.ReadinessProbeSpec":         schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
-		"./pkg/apis/coherence/v1.SSLSpec":                    schema_pkg_apis_coherence_v1_SSLSpec(ref),
-		"./pkg/apis/coherence/v1.ServiceSpec":                schema_pkg_apis_coherence_v1_ServiceSpec(ref),
-		"./pkg/apis/coherence/v1.StatusHAHandler":            schema_pkg_apis_coherence_v1_StatusHAHandler(ref),
-		"./pkg/apis/coherence/v1.UserArtifactsImageSpec":     schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref),
+		"./pkg/apis/coherence/v1.ApplicationSpec":         schema_pkg_apis_coherence_v1_ApplicationSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceCluster":        schema_pkg_apis_coherence_v1_CoherenceCluster(ref),
+		"./pkg/apis/coherence/v1.CoherenceClusterSpec":    schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceClusterStatus":  schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref),
+		"./pkg/apis/coherence/v1.CoherenceImagesSpec":     schema_pkg_apis_coherence_v1_CoherenceImagesSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceInternal":       schema_pkg_apis_coherence_v1_CoherenceInternal(ref),
+		"./pkg/apis/coherence/v1.CoherenceInternalSpec":   schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceInternalStatus": schema_pkg_apis_coherence_v1_CoherenceInternalStatus(ref),
+		"./pkg/apis/coherence/v1.CoherenceRole":           schema_pkg_apis_coherence_v1_CoherenceRole(ref),
+		"./pkg/apis/coherence/v1.CoherenceRoleSpec":       schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceRoleStatus":     schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
+		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
+		"./pkg/apis/coherence/v1.DebugSpec":               schema_pkg_apis_coherence_v1_DebugSpec(ref),
+		"./pkg/apis/coherence/v1.FluentdSpec":             schema_pkg_apis_coherence_v1_FluentdSpec(ref),
+		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
+		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
+		"./pkg/apis/coherence/v1.LoggingSpec":             schema_pkg_apis_coherence_v1_LoggingSpec(ref),
+		"./pkg/apis/coherence/v1.NamedPortSpec":           schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
+		"./pkg/apis/coherence/v1.PersistentStorageSpec":   schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
+		"./pkg/apis/coherence/v1.PortSpec":                schema_pkg_apis_coherence_v1_PortSpec(ref),
+		"./pkg/apis/coherence/v1.PortSpecWithSSL":         schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
+		"./pkg/apis/coherence/v1.ReadinessProbeSpec":      schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
+		"./pkg/apis/coherence/v1.SSLSpec":                 schema_pkg_apis_coherence_v1_SSLSpec(ref),
+		"./pkg/apis/coherence/v1.ServiceSpec":             schema_pkg_apis_coherence_v1_ServiceSpec(ref),
+		"./pkg/apis/coherence/v1.StatusHAHandler":         schema_pkg_apis_coherence_v1_StatusHAHandler(ref),
+	}
+}
+
+func schema_pkg_apis_coherence_v1_ApplicationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The specification of the application deployed into the Coherence role members.",
+				Properties: map[string]spec.Schema{
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\". The default is to run a plain Java application.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"mainClass": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"args": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Args is the optional arguments to pass to the main class.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"imagePullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"libDir": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The folder in the custom artifacts Docker image containing jar files to be added to the classpath of the Coherence container. If not set the libDir is \"/files/lib\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"configDir": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The folder in the custom artifacts Docker image containing configuration files to be added to the classpath of the Coherence container. If not set the configDir is \"/files/conf\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
@@ -123,65 +192,16 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "int32",
 						},
 					},
-					"images": {
+					"application": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Details of the Docker images used in the role",
-							Ref:         ref("./pkg/apis/coherence/v1.Images"),
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.ApplicationSpec"),
 						},
 					},
-					"storageEnabled": {
+					"coherence": {
 						SchemaProps: spec.SchemaProps{
-							Description: "A boolean flag indicating whether members of this role are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"scalingPolicy": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"readinessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"labels": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The extra labels to add to the all of the Pods in this roles. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"cacheConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CacheConfig is the name of the cache configuration file to use",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"pofConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"overrideConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
 						},
 					},
 					"logging": {
@@ -190,31 +210,10 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
 						},
 					},
-					"main": {
+					"jvm": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Main allows specification of Coherence container main class.",
-							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
-						},
-					},
-					"maxHeap": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"jvmArgs": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"javaOpts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The JVM specific options",
+							Ref:         ref("./pkg/apis/coherence/v1.JVMSpec"),
 						},
 					},
 					"ports": {
@@ -243,6 +242,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"readinessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
@@ -257,48 +268,18 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
-					"podManagementPolicy": {
+					"labels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"revisionHistoryLimit": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"persistence": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"snapshot": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"management": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"metrics": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"jmx": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
-							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+							Description: "The extra labels to add to the all of the Pods in this roles. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 					"volumes": {
@@ -342,7 +323,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 					},
 					"affinity": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Pod scheduling values: Affinity, NodeSelector, Tolerations Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
+							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
 							Ref:         ref("k8s.io/api/core/v1.Affinity"),
 						},
 					},
@@ -373,38 +354,6 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
-					"resources": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
-							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
-						},
-					},
-					"statusHA": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The handler to use to determine whether a role is Status HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Status HA to just checking Coherence services then a different handler may be specified.",
-							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
-						},
-					},
-					"curlTimeout": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The timeout in seconds used by curl when requesting site and rack info.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"debug": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The settings for enabling debug mode in the JVM.",
-							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
-						},
-					},
-					"graalApplicationType": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"roles": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Roles is the list of different roles in the cluster There must be at least one role in a cluster.",
@@ -422,7 +371,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -435,6 +384,30 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceImagesSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The Coherence specific images configuration.",
+				Properties: map[string]spec.Schema{
+					"coherence": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("./pkg/apis/coherence/v1.ImageSpec"),
+						},
+					},
+					"coherenceUtils": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("./pkg/apis/coherence/v1.ImageSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.ImageSpec"},
 	}
 }
 
@@ -495,23 +468,22 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							Format: "",
 						},
 					},
-					"clusterSize": {
+					"nameOverride": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The size of the cluster",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"cluster": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The name of the cluster",
+							Description: "The cluster name",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"role": {
+					"wka": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The role name of a Coherence cluster member",
+							Description: "The name of the headless service used for Coherence WKA",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -537,155 +509,30 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							},
 						},
 					},
+					"role": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of this role. This value will be used to set the Coherence role property for all members of this role",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The desired number of cluster members of this role. This is a pointer to distinguish between explicit zero and not specified. Default value is 3.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"application": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.ApplicationSpec"),
+						},
+					},
 					"coherence": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The Coherence Docker image settings",
-							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"coherenceUtils": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The Coherence Utilities Docker image settings",
-							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"store": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The store settings",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceInternalStoreSpec"),
-						},
-					},
-					"affinity": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
-							Ref:         ref("k8s.io/api/core/v1.Affinity"),
-						},
-					},
-					"nodeSelector": {
-						SchemaProps: spec.SchemaProps{
-							Description: "NodeSelector is the Node labels for pod assignment\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"tolerations": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.Toleration"),
-									},
-								},
-							},
-						},
-					},
-					"resources": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
-							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
-						},
-					},
-					"fluentd": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Specify the Fluentd log capture configuration",
-							Ref:         ref("./pkg/apis/coherence/v1.FluentdSpec"),
-						},
-					},
-					"userArtifacts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The user artifacts image settings",
-							Ref:         ref("./pkg/apis/coherence/v1.UserArtifactsImageSpec"),
-						},
-					},
-				},
-				Required: []string{"cluster"},
-			},
-		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceInternalStoreSpec", "./pkg/apis/coherence/v1.FluentdSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_CoherenceInternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "CoherenceInternalStatus defines the observed state of CoherenceInternal",
-				Properties:  map[string]spec.Schema{},
-			},
-		},
-		Dependencies: []string{},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "CoherenceInternalStoreSpec defines the desired state of CoherenceInternal stores",
-				Properties: map[string]spec.Schema{
-					"storageEnabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "A boolean flag indicating whether members of this role are storage enabled. If not specified the default value is true.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"wka": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The name of the headless service used for Coherence WKA",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"labels": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The extra labels to add to the Coherence Pod. More info: http://kubernetes.io/docs/user-guide/labels",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"readinessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The readiness probe config. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"cacheConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CacheConfig is the name of the cache configuration file to use",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"pofConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"overrideConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
 						},
 					},
 					"logging": {
@@ -694,31 +541,10 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
 						},
 					},
-					"main": {
+					"jvm": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Main allows specification of Coherence container main class.",
-							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
-						},
-					},
-					"maxHeap": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"jvmArgs": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"javaOpts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The JVM specific options",
+							Ref:         ref("./pkg/apis/coherence/v1.JVMSpec"),
 						},
 					},
 					"ports": {
@@ -747,6 +573,18 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							},
 						},
 					},
+					"readinessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
@@ -761,48 +599,18 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							},
 						},
 					},
-					"podManagementPolicy": {
+					"labels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"revisionHistoryLimit": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"persistence": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"snapshot": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"management": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"metrics": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"jmx": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
-							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+							Description: "The extra labels to add to the all of the Pods in this roles. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 					"volumes": {
@@ -844,31 +652,57 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalStoreSpec(ref common.Referenc
 							},
 						},
 					},
-					"curlTimeout": {
+					"affinity": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The timeout in seconds used by curl when requesting site and rack info.",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
+							Ref:         ref("k8s.io/api/core/v1.Affinity"),
 						},
 					},
-					"debug": {
+					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The settings for enabling debug mode in the JVM.",
-							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
+							Description: "NodeSelector is the Node labels for pod assignment\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
-					"graalApplicationType": {
+					"tolerations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Toleration"),
+									},
+								},
+							},
 						},
 					},
 				},
+				Required: []string{"cluster"},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceInternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "CoherenceInternalStatus defines the observed state of CoherenceInternal",
+				Properties:  map[string]spec.Schema{},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
@@ -935,65 +769,16 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Format:      "int32",
 						},
 					},
-					"images": {
+					"application": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Details of the Docker images used in the role",
-							Ref:         ref("./pkg/apis/coherence/v1.Images"),
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.ApplicationSpec"),
 						},
 					},
-					"storageEnabled": {
+					"coherence": {
 						SchemaProps: spec.SchemaProps{
-							Description: "A boolean flag indicating whether members of this role are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"scalingPolicy": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"readinessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"labels": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The extra labels to add to the all of the Pods in this roles. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"cacheConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CacheConfig is the name of the cache configuration file to use",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"pofConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"overrideConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The optional application definition",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
 						},
 					},
 					"logging": {
@@ -1002,31 +787,10 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
 						},
 					},
-					"main": {
+					"jvm": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Main allows specification of Coherence container main class.",
-							Ref:         ref("./pkg/apis/coherence/v1.MainSpec"),
-						},
-					},
-					"maxHeap": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"jvmArgs": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JvmArgs specifies the options to pass to the Coherence JVM. The default is to use the G1 collector.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"javaOpts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JavaOpts is miscellaneous JVM options to pass to the Coherence store container This options will override the system options computed in the start up script.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "The JVM specific options",
+							Ref:         ref("./pkg/apis/coherence/v1.JVMSpec"),
 						},
 					},
 					"ports": {
@@ -1055,6 +819,18 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							},
 						},
 					},
+					"readinessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
@@ -1069,48 +845,18 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							},
 						},
 					},
-					"podManagementPolicy": {
+					"labels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "PodManagementPolicy sets the podManagementPolicy value for the Coherence cluster StatefulSet.  The default value is Parallel, to cause Pods to be started and stopped in parallel, which can be useful for faster cluster start-up in certain scenarios such as testing but could cause data loss if multiple Pods are stopped in parallel.  This can be changed to OrderedReady which causes Pods to start and stop in sequence.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"revisionHistoryLimit": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RevisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades. The default value if not set is 3.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"persistence": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"snapshot": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"management": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"metrics": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
-							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
-						},
-					},
-					"jmx": {
-						SchemaProps: spec.SchemaProps{
-							Description: "JMX defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
-							Ref:         ref("./pkg/apis/coherence/v1.JMXSpec"),
+							Description: "The extra labels to add to the all of the Pods in this roles. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 					"volumes": {
@@ -1154,7 +900,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					},
 					"affinity": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Pod scheduling values: Affinity, NodeSelector, Tolerations Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
+							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
 							Ref:         ref("k8s.io/api/core/v1.Affinity"),
 						},
 					},
@@ -1185,43 +931,11 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							},
 						},
 					},
-					"resources": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
-							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
-						},
-					},
-					"statusHA": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The handler to use to determine whether a role is Status HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Status HA to just checking Coherence services then a different handler may be specified.",
-							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
-						},
-					},
-					"curlTimeout": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The timeout in seconds used by curl when requesting site and rack info.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"debug": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The settings for enabling debug mode in the JVM.",
-							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
-						},
-					},
-					"graalApplicationType": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The Graal application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.DebugSpec", "./pkg/apis/coherence/v1.Images", "./pkg/apis/coherence/v1.JMXSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.MainSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.StatusHAHandler", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1268,6 +982,125 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref common.ReferenceCallba
 					},
 				},
 				Required: []string{"replicas", "currentReplicas", "readyReplicas"},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The Coherence specific configuration.",
+				Properties: map[string]spec.Schema{
+					"images": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Coherence images configuration.",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceImagesSpec"),
+						},
+					},
+					"storageEnabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "A boolean flag indicating whether members of this role are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"scalingPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"cacheConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CacheConfig is the name of the cache configuration file to use",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"pofConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"overrideConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"persistence": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+					"snapshot": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+					"management": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
+						},
+					},
+					"metrics": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
+							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
+						},
+					},
+					"statusHA": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The handler to use to determine whether a role is Status HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Status HA to just checking Coherence services then a different handler may be specified.",
+							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
+						},
+					},
+					"curlTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout in seconds used by curl when requesting site and rack info.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.CoherenceImagesSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.StatusHAHandler"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_DebugSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The JVM Debug specific configuration.",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"attach": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Attach specifies the address of the debugger that the JVM should attempt to connect back to instead of listening on port 5005.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
 			},
 		},
 		Dependencies: []string{},
@@ -1349,76 +1182,51 @@ func schema_pkg_apis_coherence_v1_ImageSpec(ref common.ReferenceCallback) common
 	}
 }
 
-func schema_pkg_apis_coherence_v1_Images(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Images defines the different Docker images used in the role",
+				Description: "The JVM specific configuration.",
 				Properties: map[string]spec.Schema{
-					"coherence": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CoherenceImage is the details of the Coherence image to be used",
-							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"coherenceUtils": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CoherenceUtils is the details of the Coherence utilities image to be used",
-							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"userArtifacts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "UserArtifacts configures the image containing jar files and configuration files that are added to the Coherence JVM's classpath.",
-							Ref:         ref("./pkg/apis/coherence/v1.UserArtifactsImageSpec"),
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.UserArtifactsImageSpec"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_JMXSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "----- JMXSpec struct ----------------------------------------------------- JMXSpec defines the values used to enable and configure a separate set of cluster members\n  that will act as MBean server members and expose a JMX port via a dedicated service.\n  The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.",
-				Properties: map[string]spec.Schema{
-					"enabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Enabled enables or disables running the MBean server nodes.\n  If not set the default is false.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"replicas": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Replicas is the number of MBean server nodes to run.\n  If not set the default is one.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
 					"maxHeap": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MaxHeap is the min/max heap value to pass to the MBean server JVM.\n  The format should be the same as that used for Java's -Xms and -Xmx JVM options.\n  If not set the JVM defaults are used.",
+							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"service": {
+					"gc": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Service groups the values used to configure the management service The default service external port is 9099.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+							Description: "The optional GC parameters. If not set defaults to enabling the G1 collector.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"args": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Args specifies the options (System properties, -XX: args etc) to pass to the JVM.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"debug": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The settings for enabling debug mode in the JVM.",
+							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ServiceSpec"},
+			"./pkg/apis/coherence/v1.DebugSpec"},
 	}
 }
 
@@ -1426,7 +1234,7 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "----- LoggingSpec struct ------------------------------------------------- LoggingSpec defines the settings for the Coherence Pod logging",
+				Description: "LoggingSpec defines the settings for the Coherence Pod logging",
 				Properties: map[string]spec.Schema{
 					"level": {
 						SchemaProps: spec.SchemaProps{
@@ -1460,33 +1268,6 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 		},
 		Dependencies: []string{
 			"./pkg/apis/coherence/v1.FluentdSpec"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_MainSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "----- MainSpec struct ---------------------------------------------------- MainSpec defines the specification of Coherence container main class.",
-				Properties: map[string]spec.Schema{
-					"class": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Class is the Coherence container main class.  The default value is\n  com.tangosol.net.DefaultCacheServer.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"arguments": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Arguments is the optional arguments for Coherence container main class.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{},
 	}
 }
 
@@ -1535,7 +1316,7 @@ func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCall
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "----- PersistentStorageSpec struct --------------------------------------- PersistenceStorageSpec defines the persistence settings for the Coherence",
+				Description: "PersistenceStorageSpec defines the persistence settings for the Coherence",
 				Properties: map[string]spec.Schema{
 					"enabled": {
 						SchemaProps: spec.SchemaProps{
@@ -1552,14 +1333,14 @@ func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCall
 					"volume": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.",
-							Ref:         ref("k8s.io/api/core/v1.Volume"),
+							Ref:         ref("k8s.io/api/core/v1.VolumeSource"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.Volume"},
+			"k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.VolumeSource"},
 	}
 }
 
@@ -1676,7 +1457,7 @@ func schema_pkg_apis_coherence_v1_SSLSpec(ref common.ReferenceCallback) common.O
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "----- SSLSpec struct ----------------------------------------------------- SSLSpec defines the SSL settings for a Coherence component over REST endpoint.",
+				Description: "SSLSpec defines the SSL settings for a Coherence component over REST endpoint.",
 				Properties: map[string]spec.Schema{
 					"enabled": {
 						SchemaProps: spec.SchemaProps{
@@ -1944,46 +1725,5 @@ func schema_pkg_apis_coherence_v1_StatusHAHandler(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_UserArtifactsImageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "UserArtifactsImageSpec defines the settings for the user artifacts image",
-				Properties: map[string]spec.Schema{
-					"image": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"imagePullPolicy": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"libDir": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The folder in the custom artifacts Docker image containing jar files to be added to the classpath of the Coherence container. If not set the libDir is \"/files/lib\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"configDir": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The folder in the custom artifacts Docker image containing configuration files to be added to the classpath of the Coherence container. If not set the configDir is \"/files/conf\".",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{},
 	}
 }

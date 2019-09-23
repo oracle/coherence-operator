@@ -16,9 +16,53 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Configure Volumes
+= Configure Additional Volumes
 
 Although a Coherence cluster member may not need access to specific volumes custom applications deployed into a cluster
 may require them. For this reason it is possible to configure roles in a `CoherenceCluster` with arbitrary volume mounts.
 
-== Configure Volumes
+== Configure Additional Volumes
+
+There are two parts to configuring a volume that will be accessible to an application running in th Coherence `Pods`.
+First a `Volume` must be defined for the `Pod` itself and then a corresponding `VolumeMount` must be configured that
+will be added to the Coherence container in the `Pods`.
+Additional `Volumes` and `VolumeMounts` can be added to a `CoherenceCluster` by defining each additional `Volume`
+and `VolumeMount` using exactly the same yaml that would be used if adding `Volumes` to Kubernetes `Pods` as described
+in the https://kubernetes.io/docs/concepts/storage/volumes/[Kubernetes Volumes documentation]
+
+
+=== Adding Volumes to the Implicit Role
+
+When defining a `CoherenceCluster` with a single implicit role the `Volumes` and `VolumeMounts` are added directly to
+the `CoherenceCluster` `spec`
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  volumes:
+     - name: test-volume     <1>
+       hostPath:
+         path: /data
+         type: Directory
+  volumeMounts:
+     - mountPath: /test-data <2>
+       name: test-volume
+----
+
+<1> An additional `Volume` named `test-volume` will be added to the `Pod`. In this case the volume is
+a `hostPath` volume type.
+<2> A corresponding `VolumeMount` is added so that the `test-volume` will be mounted into the Coherence container
+with the path `/test-data`
+
+=== Adding Volumes to Explicit Roles
+
+
+=== Adding Volumes to Explicit Roles with Defaults
+
+
+
+

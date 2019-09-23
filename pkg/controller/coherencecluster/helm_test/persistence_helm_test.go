@@ -36,6 +36,7 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 		result *stubs.HelmInstallResult
 
 		// ----- helpers ------------------------------------------------------------
+
 		NewPersistenceStorageSpec = func(enabled, pvc bool) *cohv1.PersistentStorageSpec {
 			if !enabled {
 				return &cohv1.PersistentStorageSpec{Enabled: pointer.BoolPtr(false)}
@@ -53,15 +54,18 @@ var _ = Describe("Persistence CoherenceCluster to Helm install verification suit
 
 			twoGiResource := resource.MustParse("2Gi")
 			return &cohv1.PersistentStorageSpec{Enabled: pointer.BoolPtr(true),
-				Volume: &corev1.Volume{
-					VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &twoGiResource}},
-				},
+				Volume: &corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &twoGiResource}},
 			}
 		}
 
 		createCluster = func(persistence *cohv1.PersistentStorageSpec, snapshot *cohv1.PersistentStorageSpec) {
-			roleOne := cohv1.CoherenceRoleSpec{Role: roleOneName, Replicas: pointer.Int32Ptr(1),
-				Persistence: persistence, Snapshot: snapshot}
+			roleOne := cohv1.CoherenceRoleSpec{
+				Role:     roleOneName,
+				Replicas: pointer.Int32Ptr(1),
+				Coherence: &cohv1.CoherenceSpec{
+					Persistence: persistence,
+					Snapshot:    snapshot},
+			}
 
 			cluster = &cohv1.CoherenceCluster{}
 			cluster.SetNamespace(testNamespace)

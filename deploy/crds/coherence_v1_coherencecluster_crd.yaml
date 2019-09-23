@@ -30,8 +30,7 @@ spec:
         spec:
           properties:
             affinity:
-              description: 'Pod scheduling values: Affinity, NodeSelector, Tolerations
-                Affinity controls Pod scheduling preferences.   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
+              description: 'Affinity controls Pod scheduling preferences.   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
               type: object
             annotations:
               additionalProperties:
@@ -42,26 +41,360 @@ spec:
                 for Prometheus it would look like this:  annotations:   prometheus.io/scrape:
                 "true"   prometheus.io/port: "2408"'
               type: object
-            cacheConfig:
-              description: CacheConfig is the name of the cache configuration file
-                to use
-              type: string
-            curlTimeout:
-              description: The timeout in seconds used by curl when requesting site
-                and rack info.
-              format: int64
-              type: integer
-            debug:
-              description: The settings for enabling debug mode in the JVM.
+            application:
+              description: The optional application definition
               properties:
-                attach:
-                  description: Attach specifies the address of the debugger that the
-                    JVM should attempt to connect back to instead of listening on
-                    port 5005.
+                args:
+                  description: Args is the optional arguments to pass to the main
+                    class.
+                  items:
+                    type: string
+                  type: array
+                configDir:
+                  description: The folder in the custom artifacts Docker image containing
+                    configuration files to be added to the classpath of the Coherence
+                    container. If not set the configDir is "/files/conf".
                   type: string
-                enabled:
-                  description: Enabled is a flag to enable or disable running the
-                    JVM in debug mode. Default is disabled.
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+                libDir:
+                  description: The folder in the custom artifacts Docker image containing
+                    jar files to be added to the classpath of the Coherence container.
+                    If not set the libDir is "/files/lib".
+                  type: string
+                mainClass:
+                  description: Class is the Coherence container main class.  The default
+                    value is com.tangosol.net.DefaultCacheServer.
+                  type: string
+                type:
+                  description: The application type to execute. This field would be
+                    set if using the Coherence Graal image and running a none-Java
+                    application. For example if the application was a Node application
+                    this field would be set to "node". The default is to run a plain
+                    Java application.
+                  type: string
+              type: object
+            coherence:
+              description: The optional application definition
+              properties:
+                cacheConfig:
+                  description: CacheConfig is the name of the cache configuration
+                    file to use
+                  type: string
+                curlTimeout:
+                  description: The timeout in seconds used by curl when requesting
+                    site and rack info.
+                  format: int64
+                  type: integer
+                images:
+                  description: The Coherence images configuration.
+                  properties:
+                    coherence:
+                      properties:
+                        image:
+                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                          type: string
+                        imagePullPolicy:
+                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                          type: string
+                      type: object
+                    coherenceUtils:
+                      properties:
+                        image:
+                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                          type: string
+                        imagePullPolicy:
+                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                          type: string
+                      type: object
+                  type: object
+                management:
+                  description: 'Management configures Coherence management over REST   Note:
+                    Coherence management over REST will be available in 12.2.1.4.'
+                  properties:
+                    enabled:
+                      description: Enable or disable flag.
+                      type: boolean
+                    ssl:
+                      description: SSL configures SSL settings for a Coherence component
+                      properties:
+                        enabled:
+                          description: Enabled is a boolean flag indicating whether
+                            enables or disables SSL on the Coherence management over
+                            REST endpoint, the default is false (disabled).
+                          type: boolean
+                        keyPasswordFile:
+                          description: KeyStorePasswordFile is the name of the file
+                            in the k8s secret containing the key   password when configuring
+                            component over REST to use SSL.
+                          type: string
+                        keyStore:
+                          description: Keystore is the name of the Java key store
+                            file in the k8s secret to use as the SSL keystore   when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreAlgorithm:
+                          description: KeyStoreAlgorithm is the name of the keystore
+                            algorithm for the keystore in the k8s secret   used when
+                            configuring component over REST to use SSL. If not set
+                            the default is SunX509
+                          type: string
+                        keyStorePasswordFile:
+                          description: KeyStorePasswordFile is the name of the file
+                            in the k8s secret containing the keystore   password when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreProvider:
+                          description: KeyStoreProvider is the name of the keystore
+                            provider for the keystore in the k8s secret   used when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreType:
+                          description: KeyStoreType is the name of the Java keystore
+                            type for the keystore in the k8s secret used   when configuring
+                            component over REST to use SSL. If not set the default
+                            is JKS.
+                          type: string
+                        requireClientCert:
+                          description: RequireClientCert is a boolean flag indicating
+                            whether the client certificate will be   authenticated
+                            by the server (two-way SSL) when configuring component
+                            over REST to use SSL.   If not set the default is false
+                          type: boolean
+                        secrets:
+                          description: Secrets is the name of the k8s secrets containing
+                            the Java key stores and password files.   This value MUST
+                            be provided if SSL is enabled on the Coherence management
+                            over ReST endpoint.
+                          type: string
+                        trustStore:
+                          description: TrustStore is the name of the Java trust store
+                            file in the k8s secret to use as the SSL   trust store
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreAlgorithm:
+                          description: TrustStoreAlgorithm is the name of the keystore
+                            algorithm for the trust store in the k8s   secret used
+                            when configuring component over REST to use SSL.  If not
+                            set the default is SunX509.
+                          type: string
+                        trustStorePasswordFile:
+                          description: TrustStorePasswordFile is the name of the file
+                            in the k8s secret containing the trust store   password
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreProvider:
+                          description: TrustStoreProvider is the name of the keystore
+                            provider for the trust store in the k8s   secret used
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreType:
+                          description: TrustStoreType is the name of the Java keystore
+                            type for the trust store in the k8s secret   used when
+                            configuring component over REST to use SSL. If not set
+                            the default is JKS.
+                          type: string
+                      required:
+                      - keyStore
+                      type: object
+                  type: object
+                metrics:
+                  description: 'Metrics configures Coherence metrics publishing   Note:
+                    Coherence metrics publishing will be available in 12.2.1.4.'
+                  properties:
+                    enabled:
+                      description: Enable or disable flag.
+                      type: boolean
+                    ssl:
+                      description: SSL configures SSL settings for a Coherence component
+                      properties:
+                        enabled:
+                          description: Enabled is a boolean flag indicating whether
+                            enables or disables SSL on the Coherence management over
+                            REST endpoint, the default is false (disabled).
+                          type: boolean
+                        keyPasswordFile:
+                          description: KeyStorePasswordFile is the name of the file
+                            in the k8s secret containing the key   password when configuring
+                            component over REST to use SSL.
+                          type: string
+                        keyStore:
+                          description: Keystore is the name of the Java key store
+                            file in the k8s secret to use as the SSL keystore   when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreAlgorithm:
+                          description: KeyStoreAlgorithm is the name of the keystore
+                            algorithm for the keystore in the k8s secret   used when
+                            configuring component over REST to use SSL. If not set
+                            the default is SunX509
+                          type: string
+                        keyStorePasswordFile:
+                          description: KeyStorePasswordFile is the name of the file
+                            in the k8s secret containing the keystore   password when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreProvider:
+                          description: KeyStoreProvider is the name of the keystore
+                            provider for the keystore in the k8s secret   used when
+                            configuring component over REST to use SSL.
+                          type: string
+                        keyStoreType:
+                          description: KeyStoreType is the name of the Java keystore
+                            type for the keystore in the k8s secret used   when configuring
+                            component over REST to use SSL. If not set the default
+                            is JKS.
+                          type: string
+                        requireClientCert:
+                          description: RequireClientCert is a boolean flag indicating
+                            whether the client certificate will be   authenticated
+                            by the server (two-way SSL) when configuring component
+                            over REST to use SSL.   If not set the default is false
+                          type: boolean
+                        secrets:
+                          description: Secrets is the name of the k8s secrets containing
+                            the Java key stores and password files.   This value MUST
+                            be provided if SSL is enabled on the Coherence management
+                            over ReST endpoint.
+                          type: string
+                        trustStore:
+                          description: TrustStore is the name of the Java trust store
+                            file in the k8s secret to use as the SSL   trust store
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreAlgorithm:
+                          description: TrustStoreAlgorithm is the name of the keystore
+                            algorithm for the trust store in the k8s   secret used
+                            when configuring component over REST to use SSL.  If not
+                            set the default is SunX509.
+                          type: string
+                        trustStorePasswordFile:
+                          description: TrustStorePasswordFile is the name of the file
+                            in the k8s secret containing the trust store   password
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreProvider:
+                          description: TrustStoreProvider is the name of the keystore
+                            provider for the trust store in the k8s   secret used
+                            when configuring component over REST to use SSL.
+                          type: string
+                        trustStoreType:
+                          description: TrustStoreType is the name of the Java keystore
+                            type for the trust store in the k8s secret   used when
+                            configuring component over REST to use SSL. If not set
+                            the default is JKS.
+                          type: string
+                      required:
+                      - keyStore
+                      type: object
+                  type: object
+                overrideConfig:
+                  description: OverrideConfig is name of the Coherence operational
+                    configuration override file, the default is tangosol-coherence-override.xml
+                  type: string
+                persistence:
+                  description: Persistence values configure the on-disc data persistence
+                    settings. The bool Enabled enables or disabled on disc persistence
+                    of data.
+                  properties:
+                    enabled:
+                      type: boolean
+                    persistentVolumeClaim:
+                      description: PersistentVolumeClaim allows the configuration
+                        of a normal k8s persistent volume claim for persistence data.
+                      type: object
+                    volume:
+                      description: Volume allows the configuration of a normal k8s
+                        volume mapping for persistence data instead of a persistent
+                        volume claim. If a value is defined for store.persistence.volume
+                        then no PVC will be created and persistence data will instead
+                        be written to this volume. It is up to the deployer to understand
+                        the consequences of this and how the guarantees given when
+                        using PVCs differ to the storage guarantees for the particular
+                        volume type configured here.
+                      type: object
+                  type: object
+                pofConfig:
+                  description: PofConfig is the name of the POF configuration file
+                    to use when using POF serializer
+                  type: string
+                scalingPolicy:
+                  description: ScalingPolicy describes how the replicas of the cluster
+                    role will be scaled. The default if not specified is based upon
+                    the value of the StorageEnabled field. If StorageEnabled field
+                    is not specified or is true the default scaling will be safe,
+                    if StorageEnabled is set to false the default scaling will be
+                    parallel.
+                  type: string
+                snapshot:
+                  description: Snapshot values configure the on-disc persistence data
+                    snapshot (backup) settings. The bool Enabled enables or disabled
+                    a different location for persistence snapshot data. If set to
+                    false then snapshot files will be written to the same volume configured
+                    for persistence data in the Persistence section.
+                  properties:
+                    enabled:
+                      type: boolean
+                    persistentVolumeClaim:
+                      description: PersistentVolumeClaim allows the configuration
+                        of a normal k8s persistent volume claim for persistence data.
+                      type: object
+                    volume:
+                      description: Volume allows the configuration of a normal k8s
+                        volume mapping for persistence data instead of a persistent
+                        volume claim. If a value is defined for store.persistence.volume
+                        then no PVC will be created and persistence data will instead
+                        be written to this volume. It is up to the deployer to understand
+                        the consequences of this and how the guarantees given when
+                        using PVCs differ to the storage guarantees for the particular
+                        volume type configured here.
+                      type: object
+                  type: object
+                statusHA:
+                  description: The handler to use to determine whether a role is Status
+                    HA. If not set the default handler will be used. In most use-cases
+                    the default handler would suffice but in advanced use-cases where
+                    the application code has a different concept of Status HA to just
+                    checking Coherence services then a different handler may be specified.
+                  properties:
+                    enabled:
+                      description: An optional flag to enable or disable the StatusHA
+                        check. The default value if not set is true.
+                      type: boolean
+                    exec:
+                      description: One and only one of the following should be specified.
+                        Exec specifies the action to take.
+                      type: object
+                    httpGet:
+                      description: HTTPGet specifies the http request to perform.
+                      type: object
+                    tcpSocket:
+                      description: 'TCPSocket specifies an action involving a TCP
+                        port. TCP hooks not yet supported TODO: implement a realistic
+                        TCP lifecycle hook'
+                      type: object
+                    timeoutSeconds:
+                      description: Number of seconds after which the handler times
+                        out (only applies to http and tcp handlers). Defaults to 1
+                        second. Minimum value is 1.
+                      format: int64
+                      type: integer
+                  type: object
+                storageEnabled:
+                  description: A boolean flag indicating whether members of this role
+                    are storage enabled. This value will set the corresponding coherence.distributed.localstorage
+                    System property. If not specified the default value is true. This
+                    flag is also used to configure the ScalingPolicy value if a value
+                    is not specified. If the StorageEnabled field is not specified
+                    or is true the scaling will be safe, if StorageEnabled is set
+                    to false scaling will be parallel.
                   type: boolean
               type: object
             env:
@@ -74,182 +407,44 @@ spec:
               items:
                 type: object
               type: array
-            graalApplicationType:
-              description: The Graal application type to execute. This field would
-                be set if using the Coherence Graal image and running a none-Java
-                application. For example if the application was a Node application
-                this field would be set to "node".
-              type: string
             imagePullSecrets:
               description: 'The secrets to be used when pulling images. Secrets must
                 be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/'
               items:
                 type: string
               type: array
-            images:
-              description: Details of the Docker images used in the role
+            jvm:
+              description: The JVM specific options
               properties:
-                coherence:
-                  description: CoherenceImage is the details of the Coherence image
-                    to be used
+                args:
+                  description: 'Args specifies the options (System properties, -XX:
+                    args etc) to pass to the JVM.'
+                  items:
+                    type: string
+                  type: array
+                debug:
+                  description: The settings for enabling debug mode in the JVM.
                   properties:
-                    image:
-                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                    attach:
+                      description: Attach specifies the address of the debugger that
+                        the JVM should attempt to connect back to instead of listening
+                        on port 5005.
                       type: string
-                    imagePullPolicy:
-                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                      type: string
-                  type: object
-                coherenceUtils:
-                  description: CoherenceUtils is the details of the Coherence utilities
-                    image to be used
-                  properties:
-                    image:
-                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                      type: string
-                    imagePullPolicy:
-                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                      type: string
-                  type: object
-                userArtifacts:
-                  description: UserArtifacts configures the image containing jar files
-                    and configuration files that are added to the Coherence JVM's
-                    classpath.
-                  properties:
-                    configDir:
-                      description: The folder in the custom artifacts Docker image
-                        containing configuration files to be added to the classpath
-                        of the Coherence container. If not set the configDir is "/files/conf".
-                      type: string
-                    image:
-                      description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                      type: string
-                    imagePullPolicy:
-                      description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                        More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                      type: string
-                    libDir:
-                      description: The folder in the custom artifacts Docker image
-                        containing jar files to be added to the classpath of the Coherence
-                        container. If not set the libDir is "/files/lib".
-                      type: string
-                  type: object
-              type: object
-            javaOpts:
-              description: JavaOpts is miscellaneous JVM options to pass to the Coherence
-                store container This options will override the system options computed
-                in the start up script.
-              type: string
-            jmx:
-              description: JMX defines the values used to enable and configure a separate
-                set of cluster members   that will act as MBean server members and
-                expose a JMX port via a dedicated service.   The JMX port exposed
-                will be using the JMXMP transport as RMI does not work properly in
-                containers.
-              properties:
-                enabled:
-                  description: Enabled enables or disables running the MBean server
-                    nodes.   If not set the default is false.
-                  type: boolean
-                maxHeap:
-                  description: MaxHeap is the min/max heap value to pass to the MBean
-                    server JVM.   The format should be the same as that used for Java's
-                    -Xms and -Xmx JVM options.   If not set the JVM defaults are used.
-                  type: string
-                replicas:
-                  description: Replicas is the number of MBean server nodes to run.   If
-                    not set the default is one.
-                  format: int32
-                  type: integer
-                service:
-                  description: Service groups the values used to configure the management
-                    service The default service external port is 9099.
-                  properties:
-                    annotations:
-                      additionalProperties:
-                        type: string
-                      description: Annotations is free form yaml that will be added
-                        to the service annotations
-                      type: object
                     enabled:
-                      description: Enabled controls whether to create the service
-                        yaml or not
+                      description: Enabled is a flag to enable or disable running
+                        the JVM in debug mode. Default is disabled.
                       type: boolean
-                    externalName:
-                      description: externalName is the external reference that kubedns
-                        or equivalent will return as a CNAME record for this service.
-                        No proxying will be involved. Must be a valid RFC-1123 hostname
-                        (https://tools.ietf.org/html/rfc1123) and requires Type to
-                        be ExternalName.
-                      type: string
-                    externalTrafficPolicy:
-                      description: externalTrafficPolicy denotes if this Service desires
-                        to route external traffic to node-local or cluster-wide endpoints.
-                        "Local" preserves the client source IP and avoids a second
-                        hop for LoadBalancer and Nodeport type services, but risks
-                        potentially imbalanced traffic spreading. "Cluster" obscures
-                        the client source IP and may cause a second hop to another
-                        node, but should have good overall load-spreading.
-                      type: string
-                    healthCheckNodePort:
-                      description: healthCheckNodePort specifies the healthcheck nodePort
-                        for the service. If not specified, HealthCheckNodePort is
-                        created by the service api backend with the allocated nodePort.
-                        Will use user-specified nodePort value if specified by the
-                        client. Only effects when Type is set to LoadBalancer and
-                        ExternalTrafficPolicy is set to Local.
-                      format: int32
-                      type: integer
-                    loadBalancerIP:
-                      description: LoadBalancerIP is the IP address of the load balancer
-                      type: string
-                    loadBalancerSourceRanges:
-                      description: 'If specified and supported by the platform, this
-                        will restrict traffic through the cloud-provider load-balancer
-                        will be restricted to the specified client IPs. This field
-                        will be ignored if the cloud-provider does not support the
-                        feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
-                      items:
-                        type: string
-                      type: array
-                    name:
-                      description: An optional name to use to override the generated
-                        service name.
-                      type: string
-                    port:
-                      description: The service port value
-                      format: int32
-                      type: integer
-                    publishNotReadyAddresses:
-                      description: publishNotReadyAddresses, when set to true, indicates
-                        that DNS implementations must publish the notReadyAddresses
-                        of subsets for the Endpoints associated with the Service.
-                        The default value is false. The primary use case for setting
-                        this field is to use a StatefulSet's Headless Service to propagate
-                        SRV records for its Pods without respect to their readiness
-                        for purpose of peer discovery.
-                      type: boolean
-                    sessionAffinity:
-                      description: 'Supports "ClientIP" and "None". Used to maintain
-                        session affinity. Enable client IP based session affinity.
-                        Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
-                      type: string
-                    sessionAffinityConfig:
-                      description: sessionAffinityConfig contains the configurations
-                        of session affinity.
-                      type: object
-                    type:
-                      description: Type is the K8s service type (typically ClusterIP
-                        or LoadBalancer) The default is "ClusterIP".
-                      type: string
                   type: object
+                gc:
+                  description: The optional GC parameters. If not set defaults to
+                    enabling the G1 collector.
+                  type: string
+                maxHeap:
+                  description: MaxHeap is the min/max heap value to pass to the JVM.
+                    The format should be the same as that used for Java's -Xms and
+                    -Xmx JVM options. If not set the JVM defaults are used.
+                  type: string
               type: object
-            jvmArgs:
-              description: JvmArgs specifies the options to pass to the Coherence
-                JVM. The default is to use the G1 collector.
-              type: string
             labels:
               additionalProperties:
                 type: string
@@ -311,248 +506,12 @@ spec:
                   format: int32
                   type: integer
               type: object
-            main:
-              description: Main allows specification of Coherence container main class.
-              properties:
-                arguments:
-                  description: Arguments is the optional arguments for Coherence container
-                    main class.
-                  type: string
-                class:
-                  description: Class is the Coherence container main class.  The default
-                    value is   com.tangosol.net.DefaultCacheServer.
-                  type: string
-              type: object
-            management:
-              description: 'Management configures Coherence management over REST   Note:
-                Coherence management over REST will be available in 12.2.1.4.'
-              properties:
-                enabled:
-                  description: Enable or disable flag.
-                  type: boolean
-                ssl:
-                  description: SSL configures SSL settings for a Coherence component
-                  properties:
-                    enabled:
-                      description: Enabled is a boolean flag indicating whether enables
-                        or disables SSL on the Coherence management over REST endpoint,
-                        the default is false (disabled).
-                      type: boolean
-                    keyPasswordFile:
-                      description: KeyStorePasswordFile is the name of the file in
-                        the k8s secret containing the key   password when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStore:
-                      description: Keystore is the name of the Java key store file
-                        in the k8s secret to use as the SSL keystore   when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreAlgorithm:
-                      description: KeyStoreAlgorithm is the name of the keystore algorithm
-                        for the keystore in the k8s secret   used when configuring
-                        component over REST to use SSL. If not set the default is
-                        SunX509
-                      type: string
-                    keyStorePasswordFile:
-                      description: KeyStorePasswordFile is the name of the file in
-                        the k8s secret containing the keystore   password when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreProvider:
-                      description: KeyStoreProvider is the name of the keystore provider
-                        for the keystore in the k8s secret   used when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreType:
-                      description: KeyStoreType is the name of the Java keystore type
-                        for the keystore in the k8s secret used   when configuring
-                        component over REST to use SSL. If not set the default is
-                        JKS.
-                      type: string
-                    requireClientCert:
-                      description: RequireClientCert is a boolean flag indicating
-                        whether the client certificate will be   authenticated by
-                        the server (two-way SSL) when configuring component over REST
-                        to use SSL.   If not set the default is false
-                      type: boolean
-                    secrets:
-                      description: Secrets is the name of the k8s secrets containing
-                        the Java key stores and password files.   This value MUST
-                        be provided if SSL is enabled on the Coherence management
-                        over ReST endpoint.
-                      type: string
-                    trustStore:
-                      description: TrustStore is the name of the Java trust store
-                        file in the k8s secret to use as the SSL   trust store when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreAlgorithm:
-                      description: TrustStoreAlgorithm is the name of the keystore
-                        algorithm for the trust store in the k8s   secret used when
-                        configuring component over REST to use SSL.  If not set the
-                        default is SunX509.
-                      type: string
-                    trustStorePasswordFile:
-                      description: TrustStorePasswordFile is the name of the file
-                        in the k8s secret containing the trust store   password when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreProvider:
-                      description: TrustStoreProvider is the name of the keystore
-                        provider for the trust store in the k8s   secret used when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreType:
-                      description: TrustStoreType is the name of the Java keystore
-                        type for the trust store in the k8s secret   used when configuring
-                        component over REST to use SSL. If not set the default is
-                        JKS.
-                      type: string
-                  required:
-                  - keyStore
-                  type: object
-              type: object
-            maxHeap:
-              description: MaxHeap is the min/max heap value to pass to the JVM. The
-                format should be the same as that used for Java's -Xms and -Xmx JVM
-                options. If not set the JVM defaults are used.
-              type: string
-            metrics:
-              description: 'Metrics configures Coherence metrics publishing   Note:
-                Coherence metrics publishing will be available in 12.2.1.4.'
-              properties:
-                enabled:
-                  description: Enable or disable flag.
-                  type: boolean
-                ssl:
-                  description: SSL configures SSL settings for a Coherence component
-                  properties:
-                    enabled:
-                      description: Enabled is a boolean flag indicating whether enables
-                        or disables SSL on the Coherence management over REST endpoint,
-                        the default is false (disabled).
-                      type: boolean
-                    keyPasswordFile:
-                      description: KeyStorePasswordFile is the name of the file in
-                        the k8s secret containing the key   password when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStore:
-                      description: Keystore is the name of the Java key store file
-                        in the k8s secret to use as the SSL keystore   when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreAlgorithm:
-                      description: KeyStoreAlgorithm is the name of the keystore algorithm
-                        for the keystore in the k8s secret   used when configuring
-                        component over REST to use SSL. If not set the default is
-                        SunX509
-                      type: string
-                    keyStorePasswordFile:
-                      description: KeyStorePasswordFile is the name of the file in
-                        the k8s secret containing the keystore   password when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreProvider:
-                      description: KeyStoreProvider is the name of the keystore provider
-                        for the keystore in the k8s secret   used when configuring
-                        component over REST to use SSL.
-                      type: string
-                    keyStoreType:
-                      description: KeyStoreType is the name of the Java keystore type
-                        for the keystore in the k8s secret used   when configuring
-                        component over REST to use SSL. If not set the default is
-                        JKS.
-                      type: string
-                    requireClientCert:
-                      description: RequireClientCert is a boolean flag indicating
-                        whether the client certificate will be   authenticated by
-                        the server (two-way SSL) when configuring component over REST
-                        to use SSL.   If not set the default is false
-                      type: boolean
-                    secrets:
-                      description: Secrets is the name of the k8s secrets containing
-                        the Java key stores and password files.   This value MUST
-                        be provided if SSL is enabled on the Coherence management
-                        over ReST endpoint.
-                      type: string
-                    trustStore:
-                      description: TrustStore is the name of the Java trust store
-                        file in the k8s secret to use as the SSL   trust store when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreAlgorithm:
-                      description: TrustStoreAlgorithm is the name of the keystore
-                        algorithm for the trust store in the k8s   secret used when
-                        configuring component over REST to use SSL.  If not set the
-                        default is SunX509.
-                      type: string
-                    trustStorePasswordFile:
-                      description: TrustStorePasswordFile is the name of the file
-                        in the k8s secret containing the trust store   password when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreProvider:
-                      description: TrustStoreProvider is the name of the keystore
-                        provider for the trust store in the k8s   secret used when
-                        configuring component over REST to use SSL.
-                      type: string
-                    trustStoreType:
-                      description: TrustStoreType is the name of the Java keystore
-                        type for the trust store in the k8s secret   used when configuring
-                        component over REST to use SSL. If not set the default is
-                        JKS.
-                      type: string
-                  required:
-                  - keyStore
-                  type: object
-              type: object
             nodeSelector:
               additionalProperties:
                 type: string
               description: 'NodeSelector is the Node labels for pod assignment   ref:
                 https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
               type: object
-            overrideConfig:
-              description: OverrideConfig is name of the Coherence operational configuration
-                override file, the default is tangosol-coherence-override.xml
-              type: string
-            persistence:
-              description: Persistence values configure the on-disc data persistence
-                settings. The bool Enabled enables or disabled on disc persistence
-                of data.
-              properties:
-                enabled:
-                  type: boolean
-                persistentVolumeClaim:
-                  description: PersistentVolumeClaim allows the configuration of a
-                    normal k8s persistent volume claim for persistence data.
-                  type: object
-                volume:
-                  description: Volume allows the configuration of a normal k8s volume
-                    mapping for persistence data instead of a persistent volume claim.
-                    If a value is defined for store.persistence.volume then no PVC
-                    will be created and persistence data will instead be written to
-                    this volume. It is up to the deployer to understand the consequences
-                    of this and how the guarantees given when using PVCs differ to
-                    the storage guarantees for the particular volume type configured
-                    here.
-                  type: object
-              type: object
-            podManagementPolicy:
-              description: PodManagementPolicy sets the podManagementPolicy value
-                for the Coherence cluster StatefulSet.  The default value is Parallel,
-                to cause Pods to be started and stopped in parallel, which can be
-                useful for faster cluster start-up in certain scenarios such as testing
-                but could cause data loss if multiple Pods are stopped in parallel.  This
-                can be changed to OrderedReady which causes Pods to start and stop
-                in sequence.
-              type: string
-            pofConfig:
-              description: PofConfig is the name of the POF configuration file to
-                use when using POF serializer
-              type: string
             ports:
               description: Ports specifies additional port mappings for the Pod and
                 additional Services for those ports
@@ -701,12 +660,6 @@ spec:
                 32 cpus if the host has > 32 cpus. The limit is set to zero so that
                 there is no hard-limit applied.  No default memory limits are applied.'
               type: object
-            revisionHistoryLimit:
-              description: RevisionHistoryLimit is the number of deployment revision
-                K8s keeps after rolling upgrades. The default value if not set is
-                3.
-              format: int32
-              type: integer
             role:
               description: The name of this role. This value will be used to set the
                 Coherence role property for all members of this role
@@ -717,8 +670,8 @@ spec:
               items:
                 properties:
                   affinity:
-                    description: 'Pod scheduling values: Affinity, NodeSelector, Tolerations
-                      Affinity controls Pod scheduling preferences.   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
+                    description: 'Affinity controls Pod scheduling preferences.   ref:
+                      https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity'
                     type: object
                   annotations:
                     additionalProperties:
@@ -729,26 +682,379 @@ spec:
                       to include annotations for Prometheus it would look like this:  annotations:   prometheus.io/scrape:
                       "true"   prometheus.io/port: "2408"'
                     type: object
-                  cacheConfig:
-                    description: CacheConfig is the name of the cache configuration
-                      file to use
-                    type: string
-                  curlTimeout:
-                    description: The timeout in seconds used by curl when requesting
-                      site and rack info.
-                    format: int64
-                    type: integer
-                  debug:
-                    description: The settings for enabling debug mode in the JVM.
+                  application:
+                    description: The optional application definition
                     properties:
-                      attach:
-                        description: Attach specifies the address of the debugger
-                          that the JVM should attempt to connect back to instead of
-                          listening on port 5005.
+                      args:
+                        description: Args is the optional arguments to pass to the
+                          main class.
+                        items:
+                          type: string
+                        type: array
+                      configDir:
+                        description: The folder in the custom artifacts Docker image
+                          containing configuration files to be added to the classpath
+                          of the Coherence container. If not set the configDir is
+                          "/files/conf".
                         type: string
-                      enabled:
-                        description: Enabled is a flag to enable or disable running
-                          the JVM in debug mode. Default is disabled.
+                      image:
+                        description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                        type: string
+                      imagePullPolicy:
+                        description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                          More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                        type: string
+                      libDir:
+                        description: The folder in the custom artifacts Docker image
+                          containing jar files to be added to the classpath of the
+                          Coherence container. If not set the libDir is "/files/lib".
+                        type: string
+                      mainClass:
+                        description: Class is the Coherence container main class.  The
+                          default value is com.tangosol.net.DefaultCacheServer.
+                        type: string
+                      type:
+                        description: The application type to execute. This field would
+                          be set if using the Coherence Graal image and running a
+                          none-Java application. For example if the application was
+                          a Node application this field would be set to "node". The
+                          default is to run a plain Java application.
+                        type: string
+                    type: object
+                  coherence:
+                    description: The optional application definition
+                    properties:
+                      cacheConfig:
+                        description: CacheConfig is the name of the cache configuration
+                          file to use
+                        type: string
+                      curlTimeout:
+                        description: The timeout in seconds used by curl when requesting
+                          site and rack info.
+                        format: int64
+                        type: integer
+                      images:
+                        description: The Coherence images configuration.
+                        properties:
+                          coherence:
+                            properties:
+                              image:
+                                description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                                type: string
+                              imagePullPolicy:
+                                description: 'Image pull policy. One of Always, Never,
+                                  IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                                type: string
+                            type: object
+                          coherenceUtils:
+                            properties:
+                              image:
+                                description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                                type: string
+                              imagePullPolicy:
+                                description: 'Image pull policy. One of Always, Never,
+                                  IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                                type: string
+                            type: object
+                        type: object
+                      management:
+                        description: 'Management configures Coherence management over
+                          REST   Note: Coherence management over REST will be available
+                          in 12.2.1.4.'
+                        properties:
+                          enabled:
+                            description: Enable or disable flag.
+                            type: boolean
+                          ssl:
+                            description: SSL configures SSL settings for a Coherence
+                              component
+                            properties:
+                              enabled:
+                                description: Enabled is a boolean flag indicating
+                                  whether enables or disables SSL on the Coherence
+                                  management over REST endpoint, the default is false
+                                  (disabled).
+                                type: boolean
+                              keyPasswordFile:
+                                description: KeyStorePasswordFile is the name of the
+                                  file in the k8s secret containing the key   password
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStore:
+                                description: Keystore is the name of the Java key
+                                  store file in the k8s secret to use as the SSL keystore   when
+                                  configuring component over REST to use SSL.
+                                type: string
+                              keyStoreAlgorithm:
+                                description: KeyStoreAlgorithm is the name of the
+                                  keystore algorithm for the keystore in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                  If not set the default is SunX509
+                                type: string
+                              keyStorePasswordFile:
+                                description: KeyStorePasswordFile is the name of the
+                                  file in the k8s secret containing the keystore   password
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStoreProvider:
+                                description: KeyStoreProvider is the name of the keystore
+                                  provider for the keystore in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStoreType:
+                                description: KeyStoreType is the name of the Java
+                                  keystore type for the keystore in the k8s secret
+                                  used   when configuring component over REST to use
+                                  SSL. If not set the default is JKS.
+                                type: string
+                              requireClientCert:
+                                description: RequireClientCert is a boolean flag indicating
+                                  whether the client certificate will be   authenticated
+                                  by the server (two-way SSL) when configuring component
+                                  over REST to use SSL.   If not set the default is
+                                  false
+                                type: boolean
+                              secrets:
+                                description: Secrets is the name of the k8s secrets
+                                  containing the Java key stores and password files.   This
+                                  value MUST be provided if SSL is enabled on the
+                                  Coherence management over ReST endpoint.
+                                type: string
+                              trustStore:
+                                description: TrustStore is the name of the Java trust
+                                  store file in the k8s secret to use as the SSL   trust
+                                  store when configuring component over REST to use
+                                  SSL.
+                                type: string
+                              trustStoreAlgorithm:
+                                description: TrustStoreAlgorithm is the name of the
+                                  keystore algorithm for the trust store in the k8s   secret
+                                  used when configuring component over REST to use
+                                  SSL.  If not set the default is SunX509.
+                                type: string
+                              trustStorePasswordFile:
+                                description: TrustStorePasswordFile is the name of
+                                  the file in the k8s secret containing the trust
+                                  store   password when configuring component over
+                                  REST to use SSL.
+                                type: string
+                              trustStoreProvider:
+                                description: TrustStoreProvider is the name of the
+                                  keystore provider for the trust store in the k8s   secret
+                                  used when configuring component over REST to use
+                                  SSL.
+                                type: string
+                              trustStoreType:
+                                description: TrustStoreType is the name of the Java
+                                  keystore type for the trust store in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                  If not set the default is JKS.
+                                type: string
+                            required:
+                            - keyStore
+                            type: object
+                        type: object
+                      metrics:
+                        description: 'Metrics configures Coherence metrics publishing   Note:
+                          Coherence metrics publishing will be available in 12.2.1.4.'
+                        properties:
+                          enabled:
+                            description: Enable or disable flag.
+                            type: boolean
+                          ssl:
+                            description: SSL configures SSL settings for a Coherence
+                              component
+                            properties:
+                              enabled:
+                                description: Enabled is a boolean flag indicating
+                                  whether enables or disables SSL on the Coherence
+                                  management over REST endpoint, the default is false
+                                  (disabled).
+                                type: boolean
+                              keyPasswordFile:
+                                description: KeyStorePasswordFile is the name of the
+                                  file in the k8s secret containing the key   password
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStore:
+                                description: Keystore is the name of the Java key
+                                  store file in the k8s secret to use as the SSL keystore   when
+                                  configuring component over REST to use SSL.
+                                type: string
+                              keyStoreAlgorithm:
+                                description: KeyStoreAlgorithm is the name of the
+                                  keystore algorithm for the keystore in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                  If not set the default is SunX509
+                                type: string
+                              keyStorePasswordFile:
+                                description: KeyStorePasswordFile is the name of the
+                                  file in the k8s secret containing the keystore   password
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStoreProvider:
+                                description: KeyStoreProvider is the name of the keystore
+                                  provider for the keystore in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                type: string
+                              keyStoreType:
+                                description: KeyStoreType is the name of the Java
+                                  keystore type for the keystore in the k8s secret
+                                  used   when configuring component over REST to use
+                                  SSL. If not set the default is JKS.
+                                type: string
+                              requireClientCert:
+                                description: RequireClientCert is a boolean flag indicating
+                                  whether the client certificate will be   authenticated
+                                  by the server (two-way SSL) when configuring component
+                                  over REST to use SSL.   If not set the default is
+                                  false
+                                type: boolean
+                              secrets:
+                                description: Secrets is the name of the k8s secrets
+                                  containing the Java key stores and password files.   This
+                                  value MUST be provided if SSL is enabled on the
+                                  Coherence management over ReST endpoint.
+                                type: string
+                              trustStore:
+                                description: TrustStore is the name of the Java trust
+                                  store file in the k8s secret to use as the SSL   trust
+                                  store when configuring component over REST to use
+                                  SSL.
+                                type: string
+                              trustStoreAlgorithm:
+                                description: TrustStoreAlgorithm is the name of the
+                                  keystore algorithm for the trust store in the k8s   secret
+                                  used when configuring component over REST to use
+                                  SSL.  If not set the default is SunX509.
+                                type: string
+                              trustStorePasswordFile:
+                                description: TrustStorePasswordFile is the name of
+                                  the file in the k8s secret containing the trust
+                                  store   password when configuring component over
+                                  REST to use SSL.
+                                type: string
+                              trustStoreProvider:
+                                description: TrustStoreProvider is the name of the
+                                  keystore provider for the trust store in the k8s   secret
+                                  used when configuring component over REST to use
+                                  SSL.
+                                type: string
+                              trustStoreType:
+                                description: TrustStoreType is the name of the Java
+                                  keystore type for the trust store in the k8s secret   used
+                                  when configuring component over REST to use SSL.
+                                  If not set the default is JKS.
+                                type: string
+                            required:
+                            - keyStore
+                            type: object
+                        type: object
+                      overrideConfig:
+                        description: OverrideConfig is name of the Coherence operational
+                          configuration override file, the default is tangosol-coherence-override.xml
+                        type: string
+                      persistence:
+                        description: Persistence values configure the on-disc data
+                          persistence settings. The bool Enabled enables or disabled
+                          on disc persistence of data.
+                        properties:
+                          enabled:
+                            type: boolean
+                          persistentVolumeClaim:
+                            description: PersistentVolumeClaim allows the configuration
+                              of a normal k8s persistent volume claim for persistence
+                              data.
+                            type: object
+                          volume:
+                            description: Volume allows the configuration of a normal
+                              k8s volume mapping for persistence data instead of a
+                              persistent volume claim. If a value is defined for store.persistence.volume
+                              then no PVC will be created and persistence data will
+                              instead be written to this volume. It is up to the deployer
+                              to understand the consequences of this and how the guarantees
+                              given when using PVCs differ to the storage guarantees
+                              for the particular volume type configured here.
+                            type: object
+                        type: object
+                      pofConfig:
+                        description: PofConfig is the name of the POF configuration
+                          file to use when using POF serializer
+                        type: string
+                      scalingPolicy:
+                        description: ScalingPolicy describes how the replicas of the
+                          cluster role will be scaled. The default if not specified
+                          is based upon the value of the StorageEnabled field. If
+                          StorageEnabled field is not specified or is true the default
+                          scaling will be safe, if StorageEnabled is set to false
+                          the default scaling will be parallel.
+                        type: string
+                      snapshot:
+                        description: Snapshot values configure the on-disc persistence
+                          data snapshot (backup) settings. The bool Enabled enables
+                          or disabled a different location for persistence snapshot
+                          data. If set to false then snapshot files will be written
+                          to the same volume configured for persistence data in the
+                          Persistence section.
+                        properties:
+                          enabled:
+                            type: boolean
+                          persistentVolumeClaim:
+                            description: PersistentVolumeClaim allows the configuration
+                              of a normal k8s persistent volume claim for persistence
+                              data.
+                            type: object
+                          volume:
+                            description: Volume allows the configuration of a normal
+                              k8s volume mapping for persistence data instead of a
+                              persistent volume claim. If a value is defined for store.persistence.volume
+                              then no PVC will be created and persistence data will
+                              instead be written to this volume. It is up to the deployer
+                              to understand the consequences of this and how the guarantees
+                              given when using PVCs differ to the storage guarantees
+                              for the particular volume type configured here.
+                            type: object
+                        type: object
+                      statusHA:
+                        description: The handler to use to determine whether a role
+                          is Status HA. If not set the default handler will be used.
+                          In most use-cases the default handler would suffice but
+                          in advanced use-cases where the application code has a different
+                          concept of Status HA to just checking Coherence services
+                          then a different handler may be specified.
+                        properties:
+                          enabled:
+                            description: An optional flag to enable or disable the
+                              StatusHA check. The default value if not set is true.
+                            type: boolean
+                          exec:
+                            description: One and only one of the following should
+                              be specified. Exec specifies the action to take.
+                            type: object
+                          httpGet:
+                            description: HTTPGet specifies the http request to perform.
+                            type: object
+                          tcpSocket:
+                            description: 'TCPSocket specifies an action involving
+                              a TCP port. TCP hooks not yet supported TODO: implement
+                              a realistic TCP lifecycle hook'
+                            type: object
+                          timeoutSeconds:
+                            description: Number of seconds after which the handler
+                              times out (only applies to http and tcp handlers). Defaults
+                              to 1 second. Minimum value is 1.
+                            format: int64
+                            type: integer
+                        type: object
+                      storageEnabled:
+                        description: A boolean flag indicating whether members of
+                          this role are storage enabled. This value will set the corresponding
+                          coherence.distributed.localstorage System property. If not
+                          specified the default value is true. This flag is also used
+                          to configure the ScalingPolicy value if a value is not specified.
+                          If the StorageEnabled field is not specified or is true
+                          the scaling will be safe, if StorageEnabled is set to false
+                          scaling will be parallel.
                         type: boolean
                     type: object
                   env:
@@ -762,185 +1068,39 @@ spec:
                     items:
                       type: object
                     type: array
-                  graalApplicationType:
-                    description: The Graal application type to execute. This field
-                      would be set if using the Coherence Graal image and running
-                      a none-Java application. For example if the application was
-                      a Node application this field would be set to "node".
-                    type: string
-                  images:
-                    description: Details of the Docker images used in the role
+                  jvm:
+                    description: The JVM specific options
                     properties:
-                      coherence:
-                        description: CoherenceImage is the details of the Coherence
-                          image to be used
+                      args:
+                        description: 'Args specifies the options (System properties,
+                          -XX: args etc) to pass to the JVM.'
+                        items:
+                          type: string
+                        type: array
+                      debug:
+                        description: The settings for enabling debug mode in the JVM.
                         properties:
-                          image:
-                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                          attach:
+                            description: Attach specifies the address of the debugger
+                              that the JVM should attempt to connect back to instead
+                              of listening on port 5005.
                             type: string
-                          imagePullPolicy:
-                            description: 'Image pull policy. One of Always, Never,
-                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                            type: string
+                          enabled:
+                            description: Enabled is a flag to enable or disable running
+                              the JVM in debug mode. Default is disabled.
+                            type: boolean
                         type: object
-                      coherenceUtils:
-                        description: CoherenceUtils is the details of the Coherence
-                          utilities image to be used
-                        properties:
-                          image:
-                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                            type: string
-                          imagePullPolicy:
-                            description: 'Image pull policy. One of Always, Never,
-                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                            type: string
-                        type: object
-                      userArtifacts:
-                        description: UserArtifacts configures the image containing
-                          jar files and configuration files that are added to the
-                          Coherence JVM's classpath.
-                        properties:
-                          configDir:
-                            description: The folder in the custom artifacts Docker
-                              image containing configuration files to be added to
-                              the classpath of the Coherence container. If not set
-                              the configDir is "/files/conf".
-                            type: string
-                          image:
-                            description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                            type: string
-                          imagePullPolicy:
-                            description: 'Image pull policy. One of Always, Never,
-                              IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                            type: string
-                          libDir:
-                            description: The folder in the custom artifacts Docker
-                              image containing jar files to be added to the classpath
-                              of the Coherence container. If not set the libDir is
-                              "/files/lib".
-                            type: string
-                        type: object
-                    type: object
-                  javaOpts:
-                    description: JavaOpts is miscellaneous JVM options to pass to
-                      the Coherence store container This options will override the
-                      system options computed in the start up script.
-                    type: string
-                  jmx:
-                    description: JMX defines the values used to enable and configure
-                      a separate set of cluster members   that will act as MBean server
-                      members and expose a JMX port via a dedicated service.   The
-                      JMX port exposed will be using the JMXMP transport as RMI does
-                      not work properly in containers.
-                    properties:
-                      enabled:
-                        description: Enabled enables or disables running the MBean
-                          server nodes.   If not set the default is false.
-                        type: boolean
+                      gc:
+                        description: The optional GC parameters. If not set defaults
+                          to enabling the G1 collector.
+                        type: string
                       maxHeap:
                         description: MaxHeap is the min/max heap value to pass to
-                          the MBean server JVM.   The format should be the same as
-                          that used for Java's -Xms and -Xmx JVM options.   If not
-                          set the JVM defaults are used.
+                          the JVM. The format should be the same as that used for
+                          Java's -Xms and -Xmx JVM options. If not set the JVM defaults
+                          are used.
                         type: string
-                      replicas:
-                        description: Replicas is the number of MBean server nodes
-                          to run.   If not set the default is one.
-                        format: int32
-                        type: integer
-                      service:
-                        description: Service groups the values used to configure the
-                          management service The default service external port is
-                          9099.
-                        properties:
-                          annotations:
-                            additionalProperties:
-                              type: string
-                            description: Annotations is free form yaml that will be
-                              added to the service annotations
-                            type: object
-                          enabled:
-                            description: Enabled controls whether to create the service
-                              yaml or not
-                            type: boolean
-                          externalName:
-                            description: externalName is the external reference that
-                              kubedns or equivalent will return as a CNAME record
-                              for this service. No proxying will be involved. Must
-                              be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123)
-                              and requires Type to be ExternalName.
-                            type: string
-                          externalTrafficPolicy:
-                            description: externalTrafficPolicy denotes if this Service
-                              desires to route external traffic to node-local or cluster-wide
-                              endpoints. "Local" preserves the client source IP and
-                              avoids a second hop for LoadBalancer and Nodeport type
-                              services, but risks potentially imbalanced traffic spreading.
-                              "Cluster" obscures the client source IP and may cause
-                              a second hop to another node, but should have good overall
-                              load-spreading.
-                            type: string
-                          healthCheckNodePort:
-                            description: healthCheckNodePort specifies the healthcheck
-                              nodePort for the service. If not specified, HealthCheckNodePort
-                              is created by the service api backend with the allocated
-                              nodePort. Will use user-specified nodePort value if
-                              specified by the client. Only effects when Type is set
-                              to LoadBalancer and ExternalTrafficPolicy is set to
-                              Local.
-                            format: int32
-                            type: integer
-                          loadBalancerIP:
-                            description: LoadBalancerIP is the IP address of the load
-                              balancer
-                            type: string
-                          loadBalancerSourceRanges:
-                            description: 'If specified and supported by the platform,
-                              this will restrict traffic through the cloud-provider
-                              load-balancer will be restricted to the specified client
-                              IPs. This field will be ignored if the cloud-provider
-                              does not support the feature." More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/'
-                            items:
-                              type: string
-                            type: array
-                          name:
-                            description: An optional name to use to override the generated
-                              service name.
-                            type: string
-                          port:
-                            description: The service port value
-                            format: int32
-                            type: integer
-                          publishNotReadyAddresses:
-                            description: publishNotReadyAddresses, when set to true,
-                              indicates that DNS implementations must publish the
-                              notReadyAddresses of subsets for the Endpoints associated
-                              with the Service. The default value is false. The primary
-                              use case for setting this field is to use a StatefulSet's
-                              Headless Service to propagate SRV records for its Pods
-                              without respect to their readiness for purpose of peer
-                              discovery.
-                            type: boolean
-                          sessionAffinity:
-                            description: 'Supports "ClientIP" and "None". Used to
-                              maintain session affinity. Enable client IP based session
-                              affinity. Must be ClientIP or None. Defaults to None.
-                              More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies'
-                            type: string
-                          sessionAffinityConfig:
-                            description: sessionAffinityConfig contains the configurations
-                              of session affinity.
-                            type: object
-                          type:
-                            description: Type is the K8s service type (typically ClusterIP
-                              or LoadBalancer) The default is "ClusterIP".
-                            type: string
-                        type: object
                     type: object
-                  jvmArgs:
-                    description: JvmArgs specifies the options to pass to the Coherence
-                      JVM. The default is to use the G1 collector.
-                    type: string
                   labels:
                     additionalProperties:
                       type: string
@@ -1005,251 +1165,12 @@ spec:
                         format: int32
                         type: integer
                     type: object
-                  main:
-                    description: Main allows specification of Coherence container
-                      main class.
-                    properties:
-                      arguments:
-                        description: Arguments is the optional arguments for Coherence
-                          container main class.
-                        type: string
-                      class:
-                        description: Class is the Coherence container main class.  The
-                          default value is   com.tangosol.net.DefaultCacheServer.
-                        type: string
-                    type: object
-                  management:
-                    description: 'Management configures Coherence management over
-                      REST   Note: Coherence management over REST will be available
-                      in 12.2.1.4.'
-                    properties:
-                      enabled:
-                        description: Enable or disable flag.
-                        type: boolean
-                      ssl:
-                        description: SSL configures SSL settings for a Coherence component
-                        properties:
-                          enabled:
-                            description: Enabled is a boolean flag indicating whether
-                              enables or disables SSL on the Coherence management
-                              over REST endpoint, the default is false (disabled).
-                            type: boolean
-                          keyPasswordFile:
-                            description: KeyStorePasswordFile is the name of the file
-                              in the k8s secret containing the key   password when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStore:
-                            description: Keystore is the name of the Java key store
-                              file in the k8s secret to use as the SSL keystore   when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStoreAlgorithm:
-                            description: KeyStoreAlgorithm is the name of the keystore
-                              algorithm for the keystore in the k8s secret   used
-                              when configuring component over REST to use SSL. If
-                              not set the default is SunX509
-                            type: string
-                          keyStorePasswordFile:
-                            description: KeyStorePasswordFile is the name of the file
-                              in the k8s secret containing the keystore   password
-                              when configuring component over REST to use SSL.
-                            type: string
-                          keyStoreProvider:
-                            description: KeyStoreProvider is the name of the keystore
-                              provider for the keystore in the k8s secret   used when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStoreType:
-                            description: KeyStoreType is the name of the Java keystore
-                              type for the keystore in the k8s secret used   when
-                              configuring component over REST to use SSL. If not set
-                              the default is JKS.
-                            type: string
-                          requireClientCert:
-                            description: RequireClientCert is a boolean flag indicating
-                              whether the client certificate will be   authenticated
-                              by the server (two-way SSL) when configuring component
-                              over REST to use SSL.   If not set the default is false
-                            type: boolean
-                          secrets:
-                            description: Secrets is the name of the k8s secrets containing
-                              the Java key stores and password files.   This value
-                              MUST be provided if SSL is enabled on the Coherence
-                              management over ReST endpoint.
-                            type: string
-                          trustStore:
-                            description: TrustStore is the name of the Java trust
-                              store file in the k8s secret to use as the SSL   trust
-                              store when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreAlgorithm:
-                            description: TrustStoreAlgorithm is the name of the keystore
-                              algorithm for the trust store in the k8s   secret used
-                              when configuring component over REST to use SSL.  If
-                              not set the default is SunX509.
-                            type: string
-                          trustStorePasswordFile:
-                            description: TrustStorePasswordFile is the name of the
-                              file in the k8s secret containing the trust store   password
-                              when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreProvider:
-                            description: TrustStoreProvider is the name of the keystore
-                              provider for the trust store in the k8s   secret used
-                              when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreType:
-                            description: TrustStoreType is the name of the Java keystore
-                              type for the trust store in the k8s secret   used when
-                              configuring component over REST to use SSL. If not set
-                              the default is JKS.
-                            type: string
-                        required:
-                        - keyStore
-                        type: object
-                    type: object
-                  maxHeap:
-                    description: MaxHeap is the min/max heap value to pass to the
-                      JVM. The format should be the same as that used for Java's -Xms
-                      and -Xmx JVM options. If not set the JVM defaults are used.
-                    type: string
-                  metrics:
-                    description: 'Metrics configures Coherence metrics publishing   Note:
-                      Coherence metrics publishing will be available in 12.2.1.4.'
-                    properties:
-                      enabled:
-                        description: Enable or disable flag.
-                        type: boolean
-                      ssl:
-                        description: SSL configures SSL settings for a Coherence component
-                        properties:
-                          enabled:
-                            description: Enabled is a boolean flag indicating whether
-                              enables or disables SSL on the Coherence management
-                              over REST endpoint, the default is false (disabled).
-                            type: boolean
-                          keyPasswordFile:
-                            description: KeyStorePasswordFile is the name of the file
-                              in the k8s secret containing the key   password when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStore:
-                            description: Keystore is the name of the Java key store
-                              file in the k8s secret to use as the SSL keystore   when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStoreAlgorithm:
-                            description: KeyStoreAlgorithm is the name of the keystore
-                              algorithm for the keystore in the k8s secret   used
-                              when configuring component over REST to use SSL. If
-                              not set the default is SunX509
-                            type: string
-                          keyStorePasswordFile:
-                            description: KeyStorePasswordFile is the name of the file
-                              in the k8s secret containing the keystore   password
-                              when configuring component over REST to use SSL.
-                            type: string
-                          keyStoreProvider:
-                            description: KeyStoreProvider is the name of the keystore
-                              provider for the keystore in the k8s secret   used when
-                              configuring component over REST to use SSL.
-                            type: string
-                          keyStoreType:
-                            description: KeyStoreType is the name of the Java keystore
-                              type for the keystore in the k8s secret used   when
-                              configuring component over REST to use SSL. If not set
-                              the default is JKS.
-                            type: string
-                          requireClientCert:
-                            description: RequireClientCert is a boolean flag indicating
-                              whether the client certificate will be   authenticated
-                              by the server (two-way SSL) when configuring component
-                              over REST to use SSL.   If not set the default is false
-                            type: boolean
-                          secrets:
-                            description: Secrets is the name of the k8s secrets containing
-                              the Java key stores and password files.   This value
-                              MUST be provided if SSL is enabled on the Coherence
-                              management over ReST endpoint.
-                            type: string
-                          trustStore:
-                            description: TrustStore is the name of the Java trust
-                              store file in the k8s secret to use as the SSL   trust
-                              store when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreAlgorithm:
-                            description: TrustStoreAlgorithm is the name of the keystore
-                              algorithm for the trust store in the k8s   secret used
-                              when configuring component over REST to use SSL.  If
-                              not set the default is SunX509.
-                            type: string
-                          trustStorePasswordFile:
-                            description: TrustStorePasswordFile is the name of the
-                              file in the k8s secret containing the trust store   password
-                              when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreProvider:
-                            description: TrustStoreProvider is the name of the keystore
-                              provider for the trust store in the k8s   secret used
-                              when configuring component over REST to use SSL.
-                            type: string
-                          trustStoreType:
-                            description: TrustStoreType is the name of the Java keystore
-                              type for the trust store in the k8s secret   used when
-                              configuring component over REST to use SSL. If not set
-                              the default is JKS.
-                            type: string
-                        required:
-                        - keyStore
-                        type: object
-                    type: object
                   nodeSelector:
                     additionalProperties:
                       type: string
                     description: 'NodeSelector is the Node labels for pod assignment   ref:
                       https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
                     type: object
-                  overrideConfig:
-                    description: OverrideConfig is name of the Coherence operational
-                      configuration override file, the default is tangosol-coherence-override.xml
-                    type: string
-                  persistence:
-                    description: Persistence values configure the on-disc data persistence
-                      settings. The bool Enabled enables or disabled on disc persistence
-                      of data.
-                    properties:
-                      enabled:
-                        type: boolean
-                      persistentVolumeClaim:
-                        description: PersistentVolumeClaim allows the configuration
-                          of a normal k8s persistent volume claim for persistence
-                          data.
-                        type: object
-                      volume:
-                        description: Volume allows the configuration of a normal k8s
-                          volume mapping for persistence data instead of a persistent
-                          volume claim. If a value is defined for store.persistence.volume
-                          then no PVC will be created and persistence data will instead
-                          be written to this volume. It is up to the deployer to understand
-                          the consequences of this and how the guarantees given when
-                          using PVCs differ to the storage guarantees for the particular
-                          volume type configured here.
-                        type: object
-                    type: object
-                  podManagementPolicy:
-                    description: PodManagementPolicy sets the podManagementPolicy
-                      value for the Coherence cluster StatefulSet.  The default value
-                      is Parallel, to cause Pods to be started and stopped in parallel,
-                      which can be useful for faster cluster start-up in certain scenarios
-                      such as testing but could cause data loss if multiple Pods are
-                      stopped in parallel.  This can be changed to OrderedReady which
-                      causes Pods to start and stop in sequence.
-                    type: string
-                  pofConfig:
-                    description: PofConfig is the name of the POF configuration file
-                      to use when using POF serializer
-                    type: string
                   ports:
                     description: Ports specifies additional port mappings for the
                       Pod and additional Services for those ports
@@ -1403,90 +1324,10 @@ spec:
                       is set to zero so that there is no hard-limit applied.  No default
                       memory limits are applied.'
                     type: object
-                  revisionHistoryLimit:
-                    description: RevisionHistoryLimit is the number of deployment
-                      revision K8s keeps after rolling upgrades. The default value
-                      if not set is 3.
-                    format: int32
-                    type: integer
                   role:
                     description: The name of this role. This value will be used to
                       set the Coherence role property for all members of this role
                     type: string
-                  scalingPolicy:
-                    description: ScalingPolicy describes how the replicas of the cluster
-                      role will be scaled. The default if not specified is based upon
-                      the value of the StorageEnabled field. If StorageEnabled field
-                      is not specified or is true the default scaling will be safe,
-                      if StorageEnabled is set to false the default scaling will be
-                      parallel.
-                    type: string
-                  snapshot:
-                    description: Snapshot values configure the on-disc persistence
-                      data snapshot (backup) settings. The bool Enabled enables or
-                      disabled a different location for persistence snapshot data.
-                      If set to false then snapshot files will be written to the same
-                      volume configured for persistence data in the Persistence section.
-                    properties:
-                      enabled:
-                        type: boolean
-                      persistentVolumeClaim:
-                        description: PersistentVolumeClaim allows the configuration
-                          of a normal k8s persistent volume claim for persistence
-                          data.
-                        type: object
-                      volume:
-                        description: Volume allows the configuration of a normal k8s
-                          volume mapping for persistence data instead of a persistent
-                          volume claim. If a value is defined for store.persistence.volume
-                          then no PVC will be created and persistence data will instead
-                          be written to this volume. It is up to the deployer to understand
-                          the consequences of this and how the guarantees given when
-                          using PVCs differ to the storage guarantees for the particular
-                          volume type configured here.
-                        type: object
-                    type: object
-                  statusHA:
-                    description: The handler to use to determine whether a role is
-                      Status HA. If not set the default handler will be used. In most
-                      use-cases the default handler would suffice but in advanced
-                      use-cases where the application code has a different concept
-                      of Status HA to just checking Coherence services then a different
-                      handler may be specified.
-                    properties:
-                      enabled:
-                        description: An optional flag to enable or disable the StatusHA
-                          check. The default value if not set is true.
-                        type: boolean
-                      exec:
-                        description: One and only one of the following should be specified.
-                          Exec specifies the action to take.
-                        type: object
-                      httpGet:
-                        description: HTTPGet specifies the http request to perform.
-                        type: object
-                      tcpSocket:
-                        description: 'TCPSocket specifies an action involving a TCP
-                          port. TCP hooks not yet supported TODO: implement a realistic
-                          TCP lifecycle hook'
-                        type: object
-                      timeoutSeconds:
-                        description: Number of seconds after which the handler times
-                          out (only applies to http and tcp handlers). Defaults to
-                          1 second. Minimum value is 1.
-                        format: int64
-                        type: integer
-                    type: object
-                  storageEnabled:
-                    description: A boolean flag indicating whether members of this
-                      role are storage enabled. This value will set the corresponding
-                      coherence.distributed.localstorage System property. If not specified
-                      the default value is true. This flag is also used to configure
-                      the ScalingPolicy value if a value is not specified. If the
-                      StorageEnabled field is not specified or is true the scaling
-                      will be safe, if StorageEnabled is set to false scaling will
-                      be parallel.
-                    type: boolean
                   tolerations:
                     description: 'Tolerations is for nodes that have taints on them.   Useful
                       if you want to dedicate nodes to just run the coherence container
@@ -1520,82 +1361,12 @@ spec:
                     type: array
                 type: object
               type: array
-            scalingPolicy:
-              description: ScalingPolicy describes how the replicas of the cluster
-                role will be scaled. The default if not specified is based upon the
-                value of the StorageEnabled field. If StorageEnabled field is not
-                specified or is true the default scaling will be safe, if StorageEnabled
-                is set to false the default scaling will be parallel.
-              type: string
             serviceAccountName:
               description: The name to use for the service account to use when RBAC
                 is enabled The role bindings must already have been created as this
                 chart does not create them it just sets the serviceAccountName value
                 in the Pod spec.
               type: string
-            snapshot:
-              description: Snapshot values configure the on-disc persistence data
-                snapshot (backup) settings. The bool Enabled enables or disabled a
-                different location for persistence snapshot data. If set to false
-                then snapshot files will be written to the same volume configured
-                for persistence data in the Persistence section.
-              properties:
-                enabled:
-                  type: boolean
-                persistentVolumeClaim:
-                  description: PersistentVolumeClaim allows the configuration of a
-                    normal k8s persistent volume claim for persistence data.
-                  type: object
-                volume:
-                  description: Volume allows the configuration of a normal k8s volume
-                    mapping for persistence data instead of a persistent volume claim.
-                    If a value is defined for store.persistence.volume then no PVC
-                    will be created and persistence data will instead be written to
-                    this volume. It is up to the deployer to understand the consequences
-                    of this and how the guarantees given when using PVCs differ to
-                    the storage guarantees for the particular volume type configured
-                    here.
-                  type: object
-              type: object
-            statusHA:
-              description: The handler to use to determine whether a role is Status
-                HA. If not set the default handler will be used. In most use-cases
-                the default handler would suffice but in advanced use-cases where
-                the application code has a different concept of Status HA to just
-                checking Coherence services then a different handler may be specified.
-              properties:
-                enabled:
-                  description: An optional flag to enable or disable the StatusHA
-                    check. The default value if not set is true.
-                  type: boolean
-                exec:
-                  description: One and only one of the following should be specified.
-                    Exec specifies the action to take.
-                  type: object
-                httpGet:
-                  description: HTTPGet specifies the http request to perform.
-                  type: object
-                tcpSocket:
-                  description: 'TCPSocket specifies an action involving a TCP port.
-                    TCP hooks not yet supported TODO: implement a realistic TCP lifecycle
-                    hook'
-                  type: object
-                timeoutSeconds:
-                  description: Number of seconds after which the handler times out
-                    (only applies to http and tcp handlers). Defaults to 1 second.
-                    Minimum value is 1.
-                  format: int64
-                  type: integer
-              type: object
-            storageEnabled:
-              description: A boolean flag indicating whether members of this role
-                are storage enabled. This value will set the corresponding coherence.distributed.localstorage
-                System property. If not specified the default value is true. This
-                flag is also used to configure the ScalingPolicy value if a value
-                is not specified. If the StorageEnabled field is not specified or
-                is true the scaling will be safe, if StorageEnabled is set to false
-                scaling will be parallel.
-              type: boolean
             tolerations:
               description: 'Tolerations is for nodes that have taints on them.   Useful
                 if you want to dedicate nodes to just run the coherence container

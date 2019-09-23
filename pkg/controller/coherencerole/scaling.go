@@ -103,7 +103,7 @@ func (r *ReconcileCoherenceRole) parallelScale(role *coh.CoherenceRole, cohInter
 		log.Error(err, "failed to update role status")
 	}
 
-	existing.Spec.ClusterSize = desired
+	existing.Spec.Replicas = &desired
 	cohInternal.Object["spec"] = existing.Spec
 	err = r.client.Update(context.TODO(), cohInternal)
 	if err != nil {
