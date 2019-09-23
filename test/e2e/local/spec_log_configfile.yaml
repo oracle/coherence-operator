@@ -1,0 +1,9 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: mycluster
+spec:
+  management:
+    enabled: true
+  logging:
+    configFile: logging.properties
