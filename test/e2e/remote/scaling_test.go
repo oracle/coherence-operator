@@ -115,7 +115,7 @@ func assertScale(t *testing.T, policy cohv1.ScalingPolicy, replicasStart, replic
 	// Get the role and update it's replica count and scaling policy
 	roleSpec := cluster.GetFirstRole()
 	roleSpec.SetReplicas(replicasStart)
-	roleSpec.ScalingPolicy = &policy
+	roleSpec.Coherence.ScalingPolicy = &policy
 	// NOTE: we MUST set the role back into the role array because in the cluster
 	// because in Go (unlike some other languages) we seem to have a COPY of what
 	// is in the role array.
