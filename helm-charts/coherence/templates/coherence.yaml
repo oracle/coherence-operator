@@ -3,7 +3,7 @@
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
 {{- $utilsImage := required "A value is required for the value .Values.coherence.images.coherenceUtils.image" .Values.coherence.images.coherenceUtils.image -}}
-{{- $cohImage := required "A value is required for the value .Values.coherence.image" .Values.coherence.images.coherence.image -}}
+{{- $cohImage := required "A value is required for the value .Values.coherence.images.coherence.image" .Values.coherence.images.coherence.image -}}
 {{- $extLibDir := "/u01/oracle/oracle_home/coherence/ext/lib" -}}
 {{- $extConfDir := "/u01/oracle/oracle_home/coherence/ext/conf" -}}
 {{- define "rootCoherenceSnapshot" }}
@@ -156,7 +156,7 @@ spec:
 #  Container: coherence
 # ---------------------------------------------------------------------------
         - name: "coherence"
-          image: {{ .Values.coherence.images | quote }}
+          image: {{ .Values.coherence.images.coherence.image | quote }}
 {{- if .Values.coherence.images.coherence.imagePullPolicy }}
           imagePullPolicy: {{ .Values.coherence.images.coherence.imagePullPolicy }}
 {{- end }}

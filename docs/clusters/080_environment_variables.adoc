@@ -84,7 +84,9 @@ When configuring one or more explicit roles it is also possible to configure env
 defaults level. These environment variables will be shared by all `Pods` in all roles unless specifically
 overridden for a role. An environment variable is only overridden in a role by declaring a role level
 environment variable with the same name. When creating the `Pods` configuration the Coherence Operator will
-merge the list of default environment variables with the role's list of environment variables.
+merge the list of default environment variables with the role's list of environment variables. Where an
+environment variable in a role has the same key as an environment variable in the defaults section the
+value in the role will take precedence.
 
 [source,yaml]
 ----

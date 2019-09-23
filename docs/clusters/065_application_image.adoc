@@ -36,7 +36,7 @@ As well as setting the image name it is also sometimes useful to set the applica
 ===  Setting the Application Image for the Implicit Role
 
 When using the implicit role configuration the application image to use is set directly in the `CoherenceCluster` `spec`
-`images.userArtifacts.image` section.
+`application.image` field.
 
 For example:
 
@@ -47,9 +47,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    userArtifacts:
-      image: acme/orders-data/1.0.0  <1>
+  application:
+    image: acme/orders-data/1.0.0  <1>
 ----
 
 <1> The `acme/orders-data/1.0.0` will be used to add additional `.jar` files and configuration files to the classpath of
@@ -71,13 +70,11 @@ metadata:
 spec:
   roles:
     - role: data
-      images:
-        userArtifacts:
-          image: acme/orders-data/1.0.0  <1>
+      application:
+        image: acme/orders-data/1.0.0  <1>
     - role: proxy
-      images:
-        userArtifacts:
-          image: acme/orders-proxy/1.0.0  <2>
+      application:
+        image: acme/orders-proxy/1.0.0  <2>
 ----
 
 <1> The `data` role `Pods` will use the application image `acme/orders-data/1.0.0`
@@ -99,9 +96,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    userArtifacts:
-      image: acme/orders-data/1.0.0  <1>
+  application:
+    image: acme/orders-data/1.0.0  <1>
   roles:
     - role: data
     - role: proxy
@@ -117,16 +113,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    userArtifacts:
-      image: acme/orders-data/1.0.0  <1>
+  application:
+    image: acme/orders-data/1.0.0  <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      images:
-        userArtifacts:
-          image: acme/orders-front-end/1.0.0  <2>
+      application:
+        image: acme/orders-front-end/1.0.0  <2>
 ----
 
 <1> The `data` and the `proxy` roles will both use the application image `acme/orders-data/1.0.0`
@@ -146,7 +140,7 @@ Note that you should avoid using the `:latest` tag, see
 https://kubernetes.io/docs/concepts/configuration/overview/#container-images[Kubernetes Best Practices for Configuration]
 for more information.
 
-The application image's pull policy is set using the `imagePullPolicy` field in the `spec.images.coherence` section.
+The application image's pull policy is set using the `imagePullPolicy` field in the `spec.application` section.
 
 
 === Setting the Image Pull Policy for the Implicit Role
@@ -160,10 +154,9 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    userArtifacts:
-      image: acme/orders-data/1.0.0
-      imagePullPolicy: Always <1>
+  application:
+    image: acme/orders-data/1.0.0
+    imagePullPolicy: Always <1>
 ----
 
 <1> The image pull policy for the implicit role above has been set to `Always`
@@ -182,15 +175,13 @@ metadata:
 spec:
   roles:
     - role: data
-      images:
-        userArtifacts:
-          image: acme/orders-data/1.0.0
-          imagePullPolicy: Always <1>
+      application:
+        image: acme/orders-data/1.0.0
+        imagePullPolicy: Always <1>
     - role: proxy
-      images:
-        userArtifacts:
-          image: acme/orders-proxy/1.0.0
-          imagePullPolicy: IfNotPresent <2>
+      application:
+        image: acme/orders-proxy/1.0.0
+        imagePullPolicy: IfNotPresent <2>
 ----
 
 <1> The image pull policy for the `data` role has been set to `Always`
@@ -208,23 +199,19 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    userArtifacts:
-      imagePullPolicy: Always <1>
+  application:
+    imagePullPolicy: Always <1>
   roles:
     - role: data
-      images:
-        userArtifacts:
-          image: acme/orders-data/1.0.0
+      application:
+        image: acme/orders-data/1.0.0
     - role: proxy
-      images:
-        userArtifacts:
-          image: acme/orders-proxy/1.0.1
+      application:
+        image: acme/orders-proxy/1.0.1
     - role: web
-      images:
-        userArtifacts:
-          image: acme/orders-front-end/1.0.1
-          imagePullPolicy: IfNotPresent <2>
+      application:
+        image: acme/orders-front-end/1.0.1
+        imagePullPolicy: IfNotPresent <2>
 ----
 
 <1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because

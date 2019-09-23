@@ -38,7 +38,8 @@ will hence set the value of the cache configuration file used as described in th
 
 === Set the Cache Configuration for an Implicit Role
 
-When using the implicit role configuration the `cacheConfig` value is set directly in the `CoherenceCluster` `spec` section.
+When using the implicit role configuration the `cacheConfig` value is set directly in the `CoherenceCluster`
+`spec.coherence` section.
 For example:
 
 [source,yaml]
@@ -48,7 +49,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  cacheConfig: application-cache-config.xml  <1>
+  coherence:
+    cacheConfig: application-cache-config.xml  <1>
 ----
 
 <1> In this case a cluster will be created with a single implicit role named `storage` where the `coherence.cache.config`
@@ -71,9 +73,11 @@ metadata:
 spec:
   roles:
     - role: data
-      cacheConfig: data-cache-config.xml  <1>
+      coherence:
+        cacheConfig: data-cache-config.xml  <1>
     - role: proxy
-      cacheConfig: proxy-cache-config.xml  <2>
+      coherence:
+        cacheConfig: proxy-cache-config.xml  <2>
 ----
 
 <1> The `data` role will use the `data-cache-config.xml` cache configuration file
@@ -95,12 +99,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  cacheConfig: application-cache-config.xml  <1>
+  coherence:
+    cacheConfig: application-cache-config.xml  <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      cacheConfig: web-cache-config.xml  <2>
+      coherence:
+        cacheConfig: web-cache-config.xml  <2>
 ----
 
 <1> The default `cacheConfig` value is set to `application-cache-config.xml`. The `data` and `proxy` roles do not have
@@ -129,7 +135,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  overrideConfig: application-override.xml  <1>
+  coherence:
+    overrideConfig: application-override.xml  <1>
 ----
 
 <1> In this case a cluster will be created with a single implicit role named `storage` where the `coherence.override`
@@ -152,9 +159,11 @@ metadata:
 spec:
   roles:
     - role: data
-      overrideConfig: data-override.xml  <1>
+      coherence:
+        overrideConfig: data-override.xml  <1>
     - role: proxy
-      overrideConfig: proxy-override.xml  <2>
+      coherence:
+        overrideConfig: proxy-override.xml  <2>
 ----
 
 <1> The `data` role will use the `data-override.xml` operational override file
@@ -176,12 +185,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  overrideConfig: application-override.xml  <1>
+  coherence:
+    overrideConfig: application-override.xml  <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      overrideConfig: web-override.xml  <2>
+      coherence:
+        overrideConfig: web-override.xml  <2>
 ----
 
 <1> The default `overrideConfig` value is set to `application-override.xml`. The `data` and `proxy` roles do not have
@@ -210,7 +221,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  pofConfig: application-pof-config.xml  <1>
+  coherence:
+    pofConfig: application-pof-config.xml  <1>
 ----
 
 <1> In this case a cluster will be created with a single implicit role named `storage` where the `coherence.pof.config`
@@ -233,9 +245,11 @@ metadata:
 spec:
   roles:
     - role: data
-      pofConfig: data-pof-config.xml  <1>
+      coherence:
+        pofConfig: data-pof-config.xml  <1>
     - role: proxy
-      pofConfig: proxy-pof-config.xml  <2>
+      coherence:
+        pofConfig: proxy-pof-config.xml  <2>
 ----
 
 <1> The `data` role will use the `data-pof-config.xml` POF configuration file
@@ -257,12 +271,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  pofConfig: application-pof-config.xml  <1>
+  coherence:
+    pofConfig: application-pof-config.xml  <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      pofConfig: web-pof-config.xml  <2>
+      coherence:
+        pofConfig: web-pof-config.xml  <2>
 ----
 
 <1> The default `pofConfig` value is set to `application-pof-config.xml`. The `data` and `proxy` roles do not have

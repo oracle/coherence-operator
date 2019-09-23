@@ -95,7 +95,10 @@ spec:
 === Configure Pod Annotations for Explicit Roles With Defaults
 
 When creating a `CoherenceCluster` with explicit roles in the `roles` list annotations can be defined as defaults
-applied to all roles and also for each role, for example:
+applied to all roles and also for each role. Where annotations exist with the same key in both the defaults and
+the role then the annotation in the role will take precedence.
+
+For example:
 
 [source,yaml]
 ----

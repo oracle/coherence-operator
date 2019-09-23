@@ -36,7 +36,7 @@ will not be set in the JVMs for that role and Coherence's default behaviour will
 == Storage Enabled or Disabled Implicit Role
 
 When creating a `CoherenceCluster` with the single implicit role the `storageEnabled` field is set in the `CoherenceCluster`
-`spec` field. For example
+`spec.coherence` field. For example
 
 [source,yaml]
 .Storage Enabled Role
@@ -46,7 +46,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  storageEnabled: true  <1>
+  coherence:
+    storageEnabled: true  <1>
 ----
 
 <1> The implicit role will be storage enabled
@@ -60,7 +61,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  storageEnabled: false  <1>
+  coherence:
+    storageEnabled: false  <1>
 ----
 
 <1> The implicit role will be storage disabled
@@ -82,9 +84,11 @@ metadata:
 spec:
   roles:
     - role: data
-      storageEnabled: true  <1>
+      coherence:
+        storageEnabled: true  <1>
     - role: proxy
-      storageEnabled: false <2>
+      coherence:
+        storageEnabled: false <2>
 ----
 
 <1> The `data` role will be storage enabled
@@ -104,10 +108,12 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  storageEnabled: false     <1>
+  coherence:
+    storageEnabled: false     <1>
   roles:
     - role: data            <2>
-      storageEnabled: true
+      coherence:
+        storageEnabled: true
     - role: proxy           <3>
     - role: web             <4>
 ----

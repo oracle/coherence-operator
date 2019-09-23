@@ -96,8 +96,9 @@ metadata:
 spec:
   role: storage       <1>
   replicas: 2
-  metrics:
-    enabled: true     <2>
+  coherence:
+    metrics:
+      enabled: true     <2>
   ports:
     - name: metrics   <3>
       port: 9612      <4>
