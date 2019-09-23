@@ -333,7 +333,9 @@ func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
 
 	if in.Args != nil {
 		// Merge Args
-		clone.Args = append(in.Args, defaults.Args...)
+		clone.Args = []string{}
+		clone.Args = append(clone.Args, in.Args...)
+		clone.Args = append(clone.Args, defaults.Args...)
 	} else {
 		clone.Args = defaults.Args
 	}

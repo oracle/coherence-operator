@@ -93,7 +93,7 @@ func findActualFile(file string) (string, error) {
 				// no more call stack
 				break
 			}
-			i = i + 1
+			i++
 		}
 	}
 
