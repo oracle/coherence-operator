@@ -11,6 +11,8 @@ spec:
       periodSeconds: 10
     coherence:
       cacheConfig: test-cache-config.xml
+      management:
+        enabled: true
       persistence:
         enabled: true
         persistentVolumeClaim:
