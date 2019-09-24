@@ -123,7 +123,7 @@ func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec)
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// determine whether the cluster is using SSL
-	isSSL := role.Coherence.Metrics != nil && role.Coherence.Metrics.SSL != nil && *role.Coherence.Metrics.SSL.Enabled
+	isSSL := role.Coherence.Metrics != nil && role.Coherence.Metrics.IsSSLEnabled()
 
 	// Get the cluster Pods
 	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())

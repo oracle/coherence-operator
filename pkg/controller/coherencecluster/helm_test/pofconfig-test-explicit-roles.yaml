@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      coherence:
+        pofConfig: data-pof-config.xml
+    - role: proxy
+      coherence:
+        pofConfig: proxy-pof-config.xml
