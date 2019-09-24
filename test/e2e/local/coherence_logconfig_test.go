@@ -282,6 +282,7 @@ func assertLogConfigOnMembers(g *GomegaWithT, namespace, clusterName, roleName s
 		// Get the list of Pods
 		pods, err := helper.ListCoherencePodsForRole(f.KubeClient, namespace, clusterName, roleName)
 		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(len(pods)).NotTo(BeZero())
 
 		// Port forward to the first Pod
 		pf, ports, err := helper.StartPortForwarderForPod(&pods[0])

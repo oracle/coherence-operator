@@ -19,7 +19,7 @@ nameOverride:
 cluster:
 
 # The role name
-role: data
+role:
 
 # replicas is the initial size of the Coherence role. If not set the default cluster size is 3.
 replicas: 3
@@ -29,10 +29,10 @@ replicas: 3
 application:
   # The type of application. Default if not entered is java. Used for Graal to run things like node so most
   # plain Coherence customers would never use this field
-  type: java
+  type:
   # The Coherence container main class. The default value is
   # com.tangosol.net.DefaultCacheServer.
-  mainClass: com.tangosol.net.DefaultCacheServer
+  mainClass:
   # main program args (i.e. args for your main method)
   args: []
   # configuration of the customer's application image (used to be called user artifacts image)
@@ -400,4 +400,4 @@ imagePullSecrets: []
 # serviceAccountName is the name to use for the service account to use when RBAC is enabled
 #   The role bindings must already have been created as this chart does not create them it just
 #   sets the serviceAccountName value in the Pod spec.
-serviceAccountName: default
+serviceAccountName:

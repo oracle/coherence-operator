@@ -19,7 +19,7 @@
 = Configure Applications
 
 Whilst the Coherence Operator can manage plain Coherence clusters typically custom application code and configuration
-files would be added to a Coherence JVMs classpath.
+files would be added to a Coherence JVM's classpath.
 
 == Configure Applications
 
@@ -247,14 +247,49 @@ they do not specifically set the value in their specs.
 [#app-lib]
 == Setting the Application Lib Directory
 
+A typical Coherence application may also require additional dependencies (usually `.jar` files) that need to be added
+to the classpath.
+The applications's lib directory is a directory in the application's image that contains these additional `.jar` files.
+The Coherence Operator will add the files to the classpath with the wildcard setting (e.g. `-cp /lib/*`) it does not add
+each file in the lib directory individually to the classpath. This means that the contents of the lib directory are
+added to the classpath using the rules that the JVM uses to process wild card classpath entries.
+
+=== Setting the Application Lib Directory for the Implicit Role
+=== Setting the Application Lib Directory for Explicit Roles
+=== Setting the Application Lib Directory for Explicit Roles with a Default
+
 
 [#app-conf]
 == Setting the Application Config Directory
+
+A Coherence application may require additional files added to the classpath such as configuration files and other
+resources. These additional files can be placed into the config directory of the application's image and this directory
+added to the classpath of the Coherence JVM. Just the directory is added to the classpath (e.g. `-cp /conf`) the contents
+themselves are not added.
+
+=== Setting the Application Config Directory for the Implicit Role
+=== Setting the Application Config Directory for Explicit Roles
+=== Setting the Application Config Directory for Explicit Roles with a Default
 
 
 [#app-main]
 == Setting the Application Main Class
 
+By default the Coherence container will run the `main` method in the `com.tangosol.coherence.DefaultCacheServer`
+class. Sometimes an application requires a different class as the main class and this can be configured for roles
+in a `CoherenceCluster`.
+
+=== Setting the Application Main Class for the Implicit Role
+=== Setting the Application Main Class for Explicit Roles
+=== Setting the Application Main Class for Explicit Roles with a Default
+
 
 [#app-args]
 == Setting the Application Main Class Arguments
+
+If a custom main class is being used it is sometimes required to pass arguments to that class's `main` method.
+These additional arguments can be configured alongside the main class.
+
+=== Setting the Application Main Class Arguments for the Implicit Role
+=== Setting the Application Main Class Arguments for Explicit Roles
+=== Setting the Application Main Class Arguments for Explicit Roles with a Default
