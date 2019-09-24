@@ -49,6 +49,7 @@ spec:
 {{-   end }}
 {{- end }}
 {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
 {{-   range .Values.imagePullSecrets }}
       - name: {{ . }}
 {{-   end }}
