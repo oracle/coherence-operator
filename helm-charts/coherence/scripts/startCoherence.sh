@@ -224,7 +224,7 @@ start()
     checkVersion "12.2.1.4.0"
     IS_12_2_1_4=$?
 
-echo "IS_12_2_1_4 ${IS_12_2_1_4}"
+    echo "IS_12_2_1_4 = ${IS_12_2_1_4}"
 
     if [[ ${IS_12_2_1_4} == 0 ]]
     then
@@ -306,12 +306,12 @@ runGraal()
     CMD=$(echo ${CMD} | sed -e "s/\ -Xms/ --vm.Xms/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -Xmx/ --vm.Xmx/g")
 
-    CMD="${APP_TYPE} --polyglot --jvm ${CMD} --vm.Dcoherence.mbeans=k8s-mbeans.xml ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
+    CMD="${APP_TYPE} --polyglot --jvm ${CMD} ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
 
-    echo "---------------------------------"
+    echo "--------------------------------------------------------------------"
     echo "Starting the Coherence Graal ${APP_TYPE} ${COMMAND} using:"
     echo "${CMD}"
-    echo "---------------------------------"
+    echo "--------------------------------------------------------------------"
 
     exec ${CMD}
     }

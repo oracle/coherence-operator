@@ -261,8 +261,8 @@ jvm:
   # The format should be the same as that used for Java's -Xms and -Xmx JVM options.
   # If not set the JVM defaults are used.
   maxHeap:
-  # GC options to pass the the JVM - if not entered we default to G1
-  gc: "-XX:+UseG1GC"
+  # GC options to pass the the JVM - if not entered the default is -XX:+UseG1GC
+  gc:
   # JVM options like extra system properties -XX args etc...
   args: []
   # -------------------------------------------------------------------------

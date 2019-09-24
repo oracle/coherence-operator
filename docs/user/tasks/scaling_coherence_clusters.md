@@ -1,1 +1,0 @@
-# Safely Scaling Coherence Clusters
