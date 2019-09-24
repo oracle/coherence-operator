@@ -3,7 +3,8 @@ kind: CoherenceCluster
 metadata:
   name: mycluster
 spec:
-  management:
-    enabled: true
+  coherence:
+    management:
+      enabled: true
   logging:
     configFile: logging.properties

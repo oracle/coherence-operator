@@ -16,13 +16,36 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Setting the Application Image
+= Configure Applications
+
+Whilst the Coherence Operator can manage plain Coherence clusters typically custom application code and configuration
+files would be added to a Coherence JVMs classpath.
+
+== Configure Applications
+
+Different application code and configuration can be added to different roles in a `CoherenceCluster` by specifying
+the application's configuration in the `application` section of a role spec. There are a number of different fields
+that can be configured for an application described below. All of the configuration described below is optional.
+
+* <<app-image,Setting the Application Image>> - The application's image that is used to provide application
+`.jar` files and configuration files to add to the JVM classpath.
+* <<pull-policy,Setting the Application Image Pull Policy>> - The pull policy that Kubernetes will use to pull
+the application's image
+* <<app-lib,Setting the Application Lib Directory>> - The name of the folder in the application's image containing
+`.jar` files to add to the JVM class path
+* <<app-conf,Setting the Application Config Directory>> - The name of the folder in the application's image containing
+configuration files that will be add to the JVM classpath
+* <<app-main,Setting the Application Main Class>> - The application's custom main main Class to use if running a
+class other than Coherence `DefaultCacheServer`
+* <<app-args,Setting the Application Main Class Arguments>> - The arguments to pass to the application's main `Class`
+
+
+[#app-image]
+== Setting the Application Image
 
 The application image is the Docker image containing the `.jar` files and configuration files of the Coherence application
 that should be deployed in the Coherence cluster. For more information see the
 <<guides/030_applications.adoc,Deploying Coherence Applications>> guide.
-
-== Setting the Application Image
 
 Whilst the Coherence Operator makes it simple to deploy and manage a Coherence cluster in Kubernetes in the majority of
 use cases there will be a requirement for application code to be deployed and run in the Coherence JVMs. This application
@@ -35,8 +58,7 @@ As well as setting the image name it is also sometimes useful to set the applica
 If the image being configured is from a registry requiring authentication see the section
 on <<clusters/200_private_repos.adoc,pulling from private registries>>.
 
-
-===  Setting the Application Image for the Implicit Role
+=== Setting the Application Image for the Implicit Role
 
 When using the implicit role configuration the application image to use is set directly in the `CoherenceCluster` `spec`
 `application.image` field.
@@ -58,7 +80,7 @@ spec:
 the Coherence container in the implicit `storage` role's `Pods`
 
 
-===  Setting the Application Image for Explicit Roles
+=== Setting the Application Image for Explicit Roles
 
 When using the explicit roles in a `CoherenceCluster` `roles` list the application image to use is set for each role.
 
@@ -220,3 +242,19 @@ spec:
 <1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because
 they do not specifically set the value in their specs.
 <2> The image pull policy for the `web` role above has been set to `IfNotPresent`
+
+
+[#app-lib]
+== Setting the Application Lib Directory
+
+
+[#app-conf]
+== Setting the Application Config Directory
+
+
+[#app-main]
+== Setting the Application Main Class
+
+
+[#app-args]
+== Setting the Application Main Class Arguments

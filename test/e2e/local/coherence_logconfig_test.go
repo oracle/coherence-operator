@@ -34,9 +34,9 @@ Deploy a CoherenceCluster with the log level changed in the "spec" section.
 */
 func TestCoherenceLogLevelSpecSection(t *testing.T) {
 	var (
-		clusterName       = "mycluster"
-		roleName          = coherence.DefaultRoleName
-		replicas    int32 = coherence.DefaultReplicas
+		clusterName = "mycluster"
+		roleName    = coherence.DefaultRoleName
+		replicas    = coherence.DefaultReplicas
 	)
 	g := NewGomegaWithT(t)
 
@@ -48,7 +48,7 @@ func TestCoherenceLogLevelSpecSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "spec_log_level.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(9))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 9)
 }
 
 /*
@@ -70,7 +70,7 @@ func TestCoherenceLogLevelRolesSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "role_log_level.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(9))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 9)
 }
 
 /*
@@ -93,7 +93,7 @@ func TestCoherenceLogConfigFileSpecSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "spec_log_configfile.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(5))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 5)
 }
 
 /*
@@ -116,7 +116,7 @@ func TestCoherenceLogConfigFileRolesSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "role_log_configfile.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(5))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 5)
 }
 
 /*
@@ -142,7 +142,7 @@ func TestCoherenceLogConfigMapSpecSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "spec_log_configmap.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(5))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 5)
 
 	deleteLoggingConfigMap(namespace)
 }
@@ -170,7 +170,7 @@ func TestCoherenceLogConfigMapRolesSection(t *testing.T) {
 
 	assertClusterCreated(t, ctx, namespace, "role_log_configmap.yaml",
 		map[string]int32{coherence.DefaultRoleName: replicas})
-	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), int(5))
+	assertLogConfigOnMembers(g, namespace, clusterName, roleName, int(replicas), 5)
 
 	deleteLoggingConfigMap(namespace)
 }
@@ -244,11 +244,10 @@ func assertClusterCreated(t *testing.T, ctx *framework.TestCtx, namespace, yamlF
 
 // Delete logging-config-map from the given namespace
 func deleteLoggingConfigMap(namespace string) {
-	framework.Global.KubeClient.CoreV1().ConfigMaps(namespace).Delete(loggingConfigMapName,
-		&metav1.DeleteOptions{})
+	_ = framework.Global.KubeClient.CoreV1().ConfigMaps(namespace).Delete(loggingConfigMapName, &metav1.DeleteOptions{})
 }
 
-// Create requied logging-config-map in a test namespace.
+// Create required logging-config-map in a test namespace.
 func createLoggingConfigMap(g *GomegaWithT, namespace string) {
 	f := framework.Global
 	logConfigMap := &corev1.ConfigMap{}
