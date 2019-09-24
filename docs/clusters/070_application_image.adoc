@@ -32,6 +32,9 @@ JVM's classpath.
 
 As well as setting the image name it is also sometimes useful to set the application image's  <<pull-policy,image pull policy>>.
 
+If the image being configured is from a registry requiring authentication see the section
+on <<clusters/200_private_repos.adoc,pulling from private registries>>.
+
 
 ===  Setting the Application Image for the Implicit Role
 

@@ -883,6 +883,11 @@ type PortSpecWithSSL struct {
 	SSL *SSLSpec `json:"ssl,omitempty"`
 }
 
+// IsSSLEnabled returns true if this port is SSL enabled
+func (in *PortSpecWithSSL) IsSSLEnabled() bool {
+	return in != nil && in.Enabled != nil && *in.Enabled
+}
+
 // DeepCopyWithDefaults returns a copy of this PortSpecWithSSL struct with any nil or not set values set
 // by the corresponding value in the defaults PortSpecWithSSL struct.
 func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *PortSpecWithSSL {

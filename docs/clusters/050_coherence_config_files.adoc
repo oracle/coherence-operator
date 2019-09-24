@@ -28,6 +28,13 @@ There are three Coherence configuration files that can be set in a role's specif
 * The <<override-file,Coherence Operational Override>> file
 * The <<pof-config,POF Configuration>> file
 
+NOTE: Oracle Coherence provides a number of ways to specify the configuration files to be used. If deploying application
+code alongside the Coherence JVM it is entirely possible to use the default configuration file names in the application
+or to hard code one or more of the configuration file names in the application itself. This section of the documentation
+describes `CoherenceCluster` role configuration that will result in passing the `-Dcoherence.cache.config`, the
+`coherence.override` and the `coherence.pof.config` system properties to the Coherence JVM. If the deployed application
+overrides or ignores these properties then setting the configurations described below will have no effect.
+
 
 [#cache-config]
 == Setting the Coherence Cache Configuration File

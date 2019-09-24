@@ -32,6 +32,11 @@ to true or false.
 If the `storageEnabled` field is not specifically set for a role then the `coherence.distributed.localstorage` property
 will not be set in the JVMs for that role and Coherence's default behaviour will apply.
 
+NOTE: If a custom application is deployed into the Coherence container that specifies a custom cache configuration file
+or custom operational configuration file it is entirely possible for the `coherence.distributed.localstorage` system
+property to be ignored if the application configuration files override this value. If this is the case then the settings
+described below will have no effect.
+
 
 == Storage Enabled or Disabled Implicit Role
 
