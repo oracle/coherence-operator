@@ -171,10 +171,8 @@ var _ = Describe("coherencerole_controller", func() {
 					Role:     roleName,
 					Replicas: &replicas,
 					Coherence: &coherence.CoherenceSpec{
-						Images: &coherence.CoherenceImagesSpec{
-							Coherence: &coherence.ImageSpec{
-								Image: &imageOrig,
-							},
+						ImageSpec: coherence.ImageSpec{
+							Image: &imageOrig,
 						},
 					},
 				},
@@ -186,10 +184,8 @@ var _ = Describe("coherencerole_controller", func() {
 					Role:     roleName,
 					Replicas: &replicas,
 					Coherence: &coherence.CoherenceSpec{
-						Images: &coherence.CoherenceImagesSpec{
-							Coherence: &coherence.ImageSpec{
-								Image: &imageNew,
-							},
+						ImageSpec: coherence.ImageSpec{
+							Image: &imageNew,
 						},
 					},
 				},

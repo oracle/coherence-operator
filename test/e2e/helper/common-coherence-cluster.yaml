@@ -4,12 +4,9 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    curlTimeout: 5
-    images:
-      coherence:
-        image: ${TEST_COHERENCE_IMAGE}
-      coherenceUtils:
-        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+    image: ${TEST_COHERENCE_IMAGE}
+  coherenceUtils:
+    imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   application:
     imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   readinessProbe:

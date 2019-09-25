@@ -3,5 +3,5 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  logging:
-    level: 9
+  coherence:
+    logLevel: 9

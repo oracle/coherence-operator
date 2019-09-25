@@ -13,7 +13,7 @@ spec:
     application:
       image: ${TEST_USER_IMAGE}
       imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-      mainClass: com.oracle.coherence.k8s.testing.RestServer
+      main: com.oracle.coherence.k8s.testing.RestServer
     ports:
     - name: rest
       port: 8080

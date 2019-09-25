@@ -256,9 +256,9 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 		Context("Application is merged", func() {
 			var appOne = coherence.ApplicationSpec{
-				Type:      stringPtr("java"),
-				MainClass: stringPtr("main"),
-				LibDir:    stringPtr("/lib"),
+				Type:   stringPtr("java"),
+				Main:   stringPtr("main"),
+				LibDir: stringPtr("/lib"),
 			}
 
 			var appTwo = coherence.ApplicationSpec{
@@ -319,7 +319,6 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 			}
 
 			var cohTwo = coherence.CoherenceSpec{
-				PofConfig:      stringPtr("two.xml"),
 				OverrideConfig: stringPtr("override.xml"),
 			}
 
@@ -522,7 +521,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 		Context("JVM is merged", func() {
 			var jvmOne = coherence.JVMSpec{
-				MaxHeap: stringPtr("1G"),
+				HeapSize: stringPtr("1G"),
 			}
 
 			var jvmTwo = coherence.JVMSpec{
@@ -728,7 +727,7 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 		Context("Logging is merged", func() {
 			var logOne = coherence.LoggingSpec{
-				Level: int32Ptr(6),
+				ConfigMapName: stringPtr("cm-log"),
 			}
 
 			var logTwo = coherence.LoggingSpec{

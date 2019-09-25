@@ -15,27 +15,26 @@ spec:
     type: java
     image: app:1.0
     imagePullPolicy: Always
-    mainClass: main-one
+    main: com.tangosol.net.CacheFactory
     args:
       - arg1
       - arg2
-    libDir: /lib-one
-    configDir: /cfg-one
+    appDir: /app
+    libDir: /app/lib
+    configDir: /app/conf
+
+  coherenceUtils:
+    image: coherence-utils:1.0
+    imagePullPolicy: Never
 
   coherence:
-    images:
-      coherence:
-        image: coherence:1.0
-        imagePullPolicy: Always
-      coherenceUtils:
-        image: coherence-utils:1.0
-        imagePullPolicy: Never
+    image: coherence:1.0
+    imagePullPolicy: Always
     cacheConfig: cache-config-one.xml
     overrideConfig: override-one.xml
-    pofConfig: pof-one.xml
     storageEnabled: true
     scalingPolicy: SafeScaling
-    curlTimeout: 120
+    logLevel: 6
     management:
       enabled: true
       ssl:
@@ -109,7 +108,7 @@ spec:
 
   jvm:
     gc: "some gc args one"
-    maxHeap: 123G
+    heapSize: 123G
     debug:
       enabled: true
       attach: jvm-attach-one
@@ -118,7 +117,6 @@ spec:
   logging:
     configMapName: logging-cm-one
     configFile: logging-one.properties
-    level: 6
     fluentd:
       enabled: true
       configFile: fluentd-one.yaml

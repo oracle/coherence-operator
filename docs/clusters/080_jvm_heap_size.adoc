@@ -21,14 +21,14 @@
 == Setting the JVM Heap Size
 
 It is good practice to fix the Coherence JVM heap size and to set both the JVM `-Xmx` and `-Xms` options to the same value.
-The heap size of the JVM can be configured for roles in the `jvm.maxHeap` field of a role spec. If the `maxHeap` value
+The heap size of the JVM can be configured for roles in the `jvm.heapSize` field of a role spec. If the `heapSize` value
 is configured then that value is applied to bot the JVMs minimum and maximum heap sizes (i.e. used to set both
 `-Xms` and -`Xmx`).
 
-The format of the value of the `maxHeap` field is any valid value that can be used when setting the `-Xmx` JVM option,
+The format of the value of the `heapSize` field is any valid value that can be used when setting the `-Xmx` JVM option,
 for example `10G` would set a 10 GB heap.
 
-NOTE: If the `Pod` resource limits are being set to limit memory usage of a `Pod` it is important that the `maxHeap` value
+NOTE: If the `Pod` resource limits are being set to limit memory usage of a `Pod` it is important that the `heapSize` value
 is also set if using a Coherence image with a JVM version lower than Java 10. Prior to Java 10 the JVM could see all of
 the memory available to a machine regardless of any Pod limits. The JVM could then easily attempt to consume more memory
 that the `Pod` or `Container` was allowed and consequently crashing the `Pod`. With Coherence images that use a version
@@ -38,7 +38,7 @@ limit a `Pod` or `Containers` memory it is a good idea to limit the JVM heap.
 
 === Setting the JVM Heap Size for the Implicit Role
 
-When creating a `CoherenceCluster` with a single implicit role the `maxHeap` is set in the `spec.jvm` section of
+When creating a `CoherenceCluster` with a single implicit role the `heapSize` is set in the `spec.jvm` section of
 the configuration. For example:
 
 [source,yaml]
@@ -49,7 +49,7 @@ metadata:
   name: test-cluster
 spec:
   jvm:
-    maxHeap: 10g <1>
+    heapSize: 10g <1>
 ----
 
 <1> The Coherence JVM for the implicit role defined above will have a 10 GB heap.
@@ -58,7 +58,7 @@ Equivalent to passing `-Xms10g -Xmx10g` to the JVM.
 
 === Setting the JVM Heap Size for Explicit Roles
 
-When creating a `CoherenceCluster` with one or more explicit roles the `maxHeap` is set in the `jvm` section of
+When creating a `CoherenceCluster` with one or more explicit roles the `heapSize` is set in the `jvm` section of
 the configuration for each `role` in the `roles` list. For example:
 
 [source,yaml]
@@ -71,10 +71,10 @@ spec:
   roles:
     - role: data
       jvm:
-        maxHeap: 10g <1>
+        heapSize: 10g <1>
     - role: proxy
       jvm:
-        maxHeap: 500m <2>
+        heapSize: 500m <2>
 ----
 
 <1> The Coherence JVM for the `data` role defined above will have a 10 GB heap.
@@ -85,9 +85,9 @@ Equivalent to passing `-Xms500m -Xmx500m` to the JVM.
 
 === Setting the JVM Heap Size for Explicit Roles with a Default
 
-When creating a `CoherenceCluster` with one or more explicit roles a default `maxHeap` value can be set in the
+When creating a `CoherenceCluster` with one or more explicit roles a default `heapSize` value can be set in the
 `CoherenceCluster` `spec` section that will apply t all of the roles in the `roles` list unless specifically
-overridden by a role's `jvm.maxHeap` field. For example:
+overridden by a role's `jvm.heapSize` field. For example:
 
 [source,yaml]
 ----
@@ -97,11 +97,11 @@ metadata:
   name: test-cluster
 spec:
   jvm:
-    maxHeap: 500m    <1>
+    heapSize: 500m    <1>
   roles:
     - role: data
       jvm:
-        maxHeap: 10g <2>
+        heapSize: 10g <2>
     - role: proxy    <3>
     - role: web      <4>
 ----
@@ -110,6 +110,6 @@ spec:
 specific role.
 <2> The `data` role overrides the default value to set the max heap for all JVMs in the `data` role to 10 GB.
 Equivalent to passing `-Xms10g -Xmx10g` to the JVM.
-<3> The `proxy` role does not specify a `maxHeap` value so it will use the default value of 500 MB.
-<4> The `web` role does not specify a `maxHeap` value so it will use the default value of 500 MB.
+<3> The `proxy` role does not specify a `heapSize` value so it will use the default value of 500 MB.
+<4> The `web` role does not specify a `heapSize` value so it will use the default value of 500 MB.
 

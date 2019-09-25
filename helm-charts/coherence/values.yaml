@@ -32,7 +32,9 @@ application:
   type:
   # The Coherence container main class. The default value is
   # com.tangosol.net.DefaultCacheServer.
-  mainClass:
+  # If the application type is non-Java this would be the name of the corresponding language specific
+  # runnable, for example if the application type is "node" the main may be a Javascript file.
+  main:
   # main program args (i.e. args for your main method)
   args: []
   # configuration of the customer's application image (used to be called user artifacts image)
@@ -42,6 +44,11 @@ application:
   # application.imagePullPolicy is the image pull policy to use for the custom
   #   artifacts image. If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
+  # The application folder in the custom artifacts Docker image containing
+  # application artifacts.
+  # This will effectively become the working directory of the Coherence container.
+  # If not set the application directory default value is "/app".
+  appDir:
   # application.libDir is the folder in the custom artifacts Docker image containing jar
   #   files to be added to the classpath of the Coherence container.
   #   If not set the libDir is "/files/lib".
@@ -59,21 +66,18 @@ coherence:
   overrideConfig:
   # coherence.cacheConfig is the name of the cache configuration file to use
   cacheConfig:
-  # coherence.pofConfig is the name of the POF configuration file to use when using POF serializer
-  pofConfig:
   # coherence.storageEnabled is true to run Coherence containers as storage enabled cluster members
   # or false to run storage disabled cluster members
   storageEnabled:
   # The policy used to scale the number of replicas in this role.
   scalingPolicy: ParallelUpSafeDownScaling
-#   Coherence images
-  images:
-    coherence:
-      image: "${HELM_COHERENCE_IMAGE}"
-      imagePullPolicy:
-    coherenceUtils:
-      image: "${UTILS_IMAGE}"
-      imagePullPolicy:
+  # The Coherence image
+  image: "${HELM_COHERENCE_IMAGE}"
+  # The Coherence image pull policy
+  imagePullPolicy:
+  # logLevel sets the Coherence log level. This value should be an integer in the range 1 to 9,
+  #   the default being 5 (info level).
+  logLevel:
   # coherence.metrics configures Coherence metrics publishing
   #   Note: Coherence metrics publishing will be available in 12.2.1.4.
   metrics:
@@ -217,16 +221,17 @@ coherence:
     #   to the storage guarantees for the particular volume type configured here.
     #   The yaml from below will be used as-is to configure the volume.
     volume:
-  # The timeout in seconds used by curl when requesting site and rack info in the start script
-  curlTimeout: 120
+
+# ----- Coherence Utils configuration ---------------------------------------
+
+coherenceUtils:
+  image: "${UTILS_IMAGE}"
+  imagePullPolicy:
 
 # ----- Logging configuration -----------------------------------------------
 
 # logging allows configuration of Coherence and java util logging.
 logging:
-  # logging.level sets the Coherence log level. This value should be an integer in the range 1 to 9,
-  #   the default being 5 (info level).
-  level:
   # logging.configFile allows the location of the Java util logging configuration file to be overridden.
   #   If this value is not set the logging.properties file embedded in this chart will be used.
   #   If this value is set the configuration will be located by trying the following locations in order:
@@ -257,10 +262,10 @@ logging:
 # ----- JVM specific configuration ------------------------------------------
 
 jvm:
-  # The min/max heap value to pass to the JVM.
+  # The heap size value to pass to the JVM.
   # The format should be the same as that used for Java's -Xms and -Xmx JVM options.
   # If not set the JVM defaults are used.
-  maxHeap:
+  heapSize:
   # GC options to pass the the JVM - if not entered the default is -XX:+UseG1GC
   gc:
   # JVM options like extra system properties -XX args etc...

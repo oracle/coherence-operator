@@ -29,9 +29,9 @@ var _ = Describe("Testing ApplicationSpec struct", func() {
 		var never = corev1.PullNever
 
 		var appOne = &coherence.ApplicationSpec{
-			Type:      stringPtr("java"),
-			MainClass: stringPtr("TestMainOne"),
-			Args:      []string{},
+			Type: stringPtr("java"),
+			Main: stringPtr("TestMainOne"),
+			Args: []string{},
 			ImageSpec: coherence.ImageSpec{
 				Image:           stringPtr("app:1.0"),
 				ImagePullPolicy: &always,
@@ -41,9 +41,9 @@ var _ = Describe("Testing ApplicationSpec struct", func() {
 		}
 
 		var appTwo = &coherence.ApplicationSpec{
-			Type:      stringPtr("node"),
-			MainClass: stringPtr("TestMainTwo"),
-			Args:      []string{},
+			Type: stringPtr("node"),
+			Main: stringPtr("TestMainTwo"),
+			Args: []string{},
 			ImageSpec: coherence.ImageSpec{
 				Image:           stringPtr("app:2.0"),
 				ImagePullPolicy: &never,

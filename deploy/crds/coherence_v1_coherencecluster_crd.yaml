@@ -44,6 +44,12 @@ spec:
             application:
               description: The optional application definition
               properties:
+                appDir:
+                  description: The application folder in the custom artifacts Docker
+                    image containing application artifacts. This will effectively
+                    become the working directory of the Coherence container. If not
+                    set the application directory default value is "/app".
+                  type: string
                 args:
                   description: Args is the optional arguments to pass to the main
                     class.
@@ -53,7 +59,7 @@ spec:
                 configDir:
                   description: The folder in the custom artifacts Docker image containing
                     configuration files to be added to the classpath of the Coherence
-                    container. If not set the configDir is "/files/conf".
+                    container. If not set the config directory default value is "/app/conf".
                   type: string
                 image:
                   description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
@@ -65,11 +71,14 @@ spec:
                 libDir:
                   description: The folder in the custom artifacts Docker image containing
                     jar files to be added to the classpath of the Coherence container.
-                    If not set the libDir is "/files/lib".
+                    If not set the lib directory default value is "/app/lib".
                   type: string
-                mainClass:
+                main:
                   description: Class is the Coherence container main class.  The default
-                    value is com.tangosol.net.DefaultCacheServer.
+                    value is com.tangosol.net.DefaultCacheServer. If the application
+                    type is non-Java this would be the name of the corresponding language
+                    specific runnable, for example if the application type is "node"
+                    the main may be a Javascript file.
                   type: string
                 type:
                   description: The application type to execute. This field would be
@@ -90,35 +99,17 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
-                curlTimeout:
-                  description: The timeout in seconds used by curl when requesting
-                    site and rack info.
-                  format: int64
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+                logLevel:
+                  description: The Coherence log level, default being 5 (info level).
+                  format: int32
                   type: integer
-                images:
-                  description: The Coherence images configuration.
-                  properties:
-                    coherence:
-                      properties:
-                        image:
-                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                          type: string
-                        imagePullPolicy:
-                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                          type: string
-                      type: object
-                    coherenceUtils:
-                      properties:
-                        image:
-                          description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                          type: string
-                        imagePullPolicy:
-                          description: 'Image pull policy. One of Always, Never, IfNotPresent.
-                            More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                          type: string
-                      type: object
-                  type: object
                 management:
                   description: 'Management configures Coherence management over REST   Note:
                     Coherence management over REST will be available in 12.2.1.4.'
@@ -325,10 +316,6 @@ spec:
                         volume type configured here.
                       type: object
                   type: object
-                pofConfig:
-                  description: PofConfig is the name of the POF configuration file
-                    to use when using POF serializer
-                  type: string
                 scalingPolicy:
                   description: ScalingPolicy describes how the replicas of the cluster
                     role will be scaled. The default if not specified is based upon
@@ -401,6 +388,17 @@ spec:
                     to false scaling will be parallel.
                   type: boolean
               type: object
+            coherenceUtils:
+              description: The configuration for the Coherence utils image
+              properties:
+                image:
+                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  type: string
+                imagePullPolicy:
+                  description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                    More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                  type: string
+              type: object
             env:
               description: 'Env is additional environment variable mappings that will
                 be passed to the Coherence container in the Pod To specify extra variables
@@ -441,7 +439,7 @@ spec:
                     attach:
                       description: Attach specifies the address of the debugger that
                         the JVM should attempt to connect back to instead of listening
-                        on port 5005.
+                        on a port.
                       type: string
                     enabled:
                       description: Enabled is a flag to enable or disable running
@@ -452,8 +450,8 @@ spec:
                   description: The optional GC parameters. If not set defaults to
                     enabling the G1 collector.
                   type: string
-                maxHeap:
-                  description: MaxHeap is the min/max heap value to pass to the JVM.
+                heapSize:
+                  description: HeapSize is the min/max heap value to pass to the JVM.
                     The format should be the same as that used for Java's -Xms and
                     -Xmx JVM options. If not set the JVM defaults are used.
                   type: string
@@ -514,10 +512,6 @@ spec:
                       description: This value should be source.tag from fluentd.application.configFile.
                       type: string
                   type: object
-                level:
-                  description: The default being 5 (info level).
-                  format: int32
-                  type: integer
               type: object
             nodeSelector:
               additionalProperties:
@@ -698,6 +692,13 @@ spec:
                   application:
                     description: The optional application definition
                     properties:
+                      appDir:
+                        description: The application folder in the custom artifacts
+                          Docker image containing application artifacts. This will
+                          effectively become the working directory of the Coherence
+                          container. If not set the application directory default
+                          value is "/app".
+                        type: string
                       args:
                         description: Args is the optional arguments to pass to the
                           main class.
@@ -707,8 +708,8 @@ spec:
                       configDir:
                         description: The folder in the custom artifacts Docker image
                           containing configuration files to be added to the classpath
-                          of the Coherence container. If not set the configDir is
-                          "/files/conf".
+                          of the Coherence container. If not set the config directory
+                          default value is "/app/conf".
                         type: string
                       image:
                         description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
@@ -720,11 +721,16 @@ spec:
                       libDir:
                         description: The folder in the custom artifacts Docker image
                           containing jar files to be added to the classpath of the
-                          Coherence container. If not set the libDir is "/files/lib".
+                          Coherence container. If not set the lib directory default
+                          value is "/app/lib".
                         type: string
-                      mainClass:
+                      main:
                         description: Class is the Coherence container main class.  The
-                          default value is com.tangosol.net.DefaultCacheServer.
+                          default value is com.tangosol.net.DefaultCacheServer. If
+                          the application type is non-Java this would be the name
+                          of the corresponding language specific runnable, for example
+                          if the application type is "node" the main may be a Javascript
+                          file.
                         type: string
                       type:
                         description: The application type to execute. This field would
@@ -741,35 +747,18 @@ spec:
                         description: CacheConfig is the name of the cache configuration
                           file to use
                         type: string
-                      curlTimeout:
-                        description: The timeout in seconds used by curl when requesting
-                          site and rack info.
-                        format: int64
+                      image:
+                        description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                        type: string
+                      imagePullPolicy:
+                        description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                          More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                        type: string
+                      logLevel:
+                        description: The Coherence log level, default being 5 (info
+                          level).
+                        format: int32
                         type: integer
-                      images:
-                        description: The Coherence images configuration.
-                        properties:
-                          coherence:
-                            properties:
-                              image:
-                                description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                                type: string
-                              imagePullPolicy:
-                                description: 'Image pull policy. One of Always, Never,
-                                  IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                                type: string
-                            type: object
-                          coherenceUtils:
-                            properties:
-                              image:
-                                description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
-                                type: string
-                              imagePullPolicy:
-                                description: 'Image pull policy. One of Always, Never,
-                                  IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
-                                type: string
-                            type: object
-                        type: object
                       management:
                         description: 'Management configures Coherence management over
                           REST   Note: Coherence management over REST will be available
@@ -990,10 +979,6 @@ spec:
                               for the particular volume type configured here.
                             type: object
                         type: object
-                      pofConfig:
-                        description: PofConfig is the name of the POF configuration
-                          file to use when using POF serializer
-                        type: string
                       scalingPolicy:
                         description: ScalingPolicy describes how the replicas of the
                           cluster role will be scaled. The default if not specified
@@ -1070,6 +1055,17 @@ spec:
                           scaling will be parallel.
                         type: boolean
                     type: object
+                  coherenceUtils:
+                    description: The configuration for the Coherence utils image
+                    properties:
+                      image:
+                        description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                        type: string
+                      imagePullPolicy:
+                        description: 'Image pull policy. One of Always, Never, IfNotPresent.
+                          More info: https://kubernetes.io/docs/concepts/containers/images#updating-images'
+                        type: string
+                    type: object
                   env:
                     description: 'Env is additional environment variable mappings
                       that will be passed to the Coherence container in the Pod To
@@ -1096,7 +1092,7 @@ spec:
                           attach:
                             description: Attach specifies the address of the debugger
                               that the JVM should attempt to connect back to instead
-                              of listening on port 5005.
+                              of listening on a port.
                             type: string
                           enabled:
                             description: Enabled is a flag to enable or disable running
@@ -1107,8 +1103,8 @@ spec:
                         description: The optional GC parameters. If not set defaults
                           to enabling the G1 collector.
                         type: string
-                      maxHeap:
-                        description: MaxHeap is the min/max heap value to pass to
+                      heapSize:
+                        description: HeapSize is the min/max heap value to pass to
                           the JVM. The format should be the same as that used for
                           Java's -Xms and -Xmx JVM options. If not set the JVM defaults
                           are used.
@@ -1173,10 +1169,6 @@ spec:
                             description: This value should be source.tag from fluentd.application.configFile.
                             type: string
                         type: object
-                      level:
-                        description: The default being 5 (info level).
-                        format: int32
-                        type: integer
                     type: object
                   nodeSelector:
                     additionalProperties:

@@ -32,6 +32,9 @@ type CoherenceRoleSpec struct {
 	// The optional application definition
 	// +optional
 	Coherence *CoherenceSpec `json:"coherence,omitempty"`
+	// The configuration for the Coherence utils image
+	// +optional
+	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
 	// Logging allows configuration of Coherence and java util logging.
 	// +optional
 	Logging *LoggingSpec `json:"logging,omitempty"`
@@ -232,6 +235,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	// Application is merged
 	clone.Application = in.Application.DeepCopyWithDefaults(defaults.Application)
 	clone.Coherence = in.Coherence.DeepCopyWithDefaults(defaults.Coherence)
+	clone.CoherenceUtils = in.CoherenceUtils.DeepCopyWithDefaults(defaults.CoherenceUtils)
 	// Environment variables are merged
 	clone.Env = in.mergeEnvVar(in.Env, defaults.Env)
 	clone.JVM = in.JVM.DeepCopyWithDefaults(defaults.JVM)

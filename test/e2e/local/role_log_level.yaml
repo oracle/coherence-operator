@@ -9,5 +9,5 @@ spec:
   roles:
   - role: storage
     replicas: 1
-    logging:
-      level: 9
+    coherence:
+      logLevel: 9

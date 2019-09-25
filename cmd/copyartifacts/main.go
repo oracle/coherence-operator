@@ -10,9 +10,13 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func main() {
+	appDir := os.Getenv("APP_DIR")
+	extAppDir := os.Getenv("EXTERNAL_APP_DIR")
 	libDir := os.Getenv("LIB_DIR")
 	extLibDir := os.Getenv("EXTERNAL_LIB_DIR")
 	confDir := os.Getenv("CONF_DIR")
@@ -23,26 +27,50 @@ func main() {
 	fmt.Printf("Config directory is: '%s'\n", confDir)
 	fmt.Printf("External Config directory is: '%s'\n", extConfDir)
 
+	_ = os.MkdirAll(extAppDir, os.ModePerm)
 	_ = os.MkdirAll(extLibDir, os.ModePerm)
 	_ = os.MkdirAll(extLibDir, os.ModePerm)
 
-	_, err := os.Stat(libDir)
+	_, err := os.Stat(appDir)
 	if err == nil {
-		err = utils.CopyDir(libDir, extLibDir, utils.AlwaysFilter())
+		err = utils.CopyDir(appDir, extAppDir, utils.AlwaysFilter())
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		fmt.Printf("Lib directory '%s' does not exist - no files to copy\n", libDir)
+		fmt.Printf("App directory '%s' does not exist - no files to copy\n", appDir)
 	}
 
-	_, err = os.Stat(confDir)
-	if err == nil {
-		err = utils.CopyDir(confDir, extConfDir, utils.AlwaysFilter())
-		if err != nil {
-			panic(err)
-		}
+	extLibUnderApp := strings.HasPrefix(filepath.Dir(extLibDir), extAppDir)
+	extConfUnderApp := strings.HasPrefix(filepath.Dir(extConfDir), extAppDir)
+	libUnderApp := strings.HasPrefix(filepath.Dir(libDir), appDir)
+	confUnderApp := strings.HasPrefix(filepath.Dir(confDir), appDir)
+
+	if extLibUnderApp && libUnderApp {
+		fmt.Printf("Lib directory '%s' is under App directory '%s' - no files to copy\n", libDir, appDir)
 	} else {
-		fmt.Printf("Config directory '%s' does not exist - no files to copy\n", confDir)
+		_, err = os.Stat(libDir)
+		if err == nil {
+			err = utils.CopyDir(libDir, extLibDir, utils.AlwaysFilter())
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			fmt.Printf("Lib directory '%s' does not exist - no files to copy\n", libDir)
+		}
+	}
+
+	if extConfUnderApp && confUnderApp {
+		fmt.Printf("Config directory '%s' is under App directory '%s' - no files to copy\n", libDir, appDir)
+	} else {
+		_, err = os.Stat(confDir)
+		if err == nil {
+			err = utils.CopyDir(confDir, extConfDir, utils.AlwaysFilter())
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			fmt.Printf("Config directory '%s' does not exist - no files to copy\n", confDir)
+		}
 	}
 }

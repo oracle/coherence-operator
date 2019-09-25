@@ -5,5 +5,5 @@ metadata:
 spec:
   roles:
     - role: data
-      logging:
-        level: 9
+      coherence:
+        logLevel: 9

@@ -4,7 +4,6 @@ metadata:
   name: mycluster
 spec:
   coherence:
+    logLevel: 9
     management:
       enabled: true
-  logging:
-    level: 9

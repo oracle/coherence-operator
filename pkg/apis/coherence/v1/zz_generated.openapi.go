@@ -15,7 +15,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceCluster":        schema_pkg_apis_coherence_v1_CoherenceCluster(ref),
 		"./pkg/apis/coherence/v1.CoherenceClusterSpec":    schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceClusterStatus":  schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref),
-		"./pkg/apis/coherence/v1.CoherenceImagesSpec":     schema_pkg_apis_coherence_v1_CoherenceImagesSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceInternal":       schema_pkg_apis_coherence_v1_CoherenceInternal(ref),
 		"./pkg/apis/coherence/v1.CoherenceInternalSpec":   schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceInternalStatus": schema_pkg_apis_coherence_v1_CoherenceInternalStatus(ref),
@@ -52,9 +51,9 @@ func schema_pkg_apis_coherence_v1_ApplicationSpec(ref common.ReferenceCallback) 
 							Format:      "",
 						},
 					},
-					"mainClass": {
+					"main": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer.",
+							Description: "Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is \"node\" the main may be a Javascript file.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -87,16 +86,23 @@ func schema_pkg_apis_coherence_v1_ApplicationSpec(ref common.ReferenceCallback) 
 							Format:      "",
 						},
 					},
+					"appDir": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is \"/app\".",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"libDir": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The folder in the custom artifacts Docker image containing jar files to be added to the classpath of the Coherence container. If not set the libDir is \"/files/lib\".",
+							Description: "The folder in the custom artifacts Docker image containing jar files to be added to the classpath of the Coherence container. If not set the lib directory default value is \"/app/lib\".",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"configDir": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The folder in the custom artifacts Docker image containing configuration files to be added to the classpath of the Coherence container. If not set the configDir is \"/files/conf\".",
+							Description: "The folder in the custom artifacts Docker image containing configuration files to be added to the classpath of the Coherence container. If not set the config directory default value is \"/app/conf\".",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -208,6 +214,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Description: "The optional application definition",
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
+						},
+					},
+					"coherenceUtils": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration for the Coherence utils image",
+							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
 						},
 					},
 					"logging": {
@@ -377,7 +389,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -390,30 +402,6 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_CoherenceImagesSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "The Coherence specific images configuration.",
-				Properties: map[string]spec.Schema{
-					"coherence": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"coherenceUtils": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ImageSpec"},
 	}
 }
 
@@ -545,6 +533,12 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "The optional application definition",
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
+						},
+					},
+					"coherenceUtils": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration for the Coherence utils image",
+							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
 						},
 					},
 					"logging": {
@@ -702,7 +696,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -791,6 +785,12 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 						SchemaProps: spec.SchemaProps{
 							Description: "The optional application definition",
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
+						},
+					},
+					"coherenceUtils": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration for the Coherence utils image",
+							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
 						},
 					},
 					"logging": {
@@ -947,7 +947,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1006,10 +1006,18 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 			SchemaProps: spec.SchemaProps{
 				Description: "The Coherence specific configuration.",
 				Properties: map[string]spec.Schema{
-					"images": {
+					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The Coherence images configuration.",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceImagesSpec"),
+							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"imagePullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"storageEnabled": {
@@ -1033,18 +1041,18 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
-					"pofConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "PofConfig is the name of the POF configuration file to use when using POF serializer",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"overrideConfig": {
 						SchemaProps: spec.SchemaProps{
 							Description: "OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"logLevel": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Coherence log level, default being 5 (info level).",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 					"persistence": {
@@ -1077,18 +1085,11 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
 						},
 					},
-					"curlTimeout": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The timeout in seconds used by curl when requesting site and rack info.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceImagesSpec", "./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.StatusHAHandler"},
+			"./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.StatusHAHandler"},
 	}
 }
 
@@ -1107,7 +1108,7 @@ func schema_pkg_apis_coherence_v1_DebugSpec(ref common.ReferenceCallback) common
 					},
 					"attach": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Attach specifies the address of the debugger that the JVM should attempt to connect back to instead of listening on port 5005.",
+							Description: "Attach specifies the address of the debugger that the JVM should attempt to connect back to instead of listening on a port.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1200,9 +1201,9 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 			SchemaProps: spec.SchemaProps{
 				Description: "The JVM specific configuration.",
 				Properties: map[string]spec.Schema{
-					"maxHeap": {
+					"heapSize": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MaxHeap is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Description: "HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1248,13 +1249,6 @@ func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) comm
 			SchemaProps: spec.SchemaProps{
 				Description: "LoggingSpec defines the settings for the Coherence Pod logging",
 				Properties: map[string]spec.Schema{
-					"level": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The default being 5 (info level).",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
 					"configFile": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ConfigFile allows the location of the Java util logging configuration file to be overridden.\n If this value is not set the logging.properties file embedded in this chart will be used.\n If this value is set the configuration will be located by trying the following locations in order:\n   1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging\n        properties file will be located as a file location relative to the ConfigMap volume mount point.\n   2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the\n        configuration files directory in the user artifacts image.\n   3. Using this value as an absolute file name.",

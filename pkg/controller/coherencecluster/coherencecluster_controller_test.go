@@ -274,9 +274,7 @@ var _ = Describe("coherencecluster_controller", func() {
 				updatedRoleSpec = coherence.CoherenceRoleSpec{
 					Role: "storage",
 					Coherence: &coherence.CoherenceSpec{
-						Images: &coherence.CoherenceImagesSpec{
-							Coherence: &coherence.ImageSpec{Image: &imageName},
-						},
+						ImageSpec: coherence.ImageSpec{Image: &imageName},
 					},
 				}
 

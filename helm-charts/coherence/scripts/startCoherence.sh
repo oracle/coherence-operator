@@ -265,6 +265,12 @@ start()
     env
     echo "---------------------------------"
 
+    if [[ "${COH_APP_DIR}" != "" ]]
+    then
+      echo "Changing working directory to ${COH_APP_DIR}"
+      cd ${COH_APP_DIR}
+    fi
+
     if [[ "${APP_TYPE}" == "" ]]
     then
       APP_TYPE="java"
@@ -298,8 +304,6 @@ runJava()
 # ---------------------------------------------------------------------------
 runGraal()
     {
-    cp ${SCRIPT_DIR}/k8s-mbeans.xml ${COHERENCE_HOME}/conf/k8s-mbeans.xml
-
     CMD=$(echo ${CMD} | sed -e "s/\-cp /--vm.cp /g")
     CMD=$(echo ${CMD} | sed -e "s/\ -D/ --vm.D/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -XX/ --vm.XX/g")
@@ -382,7 +386,7 @@ commonConfiguration()
                   then
                     TIMEOUT=${CURL_TIMEOUT}
                   else
-                    TIMEOUT=30
+                    TIMEOUT=120
                   fi
 
                   SITE=$(curl --silent -m ${TIMEOUT} -X GET ${COH_SITE_INFO_LOCATION})
@@ -445,12 +449,6 @@ commonConfiguration()
               PROPS="${PROPS} -Dcoherence.rack=${SITE}"
           fi
       fi
-    fi
-
-#   Configure the POF configuration file to use
-    if [[ -n "${COH_POF_CONFIG}" ]]
-    then
-        PROPS="${PROPS} -Dcoherence.pof.config=${COH_POF_CONFIG}"
     fi
 
 #   Configure Coherence persistence

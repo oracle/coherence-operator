@@ -26,14 +26,13 @@ There are three Coherence configuration files that can be set in a role's specif
 
 * The <<cache-config,Coherence Cache Configuration>> file
 * The <<override-file,Coherence Operational Override>> file
-* The <<pof-config,POF Configuration>> file
 
 NOTE: Oracle Coherence provides a number of ways to specify the configuration files to be used. If deploying application
 code alongside the Coherence JVM it is entirely possible to use the default configuration file names in the application
 or to hard code one or more of the configuration file names in the application itself. This section of the documentation
-describes `CoherenceCluster` role configuration that will result in passing the `-Dcoherence.cache.config`, the
-`coherence.override` and the `coherence.pof.config` system properties to the Coherence JVM. If the deployed application
-overrides or ignores these properties then setting the configurations described below will have no effect.
+describes `CoherenceCluster` role configuration that will result in passing the `-Dcoherence.cache.config` and the
+`coherence.override` system properties to the Coherence JVM. If the deployed application overrides or ignores these
+properties then setting the configurations described below will have no effect.
 
 
 [#cache-config]
@@ -206,89 +205,3 @@ spec:
 an `overrideConfig` value so will use this default value and will each have use the `application-override.xml` file
 <2> The `web` role has an explicit `overrideConfig` value of `web-override.xml` so will use the `web-override.xml`
 operational override file
-
-
-
-[#pof-config]
-== Setting the POF Configuration File
-
-The Coherence POF configuration file for a role in a `CoherenceCluster` is set using the `pofConfig` field of a role spec.
-The value of this field will end up being passed to the Coherence JVM as the `coherence.pof.config` system property and
-will hence set the value of the POF configuration file used as described in the Coherence documentation.
-
-=== Set the Cache Configuration for an Implicit Role
-
-When using the implicit role configuration the `pofConfig` value is set directly in the `CoherenceCluster` `spec` section.
-For example:
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: test-cluster
-spec:
-  coherence:
-    pofConfig: application-pof-config.xml  <1>
-----
-
-<1> In this case a cluster will be created with a single implicit role named `storage` where the `coherence.pof.config`
-system property and hence the POF configuration file used will be `application-pof-config.xml`
-
-
-=== Set the Cache Configuration for Explicit Role
-
-When using the explicit role configuration the `pofConfig` value is set for each role in the `CoherenceCluster` `spec`
-`roles` list.
-
-For example to create cluster with two explicit roles, `data` and `proxy`:
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: test-cluster
-spec:
-  roles:
-    - role: data
-      coherence:
-        pofConfig: data-pof-config.xml  <1>
-    - role: proxy
-      coherence:
-        pofConfig: proxy-pof-config.xml  <2>
-----
-
-<1> The `data` role will use the `data-pof-config.xml` POF configuration file
-<2> The `proxy` role will use the `proxy-pof-config.xml` POF configuration file
-
-
-=== Set the Cache Configuration for Explicit Roles with a Default
-
-When using the explicit role configuration a value for `pofConfig` value can be set in the `CoherenceCluster` `spec`
-section that will be used as the default `pofConfig` value for any `role` in the `roles` list that does not explicitly
-specify a value.
-
-For example to create cluster with three explicit roles, `data` and `proxy` and `web`:
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: test-cluster
-spec:
-  coherence:
-    pofConfig: application-pof-config.xml  <1>
-  roles:
-    - role: data
-    - role: proxy
-    - role: web
-      coherence:
-        pofConfig: web-pof-config.xml  <2>
-----
-
-<1> The default `pofConfig` value is set to `application-pof-config.xml`. The `data` and `proxy` roles do not have
-a `pofConfig` value so will use this default value and will each have use the `application-pof-config.xml` file
-<2> The `web` role has an explicit `pofConfig` value of `web-pof-config.xml` so will use the `web-pof-config.xml`
-POF configuration file

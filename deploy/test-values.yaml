@@ -6,8 +6,8 @@
 # end-to-end tests on k8s clusters such as OCI.
 
 imagePullSecrets:
-  - coherence-k8s-operator-development-secret
-  - ocr-k8s-operator-development-secret
+  - name: coherence-k8s-operator-development-secret
+  - name: ocr-k8s-operator-development-secret
 
 coherenceOperator:
   imagePullPolicy: Never

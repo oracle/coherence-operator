@@ -5,4 +5,4 @@
 #
 FROM scratch
 
-COPY lib/  /files/lib/
+COPY lib/  /app/lib/

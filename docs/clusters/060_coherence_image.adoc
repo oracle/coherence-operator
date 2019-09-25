@@ -32,7 +32,7 @@ As well as setting the image name it is also sometimes useful to set the Coheren
 ===  Setting the Coherence Image for the Implicit Role
 
 When using the implicit role configuration the Coherence image to use is set directly in the `CoherenceCluster` `spec`
-`coherence.images.coherence.image`` section.
+`coherence.image`` section.
 
 For example:
 
@@ -44,9 +44,7 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    images:
-      coherence:
-        image: container-registry.oracle.com/middleware/coherence/12.2.1.4  <1>
+    image: container-registry.oracle.com/middleware/coherence/12.2.1.4  <1>
 ----
 
 <1> The `coherence` container in the implicit role's `Pod` will use the Coherence image
@@ -69,14 +67,10 @@ spec:
   roles:
     - role: data
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <1>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <1>
     - role: proxy
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <2>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <2>
 ----
 
 <1> The `coherence` container in the  `data` role `Pods` will use the Coherence
@@ -101,9 +95,7 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    images:
-      coherence:
-        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
+    image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
   roles:
     - role: data
     - role: proxy
@@ -121,15 +113,11 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    images:
-      coherence:
-        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
+    image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0  <1>
   roles:
     - role: data
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <2>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1  <2>
     - role: proxy
     - role: web
 ----
@@ -168,10 +156,8 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    images:
-      coherence:
-        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
-        imagePullPolicy: Always <1>
+    image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+    imagePullPolicy: Always <1>
 ----
 
 <1> The image pull policy for the implicit role above has been set to `Always`
@@ -191,16 +177,12 @@ spec:
   roles:
     - role: data
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
-            imagePullPolicy: Always <1>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+        imagePullPolicy: Always <1>
     - role: proxy
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
-            imagePullPolicy: IfNotPresent <2>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+        imagePullPolicy: IfNotPresent <2>
 ----
 
 <1> The image pull policy for the `data` role has been set to `Always`
@@ -219,26 +201,18 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    images:
-      coherence:
-        imagePullPolicy: Always <1>
+    imagePullPolicy: Always <1>
   roles:
     - role: data
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
     - role: proxy
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.1
     - role: web
       coherence:
-        images:
-          coherence:
-            image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
-            imagePullPolicy: IfNotPresent <2>
+        image: container-registry.oracle.com/middleware/coherence/12.2.1.4.0
+        imagePullPolicy: IfNotPresent <2>
 ----
 
 <1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because

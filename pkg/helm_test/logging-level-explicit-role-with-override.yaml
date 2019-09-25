@@ -3,10 +3,10 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  logging:
-    level: 6
+  coherence:
+    logLevel: 6
   roles:
     - role: data
-      logging:
-        level: 9
+      coherence:
+        logLevel: 9
     - role: proxy

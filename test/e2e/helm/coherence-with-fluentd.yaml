@@ -3,8 +3,9 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
+  coherence:
+    logLevel: 9
   logging:
-    level: 9
     fluentd:
       enabled: true
   roles:

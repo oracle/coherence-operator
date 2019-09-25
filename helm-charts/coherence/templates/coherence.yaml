@@ -2,10 +2,11 @@
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
-{{- $utilsImage := required "A value is required for the value .Values.coherence.images.coherenceUtils.image" .Values.coherence.images.coherenceUtils.image -}}
-{{- $cohImage := required "A value is required for the value .Values.coherence.images.coherence.image" .Values.coherence.images.coherence.image -}}
-{{- $extLibDir := "/u01/oracle/oracle_home/coherence/ext/lib" -}}
-{{- $extConfDir := "/u01/oracle/oracle_home/coherence/ext/conf" -}}
+{{- $utilsImage := required "A value is required for the value .Values.coherenceUtils.image" .Values.coherenceUtils.image -}}
+{{- $cohImage := required "A value is required for the value .Values.coherence.image" .Values.coherence.image -}}
+{{- $extAppDir := "/u01/oracle/oracle_home/coherence/app" -}}
+{{- $extLibDir := "/u01/oracle/oracle_home/coherence/app/lib" -}}
+{{- $extConfDir := "/u01/oracle/oracle_home/coherence/app/conf" -}}
 {{- define "rootCoherenceSnapshot" }}
 - mountPath: "/root/coherence/snapshot"
   name: snapshot-volume
@@ -94,9 +95,9 @@ spec:
 #  Container: For adding required artifacts e.g. startup scripts to the pod.
 # ---------------------------------------------------------------------------
         - name: coherence-k8s-utils
-          image: {{ .Values.coherence.images.coherenceUtils.image | quote }}
-{{- if .Values.coherence.images.coherenceUtils.imagePullPolicy }}
-          imagePullPolicy: {{ .Values.coherence.images.coherenceUtils.imagePullPolicy }}
+          image: {{ .Values.coherenceUtils.image | quote }}
+{{- if .Values.coherenceUtils.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.coherenceUtils.imagePullPolicy }}
 {{- end }}
           env:
           - name: COH_UTIL_DIR
@@ -135,14 +136,18 @@ spec:
           imagePullPolicy: {{ .Values.application.imagePullPolicy }}
 {{-     end }}
           env:
+          - name: "EXTERNAL_APP_DIR"
+            value: {{ $extAppDir }}
+          - name: "APP_DIR"
+            value: {{ .Values.application.appDir | default "/app" | quote }}
           - name: "EXTERNAL_LIB_DIR"
             value: {{ $extLibDir }}
           - name: "LIB_DIR"
-            value: {{ .Values.application.libDir | default "/files/lib" | quote }}
+            value: {{ .Values.application.libDir | default "/app/lib" | quote }}
           - name: "EXTERNAL_CONF_DIR"
             value: {{ $extConfDir }}
           - name: "CONF_DIR"
-            value: {{ .Values.application.configDir | default "/files/conf" | quote }}
+            value: {{ .Values.application.configDir | default "/app/conf" | quote }}
           volumeMounts:
           - name: utils-dir
             mountPath: /utils
@@ -157,9 +162,9 @@ spec:
 #  Container: coherence
 # ---------------------------------------------------------------------------
         - name: "coherence"
-          image: {{ .Values.coherence.images.coherence.image | quote }}
-{{- if .Values.coherence.images.coherence.imagePullPolicy }}
-          imagePullPolicy: {{ .Values.coherence.images.coherence.imagePullPolicy }}
+          image: {{ .Values.coherence.image | quote }}
+{{- if .Values.coherence.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.coherence.imagePullPolicy }}
 {{- end }}
           ports:
             - name: "mgmt-port"
@@ -183,6 +188,8 @@ spec:
 {{- end }}
             - name: COH_WKA
               value: {{ .Values.wka }}
+            - name: COH_APP_DIR
+              value: {{ $extAppDir }}
             - name: COH_EXTRA_CLASSPATH
               value: {{ printf "%s/*:%s" $extLibDir $extConfDir | quote }}
             - name: COH_MGMT_HTTP_PORT
@@ -221,9 +228,9 @@ spec:
             - name: APP_TYPE
               value: {{ .Values.application.type | quote }}
 {{-   end }}
-{{-   if .Values.application.mainClass }}
+{{-   if .Values.application.main }}
             - name: COH_MAIN_CLASS
-              value: {{ .Values.application.mainClass | quote }}
+              value: {{ .Values.application.main | quote }}
 {{-   end }}
 {{-   if .Values.application.args }}
             - name: COH_MAIN_ARGS
@@ -234,9 +241,9 @@ spec:
 {{/* ----- JVM variables ---------------------------------------------------- */}}
 {{/* */}}
 {{- if .Values.jvm }}
-{{-   if .Values.jvm.maxHeap }}
+{{-   if .Values.jvm.heapSize }}
             - name: MAX_HEAP
-              value: {{ .Values.jvm.maxHeap | quote }}
+              value: {{ .Values.jvm.heapSize | quote }}
 {{-   end }}
 {{-   if .Values.jvm.gc }}
             - name: JVM_GC_OPTS
@@ -268,10 +275,6 @@ spec:
             - name: COH_OVERRIDE_CONFIG
               value: {{ .Values.coherence.overrideConfig | quote }}
 {{- end }}
-{{- if .Values.coherence.pofConfig }}
-            - name: COH_POF_CONFIG
-              value: {{ .Values.coherence.pofConfig | quote }}
-{{- end }}
 {{- $storageEnabled := toString .Values.coherence.storageEnabled }}
 {{- if eq $storageEnabled "true" }}
             - name: COH_STORAGE_ENABLED
@@ -279,10 +282,6 @@ spec:
 {{- else if eq $storageEnabled "false" }}
             - name: COH_STORAGE_ENABLED
               value: "false"
-{{- end }}
-{{- if .Values.coherence.curlTimeout }}
-            - name: CURL_TIMEOUT
-              value: {{ .Values.coherence.curlTimeout | quote }}
 {{- end }}
 {{- if .Values.coherence.persistence }}
 {{-   if .Values.coherence.persistence.enabled }}
@@ -422,9 +421,9 @@ spec:
 {{/* ----- Logging variables ------------------------------------------------ */}}
 {{/* */}}
 {{- if .Values.logging }}
-{{-   if .Values.logging.level }}
+{{-   if .Values.coherence.logLevel }}
             - name: COH_LOG_LEVEL
-              value: {{ .Values.logging.level | quote }}
+              value: {{ .Values.coherence.logLevel | quote }}
 {{-   end }}
 {{-   if .Values.logging.configFile }}
 {{-     if .Values.logging.configMapName }}

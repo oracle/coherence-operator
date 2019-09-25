@@ -34,8 +34,9 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
+  coherence:
+    logLevel: 9
   logging:
-    level: 9
     configFile:    app-logging.properties
     configMapName: logging-cm
     fluentd:
@@ -51,7 +52,7 @@ The fields in the example above are described in detail in the following section
 
 === Coherence Log Level
 
-The Coherence log level is set with the `logging.level` field. This field is an integer value between zero and nine
+The Coherence log level is set with the `coherence.logLevel` field. This field is an integer value between zero and nine
 (see the Coherence documentation for a fuller explanation).
 
 To set the Coherence log level when defining the implicit role:
@@ -63,8 +64,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  logging:
-    level: 5 <1>
+  coherence:
+    logLevel: 5 <1>
 ----
 
 <1> The implicit role will have a Coherence log level of `5`
@@ -80,11 +81,11 @@ metadata:
 spec:
   roles:
     - role: data
-      logging:
-        level: 9 <1>
+      coherence:
+        logLevel: 9 <1>
     - role: proxy
-      logging:
-        level: 5 <2>
+      coherence:
+        logLevel: 5 <2>
 ----
 
 <1> The `data` role will have a Coherence log level of `9`
@@ -99,14 +100,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  logging:
-    level: 9 <1>
+  coherence:
+    logLevel: 9 <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      logging:
-        level: 5 <2>
+      coherence:
+        logLevel: 5 <2>
 ----
 
 <1> The `data` and `proxy` roles will use the default Coherence log level of `9`

@@ -15,27 +15,26 @@ spec:
     type: java
     image: app:2.0
     imagePullPolicy: Always
-    mainClass: main-two
+    main: mainClass
     args:
       - arg3
       - arg4
+    appDir: /app-two
     libDir: /lib-two
     configDir: /cfg-two
 
+  coherenceUtils:
+    image: coherence-utils:2.0
+    imagePullPolicy: IfNotPresent
+
   coherence:
-    images:
-      coherence:
-        image: coherence:2.0
-        imagePullPolicy: Never
-      coherenceUtils:
-        image: coherence-utils:2.0
-        imagePullPolicy: IfNotPresent
+    image: coherence:2.0
+    imagePullPolicy: Never
     cacheConfig: cache-config-two.xml
     overrideConfig: override-two.xml
-    pofConfig: pof-two.xml
     storageEnabled: false
     scalingPolicy: SafeScaling
-    curlTimeout: 220
+    logLevel: 9
     management:
       enabled: false
       ssl:
@@ -109,7 +108,7 @@ spec:
 
   jvm:
     gc: "some gc args two"
-    maxHeap: 223G
+    heapSize: 223G
     debug:
       enabled: false
       attach: jvm-attach-two
@@ -118,7 +117,6 @@ spec:
   logging:
     configMapName: logging-cm-two
     configFile: logging-two.properties
-    level: 9
     fluentd:
       enabled: false
       configFile: fluentd-two.yaml

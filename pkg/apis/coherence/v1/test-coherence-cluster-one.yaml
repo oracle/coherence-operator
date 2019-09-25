@@ -9,7 +9,6 @@ spec:
   roles:
   - role: one
     replicas: 1
-    images:
-      coherence:
-        image: "test/coherence:1.0"
-    cacheConfig: "test-cache-config.xml"
+    coherence:
+      image: "test/coherence:1.0"
+      cacheConfig: "test-cache-config.xml"

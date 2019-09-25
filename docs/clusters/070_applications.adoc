@@ -38,9 +38,10 @@ spec:
   application:
     image: acme/orders-data:1.0.0
     imagePullPolicy: Always
+    appDir: "/app"
     libDir: "/lib"
     configDir: "/conf"
-    mainClass: io.acme.Server
+    main: io.acme.Server
     args:
       - "foo"
       - "bar"
@@ -50,6 +51,8 @@ spec:
 `.jar` files and configuration files to add to the JVM classpath.
 * <<pull-policy,Setting the Application Image Pull Policy>> - The pull policy that Kubernetes will use to pull
 the application's image
+* <<app-dir,Setting the Application Directory>> - The name of the folder in the application's image containing
+application artifacts. This will be the working directory for the Coherence container.
 * <<app-lib,Setting the Application Lib Directory>> - The name of the folder in the application's image containing
 `.jar` files to add to the JVM class path
 * <<app-conf,Setting the Application Config Directory>> - The name of the folder in the application's image containing
@@ -261,6 +264,15 @@ spec:
 <1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because
 they do not specifically set the value in their specs.
 <2> The image pull policy for the `web` role above has been set to `IfNotPresent`
+
+
+[#app-dir]
+== Setting the Application Directory
+
+
+=== Setting the Application Directory for the Implicit Role
+=== Setting the Application Directory for Explicit Roles
+=== Setting the Application Directory for Explicit Roles with a Default
 
 
 [#app-lib]

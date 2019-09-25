@@ -4,7 +4,6 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    curlTimeout: 120
     management:
       enabled: true
   roles:
