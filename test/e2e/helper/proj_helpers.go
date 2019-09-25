@@ -96,12 +96,16 @@ func GetTestSSLSecretName() string {
 	return os.Getenv(TestSslSecretEnv)
 }
 
-func GetImagePullSecrets() []string {
+func GetImagePullSecrets() []coh.LocalObjectReference {
 	s := os.Getenv(ImagePullSecretsEnv)
 	if s == "" {
 		return nil
 	}
-	return strings.Split(s, ",")
+	var secrets []coh.LocalObjectReference
+	for _, s := range strings.Split(s, ",") {
+		secrets = append(secrets, coh.LocalObjectReference{Name: s})
+	}
+	return secrets
 }
 
 func FindProjectRootDir() (string, error) {
@@ -242,6 +246,10 @@ func (in *coherenceClusterLoader) loadYaml(cluster *coh.CoherenceCluster, files 
 	if err != nil {
 		return err
 	}
+
+	// Append any
+	secrets := GetImagePullSecrets()
+	cluster.Spec.ImagePullSecrets = append(cluster.Spec.ImagePullSecrets, secrets...)
 
 	for _, file := range files {
 		err := in.loadYamlFromFile(cluster, file)

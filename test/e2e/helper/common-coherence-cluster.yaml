@@ -15,4 +15,3 @@ spec:
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 5
-  imagePullSecrets: [${IMAGE_PULL_SECRETS}]

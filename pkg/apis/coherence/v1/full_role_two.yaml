@@ -5,8 +5,8 @@ metadata:
 spec:
   serviceAccountName: svc-account-two
   imagePullSecrets:
-    - pull-two
-    - pull-two-two
+    - name: pull-two
+    - name: pull-two-two
 
   role: two
   replicas: 20

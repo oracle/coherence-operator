@@ -58,10 +58,17 @@ type CoherenceInternalSpec struct {
 	// sets the serviceAccountName value in the Pod spec.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-	// The secrets to be used when pulling images. Secrets must be manually created in the target namespace.
-	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+	// Whether or not to auto-mount the Kubernetes API credentials for a service account
 	// +optional
-	ImagePullSecrets  []string `json:"imagePullSecrets,omitempty"`
+	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
+	// ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any
+	// of the images used by this PodSpec.
+	// If specified, these secrets will be passed to individual puller implementations for them to use. For example,
+	// in the case of docker, only DockerConfig type secrets are honored.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
+	// +optional
+	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// The role specification.
 	CoherenceRoleSpec `json:",inline"`
 }
 
@@ -77,16 +84,12 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.FullnameOverride = role.Name
 	out.Cluster = cluster.Name
 	out.ServiceAccountName = cluster.Spec.ServiceAccountName
+	out.AutomountServiceAccountToken = cluster.Spec.AutomountServiceAccountToken
+	out.ImagePullSecrets = cluster.Spec.ImagePullSecrets
 	out.WKA = cluster.GetWkaServiceName()
 
 	out.CoherenceRoleSpec = CoherenceRoleSpec{}
 	role.Spec.DeepCopyInto(&out.CoherenceRoleSpec)
-
-	if cluster.Spec.ImagePullSecrets != nil {
-		imagePullSecrets := make([]string, len(cluster.Spec.ImagePullSecrets))
-		copy(imagePullSecrets, cluster.Spec.ImagePullSecrets)
-		out.ImagePullSecrets = imagePullSecrets
-	}
 
 	return &out
 }

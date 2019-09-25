@@ -1298,3 +1298,9 @@ const (
 	// but will be scaled down in a safe manner to ensure no data loss.
 	ParallelUpSafeDownScaling ScalingPolicy = "ParallelUpSafeDownScaling"
 )
+
+// ----- LocalObjectReference -----------------------------------------------
+
+// LocalObjectReference contains enough information to let you locate the
+// referenced object inside the same namespace.
+type LocalObjectReference corev1.LocalObjectReference

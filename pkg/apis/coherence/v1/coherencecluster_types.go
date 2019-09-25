@@ -16,15 +16,21 @@ import (
 // CoherenceClusterSpec defines the desired state of CoherenceCluster
 // +k8s:openapi-gen=true
 type CoherenceClusterSpec struct {
-	// The secrets to be used when pulling images. Secrets must be manually created in the target namespace.
-	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+	// ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any
+	// of the images used by this PodSpec.
+	// If specified, these secrets will be passed to individual puller implementations for them to use. For example,
+	// in the case of docker, only DockerConfig type secrets are honored.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
 	// +optional
-	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
 	// The role bindings must already have been created as this chart does not create them it just
 	// sets the serviceAccountName value in the Pod spec.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+	// Whether or not to auto-mount the Kubernetes API credentials for a service account
+	// +optional
+	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
 	// This spec is either the spec of a single role cluster or is used as the
 	// default values applied to roles in Roles array.
 	CoherenceRoleSpec `json:",inline"`

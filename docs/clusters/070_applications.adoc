@@ -27,6 +27,25 @@ Different application code and configuration can be added to different roles in 
 the application's configuration in the `application` section of a role spec. There are a number of different fields
 that can be configured for an application described below. All of the configuration described below is optional.
 
+[source,yaml]
+.Application Spec
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  application:
+    image: acme/orders-data:1.0.0
+    imagePullPolicy: Always
+    libDir: "/lib"
+    configDir: "/conf"
+    mainClass: io.acme.Server
+    args:
+      - "foo"
+      - "bar"
+----
+
 * <<app-image,Setting the Application Image>> - The application's image that is used to provide application
 `.jar` files and configuration files to add to the JVM classpath.
 * <<pull-policy,Setting the Application Image Pull Policy>> - The pull policy that Kubernetes will use to pull
@@ -73,10 +92,10 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data/1.0.0  <1>
+    image: acme/orders-data:1.0.0  <1>
 ----
 
-<1> The `acme/orders-data/1.0.0` will be used to add additional `.jar` files and configuration files to the classpath of
+<1> The `acme/orders-data:1.0.0` will be used to add additional `.jar` files and configuration files to the classpath of
 the Coherence container in the implicit `storage` role's `Pods`
 
 
@@ -96,13 +115,13 @@ spec:
   roles:
     - role: data
       application:
-        image: acme/orders-data/1.0.0  <1>
+        image: acme/orders-data:1.0.0  <1>
     - role: proxy
       application:
         image: acme/orders-proxy/1.0.0  <2>
 ----
 
-<1> The `data` role `Pods` will use the application image `acme/orders-data/1.0.0`
+<1> The `data` role `Pods` will use the application image `acme/orders-data:1.0.0`
 <2> The `proxy` role `Pods` will use the application image `acme/orders-proxy/1.0.0`
 
 
@@ -122,13 +141,13 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data/1.0.0  <1>
+    image: acme/orders-data:1.0.0  <1>
   roles:
     - role: data
     - role: proxy
 ----
 
-<1> The `data` and the `proxy` roles will both use the application image `acme/orders-data/1.0.0`
+<1> The `data` and the `proxy` roles will both use the application image `acme/orders-data:1.0.0`
 
 
 [source,yaml]
@@ -139,7 +158,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data/1.0.0  <1>
+    image: acme/orders-data:1.0.0  <1>
   roles:
     - role: data
     - role: proxy
@@ -148,7 +167,7 @@ spec:
         image: acme/orders-front-end/1.0.0  <2>
 ----
 
-<1> The `data` and the `proxy` roles will both use the application image `acme/orders-data/1.0.0`
+<1> The `data` and the `proxy` roles will both use the application image `acme/orders-data:1.0.0`
 <2> The `web` role will use the application image `acme/orders-web/1.0.0`
 
 
@@ -180,7 +199,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data/1.0.0
+    image: acme/orders-data:1.0.0
     imagePullPolicy: Always <1>
 ----
 
@@ -201,7 +220,7 @@ spec:
   roles:
     - role: data
       application:
-        image: acme/orders-data/1.0.0
+        image: acme/orders-data:1.0.0
         imagePullPolicy: Always <1>
     - role: proxy
       application:
@@ -229,7 +248,7 @@ spec:
   roles:
     - role: data
       application:
-        image: acme/orders-data/1.0.0
+        image: acme/orders-data:1.0.0
     - role: proxy
       application:
         image: acme/orders-proxy/1.0.1

@@ -19,11 +19,11 @@
 = Configure Additional Volumes
 
 Although a Coherence cluster member may not need access to specific volumes custom applications deployed into a cluster
-may require them. For this reason it is possible to configure roles in a `CoherenceCluster` with arbitrary volume mounts.
+may require them. For this reason it is possible to configure roles in a `CoherenceCluster` with arbitrary `VolumeMounts`.
 
 == Configure Additional Volumes
 
-There are two parts to configuring a volume that will be accessible to an application running in th Coherence `Pods`.
+There are two parts to configuring a `Volume` that will be accessible to an application running in th Coherence `Pods`.
 First a `Volume` must be defined for the `Pod` itself and then a corresponding `VolumeMount` must be configured that
 will be added to the Coherence container in the `Pods`.
 Additional `Volumes` and `VolumeMounts` can be added to a `CoherenceCluster` by defining each additional `Volume`
@@ -44,25 +44,173 @@ metadata:
   name: test-cluster
 spec:
   volumes:
-     - name: test-volume     <1>
+     - name: test-volume      <1>
        hostPath:
          path: /data
          type: Directory
   volumeMounts:
-     - mountPath: /test-data <2>
-       name: test-volume
+     - name: test-volume      <2>
+       mountPath: /test-data
+
 ----
 
-<1> An additional `Volume` named `test-volume` will be added to the `Pod`. In this case the volume is
+<1> An additional `Volume` named `test-volume` will be added to the `Pod`. In this case the `Volume` is
 a `hostPath` volume type.
 <2> A corresponding `VolumeMount` is added so that the `test-volume` will be mounted into the Coherence container
 with the path `/test-data`
 
+Multiple `Volumes` and `VolumeMappings` can be added:
+
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      volumes:
+         - name: test-volume      <1>
+           hostPath:
+             path: /data
+             type: Directory
+      volumeMounts:
+         - name: test-volume      <2>
+           mountPath: /test-data
+    - role: proxy
+      volumes:
+         - name: proxy-volume     <3>
+           hostPath:
+             path: /proxy-data
+             type: Directory
+      volumeMounts:
+         - name: test-volume      <4>
+           mountPath: /data
+----
+
+<1> An additional Host Path `Volume` named `test-volume` will be added to the containers in the `Pods` for the `data` role.
+<2> An additional `VolumeMount` to mount the `test-volume` to the `/test-data` path will be added to the containers in
+the `Pods` for the `data` role.
+<3> An additional Host Path `Volume` named `proxy-volume` will be added to the containers in the `Pods` for the `proxy` role.
+<4> An additional `VolumeMount` to mount the `proxy-volume` to the `/proxy-data` path will be added to the containers in
+the `Pods` for the `proxy` role.
+
+
 === Adding Volumes to Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles additional `Volumes` can be added to the configuration
+of each role.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  volumes:                   <1>
+     - name: data-volume
+       hostPath:
+         path: /test-data
+         type: Directory
+     - name: config-volume
+       hostPath:
+         path: /test-config
+         type: Directory
+  volumeMounts:              <2>
+     - name: test-volume
+       mountPath: /data
+     - name: config-volume
+       mountPath: /config
+----
+
+<1> The `volumes` list has two additional `Volumes`, `data-volume` and `config-volume`
+<2> The `volumeMounts` list has two corresponding `VolumeMounts`.
 
 
 === Adding Volumes to Explicit Roles with Defaults
 
+When creating a `CoherenceCluster` with one or more explicit roles additional `Volumes` and `VolumeMounts` can be added
+as defaults that will apply to all roles in the `roles` list. The additional `Volumes` and `VolumeMounts` in the defaults
+section will be merged with any additional `Volumes` and `VolumeMounts` specified for the role.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  volumes:
+     - name: data-volume          <1>
+       hostPath:
+         path: /test-data
+         type: Directory
+  volumeMounts:
+     - name: test-volume          <2>
+       mountPath: /data
+  roles:
+    - role: data                  <3>
+    - role: proxy
+      volumes:
+         - name: config-volume    <4>
+           hostPath:
+             path: /proxy-config
+             type: Directory
+      volumeMounts:
+         - name: config-volume    <5>
+           mountPath: /config
+----
+
+<1> The default `volumes` list has one additional `Volumes`, `data-volume`
+<2> The default `volumeMounts` list has one corresponding `VolumeMounts`
+<3> The `data` role does not have any additional `Volumes` or `VolumeMounts` so it will just inherit the default
+`Volume` named `data-volume` and `VolumeMount` named `test-volume`
+<4> The `proxy` role has an additional `Volume` named `config-volume` so when the `Volume` lists are merged it will
+have two additional `Volumes` `config-volume` and `test-volume`
+<5> The `proxy` role has an additional `VolumeMount` named `config-volume` so when the `VolumeMount` lists are merged
+it will have two additional `VolumeMounts` `config-volume` and `test-volume`
+
+
+When configuring explicit roles with default `Volumes` and `VolumeMounts` if the `role` defines a `Volume`
+or `VolumeMount` with the same name as one defined in the defaults then the role's definition overrides the
+default definition. For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  volumes:
+     - name: data-volume
+       hostPath:
+         path: /test-data
+         type: Directory
+  volumeMounts:
+     - name: test-volume
+       mountPath: /data
+  roles:
+    - role: data
+    - role: proxy
+      volumes:
+         - name: data-volume      <1>
+           hostPath:
+             path: /proxy-data
+             type: Directory
+         - name: config-volume
+           hostPath:
+             path: /proxy-config
+             type: Directory
+      volumeMounts:
+         - name: config-volume
+           mountPath: /config
+----
+
+<1> The `proxy` role overrides the default `data-volume` `Volume` with a different configuration.
 
 
 

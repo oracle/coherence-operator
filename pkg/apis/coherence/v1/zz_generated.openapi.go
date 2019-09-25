@@ -159,13 +159,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"imagePullSecrets": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The secrets to be used when pulling images. Secrets must be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+							Description: "ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("./pkg/apis/coherence/v1.LocalObjectReference"),
 									},
 								},
 							},
@@ -175,6 +174,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Description: "The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec.",
 							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"automountServiceAccountToken": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to auto-mount the Kubernetes API credentials for a service account",
+							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
@@ -371,7 +377,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -495,15 +501,21 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							Format:      "",
 						},
 					},
+					"automountServiceAccountToken": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to auto-mount the Kubernetes API credentials for a service account",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"imagePullSecrets": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The secrets to be used when pulling images. Secrets must be manually created in the target namespace. ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+							Description: "ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("./pkg/apis/coherence/v1.LocalObjectReference"),
 									},
 								},
 							},
@@ -690,7 +702,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 

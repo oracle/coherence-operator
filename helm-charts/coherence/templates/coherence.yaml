@@ -36,10 +36,8 @@ spec:
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 8 }}
 {{- end }}
-      annotations:
-        prometheus.io/port: "9612"
-        prometheus.io/scrape: "true"
 {{- if .Values.annotations }}
+      annotations:
 {{ toYaml .Values.annotations | indent 8 }}
 {{- end }}
     spec:
@@ -48,11 +46,13 @@ spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
 {{-   end }}
 {{- end }}
+{{- $automountServiceAccountTokenType := typeOf .Values.automountServiceAccountToken }}
+{{- if eq $automountServiceAccountTokenType "bool" }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+{{- end }}
 {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
-{{-   range .Values.imagePullSecrets }}
-      - name: {{ . }}
-{{-   end }}
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
 {{- end }}
 {{/* --------------------------------------------------------------------------- */}}
 {{/* Node scheduling                                                             */}}

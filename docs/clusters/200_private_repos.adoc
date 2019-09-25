@@ -45,14 +45,15 @@ metadata:
   name: test-cluster
 spec:
   imagePullSecrets:
-    - coherence-secret  <1>
+    - name: coherence-secret  <1>
 ----
 
 <1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
 
 
-The `imagePullSecrets` field is a list of string values so multiple secrets can be specified for different authenticated
-registries in the case where the Coherence cluster will use images from different authenticated registries..
+The `imagePullSecrets` field is a list of values in the same format that they would be specified in Kubernetes `Pod`
+specs, so multiple secrets can be specified for different authenticated registries in the case where the Coherence
+cluster will use images from different authenticated registries..
 
 [source,yaml]
 ----
@@ -62,8 +63,8 @@ metadata:
   name: test-cluster
 spec:
   imagePullSecrets:     <1>
-    - coherence-secret
-    - ocr-secret
+    - name: coherence-secret
+    - name: ocr-secret
 ----
 
 <1> The `imagePullSecrets` list specifies two secrets to use `coherence-secret` and `ocr-secret`

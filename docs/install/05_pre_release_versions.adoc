@@ -99,7 +99,7 @@ to specify the secret to use:
 helm install coherence-unstable/coherence-operator \
     --version 2.0.0-1909130555 \
     --namespace <namespace> \
-    --set imagePullSecrets=coherence-operator-secret \  <1>
+    --set imagePullSecrets.name=coherence-operator-secret \  <1>
     --name coherence-operator
 ----
 

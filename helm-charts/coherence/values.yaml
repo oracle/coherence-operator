@@ -388,16 +388,18 @@ tolerations: []
 #   For example, adding the pull secret "foo" would be:
 #
 #   imagePullSecrets:
-#   - "foo"
+#   - name: "foo"
 #
 #   adding multiple pull secrets "foo" and "bar" would be
 #
 #   imagePullSecrets:
-#   - "foo"
-#   - "bar"
+#   - name: "foo"
+#   - name: "bar"
 imagePullSecrets: []
 
 # serviceAccountName is the name to use for the service account to use when RBAC is enabled
 #   The role bindings must already have been created as this chart does not create them it just
 #   sets the serviceAccountName value in the Pod spec.
 serviceAccountName:
+# Whether or not to auto-mount API credentials for a service account
+automountServiceAccountToken:
