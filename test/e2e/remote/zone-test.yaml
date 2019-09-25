@@ -3,6 +3,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
+  operatorRequestTimeout: 120
   coherence:
     management:
       enabled: true

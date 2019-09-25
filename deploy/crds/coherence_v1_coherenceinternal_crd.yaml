@@ -529,6 +529,11 @@ spec:
               description: 'NodeSelector is the Node labels for pod assignment   ref:
                 https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
               type: object
+            operatorRequestTimeout:
+              description: The timeout to apply to rest requests made back to the
+                operator from Coherence Pods.
+              format: int32
+              type: integer
             ports:
               description: Ports specifies additional port mappings for the Pod and
                 additional Services for those ports

@@ -68,6 +68,9 @@ type CoherenceInternalSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
 	// +optional
 	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// The timeout to apply to rest requests made back to the operator from Coherence Pods.
+	// +optional
+	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
 	// The role specification.
 	CoherenceRoleSpec `json:",inline"`
 }
@@ -87,6 +90,7 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	out.AutomountServiceAccountToken = cluster.Spec.AutomountServiceAccountToken
 	out.ImagePullSecrets = cluster.Spec.ImagePullSecrets
 	out.WKA = cluster.GetWkaServiceName()
+	out.OperatorRequestTimeout = cluster.Spec.OperatorRequestTimeout
 
 	out.CoherenceRoleSpec = CoherenceRoleSpec{}
 	role.Spec.DeepCopyInto(&out.CoherenceRoleSpec)

@@ -190,6 +190,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"operatorRequestTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout to apply to rest requests made back to the operator from Coherence Pods.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"role": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The name of this role. This value will be used to set the Coherence role property for all members of this role",
@@ -507,6 +514,13 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 									},
 								},
 							},
+						},
+					},
+					"operatorRequestTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout to apply to rest requests made back to the operator from Coherence Pods.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 					"role": {

@@ -408,3 +408,6 @@ imagePullSecrets: []
 serviceAccountName:
 # Whether or not to auto-mount API credentials for a service account
 automountServiceAccountToken:
+
+# The timeout in seconds used when making rest requests to the Operator from the start script.
+operatorRequestTimeout: 120

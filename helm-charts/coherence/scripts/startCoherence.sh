@@ -382,9 +382,9 @@ commonConfiguration()
                   SITE=""
                   ;;
               http://*)
-                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  if [[ "${OPERATOR_REQUEST_TIMEOUT}" != "" ]]
                   then
-                    TIMEOUT=${CURL_TIMEOUT}
+                    TIMEOUT=${OPERATOR_REQUEST_TIMEOUT}
                   else
                     TIMEOUT=120
                   fi
@@ -412,9 +412,9 @@ commonConfiguration()
                   RACK=""
                   ;;
               http://*)
-                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  if [[ "${OPERATOR_REQUEST_TIMEOUT}" != "" ]]
                   then
-                    TIMEOUT=${CURL_TIMEOUT}
+                    TIMEOUT=${OPERATOR_REQUEST_TIMEOUT}
                   else
                     TIMEOUT=30
                   fi

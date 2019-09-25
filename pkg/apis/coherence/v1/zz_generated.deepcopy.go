@@ -130,6 +130,11 @@ func (in *CoherenceClusterSpec) DeepCopyInto(out *CoherenceClusterSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.OperatorRequestTimeout != nil {
+		in, out := &in.OperatorRequestTimeout, &out.OperatorRequestTimeout
+		*out = new(int32)
+		**out = **in
+	}
 	in.CoherenceRoleSpec.DeepCopyInto(&out.CoherenceRoleSpec)
 	if in.Roles != nil {
 		in, out := &in.Roles, &out.Roles
@@ -240,6 +245,11 @@ func (in *CoherenceInternalSpec) DeepCopyInto(out *CoherenceInternalSpec) {
 		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
 		*out = make([]LocalObjectReference, len(*in))
 		copy(*out, *in)
+	}
+	if in.OperatorRequestTimeout != nil {
+		in, out := &in.OperatorRequestTimeout, &out.OperatorRequestTimeout
+		*out = new(int32)
+		**out = **in
 	}
 	in.CoherenceRoleSpec.DeepCopyInto(&out.CoherenceRoleSpec)
 	return

@@ -31,6 +31,9 @@ type CoherenceClusterSpec struct {
 	// Whether or not to auto-mount the Kubernetes API credentials for a service account
 	// +optional
 	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
+	// The timeout to apply to rest requests made back to the operator from Coherence Pods.
+	// +optional
+	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
 	// This spec is either the spec of a single role cluster or is used as the
 	// default values applied to roles in Roles array.
 	CoherenceRoleSpec `json:",inline"`
