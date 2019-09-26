@@ -22,7 +22,7 @@ cluster:
 role:
 
 # replicas is the initial size of the Coherence role. If not set the default cluster size is 3.
-replicas: 3
+replicas:
 
 # ----- Configuration of the customer's application -------------------------
 
