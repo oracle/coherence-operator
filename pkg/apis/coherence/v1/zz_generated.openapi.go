@@ -273,6 +273,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
 						},
 					},
+					"livenessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
@@ -599,6 +605,12 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
 						},
 					},
+					"livenessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
@@ -848,6 +860,12 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 					"readinessProbe": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"livenessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
 						},
 					},
@@ -1431,6 +1449,24 @@ func schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref common.ReferenceCallbac
 			SchemaProps: spec.SchemaProps{
 				Description: "ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe",
 				Properties: map[string]spec.Schema{
+					"exec": {
+						SchemaProps: spec.SchemaProps{
+							Description: "One and only one of the following should be specified. Exec specifies the action to take.",
+							Ref:         ref("k8s.io/api/core/v1.ExecAction"),
+						},
+					},
+					"httpGet": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HTTPGet specifies the http request to perform.",
+							Ref:         ref("k8s.io/api/core/v1.HTTPGetAction"),
+						},
+					},
+					"tcpSocket": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported",
+							Ref:         ref("k8s.io/api/core/v1.TCPSocketAction"),
+						},
+					},
 					"initialDelaySeconds": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Number of seconds after the container has started before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
@@ -1469,7 +1505,8 @@ func schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref common.ReferenceCallbac
 				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
 	}
 }
 

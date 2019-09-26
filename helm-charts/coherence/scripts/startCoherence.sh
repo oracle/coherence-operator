@@ -360,6 +360,14 @@ commonConfiguration()
         PROPS="${PROPS} -Dcoherence.cacheconfig=coherence-cache-config.xml"
     fi
 
+#   Configure the port to publish health on
+    if [[ "${COH_HEALTH_PORT}" != "" ]]
+    then
+        PROPS="${PROPS} -Dcoherence.health.port=${COH_HEALTH_PORT}"
+    else
+        PROPS="${PROPS} -Dcoherence.health.port=6676"
+    fi
+
 #   Configure the port to publish metrics on
     if [[ "${COH_METRICS_PORT}" != "" ]]
     then

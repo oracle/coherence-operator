@@ -222,6 +222,11 @@ coherence:
     #   The yaml from below will be used as-is to configure the volume.
     volume:
 
+# ----- Health configuration ------------------------------------------------
+
+# The port that the health check endpoint will bind to.
+healthPort: 6676
+
 # ----- Coherence Utils configuration ---------------------------------------
 
 coherenceUtils:
@@ -292,7 +297,10 @@ env: []
 # readinessProbe is the readiness probe config.
 #   ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 readinessProbe:
-  # Number of seconds after the container has started before liveness or readiness probes are initiated.
+  exec:
+  httpGet:
+  tcpSocket:
+  # Number of seconds after the container has started before readiness probes are initiated.
   # If not set, the default initialDelaySeconds is 30.
   initialDelaySeconds:
   # How often (in seconds) to perform the probe. Minimum value is 1.
@@ -302,8 +310,30 @@ readinessProbe:
   # If not set, the default timeoutSeconds is 5.
   timeoutSeconds:
   # Minimum consecutive successes for the probe to be considered successful after having failed.
-  # Defaults to 1. Must be 1 for liveness. Minimum value is 1.
+  # Defaults to 1. Minimum value is 1.
   successThreshold:
+  # When a Pod starts and the probe fails, Kubernetes will try failureThreshold times
+  # before giving up.
+  # In case of readiness probe the Pod will be marked Unready. Minimum value is 1.
+  # If not set the default failureThreshold is 50.
+  failureThreshold:
+
+# -------------------------------------------------------------------------
+# livenessProbe is the readiness probe config.
+#   ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+livenessProbe:
+  exec:
+  httpGet:
+  tcpSocket:
+  # Number of seconds after the container has started before liveness probes are initiated.
+  # If not set, the default initialDelaySeconds is 30.
+  initialDelaySeconds:
+  # How often (in seconds) to perform the probe. Minimum value is 1.
+  # If not set, the default periodSeconds is 60.
+  periodSeconds:
+  # Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+  # If not set, the default timeoutSeconds is 5.
+  timeoutSeconds:
   # When a Pod starts and the probe fails, Kubernetes will try failureThreshold times
   # before giving up. Giving up in case of liveness probe means restarting the Pod.
   # In case of readiness probe the Pod will be marked Unready. Minimum value is 1.

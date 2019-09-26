@@ -463,6 +463,47 @@ spec:
                 roles. Labels here will add to or override those defined for the cluster.
                 More info: http://kubernetes.io/docs/user-guide/labels'
               type: object
+            livenessProbe:
+              description: 'The liveness probe config to be used for the Pods in this
+                role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+              properties:
+                exec:
+                  description: One and only one of the following should be specified.
+                    Exec specifies the action to take.
+                  type: object
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded.
+                  format: int32
+                  type: integer
+                httpGet:
+                  description: HTTPGet specifies the http request to perform.
+                  type: object
+                initialDelaySeconds:
+                  description: 'Number of seconds after the container has started
+                    before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe.
+                  format: int32
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed.
+                  format: int32
+                  type: integer
+                tcpSocket:
+                  description: 'TCPSocket specifies an action involving a TCP port.
+                    TCP hooks not yet supported TODO: implement a realistic TCP lifecycle
+                    hook'
+                  type: object
+                timeoutSeconds:
+                  description: 'Number of seconds after which the probe times out.
+                    More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                  format: int32
+                  type: integer
+              type: object
             logging:
               description: Logging allows configuration of Coherence and java util
                 logging.
@@ -629,11 +670,18 @@ spec:
               description: 'The readiness probe config to be used for the Pods in
                 this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
               properties:
+                exec:
+                  description: One and only one of the following should be specified.
+                    Exec specifies the action to take.
+                  type: object
                 failureThreshold:
                   description: Minimum consecutive failures for the probe to be considered
                     failed after having succeeded.
                   format: int32
                   type: integer
+                httpGet:
+                  description: HTTPGet specifies the http request to perform.
+                  type: object
                 initialDelaySeconds:
                   description: 'Number of seconds after the container has started
                     before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
@@ -648,6 +696,11 @@ spec:
                     successful after having failed.
                   format: int32
                   type: integer
+                tcpSocket:
+                  description: 'TCPSocket specifies an action involving a TCP port.
+                    TCP hooks not yet supported TODO: implement a realistic TCP lifecycle
+                    hook'
+                  type: object
                 timeoutSeconds:
                   description: 'Number of seconds after which the probe times out.
                     More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
@@ -1122,6 +1175,47 @@ spec:
                       this roles. Labels here will add to or override those defined
                       for the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
                     type: object
+                  livenessProbe:
+                    description: 'The liveness probe config to be used for the Pods
+                      in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
+                    properties:
+                      exec:
+                        description: One and only one of the following should be specified.
+                          Exec specifies the action to take.
+                        type: object
+                      failureThreshold:
+                        description: Minimum consecutive failures for the probe to
+                          be considered failed after having succeeded.
+                        format: int32
+                        type: integer
+                      httpGet:
+                        description: HTTPGet specifies the http request to perform.
+                        type: object
+                      initialDelaySeconds:
+                        description: 'Number of seconds after the container has started
+                          before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        format: int32
+                        type: integer
+                      periodSeconds:
+                        description: How often (in seconds) to perform the probe.
+                        format: int32
+                        type: integer
+                      successThreshold:
+                        description: Minimum consecutive successes for the probe to
+                          be considered successful after having failed.
+                        format: int32
+                        type: integer
+                      tcpSocket:
+                        description: 'TCPSocket specifies an action involving a TCP
+                          port. TCP hooks not yet supported TODO: implement a realistic
+                          TCP lifecycle hook'
+                        type: object
+                      timeoutSeconds:
+                        description: 'Number of seconds after which the probe times
+                          out. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        format: int32
+                        type: integer
+                    type: object
                   logging:
                     description: Logging allows configuration of Coherence and java
                       util logging.
@@ -1290,11 +1384,18 @@ spec:
                     description: 'The readiness probe config to be used for the Pods
                       in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/'
                     properties:
+                      exec:
+                        description: One and only one of the following should be specified.
+                          Exec specifies the action to take.
+                        type: object
                       failureThreshold:
                         description: Minimum consecutive failures for the probe to
                           be considered failed after having succeeded.
                         format: int32
                         type: integer
+                      httpGet:
+                        description: HTTPGet specifies the http request to perform.
+                        type: object
                       initialDelaySeconds:
                         description: 'Number of seconds after the container has started
                           before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
@@ -1309,6 +1410,11 @@ spec:
                           be considered successful after having failed.
                         format: int32
                         type: integer
+                      tcpSocket:
+                        description: 'TCPSocket specifies an action involving a TCP
+                          port. TCP hooks not yet supported TODO: implement a realistic
+                          TCP lifecycle hook'
+                        type: object
                       timeoutSeconds:
                         description: 'Number of seconds after which the probe times
                           out. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'

@@ -7,6 +7,7 @@
 {{- $extAppDir := "/u01/oracle/oracle_home/coherence/app" -}}
 {{- $extLibDir := "/u01/oracle/oracle_home/coherence/app/lib" -}}
 {{- $extConfDir := "/u01/oracle/oracle_home/coherence/app/conf" -}}
+{{- $healthPort := .Values.healthPort | default 6676 }}
 {{- define "rootCoherenceSnapshot" }}
 - mountPath: "/root/coherence/snapshot"
   name: snapshot-volume
@@ -420,6 +421,11 @@ spec:
 {{-   end }}
 {{- end }}
 {{/* */}}
+{{/* ----- Health variables ------------------------------------------------- */}}
+{{/* */}}
+            - name: COH_HEALTH_PORT
+              value: {{ $healthPort | quote }}
+{{/* */}}
 {{/* ----- Logging variables ------------------------------------------------ */}}
 {{/* */}}
 {{- if .Values.logging }}
@@ -451,19 +457,38 @@ spec:
 {{/* ------------------------------------------------------------------------ */}}
 {{/* */}}
           readinessProbe:
-            exec:
-              command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "readiness" ]
+{{- if .Values.readinessProbe.exec }}
+{{    toYaml .Values.readinessProbe.exec | indent 12 }}
+{{- else if .Values.readinessProbe.httpGet }}
+{{    toYaml .Values.readinessProbe.httpGet | indent 12 }}
+{{- else if .Values.readinessProbe.tcpSocket }}
+{{    toYaml .Values.readinessProbe.tcpSocket | indent 12 }}
+{{- else }}
+            httpGet:
+              port: {{ $healthPort }}
+              path: "/ready"
+{{- end }}
             initialDelaySeconds: {{default 30 .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds:       {{default 60 .Values.readinessProbe.periodSeconds }}
             failureThreshold:    {{default 50 .Values.readinessProbe.failureThreshold }}
             successThreshold:    {{ .Values.readinessProbe.successThreshold }}
             timeoutSeconds:      {{default 5 .Values.readinessProbe.timeoutSeconds }}
           livenessProbe:
-            exec:
-              command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "liveness" ]
-            initialDelaySeconds: 45
-            periodSeconds: 60
-            failureThreshold: 5
+{{- if .Values.livenessProbe.exec }}
+{{    toYaml .Values.livenessProbe.exec | indent 12 }}
+{{- else if .Values.livenessProbe.httpGet }}
+{{    toYaml .Values.livenessProbe.httpGet | indent 12 }}
+{{- else if .Values.livenessProbe.tcpSocket }}
+{{    toYaml .Values.livenessProbe.tcpSocket | indent 12 }}
+{{- else }}
+            httpGet:
+              port: {{ $healthPort }}
+              path: "/healthz"
+{{- end }}
+            initialDelaySeconds: {{default 45 .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds:       {{default 60 .Values.livenessProbe.periodSeconds }}
+            failureThreshold:    {{default 5 .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds:      {{default 5 .Values.livenessProbe.timeoutSeconds }}
 {{/* */}}
 {{/* ------------------------------------------------------------------------ */}}
 {{/* */}}

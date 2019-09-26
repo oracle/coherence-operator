@@ -62,6 +62,10 @@ type CoherenceRoleSpec struct {
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
 	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
+	// The liveness probe config to be used for the Pods in this role.
+	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+	// +optional
+	LivenessProbe *ReadinessProbeSpec `json:"livenessProbe,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
 	//

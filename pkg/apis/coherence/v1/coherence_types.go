@@ -1121,6 +1121,8 @@ func GetDefaultStatusHAHandler() *StatusHAHandler {
 // ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe
 // +k8s:openapi-gen=true
 type ReadinessProbeSpec struct {
+	// The action taken to determine the health of a container
+	ProbeHandler `json:",inline"`
 	// Number of seconds after the container has started before liveness probes are initiated.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
 	// +optional
@@ -1139,6 +1141,8 @@ type ReadinessProbeSpec struct {
 	// +optional
 	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
 }
+
+type ProbeHandler corev1.Handler
 
 // DeepCopyWithDefaults returns a copy of this ReadinessProbeSpec struct with any nil or not set values set
 // by the corresponding value in the defaults ReadinessProbeSpec struct.
