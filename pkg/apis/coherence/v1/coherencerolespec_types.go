@@ -207,9 +207,8 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 func (in *CoherenceRoleSpec) GetHealthPort() int32 {
 	if in == nil || in.HealthPort == nil || *in.HealthPort <= 0 {
 		return DefaultHealthPort
-	} else {
-		return *in.HealthPort
 	}
+	return *in.HealthPort
 }
 
 // Returns the ScalingProbe to use for checking Status HA for the role.
