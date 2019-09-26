@@ -316,14 +316,6 @@ spec:
                         volume type configured here.
                       type: object
                   type: object
-                scalingPolicy:
-                  description: ScalingPolicy describes how the replicas of the cluster
-                    role will be scaled. The default if not specified is based upon
-                    the value of the StorageEnabled field. If StorageEnabled field
-                    is not specified or is true the default scaling will be safe,
-                    if StorageEnabled is set to false the default scaling will be
-                    parallel.
-                  type: string
                 snapshot:
                   description: Snapshot values configure the on-disc persistence data
                     snapshot (backup) settings. The bool Enabled enables or disabled
@@ -347,36 +339,6 @@ spec:
                         using PVCs differ to the storage guarantees for the particular
                         volume type configured here.
                       type: object
-                  type: object
-                statusHA:
-                  description: The handler to use to determine whether a role is Status
-                    HA. If not set the default handler will be used. In most use-cases
-                    the default handler would suffice but in advanced use-cases where
-                    the application code has a different concept of Status HA to just
-                    checking Coherence services then a different handler may be specified.
-                  properties:
-                    enabled:
-                      description: An optional flag to enable or disable the StatusHA
-                        check. The default value if not set is true.
-                      type: boolean
-                    exec:
-                      description: One and only one of the following should be specified.
-                        Exec specifies the action to take.
-                      type: object
-                    httpGet:
-                      description: HTTPGet specifies the http request to perform.
-                      type: object
-                    tcpSocket:
-                      description: 'TCPSocket specifies an action involving a TCP
-                        port. TCP hooks not yet supported TODO: implement a realistic
-                        TCP lifecycle hook'
-                      type: object
-                    timeoutSeconds:
-                      description: Number of seconds after which the handler times
-                        out (only applies to http and tcp handlers). Defaults to 1
-                        second. Minimum value is 1.
-                      format: int64
-                      type: integer
                   type: object
                 storageEnabled:
                   description: A boolean flag indicating whether members of this role
@@ -409,6 +371,10 @@ spec:
               items:
                 type: object
               type: array
+            healthPort:
+              description: The port that the health check endpoint will bind to.
+              format: int32
+              type: integer
             imagePullSecrets:
               description: 'ImagePullSecrets is an optional list of references to
                 secrets in the same namespace to use for pulling any of the images
@@ -1037,14 +1003,6 @@ spec:
                               for the particular volume type configured here.
                             type: object
                         type: object
-                      scalingPolicy:
-                        description: ScalingPolicy describes how the replicas of the
-                          cluster role will be scaled. The default if not specified
-                          is based upon the value of the StorageEnabled field. If
-                          StorageEnabled field is not specified or is true the default
-                          scaling will be safe, if StorageEnabled is set to false
-                          the default scaling will be parallel.
-                        type: string
                       snapshot:
                         description: Snapshot values configure the on-disc persistence
                           data snapshot (backup) settings. The bool Enabled enables
@@ -1070,37 +1028,6 @@ spec:
                               given when using PVCs differ to the storage guarantees
                               for the particular volume type configured here.
                             type: object
-                        type: object
-                      statusHA:
-                        description: The handler to use to determine whether a role
-                          is Status HA. If not set the default handler will be used.
-                          In most use-cases the default handler would suffice but
-                          in advanced use-cases where the application code has a different
-                          concept of Status HA to just checking Coherence services
-                          then a different handler may be specified.
-                        properties:
-                          enabled:
-                            description: An optional flag to enable or disable the
-                              StatusHA check. The default value if not set is true.
-                            type: boolean
-                          exec:
-                            description: One and only one of the following should
-                              be specified. Exec specifies the action to take.
-                            type: object
-                          httpGet:
-                            description: HTTPGet specifies the http request to perform.
-                            type: object
-                          tcpSocket:
-                            description: 'TCPSocket specifies an action involving
-                              a TCP port. TCP hooks not yet supported TODO: implement
-                              a realistic TCP lifecycle hook'
-                            type: object
-                          timeoutSeconds:
-                            description: Number of seconds after which the handler
-                              times out (only applies to http and tcp handlers). Defaults
-                              to 1 second. Minimum value is 1.
-                            format: int64
-                            type: integer
                         type: object
                       storageEnabled:
                         description: A boolean flag indicating whether members of
@@ -1135,6 +1062,11 @@ spec:
                     items:
                       type: object
                     type: array
+                  healthPort:
+                    description: The port that the health check endpoint will bind
+                      to.
+                    format: int32
+                    type: integer
                   jvm:
                     description: The JVM specific options
                     properties:
@@ -1444,6 +1376,45 @@ spec:
                     description: The name of this role. This value will be used to
                       set the Coherence role property for all members of this role
                     type: string
+                  scaling:
+                    description: The configuration to control safe scaling.
+                    properties:
+                      policy:
+                        description: ScalingPolicy describes how the replicas of the
+                          cluster role will be scaled. The default if not specified
+                          is based upon the value of the StorageEnabled field. If
+                          StorageEnabled field is not specified or is true the default
+                          scaling will be safe, if StorageEnabled is set to false
+                          the default scaling will be parallel.
+                        type: string
+                      probe:
+                        description: The probe to use to determine whether a role
+                          is Status HA. If not set the default handler will be used.
+                          In most use-cases the default handler would suffice but
+                          in advanced use-cases where the application code has a different
+                          concept of Status HA to just checking Coherence services
+                          then a different handler may be specified.
+                        properties:
+                          exec:
+                            description: One and only one of the following should
+                              be specified. Exec specifies the action to take.
+                            type: object
+                          httpGet:
+                            description: HTTPGet specifies the http request to perform.
+                            type: object
+                          tcpSocket:
+                            description: 'TCPSocket specifies an action involving
+                              a TCP port. TCP hooks not yet supported TODO: implement
+                              a realistic TCP lifecycle hook'
+                            type: object
+                          timeoutSeconds:
+                            description: Number of seconds after which the handler
+                              times out (only applies to http and tcp handlers). Defaults
+                              to 1 second. Minimum value is 1.
+                            format: int64
+                            type: integer
+                        type: object
+                    type: object
                   tolerations:
                     description: 'Tolerations is for nodes that have taints on them.   Useful
                       if you want to dedicate nodes to just run the coherence container
@@ -1477,6 +1448,44 @@ spec:
                     type: array
                 type: object
               type: array
+            scaling:
+              description: The configuration to control safe scaling.
+              properties:
+                policy:
+                  description: ScalingPolicy describes how the replicas of the cluster
+                    role will be scaled. The default if not specified is based upon
+                    the value of the StorageEnabled field. If StorageEnabled field
+                    is not specified or is true the default scaling will be safe,
+                    if StorageEnabled is set to false the default scaling will be
+                    parallel.
+                  type: string
+                probe:
+                  description: The probe to use to determine whether a role is Status
+                    HA. If not set the default handler will be used. In most use-cases
+                    the default handler would suffice but in advanced use-cases where
+                    the application code has a different concept of Status HA to just
+                    checking Coherence services then a different handler may be specified.
+                  properties:
+                    exec:
+                      description: One and only one of the following should be specified.
+                        Exec specifies the action to take.
+                      type: object
+                    httpGet:
+                      description: HTTPGet specifies the http request to perform.
+                      type: object
+                    tcpSocket:
+                      description: 'TCPSocket specifies an action involving a TCP
+                        port. TCP hooks not yet supported TODO: implement a realistic
+                        TCP lifecycle hook'
+                      type: object
+                    timeoutSeconds:
+                      description: Number of seconds after which the handler times
+                        out (only applies to http and tcp handlers). Defaults to 1
+                        second. Minimum value is 1.
+                      format: int64
+                      type: integer
+                  type: object
+              type: object
             serviceAccountName:
               description: The name to use for the service account to use when RBAC
                 is enabled The role bindings must already have been created as this

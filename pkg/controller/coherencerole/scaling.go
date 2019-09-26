@@ -56,7 +56,7 @@ func (r *ReconcileCoherenceRole) safeScale(role *coh.CoherenceRole, cohInternal 
 		logger.Info(fmt.Sprintf("Role %s is not StatusHA - re-queing scaling request. Stateful set ready replicas is %d", role.Name, sts.Status.ReadyReplicas))
 	}
 
-	checker := StatusHAChecker{Client: r.client, Config: r.mgr.GetConfig()}
+	checker := ScaleableChecker{Client: r.client, Config: r.mgr.GetConfig()}
 	ha := current == 1 || checker.IsStatusHA(role, sts)
 
 	if ha {
@@ -121,35 +121,35 @@ func (r *ReconcileCoherenceRole) parallelScale(role *coh.CoherenceRole, cohInter
 	return reconcile.Result{}, nil
 }
 
-type StatusHAChecker struct {
+type ScaleableChecker struct {
 	Client         client.Client
 	Config         *rest.Config
 	getPodHostName func(pod corev1.Pod) string
 	translatePort  func(name string, port int) int
 }
 
-func (in *StatusHAChecker) SetGetPodHostName(fn func(pod corev1.Pod) string) {
+func (in *ScaleableChecker) SetGetPodHostName(fn func(pod corev1.Pod) string) {
 	if in == nil {
 		return
 	}
 	in.getPodHostName = fn
 }
 
-func (in *StatusHAChecker) GetPodHostName(pod corev1.Pod) string {
+func (in *ScaleableChecker) GetPodHostName(pod corev1.Pod) string {
 	if in.getPodHostName == nil {
 		return pod.Status.HostIP
 	}
 	return in.getPodHostName(pod)
 }
 
-func (in *StatusHAChecker) SetTranslatePort(fn func(name string, port int) int) {
+func (in *ScaleableChecker) SetTranslatePort(fn func(name string, port int) int) {
 	if in == nil {
 		return
 	}
 	in.translatePort = fn
 }
 
-func (in *StatusHAChecker) TranslatePort(name string, port int) int {
+func (in *ScaleableChecker) TranslatePort(name string, port int) int {
 	if in.translatePort == nil {
 		return port
 	}
@@ -157,13 +157,7 @@ func (in *StatusHAChecker) TranslatePort(name string, port int) int {
 }
 
 // IsStatusHA will return true if the cluster represented by the role is StatusHA.
-func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
-	handler := role.Spec.GetStatusHAHandler()
-
-	if !handler.IsEnabled() {
-		return true
-	}
-
+func (in *ScaleableChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
 	list := corev1.PodList{}
 	opts := client.ListOptions{}
 	opts.InNamespace(role.Namespace)
@@ -186,13 +180,15 @@ func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.State
 		return true
 	}
 
+	scalingProbe := role.Spec.GetScalingProbe()
+
 	for _, pod := range list.Items {
 		if pod.Status.Phase == "Running" {
 			if log.Enabled() {
 				log.Info("Checking pod " + pod.Name + " for StatusHA")
 			}
 
-			ha, err := in.IsPodStatusHA(pod, handler)
+			ha, err := in.CanScale(pod, scalingProbe)
 			if err == nil {
 				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t)", pod.Name, ha))
 				return ha
@@ -206,8 +202,8 @@ func (in *StatusHAChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.State
 	return false
 }
 
-// Determine whether a Pod is StatusHA using the configured StausHA handler.
-func (in *StatusHAChecker) IsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+// Determine whether a role allowed to scale using the configured probe.
+func (in *ScaleableChecker) CanScale(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
 	switch {
 	case handler.Exec != nil:
 		return in.ExecIsPodStatusHA(pod, handler)
@@ -220,7 +216,7 @@ func (in *StatusHAChecker) IsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHa
 	}
 }
 
-func (in *StatusHAChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+func (in *ScaleableChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
 	req := &mgmt.ExecRequest{
 		Pod:       pod.Name,
 		Container: "coherence",
@@ -241,7 +237,7 @@ func (in *StatusHAChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.Status
 	return exitCode == 0, nil
 }
 
-func (in *StatusHAChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+func (in *ScaleableChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
 	var (
 		scheme corev1.URIScheme
 		host   string
@@ -299,7 +295,7 @@ func (in *StatusHAChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.Status
 	return result == probe.Success, err
 }
 
-func (in *StatusHAChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.StatusHAHandler) (bool, error) {
+func (in *ScaleableChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
 	var (
 		host string
 		port int
@@ -326,7 +322,7 @@ func (in *StatusHAChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.StatusH
 	return result == probe.Success, err
 }
 
-func (in *StatusHAChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
+func (in *ScaleableChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
 	if port.Type == intstr.Int {
 		return port.IntValue(), nil
 	}
@@ -341,7 +337,7 @@ func (in *StatusHAChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (in
 	return in.findPortInPod(pod, s)
 }
 
-func (in *StatusHAChecker) findPortInPod(pod corev1.Pod, name string) (int, error) {
+func (in *ScaleableChecker) findPortInPod(pod corev1.Pod, name string) (int, error) {
 	for _, container := range pod.Spec.Containers {
 		if container.Name == "coherence" {
 			return in.findPortInContainer(pod, container, name)
@@ -351,7 +347,7 @@ func (in *StatusHAChecker) findPortInPod(pod corev1.Pod, name string) (int, erro
 	return -1, fmt.Errorf("cannot find coherence container in Pod '%s'", pod.Name)
 }
 
-func (in *StatusHAChecker) findPortInContainer(pod corev1.Pod, container corev1.Container, name string) (int, error) {
+func (in *ScaleableChecker) findPortInContainer(pod corev1.Pod, container corev1.Container, name string) (int, error) {
 	for _, port := range container.Ports {
 		if port.Name == name {
 			p := in.TranslatePort(port.Name, int(port.ContainerPort))

@@ -15,7 +15,8 @@ spec:
       main: com.oracle.coherence.k8s.testing.RestServer
     coherence:
       cacheConfig: test-cache-config.xml
-      statusHA:
+    scaling:
+      probe:
         tcpSocket:
           port: rest
     ports:

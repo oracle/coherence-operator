@@ -9,7 +9,7 @@ spec:
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10
-    coherence:
-      statusHA:
+    scaling:
+      probe:
         exec:
           command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha" ]

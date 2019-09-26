@@ -8,7 +8,6 @@ package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
 	"time"
 )
 
@@ -22,6 +21,9 @@ import (
 const (
 	// The default number of replicas that will be created for a role if no value is specified in the spec
 	DefaultReplicas int32 = 3
+
+	// The default health check port.
+	DefaultHealthPort int32 = 6676
 
 	// The defaultrole name that will be used for a role if no value is specified in the spec
 	DefaultRoleName = "storage"
@@ -151,12 +153,6 @@ type CoherenceSpec struct {
 	// set to false scaling will be parallel.
 	// +optional
 	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-	// ScalingPolicy describes how the replicas of the cluster role will be scaled.
-	// The default if not specified is based upon the value of the StorageEnabled field.
-	// If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is
-	// set to false the default scaling will be parallel.
-	// +optional
-	ScalingPolicy *ScalingPolicy `json:"scalingPolicy,omitempty"`
 	// CacheConfig is the name of the cache configuration file to use
 	// +optional
 	CacheConfig *string `json:"cacheConfig,omitempty"`
@@ -185,14 +181,6 @@ type CoherenceSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
-	// The handler to use to determine whether a role is Status HA.
-	// If not set the default handler will be used.
-	// In most use-cases the default handler would suffice but in
-	// advanced use-cases where the application code has a different
-	// concept of Status HA to just checking Coherence services then
-	// a different handler may be specified.
-	// +optional
-	StatusHA *StatusHAHandler `json:"statusHA,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceSpec struct with any nil or not set
@@ -222,12 +210,6 @@ func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *Coherenc
 		clone.StorageEnabled = defaults.StorageEnabled
 	}
 
-	if in.ScalingPolicy != nil {
-		clone.ScalingPolicy = in.ScalingPolicy
-	} else {
-		clone.ScalingPolicy = defaults.ScalingPolicy
-	}
-
 	if in.CacheConfig != nil {
 		clone.CacheConfig = in.CacheConfig
 	} else {
@@ -244,12 +226,6 @@ func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *Coherenc
 		clone.LogLevel = in.LogLevel
 	} else {
 		clone.LogLevel = defaults.LogLevel
-	}
-
-	if in.StatusHA != nil {
-		clone.StatusHA = in.StatusHA
-	} else {
-		clone.StatusHA = defaults.StatusHA
 	}
 
 	return &clone
@@ -962,7 +938,7 @@ func (in *ServiceSpec) SetServiceType(t corev1.ServiceType) {
 }
 
 // DeepCopyWithDefaults returns a copy of this ServiceSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpecWithSSL struct.
+// by the corresponding value in the defaults ServiceSpec struct.
 func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec {
 	if in == nil {
 		if defaults != nil {
@@ -1064,56 +1040,117 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 	return &clone
 }
 
-// ----- StatusHAHandler ----------------------------------------------------
+// ----- ScalingSpec -----------------------------------------------------
 
-// StatusHAHandler is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
+// The configuration to control safe scaling.
+type ScalingSpec struct {
+	// ScalingPolicy describes how the replicas of the cluster role will be scaled.
+	// The default if not specified is based upon the value of the StorageEnabled field.
+	// If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is
+	// set to false the default scaling will be parallel.
+	// +optional
+	Policy *ScalingPolicy `json:"policy,omitempty"`
+	// The probe to use to determine whether a role is Status HA.
+	// If not set the default handler will be used.
+	// In most use-cases the default handler would suffice but in
+	// advanced use-cases where the application code has a different
+	// concept of Status HA to just checking Coherence services then
+	// a different handler may be specified.
+	// +optional
+	Probe *ScalingProbe `json:"probe,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this ScalingSpec struct with any nil or not set values set
+// by the corresponding value in the defaults ScalingSpec struct.
+func (in *ScalingSpec) DeepCopyWithDefaults(defaults *ScalingSpec) *ScalingSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := ScalingSpec{}
+	clone.Probe = in.Probe.DeepCopyWithDefaults(defaults.Probe)
+
+	if in.Policy != nil {
+		clone.Policy = in.Policy
+	} else {
+		clone.Policy = defaults.Policy
+	}
+
+	return &clone
+}
+
+// ----- ScalingProbe ----------------------------------------------------
+
+// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
 // StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state
 // before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled
 // to false then no check will take place and a role will be assumed to be safe).
 // +k8s:openapi-gen=true
-type StatusHAHandler struct {
+type ScalingProbe struct {
 	corev1.Handler `json:",inline"`
 	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
 	// Defaults to 1 second. Minimum value is 1.
 	// +optional
-	TimeoutSeconds int `json:"timeoutSeconds,omitempty"`
-	// An optional flag to enable or disable the StatusHA check.
-	// The default value if not set is true.
-	// +optional
-	Enabled *bool `json:"enabled,omitempty"`
-}
-
-var defaultStatusHA = StatusHAHandler{
-	Enabled:        pointer.BoolPtr(true),
-	TimeoutSeconds: 10,
-	Handler: corev1.Handler{
-		Exec:      &corev1.ExecAction{Command: []string{"/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha"}},
-		HTTPGet:   nil,
-		TCPSocket: nil,
-	},
-}
-
-// Returns true if this handler is enabled.
-func (in *StatusHAHandler) IsEnabled() bool {
-	if in == nil {
-		return false
-	}
-
-	return in.Enabled == nil || *in.Enabled
+	TimeoutSeconds *int `json:"timeoutSeconds,omitempty"`
 }
 
 // Returns the timeout value in seconds.
-func (in *StatusHAHandler) GetTimeout() time.Duration {
-	if in == nil || in.TimeoutSeconds <= 0 {
+func (in *ScalingProbe) GetTimeout() time.Duration {
+	if in == nil || in.TimeoutSeconds == nil || *in.TimeoutSeconds <= 0 {
 		return time.Second
 	}
 
-	return time.Second * time.Duration(in.TimeoutSeconds)
+	return time.Second * time.Duration(*in.TimeoutSeconds)
 }
 
-// Obtain a default StatusHAHandler
-func GetDefaultStatusHAHandler() *StatusHAHandler {
-	return defaultStatusHA.DeepCopy()
+// DeepCopyWithDefaults returns a copy of this ReadinessProbeSpec struct with any nil or not set values set
+// by the corresponding value in the defaults ReadinessProbeSpec struct.
+func (in *ScalingProbe) DeepCopyWithDefaults(defaults *ScalingProbe) *ScalingProbe {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := ScalingProbe{}
+
+	if in.TimeoutSeconds != nil {
+		clone.TimeoutSeconds = in.TimeoutSeconds
+	} else {
+		clone.TimeoutSeconds = defaults.TimeoutSeconds
+	}
+
+	if in.Handler.HTTPGet != nil {
+		clone.Handler.HTTPGet = in.Handler.HTTPGet
+	} else {
+		clone.Handler.HTTPGet = defaults.Handler.HTTPGet
+	}
+
+	if in.Handler.TCPSocket != nil {
+		clone.Handler.TCPSocket = in.Handler.TCPSocket
+	} else {
+		clone.Handler.TCPSocket = defaults.Handler.TCPSocket
+	}
+
+	if in.Handler.Exec != nil {
+		clone.Handler.Exec = in.Handler.Exec
+	} else {
+		clone.Handler.Exec = defaults.Handler.Exec
+	}
+
+	return &clone
 }
 
 // ----- ReadinessProbeSpec struct ------------------------------------------

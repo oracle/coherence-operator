@@ -6,7 +6,8 @@ spec:
   roles:
   - role: one
     replicas: 2
-    scalingPolicy: Parallel
+    scaling:
+      policy: Parallel
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10

@@ -8,6 +8,7 @@ package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -58,6 +59,9 @@ type CoherenceRoleSpec struct {
 	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
+	// The port that the health check endpoint will bind to.
+	// +optional
+	HealthPort *int32 `json:"healthPort,omitempty"`
 	// The readiness probe config to be used for the Pods in this role.
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
@@ -66,6 +70,9 @@ type CoherenceRoleSpec struct {
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
 	LivenessProbe *ReadinessProbeSpec `json:"livenessProbe,omitempty"`
+	// The configuration to control safe scaling.
+	// +optional
+	Scaling *ScalingSpec `json:"scaling,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
 	//
@@ -172,8 +179,6 @@ func (in *CoherenceRoleSpec) GetRoleName() string {
 	return in.Role
 }
 
-// DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set
-// by the corresponding value in the defaults spec.
 func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	if in == nil {
 		return SafeScaling
@@ -181,7 +186,7 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 
 	var policy ScalingPolicy
 
-	if in.Coherence.ScalingPolicy == nil {
+	if in.Scaling == nil || in.Scaling.Policy == nil {
 		// the scaling policy is not set the look at the storage enabled flag
 		if in.Coherence.StorageEnabled == nil || *in.Coherence.StorageEnabled {
 			// storage enabled is either not set or is true so do safe scaling
@@ -192,19 +197,53 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 		}
 	} else {
 		// scaling policy is set so use it
-		policy = *in.Coherence.ScalingPolicy
+		policy = *in.Scaling.Policy
 	}
 
 	return policy
 }
 
-// Returns the StatusHAHandler to use for checking Status HA for the role.
-// This method will not return nil.
-func (in *CoherenceRoleSpec) GetStatusHAHandler() *StatusHAHandler {
-	if in == nil || in.Coherence.StatusHA == nil {
-		return GetDefaultStatusHAHandler()
+// Returns the port that the health check endpoint will bind to.
+func (in *CoherenceRoleSpec) GetHealthPort() int32 {
+	if in == nil || in.HealthPort == nil || *in.HealthPort <= 0 {
+		return DefaultHealthPort
+	} else {
+		return *in.HealthPort
 	}
-	return in.Coherence.StatusHA
+}
+
+// Returns the ScalingProbe to use for checking Status HA for the role.
+// This method will not return nil.
+func (in *CoherenceRoleSpec) GetScalingProbe() *ScalingProbe {
+	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
+		return in.GetDefaultScalingProbe()
+	}
+	return in.Scaling.Probe
+}
+
+// Obtain a default ScalingProbe
+func (in *CoherenceRoleSpec) GetDefaultScalingProbe() *ScalingProbe {
+	var port int32
+
+	if in == nil {
+		port = DefaultHealthPort
+	} else {
+		port = in.GetHealthPort()
+	}
+
+	timeout := 10
+
+	defaultStatusHA := ScalingProbe{
+		TimeoutSeconds: &timeout,
+		Handler: corev1.Handler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/ha",
+				Port: intstr.FromInt(int(port)),
+			},
+		},
+	}
+
+	return defaultStatusHA.DeepCopy()
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceRoleSpec with any nil or not set values set

@@ -33,8 +33,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.PortSpecWithSSL":         schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":      schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.SSLSpec":                 schema_pkg_apis_coherence_v1_SSLSpec(ref),
+		"./pkg/apis/coherence/v1.ScalingProbe":            schema_pkg_apis_coherence_v1_ScalingProbe(ref),
 		"./pkg/apis/coherence/v1.ServiceSpec":             schema_pkg_apis_coherence_v1_ServiceSpec(ref),
-		"./pkg/apis/coherence/v1.StatusHAHandler":         schema_pkg_apis_coherence_v1_StatusHAHandler(ref),
 	}
 }
 
@@ -267,6 +267,13 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"healthPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port that the health check endpoint will bind to.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"readinessProbe": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
@@ -277,6 +284,12 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"scaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration to control safe scaling.",
+							Ref:         ref("./pkg/apis/coherence/v1.ScalingSpec"),
 						},
 					},
 					"resources": {
@@ -402,7 +415,7 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceRoleSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -599,6 +612,13 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 							},
 						},
 					},
+					"healthPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port that the health check endpoint will bind to.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"readinessProbe": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
@@ -609,6 +629,12 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"scaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration to control safe scaling.",
+							Ref:         ref("./pkg/apis/coherence/v1.ScalingSpec"),
 						},
 					},
 					"resources": {
@@ -722,7 +748,7 @@ func schema_pkg_apis_coherence_v1_CoherenceInternalSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -857,6 +883,13 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 							},
 						},
 					},
+					"healthPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port that the health check endpoint will bind to.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"readinessProbe": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The readiness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
@@ -867,6 +900,12 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 						SchemaProps: spec.SchemaProps{
 							Description: "The liveness probe config to be used for the Pods in this role. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
 							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"scaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration to control safe scaling.",
+							Ref:         ref("./pkg/apis/coherence/v1.ScalingSpec"),
 						},
 					},
 					"resources": {
@@ -979,7 +1018,7 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -1059,13 +1098,6 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
-					"scalingPolicy": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ScalingPolicy describes how the replicas of the cluster role will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"cacheConfig": {
 						SchemaProps: spec.SchemaProps{
 							Description: "CacheConfig is the name of the cache configuration file to use",
@@ -1111,17 +1143,11 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
-					"statusHA": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The handler to use to determine whether a role is Status HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Status HA to just checking Coherence services then a different handler may be specified.",
-							Ref:         ref("./pkg/apis/coherence/v1.StatusHAHandler"),
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL", "./pkg/apis/coherence/v1.StatusHAHandler"},
+			"./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
 	}
 }
 
@@ -1621,6 +1647,45 @@ func schema_pkg_apis_coherence_v1_SSLSpec(ref common.ReferenceCallback) common.O
 	}
 }
 
+func schema_pkg_apis_coherence_v1_ScalingProbe(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceRole. StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled to false then no check will take place and a role will be assumed to be safe).",
+				Properties: map[string]spec.Schema{
+					"exec": {
+						SchemaProps: spec.SchemaProps{
+							Description: "One and only one of the following should be specified. Exec specifies the action to take.",
+							Ref:         ref("k8s.io/api/core/v1.ExecAction"),
+						},
+					},
+					"httpGet": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HTTPGet specifies the http request to perform.",
+							Ref:         ref("k8s.io/api/core/v1.HTTPGetAction"),
+						},
+					},
+					"tcpSocket": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported",
+							Ref:         ref("k8s.io/api/core/v1.TCPSocketAction"),
+						},
+					},
+					"timeoutSeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of seconds after which the handler times out (only applies to http and tcp handlers). Defaults to 1 second. Minimum value is 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
+	}
+}
+
 func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1736,51 +1801,5 @@ func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) comm
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.SessionAffinityConfig"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_StatusHAHandler(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "StatusHAHandler is the handler that will be used to determine how to check for StatusHA in a CoherenceRole. StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled to false then no check will take place and a role will be assumed to be safe).",
-				Properties: map[string]spec.Schema{
-					"exec": {
-						SchemaProps: spec.SchemaProps{
-							Description: "One and only one of the following should be specified. Exec specifies the action to take.",
-							Ref:         ref("k8s.io/api/core/v1.ExecAction"),
-						},
-					},
-					"httpGet": {
-						SchemaProps: spec.SchemaProps{
-							Description: "HTTPGet specifies the http request to perform.",
-							Ref:         ref("k8s.io/api/core/v1.HTTPGetAction"),
-						},
-					},
-					"tcpSocket": {
-						SchemaProps: spec.SchemaProps{
-							Description: "TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported",
-							Ref:         ref("k8s.io/api/core/v1.TCPSocketAction"),
-						},
-					},
-					"timeoutSeconds": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Number of seconds after which the handler times out (only applies to http and tcp handlers). Defaults to 1 second. Minimum value is 1.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"enabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "An optional flag to enable or disable the StatusHA check. The default value if not set is true.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
 	}
 }
