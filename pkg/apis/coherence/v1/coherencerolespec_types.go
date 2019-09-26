@@ -222,14 +222,6 @@ func (in *CoherenceRoleSpec) GetScalingProbe() *ScalingProbe {
 
 // Obtain a default ScalingProbe
 func (in *CoherenceRoleSpec) GetDefaultScalingProbe() *ScalingProbe {
-	var port int32
-
-	if in == nil {
-		port = DefaultHealthPort
-	} else {
-		port = in.GetHealthPort()
-	}
-
 	timeout := 10
 
 	defaultStatusHA := ScalingProbe{
@@ -237,7 +229,7 @@ func (in *CoherenceRoleSpec) GetDefaultScalingProbe() *ScalingProbe {
 		Handler: corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path: "/ha",
-				Port: intstr.FromInt(int(port)),
+				Port: intstr.FromString("health"),
 			},
 		},
 	}

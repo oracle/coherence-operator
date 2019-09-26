@@ -170,6 +170,8 @@ spec:
               containerPort: 30000
             - name: "metrics-port"
               containerPort: 9612
+            - name: "health"
+              containerPort: {{ $healthPort }}
 {{- if eq (default false .Values.jvm.debug.enabled) true }}
             - name: "debug-port"
               containerPort: 5005
