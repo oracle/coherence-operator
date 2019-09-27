@@ -67,9 +67,6 @@ server()
 
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
-#   We must have this to allow the JMX readiness probe to connect.
-    PROPS="${PROPS} -Dcom.sun.management.jmxremote=true -Dcoherence.operator.server=true"
-
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then
@@ -278,7 +275,10 @@ start()
 
     if [[ "${APP_TYPE}" == "java" ]]
     then
-      runJava
+      runJava ${JAVA_HOME}/bin/java
+    elif [[ "${APP_TYPE}" == "op-test" ]]
+    then
+      runJava "/utils/op-test"
     else
       runGraal
     fi
@@ -289,7 +289,7 @@ start()
 # ---------------------------------------------------------------------------
 runJava()
     {
-    CMD="${JAVA_HOME}/bin/java ${CMD} ${MAIN_CLASS} ${MAIN_ARGS}"
+    CMD="${1} ${CMD} ${MAIN_CLASS} ${MAIN_ARGS}"
 
     echo "---------------------------------"
     echo "Starting the Coherence ${COMMAND} using:"

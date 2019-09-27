@@ -79,14 +79,24 @@ func main() {
 		}
 	}
 
-	dirnames := []string{snapshotDir, persistenceDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
-	for _, dirname := range dirnames {
-		fmt.Printf("Creating directory %s\n", dirname)
-		err = os.MkdirAll(dirname, os.ModePerm)
+	opTest := filesDir + string(os.PathSeparator) + "op-test"
+	_, err = os.Stat(opTest)
+	if err == nil {
+		fmt.Println("Copying op-test utility")
+		err = utils.CopyFile(opTest, utilDir+string(os.PathSeparator)+"op-test")
 		if err != nil {
 			panic(err)
 		}
-		err = os.Chmod(dirname, os.ModePerm)
+	}
+
+	dirNames := []string{snapshotDir, persistenceDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+	for _, dirName := range dirNames {
+		fmt.Printf("Creating directory %s\n", dirName)
+		err = os.MkdirAll(dirName, os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+		err = os.Chmod(dirName, os.ModePerm)
 		if err != nil {
 			panic(err)
 		}

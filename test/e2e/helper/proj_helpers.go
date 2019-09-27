@@ -206,13 +206,22 @@ func FindTestManifestDir() (string, error) {
 	return pd + string(os.PathSeparator) + manifest, nil
 }
 
+// NewCoherenceCluster creates a new CoherenceCluster from the default yaml file.
+func NewCoherenceCluster(namespace string) (coh.CoherenceCluster, error) {
+	return createCoherenceClusterFromYaml(namespace)
+}
+
 // NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
 func NewCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
-	c := coh.CoherenceCluster{}
-
 	if len(files) == 0 {
-		return c, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
+		return coh.CoherenceCluster{}, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
 	}
+	return createCoherenceClusterFromYaml(namespace, files...)
+}
+
+// createCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
+func createCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
+	c := coh.CoherenceCluster{}
 
 	l := coherenceClusterLoader{}
 	err := l.loadYaml(&c, files...)
