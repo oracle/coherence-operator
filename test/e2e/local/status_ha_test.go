@@ -99,7 +99,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	role, err := helper.GetCoherenceRole(f, ns, roleSpec.GetFullRoleName(tc.Cluster))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ckr := coherencerole.ScaleableChecker{Client: f.Client.Client, Config: f.KubeConfig}
+	ckr := coherencerole.ScalableChecker{Client: f.Client.Client, Config: f.KubeConfig}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
 	ha := ckr.IsStatusHA(role, sts)
