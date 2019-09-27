@@ -51,7 +51,6 @@ func TestClusterFromMinimalYaml(t *testing.T) {
 	sts, err := findStatefulSet(result, cluster, cohv1.DefaultRoleName)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(*sts.Spec.Replicas).To(Equal(cohv1.DefaultReplicas))
-
 }
 
 func TestClusterImplicitRoleOneReplica(t *testing.T) {
