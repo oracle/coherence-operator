@@ -5,9 +5,13 @@ metadata:
 spec:
   group: coherence.oracle.com
   names:
+    categories:
+    - coherence
     kind: CoherenceRole
     listKind: CoherenceRoleList
     plural: coherenceroles
+    shortNames:
+    - cohrole
     singular: coherencerole
   scope: Namespaced
   subresources:

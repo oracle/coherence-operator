@@ -5,9 +5,13 @@ metadata:
 spec:
   group: coherence.oracle.com
   names:
+    categories:
+    - coherence
     kind: CoherenceCluster
     listKind: CoherenceClusterList
     plural: coherenceclusters
+    shortNames:
+    - coh
     singular: coherencecluster
   scope: Namespaced
   subresources:
