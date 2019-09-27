@@ -104,6 +104,7 @@ func RunScript(t *testing.T, role v1.CoherenceRoleSpec) (*AppData, *v1.Coherence
 	roleSpec := role.DeepCopyWithDefaults(&cluster.Spec.CoherenceRoleSpec)
 	cluster.Spec.CoherenceRoleSpec = *roleSpec
 	cluster.SetName(name)
+	cluster.Spec.OperatorRequestTimeout = pointer.Int32Ptr(2)
 
 	f := framework.Global
 	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
