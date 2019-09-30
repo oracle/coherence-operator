@@ -26,9 +26,10 @@ import (
 
 const (
 	// The name fo the Coherence container in the StatefulSet
-	coherenceContainer = "coherence"
-	fluentdContainer   = "fluentd"
-	fluentdImage       = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
+	coherenceContainer   = "coherence"
+	applicationContainer = "application"
+	fluentdContainer     = "fluentd"
+	fluentdImage         = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
 )
 
 // Use the specified yaml files to create a CoherenceCluster and trigger a fake end-to-end
@@ -85,24 +86,24 @@ func findContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error
 }
 
 // Shared function to find a specific init-container in a StatefulSet spec
-//func findInitContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error) {
-//	for _, c := range sts.Spec.Template.Spec.InitContainers {
-//		if c.Name == name {
-//			return c, nil
-//		}
-//	}
-//
-//	return corev1.Container{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "Container"}, name)
-//}
+func findInitContainer(sts appsv1.StatefulSet, name string) (corev1.Container, error) {
+	for _, c := range sts.Spec.Template.Spec.InitContainers {
+		if c.Name == name {
+			return c, nil
+		}
+	}
 
-//// Shared function to find a specific init-container in a StatefulSet spec for a role in a cluster
-//func findInitContainerForRole(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string, containerName string) (corev1.Container, error) {
-//	sts, err := findStatefulSet(result, cluster, roleName)
-//	if err != nil {
-//		return corev1.Container{}, err
-//	}
-//	return findInitContainer(sts, containerName)
-//}
+	return corev1.Container{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "Container"}, name)
+}
+
+// Shared function to find a specific init-container in a StatefulSet spec for a role in a cluster
+func findInitContainerForRole(result *stubs.HelmInstallResult, cluster *cohv1.CoherenceCluster, roleName string, containerName string) (corev1.Container, error) {
+	sts, err := findStatefulSet(result, cluster, roleName)
+	if err != nil {
+		return corev1.Container{}, err
+	}
+	return findInitContainer(sts, containerName)
+}
 
 // Shared function to find a specific volume mount in a Container spec
 func findVolumeMount(container corev1.Container, name string) (corev1.VolumeMount, error) {

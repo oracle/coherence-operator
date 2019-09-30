@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        heapSize: 1g
+    - role: proxy
+      jvm:
+        heapSize: 500m

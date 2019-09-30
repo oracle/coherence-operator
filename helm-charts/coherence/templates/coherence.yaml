@@ -131,7 +131,7 @@ spec:
 #  Container: application artifacts
 # ---------------------------------------------------------------------------
 {{- if and .Values.application.image }}
-        - name: user-artifacts
+        - name: application
           image: {{ .Values.application.image | quote }}
 {{-     if .Values.application.imagePullPolicy }}
           imagePullPolicy: {{ .Values.application.imagePullPolicy }}

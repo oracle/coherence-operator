@@ -9,6 +9,7 @@ package script
 import (
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 	"testing"
 )
@@ -187,4 +188,21 @@ func TestJvmHeapSize(t *testing.T) {
 	min := appData.FindJvmOption("-Xms")
 	g.Expect(len(min)).To(Equal(1))
 	g.Expect(min[0]).To(Equal("-Xms10g"))
+}
+
+func TestEnvironmentVariables(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ev1 := corev1.EnvVar{Name: "One", Value: "1"}
+	ev2 := corev1.EnvVar{Name: "Two", Value: "2"}
+
+	role := v1.CoherenceRoleSpec{
+		Env: []corev1.EnvVar{ev1, ev2},
+	}
+
+	appData, _, err := RunScript(t, role)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(appData.GetEnv("One")).To(Equal("1"))
+	g.Expect(appData.GetEnv("Two")).To(Equal("2"))
 }
