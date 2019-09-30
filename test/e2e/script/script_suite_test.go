@@ -52,6 +52,21 @@ func (in *AppData) GetSystemProperty(name string) string {
 	return ""
 }
 
+func (in *AppData) HasSystemProperty(name string) bool {
+	if in == nil || len(in.Args) == 0 {
+		return false
+	}
+
+	prefix := fmt.Sprintf("-D%s=", name)
+	for _, arg := range in.Args {
+		if strings.HasPrefix(arg, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (in *AppData) FindJvmOption(prefix string) []string {
 	var opts []string
 	if in == nil || len(in.Args) == 0 {
