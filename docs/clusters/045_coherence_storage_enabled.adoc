@@ -1,0 +1,129 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Storage Enabled or Disabled Roles
+
+A Coherence cluster member can be storage enabled or storage disabled and hence a `CoherenceCluster` role
+can be configured to be storage enabled or disabled.
+
+== Storage Enabled or Disabled Roles
+
+Coherence has a default System property that configures cache services to be storage enabled (i.e. that JVM will be
+manage data for caches) or storage disabled (i.e. that member will be not manage data for caches).
+A role in a `CoherenceCluster` can be set as storage enabled or disabled using the `storageEnabled` field; the value
+is a boolean true or false. Setting this property sets the Coherence JVM system property `coherence.distributed.localstorage`
+to true or false.
+
+If the `storageEnabled` field is not specifically set for a role then the `coherence.distributed.localstorage` property
+will not be set in the JVMs for that role and Coherence's default behaviour will apply.
+
+NOTE: If a custom application is deployed into the Coherence container that specifies a custom cache configuration file
+or custom operational configuration file it is entirely possible for the `coherence.distributed.localstorage` system
+property to be ignored if the application configuration files override this value. If this is the case then the settings
+described below will have no effect.
+
+
+== Storage Enabled or Disabled Implicit Role
+
+When creating a `CoherenceCluster` with the single implicit role the `storageEnabled` field is set in the `CoherenceCluster`
+`spec.coherence` field. For example
+
+[source,yaml]
+.Storage Enabled Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    storageEnabled: true  <1>
+----
+
+<1> The implicit role will be storage enabled
+
+
+[source,yaml]
+.Storage Disabled Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    storageEnabled: false  <1>
+----
+
+<1> The implicit role will be storage disabled
+
+
+
+== Storage Enabled or Disabled Explicit Roles
+
+When creating a `CoherenceCluster` with the explicit roles the `storageEnabled` field is set for each role in
+the `CoherenceCluster` `roles` list.
+
+[source,yaml]
+.Storage Enabled Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      coherence:
+        storageEnabled: true  <1>
+    - role: proxy
+      coherence:
+        storageEnabled: false <2>
+----
+
+<1> The `data` role will be storage enabled
+<2> The `proxy` role will be storage disabled
+
+
+== Storage Enabled or Disabled Explicit Roles With Defaults
+
+When creating a `CoherenceCluster` with the explicit roles the `storageEnabled` field is set for each role in
+the `CoherenceCluster` `roles` list and a default can be set in the `CoherenceCluster` `spec`.
+
+[source,yaml]
+.Storage Enabled Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    storageEnabled: false     <1>
+  roles:
+    - role: data            <2>
+      coherence:
+        storageEnabled: true
+    - role: proxy           <3>
+    - role: web             <4>
+----
+
+<1> The default value will be storage disabled
+<2> The `data` role overrides the default and will be storage enabled
+<3> The `proxy` role does not have a specific `storageEnabled` so will be storage disabled
+<4> The `web` roles does not have a specific `storageEnabled` so will be storage disabled

@@ -1,0 +1,158 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: RoleOne
+spec:
+  serviceAccountName: svc-account-one
+  imagePullSecrets:
+    - name: pull-one
+    - name: pull-one-one
+
+  role: one
+  replicas: 10
+
+  application:
+    type: java
+    image: app:1.0
+    imagePullPolicy: Always
+    main: com.tangosol.net.CacheFactory
+    args:
+      - arg1
+      - arg2
+    appDir: /app
+    libDir: /app/lib
+    configDir: /app/conf
+
+  coherenceUtils:
+    image: coherence-utils:1.0
+    imagePullPolicy: Never
+
+  coherence:
+    image: coherence:1.0
+    imagePullPolicy: Always
+    cacheConfig: cache-config-one.xml
+    overrideConfig: override-one.xml
+    storageEnabled: true
+    scalingPolicy: SafeScaling
+    logLevel: 6
+    management:
+      enabled: true
+      ssl:
+        enabled: true
+        keyStore: mgmt-keystore-one.jks
+        keyStoreAlgorithm: mgmt-keystore-algo-one
+        keyStorePasswordFile: mgmt-keystore-pwd-one.txt
+        keyStoreProvider: mgmt-keystore-provider-one
+        keyStoreType: mgmt-keystore-type-one
+        keyPasswordFile: mgmt-key-pwd-one.txt
+        trustStore: mgmt-trust-one.jks
+        trustStoreAlgorithm: mgmt-trust-algo-one
+        trustStorePasswordFile: mgmt-trust-pwd-one.txt
+        trustStoreProvider: mgmt-trust-provider
+        trustStoreType: mgmt-trust-store-type-one
+        requireClientCert: true
+        secrets: mgmt-secret-one
+    metrics:
+      enabled: false
+      ssl:
+        enabled: false
+        keyStore: metrics-keystore-one.jks
+        keyStoreAlgorithm: metrics-keystore-algo-one
+        keyStorePasswordFile: metrics-keystore-pwd-one.txt
+        keyStoreProvider: metrics-keystore-provider-one
+        keyStoreType: metrics-keystore-type-one
+        keyPasswordFile: metrics-key-pwd-one.txt
+        trustStore: metrics-trust-one.jks
+        trustStoreAlgorithm: metrics-trust-algo-one
+        trustStorePasswordFile: metrics-trust-pwd-one.txt
+        trustStoreProvider: metrics-trust-provider
+        trustStoreType: metrics-trust-store-type-one
+        requireClientCert: true
+        secrets: metrics-secret-one
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Gi
+      volume:
+        hostPath:
+          path: /persistence1
+          type: Directory
+    snapshot:
+      enabled: true
+      persistentVolumeClaim:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 101Gi
+      volume:
+        hostPath:
+          path: /snapshot1
+          type: Directory
+
+    statusHA:
+      enabled: true
+      timeoutSeconds: 180
+      exec:
+        command:
+          - StatusHA-one
+
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 30
+    successThreshold: 1
+    failureThreshold: 99
+
+  jvm:
+    gc: "some gc args one"
+    heapSize: 123G
+    debug:
+      enabled: true
+      attach: jvm-attach-one
+    args: []
+
+  logging:
+    configMapName: logging-cm-one
+    configFile: logging-one.properties
+    fluentd:
+      enabled: true
+      configFile: fluentd-one.yaml
+      image: fluentd:1.0
+      imagePullPolicy: IfNotPresent
+      tag: fluend-tag-one
+
+  env: []
+
+  annotations: {}
+
+  nodeSelector: {}
+
+  volumes: []
+
+  volumeClaimTemplates: []
+
+  volumeMounts: []
+
+  tolerations: []
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: one
+
+  resources:
+    requests:
+      cpu: 100
+      memory: 8Gi
+    limits:
+      cpu: 10
+      memory: 128Gi
+
+  ports: []
+
+

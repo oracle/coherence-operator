@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      application:
+        image: app:1.0
+    - role: proxy
+      application:
+        image: app:2.0

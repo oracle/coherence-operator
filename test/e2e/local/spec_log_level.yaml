@@ -3,7 +3,7 @@ kind: CoherenceCluster
 metadata:
   name: mycluster
 spec:
-  management:
-    enabled: true
-  logging:
-    level: 9
+  coherence:
+    logLevel: 9
+    management:
+      enabled: true

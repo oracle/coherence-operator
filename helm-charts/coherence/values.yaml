@@ -2,456 +2,345 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
-# clusterSize is the initial size of the Coherence cluster. If not set the default cluster size is 3.
-clusterSize:
+# wka is used to override the default WKA address.
+# By default the WKA address is the address of the headless service created as part of
+# the install, which will map to the addresses of ll of the installed Pods. By overriding
+# the WKA address it is possible to form a cluster from multiple Helm installs.
+#
+# This override would typically map to the name of an existing headless service configured with
+# selectors so that it matches on all of the Pods that will be part of the Coherence cluster.
+wka:
 
-# imagePullSecrets provides support pulling images from private registries, the value references
-#   one or more secrets to be used when pulling images. Secrets must be manually created in the
-#   target namespace.
-#   ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-#
-#   For example, adding the pull secret "foo" would be:
-#
-#   imagePullSecrets:
-#   - "foo"
-#
-#   adding multiple pull secrets "foo" and "bar" would be
-#
-#   imagePullSecrets:
-#   - "foo"
-#   - "bar"
-#
-#   If specifying pull secrets on the command line with --set there are two choices depending on whether
-#   there is a single pull secret or multiple pull secrets. A single secret can be specified as a simple string:
-#
-#   --set imagePullSecrets=foo
-#
-#   Multiple pull secrets must be specified as a list, which Helm expects to be contained in curly braces:
-#
-#   --set "imagePullSecrets={foo,bar}"
-#
-# imagePullSecrets:
-
-# The role name of a Coherence cluster member. Default role is "CoherenceServer"
-role:
+fullnameOverride:
+nameOverride:
 
 # The cluster name of a Coherence cluster member.
 # If not set the cluster name will default to the Helm release name
 cluster:
 
-# serviceAccountName is the name to use for the service account to use when RBAC is enabled
-#   The role bindings must already have been created as this chart does not create them it just
-#   sets the serviceAccountName value in the Pod spec.
-serviceAccountName:
+# The role name
+role:
 
-# ---------------------------------------------------------------------------
-# store specifies values controlling the coherence container
-store:
-  # store.cacheConfig is the name of the cache configuration file to use
-  cacheConfig:
+# replicas is the initial size of the Coherence role. If not set the default cluster size is 3.
+replicas:
 
-  # store.pofConfig is the name of the POF configuration file to use when using POF serializer
-  pofConfig: pof-config.xml
+# ----- Configuration of the customer's application -------------------------
 
-  # store.storageEnabled is true to run Coherence containers as storage enabled cluster members
-  #   or false to run storage disabled cluster members
-  storageEnabled:
-
-  # store.overrideConfig is name of the Coherence operational configuration override file,
-  #   the default is tangosol-coherence-override.xml
-  overrideConfig:
-
-  # store.graalApplicationType is the Graal application type to execute.
-  #	This field would be set if using the Coherence Graal image and running a none-Java
-  #	application. For example if the application was a Node application this field
-  #	would be set to "node"
-  graalApplicationType: java
-
-  # The timeout in seconds used by curl when requesting site and rack info in the start script
-  curlTimeout: 120
-
-  # store.logging allows configuration of Coherence and java util logging.
-  logging:
-    # store.logging.level sets the Coherence log level. This value should be an integer in the range 1 to 9,
-    #   the default being 5 (info level).
-    level:
-    # store.logging.configFile allows the location of the Java util logging configuration file to be overridden.
-    #   If this value is not set the logging.properties file embedded in this chart will be used.
-    #   If this value is set the configuration will be located by trying the following locations in order:
-    #     1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging
-    #          properties file will be located as a file location relative to the ConfigMap volume mount point.
-    #     2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the
-    #          configuration files directory in the user artifacts image.
-    #     3. Using this value as an absolute file name.
-    #
-    configFile:
-    # store.logging.configMapName allows a config map to be mounted as a volume containing the logging
-    #   configuration file to use.
-    configMapName:
-    # Specify the Fluentd settings
-    fluentd:
-      # fluentd.enabled determines whether Fluentd log capture is enabled
-      enabled: false
-      # fluentd.image is the name of the Fluentd image to use in the logging side-car container
-      image: fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
-      # imagePullPolicy controls the K8s container spec's pull policy
-      # If not set the pull policy is "IfNotPresent".
-      imagePullPolicy:
-      # fluentd configuration file configuring source for application log.
-      configFile:
-      # This value should be source.tag from fluentd.application.configFile.
-      tag:
-
-  # store.main allows specification of Coherence container main class.
-  #
+application:
+  # The type of application. Default if not entered is java. Used for Graal to run things like node so most
+  # plain Coherence customers would never use this field
+  type:
+  # The Coherence container main class. The default value is
+  # com.tangosol.net.DefaultCacheServer.
+  # If the application type is non-Java this would be the name of the corresponding language specific
+  # runnable, for example if the application type is "node" the main may be a Javascript file.
   main:
-    # store.main.class is the Coherence container main class.  The default value is
-    #   com.tangosol.net.DefaultCacheServer.
-    #
-    class:
+  # main program args (i.e. args for your main method)
+  args: []
+  # configuration of the customer's application image (used to be called user artifacts image)
+  # userArtifacts.image is the name of the Docker image containing the custom
+  #   jar files and configuration files to add to the classpath
+  image:
+  # application.imagePullPolicy is the image pull policy to use for the custom
+  #   artifacts image. If not set the pull policy is "IfNotPresent".
+  imagePullPolicy:
+  # The application folder in the custom artifacts Docker image containing
+  # application artifacts.
+  # This will effectively become the working directory of the Coherence container.
+  # If not set the application directory default value is "/app".
+  appDir:
+  # application.libDir is the folder in the custom artifacts Docker image containing jar
+  #   files to be added to the classpath of the Coherence container.
+  #   If not set the libDir is "/files/lib".
+  libDir:
+  # application.configDir is the folder in the custom artifacts Docker image containing
+  #   configuration files to be added to the classpath of the Coherence container.
+  #   If not set the configDir is "/files/conf".
+  configDir:
 
-    # store.main.arguments is the optional arguments for Coherence container main class.
-    #
-    arguments:
+# ----- Coherence specific configuration ------------------------------------
 
-  # store.maxHeap is the min/max heap value to pass to the JVM.
-  #   The format should be the same as that used for Java's -Xms and -Xmx JVM options.
-  #   If not set the JVM defaults are used.
-  maxHeap:
-
-  # store.jvmArgs specifies the options to pass to the Coherence JVM. The default is
-  #   to use the G1 collector.
-  jvmArgs: "-XX:+UseG1GC"
-
-  # store.javaOpts is miscellaneous JVM options to pass to the Coherence store container
-  # This options will override the system options computed in the start up script.
-  javaOpts:
-
-  # store.wkaRelease is used to override the default WKA address using the WKA value from an existing Helm install
-  #   so that the Pods from both installs form a single Coherence cluster.
-  #
-  #   By default the WKA address is the address of the headless service created as part of
-  #   the install, which will map to the addresses of all of the installed Pods. By overriding
-  #   the WKA address it is possible to form a cluster from multiple Helm installs.
-  #   Typically the storage members would be started with an initial Helm install with a given name.
-  #   Then one or more storage disabled installs can be run setting store.storageEnabled=false
-  #   and setting store.wkaRelease to the value of the storage member's Helm install name so that those
-  #   subsequent installs join the initial install's Coherence cluster.
-  #
-  #   For example:
-  #   1. Storage members using a cluster name of "foo" Helm release name of "bar"
-  #
-  #   helm install --set cluster=foo --name=bar <chart-name>
-  #
-  #   2. Storage disabled members using the same cluster name of "foo" and setting the wkaRelease
-  #      value to the storage members Helm release name "bar"
-  #
-  #   helm install --set cluster=foo --set store.wkaRelease=bar --set store.storageEnabled=false <chart-name>
-  #
-  wkaRelease:
-
-  # store.wka is used to override the default WKA address.
-  #   By default the WKA address is the address of the headless service created as part of
-  #   the install, which will map to the addresses of ll of the installed Pods. By overriding
-  #   the WKA address it is possible to form a cluster from multiple Helm installs.
-  #
-  #   This override would typically map to the name of an existing headless service configured with
-  #   selectors so that it matches on all of the Pods that will be part of the Coherence cluster.
-  wka:
-
-  # store.ports is additional port mappings that will be added to the Pod
-  #   To specify extra ports add them as port name value pairs the same as they
-  #   would be added to a Pod containers spec, for example these
-  #   values:
-  #
-  #   will add the port mappings to the Pod and Service for ports 8080 and 1234
-#  ports:
-
-  # store.env is additional environment variable mappings that will be passed to
-  #   the Coherence container in the Pod
-  #   To specify extra variables add them as name value pairs the same as they
-  #   would be added to a Pod containers spec, for example these values:
-  #
-  #   env:
-  #     FOO: "foo-value"
-  #     BAR: "bar-value"
-  #
-  #   will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
-  env:
-
-  # -------------------------------------------------------------------------
-  # store.debug groups the store JVM debugger settings
-  debug:
-    # store.debug.enabled enables store JVM debugging. If enabled the
-    # JVM will start the debugger on port 5005
-    enabled: false
-    # store.debug.attach specifies the address of the debugger that the
-    # JVM should attempt to connect back to instead of listening on port 5005.
-    attach:
-
-  # store.annotations are free-form yaml that will be added to the store release as annotations
-  #  Any annotations should be placed BELOW this annotations: key. For example if we wanted to
-  #  include annotations for Prometheus it would look like this:
-  #
-  #    annotations:
-  #      prometheus.io/scrape: "true"
-  #      prometheus.io/port: "2408"
-  #
-  annotations:
-
-  # store.labels are extra labels to add to the Coherence Pod
-#  labels:
-
-  # store.podManagementPolicy sets the podManagementPolicy value for the
-  #   Coherence cluster StatefulSet.  The default value is Parallel, to
-  #   cause Pods to be started and stopped in parallel, which can be
-  #   useful for faster cluster start-up in certain scenarios such as
-  #   testing but could cause data loss if multiple Pods are stopped in
-  #   parallel.  This can be changed to OrderedReady which causes Pods
-  #   to start and stop in sequence.
-  podManagementPolicy: Parallel
-
-  # store.revisionHistoryLimit is the number of deployment revision K8s keeps after rolling upgrades.
-  #   The default value if not set is 3.
-  revisionHistoryLimit: 3
-
-  # -------------------------------------------------------------------------
-  # store.persistence values configure the on-disc data persistence settings
-  persistence:
-    # store.persistence.enabled enables or disabled on disc persistence of data
-    enabled: false
-
-    # store.persistence.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
-    # in the StatefulSet. For production servers this number should likely be much larger.
-    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-    persistentVolumeClaim:
-
-    # store.persistence.volume allows the configuration of a normal k8s volume mapping
-    #   for persistence data instead of a persistent volume claim. If a value is defined
-    #   for store.persistence.volume then no PVC will be created and persistence data
-    #   will instead be written to this volume. If is up to the deployer to understand
-    #   the consequences of this and how the guarantees given when using PVCs differ
-    #   to the storage guarantees for the particular volume type configured here.
-    #   The yaml from below will be used as-is to configure the volume.
-    volume:
-
-  # -------------------------------------------------------------------------
-  # store.snapshot values configure the on-disc persistence data snapshot (backup) settings
-  snapshot:
-    # store.snapshot.enabled enables or disabled a different location for
-    #   persistence snapshot data. If set to false then snapshot files will be written
-    #   to the same volume configured for persistence data in the store.persistence section.
-    enabled: false
-
-    # store.snapshot.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
-    # in the StatefulSet. For production servers this number should likely be much larger.
-    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
-    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
-    #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-    persistentVolumeClaim:
-
-    # store.snapshot.volume allows the configuration of a normal k8s volume mapping
-    #   for persistence snapshot data instead of a persistent volume claim. If a value is defined
-    #   for store.snapshot.volume then no PVC will be created and persistence data
-    #   will instead be written to this volume. If is up to the deployer to understand
-    #   the consequences of this and how the guarantees given when using PVCs differ
-    #   to the storage guarantees for the particular volume type configured here.
-    #   The yaml from below will be used as-is to configure the volume.
-    volume:
-
-  # store.management configures Coherence management over ReST
-  #   Note: Coherence management over ReST will be available in 12.2.1.4.
-  management:
-    # store.management.enabled enables or disables management over ReST.
-    enabled: false
-    # store.management.ssl configures SSL settings for the Coherence management over ReST
-    ssl:
-      # store.management.ssl.enabled enables or disables SSL on the Coherence management over ReST endpoint,
-      #   the default is false (disabled).
-      enabled:
-      # store.management.ssl.secrets is the name of the k8s secrets containing the Java key stores and password files.
-      #   This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint.
-      secrets:
-      # store.management.ssl.keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
-      #   when configuring management over ReST to use SSL.
-      keyStore:
-      # store.management.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the keystore
-      #   password when configuring management over ReST to use SSL.
-      keyStorePasswordFile:
-      # store.management.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the key
-      #   password when configuring management over ReST to use SSL.
-      keyPasswordFile:
-      # store.management.ssl.keyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
-      #   used when configuring management over ReST to use SSL. If not set the default is SunX509
-      keyStoreAlgorithm:
-      # store.management.ssl.keyStoreProvider is the name of the keystore provider for the keystore in the k8s secret
-      #   used when configuring management over ReST to use SSL.
-      keyStoreProvider:
-      # store.management.ssl.keyStoreType is the name of the Java keystore type for the keystore in the k8s secret used
-      #   when configuring management over ReST to use SSL. If not set the default is JKS.
-      keyStoreType:
-      # store.management.ssl.trustStore is the name of the Java trust store file in the k8s secret to use as the SSL
-      #   trust store when configuring management over ReST to use SSL.
-      trustStore:
-      # store.management.ssl.trustStorePasswordFile is the name of the file in the k8s secret containing the trust store
-      #   password when configuring management over ReST to use SSL.
-      trustStorePasswordFile:
-      # store.management.ssl.trustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s
-      #   secret used when configuring management over ReST to use SSL.  If not set the default is SunX509.
-      trustStoreAlgorithm:
-      # store.management.ssl.trustStoreProvider is the name of the keystore provider for the trust store in the k8s
-      #   secret used when configuring management over ReST to use SSL.
-      trustStoreProvider:
-      # store.management.ssl.trustStoreType is the name of the Java keystore type for the trust store in the k8s secret
-      #   used when configuring management over ReST to use SSL. If not set the default is JKS.
-      trustStoreType:
-      # store.management.ssl.requireClientCert is a boolean flag indicating whether the client certificate will be
-      #   authenticated by the server (two-way SSL) when configuring management over ReST to use SSL.
-      #   If not set the default is false
-      requireClientCert:
-
-  # store.metrics configures Coherence metrics publishing
+coherence:
+  # coherence.overrideConfig is name of the Coherence operational configuration override file,
+  # the default is tangosol-coherence-override.xml
+  overrideConfig:
+  # coherence.cacheConfig is the name of the cache configuration file to use
+  cacheConfig:
+  # coherence.storageEnabled is true to run Coherence containers as storage enabled cluster members
+  # or false to run storage disabled cluster members
+  storageEnabled:
+  # The policy used to scale the number of replicas in this role.
+  scalingPolicy: ParallelUpSafeDownScaling
+  # The Coherence image
+  image: "${HELM_COHERENCE_IMAGE}"
+  # The Coherence image pull policy
+  imagePullPolicy:
+  # logLevel sets the Coherence log level. This value should be an integer in the range 1 to 9,
+  #   the default being 5 (info level).
+  logLevel:
+  # coherence.metrics configures Coherence metrics publishing
   #   Note: Coherence metrics publishing will be available in 12.2.1.4.
   metrics:
-    # store.metrics.enabled enables or disables Coherence metrics.
+    # coherence.metrics.enabled enables or disables Coherence metrics.
     enabled: false
-    # store.metrics.ssl configures SSL settings for the Coherence metrics endpoints
+    # coherence.metrics.ssl configures SSL settings for the Coherence metrics endpoints
     ssl:
-      # store.metrics.ssl.enabled enables or disables SSL on the Coherence metrics endpoint
+      # coherence.metrics.ssl.enabled enables or disables SSL on the Coherence metrics endpoint
       #   the default is false (disabled).
       #   When SSL is enabled, see: https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md
       #   on how to specify prometheus secrets for the certificates required for two-way SSL;
       #   see: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config
       #   on how to configure Prometheus SSL (TLS) connections.
       enabled:
-      # store.metrics.ssl.secrets is the name of the k8s secrets containing the Java key stores and password files.
+      # coherence.metrics.ssl.secrets is the name of the k8s secrets containing the Java key stores and password files.
       #   This value MUST be provided if SSL is enabled for the Coherence metrics endpoint.
       secrets:
-      # store.metrics.ssl.keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
+      # coherence.metrics.ssl.keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
       #   when configuring the metrics endpoint to use SSL.
       keyStore:
-      # store.metrics.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the keystore
+      # coherence.metrics.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the keystore
       #   password when configuring the metrics endpoint to use SSL.
       keyStorePasswordFile:
-      # store.metrics.ssl.keyPasswordFile is the name of the file in the k8s secret containing the key
+      # coherence.metrics.ssl.keyPasswordFile is the name of the file in the k8s secret containing the key
       #   password when configuring the metrics endpoint to use SSL.
       keyPasswordFile:
-      # store.metrics.ssl.keyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
+      # coherence.metrics.ssl.keyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
       #   used when configuring the metrics endpoint to use SSL. If not set the default is SunX509.
       keyStoreAlgorithm:
-      # store.metrics.ssl.keyStoreProvider is the name of the keystore provider for the keystore in the k8s secret
+      # coherence.metrics.ssl.keyStoreProvider is the name of the keystore provider for the keystore in the k8s secret
       #   used when configuring the metrics endpoint to use SSL.
       keyStoreProvider:
-      # store.metrics.ssl.keyStoreType is the name of the Java keystore type for the keystore in the k8s secret
+      # coherence.metrics.ssl.keyStoreType is the name of the Java keystore type for the keystore in the k8s secret
       #   used when configuring the metrics endpoint to use SSL. If not set the default is JKS.
       keyStoreType:
-      # store.metrics.ssl.trustStore is the name of the Java trust store file in the k8s secret to use as the SSL
+      # coherence.metrics.ssl.trustStore is the name of the Java trust store file in the k8s secret to use as the SSL
       #   trust store when configuring the metrics endpoint to use SSL.
       trustStore:
-      # store.metrics.ssl.trustStorePasswordFile is the name of the file in the k8s secret containing the trust store
+      # coherence.metrics.ssl.trustStorePasswordFile is the name of the file in the k8s secret containing the trust store
       #   password when configuring the metrics endpoint to use SSL.
       trustStorePasswordFile:
-      # store.metrics.ssl.trustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s
+      # coherence.metrics.ssl.trustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s
       #   secret used when configuring the metrics endpoint to use SSL.  If not set the default is SunX509.
       trustStoreAlgorithm:
-      # store.metrics.ssl.trustStoreProvider is the name of the keystore provider for the trust store in the k8s
+      # coherence.metrics.ssl.trustStoreProvider is the name of the keystore provider for the trust store in the k8s
       #   secret used when configuring the metrics endpoint to use SSL.
       trustStoreProvider:
-      # store.metrics.ssl.trustStoreType is the name of the keystore type for the trust store in the k8s secret
+      # coherence.metrics.ssl.trustStoreType is the name of the keystore type for the trust store in the k8s secret
       #   used when configuring the metrics endpoint to use SSL. If not set the default is JKS.
       trustStoreType:
-      # store.metrics.ssl.requireClientCert is a boolean flag indicating whether the client certificate will be
+      # coherence.metrics.ssl.requireClientCert is a boolean flag indicating whether the client certificate will be
       #   authenticated by the server (two-way SSL) when configuring the metrics endpoint to use SSL.
       #   If not set the default is false
       requireClientCert:
-
-  # store.jmx defines the values used to enable and configure a separate set of cluster members
-  #   that will act as MBean server members and expose a JMX port via a dedicated service.
-  #   The JMX port exposed will be using the JMXMP transport as RMI does not work properly in containers.
-  jmx:
-    # store.jmx.enabled enables or disables running the MBean server nodes.
-    #   If not set the default is false.
+  # coherence.management configures Coherence management over ReST
+  #   Note: Coherence management over ReST will be available in 12.2.1.4.
+  management:
+    # coherence.management.enabled enables or disables management over ReST.
     enabled: false
-    # store.jmx.replicas is the number of MBean server nodes to run.
-    #   If not set the default is one.
-    replicas:
-    # store.jmx.maxHeap is the min/max heap value to pass to the MBean server JVM.
-    #   The format should be the same as that used for Java's -Xms and -Xmx JVM options.
-    #   If not set the JVM defaults are used.
-    maxHeap:
-    # store.jmx.service groups the values used to configure the JMX management service
-    service:
-      # store.jmx.service.enabled controls whether to create the service yaml or not
-      enabled: true
-      # store.jmx.service.port is the JMX service port value, if not set defaults to 9099
-      port:
-      # store.jmx.service.type is the K8s service type (typically ClusterIP or LoadBalancer)
-      type: "ClusterIP"
-      # store.jmx.service.loadBalancerIP is the IP address of the load balancer
-      loadBalancerIP:
-      # store.jmx.annotations is free form yaml that will be added to the service annotations
-      annotations:
-
-  # store.volumes defines extra volume mappings that will be added to the Coherence Pod.
-  #   The content of this yaml should match the normal k8s volumes section of a Pod definition
-  #   as described in https://kubernetes.io/docs/concepts/storage/volumes/
-  volumes:
-
-  # store.volumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
-  #   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
-  #   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-  volumeClaimTemplates:
-
-  # store.volumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
-  #   in store.volumes and store.volumeClaimTemplates
-  volumeMounts:
-
+    # coherence.management.ssl configures SSL settings for the Coherence management over ReST
+    ssl:
+      # coherence.management.ssl.enabled enables or disables SSL on the Coherence management over ReST endpoint,
+      #   the default is false (disabled).
+      enabled:
+      # coherence.management.ssl.secrets is the name of the k8s secrets containing the Java key stores and password files.
+      #   This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint.
+      secrets:
+      # coherence.management.ssl.keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
+      #   when configuring management over ReST to use SSL.
+      keyStore:
+      # coherence.management.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the keystore
+      #   password when configuring management over ReST to use SSL.
+      keyStorePasswordFile:
+      # coherence.management.ssl.keyStorePasswordFile is the name of the file in the k8s secret containing the key
+      #   password when configuring management over ReST to use SSL.
+      keyPasswordFile:
+      # coherence.management.ssl.keyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
+      #   used when configuring management over ReST to use SSL. If not set the default is SunX509
+      keyStoreAlgorithm:
+      # coherence.management.ssl.keyStoreProvider is the name of the keystore provider for the keystore in the k8s secret
+      #   used when configuring management over ReST to use SSL.
+      keyStoreProvider:
+      # coherence.management.ssl.keyStoreType is the name of the Java keystore type for the keystore in the k8s secret used
+      #   when configuring management over ReST to use SSL. If not set the default is JKS.
+      keyStoreType:
+      # coherence.management.ssl.trustStore is the name of the Java trust store file in the k8s secret to use as the SSL
+      #   trust store when configuring management over ReST to use SSL.
+      trustStore:
+      # coherence.management.ssl.trustStorePasswordFile is the name of the file in the k8s secret containing the trust store
+      #   password when configuring management over ReST to use SSL.
+      trustStorePasswordFile:
+      # coherence.management.ssl.trustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s
+      #   secret used when configuring management over ReST to use SSL.  If not set the default is SunX509.
+      trustStoreAlgorithm:
+      # coherence.management.ssl.trustStoreProvider is the name of the keystore provider for the trust store in the k8s
+      #   secret used when configuring management over ReST to use SSL.
+      trustStoreProvider:
+      # coherence.management.ssl.trustStoreType is the name of the Java keystore type for the trust store in the k8s secret
+      #   used when configuring management over ReST to use SSL. If not set the default is JKS.
+      trustStoreType:
+      # coherence.management.ssl.requireClientCert is a boolean flag indicating whether the client certificate will be
+      #   authenticated by the server (two-way SSL) when configuring management over ReST to use SSL.
+      #   If not set the default is false
+      requireClientCert:
+  # coherence.persistence values configure the on-disc data persistence settings
+  persistence:
+    # coherence.persistence.enabled enables or disabled on disc persistence of data
+    enabled: false
+    # coherence.persistence.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
+    # in the StatefulSet. For production servers this number should likely be much larger.
+    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
+    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
+    #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+    persistentVolumeClaim:
+    # coherence.persistence.volume allows the configuration of a normal k8s volume mapping
+    #   for persistence data instead of a persistent volume claim. If a value is defined
+    #   for coherence.persistence.volume then no PVC will be created and persistence data
+    #   will instead be written to this volume. If is up to the deployer to understand
+    #   the consequences of this and how the guarantees given when using PVCs differ
+    #   to the storage guarantees for the particular volume type configured here.
+    #   The yaml from below will be used as-is to configure the volume.
+    volume:
   # -------------------------------------------------------------------------
-  # store.readinessProbe is the readiness probe config.
-  #   ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
-  readinessProbe:
-    # Number of seconds after the container has started before liveness or readiness probes are initiated.
-    # If not set, the default initialDelaySeconds is 30.
-    initialDelaySeconds:
-    # How often (in seconds) to perform the probe. Minimum value is 1.
-    # If not set, the default periodSeconds is 60.
-    periodSeconds:
-    # Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
-    # If not set, the default timeoutSeconds is 5.
-    timeoutSeconds:
-    # Minimum consecutive successes for the probe to be considered successful after having failed.
-    # Defaults to 1. Must be 1 for liveness. Minimum value is 1.
-    successThreshold:
-    # When a Pod starts and the probe fails, Kubernetes will try failureThreshold times
-    # before giving up. Giving up in case of liveness probe means restarting the Pod.
-    # In case of readiness probe the Pod will be marked Unready. Minimum value is 1.
-    # If not set the default failureThreshold is 50.
-    failureThreshold:
+  # coherence.snapshot values configure the on-disc persistence data snapshot (backup) settings
+  snapshot:
+    # coherence.snapshot.enabled enables or disabled a different location for
+    #   persistence snapshot data. If set to false then snapshot files will be written
+    #   to the same volume configured for persistence data in the coherence.persistence section.
+    enabled: false
+    # coherence.snapshot.persistentVolumeClaim is the yaml for the Persistent Volume Claim spec to allocate to each Pod
+    # in the StatefulSet. For production servers this number should likely be much larger.
+    # In particular, this includes resources, storageClass, dataSource, volumeMode, volumeName and selector.
+    #   see: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#persistentvolumeclaim-v1-core
+    #   see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+    persistentVolumeClaim:
+    # coherence.snapshot.volume allows the configuration of a normal k8s volume mapping
+    #   for persistence snapshot data instead of a persistent volume claim. If a value is defined
+    #   for coherence.snapshot.volume then no PVC will be created and persistence data
+    #   will instead be written to this volume. If is up to the deployer to understand
+    #   the consequences of this and how the guarantees given when using PVCs differ
+    #   to the storage guarantees for the particular volume type configured here.
+    #   The yaml from below will be used as-is to configure the volume.
+    volume:
 
-# ---------------------------------------------------------------------------
-# Pod scheduling values
+# ----- Health configuration ------------------------------------------------
 
-# affinity controls Pod scheduling preferences.
-#   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-affinity: {}
+# The port that the health check endpoint will bind to.
+healthPort: 6676
 
-# nodeSelector is the Node labels for pod assignment
-# ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
-nodeSelector: {}
+# ----- Coherence Utils configuration ---------------------------------------
 
-# tolerations is for nodes that have taints on them.
-#   Useful if you want to dedicate nodes to just run the coherence container
-#   For example:
-#   tolerations:
-#   - key: "key"
-#     operator: "Equal"
-#     value: "value"
-#     effect: "NoSchedule"
-#
-#   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-tolerations:
+coherenceUtils:
+  image: "${UTILS_IMAGE}"
+  imagePullPolicy:
+
+# ----- Logging configuration -----------------------------------------------
+
+# logging allows configuration of Coherence and java util logging.
+logging:
+  # logging.configFile allows the location of the Java util logging configuration file to be overridden.
+  #   If this value is not set the logging.properties file embedded in this chart will be used.
+  #   If this value is set the configuration will be located by trying the following locations in order:
+  #     1. If logging.configMapName is set then the config map will be mounted as a volume and the logging
+  #          properties file will be located as a file location relative to the ConfigMap volume mount point.
+  #     2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the
+  #          configuration files directory in the user artifacts image.
+  #     3. Using this value as an absolute file name.
+  #
+  configFile:
+  # logging.configMapName allows a config map to be mounted as a volume containing the logging
+  #   configuration file to use.
+  configMapName:
+  # Specify the Fluentd settings
+  fluentd:
+    # fluentd.enabled determines whether Fluentd log capture is enabled
+    enabled: false
+    # fluentd.image is the name of the Fluentd image to use in the logging side-car container
+    image: fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
+    # imagePullPolicy controls the K8s container spec's pull policy
+    # If not set the pull policy is "IfNotPresent".
+    imagePullPolicy:
+    # fluentd configuration file configuring source for application log.
+    configFile:
+    # This value should be source.tag from fluentd.application.configFile.
+    tag:
+
+# ----- JVM specific configuration ------------------------------------------
+
+jvm:
+  # The heap size value to pass to the JVM.
+  # The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+  # If not set the JVM defaults are used.
+  heapSize:
+  # GC options to pass the the JVM - if not entered the default is -XX:+UseG1GC
+  gc:
+  # JVM options like extra system properties -XX args etc...
+  args: []
+  # -------------------------------------------------------------------------
+  # jvm.debug groups the store JVM debugger settings
+  debug:
+    # jvm.debug.enabled enables store JVM debugging. If enabled the
+    # JVM will start the debugger on port 5005
+    enabled: false
+    # jvm.debug.attach specifies the address of the debugger that the
+    # JVM should attempt to connect back to instead of listening on port 5005.
+    attach:
+
+# ----- Coherence Container specific configuration --------------------------
+
+# The ports to expose
+ports: []
+
+# Environment variables to add to the container in the Coherence Pods
+env: []
+
+# -------------------------------------------------------------------------
+# readinessProbe is the readiness probe config.
+#   ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+readinessProbe:
+  exec:
+  httpGet:
+  tcpSocket:
+  # Number of seconds after the container has started before readiness probes are initiated.
+  # If not set, the default initialDelaySeconds is 30.
+  initialDelaySeconds:
+  # How often (in seconds) to perform the probe. Minimum value is 1.
+  # If not set, the default periodSeconds is 60.
+  periodSeconds:
+  # Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+  # If not set, the default timeoutSeconds is 5.
+  timeoutSeconds:
+  # Minimum consecutive successes for the probe to be considered successful after having failed.
+  # Defaults to 1. Minimum value is 1.
+  successThreshold:
+  # When a Pod starts and the probe fails, Kubernetes will try failureThreshold times
+  # before giving up.
+  # In case of readiness probe the Pod will be marked Unready. Minimum value is 1.
+  # If not set the default failureThreshold is 50.
+  failureThreshold:
+
+# -------------------------------------------------------------------------
+# livenessProbe is the readiness probe config.
+#   ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+livenessProbe:
+  exec:
+  httpGet:
+  tcpSocket:
+  # Number of seconds after the container has started before liveness probes are initiated.
+  # If not set, the default initialDelaySeconds is 30.
+  initialDelaySeconds:
+  # How often (in seconds) to perform the probe. Minimum value is 1.
+  # If not set, the default periodSeconds is 60.
+  periodSeconds:
+  # Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+  # If not set, the default timeoutSeconds is 5.
+  timeoutSeconds:
+  # When a Pod starts and the probe fails, Kubernetes will try failureThreshold times
+  # before giving up. Giving up in case of liveness probe means restarting the Pod.
+  # In case of readiness probe the Pod will be marked Unready. Minimum value is 1.
+  # If not set the default failureThreshold is 50.
+  failureThreshold:
+
+# ----- Pod configuration ---------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # resources is the optional resource requests and limits for the containers
@@ -474,43 +363,81 @@ resources:
     cpu: 32
 #    memory: 256Gi
 
-# ---------------------------------------------------------------------------
-# coherence groups the values used to configure the Coherence image used by the chart
-coherence:
-  # coherence.image is the name of the Coherence image to be used
-  #   NOTE: This is a required value and if this value is set to null then installing the
-  #   chart will result in a missing required value error
-  image: "${HELM_COHERENCE_IMAGE}"
-  # coherence.imagePullPolicy controls the K8s Coherence container spec's pull policy
-  # If not set the pull policy is "IfNotPresent".
-  imagePullPolicy:
+# annotations are free-form yaml that will be added to the store release as annotations
+# Any annotations should be placed BELOW this annotations: key. For example if we wanted to
+# include annotations for Prometheus it would look like this:
+#
+#   annotations:
+#     prometheus.io/scrape: "true"
+#     prometheus.io/port: "2408"
+#
+annotations: {}
+
+# Pod labels
+labels: []
+
+# volumes defines extra volume mappings that will be added to the Coherence Pod.
+#   The content of this yaml should match the normal k8s volumes section of a Pod definition
+#   as described in https://kubernetes.io/docs/concepts/storage/volumes/
+volumes:
+
+# volumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
+#   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
+#   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+volumeClaimTemplates:
+
+# volumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
+#   in volumes and volumeClaimTemplates
+volumeMounts:
 
 # ---------------------------------------------------------------------------
-# coherenceUtils groups the values used to configure the Coherence utilities images used by the chart
-#   Typically the utilities image settings would not require overriding.
-coherenceUtils:
-  # coherenceUtils.image is the name of the CoherenceUtils image to be used
-  #   NOTE: This is a required value and if this value is set to null then installing the
-  #   chart will result in a missing required value error
-  image: "${UTILS_IMAGE}"
-  # coherenceUtils.imagePullPolicy controls the K8s Coherence utilities container spec's pull policy
-  # If not set the pull policy is "IfNotPresent".
-  imagePullPolicy:
+# Pod scheduling values
 
-# ----------------------------------------------------------------------------
-# userArtifacts configures how custom artifacts are added to the Coherence classpath
-userArtifacts:
-  # userArtifacts.image is the name of the Docker image containing the custom
-  #   jar files and configuration files to add to the classpath
-  image:
-  # userArtifacts.imagePullPolicy is the image pull policy to use for the custom
-  #   artifacts image. If not set the pull policy is "IfNotPresent".
-  imagePullPolicy:
-  # userArtifacts.libDir is the folder in the custom artifacts Docker image containing jar
-  #   files to be added to the classpath of the Coherence container.
-  #   If not set the libDir is "/files/lib".
-  libDir:
-  # userArtifacts.configDir is the folder in the custom artifacts Docker image containing
-  #   configuration files to be added to the classpath of the Coherence container.
-  #   If not set the configDir is "/files/conf".
-  configDir:
+# affinity controls Pod scheduling preferences.
+#   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}
+
+# nodeSelector is the Node labels for pod assignment
+# ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+nodeSelector: {}
+
+# tolerations is for nodes that have taints on them.
+#   Useful if you want to dedicate nodes to just run the coherence container
+#   For example:
+#   tolerations:
+#   - key: "key"
+#     operator: "Equal"
+#     value: "value"
+#     effect: "NoSchedule"
+#
+#   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+# ----- General configuration -----------------------------------------------
+
+# imagePullSecrets provides support pulling images from private registries, the value references
+#   one or more secrets to be used when pulling images. Secrets must be manually created in the
+#   target namespace.
+#   ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+#
+#   For example, adding the pull secret "foo" would be:
+#
+#   imagePullSecrets:
+#   - name: "foo"
+#
+#   adding multiple pull secrets "foo" and "bar" would be
+#
+#   imagePullSecrets:
+#   - name: "foo"
+#   - name: "bar"
+imagePullSecrets: []
+
+# serviceAccountName is the name to use for the service account to use when RBAC is enabled
+#   The role bindings must already have been created as this chart does not create them it just
+#   sets the serviceAccountName value in the Pod spec.
+serviceAccountName:
+# Whether or not to auto-mount API credentials for a service account
+automountServiceAccountToken:
+
+# The timeout in seconds used when making rest requests to the Operator from the start script.
+operatorRequestTimeout: 120

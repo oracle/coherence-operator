@@ -91,6 +91,7 @@ endif
 
 GOS        = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 COPYGOS    = $(shell find cmd/copyartifacts -type f -name "*.go" ! -name "*_test.go")
+OPTESTGOS  = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
 UTILGOS    = $(shell find cmd/utilsinit -type f -name "*.go" ! -name "*_test.go")
 COH_CHARTS = $(shell find helm-charts/coherence -type f)
 COP_CHARTS = $(shell find helm-charts/coherence-operator -type f)
@@ -173,6 +174,19 @@ $(BUILD_OUTPUT)/bin/copy: export GOOS = $(OS)
 $(BUILD_OUTPUT)/bin/copy: export GO111MODULE = on
 $(BUILD_OUTPUT)/bin/copy: $(GOS) $(DEPLOYS) $(COPYGOS)
 	go build -o $(BUILD_OUTPUT)/bin/copy ./cmd/copyartifacts
+
+# ---------------------------------------------------------------------------
+# Internal make step that builds the Operator test utility
+# ---------------------------------------------------------------------------
+.PHONY: build-op-test
+build-op-test: $(BUILD_OUTPUT)/bin/op-test
+
+$(BUILD_OUTPUT)/bin/op-test: export CGO_ENABLED = 0
+$(BUILD_OUTPUT)/bin/op-test: export GOARCH = $(ARCH)
+$(BUILD_OUTPUT)/bin/op-test: export GOOS = $(OS)
+$(BUILD_OUTPUT)/bin/op-test: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/op-test: $(GOS) $(DEPLOYS) $(OPTESTGOS)
+	go build -o $(BUILD_OUTPUT)/bin/op-test ./cmd/optest
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator utils init utility
@@ -296,6 +310,40 @@ debug-e2e-local-test:
 	    --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags \
 		"$(GO_TEST_FLAGS_E2E)" --no-setup
+
+
+# ---------------------------------------------------------------------------
+# Executes the Go script tests that require a k8s cluster using
+# a LOCAL operator instance (i.e. the operator is not deployed to k8s).
+# These tests will use whichever k8s cluster the local environment
+# is pointing to.
+# These tests require the Operator CRDs and will install them before
+# tests start and remove them afterwards.
+# This step will use whatever Kubeconfig the current environment is
+# configured to use.
+# ---------------------------------------------------------------------------
+.PHONY: script-test
+script-test: export CGO_ENABLED = 0
+script-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+script-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
+script-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
+script-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+script-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+script-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
+	@echo "executing end-to-end tests"
+	operator-sdk test local ./test/e2e/script --namespace $(TEST_NAMESPACE) --up-local \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+		--namespaced-manifest=$(TEST_MANIFEST) \
+		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
+		 2>&1 | tee $(TEST_LOGS_DIR)/operator-script-test.out
+	$(MAKE) delete-namespace
+	go run ./cmd/testreports/ -fail -suite-name-prefix=script-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-script-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-script-test.xml
 
 
 # ---------------------------------------------------------------------------
@@ -544,8 +592,9 @@ push-operator-image: build-operator
 # Build the Operator Utils Docker image
 # ---------------------------------------------------------------------------
 .PHONY: build-utils-image
-build-utils-image: build-mvn build-copy-artifacts build-utils-init
+build-utils-image: build-mvn build-copy-artifacts build-utils-init build-op-test
 	cp $(BUILD_OUTPUT)/bin/copy java/coherence-utils/target/docker/copy
+	cp $(BUILD_OUTPUT)/bin/op-test java/coherence-utils/target/docker/op-test
 	cp $(BUILD_OUTPUT)/bin/utils-init java/coherence-utils/target/docker/utils-init
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 

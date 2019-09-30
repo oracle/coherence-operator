@@ -1,0 +1,139 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Configure Pod Labels
+
+Labels can be added to the `Pods` of a role in a `CoherenceCluster`.
+
+== Configure Pod Labels
+
+Custom Pod https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/[labels]
+can be added to the spec of a role which will then be added to all `Pods` for that role created by
+the Coherence Operator.
+
+=== Default Labels
+
+The Coherence Operator applies the following labels to a role. These labels should not be overridden as they
+are used by the Coherence Operator.
+
+|===
+|Label |Description
+
+|coherenceCluster
+| This label will be set to the owning `CoherenceCluster` name
+
+|coherenceRole
+| This label will be set to the role name
+
+|coherenceDeployment
+| This label will be the concatenated cluster name and role name in the format of the format `ClusterName-RoleName`
+
+|component
+| This label is always `coherencePod`
+
+|===
+
+The default labels above make it simple to find all `Pods` for a Coherence cluster or for a role when querying
+Kubernetes (for example with `kubectl get`).
+
+
+
+=== Configure Pod Labels for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role labels can be defined at the `spec` level.
+Labels are defined as a map of string key value pairs, for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  labels:            <1>
+    key1 : value1
+    key2 : value2
+----
+
+<1> The implicit role will have the labels `key1=value1` and `key2=value2` which will result in all `Pods`
+for the role also having those same labels.
+
+
+=== Configure Pod Labels for Explicit Roles
+
+When creating a `CoherenceCluster` with explicit roles in the `roles` list labels can be defined for each role,
+for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      labels:
+        key1 : value1   <1>
+    - role: proxy
+      labels:
+        key2 : value2   <2>
+----
+
+<1> The `data` role will have the label `key1=value1`
+<2> The `proxy` role will have the labels `key2=value2`
+
+
+=== Configure Pod Labels for Explicit Roles With Defaults
+
+When creating a `CoherenceCluster` with explicit roles in the `roles` list labels can be defined as defaults
+applied to all roles and also for each role. The default labels will be merged with the role labels.
+Where labels exist with the same key in both the defaults and the role then the labels in the role will take precedence.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  labels:                         <1>
+    key1 : value1
+    key2 : value2
+  roles:
+    - role: data                  <2>
+    - role: proxy                 <3>
+      labels:
+        key3 : value3
+    - role: web                   <4>
+      labels:
+        key2 : value-two
+        key3 : value3
+----
+
+<1> There are two default labels `key1=value1` and `key2=value2` that will apply to all `Pods`
+in all roles unless specifically overridden.
+<2> The `data` role has no other labels defined so will just have the default labels `key1=value1` and `key2=value2`
+<3> The `proxy` role specified an labels `key3=value3` so will have this labels as well as the default labels
+`key1=value1` and `key2=value2`
+<4> The `web` role specifies the `key3=value3` labels and also overrides the `key2` label with the value `value-two`
+so it will have three labels, `key1=value1` , `key2=value-two` and `key3=value3`
+
+

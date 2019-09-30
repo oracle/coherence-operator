@@ -6,10 +6,10 @@
 {{- $role := include "coherence.role" $ }}
 {{- $fn := printf "%s-%s" $cluster $role }}
 {{- $lb := include "coherence.release_labels" . }}
-{{- if .Values.store.ports -}}
-{{-   range $port := .Values.store.ports }}
-{{-     $portName := required "A name value is required for every port in store.ports" $port.name -}}
-{{-     $portPort := required "A port value is required for every port in store.ports" $port.port -}}
+{{- if .Values.ports -}}
+{{-   range $port := .Values.ports }}
+{{-     $portName := required "A name value is required for every port in ports" $port.name -}}
+{{-     $portPort := required "A port value is required for every port in ports" $port.port -}}
 {{-     $serviceEnabled := true }}
 {{-     if $port.service }}
 {{-         $serviceEnabled := or (kindIs "invalid" $port.service.enabled) $port.service.enabled }}
@@ -86,4 +86,4 @@ spec:
     component: coherencePod
 {{-     end }} {{/* end if $serviceEnabled */}}
 {{-   end }} {{/* end of port range loop */}}
-{{- end }}   {{/* end if .Values.store.ports */}}
+{{- end }}   {{/* end if .Values.ports */}}

@@ -68,7 +68,10 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 		return &HelmInstallResult{}, nil
 	}
 
-	_ = f.mgr.GetClient().Create(context.TODO(), cluster)
+	err := f.mgr.GetClient().Create(context.TODO(), cluster)
+	if err != nil {
+		return nil, err
+	}
 
 	clusterRequest := reconcile.Request{
 		NamespacedName: apitypes.NamespacedName{
@@ -77,7 +80,7 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 		},
 	}
 
-	_, err := f.clusterReconciler.Reconcile(clusterRequest)
+	_, err = f.clusterReconciler.Reconcile(clusterRequest)
 	if err != nil {
 		return nil, err
 	}

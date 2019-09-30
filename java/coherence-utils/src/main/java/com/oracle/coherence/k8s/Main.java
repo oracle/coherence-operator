@@ -18,8 +18,6 @@ import java.lang.reflect.Method;
  */
 public class Main
     {
-    // ----- Main methods ------------------------------------------------
-
     /**
      * Program entry point.
      *
@@ -32,7 +30,8 @@ public class Main
             asArgs = new String[]{DefaultCacheServer.class.getCanonicalName()};
             }
 
-        registerHealthMBean();
+        HealthServer server = new HealthServer();
+        server.start();
 
         String   sMainClass = asArgs[0];
         String[] asArgsReal = new String[asArgs.length - 1];
@@ -41,17 +40,5 @@ public class Main
         Class<?> clsMain = Class.forName(sMainClass);
         Method   method  = clsMain.getMethod("main", asArgsReal.getClass());
         method.invoke(null, (Object) asArgsReal);
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Register the health MBean.
-     *
-     * @throws Exception if the MBean cannot be registered.
-     */
-    static void registerHealthMBean()
-        {
-        HealthMBeanFactory.registerHealthMBean();
         }
     }

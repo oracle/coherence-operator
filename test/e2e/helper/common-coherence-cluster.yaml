@@ -3,15 +3,13 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  images:
-    coherence:
-      image: ${TEST_COHERENCE_IMAGE}
-    coherenceUtils:
-      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-    userArtifacts:
-      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+  operatorRequestTimeout: 5
+  coherence:
+    image: ${TEST_COHERENCE_IMAGE}
+  coherenceUtils:
+    imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+  application:
+    imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 5
-  imagePullSecrets: [${IMAGE_PULL_SECRETS}]
-  curlTimeout: 5

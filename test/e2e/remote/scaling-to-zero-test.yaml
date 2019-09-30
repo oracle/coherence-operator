@@ -6,17 +6,17 @@ spec:
   roles:
   - role: one
     replicas: 2
-    scalingPolicy: Parallel
+    scaling:
+      policy: Parallel
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10
-    images:
-      userArtifacts:
-        image: ${TEST_USER_IMAGE}
-        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-    cacheConfig: test-cache-config.xml
-    main:
-      class: com.oracle.coherence.k8s.testing.RestServer
+    application:
+      main: com.oracle.coherence.k8s.testing.RestServer
+      image: ${TEST_USER_IMAGE}
+      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+    coherence:
+      cacheConfig: test-cache-config.xml
     ports:
     - name: rest
       port: 8080

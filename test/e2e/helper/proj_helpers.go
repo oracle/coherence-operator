@@ -96,12 +96,16 @@ func GetTestSSLSecretName() string {
 	return os.Getenv(TestSslSecretEnv)
 }
 
-func GetImagePullSecrets() []string {
+func GetImagePullSecrets() []coh.LocalObjectReference {
 	s := os.Getenv(ImagePullSecretsEnv)
 	if s == "" {
 		return nil
 	}
-	return strings.Split(s, ",")
+	var secrets []coh.LocalObjectReference
+	for _, s := range strings.Split(s, ",") {
+		secrets = append(secrets, coh.LocalObjectReference{Name: s})
+	}
+	return secrets
 }
 
 func FindProjectRootDir() (string, error) {
@@ -202,13 +206,22 @@ func FindTestManifestDir() (string, error) {
 	return pd + string(os.PathSeparator) + manifest, nil
 }
 
+// NewCoherenceCluster creates a new CoherenceCluster from the default yaml file.
+func NewCoherenceCluster(namespace string) (coh.CoherenceCluster, error) {
+	return createCoherenceClusterFromYaml(namespace)
+}
+
 // NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
 func NewCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
-	c := coh.CoherenceCluster{}
-
 	if len(files) == 0 {
-		return c, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
+		return coh.CoherenceCluster{}, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
 	}
+	return createCoherenceClusterFromYaml(namespace, files...)
+}
+
+// createCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
+func createCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
+	c := coh.CoherenceCluster{}
 
 	l := coherenceClusterLoader{}
 	err := l.loadYaml(&c, files...)
@@ -242,6 +255,10 @@ func (in *coherenceClusterLoader) loadYaml(cluster *coh.CoherenceCluster, files 
 	if err != nil {
 		return err
 	}
+
+	// Append any
+	secrets := GetImagePullSecrets()
+	cluster.Spec.ImagePullSecrets = append(cluster.Spec.ImagePullSecrets, secrets...)
 
 	for _, file := range files {
 		err := in.loadYamlFromFile(cluster, file)

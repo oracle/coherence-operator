@@ -69,7 +69,7 @@ func TestMetrics(t *testing.T) {
 	clusterSSL := clusterWithoutSSL.DeepCopy()
 	// Set the SSL settings
 	clusterSSL.SetName("test-cluster-ssl")
-	clusterSSL.Spec.Metrics = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
+	clusterSSL.Spec.Coherence.Metrics = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
 
 	// Create the test cases
 	testCases := []MetricsTestCase{
@@ -123,7 +123,7 @@ func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec)
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// determine whether the cluster is using SSL
-	isSSL := role.Metrics != nil && role.Metrics.SSL != nil && *role.Metrics.SSL.Enabled
+	isSSL := role.Coherence != nil && role.Coherence.Metrics != nil && role.Coherence.Metrics.IsSSLEnabled()
 
 	// Get the cluster Pods
 	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())

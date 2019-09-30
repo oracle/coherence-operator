@@ -18,23 +18,13 @@ serviceAccount: coherence-operator
 #   For example, adding the pull secret "foo" would be:
 #
 #   imagePullSecrets:
-#   - "foo"
+#   - name: "foo"
 #
 #   adding multiple pull secrets "foo" and "bar" would be
 #
 #   imagePullSecrets:
-#   - "foo"
-#   - "bar"
-#
-#   If specifying pull secrets on the command line with --set there are two choices depending on whether
-#   there is a single pull secret or multiple pull secrets. A single secret can be specified as a simple string:
-#
-#   --set imagePullSecrets=foo
-#
-#   Multiple pull secrets must be specified as a list, which Helm expects to be contained in curly braces:
-#
-#   --set "imagePullSecrets={foo,bar}"
-#
+#   - name: "foo"
+#   - name: "bar"
 imagePullSecrets:
 
 # ---------------------------------------------------------------------------

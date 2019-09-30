@@ -125,11 +125,6 @@ var _ = Describe("Testing CoherenceCluster", func() {
 				role := cluster.Spec.Roles[0]
 				Expect(role.GetRoleName()).To(Equal("one"))
 				Expect(role.GetReplicas()).To(Equal(int32(1)))
-				Expect(role.CacheConfig).To(Equal(stringPtr("test-cache-config.xml")))
-
-				Expect(role.Images).NotTo(BeNil())
-				Expect(role.Images.Coherence).NotTo(BeNil())
-				Expect(role.Images.Coherence.Image).To(Equal(stringPtr("test/coherence:1.0")))
 			})
 		})
 
@@ -165,11 +160,6 @@ var _ = Describe("Testing CoherenceCluster", func() {
 				roleOne := cluster.Spec.Roles[0]
 				Expect(roleOne.GetRoleName()).To(Equal("one"))
 				Expect(roleOne.GetReplicas()).To(Equal(int32(3)))
-				Expect(roleOne.CacheConfig).To(Equal(stringPtr("test-cache-config.xml")))
-
-				Expect(roleOne.Images).NotTo(BeNil())
-				Expect(roleOne.Images.Coherence).NotTo(BeNil())
-				Expect(roleOne.Images.Coherence.Image).To(Equal(stringPtr("test/coherence:1.0")))
 
 				roleTwo := cluster.Spec.Roles[1]
 				Expect(roleTwo.GetRoleName()).To(Equal("two"))

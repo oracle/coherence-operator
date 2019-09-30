@@ -26,7 +26,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 			block      = corev1.PersistentVolumeBlock
 			filesystem = corev1.PersistentVolumeFilesystem
 			pvcOne     = &corev1.PersistentVolumeClaimSpec{
-				AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+				AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 				Resources: corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("2Gi")},
 				},
@@ -37,7 +37,7 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh1"}},
 			}
 			pvcTwo = &corev1.PersistentVolumeClaimSpec{
-				AccessModes: []corev1.PersistentVolumeAccessMode{ "ReadWriteOnce",},
+				AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
 				Resources: corev1.ResourceRequirements{
 					Requests: map[corev1.ResourceName]resource.Quantity{"storage": resource.MustParse("3Gi")},
 				},
@@ -48,14 +48,8 @@ var _ = Describe("Testing PersistentStorageSpec struct", func() {
 				Selector:         &metav1.LabelSelector{MatchLabels: map[string]string{"component": "coh2"}},
 			}
 
-			volumeOne = &corev1.Volume{
-				Name:         "vol1",
-				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-			}
-			volumeTwo = &corev1.Volume{
-				Name:         "vol2",
-				VolumeSource: corev1.VolumeSource{NFS: &corev1.NFSVolumeSource{Server: "10.100.100.200", Path: "/"}},
-			}
+			volumeOne = &corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}
+			volumeTwo = &corev1.VolumeSource{NFS: &corev1.NFSVolumeSource{Server: "10.100.100.200", Path: "/"}}
 		)
 
 		JustBeforeEach(func() {

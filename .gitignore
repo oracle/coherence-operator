@@ -31,3 +31,4 @@ _output/
 # Output from Ginkgo JUnit reporter
 pkg/**/test-report.xml
 test/**/test-report.xml
+/temp/

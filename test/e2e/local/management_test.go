@@ -69,7 +69,7 @@ func TestManagementOverRest(t *testing.T) {
 	clusterSSL := clusterWithoutSSL.DeepCopy()
 	// Set the SSL settings
 	clusterSSL.SetName("test-cluster-ssl")
-	clusterSSL.Spec.Management = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
+	clusterSSL.Spec.Coherence.Management = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
 
 	// Create the test cases
 	testCases := []ManagementTestCase{
@@ -123,7 +123,7 @@ func assertManagementOverRest(t *testing.T, tc ManagementTestCase, role coh.Cohe
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// determine whether the cluster is using SSL
-	isSSL := role.Management != nil && role.Management.SSL != nil && *role.Management.SSL.Enabled
+	isSSL := role.Coherence != nil && role.Coherence.Management != nil && role.Coherence.Management.IsSSLEnabled()
 
 	// Get the cluster Pods
 	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())

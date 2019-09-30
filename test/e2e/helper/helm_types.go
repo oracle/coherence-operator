@@ -24,7 +24,7 @@ type OperatorValues struct {
 	// The secrets to be used when pulling images. Secrets must be manually created in the target namespace.
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 	// +optional
-	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	ImagePullSecrets []coh.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// Affinity controls Pod scheduling preferences.
 	// ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 	// +optional

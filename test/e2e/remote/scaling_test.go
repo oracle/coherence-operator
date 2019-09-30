@@ -40,21 +40,21 @@ func TestScaling(t *testing.T) {
 		{"DownSafeScaling", 3, 1, cohv1.SafeScaling},
 	}
 
-	for _, tc := range testCases {
+	for id, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			assertScale(t, tc.policy, tc.start, tc.end, roleScaler)
+			assertScale(t, id, tc.policy, tc.start, tc.end, roleScaler)
 		})
 	}
 }
 
 // Test that a role can be scaled up using the kubectl scale command
 func TestScalingUpWithKubectl(t *testing.T) {
-	assertScale(t, cohv1.ParallelUpSafeDownScaling, 1, 3, kubeCtlRoleScaler)
+	assertScale(t, 10, cohv1.ParallelUpSafeDownScaling, 1, 3, kubeCtlRoleScaler)
 }
 
 // Test that a role can be scaled down using the kubectl scale command
 func TestScalingDownWithKubectl(t *testing.T) {
-	assertScale(t, cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlRoleScaler)
+	assertScale(t, 20, cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlRoleScaler)
 }
 
 // If a role is scaled down to zero it should be deleted and just its parent CoherenceCluster should remain.
@@ -100,7 +100,7 @@ var kubeCtlRoleScaler = func(t *testing.T, role *cohv1.CoherenceRole, replicas i
 }
 
 // Assert that a cluster can be created and scaled using the specified policy.
-func assertScale(t *testing.T, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
+func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
 	g := NewGomegaWithT(t)
 
 	ctx := helper.CreateTestContext(t)
@@ -112,10 +112,18 @@ func assertScale(t *testing.T, policy cohv1.ScalingPolicy, replicasStart, replic
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
+	//Give the cluster a unique name based on the test name
+	cluster.SetName(fmt.Sprintf("%s-%d", cluster.GetName(), id))
+
 	// Get the role and update it's replica count and scaling policy
 	roleSpec := cluster.GetFirstRole()
 	roleSpec.SetReplicas(replicasStart)
-	roleSpec.ScalingPolicy = &policy
+
+	if roleSpec.Scaling == nil {
+		roleSpec.Scaling = &cohv1.ScalingSpec{}
+	}
+	roleSpec.Scaling.Policy = &policy
+
 	// NOTE: we MUST set the role back into the role array because in the cluster
 	// because in Go (unlike some other languages) we seem to have a COPY of what
 	// is in the role array.
@@ -250,4 +258,6 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceClu
 	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
+
+	t.Logf("Asserting StatefulSet %s exist with %d replicas - Done!\n", fullName, replicas)
 }

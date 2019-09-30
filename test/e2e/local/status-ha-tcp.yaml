@@ -9,16 +9,16 @@ spec:
     readinessProbe:
       initialDelaySeconds: 10
       periodSeconds: 10
-    images:
-      userArtifacts:
-        image: ${TEST_USER_IMAGE}
-        imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-    cacheConfig: test-cache-config.xml
-    main:
-      class: com.oracle.coherence.k8s.testing.RestServer
+    application:
+      image: ${TEST_USER_IMAGE}
+      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+      main: com.oracle.coherence.k8s.testing.RestServer
+    coherence:
+      cacheConfig: test-cache-config.xml
+    scaling:
+      probe:
+        tcpSocket:
+          port: rest
     ports:
     - name: rest
       port: 8080
-    statusHA:
-      tcpSocket:
-        port: rest

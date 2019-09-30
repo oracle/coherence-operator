@@ -354,7 +354,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	currentReplicas := existing.Spec.ClusterSize
+	currentReplicas := existing.Spec.GetReplicas()
 	readyReplicas := sts.Status.ReadyReplicas
 
 	if readyReplicas != currentReplicas {
@@ -459,7 +459,7 @@ func (r *ReconcileCoherenceRole) scaleDownToZero(cluster *coh.CoherenceCluster, 
 // isUpgrade determines whether the current spec differs to the desired spec ignoring differences to the Replicas field.
 func (r *ReconcileCoherenceRole) isUpgrade(current *coh.CoherenceInternalSpec, desired *coh.CoherenceInternalSpec) bool {
 	clone := current.DeepCopy()
-	clone.ClusterSize = desired.ClusterSize
+	clone.Replicas = desired.Replicas
 
 	return !reflect.DeepEqual(clone, desired)
 }
@@ -476,7 +476,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 	}
 
 	// update the CoherenceInternal, this should trigger an update of the Helm install
-	desiredRole.ClusterSize = replicas
+	desiredRole.Replicas = &replicas
 	existingRole.Object["spec"] = spec
 
 	if err = r.client.Update(context.TODO(), existingRole); err != nil {

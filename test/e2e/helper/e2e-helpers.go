@@ -347,7 +347,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// Delete all of the CoherenceClusters
 	for _, c := range list.Items {
-		fmt.Printf("Deleting CoherenceCluster %s in namespace %s", c.Name, c.Namespace)
+		fmt.Printf("Deleting CoherenceCluster %s in namespace %s\n", c.Name, c.Namespace)
 		err = f.Client.Delete(goctx.TODO(), &c)
 		if err != nil {
 			fmt.Printf("Error deleting CoherenceCluster %s - %s\n", c.Name, err.Error())

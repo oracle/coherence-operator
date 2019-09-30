@@ -67,9 +67,6 @@ server()
 
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
-#   We must have this to allow the JMX readiness probe to connect.
-    PROPS="${PROPS} -Dcom.sun.management.jmxremote=true -Dcoherence.operator.server=true"
-
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then
@@ -85,9 +82,9 @@ server()
     fi
 
 #   By default we use the G1 collector
-    if [[ "${JVM_ARGS}" == "" ]]
+    if [[ "${JVM_GC_OPTS}" == "" ]]
     then
-        JVM_ARGS="-XX:+UseG1GC"
+        JVM_GC_OPTS="-XX:+UseG1GC"
     fi
 
 #   If the MAX_HEAP variable is set use it to set the -Xms and -Xmx arguments
@@ -224,7 +221,7 @@ start()
     checkVersion "12.2.1.4.0"
     IS_12_2_1_4=$?
 
-echo "IS_12_2_1_4 ${IS_12_2_1_4}"
+    echo "IS_12_2_1_4 = ${IS_12_2_1_4}"
 
     if [[ ${IS_12_2_1_4} == 0 ]]
     then
@@ -252,11 +249,11 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
     CLASSPATH="${COH_EXTRA_CLASSPATH}:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar"
 
 #   Create the command line to use to start the JVM
-    CMD="-cp ${CLASSPATH} ${JVM_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
+    CMD="-cp ${CLASSPATH} ${JVM_GC_OPTS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
         -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
         -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
         -Dcoherence.ttl=0 \
-        ${PROPS} ${JAVA_OPTS}"
+        ${PROPS} ${JVM_ARGS}"
 
 #   Dump the full set of environment variables to the console for logging/debugging
     echo "---------------------------------"
@@ -265,6 +262,12 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
     env
     echo "---------------------------------"
 
+    if [[ "${COH_APP_DIR}" != "" ]]
+    then
+      echo "Changing working directory to ${COH_APP_DIR}"
+      cd ${COH_APP_DIR}
+    fi
+
     if [[ "${APP_TYPE}" == "" ]]
     then
       APP_TYPE="java"
@@ -272,7 +275,10 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
 
     if [[ "${APP_TYPE}" == "java" ]]
     then
-      runJava
+      runJava ${JAVA_HOME}/bin/java
+    elif [[ "${APP_TYPE}" == "op-test" ]]
+    then
+      runJava "/utils/op-test"
     else
       runGraal
     fi
@@ -283,7 +289,7 @@ echo "IS_12_2_1_4 ${IS_12_2_1_4}"
 # ---------------------------------------------------------------------------
 runJava()
     {
-    CMD="${JAVA_HOME}/bin/java ${CMD} ${MAIN_CLASS} ${MAIN_ARGS}"
+    CMD="${1} ${CMD} ${MAIN_CLASS} ${MAIN_ARGS}"
 
     echo "---------------------------------"
     echo "Starting the Coherence ${COMMAND} using:"
@@ -298,20 +304,18 @@ runJava()
 # ---------------------------------------------------------------------------
 runGraal()
     {
-    cp ${SCRIPT_DIR}/k8s-mbeans.xml ${COHERENCE_HOME}/conf/k8s-mbeans.xml
-
     CMD=$(echo ${CMD} | sed -e "s/\-cp /--vm.cp /g")
     CMD=$(echo ${CMD} | sed -e "s/\ -D/ --vm.D/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -XX/ --vm.XX/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -Xms/ --vm.Xms/g")
     CMD=$(echo ${CMD} | sed -e "s/\ -Xmx/ --vm.Xmx/g")
 
-    CMD="${APP_TYPE} --polyglot --jvm ${CMD} --vm.Dcoherence.mbeans=k8s-mbeans.xml ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
+    CMD="${APP_TYPE} --polyglot --jvm ${CMD} ${COH_MAIN_CLASS} ${COH_MAIN_ARGS}"
 
-    echo "---------------------------------"
+    echo "--------------------------------------------------------------------"
     echo "Starting the Coherence Graal ${APP_TYPE} ${COMMAND} using:"
     echo "${CMD}"
-    echo "---------------------------------"
+    echo "--------------------------------------------------------------------"
 
     exec ${CMD}
     }
@@ -356,6 +360,14 @@ commonConfiguration()
         PROPS="${PROPS} -Dcoherence.cacheconfig=coherence-cache-config.xml"
     fi
 
+#   Configure the port to publish health on
+    if [[ "${COH_HEALTH_PORT}" != "" ]]
+    then
+        PROPS="${PROPS} -Dcoherence.health.port=${COH_HEALTH_PORT}"
+    else
+        PROPS="${PROPS} -Dcoherence.health.port=6676"
+    fi
+
 #   Configure the port to publish metrics on
     if [[ "${COH_METRICS_PORT}" != "" ]]
     then
@@ -378,11 +390,11 @@ commonConfiguration()
                   SITE=""
                   ;;
               http://*)
-                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  if [[ "${OPERATOR_REQUEST_TIMEOUT}" != "" ]]
                   then
-                    TIMEOUT=${CURL_TIMEOUT}
+                    TIMEOUT=${OPERATOR_REQUEST_TIMEOUT}
                   else
-                    TIMEOUT=30
+                    TIMEOUT=120
                   fi
 
                   SITE=$(curl --silent -m ${TIMEOUT} -X GET ${COH_SITE_INFO_LOCATION})
@@ -408,9 +420,9 @@ commonConfiguration()
                   RACK=""
                   ;;
               http://*)
-                  if [[ "${CURL_TIMEOUT}" != "" ]]
+                  if [[ "${OPERATOR_REQUEST_TIMEOUT}" != "" ]]
                   then
-                    TIMEOUT=${CURL_TIMEOUT}
+                    TIMEOUT=${OPERATOR_REQUEST_TIMEOUT}
                   else
                     TIMEOUT=30
                   fi
@@ -445,12 +457,6 @@ commonConfiguration()
               PROPS="${PROPS} -Dcoherence.rack=${SITE}"
           fi
       fi
-    fi
-
-#   Configure the POF configuration file to use
-    if [[ -n "${COH_POF_CONFIG}" ]]
-    then
-        PROPS="${PROPS} -Dcoherence.pof.config=${COH_POF_CONFIG}"
     fi
 
 #   Configure Coherence persistence

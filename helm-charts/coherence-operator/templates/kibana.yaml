@@ -26,15 +26,8 @@ spec:
         component: kibana
     spec:
 {{- if .Values.imagePullSecrets }}
-  {{- $secretsType := typeOf .Values.imagePullSecrets }}
       imagePullSecrets:
-  {{- if eq $secretsType "string" }}
-      - name: {{ .Values.imagePullSecrets }}
-  {{- else }}
-    {{- range .Values.imagePullSecrets }}
-      - name: {{ . }}
-    {{- end }}
-  {{- end }}
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
 {{- end }}
       initContainers:
         - name: {{ .Chart.Name }}-dashboardimport
