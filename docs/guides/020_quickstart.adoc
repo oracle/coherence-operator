@@ -18,6 +18,82 @@
 
 = Quick Start
 
-== Quick Start Guide
+This guide is a simple set of steps to install the Coherence Operator and then use that
+to install a simple Coherence cluster.
 
-TBD...
+== Prerequisites
+
+Ensure that the <<docs/install/02_prerequisites.adoc,Coherence Operator prerequisites>> are available.
+
+== 1. Install the Coherence Operator
+
+1.1 Add the Coherence Operator Helm repository
+
+[source,bash]
+----
+helm repo add coherence https://oracle.github.io/coherence-operator/charts
+
+helm repo update
+----
+
+1.2. Install the Coherence Operator Helm chart
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --name <release-name> \
+    coherence/coherence-operator
+----
+
+NOTE: Set your preferred namespace and release name, e.g. ` helm install --namespace coherence  --name operator
+coherence/coherence-operator`
+
+See the <<docs/install/01_introduction.adoc, full install guide>> for more details.
+
+== 2. Install a Coherence Cluster
+
+2.1 Install a Coherence cluster using the minimal required configuration.
+
+The minimal required yaml to create a `CoherenceCluster` resource is shown below.
+
+[source,yaml]
+.my-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+----
+
+```
+kubectl -n <namespace> create -f my-cluster.yaml
+```
+
+NOTE: Set the namespace to the same Kubernetes namespace that the Coherence Operator was installed
+into, e.g. `kubectl -n coherence create -f my-cluster.yaml`
+
+
+== 3. List the Coherence Resources
+
+After installing the `my-cluster` yaml above there should be a `CoherenceCluster` resource and a single `CoherenceRole`
+resource created in the Coherence Operator namespace.
+
+3.1 List the Coherence Kubernetes resources
+
+```
+kubectl -n <namespace> get coherence
+```
+
+NOTE: Use the same namespace that the operator was installed into, e.g. `kubectl -n coherence get coherence`
+
+```
+
+```
+
+== 4. Scale Up the Coherence Cluster
+
+```
+kubectl -n <namespace> scale coherencerole/storage --replicas=6
+```
+

@@ -25,6 +25,13 @@
 [PILLARS]
 ====
 [CARD]
+.Quick Start
+[icon=settings,link=guides/020_quickstart.adoc]
+--
+Quick start guide to running your first Coherence cluster using the Coherence Operator.
+--
+
+[CARD]
 .Install
 [icon=settings,link=install/01_introduction.adoc]
 --

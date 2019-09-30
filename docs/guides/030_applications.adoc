@@ -23,3 +23,5 @@ application code and configuration to the Coherence JVMs class path.
 
 == Deploying Coherence Applications
 
+//// TBD... step by step guide to building a Coherence Java server side application,
+//// packaging it into an image and deploying it using the operator.
