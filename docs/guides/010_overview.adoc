@@ -26,7 +26,7 @@
 ====
 [CARD]
 .QuickStart
-[link=guides/quickstart.adoc]
+[link=guides/020_quickstart.adoc]
 --
 Follow step-by-step quick start guide to using the Coherence Operator.
 --

@@ -188,7 +188,7 @@ func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 
 	if in.Scaling == nil || in.Scaling.Policy == nil {
 		// the scaling policy is not set the look at the storage enabled flag
-		if in.Coherence.StorageEnabled == nil || *in.Coherence.StorageEnabled {
+		if in.Coherence == nil || in.Coherence.StorageEnabled == nil || *in.Coherence.StorageEnabled {
 			// storage enabled is either not set or is true so do safe scaling
 			policy = ParallelUpSafeDownScaling
 		} else {

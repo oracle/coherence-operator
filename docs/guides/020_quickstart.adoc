@@ -23,11 +23,11 @@ to install a simple Coherence cluster.
 
 == Prerequisites
 
-Ensure that the <<docs/install/02_prerequisites.adoc,Coherence Operator prerequisites>> are available.
+Ensure that the <<install/02_prerequisites.adoc,Coherence Operator prerequisites>> are available.
 
 == 1. Install the Coherence Operator
 
-1.1 Add the Coherence Operator Helm repository
+=== 1.1 Add the Coherence Operator Helm repository
 
 [source,bash]
 ----
@@ -36,7 +36,7 @@ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 helm repo update
 ----
 
-1.2. Install the Coherence Operator Helm chart
+=== 1.2. Install the Coherence Operator Helm chart
 
 [source,bash]
 ----
@@ -46,16 +46,18 @@ helm install  \
     coherence/coherence-operator
 ----
 
-NOTE: Set your preferred namespace and release name, e.g. ` helm install --namespace coherence  --name operator
-coherence/coherence-operator`
+NOTE: Use the same namespace that the operator was installed into,
+e.g. if the namespace is `coherence` the command would be
+`helm install --namespace coherence  --name operator coherence/coherence-operator`
 
-See the <<docs/install/01_introduction.adoc, full install guide>> for more details.
+See the <<install/01_introduction.adoc, full install guide>> for more details.
 
 == 2. Install a Coherence Cluster
 
-2.1 Install a Coherence cluster using the minimal required configuration.
+=== 2.1 Install a Coherence cluster using the minimal required configuration.
 
 The minimal required yaml to create a `CoherenceCluster` resource is shown below.
+
 
 [source,yaml]
 .my-cluster.yaml
@@ -63,37 +65,97 @@ The minimal required yaml to create a `CoherenceCluster` resource is shown below
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: my-cluster
+  name: my-cluster  <1>
 ----
 
+The only required field is `metadata.name` which will be used as the Coherence cluster name, in this case `my-cluster`
+
 ```
-kubectl -n <namespace> create -f my-cluster.yaml
+kubectl -n <namespace> apply -f my-cluster.yaml
 ```
 
-NOTE: Set the namespace to the same Kubernetes namespace that the Coherence Operator was installed
-into, e.g. `kubectl -n coherence create -f my-cluster.yaml`
+NOTE: Use the same namespace that the operator was installed into,
+e.g. if the namespace is `coherence` the command would be
+`kubectl -n coherence create -f my-cluster.yaml`
 
 
-== 3. List the Coherence Resources
+=== 2.2 List the Coherence Resources
 
-After installing the `my-cluster` yaml above there should be a `CoherenceCluster` resource and a single `CoherenceRole`
-resource created in the Coherence Operator namespace.
-
-3.1 List the Coherence Kubernetes resources
+After installing the `my-cluster.yaml` above here should be a single `coherencecluster` resource  named `my-cluster`
+and a single `coherencerole` resource named `my-cluster-storage` created in the Coherence Operator namespace.
 
 ```
 kubectl -n <namespace> get coherence
 ```
 
-NOTE: Use the same namespace that the operator was installed into, e.g. `kubectl -n coherence get coherence`
+NOTE: Use the same namespace that the operator was installed into, e.g. if the namespace is `coherence` the command
+would be `kubectl -n coherence get coherence`
 
 ```
+NAME                                                    AGE
+coherencerole.coherence.oracle.com/my-cluster-storage   19s
 
+NAME                                               AGE
+coherencecluster.coherence.oracle.com/my-cluster   19s
 ```
 
-== 4. Scale Up the Coherence Cluster
+See the <<clusters/020_k8s_resources.adoc,in-depth documentation>> on the Kubernetes resources created by the
+Coherence Operator.
+
+=== 2.3 List all of the `Pods` for the Coherence cluster.
+
+The Coherence Operator applies a `coherenceCluster` label to all
+of the `Pods` so this label can be used with the `kubectl` command to find `Pods` for a Coherence cluster.
+
+```
+kubectl -n <namespace> get pod -l coherenceCluster=my-cluster
+```
+
+NOTE: Use the same namespace that the operator was installed into,
+e.g. if the namespace is `coherence` the command would be
+`kubectl -n coherence get pod -l coherenceCluster=my-cluster`
+
+```
+NAME                   READY   STATUS    RESTARTS   AGE
+my-cluster-storage-0   1/1     Running   0          2m58s
+my-cluster-storage-1   1/1     Running   0          2m58s
+my-cluster-storage-2   1/1     Running   0          2m58s
+```
+
+The default cluster size is three so there should be three `Pods`
+
+== 3. Scale the Coherence Cluster
+
+=== 3.1 Use kubectl to Scale Up
+
+Using the `kubectl scale` command a specific `CoherenceRole` can be scaled up or down.
 
 ```
 kubectl -n <namespace> scale coherencerole/storage --replicas=6
 ```
 
+NOTE: Use the same namespace that the operator was installed into,
+e.g. if the namespace is `coherence` the command would be
+`kubectl -n coherence scale coherencerole/my-cluster-storage --replicas=6`
+
+=== 3.2 List all of the `Pods` fo the Coherence cluster
+
+```
+kubectl -n <namespace> get pod -l coherenceCluster=my-cluster
+```
+
+NOTE: Use the same namespace that the operator was installed into,
+e.g. if the namespace is `coherence` the command would be
+`kubectl -n coherence get pod -l coherenceCluster=my-cluster`
+
+```
+NAME                   READY   STATUS    RESTARTS   AGE
+my-cluster-storage-0   1/1     Running   0          4m23s
+my-cluster-storage-1   1/1     Running   0          4m23s
+my-cluster-storage-2   1/1     Running   0          4m23s
+my-cluster-storage-3   1/1     Running   0          1m19s
+my-cluster-storage-4   1/1     Running   0          1m19s
+my-cluster-storage-5   1/1     Running   0          1m19s
+```
+
+There should eventually be six running `Pods`.
