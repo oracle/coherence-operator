@@ -19,7 +19,7 @@ def archiveAndCleanup() {
             kubectl delete clusterrole $TEST_NAMESPACE-coherence-operator || true
             kubectl delete clusterrolebinding $TEST_NAMESPACE-coherence-operator-cluster || true
             kubectl delete namespace $TEST_NAMESPACE --force --grace-period=0 || true
-            make delete-coherence-clusters
+            make delete-coherence-clusters || true
             make uninstall-crds || true
         '''
     }
