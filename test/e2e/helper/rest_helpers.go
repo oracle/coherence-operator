@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Initialise the canary test in the role being scaled.
@@ -48,13 +49,21 @@ func canary(namespace, clusterName, roleName, endpoint, method string) error {
 
 	url := fmt.Sprintf("http://127.0.0.1:%d/%s", ports["rest"], endpoint)
 	client := &http.Client{}
-	request, err := http.NewRequest(method, url, strings.NewReader(""))
-	if err != nil {
-		return err
+
+	var resp *http.Response
+	// try a max of 5 times
+	for i := 0; i < 5; i++ {
+		request, err := http.NewRequest(method, url, strings.NewReader(""))
+		if err == nil {
+			request.ContentLength = 0
+			resp, err = client.Do(request)
+			if err == nil {
+				break;
+			}
+		}
+		time.Sleep(5 * time.Second)
 	}
 
-	request.ContentLength = 0
-	resp, err := client.Do(request)
 	if err != nil {
 		return err
 	}
