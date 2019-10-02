@@ -241,7 +241,11 @@ $(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
 test-operator: export CGO_ENABLED = 0
 test-operator: build-operator
 	@echo "Running operator tests"
-	$(GO_TEST_CMD) test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/...
+	go test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/... ./pkg/helm_test/... \
+	2>&1 | tee $(TEST_LOGS_DIR)/operator-test.out
+	go run ./cmd/testreports/ -fail -suite-name-prefix=operator-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-test.xml
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
