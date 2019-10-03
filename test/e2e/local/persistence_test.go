@@ -23,6 +23,7 @@ import (
 	"net/http"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"testing"
+	"time"
 )
 
 type snapshotActionType int
@@ -181,11 +182,18 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest(httpMethod, url, nil)
-	if err != nil {
-		return err
+	var resp *http.Response
+	// try a max of 5 times
+	for i := 0; i < 5; i++ {
+		req, err := http.NewRequest(httpMethod, url, nil)
+		if err == nil {
+			resp, err = client.Do(req)
+			if err == nil {
+				break;
+			}
+		}
+		time.Sleep(5 * time.Second)
 	}
-	resp, err := client.Do(req)
 
 	if err != nil {
 		return err
