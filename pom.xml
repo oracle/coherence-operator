@@ -63,7 +63,7 @@
     <mockito.version>2.18.3</mockito.version>
 
     <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>12.2.1-4-0-74841</coherence.version>
+    <coherence.version>12.2.1-4-0</coherence.version>
 
     <!-- Image prefix used to differentiate builds during CI/CD -->
     <test.image.prefix>SET test.image.prefix TO THE REGISTRY YOUR KUBERNETES CLUSTER WILL USE</test.image.prefix>
@@ -79,7 +79,7 @@
 
     <!-- the Coherence image to use when running functional tests -->
     <coherence.image.prefix>container-registry.oracle.com/middleware/</coherence.image.prefix>
-    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74841</test.coherence.image>
+    <test.coherence.image>${coherence.image.prefix}coherence:12.2.1.4.0-b74888</test.coherence.image>
   </properties>
 
   <dependencyManagement>
