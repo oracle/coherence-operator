@@ -22,32 +22,30 @@ Creating a Coherence cluster using the Coherence Operator is as simple as creati
 
 == Create CoherenceCluster Resources
 
-The Coherence Operator uses a Kubernetes `CustomResourceDefinition` named `CoherenceCluster` to define the `spec` for a
-Coherence cluster.
-All of the fields of the `CoherenceCluster` crd are optional so a Coherence cluster can be created with yaml as
-simple as the following:
+The Coherence Operator uses the Kubernetes customer resource (CRD) named `CoherenceCluster` to define the `spec` for a
+Coherence Cluster.
+All the fields in the `CoherenceCluster` CRD are optional and a simple Coherence cluster can be created using `yaml` as
+follows:
 
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: my-cluster  <1>
+  name: my-cluster  
 ----
 
-<1> The `metadata.name` field will be used as the Coherence cluster name.
+The `metadata.name` field defines the cluster name.
 
-The yaml above will create a Coherence cluster with three storage enabled members. 
-There is not much that can actually be achived with this cluster because no ports are exposed outside of Kubernetes
-so the cluster is inaccessible. It could be accessed by other `Pods` in the same
+Using this `yaml` configuration, you can create a Coherence Cluster with three storage enabled members. The cluster created is inaccessible as there are no ports exposed outside of Kubernetes. The cluster is accessible by other `Pods` in the same namespace.
 
 == Coherence Roles
 
-A role is what is actually configured in the `CoherenceCluster` spec. In a traditional Coherence application that may have
-had a number of storage enabled members and a number of storage disable Coherence*Extend proxy members this cluster would
-have effectively had two roles, "storage" and "proxy".
-Some clusters may simply have just a storage role and some complex Coherence applications and clusters may have many roles
-and even different roles storage enabled for different caches/services within the same cluster.
+You can configure the role of a cluster in the `CoherenceCluster` spec. A cluster can have zero to many roles defined in the spec. 
+
+For example, a Coherence application that has a number of storage enabled members and storage disabled Coherence*Extend proxy members, the cluster must have two roles, `storage` and `proxy`.
+
+Some clusters can just have a storage role with some complex Coherence applications while some cluster can have many roles and even different roles of storage enabled for different caches or services within the same cluster.
 
 
 
