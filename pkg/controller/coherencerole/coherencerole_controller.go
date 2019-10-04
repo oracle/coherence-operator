@@ -235,7 +235,7 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	switch {
 	case replicas <= 0:
 		// this is effectively a delete
-		return r.scaleDownToZero(cluster, role)
+		return r.scaleDownToZero(cluster, role, helmValues)
 	case err != nil && errors.IsNotFound(err):
 		// Helm values was not found so this is an insert of a new role
 		return r.createRole(cluster, role)
@@ -438,13 +438,16 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 }
 
 // scaleDownToZero is called in response to the replica count of a role being set to zero.
-func (r *ReconcileCoherenceRole) scaleDownToZero(cluster *coh.CoherenceCluster, role *coh.CoherenceRole) (reconcile.Result, error) {
+func (r *ReconcileCoherenceRole) scaleDownToZero(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, cohInt *unstructured.Unstructured) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
 	logger.Info("Scaling existing Coherence Role to zero")
 
+	// Delete the CoherenceInternal causing a Helm delete of the Pods
+	if err := r.client.Delete(context.TODO(), cohInt); err != nil {
+		return r.handleErrAndRequeue(err, role, fmt.Sprintf(scaleToZeroFailed, role.Name, err), logger)
+	}
+
 	// Update the role in the parent CoherenceCluster to have zero replicas.
-	// This will trigger a delete of the role and subsequently a cascading delete
-	// of the CoherenceInternal and a Helm delete of the Pods
 	clusterRole := cluster.GetRole(role.Spec.GetRoleName())
 	clusterRole.SetReplicas(0)
 	cluster.SetRole(role.Spec)
