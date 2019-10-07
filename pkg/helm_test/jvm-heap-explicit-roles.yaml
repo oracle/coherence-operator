@@ -6,7 +6,9 @@ spec:
   roles:
     - role: data
       jvm:
-        heapSize: 1g
+        memory:
+          heapSize: 1g
     - role: proxy
       jvm:
-        heapSize: 500m
+        memory:
+          heapSize: 500m

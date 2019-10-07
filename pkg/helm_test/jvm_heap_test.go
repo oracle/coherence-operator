@@ -30,8 +30,8 @@ func TestJvmHeapSizeWhenNotSetInMinimalCluster(t *testing.T) {
 	container, err := findContainer(sts, coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// Assert that the MAX_HEAP env-var is not set
-	g.Expect(container.Env).NotTo(HaveEnvVarNamed("MAX_HEAP"))
+	// Assert that the JVM_HEAP_SIZE env-var is not set
+	g.Expect(container.Env).NotTo(HaveEnvVarNamed("JVM_HEAP_SIZE"))
 }
 
 func TestJvmHeapSizeWhenSetForImplicitRole(t *testing.T) {
@@ -46,7 +46,7 @@ func TestJvmHeapSizeWhenSetForImplicitRole(t *testing.T) {
 	container, err := findContainer(sts, coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "1g"}))
+	g.Expect(container.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "1g"}))
 }
 
 func TestJvmHeapSizeWhenNotSetInClusterWithExplicitRoles(t *testing.T) {
@@ -62,7 +62,7 @@ func TestJvmHeapSizeWhenNotSetInClusterWithExplicitRoles(t *testing.T) {
 		container, err := findContainer(sts, coherenceContainer)
 		g.Expect(err).NotTo(HaveOccurred())
 
-		g.Expect(container.Env).NotTo(HaveEnvVarNamed("MAX_HEAP"))
+		g.Expect(container.Env).NotTo(HaveEnvVarNamed("JVM_HEAP_SIZE"))
 	}
 }
 
@@ -74,11 +74,11 @@ func TestJvmHeapSizeWhenDefaultSetInClusterWithExplicitRoles(t *testing.T) {
 
 	dataContainer, err := findContainerForRole(result, cluster, "data", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "1g"}))
+	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "1g"}))
 
 	proxyContainer, err := findContainerForRole(result, cluster, "proxy", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "1g"}))
+	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "1g"}))
 }
 
 func TestJvmHeapSizeWhenDefaultSetAndOverriddenInClusterWithExplicitRoles(t *testing.T) {
@@ -89,11 +89,11 @@ func TestJvmHeapSizeWhenDefaultSetAndOverriddenInClusterWithExplicitRoles(t *tes
 
 	dataContainer, err := findContainerForRole(result, cluster, "data", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "1g"}))
+	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "1g"}))
 
 	proxyContainer, err := findContainerForRole(result, cluster, "proxy", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "500m"}))
+	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "500m"}))
 }
 
 func TestJvmHeapSizeWhenSetInClusterWithExplicitRoles(t *testing.T) {
@@ -104,9 +104,9 @@ func TestJvmHeapSizeWhenSetInClusterWithExplicitRoles(t *testing.T) {
 
 	dataContainer, err := findContainerForRole(result, cluster, "data", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "1g"}))
+	g.Expect(dataContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "1g"}))
 
 	proxyContainer, err := findContainerForRole(result, cluster, "proxy", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "MAX_HEAP", Value: "500m"}))
+	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "500m"}))
 }

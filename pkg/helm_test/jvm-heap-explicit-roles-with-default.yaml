@@ -4,7 +4,8 @@ metadata:
   name: test-cluster
 spec:
   jvm:
-    heapSize: 1g
+    memory:
+      heapSize: 1g
   roles:
     - role: data
     - role: proxy

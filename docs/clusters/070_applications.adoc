@@ -735,27 +735,28 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: lib               <1>
-    main: com.acme.Main       <2>
-    args:                     <3>
+    libDir: lib               # <1>
+    main: com.acme.Main       # <2>
+    args:                     # <3>
       - "argOne"
       - "argTwo"
   roles:
-    - role: data              <4>
+    - role: data              # <4>
     - role: proxy
       application:
-        args:                 <5>
+        args:                 # <5>
           - "argThree"
           - "argFour"
     - role: web
       application:
-        args: []              <6>
+        args: []              # <6>
 ----
 
 <1> The application image should contain a directory named `/lib` that will contain the `.jar` files containing the
 application classes and dependencies.
 <2> One of those classes will be `com.acme.Main` which will be executed as the main class for all roles that do not
 specifically specify a `main`.
+<3> The default args are `"argOne"` and `"argTwo"`
 <4> The `data` role does not specify an `args` field so the Coherence JVM in the `Pods` for the `data` role will all use
 the default arguments of `"argOne"` and `"argTwo"`
 <5> The `proxy` role specifies different arguments. The arguments `"argThree"` and `"argFour"` will be passed to the

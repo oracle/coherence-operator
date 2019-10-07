@@ -11,12 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	corev1 "k8s.io/api/core/v1"
-	"testing"
 )
-
-func TestApplicationSpecDeepCopyWithDefaults(t *testing.T) {
-
-}
 
 var _ = Describe("Testing ApplicationSpec struct", func() {
 
