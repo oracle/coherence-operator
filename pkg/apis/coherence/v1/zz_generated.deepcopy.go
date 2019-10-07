@@ -748,6 +748,11 @@ func (in *JvmMemorySpec) DeepCopyInto(out *JvmMemorySpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DirectMemorySize != nil {
+		in, out := &in.DirectMemorySize, &out.DirectMemorySize
+		*out = new(string)
+		**out = **in
+	}
 	if in.NativeMemoryTracking != nil {
 		in, out := &in.NativeMemoryTracking, &out.NativeMemoryTracking
 		*out = new(string)

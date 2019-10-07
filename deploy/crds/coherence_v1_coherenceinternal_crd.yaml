@@ -449,7 +449,9 @@ spec:
                       description: The name of the JVM garbage collector to use. G1
                         - adds the -XX:+UseG1GC option CMS - adds the -XX:+UseConcMarkSweepGC
                         option Parallel - adds the -XX:+UseParallelGC Default - use
-                        the JVMs default collector If not set G1 is used
+                        the JVMs default collector The field value is case insensitive
+                        If not set G1 is used. If set to a value other than those
+                        above then the default collector for the JVM will be used.
                       type: string
                     logging:
                       description: Enable the following GC logging args  -verbose:gc
@@ -468,8 +470,8 @@ spec:
                         used.
                       type: string
                     metaspaceSize:
-                      description: HeapSize is the min/max metaspace size to pass
-                        to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size
+                      description: MetaspaceSize is the min/max metaspace size to
+                        pass to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size
                         JVM options. If not set the JVM defaults are used.
                       type: string
                     nativeMemoryTracking:

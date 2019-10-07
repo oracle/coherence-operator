@@ -926,11 +926,16 @@ type JvmMemorySpec struct {
 	// If not set the JVM defaults are used.
 	// +optional
 	StackSize *string `json:"stackSize,omitempty"`
-	// HeapSize is the min/max metaspace size to pass to the JVM.
+	// MetaspaceSize is the min/max metaspace size to pass to the JVM.
 	// This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size JVM options.
 	// If not set the JVM defaults are used.
 	// +optional
 	MetaspaceSize *string `json:"metaspaceSize,omitempty"`
+	// DirectMemorySize sets the maximum total size (in bytes) of the New I/O (the java.nio package) direct-buffer
+	// allocations. This value sets the -XX:MaxDirectMemorySize JVM option.
+	// If not set the JVM defaults are used.
+	// +optional
+	DirectMemorySize *string
 	// Adds the -XX:NativeMemoryTracking=mode  JVM options
 	// where mode is on of "off", "summary" or "detail", the default is "summary"
 	// If not set to "off" also add -XX:+PrintNMTStatistics
@@ -974,6 +979,12 @@ func (in *JvmMemorySpec) DeepCopyWithDefaults(defaults *JvmMemorySpec) *JvmMemor
 		clone.MetaspaceSize = in.MetaspaceSize
 	} else {
 		clone.MetaspaceSize = defaults.MetaspaceSize
+	}
+
+	if in.DirectMemorySize != nil {
+		clone.DirectMemorySize = in.DirectMemorySize
+	} else {
+		clone.DirectMemorySize = defaults.DirectMemorySize
 	}
 
 	if in.NativeMemoryTracking != nil {
