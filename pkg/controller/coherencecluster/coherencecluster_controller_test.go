@@ -340,18 +340,28 @@ var _ = Describe("coherencecluster_controller", func() {
 			var zero int32 = 0
 			var three int32 = 3
 
+			var existingRoleSpec coherence.CoherenceRoleSpec
+			var updatedRoleSpec coherence.CoherenceRoleSpec
+
 			BeforeEach(func() {
+				existingRoleSpec = coherence.CoherenceRoleSpec{
+					Role:     "data",
+					Replicas: &three,
+				}
+
+				updatedRoleSpec = coherence.CoherenceRoleSpec{
+					Role:     "data",
+					Replicas: &zero,
+				}
+
 				existing = []runtime.Object{
 					&coherence.CoherenceRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Namespace: testNamespace,
-							Name:      testClusterName + "-storage",
+							Name:      testClusterName + "-data",
 							Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 						},
-						Spec: coherence.CoherenceRoleSpec{
-							Role:     "storage",
-							Replicas: &three,
-						},
+						Spec: existingRoleSpec,
 					},
 				}
 
@@ -361,9 +371,7 @@ var _ = Describe("coherencecluster_controller", func() {
 						Name:      testClusterName,
 					},
 					Spec: coherence.CoherenceClusterSpec{
-						Roles: []coherence.CoherenceRoleSpec{
-							{Role: "storage", Replicas: &zero},
-						},
+						Roles: []coherence.CoherenceRoleSpec{updatedRoleSpec},
 					},
 				}
 			})
@@ -382,18 +390,21 @@ var _ = Describe("coherencecluster_controller", func() {
 					Expect(exists).To(BeFalse())
 				})
 
-				It("should delete the CoherenceRole", func() {
-					mgr.AssertCoherenceRoles(testNamespace, 0)
+				It("should not delete the CoherenceRole", func() {
+					mgr.AssertCoherenceRoles(testNamespace, 1)
+					name := existingRoleSpec.GetFullRoleName(cluster)
+					role := mgr.AssertCoherenceRoleExists(testNamespace, name)
+					Expect(role.Spec).To(Equal(updatedRoleSpec))
 				})
 
-				It("should fire a successful CoherenceRole delete event", func() {
-					roleName := testClusterName + "-storage"
-					msg := fmt.Sprintf(deleteEventMessage, roleName, testClusterName)
+				It("should fire a successful CoherenceRole update event", func() {
+					roleName := testClusterName + "-data"
+					msg := fmt.Sprintf(updateEventMessage, roleName, testClusterName)
 					event := mgr.AssertEvent()
 
 					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
-					Expect(event.Reason).To(Equal(eventReasonDeleted))
+					Expect(event.Reason).To(Equal(eventReasonUpdated))
 					Expect(event.Message).To(Equal(msg))
 
 					mgr.AssertNoRemainingEvents()

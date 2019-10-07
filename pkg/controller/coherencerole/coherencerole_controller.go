@@ -456,6 +456,10 @@ func (r *ReconcileCoherenceRole) scaleDownToZero(cluster *coh.CoherenceCluster, 
 		return r.handleErrAndRequeue(err, role, fmt.Sprintf(scaleToZeroFailed, role.Name, err), logger)
 	}
 
+	// send a successful update event
+	msg := fmt.Sprintf(updateMessage, role.Name, role.Name)
+	r.events.Event(role, corev1.EventTypeNormal, eventReasonUpdated, msg)
+
 	return reconcile.Result{Requeue: false}, nil
 }
 
@@ -492,7 +496,7 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 		reqLogger.Error(err, "failed to update Status")
 	}
 
-	// send a successful scale event
+	// send a successful update event
 	msg := fmt.Sprintf(updateMessage, role.Name, role.Name)
 	r.events.Event(role, corev1.EventTypeNormal, eventReasonUpdated, msg)
 
