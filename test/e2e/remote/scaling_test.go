@@ -202,10 +202,6 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 	err = helper.WaitForDeletion(f, namespace, roleFullName, &u, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// Wait for deletion of the CoherenceRole
-	err = helper.WaitForDeletion(f, namespace, roleFullName, &cohv1.CoherenceRole{}, time.Second*5, time.Minute*5)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	// The CoherenceCluster should still exist
 	cl := cohv1.CoherenceCluster{}
 	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cluster.Name}, &cl)
@@ -213,6 +209,12 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 	// The replica count for the role spec in the cluster should be zero
 	r := cl.GetRole(roleSpec.GetRoleName())
 	g.Expect(r.GetReplicas()).To(Equal(zero))
+
+	// wait for the role to match the condition
+	fullName := r.GetFullRoleName(&cluster)
+	condition := helper.ReplicasRoleCondition(0)
+	_, err = helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*5, t)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 // installSimpleCluster installs a cluster and asserts that the underlying StatefulSet resources reach the correct state.
