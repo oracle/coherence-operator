@@ -21,7 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 	"net/http"
+	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -112,7 +114,13 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
-	if isRestart {
+	localStorageEnv := os.Getenv("LOCAL_STORAGE")
+	localStorage, err := strconv.ParseBool(localStorageEnv)
+	if err != nil {
+		localStorage = false
+	}
+	// restart Coherence may be on a different instance, local storage will not work
+	if isRestart && !localStorage {
 		// delete the cluster
 		helper.WaitForCoherenceInternalCleanup(f, ns)
 
@@ -129,8 +137,11 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	}
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, cluster.Name, roleName)
+	err = helper.CheckCanary(ns, cluster.GetName(), roleName)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	// cleanup the data
+	_ = helper.ClearCanary(ns, cluster.GetName(), roleName)
 }
 
 func ensureClusterPods(g *GomegaWithT, ctx *framework.TestCtx, yamlFile, ns string, t *testing.T) (v1.CoherenceCluster, []corev1.Pod) {
