@@ -71,6 +71,9 @@ TEST_NAMESPACE ?= operator-test
 
 CREATE_TEST_NAMESPACE ?= true
 
+# Use local storage class for persistence
+LOCAL_STORAGE ?= false
+
 IMAGE_PULL_SECRETS ?=
 IMAGE_PULL_POLICY  ?=
 
@@ -267,6 +270,7 @@ e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+e2e-local-test: export LOCAL_STORAGE := $(LOCAL_STORAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \

@@ -9,6 +9,7 @@ package helper
 import (
 	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
@@ -69,7 +70,14 @@ func canary(namespace, clusterName, roleName, endpoint, method string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("expected http response %d but received %d from '%s'", http.StatusOK, resp.StatusCode, url)
+		defer resp.Body.Close()
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		bodyString := ""
+		if err == nil {
+			bodyString = string(bodyBytes)
+		}
+		return fmt.Errorf("expected http response %d but received %d from '%s' with body '%s'",
+			http.StatusOK, resp.StatusCode, url, bodyString)
 	}
 
 	return nil
