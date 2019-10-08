@@ -249,7 +249,7 @@ start()
 
     if [[ "${JVM_STACK_SIZE}" != "" ]]
     then
-        MEM_OPTS="${MEM_OPTS} -Xss=${JVM_DIRECT_MEMORY_SIZE}"
+        MEM_OPTS="${MEM_OPTS} -Xss=${JVM_STACK_SIZE}"
     fi
 
     if [[ "${JVM_METASPACE_SIZE}" != "" ]]

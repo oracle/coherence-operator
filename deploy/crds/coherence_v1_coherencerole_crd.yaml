@@ -444,6 +444,12 @@ spec:
                 memory:
                   description: Configure the JVM memory options.
                   properties:
+                    directMemorySize:
+                      description: DirectMemorySize sets the maximum total size (in
+                        bytes) of the New I/O (the java.nio package) direct-buffer
+                        allocations. This value sets the -XX:MaxDirectMemorySize JVM
+                        option. If not set the JVM defaults are used.
+                      type: string
                     heapSize:
                       description: HeapSize is the min/max heap value to pass to the
                         JVM. The format should be the same as that used for Java's

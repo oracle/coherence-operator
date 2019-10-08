@@ -41,7 +41,7 @@ func TestBasicHelmInstall(t *testing.T) {
 	//g.Expect(err).ToNot(HaveOccurred())
 
 	// Create a HelmReleaseManager with a release name and values
-	hm, err := helmHelper.NewOperatorHelmReleaseManager("operator", &values)
+	hm, err := helmHelper.NewOperatorHelmReleaseManager("basic", &values)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Defer cleanup (helm delete) to make sure it happens when this method exits

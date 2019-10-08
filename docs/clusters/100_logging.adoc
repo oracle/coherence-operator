@@ -65,7 +65,7 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    logLevel: 5 <1>
+    logLevel: 5  # <1>
 ----
 
 <1> The implicit role will have a Coherence log level of `5`
@@ -82,10 +82,10 @@ spec:
   roles:
     - role: data
       coherence:
-        logLevel: 9 <1>
+        logLevel: 9 # <1>
     - role: proxy
       coherence:
-        logLevel: 5 <2>
+        logLevel: 5 # <2>
 ----
 
 <1> The `data` role will have a Coherence log level of `9`
@@ -101,13 +101,13 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    logLevel: 9 <1>
+    logLevel: 9      # <1>
   roles:
     - role: data
     - role: proxy
     - role: web
       coherence:
-        logLevel: 5 <2>
+        logLevel: 5  # <2>
 ----
 
 <1> The `data` and `proxy` roles will use the default Coherence log level of `9`
@@ -152,10 +152,10 @@ spec:
   roles:
     - role: data
       logging:
-        configFile: data-logging.properties <1>
+        configFile: data-logging.properties   # <1>
     - role: proxy
       logging:
-        configFile: proxy-logging.properties <2>
+        configFile: proxy-logging.properties  # <2>
 ----
 
 <1> The `data` role will use the `data-logging.properties` logging configuration file
@@ -172,13 +172,13 @@ metadata:
   name: test-cluster
 spec:
   logging:
-    configFile: app-logging.properties <1>
+    configFile: app-logging.properties     # <1>
   roles:
     - role: data
     - role: proxy
     - role: web
       logging:
-        configFile: web-logging.properties <2>
+        configFile: web-logging.properties # <2>
 ----
 
 <1> The `app-logging.properties` logging configuration file is set as the default ans will be used by the `data` and

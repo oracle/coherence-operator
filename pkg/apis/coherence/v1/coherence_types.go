@@ -935,7 +935,7 @@ type JvmMemorySpec struct {
 	// allocations. This value sets the -XX:MaxDirectMemorySize JVM option.
 	// If not set the JVM defaults are used.
 	// +optional
-	DirectMemorySize *string
+	DirectMemorySize *string `json:"directMemorySize,omitempty"`
 	// Adds the -XX:NativeMemoryTracking=mode  JVM options
 	// where mode is on of "off", "summary" or "detail", the default is "summary"
 	// If not set to "off" also add -XX:+PrintNMTStatistics

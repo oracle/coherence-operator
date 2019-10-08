@@ -69,7 +69,7 @@ backend:
               items:
                 - includes:
                     - "install/*.adoc"
-            - title: "Coherence Clusters"
+            - title: "Coherence CRD Reference"
               pathprefix: "/clusters"
               glyph:
                 type: "icon"

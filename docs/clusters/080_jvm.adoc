@@ -16,9 +16,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Configure the Coherence JVM
+= Configure the JVM
 
-== Configure the Coherence JVM
+== Configure the JVM
 
 There are a number of fields in the `CoherenceCluster` CRD that can be used to configure the JVM.
 These fields are all in the `jvm` section when configuring a `role` in the CRD.
@@ -40,21 +40,14 @@ These fields are all in the `jvm` section when configuring a `role` in the CRD.
 * <<#diagnosticsVolume,Diagnostic Volume>>
 * <<debug#,JVM Debug Arguments>>
 
-
-// ----- JVM Arguments -------------------------------------------------------------------------------------------------
-'''
-[#args]
-== JVM Arguments
-
-The `jvm.args` field is a string array of arbitrary JVM options. Any valid JVM option or system property argument may be
-passed to the JVM in the Coherence container by setting the value in this field.
-
-A number of arguments are always passed to the JVMs that are part of the Coherence cluster:
+The following sections describe the different JVM configuration options available in the `CoherenceCluster` CRD.
+These CRD fields all result in the addition or omission of various JVM arguments.
+A number of arguments are always passed to the Coherence container's JVM:
 
 ```
 -XX:HeapDumpPath=/jvm/${POD_NAME}/${POD_UID}/heap-dumps/${POD_NAME}-${POD_UID}.hprof  <1>
 -XX:ErrorFile=/jvm/${POD_NAME}/${POD_UID}/hs-err-${POD_NAME}-${POD_UID}.log           <2>
--Dcoherence.ttl=0
+-Dcoherence.ttl=0                                                                     <3>
 -XshowSettings:all
 -XX:+PrintCommandLineFlags
 -XX:+PrintFlagsFinal
@@ -67,10 +60,19 @@ A number of arguments are always passed to the JVMs that are part of the Coheren
 `/jvm/${POD_NAME}/${POD_UID}/heap-dumps/${POD_NAME}-${POD_UID}.hprof`
 <2> Any error files created by a JVM crash will be written to a file called
 `/jvm/${POD_NAME}/${POD_UID}/hs-err-${POD_NAME}-${POD_UID}.log`
+<3> Coherence multicast discovery is disabled as multicast cannot be relied on in containers
 
 The `/jvm` root directory used for heap dumps and error files can be
 <<#diagnosticsVolume,mounted to an external volume>> to allow easier access to these files.
 
+
+// ----- JVM Arguments -------------------------------------------------------------------------------------------------
+'''
+[#args]
+== JVM Arguments
+
+The `jvm.args` field is a string array of arbitrary JVM options. Any valid JVM option or system property argument may be
+passed to the JVM in the Coherence container by setting the value in this field.
 
 === Setting the JVM Arguments for the Implicit Role
 
@@ -128,8 +130,10 @@ explicit `proxy` role.
 === Setting the JVM Arguments for Explicit Roles with a Default
 
 When creating a `CoherenceCluster` with one or more explicit roles a default `args` value can be set in the
-`CoherenceCluster` `spec` section that will apply to all of the roles in the `roles` list. Any `args` set explicitly
-in the `jvm.args` field for a `role` will be *merged* with those in the defaults section. For example:
+`CoherenceCluster` `spec` section that will apply to all of the roles in the `roles` list.
+
+NOTE: Any `args` set explicitly in the `jvm.args` field for a `role` will be *merged* with those in the defaults
+section.
 
 [source,yaml]
 ----
@@ -165,7 +169,8 @@ for *all* roles.
 
 The `CoherenceCluster` CRD allows garbage collector settings to be applied to the Coherence JVMs. Whilst any GC
 parameters could actually be applied using the `jvm.args` field these GC specific fields allow options to be set
-without having to look up and remember specific GC options.
+without having to look up and remember specific GC options. The garbage collector configuration is set in the
+`jvm.gc` section of the CRD.
 
 * <<#gc-collector,Configuring the Garbage Collector to Use>>
 * <<#gc-args,Configuring the Garbage Collector Arguments>>
@@ -177,7 +182,116 @@ without having to look up and remember specific GC options.
 === Configuring the Garbage Collector to Use
 
 The `CoherenceCluster` CRD supports setting the garbage collectors to use automatically. The supported collectors are
-G1, CMS or Parallel or the JVM default.
+`G1`, `CMS`, `Parallel` or the JVM default.
+The garbage collector to use is set using the `jvm.gc.collector` field.
+The value sould be one of:
+
+[cols=2*,options=header]
+|===
+|Value
+|Description
+
+|`G1`
+|Enables the G1 garbage collector by adding the `-XX:+UseG1GC` JVM option
+
+|`CMS`
+|Enables the CMS garbage collector by adding the `-XX:+UseConcMarkSweepGC` JVM option
+
+|`Parallel`
+|Enables the parallel garbage collector by adding the `-XX:+UseParallelGC` JVM option
+
+|`Default`
+|Deos not add any extra GC parameter; the JVM will use its default garbage collector
+
+...
+|===
+
+The `jvm.gc.collector` value is not case sensitive so for example `CMS`, `cms` and `CmS` will all enable the `CMS`
+collector.
+The contents of the `jvm.gc.collector` are not validated, any value other than those described above will be treated
+as `Default` enabling the JVMs default garbage collector.
+
+NOTE: The default value for `jvm.gc.collector` is `G1` which will enable the recommended G1 garbage collector.
+
+==== Setting the Garbage Collector for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role the garbage collector to use is set in the `spec`
+section of the yaml. For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      collector: CMS  # <1>
+----
+
+The implicit storage role will use the `CMS` garbage collector.
+
+==== Setting the Garbage Collector for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles the garbage collector to use is set in the
+`jvm.gc.collector` section for each role.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        gc:
+          collector: G1   # <1>
+    - role: proxy
+      jvm:
+        gc:
+          collector: CMS  # <2>
+----
+
+<1> The JVMs for the `data` role will use the G1 garbage collector
+<2> The JVMs for the `proxy` role will use the CMS garbage collector
+
+
+==== Setting the Garbage Collector for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default garbage collector can be set in the
+`spec.jvm.gc.collector` field of the CRD. This value can then be overridden for specific roles in the `jvm.gc.collector`
+field for each role in the `roles` list.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      collector: CMS     # <1>
+  roles:
+    - role: data         # <2>
+      jvm:
+        gc:
+          collector: G1
+    - role: proxy        # <3>
+----
+
+<1> The default garbage collector us set to `CMS` which will be used by all roles in the `roles` list that do not
+set a specific collector to use.
+<2> The `data` role overrides the default collector so that the JVMs for the `data` role will use the G1 garbage
+collector
+<3> The `proxy` role does not specify a collector to use so that JVMs for the `proxy` role will use the CMS garbage
+collector
 
 
 // ----- Garbage Collector Arguments -----------------------------------------------------------------------------------
@@ -185,12 +299,202 @@ G1, CMS or Parallel or the JVM default.
 [#gc-args]
 === Configuring Garbage Collector Arguments
 
+Arbitrary GC arguments can be passed to the JVM in the `jvm.gc.args` field. This field is a string array where each
+argument to be passed to the JVM is a separate string value.
+
+==== Setting Garbage Collector Arguments for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role the GC arguments are set in the `spec.jvm.gc.args` field.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      args:                           # <1>
+        - "-XX:MaxGCPauseMillis=500"
+        - "-XX:G1ReservePercent=20"
+----
+
+<1> The implicit storage role will have the additional GC arguments `-XX:MaxGCPauseMillis=500` and
+`-XX:G1ReservePercent=20` passed to the JVM.
+
+==== Setting Garbage Collector Arguments for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles the GC arguments are set in the `jvm.gc.args` field
+for each role in the `roles` list.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        gc:
+          args:                            # <1>
+            - "-XX:MaxGCPauseMillis=500"
+            - "-XX:G1ReservePercent=20"
+    - role: proxy
+      jvm:
+        gc:
+          args:                            # <2>
+            - "-XX:MaxGCPauseMillis=1000"
+----
+
+<1> The explicit `data` role will have the additional GC arguments `-XX:MaxGCPauseMillis=500` and
+`-XX:G1ReservePercent=20` passed to the JVM.
+<2> The explicit `proxy` role will have the additional GC argument `-XX:MaxGCPauseMillis=1000` passed to the JVM.
+
+
+==== Setting Garbage Collector Arguments for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default GC arguments are set in the
+`spec.jvm.gc.args` field and will be applied to all roles in the roles list that do not set specific GC arguments.
+
+NOTE: GC arguments set for explicit roles override the defaults. The role's GC arguments are *not merged* with the
+default GC arguments.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      args:                                # <1>
+        - "-XX:MaxGCPauseMillis=500"
+        - "-XX:G1ReservePercent=20"
+  roles:
+    - role: data                           # <2>
+    - role: proxy
+      jvm:
+        gc:
+          args:                            # <3>
+            - "-XX:MaxGCPauseMillis=1000"
+----
+
+<1> The default GC arguments are `-XX:MaxGCPauseMillis=500` and `-XX:G1ReservePercent=20`
+<2> The `data` role does not specify any GC arguments so the default arguments of `-XX:MaxGCPauseMillis=500` and
+`-XX:G1ReservePercent=20` will be passed to the `data` role JVMs.
+<3> The `proxy` role specifies the GC arguments `-XX:MaxGCPauseMillis=1000` which will *override* the defaults so only
+`-XX:MaxGCPauseMillis=1000` will be passed to the `proxy` role JVMs.
+
 
 // ----- Garbage Collector Logging -------------------------------------------------------------------------------------
 
 [#gc-logging]
 === Configuring Garbage Collector Logging
 
+The Coherence documentation recommends enabling GC logging for Coherence JVMs. To this end the `CoherenceCluster` CRD
+has a boolean field `jvm.gc.logging` to enable or disable default GC logging JVM arguments. By default the value of this
+field is set to `true` if it is not specified for a `CoherenceCluster`.
+
+The following GC logging JVM arguments are added if the `jvm.gc.logging` field is omitted or explicitly set to `true`:
+```
+-verbose:gc
+-XX:+PrintGCDetails
+-XX:+PrintGCTimeStamps
+-XX:+PrintHeapAtGC
+-XX:+PrintTenuringDistribution
+-XX:+PrintGCApplicationStoppedTime
+-XX:+PrintGCApplicationConcurrentTime
+```
+
+==== Configuring Garbage Collector Logging for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role GC logging can be enabled or disabled in the `spec`
+section of the yaml.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      logging: true  # <1>
+----
+
+<1> The implicit storage role has GC logging explicitly enabled so that the JVM arguments listed above will
+be added to the JVM's command line.
+
+
+==== Configuring Garbage Collector Logging for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles GC logging can be enabled or disabled in the
+`jvm.gc.logging` field of each role in the `roles` list.
+section of the yaml
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        gc:
+          logging: true   # <1>
+    - role: proxy
+      jvm:
+        gc:
+          logging: false  # <2>
+----
+
+<1> The `data` role has GC logging explicitly enabled so that the JVM arguments listed above will be added to the
+JVM's command line
+<2> The `proxy` role has GC logging explicitly disabled so that the JVM arguments listed above will not be added to
+the JVM's command line
+
+
+==== Configuring Garbage Collector Logging for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default GC logging setting can be specified in the
+`spec` section of the CRD which can then be overridden for individual roles in the `roles` list.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    gc:
+      logging: false      # <1>
+  roles:
+    - role: data          # <2>
+      jvm:
+        gc:
+          logging: true
+    - role: proxy         # <3>
+----
+
+<1> The default value for `jvm.gc.logging` is false, which will disable GC logging.
+<2> The `data` role overrides the default and sets GC logging to `true`
+<3> The `proxy` role does not specify a value for `jvm.gc.logging` so it will use the default, which will disable GC
+logging.
 
 // ----- Memory Configuration ------------------------------------------------------------------------------------------
 '''
@@ -320,26 +624,346 @@ Equivalent to passing `-Xms10g -Xmx10g` to the JVM.
 [#metaspace-size]
 === JVM Metaspace Size
 
+The metaspace size is the amount of native memory that can be allocated for class metadata. By default the JVM does not
+limit this size. When running in size limited containers this size may be set to ensure that the JVM does not cause the
+container to exceed its configured memory limits. The metaspace size is set using the `jvm.memory.metaspaceSize` field.
+Setting this field causes the `-XX:MetaspaceSize` and `-XX:MaxMetaspaceSize` JVM arguments to be set.
+There is no default value for the `metaspaceSize` field so if it is omitted the JVMs default behaviour will control the
+metaspace size.
+
+==== Configuring the JVM Metaspace Size for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role the metaspace size can be set in the `spec` section of
+the CRD.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      metaspaceSize: 256m  # <1>
+----
+
+<1> The metaspace size will for the implicit storage role will be set to `256m` by setting the JVM arguments
+`-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m`
+
+==== Configuring the JVM Metaspace Size for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles the metaspace size can be set in the
+`jvm.memory.metaspaceSize` field for each role in the `roles` list.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        memory:
+          metaspaceSize: 256m  # <1>
+    - role: proxy
+      jvm:
+        memory:
+          metaspaceSize: 512m  # <2>
+----
+
+<1> The metaspace size will for the `data` role will be set to `256m` by setting the JVM arguments
+`-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m`
+<2> The metaspace size will for the `proxy` role will be set to `512m` by setting the JVM arguments
+`-XX:MetaspaceSize=512m -XX:MaxMetaspaceSize=512m`
+
+
+==== Configuring the JVM Metaspace Size for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      metaspaceSize: 512m      # <1>
+  roles:
+    - role: data               # <2>
+      jvm:
+        memory:
+          metaspaceSize: 256m
+    - role: proxy              # <3>
+----
+
+<1> The metaspace size will for the `data` role will be set to `256m` by setting the JVM arguments
+`-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m`
+<2> The metaspace size will for the `proxy` role will be set to `512m` by setting the JVM arguments
+`-XX:MetaspaceSize=512m -XX:MaxMetaspaceSize=512m`
+
 
 // ----- Stack Size ----------------------------------------------------------------------------------------------------
 
 [#stack-size]
 === JVM Stack Size
 
+Setting the stack size sets the thread stack size (in bytes) used by the JVM. The stack size is configured in for roles
+in a `CoherenceCluster` by setitng the `jvm.memory`stackSize` field. Setting this fields sets the `-Xss` JVM argument.
+Omitting this fields does not set the `-Xss` argument leaving the JVM to its default configuration which sets the stack
+size based on the O/S being used.
 
-// ----- Stack Size ----------------------------------------------------------------------------------------------------
+==== Configuring the JVM Stack Size for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role the stack size can be set in the `spec` section of CRD.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      stackSize: 1024k  # <1>
+----
+
+<1> The stack size for the implicit storage role is set to `1024k` which will cause the `-Xss1024k` argument to be
+passed to the JVM.
+
+==== Configuring the JVM Stack Size for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        memory:
+          stackSize: 512k   # <1>
+    - role: proxy
+      jvm:
+        memory:
+          stackSize: 1024k  # <2>
+----
+
+<1> The stack size for the `data` role is set to `512k` which will cause the `-Xss512k` argument to be passed to the JVM.
+<2> The stack size for the `proxy` role is set to `1024k` which will cause the `-Xss1024k` argument to be passed to the JVM.
+
+
+==== Configuring the JVM Stack Size for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default stack size can be set in the `spec` section
+of the yaml that will apply to all roles in the `roles` list unless overridden for a specific role.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      stackSize: 1024k      # <1>
+  roles:
+    - role: data            # <2>
+      jvm:
+        memory:
+          stackSize: 512k
+    - role: proxy           # <3>
+----
+
+<1> The default stack size is set to `1024k` which will cause the `-Xss1024k` argument to be passed to the JVM for all
+roles in the `roles` list unless overridden.
+<2> The stack size for the `data` role is specifically set to `512k` which will cause the `-Xss512k` argument to be passed
+to the JVMs for the `data` role.
+<3> The stack size for the `proxy` role is not configured so the default value will be used which will cause the
+`-Xss1024k` argument to be passed to the JVMs for the `proxy` role.
+
+
+// ----- Native Memory Size --------------------------------------------------------------------------------------------
 
 [#nio-size]
 === JVM Native Memory Size
 
+Native memory is used by the JVM and by Coherence for a number of reasons. In a resource limited container it may be
+useful to limit the amount of nio memory available to the JVM to stop the JVM exceeding the containers memory limits.
+The nio size is set using the `jvm.directMemorySize` field which will cause the `-XX:MaxDirectMemorySize` JVM argument
+to be set. There is no default value for the `jvm.directMemorySize` field so if it is omitted the JVM's default size
+will be used.
 
-// ----- Stack Size ----------------------------------------------------------------------------------------------------
+==== Configuring the JVM Native Memory Size for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      directMemorySize: 2g  # <1>
+----
+
+<1> the maximum direct memory size for the implicit storage role is set to `2g` causing the `-XX:MaxDirectMemorySize=2g`
+argument to be passed to the JVM.
+
+==== Configuring the JVM Native Memory Size for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        memory:
+          directMemorySize: 2g  # <1>
+    - role: proxy
+      jvm:
+        memory:
+          directMemorySize: 1g  # <2>
+----
+
+<1> the maximum direct memory size for the `data` role is set to `2g` causing the `-XX:MaxDirectMemorySize=2g`
+argument to be passed to the JVM.
+<2> the maximum direct memory size for the `proxy` role is set to `1g` causing the `-XX:MaxDirectMemorySize=1g`
+argument to be passed to the JVM.
+
+
+==== Configuring the JVM Native Memory Size for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      directMemorySize: 1g      # <1>
+  roles:
+    - role: data                # <2>
+      jvm:
+        memory:
+          directMemorySize: 2g
+    - role: proxy               # <3>
+----
+
+
+// ----- Native Memory Tracking ----------------------------------------------------------------------------------------
 
 [#nmt]
 === Native Memory Tracking
 
-See the JVM https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/tooldescr007.html[native memory tracking]
+The Native memory tracking mode can be configured for JVMs using the `jvm.memory.nativeMemoryTracking` field to track
+JVM nio memory usage, which can be useful when  debugging nio memory issues. Setting the `nativeMemoryTracking` value
+causes the `-XX:NativeMemoryTracking` JVM argument to be set.
+If the `jvm.memory.nativeMemoryTracking` field is not specified a value of `summary` is used passing
+`-XX:NativeMemoryTracking=summary` to the JVM.
+See the https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/tooldescr007.html[native memory tracking]
 documentation.
+
+
+==== Configuring Native Memory Tracking for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role native memory tracking can be configured in the `spec`
+section of the yaml.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      nativeMemoryTracking: detail  # <1>
+----
+
+<1> The native memory tracking mode for the JVMs in the implicit storage role will be set to `detail` causing the
+`-XX:NativeMemoryTracking=detail` to be passed to the JVMs.
+
+
+==== Configuring Native Memory Tracking for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        memory:
+          nativeMemoryTracking: detail   # <1>
+    - role: proxy
+      jvm:
+        memory:
+          nativeMemoryTracking: summary  # <2>
+----
+
+==== Configuring Native Memory Tracking for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      nativeMemoryTracking: summary     # <1>
+  roles:
+    - role: data                        # <2>
+      jvm:
+        memory:
+          nativeMemoryTracking: detail
+    - role: proxy                       # <3>
+----
 
 
 // ----- JVM OOM Behavior ----------------------------------------------------------------------------------------------

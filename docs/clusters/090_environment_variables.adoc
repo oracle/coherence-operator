@@ -39,9 +39,9 @@ metadata:
   name: test-cluster
 spec:
   env:
-    - name: FOO        <1>
+    - name: FOO        # <1>
       value: "foo-val"
-    - name: BAR        <2>
+    - name: BAR        # <2>
       value: "bar-val"
 ----
 
@@ -66,11 +66,11 @@ spec:
   roles:
     - role: data
       env:
-        - name: FOO        <1>
+        - name: FOO        # <1>
           value: "foo-val"
     - role: proxy
       env:
-        - name: BAR        <2>
+        - name: BAR        # <2>
           value: "bar-val"
 ----
 
@@ -99,12 +99,12 @@ spec:
     - name: FOO
       value: "foo-val"
   roles:
-    - role: data           <1>
-    - role: proxy          <2>
+    - role: data           # <1>
+    - role: proxy          # <2>
       env:
         - name: BAR
           value: "bar-val"
-    - role: web            <3>
+    - role: web            # <3>
       env:
         - name: FOO
           value: "foo-web"
