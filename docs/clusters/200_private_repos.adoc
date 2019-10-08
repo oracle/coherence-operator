@@ -45,7 +45,7 @@ metadata:
   name: test-cluster
 spec:
   imagePullSecrets:
-    - name: coherence-secret  <1>
+    - name: coherence-secret  # <1>
 ----
 
 <1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
@@ -62,7 +62,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  imagePullSecrets:     <1>
+  imagePullSecrets:     # <1>
     - name: coherence-secret
     - name: ocr-secret
 ----

@@ -174,7 +174,9 @@ func TestJvmHeapSize(t *testing.T) {
 
 	role := v1.CoherenceRoleSpec{
 		JVM: &v1.JVMSpec{
-			HeapSize: pointer.StringPtr("10g"),
+			Memory: &v1.JvmMemorySpec{
+				HeapSize: pointer.StringPtr("10g"),
+			},
 		},
 	}
 

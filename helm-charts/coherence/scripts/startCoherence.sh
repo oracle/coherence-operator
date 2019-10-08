@@ -81,17 +81,6 @@ server()
         PROPS="${PROPS} -Dcoherence.distributed.localstorage=${COH_STORAGE_ENABLED}"
     fi
 
-#   By default we use the G1 collector
-    if [[ "${JVM_GC_OPTS}" == "" ]]
-    then
-        JVM_GC_OPTS="-XX:+UseG1GC"
-    fi
-
-#   If the MAX_HEAP variable is set use it to set the -Xms and -Xmx arguments
-    if [[ "${MAX_HEAP}" != "" ]]
-    then
-        MEM_OPTS="-Xms${MAX_HEAP} -Xmx${MAX_HEAP}"
-    fi
 
 #   Configure whether management is added to the classpath
     if [[ "${COH_MGMT_ENABLED}" == "true" ]]
@@ -127,7 +116,7 @@ console()
 
     APP_TYPE="java"
     COH_ROLE="console"
-    MAX_HEAP=""
+    JVM_HEAP_SIZE=""
     CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar$:${COH_UTIL_DIR}/lib/coherence-utils.jar"
     MAIN_CLASS="com.tangosol.net.CacheFactory"
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false"
@@ -143,7 +132,7 @@ queryplus()
 
     APP_TYPE="java"
     COH_ROLE="queryPlus"
-    MAX_HEAP=""
+    JVM_HEAP_SIZE=""
     CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar:${COH_UTIL_DIR}/lib/coherence-utils.jar"
     MAIN_CLASS="com.tangosol.coherence.dslquery.QueryPlus"
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false"
@@ -170,12 +159,6 @@ mbeanserver()
          -Dcom.sun.management.jmxremote.ssl=false \
          -Dcom.sun.management.jmxremote.authenticate=false"
 
-#   If the MAX_HEAP variable is set use it to set the -Xms and -Xmx arguments
-    if [[ "${MAX_HEAP}" != "" ]]
-    then
-        MEM_OPTS="-Xms${MAX_HEAP} -Xmx${MAX_HEAP}"
-    fi
-
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then
@@ -195,7 +178,7 @@ probe()
 
     APP_TYPE="java"
     COH_ROLE="probe"
-    MAX_HEAP=""
+    JVM_HEAP_SIZE=""
     DEPENDENCY_MODULES=""
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*:${JAVA_HOME}/lib/tools.jar"
     MAIN_CLASS=${1}
@@ -230,16 +213,110 @@ start()
         configure_pre_12_2_1_4
     fi
 
-#   If debug is enabled configure the JVM debug arguments
-    if [ "${DEBUG_ENABLED}" != "" ]
+    JVM_DIR="/jvm/${COH_MEMBER_NAME}/${COH_POD_UID}"
+    mkdir -p ${JVM_DIR} || true
+    chmod 777 ${JVM_DIR}
+    mkdir -p ${JVM_DIR}/jfr || true
+    chmod 777 ${JVM_DIR}/jfr
+    mkdir -p ${JVM_DIR}/heap-dumps || true
+    chmod 777 ${JVM_DIR}/heap-dumps
+
+    MEM_OPTS="-XX:HeapDumpPath=${JVM_DIR}/heap-dumps/${COH_MEMBER_NAME}-${COH_POD_UID}.hprof"
+    COH_JVM_ARGS="-Dcoherence.ttl=0 -XshowSettings:all -XX:+PrintCommandLineFlags -XX:+PrintFlagsFinal \
+                  -XX:+UnlockDiagnosticVMOptions -XX:+UnlockCommercialFeatures -XX:+UnlockExperimentalVMOptions \
+                  -XX:ErrorFile=${JVM_DIR}/hs-err-${COH_MEMBER_NAME}-${COH_POD_UID}.log"
+
+    if [[ "${JVM_GC_COLLECTOR}" == "" || "${JVM_GC_COLLECTOR,,}" == "g1" ]]
     then
-      if [ "${DEBUG_ATTACH}" == "" ]
+        MEM_OPTS="${MEM_OPTS} -XX:+UseG1GC"
+    elif [[ "${JVM_GC_COLLECTOR,,}" == "cms" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -XX:+UseConcMarkSweepGC"
+    elif [[ "${JVM_GC_COLLECTOR,,}" == "parallel" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -XX:+UseParallelGC"
+    fi
+
+    if [[ "${JVM_HEAP_SIZE}" != "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -Xms${JVM_HEAP_SIZE} -Xmx${JVM_HEAP_SIZE}"
+    fi
+
+    if [[ "${JVM_DIRECT_MEMORY_SIZE}" != "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -XX:MaxDirectMemorySize=${JVM_DIRECT_MEMORY_SIZE}"
+    fi
+
+    if [[ "${JVM_STACK_SIZE}" != "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -Xss=${JVM_STACK_SIZE}"
+    fi
+
+    if [[ "${JVM_METASPACE_SIZE}" != "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -XX:MetaspaceSize=${JVM_METASPACE_SIZE} -XX:MaxMetaspaceSize=${JVM_METASPACE_SIZE}"
+    fi
+
+    if [[ "${JVM_NATIVE_MEMORY_TRACKING}" == "" ]]
+    then
+      JVM_NATIVE_MEMORY_TRACKING="summary"
+    fi
+
+    if [[ "${JVM_NATIVE_MEMORY_TRACKING}" != "off" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -XX:NativeMemoryTracking=${JVM_NATIVE_MEMORY_TRACKING} -XX:+PrintNMTStatistics"
+    fi
+
+    if [[ "${JVM_GC_LOGGING}" == "true" || "${JVM_GC_LOGGING}" == "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                              -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution \
+                              -XX:+PrintGCApplicationStoppedTime \
+                              -XX:+PrintGCApplicationConcurrentTime"
+    fi
+
+    if [[ "${JVM_OOM_HEAP_DUMP}" == "" || "${JVM_OOM_HEAP_DUMP}" == "true" ]]
+    then
+        COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+HeapDumpOnOutOfMemoryError"
+    fi
+
+    if [[ "${JVM_OOM_EXIT}" == "" || "${JVM_OOM_EXIT}" == "true" ]]
+    then
+        COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+ExitOnOutOfMemoryError"
+    fi
+
+    if [[ "${JVM_FLIGHT_RECORDER}" == "true" ]]
+    then
+        COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${JVM_DIR}/jfr"
+    fi
+
+    if [[ "${JVM_USE_CONTAINER_LIMITS}" == "true" ]]
+    then
+        COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+UseContainerSupport"
+    fi
+
+#   If debug is enabled configure the JVM debug arguments
+    if [ "${JVM_DEBUG_ENABLED}" != "" ]
+    then
+      if [ "${JVM_DEBUG_SUSPEND}" == "true" ]
+      then
+        JVM_DEBUG_SUSPEND_YN="y"
+      else
+        JVM_DEBUG_SUSPEND_YN="n"
+      fi
+
+      if [ "${JVM_DEBUG_PORT}" == "" ]
+      then
+        JVM_DEBUG_PORT="5005"
+      fi
+
+      if [ "${JVM_DEBUG_ATTACH}" == "" ]
       then
 #         The debugger should listen for connections on port 5055
-        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=${JVM_DEBUG_SUSPEND_YN},address=*:${JVM_DEBUG_PORT}"
       else
 #         The debugger should connect back to the socket addess in DEBUG_ATTACH
-        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=n,address=${DEBUG_ATTACH},suspend=n,timeout=5000"
+        JVM_DEBUG_ARGS="-agentlib:jdwp=transport=dt_socket,server=n,address=${JVM_DEBUG_ATTACH},suspend=${JVM_DEBUG_SUSPEND_YN},timeout=10000"
       fi
     else
       JVM_DEBUG_ARGS=""
@@ -249,11 +326,7 @@ start()
     CLASSPATH="${COH_EXTRA_CLASSPATH}:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar"
 
 #   Create the command line to use to start the JVM
-    CMD="-cp ${CLASSPATH} ${JVM_GC_OPTS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} \
-        -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError \
-        -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
-        -Dcoherence.ttl=0 \
-        ${PROPS} ${JVM_ARGS}"
+    CMD="-cp ${CLASSPATH} ${COH_JVM_ARGS} ${JVM_GC_ARGS} ${MEM_OPTS} ${JVM_DEBUG_ARGS} ${PROPS} ${JVM_ARGS}"
 
 #   Dump the full set of environment variables to the console for logging/debugging
     echo "---------------------------------"

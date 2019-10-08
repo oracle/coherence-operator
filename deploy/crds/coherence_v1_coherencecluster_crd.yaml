@@ -415,16 +415,97 @@ spec:
                       description: Enabled is a flag to enable or disable running
                         the JVM in debug mode. Default is disabled.
                       type: boolean
+                    port:
+                      description: The port that the debugger will listen on; the
+                        default is 5005.
+                      format: int32
+                      type: integer
+                    suspend:
+                      description: A boolean true if the target VM is to be suspended
+                        immediately before the main class is loaded; false otherwise.
+                        The default value is false.
+                      type: boolean
                   type: object
+                diagnosticsVolume:
+                  type: object
+                flightRecorder:
+                  description: If set to true, enabled continuour flight recorder
+                    recordings. This will add the JVM options -XX:+UnlockCommercialFeatures
+                    -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps
+                  type: boolean
                 gc:
-                  description: The optional GC parameters. If not set defaults to
-                    enabling the G1 collector.
-                  type: string
-                heapSize:
-                  description: HeapSize is the min/max heap value to pass to the JVM.
-                    The format should be the same as that used for Java's -Xms and
-                    -Xmx JVM options. If not set the JVM defaults are used.
-                  type: string
+                  description: Set JVM garbage collector options.
+                  properties:
+                    args:
+                      description: Args specifies the GC options to pass to the JVM.
+                      items:
+                        type: string
+                      type: array
+                    enabled:
+                      description: The name of the JVM garbage collector to use. G1
+                        - adds the -XX:+UseG1GC option CMS - adds the -XX:+UseConcMarkSweepGC
+                        option Parallel - adds the -XX:+UseParallelGC Default - use
+                        the JVMs default collector The field value is case insensitive
+                        If not set G1 is used. If set to a value other than those
+                        above then the default collector for the JVM will be used.
+                      type: string
+                    logging:
+                      description: Enable the following GC logging args  -verbose:gc
+                        -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC
+                        -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
+                        -XX:+PrintGCApplicationConcurrentTime Default is true
+                      type: boolean
+                  type: object
+                memory:
+                  description: Configure the JVM memory options.
+                  properties:
+                    directMemorySize:
+                      description: DirectMemorySize sets the maximum total size (in
+                        bytes) of the New I/O (the java.nio package) direct-buffer
+                        allocations. This value sets the -XX:MaxDirectMemorySize JVM
+                        option. If not set the JVM defaults are used.
+                      type: string
+                    heapSize:
+                      description: HeapSize is the min/max heap value to pass to the
+                        JVM. The format should be the same as that used for Java's
+                        -Xms and -Xmx JVM options. If not set the JVM defaults are
+                        used.
+                      type: string
+                    metaspaceSize:
+                      description: MetaspaceSize is the min/max metaspace size to
+                        pass to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size
+                        JVM options. If not set the JVM defaults are used.
+                      type: string
+                    nativeMemoryTracking:
+                      description: Adds the -XX:NativeMemoryTracking=mode  JVM options
+                        where mode is on of "off", "summary" or "detail", the default
+                        is "summary" If not set to "off" also add -XX:+PrintNMTStatistics
+                      type: string
+                    onOutOfMemory:
+                      description: Configure the JVM behaviour when an OutOfMemoryError
+                        occurs.
+                      properties:
+                        exit:
+                          description: If set to true the JVM will exit when an OOM
+                            error occurs. Default is true
+                          type: boolean
+                        heapDump:
+                          description: If set to true adds the -XX:+HeapDumpOnOutOfMemoryError
+                            JVM option to cause a heap dump to be created when an
+                            OOM error occurs. Default is true
+                          type: boolean
+                      type: object
+                    stackSize:
+                      description: StackSize is the stack sixe value to pass to the
+                        JVM. The format should be the same as that used for Java's
+                        -Xss JVM option. If not set the JVM defaults are used.
+                      type: string
+                  type: object
+                useContainerLimits:
+                  description: If set to true Adds the  -XX:+UseContainerSupport JVM
+                    option to ensure that the JVM respects any container resource
+                    limits. The default value is true
+                  type: boolean
               type: object
             labels:
               additionalProperties:
@@ -1092,17 +1173,102 @@ spec:
                             description: Enabled is a flag to enable or disable running
                               the JVM in debug mode. Default is disabled.
                             type: boolean
+                          port:
+                            description: The port that the debugger will listen on;
+                              the default is 5005.
+                            format: int32
+                            type: integer
+                          suspend:
+                            description: A boolean true if the target VM is to be
+                              suspended immediately before the main class is loaded;
+                              false otherwise. The default value is false.
+                            type: boolean
                         type: object
+                      diagnosticsVolume:
+                        type: object
+                      flightRecorder:
+                        description: If set to true, enabled continuour flight recorder
+                          recordings. This will add the JVM options -XX:+UnlockCommercialFeatures
+                          -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps
+                        type: boolean
                       gc:
-                        description: The optional GC parameters. If not set defaults
-                          to enabling the G1 collector.
-                        type: string
-                      heapSize:
-                        description: HeapSize is the min/max heap value to pass to
-                          the JVM. The format should be the same as that used for
-                          Java's -Xms and -Xmx JVM options. If not set the JVM defaults
-                          are used.
-                        type: string
+                        description: Set JVM garbage collector options.
+                        properties:
+                          args:
+                            description: Args specifies the GC options to pass to
+                              the JVM.
+                            items:
+                              type: string
+                            type: array
+                          enabled:
+                            description: The name of the JVM garbage collector to
+                              use. G1 - adds the -XX:+UseG1GC option CMS - adds the
+                              -XX:+UseConcMarkSweepGC option Parallel - adds the -XX:+UseParallelGC
+                              Default - use the JVMs default collector The field value
+                              is case insensitive If not set G1 is used. If set to
+                              a value other than those above then the default collector
+                              for the JVM will be used.
+                            type: string
+                          logging:
+                            description: Enable the following GC logging args  -verbose:gc
+                              -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC
+                              -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
+                              -XX:+PrintGCApplicationConcurrentTime Default is true
+                            type: boolean
+                        type: object
+                      memory:
+                        description: Configure the JVM memory options.
+                        properties:
+                          directMemorySize:
+                            description: DirectMemorySize sets the maximum total size
+                              (in bytes) of the New I/O (the java.nio package) direct-buffer
+                              allocations. This value sets the -XX:MaxDirectMemorySize
+                              JVM option. If not set the JVM defaults are used.
+                            type: string
+                          heapSize:
+                            description: HeapSize is the min/max heap value to pass
+                              to the JVM. The format should be the same as that used
+                              for Java's -Xms and -Xmx JVM options. If not set the
+                              JVM defaults are used.
+                            type: string
+                          metaspaceSize:
+                            description: MetaspaceSize is the min/max metaspace size
+                              to pass to the JVM. This sets the -XX:MetaspaceSize
+                              and -XX:MaxMetaspaceSize=size JVM options. If not set
+                              the JVM defaults are used.
+                            type: string
+                          nativeMemoryTracking:
+                            description: Adds the -XX:NativeMemoryTracking=mode  JVM
+                              options where mode is on of "off", "summary" or "detail",
+                              the default is "summary" If not set to "off" also add
+                              -XX:+PrintNMTStatistics
+                            type: string
+                          onOutOfMemory:
+                            description: Configure the JVM behaviour when an OutOfMemoryError
+                              occurs.
+                            properties:
+                              exit:
+                                description: If set to true the JVM will exit when
+                                  an OOM error occurs. Default is true
+                                type: boolean
+                              heapDump:
+                                description: If set to true adds the -XX:+HeapDumpOnOutOfMemoryError
+                                  JVM option to cause a heap dump to be created when
+                                  an OOM error occurs. Default is true
+                                type: boolean
+                            type: object
+                          stackSize:
+                            description: StackSize is the stack sixe value to pass
+                              to the JVM. The format should be the same as that used
+                              for Java's -Xss JVM option. If not set the JVM defaults
+                              are used.
+                            type: string
+                        type: object
+                      useContainerLimits:
+                        description: If set to true Adds the  -XX:+UseContainerSupport
+                          JVM option to ensure that the JVM respects any container
+                          resource limits. The default value is true
+                        type: boolean
                     type: object
                   labels:
                     additionalProperties:

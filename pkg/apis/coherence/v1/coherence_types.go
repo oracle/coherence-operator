@@ -233,23 +233,33 @@ func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *Coherenc
 
 // ----- JVMSpec struct -----------------------------------------------------
 
-// The JVM specific configuration.
+// The JVM configuration.
 // +k8s:openapi-gen=true
 type JVMSpec struct {
-	// HeapSize is the min/max heap value to pass to the JVM.
-	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
-	// If not set the JVM defaults are used.
-	// +optional
-	HeapSize *string `json:"heapSize,omitempty"`
-	// The optional GC parameters. If not set defaults to enabling the G1 collector.
-	// +optional
-	GC *string `json:"gc,omitempty"`
 	// Args specifies the options (System properties, -XX: args etc) to pass to the JVM.
 	// +optional
 	Args []string `json:"args,omitempty"`
 	// The settings for enabling debug mode in the JVM.
 	// +optional
-	Debug *DebugSpec `json:"debug,omitempty"`
+	Debug *JvmDebugSpec `json:"debug,omitempty"`
+	// If set to true Adds the  -XX:+UseContainerSupport JVM option to ensure that the JVM
+	// respects any container resource limits.
+	// The default value is true
+	// +optional
+	UseContainerLimits *bool `json:"useContainerLimits,omitempty"`
+	// If set to true, enabled continuour flight recorder recordings.
+	// This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder
+	// -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps
+	// +optional
+	FlightRecorder *bool `json:"flightRecorder,omitempty"`
+	// Set JVM garbage collector options.
+	// +optional
+	Gc *JvmGarbageCollectorSpec `json:"gc,omitempty"`
+	// +optional
+	DiagnosticsVolume *corev1.VolumeSource `json:"diagnosticsVolume,omitempty"`
+	// Configure the JVM memory options.
+	// +optional
+	Memory *JvmMemorySpec `json:"memory,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this JVMSpec struct with any nil or not set
@@ -268,17 +278,25 @@ func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
 
 	clone := JVMSpec{}
 	clone.Debug = in.Debug.DeepCopyWithDefaults(defaults.Debug)
+	clone.Gc = in.Gc.DeepCopyWithDefaults(defaults.Gc)
+	clone.Memory = in.Memory.DeepCopyWithDefaults(defaults.Memory)
 
-	if in.HeapSize != nil {
-		clone.HeapSize = in.HeapSize
+	if in.UseContainerLimits != nil {
+		clone.UseContainerLimits = in.UseContainerLimits
 	} else {
-		clone.HeapSize = defaults.HeapSize
+		clone.UseContainerLimits = defaults.UseContainerLimits
 	}
 
-	if in.GC != nil {
-		clone.GC = in.GC
+	if in.FlightRecorder != nil {
+		clone.FlightRecorder = in.FlightRecorder
 	} else {
-		clone.GC = defaults.GC
+		clone.FlightRecorder = defaults.FlightRecorder
+	}
+
+	if in.DiagnosticsVolume != nil {
+		clone.DiagnosticsVolume = in.DiagnosticsVolume
+	} else {
+		clone.DiagnosticsVolume = defaults.DiagnosticsVolume
 	}
 
 	if in.Args != nil {
@@ -766,23 +784,31 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 	return mr
 }
 
-// ----- DebugSpec struct ----------------------------------------------------------
+// ----- JvmDebugSpec struct ---------------------------------------------------
 
 // The JVM Debug specific configuration.
+// See:
 // +k8s:openapi-gen=true
-type DebugSpec struct {
+type JvmDebugSpec struct {
 	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
+	// A boolean true if the target VM is to be suspended immediately before the main class is loaded;
+	// false otherwise. The default value is false.
+	// +optional
+	Suspend *bool `json:"suspend,omitempty"`
 	// Attach specifies the address of the debugger that the JVM should attempt to connect back to
 	// instead of listening on a port.
 	// +optional
 	Attach *string `json:"attach,omitempty"`
+	// The port that the debugger will listen on; the default is 5005.
+	// +optional
+	Port *int32 `json:"port,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this DebugSpec struct with any nil or not set values set
-// by the corresponding value in the defaults DebugSpec struct.
-func (in *DebugSpec) DeepCopyWithDefaults(defaults *DebugSpec) *DebugSpec {
+// DeepCopyWithDefaults returns a copy of this JvmDebugSpec struct with any nil or not set values set
+// by the corresponding value in the defaults JvmDebugSpec struct.
+func (in *JvmDebugSpec) DeepCopyWithDefaults(defaults *JvmDebugSpec) *JvmDebugSpec {
 	if in == nil {
 		if defaults != nil {
 			return defaults.DeepCopy()
@@ -794,7 +820,7 @@ func (in *DebugSpec) DeepCopyWithDefaults(defaults *DebugSpec) *DebugSpec {
 		return in.DeepCopy()
 	}
 
-	clone := DebugSpec{}
+	clone := JvmDebugSpec{}
 
 	if in.Enabled != nil {
 		clone.Enabled = in.Enabled
@@ -802,10 +828,215 @@ func (in *DebugSpec) DeepCopyWithDefaults(defaults *DebugSpec) *DebugSpec {
 		clone.Enabled = defaults.Enabled
 	}
 
+	if in.Suspend != nil {
+		clone.Suspend = in.Suspend
+	} else {
+		clone.Suspend = defaults.Suspend
+	}
+
+	if in.Port != nil {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
+	}
+
 	if in.Attach != nil {
 		clone.Attach = in.Attach
 	} else {
 		clone.Attach = defaults.Attach
+	}
+
+	return &clone
+}
+
+// ----- JVM GC struct ------------------------------------------------------
+
+// Options for managing the JVM garbage collector.
+type JvmGarbageCollectorSpec struct {
+	// The name of the JVM garbage collector to use.
+	// G1 - adds the -XX:+UseG1GC option
+	// CMS - adds the -XX:+UseConcMarkSweepGC option
+	// Parallel - adds the -XX:+UseParallelGC
+	// Default - use the JVMs default collector
+	// The field value is case insensitive
+	// If not set G1 is used.
+	// If set to a value other than those above then
+	// the default collector for the JVM will be used.
+	// +optional
+	Collector *string `json:"enabled,omitempty"`
+	// Args specifies the GC options to pass to the JVM.
+	// +optional
+	Args []string `json:"args,omitempty"`
+	// Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
+	// -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
+	// -XX:+PrintGCApplicationConcurrentTime
+	// Default is true
+	// +optional
+	Logging *bool `json:"logging,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JvmGarbageCollectorSpec struct with any nil or not set values set
+// by the corresponding value in the defaults JvmGarbageCollectorSpec struct.
+func (in *JvmGarbageCollectorSpec) DeepCopyWithDefaults(defaults *JvmGarbageCollectorSpec) *JvmGarbageCollectorSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JvmGarbageCollectorSpec{}
+
+	if in.Collector != nil {
+		clone.Collector = in.Collector
+	} else {
+		clone.Collector = defaults.Collector
+	}
+
+	if in.Args != nil {
+		clone.Args = in.Args
+	} else {
+		clone.Args = defaults.Args
+	}
+
+	if in.Logging != nil {
+		clone.Logging = in.Logging
+	} else {
+		clone.Logging = defaults.Logging
+	}
+
+	return &clone
+}
+
+// ----- JVM MemoryGC struct ------------------------------------------------
+
+// Options for managing the JVM memory.
+type JvmMemorySpec struct {
+	// HeapSize is the min/max heap value to pass to the JVM.
+	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	// If not set the JVM defaults are used.
+	// +optional
+	HeapSize *string `json:"heapSize,omitempty"`
+	// StackSize is the stack sixe value to pass to the JVM.
+	// The format should be the same as that used for Java's -Xss JVM option.
+	// If not set the JVM defaults are used.
+	// +optional
+	StackSize *string `json:"stackSize,omitempty"`
+	// MetaspaceSize is the min/max metaspace size to pass to the JVM.
+	// This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size JVM options.
+	// If not set the JVM defaults are used.
+	// +optional
+	MetaspaceSize *string `json:"metaspaceSize,omitempty"`
+	// DirectMemorySize sets the maximum total size (in bytes) of the New I/O (the java.nio package) direct-buffer
+	// allocations. This value sets the -XX:MaxDirectMemorySize JVM option.
+	// If not set the JVM defaults are used.
+	// +optional
+	DirectMemorySize *string `json:"directMemorySize,omitempty"`
+	// Adds the -XX:NativeMemoryTracking=mode  JVM options
+	// where mode is on of "off", "summary" or "detail", the default is "summary"
+	// If not set to "off" also add -XX:+PrintNMTStatistics
+	// +optional
+	NativeMemoryTracking *string `json:"nativeMemoryTracking,omitempty"`
+	// Configure the JVM behaviour when an OutOfMemoryError occurs.
+	// +optional
+	OnOutOfMemory *JvmOutOfMemorySpec `json:"onOutOfMemory,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JvmMemorySpec struct with any nil or not set values set
+// by the corresponding value in the defaults JvmMemorySpec struct.
+func (in *JvmMemorySpec) DeepCopyWithDefaults(defaults *JvmMemorySpec) *JvmMemorySpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JvmMemorySpec{}
+	clone.OnOutOfMemory = in.OnOutOfMemory.DeepCopyWithDefaults(defaults.OnOutOfMemory)
+
+	if in.HeapSize != nil {
+		clone.HeapSize = in.HeapSize
+	} else {
+		clone.HeapSize = defaults.HeapSize
+	}
+
+	if in.StackSize != nil {
+		clone.StackSize = in.StackSize
+	} else {
+		clone.StackSize = defaults.StackSize
+	}
+
+	if in.MetaspaceSize != nil {
+		clone.MetaspaceSize = in.MetaspaceSize
+	} else {
+		clone.MetaspaceSize = defaults.MetaspaceSize
+	}
+
+	if in.DirectMemorySize != nil {
+		clone.DirectMemorySize = in.DirectMemorySize
+	} else {
+		clone.DirectMemorySize = defaults.DirectMemorySize
+	}
+
+	if in.NativeMemoryTracking != nil {
+		clone.NativeMemoryTracking = in.NativeMemoryTracking
+	} else {
+		clone.NativeMemoryTracking = defaults.NativeMemoryTracking
+	}
+
+	return &clone
+}
+
+// ----- JVM Out Of Memory struct -------------------------------------------
+
+// Options for managing the JVM behaviour when an OutOfMemoryError occurs.
+type JvmOutOfMemorySpec struct {
+	// If set to true the JVM will exit when an OOM error occurs.
+	// Default is true
+	// +optional
+	Exit *bool `json:"exit,omitempty"`
+	// If set to true adds the -XX:+HeapDumpOnOutOfMemoryError JVM option to cause a heap dump
+	// to be created when an OOM error occurs.
+	// Default is true
+	// +optional
+	HeapDump *bool `json:"heapDump,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JvmOutOfMemorySpec struct with any nil or not set values set
+// by the corresponding value in the defaults JvmOutOfMemorySpec struct.
+func (in *JvmOutOfMemorySpec) DeepCopyWithDefaults(defaults *JvmOutOfMemorySpec) *JvmOutOfMemorySpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JvmOutOfMemorySpec{}
+
+	if in.Exit != nil {
+		clone.Exit = in.Exit
+	} else {
+		clone.Exit = defaults.Exit
+	}
+
+	if in.HeapDump != nil {
+		clone.HeapDump = in.HeapDump
+	} else {
+		clone.HeapDump = defaults.HeapDump
 	}
 
 	return &clone

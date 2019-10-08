@@ -521,11 +521,11 @@ var _ = Describe("Testing CoherenceRoleSpec struct", func() {
 
 		Context("JVM is merged", func() {
 			var jvmOne = coherence.JVMSpec{
-				HeapSize: stringPtr("1G"),
+				FlightRecorder: boolPtr(true),
 			}
 
 			var jvmTwo = coherence.JVMSpec{
-				GC: stringPtr("-XX:+UseG1GC"),
+				UseContainerLimits: boolPtr(true),
 			}
 
 			When("the original JVM is nil", func() {

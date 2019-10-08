@@ -82,7 +82,7 @@ code and any application configuration files are supplied as a separate image. T
 by the Coherence `Pods` and the relevant `.jar` files and configuration files from this image are added to the Coherence
 JVM's classpath.
 
-As well as setting the image name it is also sometimes useful to set the application image's  <<pull-policy,image pull policy>>.
+As well as setting the image name it is also sometimes useful to set the application image's <<pull-policy,image pull policy>>.
 
 If the image being configured is from a registry requiring authentication see the section
 on <<clusters/200_private_repos.adoc,pulling from private registries>>.
@@ -102,7 +102,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data:1.0.0  <1>
+    image: acme/orders-data:1.0.0  # <1>
 ----
 
 <1> The `acme/orders-data:1.0.0` will be used to add additional `.jar` files and configuration files to the classpath of
@@ -125,10 +125,10 @@ spec:
   roles:
     - role: data
       application:
-        image: acme/orders-data:1.0.0  <1>
+        image: acme/orders-data:1.0.0   # <1>
     - role: proxy
       application:
-        image: acme/orders-proxy/1.0.0  <2>
+        image: acme/orders-proxy/1.0.0  # <2>
 ----
 
 <1> The `data` role `Pods` will use the application image `acme/orders-data:1.0.0`
@@ -151,7 +151,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data:1.0.0  <1>
+    image: acme/orders-data:1.0.0  # <1>
   roles:
     - role: data
     - role: proxy
@@ -168,13 +168,13 @@ metadata:
   name: test-cluster
 spec:
   application:
-    image: acme/orders-data:1.0.0  <1>
+    image: acme/orders-data:1.0.0           # <1>
   roles:
     - role: data
     - role: proxy
     - role: web
       application:
-        image: acme/orders-front-end/1.0.0  <2>
+        image: acme/orders-front-end/1.0.0  # <2>
 ----
 
 <1> The `data` and the `proxy` roles will both use the application image `acme/orders-data:1.0.0`
@@ -215,7 +215,7 @@ metadata:
 spec:
   application:
     image: acme/orders-data:1.0.0
-    imagePullPolicy: Always <1>
+    imagePullPolicy: Always # <1>
 ----
 
 <1> The image pull policy for the implicit role above has been set to `Always`
@@ -236,11 +236,11 @@ spec:
     - role: data
       application:
         image: acme/orders-data:1.0.0
-        imagePullPolicy: Always <1>
+        imagePullPolicy: Always        # <1>
     - role: proxy
       application:
         image: acme/orders-proxy/1.0.0
-        imagePullPolicy: IfNotPresent <2>
+        imagePullPolicy: IfNotPresent  # <2>
 ----
 
 <1> The image pull policy for the `data` role has been set to `Always`
@@ -259,7 +259,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    imagePullPolicy: Always <1>
+    imagePullPolicy: Always                 # <1>
   roles:
     - role: data
       application:
@@ -270,7 +270,7 @@ spec:
     - role: web
       application:
         image: acme/orders-front-end/1.0.1
-        imagePullPolicy: IfNotPresent <2>
+        imagePullPolicy: IfNotPresent       # <2>
 ----
 
 <1> The default image pull policy is set to `Always`. The `data` and `proxy` roles will use the default value because
@@ -305,7 +305,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: app-lib  <1>
+    libDir: app-lib  # <1>
 ----
 
 <1> The application image contains a directory named `/app-lib` that contains the `.jar` files to add to the JVM
@@ -326,10 +326,10 @@ spec:
   roles:
     - role: data
       application:
-        libDir: app-lib    <1>
+        libDir: app-lib    # <1>
     - role: proxy
       application:
-        libDir: proxy-lib  <2>
+        libDir: proxy-lib  # <2>
 ----
 
 <1> The application image contains a directory named `/app-lib` that contains the `.jar` files to add to the JVM
@@ -352,12 +352,12 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: app-lib        <1>
+    libDir: app-lib        # <1>
   roles:
-    - role: data           <2>
+    - role: data           # <2>
     - role: proxy
       application:
-        libDir: proxy-lib  <3>
+        libDir: proxy-lib  # <3>
 ----
 
 <1> The default value for the `libDir` field is `app-lib/`.
@@ -393,7 +393,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    configDir: app-conf  <1>
+    configDir: app-conf  # <1>
 ----
 
 <1> The application image contains a directory named `/app-conf` that contains any configuration files to add to the JVM
@@ -414,10 +414,10 @@ spec:
   roles:
     - role: data
       application:
-        configDir: app-conf    <1>
+        configDir: app-conf    # <1>
     - role: proxy
       application:
-        configDir: proxy-conf  <2>
+        configDir: proxy-conf  # <2>
 ----
 
 <1> The application image contains a directory named `/app-conf` that contains the configuration files to add to the JVM
@@ -440,12 +440,12 @@ metadata:
   name: test-cluster
 spec:
   application:
-    configDir: app-conf       <1>
+    configDir: app-conf       # <1>
   roles:
-    - role: data              <2>
+    - role: data              # <2>
     - role: proxy
       application:
-        configDir: proxy-conf <3>
+        configDir: proxy-conf # <3>
 ----
 
 <1> The default value for the `configDir` field is `app-conf/`.
@@ -483,7 +483,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    appDir: app  <1>
+    appDir: app  # <1>
 ----
 
 <1> The application image contains a directory named `/app` that will effectively become the working directory for
@@ -504,10 +504,10 @@ spec:
   roles:
     - role: data
       application:
-        appDir: data-app   <1>
+        appDir: data-app   # <1>
     - role: proxy
       application:
-        appDir: proxy-app  <2>
+        appDir: proxy-app  # <2>
 ----
 
 <1> The application image contains a directory named `/data-app` that will effectively become the working directory for
@@ -530,12 +530,12 @@ metadata:
   name: test-cluster
 spec:
   application:
-    appDir: app           <1>
+    appDir: app           # <1>
   roles:
-    - role: data          <2>
+    - role: data          # <2>
     - role: proxy
       application:
-        appDir: proxy-app <3>
+        appDir: proxy-app # <3>
 ----
 
 <1> The default value for the `appDir` field is `/app`.
@@ -572,8 +572,8 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: lib          <1>
-    main: com.acme.Main  <2>
+    libDir: lib          # <1>
+    main: com.acme.Main  # <2>
 ----
 
 <1> The application image should contain a directory named `/lib` that will contain the `.jar` files containing the
@@ -597,12 +597,12 @@ spec:
   roles:
     - role: data
       application:
-        libDir: lib           <1>
-        main: com.acme.Main   <2>
+        libDir: lib           # <1>
+        main: com.acme.Main   # <2>
     - role: proxy
       application:
         libDir: lib
-        main: com.acme.Proxy  <3>
+        main: com.acme.Proxy  # <3>
 ----
 
 <1> The application image should contain a directory named `/lib` that will contain the `.jar` files containing the
@@ -626,13 +626,13 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: lib               <1>
-    main: com.acme.Main       <2>
+    libDir: lib               # <1>
+    main: com.acme.Main       # <2>
   roles:
-    - role: data              <3>
+    - role: data              # <3>
     - role: proxy
       application:
-        main: com.acme.Proxy  <4>
+        main: com.acme.Proxy  # <4>
 ----
 
 <1> The application image should contain a directory named `/lib` that will contain the `.jar` files containing the
@@ -669,9 +669,9 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: lib          <1>
-    main: com.acme.Main  <2>
-    args:                <3>
+    libDir: lib          # <1>
+    main: com.acme.Main  # <2>
+    args:                # <3>
       - "argOne"
       - "argTwo"
 ----
@@ -698,16 +698,16 @@ spec:
   roles:
     - role: data
       application:
-        libDir: lib           <1>
-        main: com.acme.Main   <2>
-        args:                 <3>
+        libDir: lib           # <1>
+        main: com.acme.Main   # <2>
+        args:                 # <3>
           - "argOne"
           - "argTwo"
     - role: proxy
       application:
         libDir: lib
         main: com.acme.Main
-        args:                 <4>
+        args:                 # <4>
           - "argThree"
           - "argFour"
 ----
@@ -735,27 +735,28 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: lib               <1>
-    main: com.acme.Main       <2>
-    args:                     <3>
+    libDir: lib               # <1>
+    main: com.acme.Main       # <2>
+    args:                     # <3>
       - "argOne"
       - "argTwo"
   roles:
-    - role: data              <4>
+    - role: data              # <4>
     - role: proxy
       application:
-        args:                 <5>
+        args:                 # <5>
           - "argThree"
           - "argFour"
     - role: web
       application:
-        args: []              <6>
+        args: []              # <6>
 ----
 
 <1> The application image should contain a directory named `/lib` that will contain the `.jar` files containing the
 application classes and dependencies.
 <2> One of those classes will be `com.acme.Main` which will be executed as the main class for all roles that do not
 specifically specify a `main`.
+<3> The default args are `"argOne"` and `"argTwo"`
 <4> The `data` role does not specify an `args` field so the Coherence JVM in the `Pods` for the `data` role will all use
 the default arguments of `"argOne"` and `"argTwo"`
 <5> The `proxy` role specifies different arguments. The arguments `"argThree"` and `"argFour"` will be passed to the

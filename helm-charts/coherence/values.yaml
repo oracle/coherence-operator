@@ -267,23 +267,28 @@ logging:
 # ----- JVM specific configuration ------------------------------------------
 
 jvm:
-  # The heap size value to pass to the JVM.
-  # The format should be the same as that used for Java's -Xms and -Xmx JVM options.
-  # If not set the JVM defaults are used.
-  heapSize:
-  # GC options to pass the the JVM - if not entered the default is -XX:+UseG1GC
-  gc:
-  # JVM options like extra system properties -XX args etc...
   args: []
-  # -------------------------------------------------------------------------
-  # jvm.debug groups the store JVM debugger settings
+  useContainerLimits: true
+  flightRecorder: true
+  diagnosticsVolume:
   debug:
-    # jvm.debug.enabled enables store JVM debugging. If enabled the
-    # JVM will start the debugger on port 5005
     enabled: false
-    # jvm.debug.attach specifies the address of the debugger that the
-    # JVM should attempt to connect back to instead of listening on port 5005.
+    port:
+    suspend: false
     attach:
+  memory:
+    heapSize:
+    directMemorySize:
+    stackSize:
+    metaspaceSize:
+    nativeMemoryTracking:
+    onOutOfMemory:
+      exit:
+      heapDump:
+  gc:
+    collector:
+    args: []
+    logging: true
 
 # ----- Coherence Container specific configuration --------------------------
 

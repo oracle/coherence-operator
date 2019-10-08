@@ -148,7 +148,17 @@ func RunScript(t *testing.T, role v1.CoherenceRoleSpec) (*AppData, *v1.Coherence
 	defer pf.Close()
 
 	url := fmt.Sprintf("http://127.0.0.1:%d/", ports["health"])
-	resp, err := http.Get(url)
+
+	var resp *http.Response
+
+	// attempt the http request a max of five times to account for timing issues
+	for i := 0; i < 5; i++ {
+		resp, err = http.Get(url)
+		if err != nil {
+			time.Sleep(time.Second * 1)
+		}
+	}
+
 	if err != nil {
 		return nil, nil, err
 	}

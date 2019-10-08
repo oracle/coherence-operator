@@ -22,10 +22,10 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceRoleSpec":       schema_pkg_apis_coherence_v1_CoherenceRoleSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceRoleStatus":     schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref),
 		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
-		"./pkg/apis/coherence/v1.DebugSpec":               schema_pkg_apis_coherence_v1_DebugSpec(ref),
 		"./pkg/apis/coherence/v1.FluentdSpec":             schema_pkg_apis_coherence_v1_FluentdSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
+		"./pkg/apis/coherence/v1.JvmDebugSpec":            schema_pkg_apis_coherence_v1_JvmDebugSpec(ref),
 		"./pkg/apis/coherence/v1.LoggingSpec":             schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.NamedPortSpec":           schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":   schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
@@ -1151,33 +1151,6 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 	}
 }
 
-func schema_pkg_apis_coherence_v1_DebugSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "The JVM Debug specific configuration.",
-				Properties: map[string]spec.Schema{
-					"enabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"attach": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Attach specifies the address of the debugger that the JVM should attempt to connect back to instead of listening on a port.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{},
-	}
-}
-
 func schema_pkg_apis_coherence_v1_FluentdSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1257,22 +1230,8 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "The JVM specific configuration.",
+				Description: "The JVM configuration.",
 				Properties: map[string]spec.Schema{
-					"heapSize": {
-						SchemaProps: spec.SchemaProps{
-							Description: "HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"gc": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The optional GC parameters. If not set defaults to enabling the G1 collector.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"args": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Args specifies the options (System properties, -XX: args etc) to pass to the JVM.",
@@ -1290,14 +1249,86 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 					"debug": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The settings for enabling debug mode in the JVM.",
-							Ref:         ref("./pkg/apis/coherence/v1.DebugSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.JvmDebugSpec"),
+						},
+					},
+					"useContainerLimits": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true Adds the  -XX:+UseContainerSupport JVM option to ensure that the JVM respects any container resource limits. The default value is true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"flightRecorder": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true, enabled continuour flight recorder recordings. This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"gc": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set JVM garbage collector options.",
+							Ref:         ref("./pkg/apis/coherence/v1.JvmGarbageCollectorSpec"),
+						},
+					},
+					"diagnosticsVolume": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.VolumeSource"),
+						},
+					},
+					"memory": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Configure the JVM memory options.",
+							Ref:         ref("./pkg/apis/coherence/v1.JvmMemorySpec"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.DebugSpec"},
+			"./pkg/apis/coherence/v1.JvmDebugSpec", "./pkg/apis/coherence/v1.JvmGarbageCollectorSpec", "./pkg/apis/coherence/v1.JvmMemorySpec", "k8s.io/api/core/v1.VolumeSource"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JvmDebugSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The JVM Debug specific configuration. See:",
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"suspend": {
+						SchemaProps: spec.SchemaProps{
+							Description: "A boolean true if the target VM is to be suspended immediately before the main class is loaded; false otherwise. The default value is false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"attach": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Attach specifies the address of the debugger that the JVM should attempt to connect back to instead of listening on a port.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port that the debugger will listen on; the default is 5005.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
