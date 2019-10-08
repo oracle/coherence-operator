@@ -52,7 +52,7 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    storageEnabled: true  <1>
+    storageEnabled: true # <1>
 ----
 
 <1> The implicit role will be storage enabled
@@ -67,7 +67,7 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    storageEnabled: false  <1>
+    storageEnabled: false # <1>
 ----
 
 <1> The implicit role will be storage disabled
@@ -90,7 +90,7 @@ spec:
   roles:
     - role: data
       coherence:
-        storageEnabled: true  <1>
+        storageEnabled: true # <1>
     - role: proxy
       coherence:
         storageEnabled: false <2>
@@ -114,13 +114,13 @@ metadata:
   name: test-cluster
 spec:
   coherence:
-    storageEnabled: false     <1>
+    storageEnabled: false     # <1>
   roles:
-    - role: data            <2>
+    - role: data              # <2>
       coherence:
         storageEnabled: true
-    - role: proxy           <3>
-    - role: web             <4>
+    - role: proxy             # <3>
+    - role: web               # <4>
 ----
 
 <1> The default value will be storage disabled

@@ -44,12 +44,12 @@ metadata:
   name: test-cluster
 spec:
   volumes:
-     - name: test-volume      <1>
+     - name: test-volume     # <1>
        hostPath:
          path: /data
          type: Directory
   volumeMounts:
-     - name: test-volume      <2>
+     - name: test-volume     # <2>
        mountPath: /test-data
 
 ----
@@ -72,21 +72,21 @@ spec:
   roles:
     - role: data
       volumes:
-         - name: test-volume      <1>
+         - name: test-volume     # <1>
            hostPath:
              path: /data
              type: Directory
       volumeMounts:
-         - name: test-volume      <2>
+         - name: test-volume     # <2>
            mountPath: /test-data
     - role: proxy
       volumes:
-         - name: proxy-volume     <3>
+         - name: proxy-volume    # <3>
            hostPath:
              path: /proxy-data
              type: Directory
       volumeMounts:
-         - name: test-volume      <4>
+         - name: test-volume     # <4>
            mountPath: /data
 ----
 
@@ -110,7 +110,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  volumes:                   <1>
+  volumes:                  # <1>
      - name: data-volume
        hostPath:
          path: /test-data
@@ -119,7 +119,7 @@ spec:
        hostPath:
          path: /test-config
          type: Directory
-  volumeMounts:              <2>
+  volumeMounts:             # <2>
      - name: test-volume
        mountPath: /data
      - name: config-volume
@@ -144,23 +144,23 @@ metadata:
   name: test-cluster
 spec:
   volumes:
-     - name: data-volume          <1>
+     - name: data-volume         # <1>
        hostPath:
          path: /test-data
          type: Directory
   volumeMounts:
-     - name: test-volume          <2>
+     - name: test-volume         # <2>
        mountPath: /data
   roles:
-    - role: data                  <3>
+    - role: data                 # <3>
     - role: proxy
       volumes:
-         - name: config-volume    <4>
+         - name: config-volume   # <4>
            hostPath:
              path: /proxy-config
              type: Directory
       volumeMounts:
-         - name: config-volume    <5>
+         - name: config-volume   # <5>
            mountPath: /config
 ----
 
@@ -197,7 +197,7 @@ spec:
     - role: data
     - role: proxy
       volumes:
-         - name: data-volume      <1>
+         - name: data-volume     # <1>
            hostPath:
              path: /proxy-data
              type: Directory

@@ -50,8 +50,8 @@ for example to use version `2.0.0-alpha1`:
 [source,bash]
 ----
 helm install coherence-unstable/coherence-operator \
-    --version 2.0.0-alpha1 \    <1>
-    --namespace <namespace> \       <2>
+    --version 2.0.0-alpha1 \       <1>
+    --namespace <namespace> \      <2>
     --name coherence-operator
 ----
 
@@ -73,12 +73,12 @@ for that repository so that a secret can be created.
 
 [source,bash]
 ----
-kubectl -n <namespace> \                                     <1>
-  create secret docker-registry coherence-operator-secret \  <2>
-  --docker-server=$DOCKER_REPO \                             <3>
-  --docker-username=$DOCKER_USERNAME \                       <4>
-  --docker-password=$DOCKER_PASSWORD \                       <5>
-  --docker-email=$DOCKER_EMAIL                               <6>
+kubectl -n <namespace> \                                      <1>
+  create secret docker-registry coherence-operator-secret \   <2>
+  --docker-server=$DOCKER_REPO \                              <3>
+  --docker-username=$DOCKER_USERNAME \                        <4>
+  --docker-password=$DOCKER_PASSWORD \                        <5>
+  --docker-email=$DOCKER_EMAIL                                <6>
 ----
 
 <1> Replace <namespace> with the Kubernetes namespace that the Coherence Operator will be installed into.
@@ -99,7 +99,7 @@ to specify the secret to use:
 helm install coherence-unstable/coherence-operator \
     --version 2.0.0-1909130555 \
     --namespace <namespace> \
-    --set imagePullSecrets[0].name=coherence-operator-secret \  <1>
+    --set imagePullSecrets[0].name=coherence-operator-secret \   <1>
     --name coherence-operator
 ----
 

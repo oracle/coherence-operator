@@ -65,7 +65,7 @@ The minimal required yaml to create a `CoherenceCluster` resource is shown below
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: my-cluster  <1>
+  name: my-cluster # <1>
 ----
 
 The only required field is `metadata.name` which will be used as the Coherence cluster name, in this case `my-cluster`

@@ -27,8 +27,8 @@ Different application code and configuration can be added to different roles in 
 the application's configuration in the `application` section of a role spec. There are a number of different fields
 that can be configured for an application described below. All of the configuration described below is optional.
 
-See the in-depth guide on <<guides/030_applications.adoc,building Coherence applications>> for more details on creating and
-deploying `CoherenceClusters` with custom application code.
+See the in-depth guide on <<app-deployments/010_overview.adoc,Coherence application deployments>> for more details on
+creating and deploying `CoherenceClusters` with custom application code.
 
 [source,yaml]
 .Application Spec
@@ -68,13 +68,13 @@ class other than Coherence `DefaultCacheServer`
 ////
 ----- Application Image -------------------------------------------------------------------------------------------
 ////
----
+'''
 [#app-image]
 == Setting the Application Image
 
 The application image is the Docker image containing the `.jar` files and configuration files of the Coherence application
 that should be deployed in the Coherence cluster. For more information see the
-<<guides/030_applications.adoc,Deploying Coherence Applications>> guide.
+<<app-deployments/010_overview.adoc,Coherence application deployments>> guide.
 
 Whilst the Coherence Operator makes it simple to deploy and manage a Coherence cluster in Kubernetes in the majority of
 use cases there will be a requirement for application code to be deployed and run in the Coherence JVMs. This application
@@ -185,7 +185,7 @@ spec:
 ////
 ----- Application image pull policy -------------------------------------------------------------------------------
 ////
----
+'''
 [#pull-policy]
 == Setting the Application Image Pull Policy
 
@@ -281,7 +281,7 @@ they do not specifically set the value in their specs.
 ////
 ----- Application lib directory -----------------------------------------------------------------------------------
 ////
----
+'''
 [#app-lib]
 == Setting the Application Lib Directory
 
@@ -371,7 +371,7 @@ for the `data` role.
 ////
 ----- Application config directory --------------------------------------------------------------------------------
 ////
----
+'''
 [#app-conf]
 == Setting the Application Config Directory
 
@@ -460,7 +460,7 @@ role.
 ////
 ----- Application working directory -------------------------------------------------------------------------------
 ////
----
+'''
 [#app-dir]
 == Setting the Application Directory
 
@@ -550,7 +550,7 @@ the `data` role.
 ////
 ----- Application main --------------------------------------------------------------------------------------------
 ////
----
+'''
 [#app-main]
 == Setting the Application Main
 
@@ -648,7 +648,7 @@ will use the `com.acme.Proxy` class as the main class.
 ////
 ----- Application main arguments ----------------------------------------------------------------------------------
 ////
----
+'''
 [#app-args]
 == Setting the Application Main Arguments
 

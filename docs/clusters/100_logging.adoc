@@ -27,6 +27,8 @@ Logging configuration for a role is defined in the `logging` section of the role
 fields used to configure different logging features. The `logging` configuration can be set at different places depending
 on whether the implicit role or explicit roles are being configured.
 
+See the in-depth <<logging/010_overview.adoc,logging guide>> for more details on configuring application logging.
+
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1

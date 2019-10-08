@@ -61,17 +61,10 @@ Step-by-step examples with code for various tasks with the Coherence Operator.
 ====
 
 [CARD]
-.Coherence Clusters
+.CoherenceCluster CRD Reference
 [icon=widgets,link=clusters/01_introduction.adoc]
 --
-In depth CoherenceCluster CRD documentation.
---
-
-[CARD]
-.Developer
-[icon=build,link=developer/01_introduction.adoc]
---
-Developer guide for building the Coherence Operator.
+In depth CoherenceCluster CRD reference documentation.
 --
 
 [CARD]
@@ -94,13 +87,19 @@ Viewing and managing log files within using the Coherence Operator.
 --
 Enabling and using Management Over ReST in the Coherence Operator.
 
-
 --
 [CARD]
 .Diagnostic Tools
 [icon=favorite_outline,link=diagnostics/010_overview.adoc]
 --
 Tools to Diagnose issues with Coherence Clusters in the Coherence Operator.
+--
+
+[CARD]
+.Developer
+[icon=build,link=developer/01_introduction.adoc]
+--
+Developer guide for building the Coherence Operator.
 --
 
 ====

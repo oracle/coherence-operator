@@ -16,14 +16,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Generating Heap Dumps
+= Coherence Snapshots
 
-TBC
 
-== Produce and extract a heap dump
+== Coherence Snapshots
 
-// We will produce a heap dump on OOM error by default see clusters/080_jvm.adoc
-
-// see this article https://danlebrero.com/2018/11/20/how-to-do-java-jvm-heapdump-in-kubernetes/
-// for some ideas on handling heap dumps. We do not support the side-car thing but the notes about
-// emptyDir{} which is our default setting are interesting.

@@ -42,7 +42,7 @@ can be defined by yaml as simple as this:
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: my-cluster  <1>
+  name: my-cluster # <1>
 ----
 
 <1> The `metadata.name` field in the `CoherenceCluster` will be used as the Coherence cluster name and would obviously
@@ -92,8 +92,8 @@ kind: CoherenceCluster
 metadata:
   name: my-cluster
 spec:
-  role: storage  <1>
-  replicas: 3    <2>
+  role: storage # <1>
+  replicas: 3   # <2>
 ----   
 
 <1> The `role` field specifies the name of the role, in this case `stroage`.
@@ -110,7 +110,7 @@ kind: CoherenceCluster
 metadata:
   name: my-cluster
 spec:
-  roles:              <1>
+  roles:             # <1>
     - role: storage
       replicas: 3
 ----
@@ -128,10 +128,10 @@ metadata:
   name: my-cluster
 spec:
   roles:
-    - role: storage   <1>
-      replicas: 3     <2>
-    - role: web       <3>
-      replicas: 2     <4>
+    - role: storage  # <1>
+      replicas: 3    # <2>
+    - role: web      # <3>
+      replicas: 2    # <4>
 ----
 
 <1> In this case there are two roles defined, the first names `storage`,

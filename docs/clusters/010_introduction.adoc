@@ -16,11 +16,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Create Coherence Clusters
+= CoherenceCluster CRD Overview
 
 Creating a Coherence cluster using the Coherence Operator is as simple as creating any other Kubernetes resource.
 
-== Create CoherenceCluster Resources
+== CoherenceCluster CRD Overview
 
 The Coherence Operator uses a Kubernetes `CustomResourceDefinition` named `CoherenceCluster` to define the `spec` for a
 Coherence cluster.
@@ -32,7 +32,7 @@ simple as the following:
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceCluster
 metadata:
-  name: my-cluster  <1>
+  name: my-cluster  # <1>
 ----
 
 <1> The `metadata.name` field will be used as the Coherence cluster name.
@@ -49,7 +49,128 @@ have effectively had two roles, "storage" and "proxy".
 Some clusters may simply have just a storage role and some complex Coherence applications and clusters may have many roles
 and even different roles storage enabled for different caches/services within the same cluster.
 
+A role in a `CoherenceCluster` is either configured as a single implicit `role` or one or more explicit `roles`.
+
+[source,yaml]
+.Single Implicit Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+spec:               # <1>
+  replicas: 6
+----
+
+<1> The configuration for the `role` (in this case just the `replicas` field) is added directly to the `spec` section
+of the `CoherenceCluster`.
+
+[source,yaml]
+.Single Explicit Role
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+spec:
+  roles:
+  - role: data # <1>
+    replicas: 6
+----
+
+<1> The configuration for a single explicit `role` named `data` is added to the `roles` list.
+of the `CoherenceCluster`.
+
+[source,yaml]
+.Multiple Explicit Roles
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+spec:
+  roles:
+  - role: data   # <1>
+    replicas: 6
+  - role: data   # <2>
+    replicas: 3
+----
+
+<1> The first role in the `roles` list is named `data` with a `replicas` value of `6`
+<2> The second role in the `roles` list is named `proxy` with a `replicas` value of `3`
 
 
+== The Coherence Role Specification
+
+The specification for a `role` in the `CoherenceCluster` CRD (both implicit or expilict) has the following top level
+fields that may be configured:
+
+[source,yaml]
+----
+  role:                      # <1>
+  replicas:                  # <2>
+  application: {}            # <3>
+  coherence: {}              # <4>
+  jvm: {}                    # <5>
+  scaling: {}                # <6>
+  ports: []                  # <7>
+  logging: {}                # <8>
+  volumes: []                # <9>
+  volumeClaimTemplates: []   # <10>
+  volumeMounts: []           # <11>
+  env: []                    # <12>
+  annotations: {}            # <13>
+  labels: []                 # <14>
+  nodeSelector: {}           # <15>
+  tolerations: []            # <16>
+  affinity: {}               # <17>
+  resources: {}              # <18>
+  readinessProbe: {}         # <19>
+  livenessProbe: {}          # <20>
+----
+
+<1> The `role` field sets the name of the role, if omitted the default name of `storage` will be used. If configuring
+multiple roles in a `CoherenceCluster` each role must have a unique name.
+See <<clusters/030_roles.adoc,Define Coherence Roles>> for more details.
+<2> The `replicas` field sets the number of replicas (`Pods`) that will be vreated for the role. If not specified the
+default value is `3`.
+See configuring a <<clusters/040_replicas.adoc,Role's Replica Count>> for more details.
+<3> The `application` section contains fields for configuring custom application code.
+See <<clusters/070_applications.adoc,Configure Applications>> for more details.
+<4> The `coherence` section contains fields for configuring Coherence specific settings.
+See <<clusters/050_coherence.adoc,Configure Coherence>> for more details.
+<5> The `jvm` section contains fields for configuring how the JVM behaves.
+See <<clusters/080_jvm.adoc,Configure the JVM>> for more details.
+<6> The `scaling` section contains fields for configuring how the number of replicas in a role is safely scaled up
+and down.
+See <<clusters/085_safe_scaling.adoc,Configure Safe Scaling>> for more details.
+<7> The `ports` section contains fields for configuring how ports are exposed via services.
+See <<clusters/090_ports_and_services.adoc,Expose Ports and Services>> for more details.
+<8> The `logging` section contains fields for configuring logging.
+See <<clusters/100_logging.adoc,Configure Logging>> for more details.
+<9> The `volumes` section contains fields for configuring additional volumes to add to the `Pods` for a role.
+See <<clusters/110_volumes.adoc,Configure Additional Volumes>> for more details.
+<10> The `volumeClaimTemplates` section contains fields for configuring additional PVCs to add to the `Pods` for a role.
+See <<clusters/110_volumes.adoc,Configure Additional Volumes>> for more details.
+<11> The `volumeMounts` section contains fields for configuring additional volume mounts to add to the `Pods` for a role.
+See <<clusters/110_volumes.adoc,Configure Additional Volumes>> for more details.
+<12> The `env` section contains extra environment variables to add to the Coherence container.
+See <<clusters/115_environment_variables.adoc,Environment Variables>> for more details.
+<13> The `annotations` map contains extra annotations to add to the `Pods` for the role.
+See <<clusters/120_annotations.adoc,Configure Pod Annotations>> for more details.
+<14> The `labels` map contains extra labels to add to the `Pods` for the role.
+See <<clusters/125_labels.adoc,Configure Pod Labels>> for more details.
+<15> The `nodeSelector` map contains node selectors to determine how Kubernetes schedules the `Pods` in the role.
+See <<clusters/130_pod_scheduling.adoc,Configure Pod Scheduling>> for more details.
+<16> The `tolerations` array contains taints and tolerations to determine how Kubernetes schedules the `Pods` in the role.
+See <<clusters/130_pod_scheduling.adoc,Configure Pod Scheduling>> for more details.
+<17> The `affinity` contains `Pod` affinity fields to determine how Kubernetes schedules the `Pods` in the role.
+See <<clusters/130_pod_scheduling.adoc,Configure Pod Scheduling>> for more details.
+<18> The `resources` contains configures resource limits for the Coherence containers.
+See <<clusters/140_resource_constraints.adoc,Configure Container Resource Limits>> for more details.
+<19> The `readinessProbe` section configures the readiness probe for the Coherence containers.
+See <<clusters/150_readiness_liveness.adoc,Readiness & Liveness Probes>> for more details.
+<20> The `livenessProbe` section configures the liveness probe for the Coherence containers.
+See <<clusters/150_readiness_liveness.adoc,Readiness & Liveness Probes>> for more details.
 
 

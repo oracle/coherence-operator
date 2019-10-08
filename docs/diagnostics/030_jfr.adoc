@@ -21,3 +21,5 @@
 TBC
 
 == Produce and extract a Java Flight Recorder (JFR) file
+
+// By default the JVM is configured to record a continual JFR see clusters/080_jvm.adoc

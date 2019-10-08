@@ -34,7 +34,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  replicas: 6  <1>
+  replicas: 6 # <1>
 ----
 
 <1> In this case a cluster will be created with a single implicit role named `storage` with a replica count of six.
@@ -56,9 +56,9 @@ metadata:
 spec:
   roles:
     - role: data
-      replicas: 6  <1>
+      replicas: 6 # <1>
     - role: proxy
-      replicas: 3  <2>
+      replicas: 3 # <2>
 ----
 
 <1> The `data` role has a replica count of six
@@ -80,12 +80,12 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  replicas: 6  <1>
+  replicas: 6 # <1>
   roles:
     - role: data
     - role: proxy
     - role: web
-      replicas: 3  <2>
+      replicas: 3 # <2>
 ----
 
 <1> The default `replicas` value is set to six. The `data` and `proxy` roles do not have a `replicas` value so will use

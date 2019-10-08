@@ -63,8 +63,8 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  role: data   <1>
-  replicas: 6  <2>
+  role: data  # <1>
+  replicas: 6 # <2>
 ----
 
 <1> The role name is set with the `role` field, in this case the role name of the implicit role is now `data`
@@ -81,7 +81,7 @@ metadata:
 spec:
   role: data
   replicas: 6
-  cacheConfig: test-config.xml  <1>
+  cacheConfig: test-config.xml # <1>
 ----
 
 <1> The `cacheConfig` field is used to set the cache configuration to `test-config.xml`.
@@ -100,9 +100,9 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  roles:           <1>
-    - role: data   <2>
-      replicas: 6  <3>
+  roles:          # <1>
+    - role: data  # <2>
+      replicas: 6 # <3>
 ----
 
 <1> The yaml above defines a single explicit role in the `roles` list
@@ -117,11 +117,11 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  roles:           <1>
-    - role: data   <2>
-      replicas: 6  <3>
-    - role: proxy  <4>
-      replicas: 3  <5>
+  roles:          # <1>
+    - role: data  # <2>
+      replicas: 6 # <3>
+    - role: proxy # <4>
+      replicas: 3 # <5>
 ----
 
 <1> The yaml above defines a two explicit roles in the `roles` list
@@ -147,10 +147,10 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  replicas: 6  <3>
+  replicas: 6 # <3>
   roles:
-    - role: data   <1>
-    - role: proxy  <2>
+    - role: data  # <1>
+    - role: proxy # <2>
 ----
 
 <1> The roles list contains two explicit roles, `data`
@@ -166,12 +166,12 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  replicas: 6  <2>
+  replicas: 6 # <2>
   roles:
     - role: data
     - role: proxy
-    - role: web    <1>
-      replicas: 2  <3>
+    - role: web   # <1>
+      replicas: 2 # <3>
 ----
 
 <1> Now a new `web` role has been introduced

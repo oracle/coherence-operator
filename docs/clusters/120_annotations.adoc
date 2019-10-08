@@ -39,7 +39,7 @@ metadata:
   name: test-cluster
 spec:
   annotations:
-    acme.com/layer: back   <1>
+    acme.com/layer: back  # <1>
 ----
 
 <1> The implicit role will have the annotation `acme.com/layer : back`
@@ -63,7 +63,7 @@ spec:
   template:
     metadata:
       annotations:
-        acme.com/layer: back   <1>
+        acme.com/layer: back  # <1>
 ----
 
 <1> The annotation `acme.com/layer: back` has been applied to the `StatefulSet` `Pod` template.
@@ -83,10 +83,10 @@ spec:
   roles:
     - role: data
       annotations:
-        acme.com/layer: back   <1>
+        acme.com/layer: back  # <1>
     - role: proxy
       annotations:
-        acme.com/layer: front   <2>
+        acme.com/layer: front  # <2>
 ----
 
 <1> The `data` role will have the annotation `acme.com/layer: back`
@@ -109,14 +109,14 @@ metadata:
   name: test-cluster
 spec:
   annotations:
-    acme.com/layer: back          <1>
+    acme.com/layer: back         # <1>
     acme.com/app:   orders
   roles:
-    - role: data                  <2>
-    - role: proxy                 <3>
+    - role: data                 # <2>
+    - role: proxy                # <3>
       annotations:
         acme.com/state: none
-    - role: web                   <4>
+    - role: web                  # <4>
       annotations:
         acme.com/three: none
         acme.com/layer: front

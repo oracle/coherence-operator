@@ -62,7 +62,7 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  imagePullSecrets:     # <1>
+  imagePullSecrets:           # <1>
     - name: coherence-secret
     - name: ocr-secret
 ----

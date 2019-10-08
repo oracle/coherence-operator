@@ -94,14 +94,14 @@ kind: CoherenceCluster
 metadata:
   name: test-cluster
 spec:
-  role: storage       <1>
+  role: storage        # <1>
   replicas: 2
   coherence:
     metrics:
-      enabled: true     <2>
+      enabled: true    # <2>
   ports:
-    - name: metrics   <3>
-      port: 9612      <4>
+    - name: metrics    # <3>
+      port: 9612       # <4>
 ----
 
 <1> This cluster will have a single role called `storage`
