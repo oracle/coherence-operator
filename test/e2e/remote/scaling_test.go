@@ -60,13 +60,13 @@ func TestScalingDownWithKubectl(t *testing.T) {
 // If a role is scaled down to zero it should be deleted and just its parent CoherenceCluster should remain.
 // This test scales down by directly updating the replica count in the role to zero.
 func TestScaleDownToZero(t *testing.T) {
-	assertScaleDownToZero(t, roleScaler)
+	assertScaleDownToZero(t, 30, roleScaler)
 }
 
 // If a role is scaled down to zero it should be deleted and just its parent CoherenceCluster should remain.
 // This test scales down using the "kubectl scale --relicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
-	assertScaleDownToZero(t, kubeCtlRoleScaler)
+	assertScaleDownToZero(t, 40, kubeCtlRoleScaler)
 }
 
 // ----- helper methods ------------------------------------------------
@@ -167,7 +167,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	g.Expect(r.GetReplicas()).To(Equal(replicasScale))
 }
 
-func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
+func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	const (
 		zero int32 = 0
 	)
@@ -175,13 +175,22 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 	g := NewGomegaWithT(t)
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx.AddCleanupFn(func() error {
+		deleteCluster(cluster.Namespace, cluster.Name)
+		return nil
+	})
+
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	//Give the cluster a unique name based on the test name
+	cluster.SetName(fmt.Sprintf("%s-%d", cluster.GetName(), uid))
 
 	// Get the role and update it's replica count and scaling policy
 	roleSpec := cluster.GetFirstRole()
@@ -202,10 +211,6 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 	err = helper.WaitForDeletion(f, namespace, roleFullName, &u, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// Wait for deletion of the CoherenceRole
-	err = helper.WaitForDeletion(f, namespace, roleFullName, &cohv1.CoherenceRole{}, time.Second*5, time.Minute*5)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	// The CoherenceCluster should still exist
 	cl := cohv1.CoherenceCluster{}
 	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cluster.Name}, &cl)
@@ -213,6 +218,12 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 	// The replica count for the role spec in the cluster should be zero
 	r := cl.GetRole(roleSpec.GetRoleName())
 	g.Expect(r.GetReplicas()).To(Equal(zero))
+
+	// wait for the role to match the condition
+	fullName := r.GetFullRoleName(&cluster)
+	condition := helper.ReplicasRoleCondition(0)
+	_, err = helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*5, t)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 // installSimpleCluster installs a cluster and asserts that the underlying StatefulSet resources reach the correct state.

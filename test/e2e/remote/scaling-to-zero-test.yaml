@@ -10,7 +10,7 @@ spec:
       policy: Parallel
     readinessProbe:
       initialDelaySeconds: 10
-      periodSeconds: 10
+      periodSeconds: 5
     application:
       main: com.oracle.coherence.k8s.testing.RestServer
       image: ${TEST_USER_IMAGE}

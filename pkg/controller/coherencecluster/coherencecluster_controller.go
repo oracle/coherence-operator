@@ -190,44 +190,28 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		}
 	}
 
-	// Remove any existing roles where the replica count in the desired spec is zero
-	for _, role := range desiredRoles {
-		if role.GetReplicas() == 0 {
-			existingRole, found := existingRoles[role.GetRoleName()]
-			if found {
-				err = r.deleteRole(params{cluster: cluster, existingRole: existingRole, reqLogger: logger})
-				if err != nil {
-					return reconcile.Result{}, err
-				}
-			}
-		}
-	}
-
 	// Process the inserts and updates in the order they are specified in the cluster spec
 	for _, roleName := range desiredRoleNames {
 		role := desiredRoles[roleName]
-		if role.GetReplicas() > 0 {
-			// Check whether this CoherenceRole already exists
-			existingRole, found := existingRoles[role.GetRoleName()]
+		existingRole, found := existingRoles[role.GetRoleName()]
 
-			parameters := params{
-				request:      request,
-				cluster:      cluster,
-				desiredRole:  role,
-				existingRole: existingRole,
-				reqLogger:    logger,
-			}
+		parameters := params{
+			request:      request,
+			cluster:      cluster,
+			desiredRole:  role,
+			existingRole: existingRole,
+			reqLogger:    logger,
+		}
 
-			if found {
-				// this is a request to update a cluster role
-				result, err := r.updateRole(parameters)
-				if err != nil || result.Requeue {
-					return result, err
-				}
-			} else if err := r.createRole(parameters); err != nil {
-				// this is a request for a new cluster role
-				return reconcile.Result{}, err
+		if found {
+			// this is a request to update a cluster role
+			result, err := r.updateRole(parameters)
+			if err != nil || result.Requeue {
+				return result, err
 			}
+		} else if err := r.createRole(parameters); err != nil {
+			// this is a request for a new cluster role
+			return reconcile.Result{}, err
 		}
 	}
 
@@ -247,11 +231,6 @@ type params struct {
 
 // createRole create a new cluster role.
 func (r *ReconcileCoherenceCluster) createRole(p params) error {
-	if p.desiredRole.GetReplicas() <= 0 {
-		// should not get here but do nothing the desired replica count is zero
-		return nil
-	}
-
 	fullName := p.desiredRole.GetFullRoleName(p.cluster)
 
 	logger := p.reqLogger.WithValues("Role", fullName)
