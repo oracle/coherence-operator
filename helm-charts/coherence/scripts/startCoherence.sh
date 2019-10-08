@@ -275,7 +275,7 @@ start()
                               -XX:+PrintGCApplicationConcurrentTime"
     fi
 
-    if [[ "${JVM_OOM_HEAP_DUMP}" == "true" ]]
+    if [[ "${JVM_OOM_HEAP_DUMP}" == "" || "${JVM_OOM_HEAP_DUMP}" == "true" ]]
     then
         COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+HeapDumpOnOutOfMemoryError"
     fi

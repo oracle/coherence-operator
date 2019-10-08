@@ -921,7 +921,8 @@ spec:
 
 ==== Configuring Native Memory Tracking for Explicit Roles
 
-When creating a `CoherenceCluster` with one or more explicit roles
+When creating a `CoherenceCluster` with one or more explicit roles native memory tracking can br configured specifically
+for each role in the `roles` list.
 For example:
 
 [source,yaml]
@@ -942,9 +943,16 @@ spec:
           nativeMemoryTracking: summary  # <2>
 ----
 
+<1> The native memory tracking mode for the JVMs in the `data` role will be set to `detail` causing the
+`-XX:NativeMemoryTracking=detail` to be passed to the JVMs.
+<2> The native memory tracking mode for the JVMs in the `proxy` role will be set to `summary` causing the
+`-XX:NativeMemoryTracking=summary` to be passed to the JVMs.
+
+
 ==== Configuring Native Memory Tracking for Explicit Roles with a Default
 
-When creating a `CoherenceCluster` with one or more explicit roles a default
+When creating a `CoherenceCluster` with one or more explicit roles a default native memory tracking mode can be set in
+the `spec` section which will apply to all roles in the `roles` list unless specifically overridden for a role.
 For example:
 
 [source,yaml]
@@ -956,7 +964,7 @@ metadata:
 spec:
   jvm:
     memory:
-      nativeMemoryTracking: summary     # <1>
+      nativeMemoryTracking: off         # <1>
   roles:
     - role: data                        # <2>
       jvm:
@@ -965,13 +973,138 @@ spec:
     - role: proxy                       # <3>
 ----
 
+<1> The default native memory tracking mode is set to `off` for all roles in the `roles` list unless specifically
+overridden. This will cause the `-XX:NativeMemoryTracking=off` to be passed to the JVMs.
+<2> The native memory tracking mode is specifically set to `detail` for the `data` role causing the
+`-XX:NativeMemoryTracking=detail` to be passed to the JVMs in the `data` role.
+<3> The native memory tracking mode is not set for the `proxy` role so it will use the default value of `off` causing
+the `-XX:NativeMemoryTracking=off` to be passed to the JVMs in the `proxy` role.
+
 
 // ----- JVM OOM Behavior ----------------------------------------------------------------------------------------------
 
 [#oom]
 === JVM Behaviour on Out Of Memory
 
+It is an important recommendation in the Coherence documentation to specifically set the behaviour of a JVM when it
+encounters an out of memory error. The JVM should be set to exit and generate a heap dump. A JVM that encounters an OOM
+error is left in an undefined state and this can cause a Coherence cluster to become unstable if the JVM does not exit.
+Generating a heap dump is useful to diagnose why the JVM had the OOM error.
 
+There are two boolean fields in the `CoherenceCluster` CRD that control this behaviour:
+
+* `jvm.memory.onOutOfMemory.exit` which determines whether the JVM will exit on an OOM error; the default value if
+the field is not specified is `true`.
+A value of `true` causes the `-XX:+ExitOnOutOfMemoryError` argument to be passed to the JVM.
+* `jvm.memory.onOutOfMemory.heapDump` which determines whether the JVM will generate a heap dump on an OOM error; the
+default value if the field is not specified is `true`.
+
+Heap dumps will be written to a file `/jvm/${POD_NAME}/${POD_UID}/heap-dumps/${POD_NAME}-${POD_UID}.hprof`. The root
+`/jvm` directory can be mapped to an external volume for easier access to the heap dumps
+(see: <<#diagnosticsVolume,setting the disgnostic volume>>)
+
+
+==== Configuring OOM Behaviour for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role native memory tracking can be configured in the `spec`
+section of the yaml.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      onOutOfMemory:
+        exit: true      # <1>
+        heapDump: true  # <2>
+----
+
+<1> The implicit storage role will exit if an out of memory error occurs, the `-XX:+ExitOnOutOfMemoryError` argument
+will be passed to the JVM
+<2> The implicit storage role will generate a heap dump if an out of memory error occurs, the
+`-XX:+HeapDumpOnOutOfMemoryError"` argument will be passed to the JVM
+
+
+==== Configuring OOM Behaviour for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles native memory tracking can br configured specifically
+for each role in the `roles` list.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        memory:
+          onOutOfMemory:
+            exit: true       # <1>
+            heapDump: true   # <2>
+    - role: proxy
+      jvm:
+        memory:
+          onOutOfMemory:
+            exit: false      # <3>
+            heapDump: false  # <4>
+----
+
+<1> The `data` role will exit if an out of memory error occurs, the `-XX:+ExitOnOutOfMemoryError` argument
+will be passed to the JVM
+<2> The `data` role will generate a heap dump if an out of memory error occurs, the
+`-XX:+HeapDumpOnOutOfMemoryError"` argument will be passed to the JVM
+<3> The `proxy` role will not exit if an out of memory error occurs, the `-XX:+ExitOnOutOfMemoryError` argument
+will be not passed to the JVM
+<4> The `proxy` role will not generate a heap dump if an out of memory error occurs, the
+`-XX:+HeapDumpOnOutOfMemoryError"` argument will not be passed to the JVM
+
+
+==== Configuring OOM Behaviour for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default native memory tracking mode can be set in
+the `spec` section which will apply to all roles in the `roles` list unless specifically overridden for a role.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    memory:
+      onOutOfMemory:
+        exit: false          # <1>
+        heapDump: false      # <2>
+  roles:
+    - role: data
+      jvm:
+        memory:
+          onOutOfMemory:
+            exit: true       # <3>
+            heapDump: true   # <4>
+    - role: proxy            # <5>
+----
+
+<1> The default setting for exit on out of memory error is `false`
+<2> The default setting for generating a heap dump on out of memory error is `false`
+<3> The `data` role overrides the default `jvm.memory.onOutOfMemory.exit` value to `true` and will exit if an out of
+memory error occurs, the `-XX:+ExitOnOutOfMemoryError` argument will be passed to the JVM
+<4> The `data` role overrides the default `jvm.memory.onOutOfMemory.heapDump` value to `true` and will generate a heap
+dump if an out of memory error occurs, `-XX:+HeapDumpOnOutOfMemoryError"` argument will be passed to the JVM
+<5> The `proxy` role does not specify any values for `jvm.memory.onOutOfMemory.exit` or
+`jvm.memory.onOutOfMemory.heapDump` so it will use the default values of `false`, the `-XX:+ExitOnOutOfMemoryError` and
+`-XX:+HeapDumpOnOutOfMemoryError"` arguments will not be passed to the JVM
 
 
 // ----- Use Container Limits ------------------------------------------------------------------------------------------
@@ -1083,13 +1216,18 @@ By default the Coherence JVMs are configured to write heap dumps, error logs and
 container under the root `/jvm` directory. The `/jvm` directory is mapped to `volumeMount` named `jvm` which is in turn
 mapped to a `volume` named `jvm`.
 
-The default configuration for the `jvm` volume is an empty directory.
-```
-- name: jvm
+The default configuration for the `jvm` volume in the Coherence `Pods` is an empty directory.
+[source,yaml]
+----
+volumeMounts:
+  - name: jvm
+    mountPath: /jvm
+volumes:
+  - name: jvm
     emptyDir: {}
-```
+----
 
-This default may be changed to map the `jvm` volume to any supported
+The default may be changed to map the `jvm` volume to any supported
 https://kubernetes.io/docs/concepts/storage/volumes/#types-of-volumes[Kubernetes `VolumeSource`].
 
 
@@ -1097,3 +1235,7 @@ https://kubernetes.io/docs/concepts/storage/volumes/#types-of-volumes[Kubernetes
 
 [#debug]
 == JVM Debug Arguments
+
+Sometimes attaching a debugger to a JVM is the best way to track down the cause of an issue. The `CoherenceCluster` CRD
+has a number of fields that can be used to configure how the JVM can be started in debug mode.
+
