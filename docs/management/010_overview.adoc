@@ -17,58 +17,40 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
-:description: Coherence Operator guides
-:keywords: oracle coherence, kubernetes, operator, guides
+:description: Management Over ReST
+:keywords: oracle coherence, kubernetes, operator, Management, ReST
 
-== Getting Started
-
-[PILLARS]
-====
-[CARD]
-.QuickStart
-[link=guides/020_quickstart.adoc]
---
-Follow step-by-step quick start guide to using the Coherence Operator.
---
-
-[CARD]
-.Install
-[link=install/01_introduction.adoc]
---
-Installing and running the Coherence Operator.
---
-====
-
-== More Guides
+== Management over ReST
 
 [PILLARS]
 ====
-
 [CARD]
-.ReST Management API
-[link=guides/080_management.adoc]
+.Enabling
+[link=management/020_enabling.adoc]
 --
-Managing Coherence clusters with management over ReST.
---
-
-[CARD]
-.Coherence Metrics
-[link=guides/090_metrics.adoc]
---
-Publishing metrics from Coherence clusters.
+Enabling Management Over ReST.
 --
 
 [CARD]
-.Clusters
-[link=clusters/010_introduction.adoc]
+.Using JVisualVM
+[link=management/030_visualvm.adoc]
 --
-Managing Coherence clusters.
+Access Management Over ReST using JVisualVM plugin.
 --
 
 [CARD]
-.Developer
-[link=developer/01_introduction.adoc]
+.Enabling SSL
+[link=management/040_ssl.adoc]
 --
-Developer guide for building the Coherence Operator.
+Enable SSL with Management over ReST.
 --
+
+[CARD]
+.Modifying MBeans
+[link=management/050_mbeans.adoc]
+--
+Modifying writable Coherence MBeans.
+--
+
 ====
+

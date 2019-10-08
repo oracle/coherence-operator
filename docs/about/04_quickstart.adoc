@@ -85,7 +85,7 @@ After installing the `my-cluster.yaml` above here should be a single `coherencec
 and a single `coherencerole` resource named `my-cluster-storage` created in the Coherence Operator namespace.
 
 ```
-kubectl -n <namespace> get coherence
+kubectl -n <namespace> get coherencecluster
 ```
 
 NOTE: Use the same namespace that the operator was installed into, e.g. if the namespace is `coherence` the command

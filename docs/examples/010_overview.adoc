@@ -1,0 +1,121 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Overview
+:description: Coherence Operator examples
+:keywords: oracle coherence, kubernetes, operator, examples
+
+== Before You Start
+
+[PILLARS]
+====
+
+[CARD]
+.Example Pre-requisites
+[link=examples/011_prereqs.adoc]
+--
+Pre-requisites for building and running the Coherence Operator code examples.
+--
+
+====
+
+== Deployment Code Examples
+
+[PILLARS]
+====
+
+[CARD]
+.Packaging Applications
+[link=examples/015_packaging.adoc]
+--
+Add application JARs/config to a Coherence deployment.
+--
+
+[CARD]
+.Coherence*Extend Deployments
+[link=examples/020_extend.adoc]
+--
+Application deployment examples using Coherence*Extend clients.
+--
+
+[CARD]
+.Storage-Disabled Deployments
+[link=examples/030_storage_disabled.adoc]
+--
+Application deployment examples using storage-disabled clients.
+--
+
+[CARD]
+.Rolling Upgrades
+[link=examples/045_rolling.adoc]
+--
+Changing an application image version using a rolling upgrade.
+--
+
+[CARD]
+.Federation
+[link=examples/046_federation.adoc]
+--
+Configuring Coherence Federation within a single Kubernetes cluster.
+--
+
+====
+
+== Management Code Examples
+
+[PILLARS]
+====
+
+[CARD]
+.Configuring a Custom Logger
+[link=examples/050_custom.adoc]
+--
+Configure a Custom Logger to enable your log messages to be captured.
+--
+
+[CARD]
+.Enable SSL for Metrics
+[link=examples/060_ssl.adoc]
+--
+Enabling SSL for metrics capture.
+--
+
+====
+
+== Elastic Data Code Examples
+
+[PILLARS]
+====
+
+[CARD]
+.Default FlashJournal Locations
+[link=examples/070_elastic1.adoc]
+--
+Configuring Elastic Data using default flashJournal locations.
+--
+
+[CARD]
+.External Volumes
+[link=examples/080_elastic2.adoc]
+--
+Configuring Elastic Data using External Volume Mapped to the Host.
+--
+
+
+
+====

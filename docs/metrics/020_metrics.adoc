@@ -16,12 +16,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Metrics
+= Enabling Metrics
 
 Coherence clusters can be deployed with a metrics endpoint enabled that can be scraped by common metrics applications
 such as Prometheus.
 
-== Deploying Coherence Clusters with Metrics
+== Deploying Coherence Clusters with Metrics Enabled
 
 NOTE: Note: Use of metrics is available only when using the operator with clusters running
 Coherence 12.2.1.4 or later version.

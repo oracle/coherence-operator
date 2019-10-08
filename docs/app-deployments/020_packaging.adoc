@@ -16,13 +16,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Management over ReST
+= Packaging Applications
 
-Coherence clusters can be deployed with a ReST management endpoint enabled.
+Whilst it is simple to deploy a Coherence cluster into Kubernetes in most cases there is also a requirement to add
+application code and configuration to the Coherence JVMs class path.
 
-== Deploying Coherence Clusters with Management
+== Packaging Applications
 
-TBD...
-
-
-
+//// TBD... step by step guide to building a Coherence Java server side application,
+//// packaging it into an image and deploying it using the operator.

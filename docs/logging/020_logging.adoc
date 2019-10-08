@@ -16,14 +16,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Logging with ELK
+= Enabling Log Capture
 
-Coherence clusters logs can be captured with ELK (or more accurately EFK) using Elasticsearch, Fluentd and Kibana.
+Coherence clusters can be deployed with a metrics endpoint enabled that can be scraped by common metrics applications
+such as Prometheus.
 
-== Capturing Coherence Cluster Logs
-
-TBD...
-
-
-
-
+== Capturing and viewing Coherence cluster Logs
