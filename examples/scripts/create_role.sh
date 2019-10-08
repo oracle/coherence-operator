@@ -49,5 +49,5 @@ echo "Creating role binding with ROLE_NAME=${ROLE_NAME}, ROLE_BINDING_NAME=${ROL
 sed -e "s/<ROLE_NAME>/${ROLE_NAME}/g" \
   -e "s/<ROLE_BINDING_NAME>/${ROLE_BINDING_NAME}/g" \
   -e "s/<NAMESPACE>/${NAMESPACE}/g" \
-  "${OPERATOR_ROOT}/example/example-rbac.yaml" | \
+  "${OPERATOR_ROOT}/examples/scripts/example-rbac.yaml" | \
   kubectl create -f -

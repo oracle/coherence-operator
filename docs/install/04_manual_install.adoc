@@ -25,11 +25,12 @@ In Kubernetes clusters with RBAC enabled the Coherence Operator requires certain
 
 [source,bash]
 ----
-sh examples/create_role.sh
+cd examples/scripts
+sh create_role.sh
 ----
 
 The example RBAC script creates a `ServiceAccount` with the name `coherence-operator` if a different name is required
-then the name in the `example/example-rbac.yaml` should be modified.
+then the name in the `example/scripts/example-rbac.yaml` should be modified.
 
 The shell script above will use default values for the role name, role binding name and install into the `default`
 namespace. If the default values need to be changed or the operator is to be installed into a namespace other than
@@ -49,7 +50,7 @@ Create a `Deployment` for the Coherence Operator using the example script.
 
 [source,bash]
 ----
-kubectl -n <namespace> create -f example/example-deployment.yaml
+kubectl -n <namespace> create -f example-deployment.yaml
 ----
 
 where `<namespace>` is the name of the namespace that the operator is to be deployed into.

@@ -1,0 +1,90 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Overview
+:description: Application Deployments
+:keywords: oracle coherence, kubernetes, operator, Application Deployments
+
+== Coherence Application Deployments
+
+[PILLARS]
+====
+[CARD]
+.Packaging Applications
+[link=app-deployments/020_packaging.adoc]
+--
+Adding application jars/config to a Coherence deployment.
+--
+
+[CARD]
+.Using Coherence*Extend Clients
+[link=app-deployments/030_extend.adoc]
+--
+Accessing Coherence applications using Coherence*Extend.
+--
+
+[CARD]
+.Using Storage-Disabled Clients
+[link=app-deployments/040_storage_disabled.adoc]
+--
+Accessing Coherence applications using storage-disabled clients.
+--
+
+[CARD]
+.Scaling Deployments
+[link=app-deployments/080_scaling.adoc]
+--
+Scaling a Coherence deployment.
+--
+
+[CARD]
+.Rolling Upgrades
+[link=app-deployments/090_rolling.adoc]
+--
+Changing an image version for Coherence or applications using rolling upgrade.
+--
+
+====
+
+== Using Coherence Features
+
+[PILLARS]
+====
+
+[CARD]
+.Federation
+[link=app-deployments/050_federation.adoc]
+--
+Using Coherence Federation.
+--
+
+[CARD]
+.Persistence
+[link=app-deployments/060_persistence.adoc]
+--
+Using Coherence Persistence.
+--
+
+[CARD]
+.Elastic Data
+[link=app-deployments/070_elasticdata.adoc]
+--
+Using Coherence Elastic Data.
+--
+
+====

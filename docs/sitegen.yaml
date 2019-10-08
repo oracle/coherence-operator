@@ -77,14 +77,54 @@ backend:
               items:
                 - includes:
                     - "clusters/*.adoc"
-            - title: "Guides"
-              pathprefix: "/guides"
+            - title: "Application Deployments"
+              pathprefix: "/app-deployments"
+              glyph:
+                type: "icon"
+                value: "extension"
+              items:
+                - includes:
+                    - "app-deployments/*.adoc"
+            - title: "Examples"
+              pathprefix: "/examples"
               glyph:
                 type: "icon"
                 value: "explore"
               items:
                 - includes:
-                    - "guides/*.adoc"
+                    - "examples/*.adoc"
+            - title: "Metrics"
+              pathprefix: "/metrics"
+              glyph:
+                type: "icon"
+                value: "av_timer"
+              items:
+                - includes:
+                    - "metrics/*.adoc"
+            - title: "Logging"
+              pathprefix: "/logging"
+              glyph:
+                type: "icon"
+                value: "donut_large"
+              items:
+                - includes:
+                    - "logging/*.adoc"
+            - title: "Diagnostic Tools"
+              pathprefix: "/diagnostics"
+              glyph:
+                type: "icon"
+                value: "favorite_outline"
+              items:
+                - includes:
+                    - "diagnostics/*.adoc"
+            - title: "Management over ReST"
+              pathprefix: "/management"
+              glyph:
+                type: "icon"
+                value: "cloud"
+              items:
+                - includes:
+                    - "management/*.adoc"
             - title: "Developer documentation"
               pathprefix: "/developer"
               glyph:

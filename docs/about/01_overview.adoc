@@ -20,13 +20,13 @@
 :description: Coherence Operator documentation
 :keywords: oracle coherence, kubernetes, operator, documentation
 
-== Get going
+== Get Going
 
 [PILLARS]
 ====
 [CARD]
 .Quick Start
-[icon=fa-rocket,link=guides/020_quickstart.adoc]
+[icon=fa-rocket,link=about/04_quickstart.adoc]
 --
 Quick start guide to running your first Coherence cluster using the Coherence Operator.
 --
@@ -39,11 +39,19 @@ Installing and running the Coherence Operator.
 --
 
 [CARD]
-.Guides
-[icon=explore,link=guides/010_overview.adoc]
+.Application Deployments
+[icon=extension,link=app-deployments/010_overview.adoc]
 --
-Follow step-by-step guides to using the Coherence Operator to manage Coherence clusters.
+Deploying Coherence Applications using the Coherence Operator.
 --
+
+[CARD]
+.Examples
+[icon=list,link=examples/010_overview.adoc]
+--
+Step-by-step examples with code for various tasks with the Coherence Operator.
+--
+
 ====
 
 
@@ -65,4 +73,34 @@ In depth CoherenceCluster CRD documentation.
 --
 Developer guide for building the Coherence Operator.
 --
+
+[CARD]
+.Metrics
+[icon=av_timer,link=metrics/010_overview.adoc]
+--
+Enabling and working with Metrics in the Coherence Operator.
+--
+
+[CARD]
+.Logging
+[icon=donut_large,link=logging/010_overview.adoc]
+--
+Viewing and managing log files within using the Coherence Operator.
+--
+
+[CARD]
+.Management Over ReST
+[icon=cloud,link=management/010_overview.adoc]
+--
+Enabling and using Management Over ReST in the Coherence Operator.
+
+
+--
+[CARD]
+.Diagnostic Tools
+[icon=favorite_outline,link=diagnostics/010_overview.adoc]
+--
+Tools to Diagnose issues with Coherence Clusters in the Coherence Operator.
+--
+
 ====
