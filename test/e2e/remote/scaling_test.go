@@ -60,13 +60,13 @@ func TestScalingDownWithKubectl(t *testing.T) {
 // If a role is scaled down to zero it should be deleted and just its parent CoherenceCluster should remain.
 // This test scales down by directly updating the replica count in the role to zero.
 func TestScaleDownToZero(t *testing.T) {
-	assertScaleDownToZero(t, roleScaler)
+	assertScaleDownToZero(t, 30, roleScaler)
 }
 
 // If a role is scaled down to zero it should be deleted and just its parent CoherenceCluster should remain.
 // This test scales down using the "kubectl scale --relicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
-	assertScaleDownToZero(t, kubeCtlRoleScaler)
+	assertScaleDownToZero(t, 40, kubeCtlRoleScaler)
 }
 
 // ----- helper methods ------------------------------------------------
@@ -167,7 +167,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	g.Expect(r.GetReplicas()).To(Equal(replicasScale))
 }
 
-func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
+func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	const (
 		zero int32 = 0
 	)
@@ -182,6 +182,9 @@ func assertScaleDownToZero(t *testing.T, scaler ScaleFunction) {
 
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
+
+	//Give the cluster a unique name based on the test name
+	cluster.SetName(fmt.Sprintf("%s-%d", cluster.GetName(), uid))
 
 	// Get the role and update it's replica count and scaling policy
 	roleSpec := cluster.GetFirstRole()
