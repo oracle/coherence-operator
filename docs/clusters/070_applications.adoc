@@ -42,8 +42,8 @@ spec:
     image: acme/orders-data:1.0.0
     imagePullPolicy: Always
     appDir: "/app"
-    libDir: "/lib"
-    configDir: "/conf"
+    libDir: "/app/lib"
+    configDir: "/app/conf"
     main: io.acme.Server
     args:
       - "foo"
@@ -292,6 +292,9 @@ The Coherence Operator will add the files to the classpath with the wildcard set
 each file in the lib directory individually to the classpath. This means that the contents of the lib directory are
 added to the classpath using the rules that the JVM uses to process wild card classpath entries.
 
+The lib directory is set in the `application.libDir` field. This field is optional and if not specified the default
+directory name used will be `/app/lib`.
+
 === Setting the Application Lib Directory for the Implicit Role
 
 When configuring a `CoherenceCluster` with a single implicit role the application's lib directory is specified in the
@@ -305,7 +308,7 @@ metadata:
   name: test-cluster
 spec:
   application:
-    libDir: app-lib  # <1>
+    libDir: /lib  # <1>
 ----
 
 <1> The application image contains a directory named `/app-lib` that contains the `.jar` files to add to the JVM
@@ -360,10 +363,10 @@ spec:
         libDir: proxy-lib  # <3>
 ----
 
-<1> The default value for the `libDir` field is `app-lib/`.
-<2> The `data` role does not specify a value for `libDir` so it will use the default. The application image should
-contain a directory named `/app-lib` that contains the `.jar` files to add to the JVM classpath in all of the `Pods`
-for the `data` role.
+<1> The default value for the `libDir` for all roles will be `/app-lib` unless overridden for a specific role.
+<2> The `data` role does not specify a value for `libDir` so it will use the default `app-lib`. The application image
+should contain a directory named `/app-lib` that contains the `.jar` files to add to the JVM classpath in all of the
+`Pods` for the `data` role.
 <3> The `proxy` role has an explicit value set for the `libDir` field. The application image should a directory named
 `/proxy-lib` that contains the `.jar` files to add to the JVM classpath in all of the `Pods` for the `proxy` role.
 
@@ -379,6 +382,9 @@ A Coherence application may require additional files added to the classpath such
 resources. These additional files can be placed into the config directory of the application's image and this directory
 added to the classpath of the Coherence JVM. Just the directory is added to the classpath (e.g. `-cp /conf`) the contents
 themselves are not added.
+
+The configuration directory is set in the `application.configDir` field. This field is optional and if not specified
+the default directory name used will be `/app/conf`.
 
 === Setting the Application Config Directory for the Implicit Role
 
@@ -448,7 +454,8 @@ spec:
         configDir: proxy-conf # <3>
 ----
 
-<1> The default value for the `configDir` field is `app-conf/`.
+<1> The default value for the `configDir` field is `app-conf/` which will be used for all roles unless specifically
+overridden for a role.
 <2> The `data` role does not specify a value for `configDir` so it will use the default. The application image should
 contain a directory named `/app-conf` that contains the configuration files to add to the JVM classpath in all of the
 `Pods` for the `data` role.
@@ -470,10 +477,13 @@ an application directory can be specified that will effectively become the worki
 in the `Pods`. The application directory may be a parent directory of the lib or configuration directory or they may
 be separate directory trees.
 
+The application directory is set in the `application.appDir` field. This field is optional and if not specified
+the default directory name used will be `/app`.
+
 === Setting the Application Directory for the Implicit Role
 
 When configuring a `CoherenceCluster` with a single implicit role the application's working directory is specified
-in the `application.appDir` field.
+in the `spec.application.appDir` field.
 
 [source,yaml]
 ----
@@ -538,7 +548,8 @@ spec:
         appDir: proxy-app # <3>
 ----
 
-<1> The default value for the `appDir` field is `/app`.
+<1> The default value for the `appDir` field is `/app` which will be used for all roles unless specifically
+overridden for a role.
 <2> The `data` role does not specify a value for `appDir` so it will use the default. The application image should
 contain a directory named `/app` will effectively become the working directory for the Coherence JVM in the `Pods` for
 the `data` role.

@@ -6,6 +6,10 @@ spec:
   coherence:
     management:
       enabled: true
+      port: 30000
+  ports:
+    - name: mgmt-port
+      port: 30000
   roles:
   - role: one
     replicas: 1

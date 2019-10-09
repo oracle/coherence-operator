@@ -6,6 +6,10 @@ spec:
   coherence:
     metrics:
       enabled: true
+      port: 9612
+  ports:
+    - name: metrics
+      port: 9612
   roles:
   - role: one
     replicas: 1
