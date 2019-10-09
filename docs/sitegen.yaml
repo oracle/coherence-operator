@@ -69,30 +69,14 @@ backend:
               items:
                 - includes:
                     - "install/*.adoc"
-            - title: "Coherence CRD Reference"
-              pathprefix: "/clusters"
-              glyph:
-                type: "icon"
-                value: "widgets"
-              items:
-                - includes:
-                    - "clusters/*.adoc"
-            - title: "Application Deployments"
-              pathprefix: "/app-deployments"
+            - title: "Application Deployment"
+              pathprefix: "/app-deployment"
               glyph:
                 type: "icon"
                 value: "extension"
               items:
                 - includes:
-                    - "app-deployments/*.adoc"
-            - title: "Examples"
-              pathprefix: "/examples"
-              glyph:
-                type: "icon"
-                value: "explore"
-              items:
-                - includes:
-                    - "examples/*.adoc"
+                    - "app-deployment/*.adoc"
             - title: "Metrics"
               pathprefix: "/metrics"
               glyph:
@@ -109,22 +93,30 @@ backend:
               items:
                 - includes:
                     - "logging/*.adoc"
-            - title: "Diagnostic Tools"
-              pathprefix: "/diagnostics"
+            - title: "Management and Diagnostics"
+              pathprefix: "/management"
               glyph:
                 type: "icon"
                 value: "favorite_outline"
               items:
                 - includes:
-                    - "diagnostics/*.adoc"
-            - title: "Management over ReST"
-              pathprefix: "/management"
+                    - "management/*.adoc"
+            - title: "Examples"
+              pathprefix: "/examples"
               glyph:
                 type: "icon"
-                value: "cloud"
+                value: "explore"
               items:
                 - includes:
-                    - "management/*.adoc"
+                    - "examples/*.adoc"
+            - title: "Coherence CRD Reference"
+              pathprefix: "/clusters"
+              glyph:
+                type: "icon"
+                value: "widgets"
+              items:
+                - includes:
+                    - "clusters/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Community"

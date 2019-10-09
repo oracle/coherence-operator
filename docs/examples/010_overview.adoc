@@ -17,105 +17,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
-:description: Coherence Operator examples
-:keywords: oracle coherence, kubernetes, operator, examples
 
-== Before You Start
+This comprehensive example shows how to build applications using the Coherence Operator.
 
-[PILLARS]
-====
+== Examples Overview
 
-[CARD]
-.Example Pre-requisites
-[link=examples/011_prereqs.adoc]
---
-Pre-requisites for building and running the Coherence Operator code examples.
---
-
-====
-
-== Deployment Code Examples
-
-[PILLARS]
-====
-
-[CARD]
-.Packaging Applications
-[link=examples/015_packaging.adoc]
---
-Add application JARs/config to a Coherence deployment.
---
-
-[CARD]
-.Coherence*Extend Deployments
-[link=examples/020_extend.adoc]
---
-Application deployment examples using Coherence*Extend clients.
---
-
-[CARD]
-.Storage-Disabled Deployments
-[link=examples/030_storage_disabled.adoc]
---
-Application deployment examples using storage-disabled clients.
---
-
-[CARD]
-.Rolling Upgrades
-[link=examples/045_rolling.adoc]
---
-Changing an application image version using a rolling upgrade.
---
-
-[CARD]
-.Federation
-[link=examples/046_federation.adoc]
---
-Configuring Coherence Federation within a single Kubernetes cluster.
---
-
-====
-
-== Management Code Examples
-
-[PILLARS]
-====
-
-[CARD]
-.Configuring a Custom Logger
-[link=examples/050_custom.adoc]
---
-Configure a Custom Logger to enable your log messages to be captured.
---
-
-[CARD]
-.Enable SSL for Metrics
-[link=examples/060_ssl.adoc]
---
-Enabling SSL for metrics capture.
---
-
-====
-
-== Elastic Data Code Examples
-
-[PILLARS]
-====
-
-[CARD]
-.Default FlashJournal Locations
-[link=examples/070_elastic1.adoc]
---
-Configuring Elastic Data using default flashJournal locations.
---
-
-[CARD]
-.External Volumes
-[link=examples/080_elastic2.adoc]
---
-Configuring Elastic Data using External Volume Mapped to the Host.
---
+TBC - We will have a description of the examples and then a link to the
+GitHub repository which will have the full example in details and README.md.
 
 
-
-====

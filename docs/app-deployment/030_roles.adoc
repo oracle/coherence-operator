@@ -16,8 +16,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Enabling SSL
+= Using Application Roles
 
 TBC
 
-== Enable SSL with Management over ReST
+== Defining and using application roles.

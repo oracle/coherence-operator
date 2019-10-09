@@ -32,13 +32,6 @@ Capturing and viewing Coherence cluster Logs.
 --
 
 [CARD]
-.Using a Custom Logger
-[link=logging/030_custom.adoc]
---
-Configuring a Custom Logger.
---
-
-[CARD]
 .Using Your Own Elasticsearch
 [link=logging/040_own.adoc]
 --

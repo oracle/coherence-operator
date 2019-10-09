@@ -16,8 +16,18 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Packaging Applications
+= Management Over ReST
 
 TBC
 
-== Add application JARs/config to a Coherence deployment
+== Management Over ReST
+
+Include:
+
+* How to enable Management Over ReEST
+* References to the following Doco:
+** Connecting JVisualVM to Management over ReST
+** Writable Mbeans
+** Enabling SSL
+** JFR
+** Reporter

@@ -16,9 +16,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Elastic Data
+= Using JVisualVM
 
-TBC.
+TBC
 
-== Using Coherence Elastic Data
+== Access the Coherence cluster via JVisualVM.
 

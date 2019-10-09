@@ -39,8 +39,8 @@ Installing and running the Coherence Operator.
 --
 
 [CARD]
-.Application Deployments
-[icon=extension,link=app-deployments/010_overview.adoc]
+.Application Deployment
+[icon=extension,link=app-deployment/010_overview.adoc]
 --
 Deploying Coherence Applications using the Coherence Operator.
 --
@@ -75,18 +75,11 @@ Viewing and managing log files within using the Coherence Operator.
 --
 
 [CARD]
-.Management Over ReST
+.Management and Diagnostics
 [icon=cloud,link=management/010_overview.adoc]
 --
-Enabling and using Management Over ReST in the Coherence Operator.
+Management and Diagnostics in the Coherence Operator.
 
---
-[CARD]
-.Diagnostic Tools
-[icon=favorite_outline,link=diagnostics/010_overview.adoc]
---
-Tools to Diagnose issues with Coherence Clusters in the Coherence Operator.
---
 
 [CARD]
 .CoherenceCluster CRD Reference
