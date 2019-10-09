@@ -241,9 +241,9 @@ A number of fields may be specified to configure the `Service` that will be crea
         sessionAffinityConfig: {}
 ----
 
-<1> Enable or disable creation of a `Service` for the port.
-<2> Override the default generated `Service` name
-<3> Use a different port in the `Service` to that used by the `Container`
+<1> Optionally enable or disable creation of a `Service` for the port, the defautl value is `true`.
+<2> Optionally override the default generated `Service` name.
+<3> Optionally use a different port in the `Service` to that used by the `Container`.
 
 Apart from the `enabled` and `name` fields, all of the fields shown above have exactly the same meaning and default
 behaviour that they do for a normal https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service]
