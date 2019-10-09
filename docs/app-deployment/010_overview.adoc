@@ -17,44 +17,44 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
-:description: Application Deployments
-:keywords: oracle coherence, kubernetes, operator, Application Deployments
+:description: Application Deployment
+:keywords: oracle coherence, kubernetes, operator, Application Deployment
 
-== Coherence Application Deployments
+== Coherence Application Deployment
 
 [PILLARS]
 ====
 [CARD]
 .Packaging Applications
-[link=app-deployments/020_packaging.adoc]
+[link=app-deployment/020_packaging.adoc]
 --
 Adding application jars/config to a Coherence deployment.
 --
 
 [CARD]
-.Using Coherence*Extend Clients
-[link=app-deployments/030_extend.adoc]
+.Using Application Roles
+[link=app-deployment/030_roles.adoc]
 --
-Accessing Coherence applications using Coherence*Extend.
+Defining and using application roles.
 --
 
 [CARD]
-.Using Storage-Disabled Clients
-[link=app-deployments/040_storage_disabled.adoc]
+.Persistence
+[link=app-deployment/060_persistence.adoc]
 --
-Accessing Coherence applications using storage-disabled clients.
+Using Coherence Persistence.
 --
 
 [CARD]
 .Scaling Deployments
-[link=app-deployments/080_scaling.adoc]
+[link=app-deployment/080_scaling.adoc]
 --
 Scaling a Coherence deployment.
 --
 
 [CARD]
 .Rolling Upgrades
-[link=app-deployments/090_rolling.adoc]
+[link=app-deployment/090_rolling.adoc]
 --
 Changing an image version for Coherence or applications using rolling upgrade.
 --

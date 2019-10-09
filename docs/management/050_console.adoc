@@ -16,8 +16,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Enabling
+= Accessing the  Console
 
 TBC
 
-== Enabling Management Over ReST
+== Accessing the Coherence Console
