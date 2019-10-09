@@ -79,7 +79,7 @@ Viewing and managing log files within using the Coherence Operator.
 [icon=cloud,link=management/010_overview.adoc]
 --
 Management and Diagnostics in the Coherence Operator.
-
+--
 
 [CARD]
 .CoherenceCluster CRD Reference
