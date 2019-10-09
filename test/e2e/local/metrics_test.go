@@ -196,7 +196,7 @@ func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string, 
 
 	defer pf.Close()
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", protocol, ports["metrics-port"])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", protocol, ports["metrics"])
 
 	var resp *http.Response
 
