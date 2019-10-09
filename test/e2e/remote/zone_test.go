@@ -8,6 +8,7 @@ package remote
 
 import (
 	goctx "context"
+	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/management"
@@ -31,7 +32,11 @@ func TestSiteLabel(t *testing.T) {
 		return member.SiteName
 	}
 
-	assertLabel(t, flags.DefaultSiteLabel, fn)
+	dfn := func(namespace string) string {
+		return fmt.Sprintf("coherence.%s.svc.cluster.local", namespace)
+	}
+
+	assertLabel(t, flags.DefaultSiteLabel, fn, dfn)
 }
 
 // Verify that a CoherenceCluster deployed by the Operator has the correct rack value
@@ -44,10 +49,14 @@ func TestRackLabel(t *testing.T) {
 		return member.RackName
 	}
 
-	assertLabel(t, flags.DefaultRackLabel, fn)
+	dfn := func(namespace string) string {
+		return "n/a"
+	}
+
+	assertLabel(t, flags.DefaultRackLabel, fn, dfn)
 }
 
-func assertLabel(t *testing.T, label string, fn func(management.MemberData) string) {
+func assertLabel(t *testing.T, label string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 
 	f := framework.Global
@@ -106,7 +115,7 @@ func assertLabel(t *testing.T, label string, fn func(management.MemberData) stri
 		} else {
 			// when running locally (for example in Docker on MacOS) the node might not
 			// have a zone unless one has been explicitly set by the developer.
-			g.Expect(actual).To(Equal("n/a"))
+			g.Expect(actual).To(Equal(dfn(namespace)))
 		}
 	}
 }
