@@ -61,7 +61,7 @@ backend:
               items:
                 - includes:
                     - "about/*.adoc"
-            - title: "Installing"
+            - title: "Installation"
               pathprefix: "/install"
               glyph:
                 type: "icon"
@@ -125,14 +125,6 @@ backend:
               items:
                 - includes:
                     - "management/*.adoc"
-            - title: "Developer documentation"
-              pathprefix: "/developer"
-              glyph:
-                type: "icon"
-                value: "build"
-              items:
-                - includes:
-                    - "developer/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Community"

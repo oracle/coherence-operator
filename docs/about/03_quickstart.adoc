@@ -54,6 +54,9 @@ See the <<install/01_introduction.adoc, full install guide>> for more details.
 
 == 2. Install a Coherence Cluster
 
+Ensure that the Coherence images can be pulled by the Kubernetes cluster
+see <<04_obtain_coherence_images.adoc,Obtain Coherence Images>>
+
 === 2.1 Install a Coherence cluster using the minimal required configuration.
 
 The minimal required yaml to create a `CoherenceCluster` resource is shown below.

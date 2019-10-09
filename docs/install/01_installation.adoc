@@ -16,9 +16,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Prerequisites
+= Coherence Operator Installation
 
-Everything needed to install and run the Coherence Operator is listed below:
+The Coherence Operator is available as a Docker image `oracle/coherence-operator:{operator-version}` that can
+easily be installed into a Kubernetes cluster.
 
 == Prerequisites
 
@@ -32,4 +33,44 @@ Docker images. These images are not available in public Docker repositories and 
 authentication to be able to pull them. This is achived by creating pull secrets.
 Pull secrets are not global and hence secrets will be required in the namespace(s) that Coherence
 clusters will be installed into.
+see <<about/04_obtain_coherence_images.adoc,Obtain Coherence Images>>
+
+== Installing With Helm
+
+The simplest way to install the Coherence Operator is to use the Helm chart.
+This will ensure that all of the correct resources are created in Kubernetes.
+
+=== Add the Coherence Helm Repository
+
+Add the `coherence` helm repository using the following commands:
+
+[source,bash]
+----
+helm repo add coherence https://oracle.github.io/coherence-operator/charts
+
+helm repo update
+----
+
+=== Install the Coherence Operator Helm chart
+
+Once the Coherence Helm repo is configured the Coherence Operator can be installed using a normal Helm install command:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --name coherence-operator \
+    coherence/coherence-operator
+----
+
+where `<namespace>` is the namespace that the Coherence Operator will be installed into and the namespace where it will
+manage `CoherenceClusters`
+
+==== Uninstall the Coherence Operator Helm chart
+
+To uninstall the operator:
+[source,bash]
+----
+helm delete --purge coherence-operator
+----
 

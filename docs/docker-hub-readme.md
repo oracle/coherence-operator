@@ -54,9 +54,6 @@ server-side Coherence constructs.
   * The [Samples](https://oracle.github.io/coherence-operator/docs/samples/) provide detailed example code and instructions that show you how to perform various tasks
     related to the operator.
 
-  * The [Developer guide](https://oracle.github.io/coherence-operator/docs/developer.html) provides details for people
-    who want to understand how the operator is built and tested. Those who want to contribute to the operator code can find useful information here.
-
 ## Licenses
 
 Coherence Operator images in this repository folder are licensed under the [Universal Permissive License 1.0](http://oss.oracle.com/licenses/upl).

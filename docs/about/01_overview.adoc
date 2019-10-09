@@ -61,13 +61,6 @@ Step-by-step examples with code for various tasks with the Coherence Operator.
 ====
 
 [CARD]
-.CoherenceCluster CRD Reference
-[icon=widgets,link=clusters/01_introduction.adoc]
---
-In depth CoherenceCluster CRD reference documentation.
---
-
-[CARD]
 .Metrics
 [icon=av_timer,link=metrics/010_overview.adoc]
 --
@@ -96,10 +89,10 @@ Tools to Diagnose issues with Coherence Clusters in the Coherence Operator.
 --
 
 [CARD]
-.Developer
-[icon=build,link=developer/01_introduction.adoc]
+.CoherenceCluster CRD Reference
+[icon=widgets,link=clusters/01_introduction.adoc]
 --
-Developer guide for building the Coherence Operator.
+In depth CoherenceCluster CRD reference documentation.
 --
 
 ====
