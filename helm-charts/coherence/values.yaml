@@ -83,6 +83,8 @@ coherence:
   metrics:
     # coherence.metrics.enabled enables or disables Coherence metrics.
     enabled: false
+    # coherence.metrics.port sets the port that Coherence metrics binds to.
+    port:
     # coherence.metrics.ssl configures SSL settings for the Coherence metrics endpoints
     ssl:
       # coherence.metrics.ssl.enabled enables or disables SSL on the Coherence metrics endpoint
@@ -137,6 +139,8 @@ coherence:
   management:
     # coherence.management.enabled enables or disables management over ReST.
     enabled: false
+    # coherence.management.port sets the port that Coherence management over ReST binds to.
+    port:
     # coherence.management.ssl configures SSL settings for the Coherence management over ReST
     ssl:
       # coherence.management.ssl.enabled enables or disables SSL on the Coherence management over ReST endpoint,

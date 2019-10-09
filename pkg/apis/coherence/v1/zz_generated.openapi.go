@@ -1486,6 +1486,13 @@ func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) 
 							Format:      "",
 						},
 					},
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port to bind to.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"ssl": {
 						SchemaProps: spec.SchemaProps{
 							Description: "SSL configures SSL settings for a Coherence component",

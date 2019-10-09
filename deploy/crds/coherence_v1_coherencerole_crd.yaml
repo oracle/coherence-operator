@@ -121,6 +121,10 @@ spec:
                     enabled:
                       description: Enable or disable flag.
                       type: boolean
+                    port:
+                      description: The port to bind to.
+                      format: int32
+                      type: integer
                     ssl:
                       description: SSL configures SSL settings for a Coherence component
                       properties:
@@ -211,6 +215,10 @@ spec:
                     enabled:
                       description: Enable or disable flag.
                       type: boolean
+                    port:
+                      description: The port to bind to.
+                      format: int32
+                      type: integer
                     ssl:
                       description: SSL configures SSL settings for a Coherence component
                       properties:

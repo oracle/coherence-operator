@@ -931,6 +931,11 @@ func (in *PortSpecWithSSL) DeepCopyInto(out *PortSpecWithSSL) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Port != nil {
+		in, out := &in.Port, &out.Port
+		*out = new(int32)
+		**out = **in
+	}
 	if in.SSL != nil {
 		in, out := &in.SSL, &out.SSL
 		*out = new(SSLSpec)

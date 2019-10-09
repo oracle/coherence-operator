@@ -19,3 +19,53 @@
 = Expose Ports and Services
 
 == Expose Ports and Services
+
+Any ports that are used by Coherence or by application code that need to be exposed outside of the `Pods` for a role
+need to be declared in the `CoherenceCluster` spec for the role.
+
+== Default Ports
+The Coherence container in `Pods` in a role in a `CoherenceCluster` has two ports declared by default, none of the ports
+are exposed on services.
+
+[cols=3*,options=header]
+|===
+|Port
+|Name
+|Description
+
+|`7`
+|`coherence`
+|This is the standard echo port. Nothing in the container binds to this port it is only declared on the container so
+that the headless `Service` used for Coherence WKA can declare a port.
+
+|`6676`
+| `health`
+| This is the port used to expose the default readiness, liveness and StatusHA ReST endpoints on.
+
+|===
+
+NOTE: When exposing additional ports as described in the sections below the names for the additional ports cannot be
+either `coherence` or `health` that are the names used for the default ports above or the `Pods` may fail to start.
+
+
+== Configure Additional Ports
+
+Additional ports can be declared for a role by adding them to the `ports` array that is part of the `role` spec.
+A `port` has the following fields:
+
+[source,yaml]
+----
+ports:
+  - name: extend   # <1>
+    port: 20000    # <2>
+    protocol: TCP  # <3>
+    service: {}    # <4>
+----
+
+<1> The port must have a `name` that is unique within the role
+<2> The `port` value must be specified
+<3> The `protocol` is optional and defaults to `TCP`. The valid values are the same as when declaring ports for
+https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes services] and `Pods`.
+<4> The `service` section is optional and is used to configure the `Service` that will be used to expose the port.
+
+

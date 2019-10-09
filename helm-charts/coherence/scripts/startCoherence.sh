@@ -67,6 +67,13 @@ server()
 
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
+#   if the main class is the JMXMP server add the JMXMP jar to the classpath
+    if [[ "${COH_MAIN_CLASS}" == "com.oracle.coherence.k8s.JmxmpServer" ]]
+    then
+      CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/opendmk_jmxremote_optional_jar.jar"
+    fi
+
+
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then

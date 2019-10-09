@@ -355,8 +355,8 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 		service.Spec.Ports[0] = v1.ServicePort{
 			Name:       "coherence-extend",
 			Protocol:   v1.ProtocolTCP,
-			Port:       30000,
-			TargetPort: intstr.FromString("mgmt-port"),
+			Port:       7,
+			TargetPort: intstr.FromString("coherence"),
 		}
 
 		service.Spec.Selector = make(map[string]string)
