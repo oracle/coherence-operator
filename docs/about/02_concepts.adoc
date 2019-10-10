@@ -18,7 +18,7 @@
 
 = Coherence Operator Concepts
 
-== What is the Coherence Operator
+== What is the Coherence Operator?
 The Coherence Operator is a https://kubernetes.io/docs/concepts/extend-kubernetes/operator/[Kubernetes Operator] that
 is used to manage https://docs.oracle.com/middleware/12213/coherence/[Oracle Coherence] clusters in Kubernetes.
 The Coherence Operator takes on the tasks of that human Dev Ops resource might carry out when managing Coherence clusters,
@@ -29,13 +29,13 @@ It is distributed as a Docker image and Helm chart for easy installation and con
 
 
 == Coherence Clusters
-Traditionally a Coherence cluster is a number of distributed JVMs that communicate to form a single coherent cluster. 
-In Kubernetes this concept still applies but can now be though of as a number of Pods that form a single cluster. 
-Inside each `Pod` is a JVM running Coherence, or some custom application using Coherence.
+A Coherence cluster is a number of distributed Java Virtual Machines (JVMs) that communicate to form a single coherent cluster.
+In Kubernetes, this concept can be related to a number of Pods that form a single cluster. 
+In each `Pod` is a JVM running a Coherence `DefaultCacheServer`, or a custom application using Coherence.
 
-The Coherence Operator uses a Kubernetes Custom Resource Definition to represent a Coherence cluster
-(and the roles withing it, see below). Every field in the `CoherenceCluster` crd `Spec` is optional so a cluster
-can be defined by yaml as simple as this:
+The operator uses a Kubernetes Custom Resource Definition (CRD) to represent a Coherence cluster
+and the roles within it. Every field in the `CoherenceCluster` CRD `spec` is optional so a simple cluster
+can be defined in  yaml as:
 
 [source,yaml]
 ----
@@ -45,45 +45,34 @@ metadata:
   name: my-cluster # <1>
 ----
 
-<1> The `metadata.name` field in the `CoherenceCluster` will be used as the Coherence cluster name and would obviously
-be unique in a given k8s namespace.
+<1> The `metadata.name` field in the `CoherenceCluster` yaml will be used as the Coherence cluster name and must
+be unique in a given Kubernetes namespace.
 
-The Coherence Operator will use default values for fields that have not been entered, so the above yaml will create
-a Coherence cluster made up of a `StatefulSet` with a replica count of 3, so there will be three storage enabled
-Coherence `Pods`.
+The operator will use default values for fields that have not been entered, so the above yaml will create
+a Coherence cluster using a `StatefulSet` with a replica count of three, which means that will be three storage 
+enabled Coherence `Pods`.
    
 
 
 == Coherence Roles
 A Coherence cluster can be made up of a number of Pods that perform different roles. All of the Pods in a given role
-share the same configuration. At a bare minimum a cluster would have at least one role where Pods are storage enabled.
+share the same configuration. A cluster usually has at least one role where `Pods` are storage enabled.
 
 Each role in a Coherence cluster has a name and configuration. A cluster can have zero or many roles defined in the 
-`CoherenceCluster` crd `Spec`. It is possible to define common configuration shared by all roles to save duplicating
+`CoherenceCluster` CRD `Spec`. You can define common configuration shared by all roles to save duplicating
 configuration multiple times in the yaml.
 
-The Coherence Operator will create a `StatefulSet` for each role defined in the `CoherenceCluster` crd yaml.
-This separation allows roles to be managed and scaled independently from each other.
+The Coherence Operator will create a `StatefulSet` for each role defined in the `CoherenceCluster` CRD yaml.
+This separation allows roles to be managed and scaled independently from each other. All of the `Pods` in the
+different `StatefulSets` will form a single Coherence cluster.
 
+There are two ways to describe the specification of a role in a `CoherenceCluster` CRD depending on whether the cluster
+has a single implied role or has one or more explicit roles.
 
-As described above the minimal yaml to define a CoherenceCluster is:
+=== A Single Implied Role
 
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: my-cluster
-----
-
-Although there are no roles described in this yaml the Coherence Operator will create a default role with the name
-`storage` and give it a replica count of three. 
-
-There are two ways to describe the specification of a role in a `CoherenceCluster` crd depending on whether the cluster
-created will have a single role or multiple roles.
-
-The same configuration to create a single role three member cluster as the minimal yaml could be specified more fully 
-as follows:
+The operator implies that a single role is required when the `roles` list in the `CoherenceCluster` CRD yaml is either
+empty or missing. For example:
 
 [source,yaml]
 ----
@@ -92,33 +81,39 @@ kind: CoherenceCluster
 metadata:
   name: my-cluster
 spec:
-  role: storage # <1>
-  replicas: 3   # <2>
+  role: data
+  replicas: 6
+----
+
+The yaml above does not include any roles defined in the `roles` list of the `spec` section. When all of the role
+configuration is in fields directly in the `spec` section like this the operator implies that a single role is required
+and will use the values defined in the `spec` section to create a single `StatefulSet`.
+
+=== A Single Explicit Role
+
+Roles can be defined explicitly by adding the configuration of each role to the `roles` list in the `CoherenceCluster`
+CRD `spec` section. For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+spec:
+  roles:
+    - role: data
+      replicas: 6
 ----   
 
-<1> The `role` field specifies the name of the role, in this case `storage`.
-<2> The `replicas` field defines the number of Pods that will be started for this role, in this case three.
+In the example above there is explicitly one role defined in the `roles` list.
 
+=== Multiple Explicit Role
 
-If a cluster will have multiple roles they are defined in the `spec.roles` list; so again the same cluster could be
-defined more fully as:
+To define a Coherence cluster with multiple roles each role is configured as a separate entry in the `roles` list.
 
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: my-cluster
-spec:
-  roles:             # <1>
-    - role: storage
-      replicas: 3
-----
-
-<1> This time the role is defined in the `roles` section of the yaml. The `roles` section is a list of one or more role
-specifications.
-
-Multiple roles can be defined by adding more roles with distinct names to the `roles` list; for example:
+For example, if a cluster requires two roles, one named `storage` and another named `web` the configuration may
+look like this:
 
 [source,yaml]
 ----
@@ -129,15 +124,57 @@ metadata:
 spec:
   roles:
     - role: storage  # <1>
-      replicas: 3    # <2>
-    - role: web      # <3>
-      replicas: 2    # <4>
+      replicas: 3
+    - role: web      # <2>
+      replicas: 2
 ----
 
-<1> In this case there are two roles defined, the first names `storage`,
-<2> with three replicas
-<3> and the second named `web`
-<4> with two replicas.
+<1> The `storage` role is explicitly defined in the `roles` list
+<2> The `web` role is explicitly defined in the `roles` list
 
-This will result in a Coherence cluster with a total of five members.
-The Coherence Operator would create two `StatefulSets`, one for `storage` with three `Pods` and one for `web` with two `Pods`.
+This will result in a Coherence cluster made up of two `StatefulSets`. The `storage` role will have a `StatefulSet` with
+three `Pods` and the `web` role will have a `StatefulSet` with two `Pods`. The Coherence cluster will have a total of
+five `Pods`.
+
+=== Explicit Roles with Default Values
+
+When defining explicit roles in the `roles` list and field added directly to the `CoherenceCluster` `spec` section
+becomes a default value that is applied to all of the roles in the `roles` list unless the value is overridden in
+the configuration for a specific role. This allows common configuration shared by multiple roles to be maintained in
+a single place instead of being duplicated for every role.
+
+For example, if a cluster requires three roles, one named `storage` with a `5g` JVM heap, one named `proxy` with a `5g`
+JVM heap and another named `web` with a `1g` JVM heap the configuration may look like this:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: my-cluster
+spec:
+  jvm:
+    memory:
+      heapSize: 5g      # <1>
+  roles:
+    - role: storage
+      replicas: 6
+    - role: storage
+      replicas: 3
+    - role: web
+      replicas: 2
+      jvm:
+        memory:
+          heapSize: 1g  # <2>
+----
+
+<1> The `jvm.memory.heapSize` value of `5g` is added directly under the `spec` section so this value will apply to
+all roles meaning all roles will have the JVM options `-Xms5g -Xmx5g` unless overridden. In this case the `storage` and
+the `proxy` roles do not set the `jvm.memory.heapSize` field so they will have a `5g` JVM heap.
+<2> The `web` role overrides the `jvm.memory.heapSize` field with a value of `1g` so the JVMs in the `web` role will
+have the JVM options `-Xms1g -Xmx1g`
+
+NOTE: When using default values some default values are overridden by values in a role and sometimes the default and
+role values are merged. When the field is a single intrinsic value, for example a number or a string the role value
+overrides the default. Where the field is an array/slice or a map it may be merged.
+The <<clusters/010_introduction.adoc,CoherenceCluster CRD section>> documents how fields are overridden or merged.

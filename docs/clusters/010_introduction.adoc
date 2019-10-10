@@ -22,10 +22,10 @@ Creating a Coherence cluster using the Coherence Operator is as simple as creati
 
 == CoherenceCluster CRD Overview
 
-The Coherence Operator uses a Kubernetes `CustomResourceDefinition` named `CoherenceCluster` to define the `spec` for a
-Coherence cluster.
-All of the fields of the `CoherenceCluster` crd are optional so a Coherence cluster can be created with yaml as
-simple as the following:
+The Coherence Operator uses a Kubernetes custom resource definition, (CRD) named `CoherenceCluster` to define the
+configuration for a Coherence cluster.
+All of the fields in the `CoherenceCluster` CRD are optional and a Coherence cluster can be created with a simple yaml
+file:
 
 [source,yaml]
 ----
