@@ -27,7 +27,7 @@ Different application code and configuration can be added to different roles in 
 the application's configuration in the `application` section of a role spec. There are a number of different fields
 that can be configured for an application described below. All of the configuration described below is optional.
 
-See the in-depth guide on <<app-deployments/010_overview.adoc,Coherence application deployments>> for more details on
+See the in-depth guide on <<app-deployment/010_overview.adoc,Coherence application deployments>> for more details on
 creating and deploying `CoherenceClusters` with custom application code.
 
 [source,yaml]

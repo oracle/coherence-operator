@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>examples-parent</artifactId>
+    <version>2.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>deployment-example</artifactId>
+  <name>Coherence Operator Deployment Example</name>
+  <version>2.0.0</version>
+
+  <properties>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!-- module dependencies -->
+    <dependency>
+      <groupId>com.oracle.coherence</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+    </dependency>
+
+     <dependency>
+      <groupId>io.helidon.bundles</groupId>
+      <artifactId>helidon-bundles-webserver</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <!-- Use the assembly plugin to pull together the files to use to build the
+         docker image under the target/docker folder -->
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.dependency.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>docker</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>docker</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/assembly/image-assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- run com.oracle.coherence.examples.SampleClient via mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${maven.exec.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
+          <systemProperties>
+            <systemProperty>
+              <key>coherence.distributed.localstorage</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cacheconfig</key>
+              <value>client-cache-config.xml</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.pof.config</key>
+              <value>conf/storage-pof-config.xml</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.tcmpenabled</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cluster</key>
+              <value>sidecar-cluster</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+   <profiles>
+    <profile>
+      <id>docker</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-utils-docker-image</id>
+                <phase>package</phase>
+                <configuration>
+                  <executable>docker</executable>
+                  <workingDirectory>${project.build.directory}/docker
+                  </workingDirectory>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>-t</argument>
+                    <argument>
+                      ${project.artifactId}:${project.version}
+                    </argument>
+                    <argument>.</argument>
+                  </arguments>
+                </configuration>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>docker-tag</id>
+                <phase>package</phase>
+                <configuration>
+                  <executable>docker</executable>
+                  <workingDirectory>${project.build.directory}/docker</workingDirectory>
+                  <arguments>
+                    <argument>tag</argument>
+                    <argument>${project.artifactId}:${project.version}</argument>
+                    <argument>${project.artifactId}:latest</argument>
+                  </arguments>
+                </configuration>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+   </profiles>
+</project>
