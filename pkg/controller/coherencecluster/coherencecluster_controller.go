@@ -245,7 +245,7 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	role := &coherence.CoherenceRole{}
 	role.SetNamespace(p.request.Namespace)
 	role.SetName(fullName)
-	role.Spec = *p.desiredRole.DeepCopyWithDefaults(&p.cluster.Spec.CoherenceRoleSpec)
+	role.Spec = *p.desiredRole.DeepCopy()
 
 	labels := make(map[string]string)
 	labels[coherence.CoherenceClusterLabel] = p.cluster.Name

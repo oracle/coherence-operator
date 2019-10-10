@@ -551,7 +551,7 @@ metadata:
 spec:
   jvm:
     memory:
-      heapSize: 10g <1>
+      heapSize: 10g # <1>
 ----
 
 <1> The Coherence JVM for the implicit role defined above will have a 10 GB heap.
@@ -574,11 +574,11 @@ spec:
     - role: data
       jvm:
         memory:
-          heapSize: 10g  <1>
+          heapSize: 10g   # <1>
     - role: proxy
       jvm:
         memory:
-          heapSize: 500m <2>
+          heapSize: 500m  # <2>
 ----
 
 <1> The Coherence JVM for the `data` role defined above will have a 10 GB heap.
@@ -601,14 +601,15 @@ metadata:
   name: test-cluster
 spec:
   jvm:
-    heapSize: 500m      <1>
+    memory:
+      heapSize: 500m     # <1>
   roles:
     - role: data
       jvm:
         memory:
-          heapSize: 10g <2>
-    - role: proxy       <3>
-    - role: web         <4>
+          heapSize: 10g  # <2>
+    - role: proxy        # <3>
+    - role: web          # <4>
 ----
 
 <1> The default max heap size of 500 MB will be applied to all of the roles in the cluster unless overridden for a

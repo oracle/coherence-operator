@@ -107,8 +107,10 @@ spec:
     failureThreshold: 99
 
   jvm:
-    gc: "some gc args one"
-    heapSize: 123G
+    gc:
+      collector: G1
+    memory:
+      heapSize: 123G
     debug:
       enabled: true
       attach: jvm-attach-one

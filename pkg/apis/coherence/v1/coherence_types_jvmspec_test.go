@@ -547,7 +547,6 @@ var _ = Describe("Testing JVMSpec struct", func() {
 		var clone *coherence.JVMSpec
 
 		var jvmOne = &coherence.JVMSpec{
-			Args: nil,
 			Debug: &coherence.JvmDebugSpec{
 				Enabled: boolPtr(true),
 				Suspend: boolPtr(true),
@@ -579,7 +578,6 @@ var _ = Describe("Testing JVMSpec struct", func() {
 		}
 
 		var jvmTwo = &coherence.JVMSpec{
-			Args: nil,
 			Debug: &coherence.JvmDebugSpec{
 				Enabled: boolPtr(false),
 				Suspend: boolPtr(false),

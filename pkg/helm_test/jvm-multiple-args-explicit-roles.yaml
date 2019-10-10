@@ -1,0 +1,16 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        args:
+          - "-DargOne=1"
+          - "-DargTwo=2"
+    - role: proxy
+      jvm:
+        args:
+          - "-DargThree=3"
+          - "-DargFour=4"

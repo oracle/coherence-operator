@@ -26,14 +26,14 @@
 ====
 [CARD]
 .Quick Start
-[icon=fa-rocket,link=about/04_quickstart.adoc]
+[icon=fa-rocket,link=about/03_quickstart.adoc]
 --
 Quick start guide to running your first Coherence cluster using the Coherence Operator.
 --
 
 [CARD]
 .Install
-[icon=settings,link=install/01_introduction.adoc]
+[icon=settings,link=install/01_installation.adoc]
 --
 Installing and running the Coherence Operator.
 --
@@ -83,7 +83,7 @@ Management and Diagnostics in the Coherence Operator.
 
 [CARD]
 .CoherenceCluster CRD Reference
-[icon=widgets,link=clusters/01_introduction.adoc]
+[icon=widgets,link=clusters/010_introduction.adoc]
 --
 In depth CoherenceCluster CRD reference documentation.
 --

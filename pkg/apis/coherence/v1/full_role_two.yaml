@@ -107,7 +107,10 @@ spec:
     failureThreshold: 199
 
   jvm:
-    gc: "some gc args two"
+    gc:
+      collector: CMS
+    memory:
+      heapSize: 123G
     heapSize: 223G
     debug:
       enabled: false

@@ -96,7 +96,7 @@ spec:
   replicas: 3   # <2>
 ----   
 
-<1> The `role` field specifies the name of the role, in this case `stroage`.
+<1> The `role` field specifies the name of the role, in this case `storage`.
 <2> The `replicas` field defines the number of Pods that will be started for this role, in this case three.
 
 
