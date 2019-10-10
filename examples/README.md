@@ -6,5 +6,5 @@ to be depended upon to create production environments.
 
 # Table of Contents
 
-* [Coherence Operator Deployment Example](deployment/README.md)
+* [Coherence Operator Deployment Example](deployment/)
 
