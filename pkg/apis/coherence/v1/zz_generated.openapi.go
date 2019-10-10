@@ -1765,6 +1765,20 @@ func schema_pkg_apis_coherence_v1_ServiceSpec(ref common.ReferenceCallback) comm
 							Format:      "",
 						},
 					},
+					"labels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The extra labels to add to the service. More info: http://kubernetes.io/docs/user-guide/labels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Annotations is free form yaml that will be added to the service annotations",

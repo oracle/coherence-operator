@@ -47,7 +47,7 @@ that the headless `Service` used for Coherence WKA can declare a port.
 NOTE: When exposing additional ports as described in the sections below the names for the additional ports cannot be
 either `coherence` or `health` that are the names used for the default ports above or the `Pods` may fail to start.
 
-
+'''
 == Configure Additional Ports
 
 Additional ports can be declared for a role by adding them to the `ports` array that is part of the `role` spec.
@@ -213,7 +213,7 @@ exposed on a service named `test-cluster-proxy-management`.
 that will be exposed on a service named `test-cluster-web-management`.
 
 
-
+'''
 [#services]
 == Configure Services for Additional Ports
 
@@ -230,6 +230,8 @@ A number of fields may be specified to configure the `Service` that will be crea
         name: test-cluster-data-extend    # <2>
         port: 20000                       # <3>
         type:
+        annotations: {}
+        labels: {}
         externalName:
         sessionAffinity:
         publishNotReadyAddresses:
@@ -237,13 +239,13 @@ A number of fields may be specified to configure the `Service` that will be crea
         loadBalancerIP:
         healthCheckNodePort:
         loadBalancerSourceRanges: []
-        annotations: {}
         sessionAffinityConfig: {}
 ----
 
 <1> Optionally enable or disable creation of a `Service` for the port, the defautl value is `true`.
 <2> Optionally override the default generated `Service` name.
-<3> Optionally use a different port in the `Service` to that used by the `Container`.
+<3> Optionally use a different port in the `Service` to that used by the `Container`. If the `service.port` is not
+specified the same value will be used for both the container port and service port.
 
 Apart from the `enabled` and `name` fields, all of the fields shown above have exactly the same meaning and default
 behaviour that they do for a normal https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service]
@@ -253,7 +255,9 @@ behaviour that they do for a normal https://kubernetes.io/docs/concepts/services
 
 By default a `Service` will be created for all additional ports in the `ports` array. If for some reason this is not
 required `Service` creation can be disabled by setting the `service.enabled` field to `false`. The additional port
-will still be added as a named port to the Coherence `Container` spec in the `Pod`.
+will still be added as a named port to the Coherence `Container` spec in the `Pod`. An example of when service creation
+needs to be disabled is when the `Service` will be created externally and not managed by the operator.
+
 For example:
 
 [source,yaml]
@@ -313,4 +317,99 @@ spec:
 <3> The `port` is `80` which is the value from the additional port's `service.port` field.
 <4> The `targetPort` is `8080` which is the port that the container will use from the `port` value of the additional
 port in the role spec.
+
+
+=== Adding Service Annotations
+
+It is possible to add extra annotations to the `Service` created for a port by adding additional annotations to the
+`service.annotations` field. The format of the annotations is exactly the same as when creating a
+https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service] as also documented in
+the https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes annotations]
+documentation.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: http
+      port: 8080
+      service:
+        annotations:
+          key1 : value1
+          key2 : value2
+----
+
+The `http` port created from the yaml above will be exposed on a service that looks like the following:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-storage
+  annotations:                # <1>
+    key1 : value1
+    key2 : value2
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+----
+
+<1> The additional annotations from the `http` port's `service` configuration have been added to the `Service`
+
+
+
+=== Adding Service Labels
+
+It is possible to add extra labels to the `Service` created for a port by adding additional labels to the
+`service.labels` field. The format of the labels is exactly the same as when creating a
+https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service] as also documented in
+the https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/[Kubernetes labels] documentation.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: http
+      port: 8080
+      service:
+        labels:
+          key1 : value1
+          key2 : value2
+----
+
+The `http` port created from the yaml above will be exposed on a service that looks like the following:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-storage
+  labels:
+    key1 : value1    # <1>
+    key2 : value2
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+----
+
+<1> The additional labels from the `http` port's `service` configuration have been added to the `Service`
+
 

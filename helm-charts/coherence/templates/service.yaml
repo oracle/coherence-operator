@@ -35,6 +35,11 @@ metadata:
 {{-   end }}
 {{- end }}
   labels: {{ $lb | indent 4 }}
+{{- if $port.service }}
+{{-   if $port.service.labels }}
+{{ toYaml $port.service.labels | indent 4 }}
+{{-   end }}
+{{- end }}
     component: coherence-service-{{ $port.name }}
 spec:
 {{- if $port.service }}

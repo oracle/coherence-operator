@@ -659,6 +659,12 @@ spec:
                           and ExternalTrafficPolicy is set to Local.
                         format: int32
                         type: integer
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: 'The extra labels to add to the service. More
+                          info: http://kubernetes.io/docs/user-guide/labels'
+                        type: object
                       loadBalancerIP:
                         description: LoadBalancerIP is the IP address of the load
                           balancer

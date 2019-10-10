@@ -265,7 +265,7 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	}
 
 	// Annotations are a map and are merged
-	clone.Annotations = in.mergeMap(in.Annotations, defaults.Annotations)
+	clone.Annotations = MergeMap(in.Annotations, defaults.Annotations)
 	// Application is merged
 	clone.Application = in.Application.DeepCopyWithDefaults(defaults.Application)
 	clone.Coherence = in.Coherence.DeepCopyWithDefaults(defaults.Coherence)
@@ -274,11 +274,11 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Env = in.mergeEnvVar(in.Env, defaults.Env)
 	clone.JVM = in.JVM.DeepCopyWithDefaults(defaults.JVM)
 	// Labels are a map and are merged
-	clone.Labels = in.mergeMap(in.Labels, defaults.Labels)
+	clone.Labels = MergeMap(in.Labels, defaults.Labels)
 	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)
 
 	// NodeSelector is a map and is NOT merged
-	clone.NodeSelector = in.mergeMap(in.NodeSelector, defaults.NodeSelector)
+	clone.NodeSelector = MergeMap(in.NodeSelector, defaults.NodeSelector)
 	if in.NodeSelector != nil {
 		clone.NodeSelector = in.NodeSelector
 	} else {
@@ -465,34 +465,6 @@ func (in *CoherenceRoleSpec) mergeVolumes(primary, secondary []corev1.Volume) []
 
 		if !found {
 			merged = append(merged, p)
-		}
-	}
-
-	return merged
-}
-
-// Return a map that is two maps merged.
-// If both maps are nil then nil is returned.
-// Where there are duplicate keys those in m1 take precedence.
-// Keys that map to "" will not be added to the merged result
-func (in *CoherenceRoleSpec) mergeMap(m1, m2 map[string]string) map[string]string {
-	if m1 == nil && m2 == nil {
-		return nil
-	}
-
-	merged := make(map[string]string)
-
-	for k, v := range m2 {
-		if v != "" {
-			merged[k] = v
-		}
-	}
-
-	for k, v := range m1 {
-		if v != "" {
-			merged[k] = v
-		} else {
-			delete(merged, k)
 		}
 	}
 

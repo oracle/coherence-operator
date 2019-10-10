@@ -41,6 +41,36 @@ const (
 	CoherenceComponentLabel string = "component"
 )
 
+// ----- helper functions ---------------------------------------------------
+
+// Return a map that is two maps merged.
+// If both maps are nil then nil is returned.
+// Where there are duplicate keys those in m1 take precedence.
+// Keys that map to "" will not be added to the merged result
+func MergeMap(m1, m2 map[string]string) map[string]string {
+	if m1 == nil && m2 == nil {
+		return nil
+	}
+
+	merged := make(map[string]string)
+
+	for k, v := range m2 {
+		if v != "" {
+			merged[k] = v
+		}
+	}
+
+	for k, v := range m1 {
+		if v != "" {
+			merged[k] = v
+		} else {
+			delete(merged, k)
+		}
+	}
+
+	return merged
+}
+
 // ----- ApplicationSpec struct ---------------------------------------------
 
 // The specification of the application deployed into the Coherence
@@ -737,7 +767,7 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 	}
 
 	if in.Service != nil {
-		clone.Service = in.Service
+		clone.Service = in.Service.DeepCopyWithDefaults(defaults.Service)
 	} else {
 		clone.Service = defaults.Service
 	}
@@ -747,7 +777,7 @@ func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPor
 
 // Merge merges two arrays of NamedPortSpec structs.
 // Any NamedPortSpec instances in both arrays that share the same name will be merged,
-// the field set in the primary NamedPortSpec will take presedence over those in the
+// the field set in the primary NamedPortSpec will take precedence over those in the
 // secondary NamedPortSpec.
 func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 	if primary == nil {
@@ -1120,6 +1150,10 @@ type ServiceSpec struct {
 	// LoadBalancerIP is the IP address of the load balancer
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
+	// The extra labels to add to the service.
+	// More info: http://kubernetes.io/docs/user-guide/labels
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations is free form yaml that will be added to the service annotations
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
@@ -1192,6 +1226,10 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 	}
 
 	clone := ServiceSpec{}
+	// Annotations are a map and are merged
+	clone.Annotations = MergeMap(in.Annotations, defaults.Annotations)
+	// Labels are a map and are merged
+	clone.Labels = MergeMap(in.Labels, defaults.Labels)
 
 	if in.Enabled != nil {
 		clone.Enabled = in.Enabled
@@ -1221,12 +1259,6 @@ func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec 
 		clone.LoadBalancerIP = in.LoadBalancerIP
 	} else {
 		clone.LoadBalancerIP = defaults.LoadBalancerIP
-	}
-
-	if in.Annotations != nil {
-		clone.Annotations = in.Annotations
-	} else {
-		clone.Annotations = defaults.Annotations
 	}
 
 	if in.Port != nil {
