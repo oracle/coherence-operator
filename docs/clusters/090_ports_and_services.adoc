@@ -19,3 +19,298 @@
 = Expose Ports and Services
 
 == Expose Ports and Services
+
+Any ports that are used by Coherence or by application code that need to be exposed outside of the `Pods` for a role
+need to be declared in the `CoherenceCluster` spec for the role.
+
+== Default Ports
+The Coherence container in `Pods` in a role in a `CoherenceCluster` has two ports declared by default, none of the ports
+are exposed on services.
+
+[cols=3*,options=header]
+|===
+|Port
+|Name
+|Description
+
+|`7`
+|`coherence`
+|This is the standard echo port. Nothing in the container binds to this port it is only declared on the container so
+that the headless `Service` used for Coherence WKA can declare a port.
+
+|`6676`
+| `health`
+| This is the port used to expose the default readiness, liveness and StatusHA ReST endpoints on.
+
+|===
+
+NOTE: When exposing additional ports as described in the sections below the names for the additional ports cannot be
+either `coherence` or `health` that are the names used for the default ports above or the `Pods` may fail to start.
+
+
+== Configure Additional Ports
+
+Additional ports can be declared for a role by adding them to the `ports` array that is part of the `role` spec.
+A `port` has the following fields:
+
+[source,yaml]
+----
+ports:
+  - name: extend   # <1>
+    port: 20000    # <2>
+    protocol: TCP  # <3>
+    service: {}    # <4>
+----
+
+<1> The port must have a `name` that is unique within the role
+<2> The `port` value must be specified
+<3> The `protocol` is optional and defaults to `TCP`. The valid values are the same as when declaring ports for
+https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes services] and `Pods`.
+<4> The `service` section is optional and is used to configure the `Service` that will be used to expose the port.
+see <<#services,Configure Services for Additional Ports>>
+
+By default a Kubernetes `Service` of type `ClusterIP` will be created for each additional port. The `Service` `port`
+and `targetPort` will both default to the specified `port` value. The `port` value for the `Service` can be overridden
+in the `service` spec.
+
+The name of the `Service` created will default to a name made up from the cluster name, the role name and the port name
+in the format `<cluster-name>-<role-name>-<port-name>`. This can be overriden by specifying a different name in the
+`service` section of the additional port configuration.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster  # <1>
+spec:
+  role: data          # <2>
+  ports:
+    - name: extend    # <3>
+      port: 20000
+----
+
+<1> The cluster name is `test-cluster`
+<2> The role name is `data`
+<3> The port name is `extend`
+
+The `Service` created for the `extend` port would be:
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-data-extend  # <1>
+----
+
+<1> the `Service` name is `test-cluster-data-extend` made up of the cluster name `test-cluster` the role name `data`
+and the port name `extend`.
+
+=== Configure Additional Ports for the Implicit Role
+
+When configuring a `CoherenceCluster` with a single implicit role the additional ports are added to the `ports` array
+in the `CoherenceCluster` `spec` section.
+For Example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  ports:            # <1>
+    - name: extend
+      port: 20000
+    - name: rest
+      port: 8080
+----
+
+<1> The `ports` array for the single implicit role contains two additional ports. The first named `extend` on port
+`20000` and the second named `rest` on port `8080`. Both of the ports in the above example will be exposed on separate
+`Services` using the default service configuration.
+
+
+=== Configure Additional Ports for Explicit Roles
+
+When configuring a `CoherenceCluster` with explicit roles in the `roles` list the additional ports are added to
+the `ports` array for each role.
+For Example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data             # <1>
+      ports:
+        - name: management
+          port: 30000
+    - role: proxy            # <2>
+      ports:
+        - name: extend
+          port: 20000
+----
+
+<1> The `data` role adds an additional port named `management` with a port value of `30000` that will be exposed on
+a service named `test-cluster-data-management`.
+<2> The `proxy` role adds an additional port named `extend` with a port value of `20000` that will be exposed on
+a service named `test-cluster-data-extend`.
+
+
+
+=== Configure Additional Ports for Explicit Roles with Defaults
+
+When configuring a `CoherenceCluster` with explicit roles default additional ports can be added to the
+`CoherenceCluster` `spec.ports` array that will apply to all roles in the `roles` list.
+Additional ports can then also be specified for individual roles in the `roles` list.
+The `ports` array for an individual role will then be a *merge* of the default ports and the role's ports.
+If a port in a role has the same name as a default port then the role's port will override the default port.
+
+For Example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  ports:                   # <1>
+    - name: management
+      port: 30000
+  roles:
+    - role: data           # <2>
+    - role: proxy
+      ports:
+        - name: extend     # <3>
+          port: 20000
+    - role: web
+      ports:
+        - name: http       # <4>
+          port: 8080
+        - name: management # <5>
+          port: 9000
+----
+
+<1> The default additional ports section specifies a single additional port named `management` on port `30000`.
+
+<2> The `data` role does not specify any additional ports so will just have the default additional `management` port
+that will be exposed on a service named `test-cluster-data-management`.
+
+<3> The `proxy` role adds an additional port named `extend` with a port value of `20000` that will be exposed on
+a service named `test-cluster-data-extend`. The `proxy` role will also have the default additional `management` port
+exposed on a service named `test-cluster-proxy-management`.
+
+<4> The `web` role specified an additional port named `http` on port `8080` that will be exposed on a service named
+`test-cluster-web-http`.
+
+<5> The `web` role also overrides the default `management` port changing the `port` value from `30000` to `9000`
+that will be exposed on a service named `test-cluster-web-management`.
+
+
+
+[#services]
+== Configure Services for Additional Ports
+
+A number of fields may be specified to configure the `Service` that will be created to expose the port.
+
+[source,yaml]
+----
+  ports:
+    - name: extend
+      port: 20000
+      protocol: TCP
+      service:
+        enabled: true                     # <1>
+        name: test-cluster-data-extend    # <2>
+        port: 20000                       # <3>
+        type:
+        externalName:
+        sessionAffinity:
+        publishNotReadyAddresses:
+        externalTrafficPolicy:
+        loadBalancerIP:
+        healthCheckNodePort:
+        loadBalancerSourceRanges: []
+        annotations: {}
+        sessionAffinityConfig: {}
+----
+
+<1> Optionally enable or disable creation of a `Service` for the port, the defautl value is `true`.
+<2> Optionally override the default generated `Service` name.
+<3> Optionally use a different port in the `Service` to that used by the `Container`.
+
+Apart from the `enabled` and `name` fields, all of the fields shown above have exactly the same meaning and default
+behaviour that they do for a normal https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service]
+
+
+=== Enabling or Disabling Service Creation
+
+By default a `Service` will be created for all additional ports in the `ports` array. If for some reason this is not
+required `Service` creation can be disabled by setting the `service.enabled` field to `false`. The additional port
+will still be added as a named port to the Coherence `Container` spec in the `Pod`.
+For example:
+
+[source,yaml]
+----
+  ports:
+    - name: extend
+      port: 20000
+      protocol: TCP
+      service:
+        enabled: false
+----
+
+
+=== Changing a Service Name
+
+As already described above the name of a `Service` created for an additional port is a combination of cluster name, role
+name and port name. This can be overridden by setting the `service.name` field to the required name of the `Service`.
+
+NOTE: Bear in mind when overriding `Service` names that they must be unique within the Kubernetes namespace that the
+`CoherenceCluster` is being installed into.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: http
+      port: 8080
+      service:
+        name: front-end
+        port: 80
+----
+
+In the example above the service name has been overridden to be `front-end` and the service port overridden to `80`,
+which will generate a `Service` like the following:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-end        # <1>
+spec:
+  ports:
+    - name: http         # <2>
+      port: 80           # <3>
+      targetPort: 8080   # <4>
+----
+
+<1> The `Service` name has been overridden to `front-end`
+<2> The port name is `http` the same as the name of the additional port in the role spec.
+<3> The `port` is `80` which is the value from the additional port's `service.port` field.
+<4> The `targetPort` is `8080` which is the port that the container will use from the `port` value of the additional
+port in the role spec.
+

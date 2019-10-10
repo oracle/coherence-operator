@@ -6,6 +6,7 @@ spec:
   coherence:
     management:
       enabled: true
+      port: 30000
   roles:
   - role: one
     coherence:
@@ -15,5 +16,7 @@ spec:
       imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
       main: com.oracle.coherence.k8s.testing.RestServer
     ports:
-    - name: rest
-      port: 8080
+      - name: mgmt-port
+        port: 30000
+      - name: rest
+        port: 8080

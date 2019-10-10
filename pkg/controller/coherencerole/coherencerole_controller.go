@@ -233,10 +233,13 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	replicas := role.Spec.GetReplicas()
 
 	switch {
-	case replicas <= 0:
+	case replicas <= 0 && err == nil:
 		// this is effectively a delete
 		return r.scaleDownToZero(cluster, role, helmValues)
-	case err != nil && errors.IsNotFound(err):
+	case replicas <= 0 && err != nil && errors.IsNotFound(err):
+		// Already deleted
+		return reconcile.Result{}, nil
+	case replicas > 0 && err != nil && errors.IsNotFound(err):
 		// Helm values was not found so this is an insert of a new role
 		return r.createRole(cluster, role)
 	case err != nil:

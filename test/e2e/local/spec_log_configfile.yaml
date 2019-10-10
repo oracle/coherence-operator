@@ -6,5 +6,9 @@ spec:
   coherence:
     management:
       enabled: true
+      port: 30000
+  ports:
+    - name: mgmt-port
+      port: 30000
   logging:
     configFile: logging.properties

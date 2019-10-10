@@ -1050,6 +1050,9 @@ type PortSpecWithSSL struct {
 	// Enable or disable flag.
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
+	// The port to bind to.
+	// +optional
+	Port *int32 `json:"port,omitempty"`
 	// SSL configures SSL settings for a Coherence component
 	// +optional
 	SSL *SSLSpec `json:"ssl,omitempty"`
@@ -1080,6 +1083,12 @@ func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *Port
 		clone.Enabled = in.Enabled
 	} else {
 		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Port != nil {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
 	}
 
 	if in.SSL != nil {

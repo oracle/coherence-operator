@@ -166,15 +166,13 @@ spec:
           imagePullPolicy: {{ .Values.coherence.imagePullPolicy }}
 {{- end }}
           ports:
-            - name: "mgmt-port"
-              containerPort: 30000
-            - name: "metrics-port"
-              containerPort: 9612
+            - name: "coherence"
+              containerPort: 7
             - name: "health"
               containerPort: {{ $healthPort }}
 {{- if eq (default false .Values.jvm.debug.enabled) true }}
             - name: "debug-port"
-              containerPort: {{ default 5005 .Values.jvm.debug.port }}
+              containerPort: {{ .Values.jvm.debug.port | default 5005 }}
 {{- end }}
 {{- if .Values.ports -}}
 {{-   range $port := .Values.ports }}
@@ -194,9 +192,9 @@ spec:
             - name: COH_EXTRA_CLASSPATH
               value: {{ printf "%s/*:%s" $extLibDir $extConfDir | quote }}
             - name: COH_MGMT_HTTP_PORT
-              value: "30000"
+              value: {{ .Values.coherence.management.port | default 30000 | quote }}
             - name: COH_METRICS_PORT
-              value: "9612"
+              value: {{ .Values.coherence.metrics.port | default 9612 | quote }}
             - name: COH_MACHINE_NAME
               valueFrom:
                 fieldRef:

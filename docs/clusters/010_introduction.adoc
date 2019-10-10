@@ -39,7 +39,8 @@ metadata:
 
 The yaml above will create a Coherence cluster with three storage enabled members. 
 There is not much that can actually be achived with this cluster because no ports are exposed outside of Kubernetes
-so the cluster is inaccessible. It could be accessed by other `Pods` in the same
+so the cluster is inaccessible. It could be possibly be accessed by other `Pods` in the same Kubernetes cluster but
+in most use cases additional configuration would be required.
 
 == Coherence Roles
 
