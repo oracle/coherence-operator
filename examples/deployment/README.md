@@ -6,11 +6,11 @@ The following scenarios are covered:
 
 1. Installing the Coherence Operator 
 1. Installing a Coherence cluster 
-1. Deploying a Proxy Tier
+1. Deploying a Proxy tier
 1. Deploying an storage-disabled application 
 1. Enabling Active Persistence
 
-After the initial install of the COherence cluster, the following examples 
+After the initial install of the Coherence cluster, the following examples 
 build on the previous ones by issuing a `helm apply` to modify
 the install adding additional roles.
 
@@ -171,7 +171,7 @@ If you are short on resources, then you can set `installEFK=false` and `promethe
 > If you are using the official 2.0 release, then you can use the `coherence` repository and remove the version to use the latest.
 
 ```bash
-helm --debug install coherence-unstable/coherence-operator --version 2.0.0-1910071023 \
+helm install coherence-unstable/coherence-operator --version 2.0.0-1910071023 \
 --set prometheusoperator.enabled=true \
 --set prometheusoperator.prometheusOperator.createCustomResource=false \
 --set installEFK=true \
@@ -230,7 +230,7 @@ Change to the `examples/deployment` directory to run the following commands.
 ## Example 1 - Coherence cluster only
 
 The first example uses the yaml file [src/main/yaml/example-cluster.yaml](src/main/yaml/example-cluster.yaml) which
-defines a single role `storage`. The configuration under the main `spec` entry will be the defaults for all
+defines a single role `storage` which will store cluster data. The configuration under the main `spec` entry will be the defaults for all
 roles unless they are overridden by a specific role.
 
 This saves duplication of role configuration leading to less configuration errors.
@@ -291,7 +291,7 @@ This saves duplication of role configuration leading to less configuration error
     
     Lastly issue the command `size` to verify the cache entry count.
     
-    Type `bye` to exit the `console`.
+    Type `bye` to exit the console.
     
 1.  Scale the `storage` role to 6 members
 
@@ -505,7 +505,8 @@ adds a new role `helidon-app`. This role defines a user application which uses [
     transfer-encoding: chunked
     connection: keep-alive
     
-    curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"select key(),value() from foo"}'
+    curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"select key(),value() from foo"}' 
+    
     HTTP/1.1 200 OK
     Content-Type: application/json
     Date: Thu, 18 Apr 2019 06:49:15 GMT
@@ -578,7 +579,7 @@ The snippet of yaml below shows:
     kubectl -n coherence-example-ns create -f src/main/yaml/example-cluster-persistence.yaml 
     ```                                                                      
 
-1.  View the running pods an PVC's
+1.  View the running pods and PVC's
 
     ```bash  
     kubectl -n coherence-example-ns get pod -l coherenceCluster=example-cluster
@@ -640,9 +641,11 @@ The snippet of yaml below shows:
     
     Lastly issue the command `size` to verify the cache entry count.
     
-    Type `bye` to exit the `console`.
+    Type `bye` to exit the console.
 
 1.  Delete the cluster
+
+    > Note: This will not delete the PVC's.
 
     ```bash
     kubectl -n coherence-example-ns delete -f src/main/yaml/example-cluster-persistence.yaml 
@@ -653,7 +656,8 @@ The snippet of yaml below shows:
 1.  Confirm the PVC's are still present
 
     ```bash
-    kubectl get pvc -n coherence-example-ns
+    kubectl get pvc -n coherence-example-ns 
+    
     NAME                                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
     persistence-volume-example-cluster-storage-0   Bound    pvc-730f86fe-eb19-11e9-9b4b-025000000001   1Gi        RWO            hostpath       116s
     persistence-volume-example-cluster-storage-1   Bound    pvc-73191751-eb19-11e9-9b4b-025000000001   1Gi        RWO            hostpath       116s
@@ -666,7 +670,7 @@ The snippet of yaml below shows:
     kubectl -n coherence-example-ns create -f src/main/yaml/example-cluster-persistence.yaml 
     ```               
 
-1.  Watch the logs for Persistence messages
+1.  Follow the logs for Persistence messages
 
     ```bash
     kubectl logs example-cluster-storage-0 -n coherence-example-ns -f
@@ -702,7 +706,7 @@ The snippet of yaml below shows:
     
     Lastly issue the command `size` to verify the cache entry count is 10,000 meaning the data has been recovered.
     
-    Type `bye` to exit the `console`.
+    Type `bye` to exit the console.
   
 # Cleaning Up
 
