@@ -781,7 +781,7 @@ copyright:
 # ---------------------------------------------------------------------------
 .PHONY: code-review
 code-review: golangci copyright
-	mvn -f java validate -P checkstyle
+	mvn -f java package -DskipTests -P checkstyle
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

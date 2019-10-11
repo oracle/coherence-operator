@@ -73,7 +73,6 @@ server()
       CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/opendmk_jmxremote_optional_jar.jar"
     fi
 
-
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then
@@ -87,7 +86,6 @@ server()
     then
         PROPS="${PROPS} -Dcoherence.distributed.localstorage=${COH_STORAGE_ENABLED}"
     fi
-
 
 #   Configure whether management is added to the classpath
     if [[ "${COH_MGMT_ENABLED}" == "true" ]]
@@ -110,6 +108,14 @@ server()
       then
           CLASSPATH="${CLASSPATH}:${DEPENDENCY_MODULES}/*"
       fi
+    fi
+
+    if [[ "${JVM_GC_LOGGING}" == "true" || "${JVM_GC_LOGGING}" == "" ]]
+    then
+        MEM_OPTS="${MEM_OPTS} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                              -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution \
+                              -XX:+PrintGCApplicationStoppedTime \
+                              -XX:+PrintGCApplicationConcurrentTime"
     fi
     }
 
@@ -272,14 +278,6 @@ start()
     if [[ "${JVM_NATIVE_MEMORY_TRACKING}" != "off" ]]
     then
         MEM_OPTS="${MEM_OPTS} -XX:NativeMemoryTracking=${JVM_NATIVE_MEMORY_TRACKING} -XX:+PrintNMTStatistics"
-    fi
-
-    if [[ "${JVM_GC_LOGGING}" == "true" || "${JVM_GC_LOGGING}" == "" ]]
-    then
-        MEM_OPTS="${MEM_OPTS} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
-                              -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution \
-                              -XX:+PrintGCApplicationStoppedTime \
-                              -XX:+PrintGCApplicationConcurrentTime"
     fi
 
     if [[ "${JVM_OOM_HEAP_DUMP}" == "" || "${JVM_OOM_HEAP_DUMP}" == "true" ]]
