@@ -236,7 +236,7 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() == nil:
 		// Scaling down to zero so delete the helm values which will cause the StatefulSet to be deleted
 		return r.scaleDownToZero(cluster, role, helmValues)
-	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() == nil:
+	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() != nil:
 		// Helm values already deleted but not yet gone
 		if err = r.updateStatus(role, nil); err != nil {
 			// failed to update the CoherenceRole's status
