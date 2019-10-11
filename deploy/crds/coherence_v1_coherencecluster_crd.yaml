@@ -3,6 +3,11 @@ kind: CustomResourceDefinition
 metadata:
   name: coherenceclusters.coherence.oracle.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.roles
+    description: The number of roles in this Coherence cluster
+    name: Roles
+    type: integer
   group: coherence.oracle.com
   names:
     categories:
@@ -1721,6 +1726,11 @@ spec:
               type: array
           type: object
         status:
+          properties:
+            roles:
+              description: The number of roles in this cluster
+              format: int64
+              type: integer
           type: object
   version: v1
   versions:

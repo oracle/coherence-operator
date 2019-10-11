@@ -21,6 +21,11 @@ import (
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:categories=coherence
 // +kubebuilder:resource:shortName=cohrole
+// +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".spec.role",description="The name of this role"
+// +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".metadata.labels.coherenceCluster",description="The name of the Coherence cluster that this role belongs to"
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="The number of Coherence Pods for this role"
+// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence Pods for this role"
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status",description="The status of this role"
 type CoherenceRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -41,6 +46,8 @@ type CoherenceRoleList struct {
 // CoherenceRoleStatus defines the observed state of CoherenceRole
 // +k8s:openapi-gen=true
 type CoherenceRoleStatus struct {
+	// The name of the cluster.
+	ClusterName string `json:"clusterName,omitempty"`
 	// The current status.
 	Status RoleStatus `json:"status,omitempty"`
 	// Replicas is the desired size of the Coherence cluster.

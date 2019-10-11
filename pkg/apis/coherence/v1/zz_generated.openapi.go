@@ -424,7 +424,15 @@ func schema_pkg_apis_coherence_v1_CoherenceClusterStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "CoherenceClusterStatus defines the observed state of CoherenceCluster",
-				Properties:  map[string]spec.Schema{},
+				Properties: map[string]spec.Schema{
+					"roles": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The number of roles in this cluster",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
 			},
 		},
 		Dependencies: []string{},
@@ -1028,6 +1036,13 @@ func schema_pkg_apis_coherence_v1_CoherenceRoleStatus(ref common.ReferenceCallba
 			SchemaProps: spec.SchemaProps{
 				Description: "CoherenceRoleStatus defines the observed state of CoherenceRole",
 				Properties: map[string]spec.Schema{
+					"clusterName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the cluster.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The current status.",
