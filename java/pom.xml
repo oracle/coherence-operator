@@ -24,7 +24,6 @@
   <modules>
     <module>coherence-utils</module>
     <module>operator-test</module>
-    <module>operator-script-test</module>
   </modules>
 
   <properties>
