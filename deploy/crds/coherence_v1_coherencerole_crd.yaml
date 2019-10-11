@@ -3,6 +3,27 @@ kind: CustomResourceDefinition
 metadata:
   name: coherenceroles.coherence.oracle.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.role
+    description: The name of this role
+    name: Role
+    type: string
+  - JSONPath: .metadata.labels.coherenceCluster
+    description: The name of the Coherence cluster that this role belongs to
+    name: Cluster
+    type: string
+  - JSONPath: .spec.replicas
+    description: The number of Coherence Pods for this role
+    name: Replicas
+    type: integer
+  - JSONPath: .status.readyReplicas
+    description: The number of ready Coherence Pods for this role
+    name: Ready
+    type: integer
+  - JSONPath: .status.status
+    description: The status of this role
+    name: Status
+    type: string
   group: coherence.oracle.com
   names:
     categories:
@@ -844,6 +865,9 @@ spec:
           type: object
         status:
           properties:
+            clusterName:
+              description: The name of the cluster.
+              type: string
             currentReplicas:
               description: CurrentReplicas is the current size of the Coherence cluster.
               format: int32

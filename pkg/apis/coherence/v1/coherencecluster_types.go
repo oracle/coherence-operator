@@ -50,6 +50,7 @@ type CoherenceClusterSpec struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:categories=coherence
 // +kubebuilder:resource:shortName=coh
+// +kubebuilder:printcolumn:name="Roles",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster"
 type CoherenceCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -70,6 +71,8 @@ type CoherenceClusterList struct {
 // CoherenceClusterStatus defines the observed state of CoherenceCluster
 // +k8s:openapi-gen=true
 type CoherenceClusterStatus struct {
+	// The number of roles in this cluster
+	Roles int `json:"roles,omitempty"`
 }
 
 func init() {

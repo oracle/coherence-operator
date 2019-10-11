@@ -215,6 +215,26 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		}
 	}
 
+	if len(desiredRoles) != cluster.Status.Roles {
+		// re-fetch the cluster in case it has been updated
+		cluster := &coherence.CoherenceCluster{}
+		if err := r.client.Get(context.TODO(), request.NamespacedName, cluster); err != nil {
+			log.Error(err, "failed to get cluster to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
+			return reconcile.Result{}, err
+		}
+
+		// Update the role count in the cluster status
+		cluster.Status.Roles = len(desiredRoles)
+
+		// Update the new status in k8s
+		if err = r.client.Status().Update(context.TODO(), cluster); err != nil {
+			// failed to update the CoherenceClusters's status
+			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the cluster is in the desired state
+			log.Error(err, "failed to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
+			return reconcile.Result{}, err
+		}
+	}
+
 	// we're done so do not requeue
 	return reconcile.Result{}, nil
 }

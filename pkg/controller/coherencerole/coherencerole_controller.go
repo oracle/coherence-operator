@@ -233,11 +233,24 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	replicas := role.Spec.GetReplicas()
 
 	switch {
-	case replicas <= 0 && err == nil:
-		// this is effectively a delete
+	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() == nil:
+		// Scaling down to zero so delete the helm values which will cause the StatefulSet to be deleted
 		return r.scaleDownToZero(cluster, role, helmValues)
+	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() == nil:
+		// Helm values already deleted but not yet gone
+		if err = r.updateStatus(role, nil); err != nil {
+			// failed to update the CoherenceRole's status
+			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
+			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+		}
+		return reconcile.Result{}, nil
 	case replicas <= 0 && err != nil && errors.IsNotFound(err):
-		// Already deleted
+		// Helm values has been deleted
+		if err = r.updateStatus(role, nil); err != nil {
+			// failed to update the CoherenceRole's status
+			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
+			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+		}
 		return reconcile.Result{}, nil
 	case replicas > 0 && err != nil && errors.IsNotFound(err):
 		// Helm values was not found so this is an insert of a new role
@@ -510,7 +523,16 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *appsv1.StatefulSet) error {
 	var err error
 
-	if role.Status.CurrentReplicas != sts.Status.Replicas || role.Status.ReadyReplicas != sts.Status.ReadyReplicas {
+	if sts == nil {
+		role.Status.CurrentReplicas = 0
+		role.Status.ReadyReplicas = 0
+
+		if err = r.client.Status().Update(context.TODO(), role); err != nil {
+			// failed to update the CoherenceRole's status
+			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
+			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+		}
+	} else if role.Status.CurrentReplicas != sts.Status.Replicas || role.Status.ReadyReplicas != sts.Status.ReadyReplicas {
 		// Update this CoherenceRole's status
 		role.Status.CurrentReplicas = sts.Status.CurrentReplicas
 		role.Status.ReadyReplicas = sts.Status.ReadyReplicas
