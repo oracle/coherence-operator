@@ -6,93 +6,91 @@
 
 package com.oracle.coherence.k8s;
 
-import com.tangosol.net.CacheFactory;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.tangosol.net.CacheFactory;
 
 /**
  * A simple class that either prints out the current Coherence version
  * or if a version is passed in prints whether the current Coherence
  * version is greater than or equal to that version.
- * 
- * @author jk
  */
-public class CoherenceVersion
-    {
+public class CoherenceVersion {
+
+    private static final Pattern PATTERN = Pattern.compile("(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*");
+
+    /**
+     * Private constructor for utility class.
+     */
+    private CoherenceVersion() {
+    }
+
     /**
      * Print the Coherence version to standard out.
      *
-     * @param asArg  the program command line arguments
+     * @param args the program command line arguments
      */
-    public static void main(String[] asArg)
-        {
-        int nExitCode = 0;
+    public static void main(String[] args) {
+        int exitCode = 0;
 
-        if (asArg != null && asArg.length > 0)
-            {
-            nExitCode = versionCheck(CacheFactory.VERSION, asArg) ? 0 : 1;
-            }
-        else
-            {
+        if (args != null && args.length > 0) {
+            exitCode = versionCheck(CacheFactory.VERSION, args) ? 0 : 1;
+        }
+        else {
             System.out.println(CacheFactory.VERSION);
-            }
-        
-        System.exit(nExitCode);
         }
 
-    static public boolean versionCheck(String sCoherence, String... asArg)
-        {
-        if (sCoherence.contains(":"))
-            {
-            sCoherence = sCoherence.substring(sCoherence.indexOf(":") + 1);
-            }
-
-        boolean fResult     = true;
-        int[]   anCoherence = splitVersion(sCoherence);
-        int[]   anVersion   = splitVersion(asArg[0]);
-        int     cPart       = Math.min(anCoherence.length, anVersion.length);
-
-        if (cPart > 0)
-            {
-            for (int i = 0; i < cPart && fResult; i++)
-                {
-                fResult = anCoherence[i] >= anVersion[i];
-                }
-            }
-
-        return fResult;
-        }
-
-    private static int[] splitVersion(String sVersion)
-        {
-        Matcher matcher = pattern.matcher(sVersion);
-        int[]   anPart;
-
-        if (matcher.matches())
-            {
-            int   cGroup = matcher.groupCount();
-            anPart = new int[cGroup];
-
-            for (int i = 1; i <= cGroup; i++)
-                {
-                try
-                    {
-                    anPart[i-1] = Integer.parseInt(matcher.group(i));
-                    }
-                catch (NumberFormatException e)
-                    {
-                    anPart[i-1] = 0;
-                    }
-                }
-            }
-        else
-            {
-            anPart = new int[0];
-            }
-
-        return anPart;
-        }
-
-    private static final Pattern pattern = Pattern.compile("(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*");
+        System.exit(exitCode);
     }
+
+    /**
+     * Check the Coherence version.
+     *
+     * @param coherenceVersion the actual Coherence version
+     * @param args             the version to validate against
+     * @return {@code true} if the actual Coherence version is at least the check version
+     */
+    public static boolean versionCheck(String coherenceVersion, String... args) {
+        if (coherenceVersion.contains(":")) {
+            coherenceVersion = coherenceVersion.substring(coherenceVersion.indexOf(":") + 1);
+        }
+
+        boolean result = true;
+        int[] coherenceParts = splitVersion(coherenceVersion);
+        int[] versionParts = splitVersion(args[0]);
+        int partCount = Math.min(coherenceParts.length, versionParts.length);
+
+        if (partCount > 0) {
+            for (int i = 0; i < partCount && result; i++) {
+                result = coherenceParts[i] >= versionParts[i];
+            }
+        }
+
+        return result;
+    }
+
+    private static int[] splitVersion(String version) {
+        Matcher matcher = PATTERN.matcher(version);
+        int[] count;
+
+        if (matcher.matches()) {
+            int groupCount = matcher.groupCount();
+            count = new int[groupCount];
+
+            for (int i = 1; i <= groupCount; i++) {
+                try {
+                    count[i - 1] = Integer.parseInt(matcher.group(i));
+                }
+                catch (NumberFormatException e) {
+                    count[i - 1] = 0;
+                }
+            }
+        }
+        else {
+            count = new int[0];
+        }
+
+        return count;
+    }
+}

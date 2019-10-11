@@ -49,6 +49,8 @@
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
     <version.lib.asciidoctor.diagram>1.5.4.1</version.lib.asciidoctor.diagram>
+    <version.lib.checkstyle>8.18</version.lib.checkstyle>
+    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
     <version.plugin.helidon-build-tools>1.0.10</version.plugin.helidon-build-tools>
     <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
@@ -197,6 +199,28 @@
             </dependency>
           </dependencies>
         </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${version.plugin.checkstyle}</version>
+            <configuration>
+                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            </configuration>
+            <dependencies>
+                <dependency>
+                    <groupId>com.puppycrawl.tools</groupId>
+                    <artifactId>checkstyle</artifactId>
+                    <version>${version.lib.checkstyle}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.sun</groupId>
+                            <artifactId>tools</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
     
@@ -233,6 +257,15 @@
           <artifactId>sitegen-maven-plugin</artifactId>
           <extensions>true</extensions>
       </plugin>
+
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <configuration>
+              <configLocation>/etc/checkstyle.xml</configLocation>
+              <suppressionsLocation>/etc/checkstyle-suppressions.xml</suppressionsLocation>
+          </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -242,6 +275,30 @@
       <modules>
         <module>docs</module>
       </modules>
+    </profile>
+    <profile>
+        <id>checkstyle</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>run-checkstyle</id>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <phase>validate</phase>
+                            <configuration>
+                                <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
+                                <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
     </profile>
   </profiles>
 </project>

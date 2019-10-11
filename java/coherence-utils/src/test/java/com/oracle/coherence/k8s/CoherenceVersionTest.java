@@ -12,13 +12,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * @author jk
+ * CoherenceVersion tests.
  */
-public class CoherenceVersionTest
-    {
+public class CoherenceVersionTest {
     @Test
-    public void shouldBeGreater()
-        {
+    public void shouldBeGreater() {
         assertThat(CoherenceVersion.versionCheck("1", "0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1", "0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1", "1.0"), is(true));
@@ -26,11 +24,10 @@ public class CoherenceVersionTest
         assertThat(CoherenceVersion.versionCheck("1.1.1.1", "1.1.1.0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1", "1.1.1.1.0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1.1", "1.1.1.1.1.0"), is(true));
-        }
+    }
 
     @Test
-    public void shouldBeEqual()
-        {
+    public void shouldBeEqual() {
         assertThat(CoherenceVersion.versionCheck("1", "1"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1", "1"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1", "1.1"), is(true));
@@ -38,16 +35,15 @@ public class CoherenceVersionTest
         assertThat(CoherenceVersion.versionCheck("1.1.1.1", "1.1.1.1"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1", "1.1.1.1.1"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1.1", "1.1.1.1.1.1"), is(true));
-        }
+    }
 
     @Test
-    public void shouldBeLess()
-        {
+    public void shouldBeLess() {
         assertThat(CoherenceVersion.versionCheck("1", "2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1", "2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1", "1.2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1.1", "1.1.2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1", "1.1.1.2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1", "1.1.1.1.2"), is(false));
-        }
     }
+}

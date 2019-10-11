@@ -6,17 +6,17 @@
 
 package com.oracle.coherence.k8s.testing;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.stream.Collectors;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.SimplePartitionKey;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -27,17 +27,21 @@ import com.sun.net.httpserver.HttpServer;
  *
  * @author jk  2019.08.09
  */
-public class RestServer
-    {
+public class RestServer {
+
+    /**
+     * Private constructor.
+     */
+    private RestServer() {
+    }
+
     /**
      * Program entry point.
      *
      * @param args the program command line arguments
      */
-    public static void main(String[] args)
-        {
-        try
-            {
+    public static void main(String[] args) {
+        try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
             server.createContext("/ready", RestServer::ready);
@@ -53,31 +57,27 @@ public class RestServer
             server.start();
 
             System.out.println("ReST server is UP! http://localhost:" + server.getAddress().getPort());
-            }
-        catch (Throwable thrown)
-            {
+        }
+        catch (Throwable thrown) {
             System.err.println("Failed to start http server");
             thrown.printStackTrace();
-            }
-
-        DefaultCacheServer.main(args);
         }
 
-    private static void send(HttpExchange t, int status, String body) throws IOException
-        {
+        DefaultCacheServer.main(args);
+    }
+
+    private static void send(HttpExchange t, int status, String body) throws IOException {
         t.sendResponseHeaders(status, body.length());
         OutputStream os = t.getResponseBody();
         os.write(body.getBytes());
         os.close();
-        }
+    }
 
-    static void ready(HttpExchange t) throws IOException
-        {
+    private static void ready(HttpExchange t) throws IOException {
         send(t, 200, "OK");
-        }
+    }
 
-    static void env(HttpExchange t) throws IOException
-        {
+    private static void env(HttpExchange t) throws IOException {
         String data = System.getenv()
                 .entrySet()
                 .stream()
@@ -85,10 +85,9 @@ public class RestServer
                 .collect(Collectors.joining(",\n"));
 
         send(t, 200, "[" + data + "]");
-        }
+    }
 
-    static void props(HttpExchange t) throws IOException
-        {
+    private static void props(HttpExchange t) throws IOException {
         String data = System.getProperties()
                 .entrySet()
                 .stream()
@@ -96,64 +95,54 @@ public class RestServer
                 .collect(Collectors.joining(",\n"));
 
         send(t, 200, "[" + data + "]");
-        }
+    }
 
-    static void suspend(HttpExchange t) throws IOException
-        {
+    private static void suspend(HttpExchange t) throws IOException {
         Cluster cluster = CacheFactory.ensureCluster();
         cluster.suspendService("PartitionedCache");
         send(t, 200, "OK");
-        }
+    }
 
-    static void resume(HttpExchange t) throws IOException
-        {
+    private static void resume(HttpExchange t) throws IOException {
         Cluster cluster = CacheFactory.ensureCluster();
         cluster.resumeService("PartitionedCache");
         send(t, 200, "OK");
-        }
+    }
 
     @SuppressWarnings("unchecked")
-    static void canaryStart(HttpExchange t) throws IOException
-        {
-        NamedCache              cache   = CacheFactory.getCache("canary");
+    private static void canaryStart(HttpExchange t) throws IOException {
+        NamedCache cache = CacheFactory.getCache("canary");
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
-        int                     nPart   = service.getPartitionCount();
+        int nPart = service.getPartitionCount();
 
-        for (int i=0; i<nPart; i++)
-            {
+        for (int i = 0; i < nPart; i++) {
             SimplePartitionKey key = SimplePartitionKey.getPartitionKey(i);
             cache.put(key, "data");
-            }
+        }
 
         send(t, 200, "OK");
-        }
+    }
 
-    @SuppressWarnings("unchecked")
-    static void canaryCheck(HttpExchange t) throws IOException
-        {
-        NamedCache              cache   = CacheFactory.getCache("canary");
+    private static void canaryCheck(HttpExchange t) throws IOException {
+        NamedCache cache = CacheFactory.getCache("canary");
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
-        int                     nPart   = service.getPartitionCount();
-        int                     nSize   = cache.size();
+        int nPart = service.getPartitionCount();
+        int nSize = cache.size();
 
-        if (nSize == nPart)
-            {
+        if (nSize == nPart) {
             send(t, 200, "OK " + nSize + " entries");
-            }
-        else
-            {
-            send(t, 400, "Expected " + nPart + " entries but there are only " + nSize);
-            }
         }
+        else {
+            send(t, 400, "Expected " + nPart + " entries but there are only " + nSize);
+        }
+    }
 
-    @SuppressWarnings("unchecked")
-    static void canaryClear(HttpExchange t) throws IOException
-        {
-        NamedCache              cache   = CacheFactory.getCache("canary");
+    private static void canaryClear(HttpExchange t) throws IOException {
+        NamedCache cache = CacheFactory.getCache("canary");
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
         cache.clear();
 
         send(t, 200, "OK");
-        }
     }
+}

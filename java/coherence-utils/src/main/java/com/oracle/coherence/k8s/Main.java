@@ -6,39 +6,42 @@
 
 package com.oracle.coherence.k8s;
 
-import com.tangosol.net.DefaultCacheServer;
-
 import java.lang.reflect.Method;
+
+import com.tangosol.net.DefaultCacheServer;
 
 /**
  * A main class that is used to run some initialisation code before
  * running another main class.
- *
- * @author jk
  */
-public class Main
-    {
+public class Main {
+
+    /**
+     * Private constructor for utility class.
+     */
+    private Main() {
+    }
+
     /**
      * Program entry point.
      *
-     * @param asArgs the program command line arguments
+     * @param args the program command line arguments
+     * @throws java.lang.Exception if an error occurs
      */
-    public static void main(String[] asArgs) throws Exception
-        {
-        if (asArgs.length == 0)
-            {
-            asArgs = new String[]{DefaultCacheServer.class.getCanonicalName()};
-            }
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            args = new String[] {DefaultCacheServer.class.getCanonicalName()};
+        }
 
         HealthServer server = new HealthServer();
         server.start();
 
-        String   sMainClass = asArgs[0];
-        String[] asArgsReal = new String[asArgs.length - 1];
-        System.arraycopy(asArgs, 1, asArgsReal, 0, asArgsReal.length);
+        String sMainClass = args[0];
+        String[] asArgsReal = new String[args.length - 1];
+        System.arraycopy(args, 1, asArgsReal, 0, asArgsReal.length);
 
         Class<?> clsMain = Class.forName(sMainClass);
-        Method   method  = clsMain.getMethod("main", asArgsReal.getClass());
+        Method method = clsMain.getMethod("main", asArgsReal.getClass());
         method.invoke(null, (Object) asArgsReal);
-        }
     }
+}

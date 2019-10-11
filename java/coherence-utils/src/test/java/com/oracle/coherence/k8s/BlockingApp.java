@@ -13,18 +13,14 @@ package com.oracle.coherence.k8s;
  * so that we have a JVM in a plain state that
  * {@link Runnable}s and {@link java.util.concurrent.Callable}s
  * can be invoke against.
- *
- * @author jk
  */
-public class BlockingApp
-    {
-    public static void main(String[] args) throws Exception
-        {
-        synchronized (BLOCKER)
-            {
-            BLOCKER.wait();
-            }
-        }
+public class BlockingApp {
 
     private static final Object BLOCKER = new Object();
+
+    public static void main(String[] args) throws Exception {
+        synchronized (BLOCKER) {
+            BLOCKER.wait();
+        }
     }
+}

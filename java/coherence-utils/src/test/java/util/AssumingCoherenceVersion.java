@@ -12,67 +12,58 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /**
- * A {@TestRule} specifying what Coherence versions a test can be run against.
+ * A {@link TestRule} specifying what Coherence versions a test can be run against.
  * The current Coherence version being tested must be equal or greater than the
  * specified minimal Coherence version.
  */
 public class AssumingCoherenceVersion
-    implements TestRule
-    {
-    // ----- constructors ---------------------------------------------------
-
-    /**
-     * Specify minimal Coherence Version for a test class by this {@link TestRule}.
-     *
-     * @param sCoherenceVersion         current Coherence version being tested
-     * @param sMinimalCoherenceVersion  minimal Coherence version
-     */
-    public AssumingCoherenceVersion(String sCoherenceVersion, String sMinimalCoherenceVersion)
-        {
-        if (sCoherenceVersion.contains(":"))
-            {
-            f_sCoherenceVersion = sCoherenceVersion.substring(sCoherenceVersion.indexOf(":") + 1);
-            }
-        else
-            {
-            f_sCoherenceVersion        = sCoherenceVersion;
-            }
-        f_sMinimalCoherenceVersion = sMinimalCoherenceVersion;
-        }
-
-    // ----- TestRule interface ---------------------------------------------
-
-    @Override
-    public Statement apply(Statement base, Description description)
-        {
-        return new Statement()
-            {
-            @Override
-            public void evaluate() throws Throwable
-                {
-                if (!CoherenceVersion.versionCheck(f_sCoherenceVersion, f_sMinimalCoherenceVersion))
-                    {
-
-                    throw new AssumptionViolatedException("Specified Coherence Version " + f_sCoherenceVersion + " does not meet required Coherence version " +
-                        f_sMinimalCoherenceVersion + " or greater.");
-                    }
-                else
-                    {
-                    base.evaluate();
-                    }
-                }
-            };
-        }
+        implements TestRule {
 
     // ----- Constants ------------------------------------------------------
 
     /**
      * Current Coherence version being tested by a test class with this {@link TestRule}.
      */
-    private final String f_sCoherenceVersion;
+    private final String coherenceVersion;
 
     /**
      * Minimal Coherence version required for a test class with this {@link TestRule}.
      */
-    private final String f_sMinimalCoherenceVersion;
+    private final String minimalCoherenceVersion;
+
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Specify minimal Coherence Version for a test class by this {@link TestRule}.
+     *
+     * @param coherenceVersion        current Coherence version being tested
+     * @param minimalCoherenceVersion minimal Coherence version
+     */
+    public AssumingCoherenceVersion(String coherenceVersion, String minimalCoherenceVersion) {
+        if (coherenceVersion.contains(":")) {
+            this.coherenceVersion = coherenceVersion.substring(coherenceVersion.indexOf(":") + 1);
+        } else {
+            this.coherenceVersion = coherenceVersion;
+        }
+        this.minimalCoherenceVersion = minimalCoherenceVersion;
     }
+
+    // ----- TestRule interface ---------------------------------------------
+
+    @Override
+    public Statement apply(Statement base, Description description) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                if (!CoherenceVersion.versionCheck(coherenceVersion, minimalCoherenceVersion)) {
+
+                    throw new AssumptionViolatedException("Specified Coherence Version " + coherenceVersion + " does not "
+                                                                  + "meet required Coherence version " +
+                                                                  minimalCoherenceVersion + " or greater.");
+                } else {
+                    base.evaluate();
+                }
+            }
+        };
+    }
+}
