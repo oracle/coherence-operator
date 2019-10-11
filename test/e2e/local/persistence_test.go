@@ -114,13 +114,13 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
-	localStorageEnv := os.Getenv("LOCAL_STORAGE")
-	localStorage, err := strconv.ParseBool(localStorageEnv)
+	localStorageRestartEnv := os.Getenv("LOCAL_STORAGE_RESTART")
+	localStorageRestart, err := strconv.ParseBool(localStorageRestartEnv)
 	if err != nil {
-		localStorage = false
+		localStorageRestart = false
 	}
 	// restart Coherence may be on a different instance, local storage will not work
-	if isRestart && !localStorage {
+	if isRestart && !localStorageRestart {
 		// delete the cluster
 		helper.WaitForCoherenceInternalCleanup(f, ns)
 
