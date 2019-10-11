@@ -46,20 +46,5 @@
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
-
-    <!-- proxy scheme that allows extend clients to connect to the cluster over TCP/IP -->
-    <proxy-scheme>
-      <service-name>Proxy</service-name>
-      <acceptor-config>
-        <tcp-acceptor>
-          <local-address>
-            <address system-property="coherence.extend.address"/>
-            <port system-property="coherence.extend.port"/>
-          </local-address>
-        </tcp-acceptor>
-      </acceptor-config>
-      <load-balancer>client</load-balancer>
-      <autostart>true</autostart>
-    </proxy-scheme>
   </caching-schemes>
 </cache-config>

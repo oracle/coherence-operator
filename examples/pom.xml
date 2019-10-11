@@ -52,7 +52,7 @@
     <!-- if necessary, override with -D -->
     <coherence.version>12.2.1-4-0</coherence.version>
 
-    <helidon.version>1.0.0</helidon.version>
+    <helidon.version>1.3.1</helidon.version>
   </properties>
 
   <dependencyManagement>

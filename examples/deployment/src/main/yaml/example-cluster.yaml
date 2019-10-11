@@ -13,18 +13,20 @@ spec:
   imagePullSecrets:
     - name: coherence-example-secret
   jvm:
-    heapSize: 512m
+    memory:
+      heapSize: 512m
   ports:
     - name: metrics
       port: 9612
   coherence:
-    logLevel: 5
     image: iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
     metrics:
       enabled: true
+#  logging:
+#    fluentd:
+#      enabled: true
   application:
     image: deployment-example:2.0.0
-    imagePullPolicy: IfNotPresent
   # 
   # Individual cluster roles
   #
