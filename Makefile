@@ -755,6 +755,7 @@ copyright:
 	  -X /Dockerfile \
 	  -X docs/ \
 	  -X etc/copyright.txt \
+	  -X etc/intellij-codestyle.xml \
 	  -X go.mod \
 	  -X go.sum \
 	  -X helm-charts/coherence/templates/NOTES.txt \
