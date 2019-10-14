@@ -506,6 +506,7 @@ generate:
 clean:
 	rm -rf build/_output
 	mvn -f java clean
+	mvn -f examples clean
 
 # ---------------------------------------------------------------------------
 # Create the k8s yaml manifest that will be used by the Operator SDK to
@@ -574,6 +575,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 .PHONY: build-mvn
 build-mvn:
 	mvn -f java package -DskipTests
+	mvn -f examples package -DskipTests
 
 # ---------------------------------------------------------------------------
 # Build and test the Java artifacts
@@ -783,6 +785,7 @@ copyright:
 .PHONY: code-review
 code-review: golangci copyright
 	mvn -f java package -DskipTests -P checkstyle
+	mvn -f examples package -DskipTests -P checkstyle
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
