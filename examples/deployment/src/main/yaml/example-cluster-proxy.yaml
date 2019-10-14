@@ -1,0 +1,46 @@
+#
+# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Example 2
+# Adds a separate proxy role
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: example-cluster
+spec:
+  imagePullSecrets:
+    - name: coherence-example-secret
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      port: 9612
+  coherence:
+    metrics:
+      enabled: true
+#  logging:
+#    fluentd:
+#      enabled: true
+  application:
+    image: deployment-example:2.0.0
+  # 
+  # Individual cluster roles
+  #
+  roles:
+    - role: storage
+      replicas: 3
+      coherence:
+        cacheConfig: storage-cache-config.xml
+      application:
+        image: deployment-example:2.0.0
+    - role: proxy
+      replicas: 1
+      ports:
+        - name: proxy
+          port: 20000
+      coherence:
+        cacheConfig: proxy-cache-config.xml
+        storageEnabled: false

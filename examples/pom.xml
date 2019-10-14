@@ -1,0 +1,280 @@
+
+
+<!--
+
+    Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.kubernetes</groupId>
+  <artifactId>examples-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>2.0.0</version>
+
+  <description>Oracle Coherence Operator Examples Project</description>
+  <name>Oracle Coherence Operator Examples Parent</name>
+
+  <modules>
+    <module>deployment</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+
+    <!-- library dependency versions -->
+    <commons.io.version>2.5</commons.io.version>
+    <commonjava.directory.version>0.3.1</commonjava.directory.version>
+    <jackson.version>2.9.9</jackson.version>
+    <jline.version>2.14.6</jline.version>
+    <javax.activation.version>1.2.0</javax.activation.version>
+    <javax.xml.bind.version>2.3.0</javax.xml.bind.version>
+    <jersey.version>2.25</jersey.version>
+    <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
+    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
+    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
+    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
+    <maven.jar.plugin.version>3.1.2</maven.jar.plugin.version>
+    <maven.jib.plugin.version>1.1.0</maven.jib.plugin.version>
+    <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
+    <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
+    <mockito.version>2.18.3</mockito.version>
+    <version.lib.checkstyle>8.18</version.lib.checkstyle>
+    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
+    
+    <!-- if necessary, override with -D -->
+    <coherence.version>12.2.1-4-0</coherence.version>
+
+    <helidon.version>1.3.1</helidon.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- module dependencies -->
+      <dependency>
+        <groupId>com.oracle.coherence</groupId>
+        <artifactId>coherence</artifactId>
+        <scope>provided</scope>
+        <version>${coherence.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.helidon.bundles</groupId>
+        <artifactId>helidon-bundles-webserver</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-jackson</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${javax.xml.bind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.activation</groupId>
+        <artifactId>javax.activation</artifactId>
+        <version>${javax.activation.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deploy.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven.assembly.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven.exec.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>test</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${version.plugin.checkstyle}</version>
+          <configuration>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${version.lib.checkstyle}</version>
+              <exclusions>
+                <exclusion>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                </exclusion>
+              </exclusions>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.commonjava.maven.plugins</groupId>
+          <artifactId>directory-maven-plugin</artifactId>
+          <version>${commonjava.directory.version}</version>
+        </plugin>
+
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+       <plugin>
+        <groupId>org.commonjava.maven.plugins</groupId>
+        <artifactId>directory-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-top-parent-basedir</id>
+            <goals>
+              <goal>highest-basedir</goal>
+            </goals>
+            <phase>validate</phase>
+            <configuration>
+              <property>top.parent.basedir</property>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+       </plugin>
+
+       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
+          <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>checkstyle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>run-checkstyle</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <phase>validate</phase>
+                <configuration>
+                  <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
+                  <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+
+  </profiles>
+  
+  <developers>
+    <developer>
+      <name>Tim Middleton</name>
+      <organization>Oracle</organization>
+      <email>tim.middleton@oracle.com</email>
+    </developer>
+  </developers>
+</project>
+
+
