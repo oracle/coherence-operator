@@ -32,6 +32,7 @@
 
     <!-- library dependency versions -->
     <commons.io.version>2.5</commons.io.version>
+    <commonjava.directory.version>0.3.1</commonjava.directory.version>
     <jackson.version>2.9.9</jackson.version>
     <jline.version>2.14.6</jline.version>
     <javax.activation.version>1.2.0</javax.activation.version>
@@ -48,6 +49,8 @@
     <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
+    <version.lib.checkstyle>8.18</version.lib.checkstyle>
+    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
     
     <!-- if necessary, override with -D -->
     <coherence.version>12.2.1-4-0</coherence.version>
@@ -61,6 +64,7 @@
       <dependency>
         <groupId>com.oracle.coherence</groupId>
         <artifactId>coherence</artifactId>
+        <scope>provided</scope>
         <version>${coherence.version}</version>
       </dependency>
 
@@ -81,11 +85,13 @@
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-yaml</artifactId>
@@ -162,10 +168,56 @@
             </execution>
           </executions>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${version.plugin.checkstyle}</version>
+          <configuration>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${version.lib.checkstyle}</version>
+              <exclusions>
+                <exclusion>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                </exclusion>
+              </exclusions>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.commonjava.maven.plugins</groupId>
+          <artifactId>directory-maven-plugin</artifactId>
+          <version>${commonjava.directory.version}</version>
+        </plugin>
+
       </plugins>
     </pluginManagement>
     
     <plugins>
+       <plugin>
+        <groupId>org.commonjava.maven.plugins</groupId>
+        <artifactId>directory-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-top-parent-basedir</id>
+            <goals>
+              <goal>highest-basedir</goal>
+            </goals>
+            <phase>validate</phase>
+            <configuration>
+              <property>top.parent.basedir</property>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -175,8 +227,46 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
        </plugin>
+
+       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
+          <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>checkstyle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>run-checkstyle</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <phase>validate</phase>
+                <configuration>
+                  <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
+                  <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+
+  </profiles>
   
   <developers>
     <developer>

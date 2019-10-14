@@ -111,10 +111,10 @@ the secret named `coherence-example-secret` is used in the namespace `coherence-
 ```bash
 kubectl -n coherence-example \
   create secret docker-registry coherence-example-secret \
-  --docker-server=$DOCKER_REPO \                              <1>
-  --docker-username=$DOCKER_USERNAME \                        <2>
-  --docker-password=$DOCKER_PASSWORD \                        <3>
-  --docker-email=$DOCKER_EMAIL                                <4>
+  --docker-server=$DOCKER_REPO \                              
+  --docker-username=$DOCKER_USERNAME \                        
+  --docker-password=$DOCKER_PASSWORD \                        
+  --docker-email=$DOCKER_EMAIL                                
 ```
 
 * Replace `$DOCKER_REPO` with the name of the Docker repository that the images are to be pulled from.

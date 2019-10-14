@@ -6,8 +6,14 @@
 
 package com.oracle.coherence.examples;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.util.QueryHelper;
+import java.util.Collections;
+import java.util.logging.LogManager;
+
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonStructure;
+
 import io.helidon.common.http.Http;
 import io.helidon.media.jsonp.server.JsonSupport;
 import io.helidon.webserver.Routing;
@@ -16,19 +22,22 @@ import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.WebServer;
 
-import javax.json.Json;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonStructure;
-
-import java.util.Collections;
-import java.util.logging.LogManager;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.util.QueryHelper;
 
 /**
  * @author jk  2019.03.21
  */
-public class Main
-    {
+public class Main {
+
+    // ---- constructors ----------------------------------------------------
+
+    /**
+     * Private constructor to stop instantiation.
+     */
+    private Main() {
+    }
+
     /**
      * Program entry point.
      *
@@ -36,8 +45,7 @@ public class Main
      *
      * @throws Exception if there is a program error
      */
-    public static void main(String[] args) throws Exception
-        {
+    public static void main(String[] args) throws Exception {
         CacheFactory.ensureCluster();
 
         LogManager.getLogManager().readConfiguration(
@@ -70,8 +78,7 @@ public class Main
      * @param request {@link ServerRequest} request
      * @param response {@link ServerResponse} respons
      */
-    private static void query(ServerRequest request, ServerResponse response)
-        {
+    private static void query(ServerRequest request, ServerResponse response) {
         request.content().as(JsonObject.class)
                 .thenAccept(json -> executeQuery(json, response));
         }
@@ -83,30 +90,25 @@ public class Main
      * @param response {@link ServerResponse} response
      */
     @SuppressWarnings("unchecked")
-    private static void executeQuery(JsonObject json, ServerResponse response)
-        {
-        if (json == null)
-            {
+    private static void executeQuery(JsonObject json, ServerResponse response) {
+        if (json == null) {
             response.status(Http.ResponseStatus.create(Http.Status.BAD_REQUEST_400.code(),
                                                        "missing json request body")).send();
             return;
             }
 
         String sQuery = json.getString("query");
-        if (sQuery == null || sQuery.isEmpty())
-            {
+        if (sQuery == null || sQuery.isEmpty()) {
             response.status(Http.ResponseStatus.create(Http.Status.BAD_REQUEST_400.code(),
                                                        "missing query field")).send();
             return;
             }
 
-        try
-            {
+        try {
             Object        oResult    = QueryHelper.executeStatement(sQuery);
             JsonStructure jsonResult = null;
 
-            if (oResult != null)
-                {
+            if (oResult != null) {
                 jsonResult = JSON.createObjectBuilder()
                         .add("result", String.valueOf(oResult))
                         .build();
@@ -114,17 +116,14 @@ public class Main
 
             ServerResponse serverResponse = response.status(Http.Status.OK_200.code());
 
-            if (jsonResult == null)
-                {
+            if (jsonResult == null) {
                 serverResponse.send();
                 }
-            else
-                {
+            else {
                 serverResponse.send(jsonResult);
                 }
             }
-        catch (Throwable e)
-            {
+        catch (Throwable e) {
             e.printStackTrace();
             response.status(Http.ResponseStatus.create(Http.Status.INTERNAL_SERVER_ERROR_500.code(),
                                                        e.getMessage())).send();

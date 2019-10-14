@@ -19,7 +19,6 @@ spec:
     - name: metrics
       port: 9612
   coherence:
-    image: iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
     metrics:
       enabled: true
 #  logging:

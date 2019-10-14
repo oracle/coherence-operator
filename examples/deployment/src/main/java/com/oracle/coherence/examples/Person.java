@@ -6,27 +6,26 @@
 
 package com.oracle.coherence.examples;
 
+import java.util.Objects;
+
 import com.tangosol.io.pof.annotation.Portable;
 import com.tangosol.io.pof.annotation.PortableProperty;
 
-import java.util.Objects;
 
 /**
  * Sample server side class to represent a person.
- * 
+ *
  * @author tam 2019-04-16
  */
 @Portable
-public class Person
-    {
+public class Person {
 
     // ----- constructors ---------------------------------------------------
 
     /**
      * No-args constructor for POF.
      */
-    public Person()
-        {
+    public Person() {
         }
 
     /**
@@ -36,11 +35,10 @@ public class Person
      * @param sName     name of the Person
      * @param sAddress  address of the Person
      */
-    public Person(int nId, String sName, String sAddress)
-        {
-        m_id       = nId;
-        m_sName    = sName;
-        m_sAddress = sAddress;
+    public Person(int nId, String sName, String sAddress) {
+        id       = nId;
+        name    = sName;
+        address = sAddress;
         }
 
     // ----- accessors ---------------------------------------------------
@@ -50,9 +48,8 @@ public class Person
      *
      * @return the id of the Person
      */
-    public int getId()
-        {
-        return m_id;
+    public int getId() {
+        return id;
         }
 
     /**
@@ -60,9 +57,8 @@ public class Person
      *
      * @param nId  the id of the Person
      */
-    public void setId(int nId)
-        {
-        m_id = nId;
+    public void setId(int nId) {
+        id = nId;
         }
 
     /**
@@ -70,9 +66,8 @@ public class Person
      *
      * @return the name of the Person
      */
-    public String getName()
-        {
-        return m_sName;
+    public String getName() {
+        return name;
         }
 
     /**
@@ -80,9 +75,8 @@ public class Person
      *
      * @param sName the name of the Person
      */
-    public void setName(String sName)
-        {
-        m_sName = sName;
+    public void setName(String sName) {
+        name = sName;
         }
 
     /**
@@ -90,9 +84,8 @@ public class Person
      *
      * @return the address of the Person
      */
-    public String getAddress()
-        {
-        return m_sAddress;
+    public String getAddress() {
+        return address;
         }
 
     /**
@@ -100,55 +93,48 @@ public class Person
      *
      * @param sAddress the address of the Person
      */
-    public void setAddress(String sAddress)
-        {
-        m_sAddress = sAddress;
+    public void setAddress(String sAddress) {
+        address = sAddress;
         }
 
-
     // ----- Object methods -------------------------------------------------
-    
+
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
             }
-        if (o == null || getClass() != o.getClass())
-            {
+        if (o == null || getClass() != o.getClass()) {
             return false;
             }
         Person person = (Person) o;
-        return m_id == person.m_id &&
-               Objects.equals(m_sName, person.m_sName) &&
-               Objects.equals(m_sAddress, person.m_sAddress);
+        return id == person.id
+               && Objects.equals(name, person.name)
+               && Objects.equals(address, person.address);
         }
 
     @Override
-    public int hashCode()
-        {
-        return Objects.hash(m_id, m_sName, m_sAddress);
+    public int hashCode() {
+        return Objects.hash(id, name, address);
         }
 
     @Override
-    public String toString()
-        {
-        return "Person{" +
-               "Id=" + m_id +
-               ", Name='" + m_sName + '\'' +
-               ", Address='" + m_sAddress + '\'' +
-               '}';
+    public String toString() {
+        return "Person{"
+               + "Id=" + id
+               + ", Name='" + name + '\''
+               + ", Address='" + address + '\''
+               + '}';
         }
 
     // ----- data members ------------------------------------------------
 
     @PortableProperty(0)
-    private int m_id;
+    private int id;
 
     @PortableProperty(1)
-    private String m_sName;
+    private String name;
 
     @PortableProperty(2)
-    private String m_sAddress;
+    private String address;
     }
