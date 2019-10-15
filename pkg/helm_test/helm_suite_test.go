@@ -27,7 +27,6 @@ import (
 const (
 	// The name fo the Coherence container in the StatefulSet
 	coherenceContainer   = "coherence"
-	utilsContainer       = "coherence-k8s-utils"
 	applicationContainer = "application"
 	fluentdContainer     = "fluentd"
 	fluentdImage         = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
