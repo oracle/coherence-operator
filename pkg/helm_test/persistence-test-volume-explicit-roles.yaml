@@ -1,0 +1,18 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      coherence:
+        persistence:
+          enabled: true
+          volume:
+            hostPath:
+              path: /data
+              type: Directory
+    - role: proxy
+      coherence:
+        persistence:
+          enabled: false

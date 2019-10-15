@@ -719,11 +719,13 @@ spec:
 {{- end }}
 {{- if .Values.coherence.persistence }}
 {{-   if .Values.coherence.persistence.volume }}
+        - name: persistence-volume
 {{ toYaml .Values.coherence.persistence.volume | indent 10 }}
 {{-   end }}
 {{- end }}
 {{- if .Values.coherence.snapshot }}
 {{-   if .Values.coherence.snapshot.volume }}
+        - name: snapshot-volume
 {{ toYaml .Values.coherence.snapshot.volume | indent 10 }}
 {{-   end }}
 {{- end }}

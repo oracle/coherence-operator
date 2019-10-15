@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    snapshot:
+      enabled: true
+      volume:
+        hostPath:
+          path: /data
+          type: Directory

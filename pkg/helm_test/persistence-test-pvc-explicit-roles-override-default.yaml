@@ -1,0 +1,21 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        storageClassName: foo
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+  roles:
+    - role: data
+    - role: proxy
+      coherence:
+        persistence:
+          enabled: false

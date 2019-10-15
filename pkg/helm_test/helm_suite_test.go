@@ -27,6 +27,7 @@ import (
 const (
 	// The name fo the Coherence container in the StatefulSet
 	coherenceContainer   = "coherence"
+	utilsContainer       = "coherence-k8s-utils"
 	applicationContainer = "application"
 	fluentdContainer     = "fluentd"
 	fluentdImage         = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
@@ -125,4 +126,15 @@ func findVolume(sts appsv1.StatefulSet, name string) (corev1.Volume, error) {
 	}
 
 	return corev1.Volume{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "Volume"}, name)
+}
+
+// Shared function to find a specific VolumeClaimTemplate in a StatefulSet spec
+func findPersistentVolumeClaim(sts appsv1.StatefulSet, name string) (corev1.PersistentVolumeClaim, error) {
+	for _, v := range sts.Spec.VolumeClaimTemplates {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+
+	return corev1.PersistentVolumeClaim{}, k8serr.NewNotFound(schema.GroupResource{Group: "k8s.io/api/core/v1", Resource: "PersistentVolumeClaim"}, name)
 }
