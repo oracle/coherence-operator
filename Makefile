@@ -38,9 +38,9 @@ UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
 
 # The image prefix to use for Coherence images
-COHERENCE_IMAGE_PREFIX ?= iad.ocir.io/odx-stateservice/test/
+COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 # The Coherence image name to inject into the Helm chart
-HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0-b74888
+HELM_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE_PREFIX)coherence:12.2.1.4.0
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 RELEASE_IMAGE_PREFIX ?= "iad.ocir.io/odx-stateservice/test/$(USER)/"

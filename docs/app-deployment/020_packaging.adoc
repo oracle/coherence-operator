@@ -160,7 +160,6 @@ spec:
   replicas: 3
   coherence:
     cacheConfig: storage-cache-config.xml
-    image: iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
   application:
     image: packaging-example:1.0.0
 ----
