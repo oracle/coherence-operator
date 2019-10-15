@@ -18,7 +18,313 @@
 
 = Rolling Upgrades
 
-TBC
+The Coherence Operator facilitates safe rolling upgrade of either a application image or Coherence
+image.
 
-== Changing an image version for Coherence or applications using rolling upgrade
+== Rolling Upgrades
 
+As described in <<app-deployment/020_packaging.adoc,Packaging Applications>> it is
+usual to create sidecar Docker image which provides the application classes to Kubernetes.
+The docker image is tagged with a version number and this version number is used by Kubernetes
+to enable safe rolling upgrades.
+
+The safe rolling upgrade feature allows you to instruct Kubernetes, through the operator,
+to replace the currently installed version of your application classes with a different one.
+Kubernetes does not verify whether the classes are new or old. The operator also ensures
+that the replacement is done without data loss or interruption of service.
+
+This is achieved simply with the Coherence Operator by using the `kubectl apply` command to against
+an existing cluster to change the attached docker image.
+
+This example shows how to issue a rolling upgrade to upgrade a cluster application image from `v1.0.0` to `v2.0.0` which introduces a second cache service while preserving the data in the first.
+
+* Version 1 - hr-* cache mapping maps to `HRPartitionedCache` service
+
+* Version 2 - additional fin-* cache mapping maps to `FINPartitionedCache` service.
+
+=== 1. Prerequisites
+
+. Install the Coherence Operator
+. Create any secrets required to pull Docker images
+. Create a new `working directory` and change to that directory
+
+=== 2. Create your directory structure
+
+[source,bash]
+----
+mkdir -p files-v1/lib files-v1/conf files-v2/lib files-v2/conf
+----
+
+=== 3. Create the Dockerfiles
+
+In your working directory directory create a file called `Dockerfile-v1` with the following contents:
+
+[source,dockerfile]
+----
+FROM scratch
+COPY files-v1/lib/  /app/lib/
+COPY files-v1/conf/ /app/conf/
+----
+
+In your working directory directory create a file called `Dockerfile-v2` with the following contents:
+
+[source,dockerfile]
+----
+FROM scratch
+COPY files-v2/lib/  /app/lib/
+COPY files-v2/conf/ /app/conf/
+----
+
+=== 4. Add the required config files
+
+Add the following content to a file in `files-v1/conf` called `storage-cache-config.xml`.
+
+NOTE: This is the `VERSION 1` cache config which has a single service called `HRPartitionedCache`.
+
+[source,xml]
+----
+<?xml version='1.0'?>
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <!-- v1 Cache Config -->
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>hr-*</cache-name>
+      <scheme-name>hr-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>hr-scheme</scheme-name>
+      <service-name>HRPartitionedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>{back-limit-bytes 0B}</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
+----
+
+Add the following content to a file in `files-v2/conf` called `storage-cache-config.xml`.
+
+NOTE: This is the `VERSION 2` cache config which adds an additional cahe mapping and cache service called `FINPartitionedCache`.
+
+[source,xml]
+----
+<?xml version='1.0'?>
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <!-- v2 Cache Config -->
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>hr-*</cache-name>
+      <scheme-name>hr-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>fin-*</cache-name>
+      <scheme-name>fin-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>hr-scheme</scheme-name>
+      <service-name>HRPartitionedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>{back-limit-bytes 0B}</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>fin-scheme</scheme-name>
+      <service-name>FINPartitionedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>{back-limit-bytes 0B}</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
+----
+
+=== 5. Build the Docker images
+
+In your `working directory`, issue the following:
+
+[source,bash]
+----
+docker build -t rolling-example:1.0.0 -f Dockerfile-v1 .
+
+docker build -t rolling-example:2.0.0 -f Dockerfile-v2 .
+
+docker images | grep rolling-example
+REPOSITORY              TAG     IMAGE ID            CREATED             SIZE
+rolling-example         2.0.0   3e195af6d5e1        8 seconds ago       1.36kB
+rolling-example         1.0.0   5ce9152dd12c        26 seconds ago      890B
+----
+
+=== 6. Create the Coherence cluster yaml
+
+Create the file `rolling-cluster.yaml` with the following contents.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: rolling-cluster
+spec:
+  replicas: 3
+  coherence:
+    cacheConfig: storage-cache-config.xml
+  application:
+    image: rolling-example:1.0.0
+----
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+
+=== 7. Install the Coherence Cluster
+
+Issue the following to install the cluster:
+
+[source,bash]
+----
+kubectl create -n <namespace> -f rolling-cluster.yaml
+
+coherencecluster.coherence.oracle.com/rolling-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=rolling-cluster
+
+NAME                        READY   STATUS    RESTARTS   AGE
+rolling-cluster-storage-0   1/1     Running   0          58s
+rolling-cluster-storage-1   1/1     Running   0          58s
+rolling-cluster-storage-2   1/1     Running   0          58s
+----
+
+NOTE: Ensure all pods are running and ready before you continue.
+
+=== 8. Add Data to a cache in the HR service
+
+[source,bash]
+----
+kubectl exec -it -n <namespace> rolling-cluster-storage-0 bash /scripts/startCoherence.sh console
+----
+
+At the prompt, type `cache hr-test` and you will notice the following indicating your
+cache configuration file with the service name of `HRPartitionedCache` is being loaded.
+
+[source,bash]
+----
+...
+Cache Configuration: hr-test
+  SchemeName: server
+  AutoStart: true
+  ServiceName: HRPartitionedCache
+..
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Lastly issue the command `size` to verify the cache entry count.
+
+Issue the following to confirm there is no cache mapping and service for `fin-*` as yet.
+
+[source,bash]
+----
+cache fin-test
+
+java.lang.IllegalArgumentException: ensureCache cannot find a mapping for cache fin-test
+----
+
+Type `bye` to exit the console.
+
+=== 9. Update the application image version to 2.0.0
+
+Edit the `rolling-cluster.yaml` file and change the `image:` version from `1.0.0` to `2.0.0`.
+
+[source,yaml]
+----
+image: rolling-example:2.0.0
+----
+
+Issue the following to apply the new yaml:
+
+[source,bash]
+----
+kubectl apply -n <namespace> -f rolling-cluster.yaml
+
+coherencecluster.coherence.oracle.com/rolling-cluster configured
+----
+
+Use the following command to check the status of the rolling upgrade of all pods.
+
+NOTE:  The command below will not return until upgrade of all pods is complete.
+
+[source,bash]
+----
+kubectl -n <namespace> rollout status sts/rolling-cluster-storage
+
+Waiting for 1 pods to be ready...
+statefulset rolling update complete 3 pods at revision rolling-cluster-storage-67f5cfdcb...
+----
+
+=== 10. Validate the HR cache data still exists
+
+[source,bash]
+----
+kubectl exec -it -n <namespace> rolling-cluster-storage-0 bash /scripts/startCoherence.sh console
+----
+
+At the prompt, type `cache hr-test` and then `size` and you will see the 10,000 entries are still present
+because the upgrade was done is a safe manner.
+
+=== 11. Add Data to a cache in the new HR service
+
+At the prompt, type `cache find-test` and you will notice the following indicating your
+cache configuration file with the service name of `FINPartitionedCache` is now being loaded.
+
+[source,bash]
+----
+...
+Cache Configuration: fin-test
+  SchemeName: server
+  AutoStart: true
+  ServiceName: FINPartitionedCache
+..
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Lastly issue the command `size` to verify the cache entry count.
+
+Type `bye` to exit the console.
+
+=== 12. Uninstall the Coherence Cluster
+
+[source,bash]
+----
+kubectl delete -n <namespace> -f rolling-cluster.yaml
+
+coherencecluster.coherence.oracle.com "rolling-cluster" deleted
+----

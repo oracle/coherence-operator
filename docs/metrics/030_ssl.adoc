@@ -25,3 +25,5 @@ such as Prometheus.
 
 NOTE: Note: Use of metrics is available only when using the operator with clusters running
 Coherence 12.2.1.4 or later version.
+
+Please see <<clusters/060_coherence_metrics#ssl,Coherence Metrics Documentation>> for information on how to enable SSL.

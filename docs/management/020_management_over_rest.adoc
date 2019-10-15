@@ -1,0 +1,228 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Management over ReST
+
+Since version 12.2.1.4 Coherence has had functionality to expose a management API over ReST.
+This API is disabled by default in Coherence clusters but can be enabled and configured by setting the relevant fields
+in the `CoherenceCluster` resource.
+
+== Management over ReST
+
+This example shows how to enable and access Coherence MBeans using Management over ReST.
+
+Once the Management port is exposed via a load balancer or port-forward command the ReEST
+endpoint is available at `http://host:port/management/coherence/cluster` and the Swagger JSON document is available at `http://host:port/management/coherence/cluster/metadata-catalog`.
+
+See https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/index.html[REST API for Managing Oracle Coherence] for
+full details on each of the endpoints.
+
+For more details on enabling Management over ReST including enabling SSL, please see the
+<<clusters/058_coherence_management.adoc,Coherence Operator documentation>>.
+
+See the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/manage/using-jmx-manage-oracle-coherence.html[Coherence Management] documentation for more information.
+
+NOTE: Note: Use of Management over ReST is available only when using the operator with clusters running
+Coherence 12.2.1.4 or later version.
+
+=== 1. Install a Coherence cluster with Management over ReST enabled
+
+Deploy a simple management enabled `CoherenceCluster` resource with a single role like this:
+[source,yaml]
+.management-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: management-cluster
+spec:
+  role: storage
+  replicas: 3
+  coherence:
+    management:
+      enabled: true            <1>
+  ports:
+    - name: management
+      port: 30000              <2>
+----
+
+<1> Indicates to enable Management over ReST
+<2> The management port must be added to the additional `ports` list so that it is exposed on a service
+
+The yaml above can be installed into Kubernetes using `kubectl`:
+
+[source,bash]
+----
+kubectl -n <namespace> create -f management-cluster.yaml
+
+coherencecluster.coherence.oracle.com/management-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=management-cluster
+
+NAME                           READY   STATUS    RESTARTS   AGE
+management-cluster-storage-0   1/1     Running   0          36s
+management-cluster-storage-1   1/1     Running   0          36s
+management-cluster-storage-2   1/1     Running   0          36s
+----
+
+=== 2. Port-forward the Management over ReST port
+
+[source,bash]
+----
+kubectl -n coherence-example port-forward management-cluster-storage-0 30000:30000
+
+Forwarding from [::1]:30000 -> 30000
+Forwarding from 127.0.0.1:30000 -> 30000
+----
+
+=== 3. Access the REST endpoint
+
+Issue the following to access the ReST endpoint:
+
+[source,bash]
+----
+curl http://127.0.0.1:30000/management/coherence/cluster/ | jq
+----
+
+[source,json]
+----
+{
+  "links": [
+    {
+      "rel": "parent",
+      "href": "http://127.0.0.1:30000/management/coherence"
+    },
+    {
+      "rel": "self",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/"
+    },
+    {
+      "rel": "canonical",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/"
+    },
+    {
+      "rel": "services",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/services"
+    },
+    {
+      "rel": "caches",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/caches"
+    },
+    {
+      "rel": "members",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/members"
+    },
+    {
+      "rel": "management",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/management"
+    },
+    {
+      "rel": "journal",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/journal"
+    },
+    {
+      "rel": "hotcache",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/hotcache"
+    },
+    {
+      "rel": "reporters",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/reporters"
+    },
+    {
+      "rel": "webApplications",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/webApplications"
+    }
+  ],
+  "clusterSize": 3,
+  "membersDeparted": [],
+  "memberIds": [
+    1,
+    2,
+    3
+  ],
+  "oldestMemberId": 1,
+  "refreshTime": "2019-10-15T03:55:46.461Z",
+  "licenseMode": "Development",
+  "localMemberId": 1,
+  "version": "12.2.1.4.0",
+  "running": true,
+  "clusterName": "management-cluster",
+  "membersDepartureCount": 0,
+  "members": [
+    "Member(Id=1, Timestamp=2019-10-15 03:46:15.848, Address=10.1.2.184:36531, MachineId=49519, Location=site:coherence.coherence-example.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-storage-1, Role=storage)",
+    "Member(Id=2, Timestamp=2019-10-15 03:46:19.405, Address=10.1.2.183:40341, MachineId=49519, Location=site:coherence.coherence-example.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-storage-2, Role=storage)",
+    "Member(Id=3, Timestamp=2019-10-15 03:46:19.455, Address=10.1.2.185:38719, MachineId=49519, Location=site:coherence.coherence-example.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-storage-0, Role=storage)"
+  ],
+  "type": "Cluster"
+}
+----
+
+NOTE: The `jq` utility is used to format the JSON, and may not be available on all platforms.
+
+=== 3. Access the Swagger endpoint
+
+Issue the following to access the Sagger endpoint which documents all the API's available.
+
+
+[source,bash]
+----
+curl http://127.0.0.1:30000/management/coherence/cluster/metadata-catalog | jq
+----
+
+[source,json]
+----
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "RESTful Management Interface for Oracle Coherence MBeans",
+    "description": "RESTful Management Interface for Oracle Coherence MBeans",
+    "version": "12.2.1.4.0"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+...
+----
+
+NOTE: The above output has been truncated due to the large size.
+
+=== 4. Other Resources
+
+Management over ReST can be used for all management functions, as one would with
+standard MBean access over JMX.
+
+Please see the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/index.html[Coherence REST API] for more information on these features.
+
+* https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC[Connecting JVisualVM to Management over ReST]
+* <<clusters/058_coherence_management.adoc,Enabling SSL>>
+* https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html[Produce and extract a Java Flight Recorder (JFR) file]
+* https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/api-reporter.html[Access the Reporter]
+
+
+=== 5. Clean Up
+
+After running the above the Coherence cluster can be removed using `kubectl`:
+
+[source,bash]
+----
+kubectl -n <namespace> delete -f management-cluster.yaml
+----
+
+Stop the port-forward command using `CTRL-C`.
+

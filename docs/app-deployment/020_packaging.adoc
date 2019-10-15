@@ -70,8 +70,6 @@ NOTE: Is is recommended to use the `scratch` image in the `FROM` clause to minim
 See the <<clusters/070_applications.adoc,Coherence Applications>> section for
 full details on each of the fields in the application section.
 
-== Guide Instructions
-
 === 1. Prerequisites
 
 . Install the Coherence Operator
@@ -80,7 +78,7 @@ full details on each of the fields in the application section.
 
 ==== 2. Create the Dockerfile
 
-In your directory create the following file called `Dockerfile` with the following contents
+In your working directory directory create a file called `Dockerfile` with the following contents:
 
 [source,dockerfile]
 ----
@@ -96,7 +94,7 @@ COPY files/conf/ /app/conf/
 mkdir -p files/lib files/conf
 ----
 
-Add the following content to a file in `/app/conf` called `storage-cache-config.xml`.
+Add the following content to a file in `/files/conf` called `storage-cache-config.xml`.
 
 [source,xml]
 ----
@@ -146,6 +144,8 @@ Successfully built 7dd0b5f3e37a
 Successfully tagged packaging-example:1.0.0
 ----
 
+NOTE: In this example we have created but not populated the `lib` directory which would be used for application classes.
+
 ==== 5. Create the Coherence cluster yaml
 
 Create the file `packaging-cluster.yaml` with the following contents.
@@ -160,10 +160,11 @@ spec:
   replicas: 3
   coherence:
     cacheConfig: storage-cache-config.xml
-    image: iad.ocir.io/odx-stateservice/test/coherence:12.2.1.4.0-b74630
   application:
     image: packaging-example:1.0.0
 ----
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
 
 ==== 6. Install the Coherence Cluster
 
@@ -178,9 +179,9 @@ coherencecluster.coherence.oracle.com/packaging-cluster created
 kubectl -n <namespace> get pod -l coherenceCluster=packaging-cluster
 
 NAME                          READY   STATUS    RESTARTS   AGE
-packaging-cluster-storage-0   0/1     Running   0          58s
-packaging-cluster-storage-1   0/1     Running   0          58s
-packaging-cluster-storage-2   0/1     Running   0          58s
+packaging-cluster-storage-0   1/1     Running   0          58s
+packaging-cluster-storage-1   1/1     Running   0          58s
+packaging-cluster-storage-2   1/1     Running   0          58s
 ----
 
 ==== 7. Add Data to the Coherence Cluster via the Console

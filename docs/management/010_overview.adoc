@@ -26,16 +26,16 @@
 ====
 [CARD]
 .Management Over ReST
-[link=management/020_manegement_over_rest.adoc]
+[link=management/020_management_over_rest.adoc]
 --
 Management Over ReST.
 --
 
 [CARD]
-.Using JVisualVM
+.Using VisualVM
 [link=management/040_visualvm.adoc]
 --
-Access the Coherence cluster via JVisualVM.
+Access the Coherence cluster via VisualVM.
 --
 
 ====

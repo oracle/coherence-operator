@@ -30,6 +30,16 @@ The Coherence Operator can be installed with a demo Prometheus installation usin
 Grafana Helm charts. This Prometheus deployment is not intended for production use but is useful for development,
 testing and demo purposes.
 
+== Table of Contents
+
+. <<install,Install the Coherence Operator with Prometheus>>
+. <<install-coh,Install a Coherence Cluster with Metrics Enabled>>
+. <<prom,Access Prometheus>>
+. <<grafana,Access Grafana>>
+.. <<dashboards,Default Dashboards>>
+. <<clean,Clean Up>>
+
+[#install]
 === 1. Install the Coherence Operator with Prometheus
 
 To enable Prometheus, add the following options to the Operator Helm install command:
@@ -79,7 +89,7 @@ The demo install of Prometheus in the Operator configures Prometheus to use serv
 to scrape metrics from. A `ServiceMonitor` in Prometheus will scrape from a port defined in a Kubernetes `Service` from
 all `Pods` that match that service's selector.
 
-
+[#install-coh]
 === 2. Install a Coherence Cluster with Metrics Enabled
 
 Now that Prometheus is running Coherence clusters can be created that expose metrics on a port on each `Pod` and also
@@ -181,7 +191,7 @@ test-cluster-storage-metrics   ClusterIP   10.109.201.211   <none>        9612/T
 ----
 Which shows that the service does indeed have the required label.
 
-
+[#prom]
 === 3. Access Prometheus
 
 Now that Prometheus is running and is able to scrape metrics from the Coherence cluster it should be possible to access
@@ -214,7 +224,7 @@ curl -w '\n' -X GET http://127.0.0.1:9090/api/v1/query?query=vendor:coherence_cl
 
 It is also possible to browse directly to the Prometheus web UI at http://127.0.0.1:9090[]
 
-
+[#grafana]
 === 3. Access Grafana
 
 By default when the Coherence Operator configured to install Prometheus the Prometheus Operator also install a
@@ -242,8 +252,32 @@ http://127.0.0.1:3000/d/coh-main/coherence-dashboard-main
 
 The Grafana credentials are username `admin` password `prom-operator`
 
-=== 4. Cleaning Up
-After running the demo above the Coherence cluster can be removed using `kubectl`:
+[#dashboards]
+==== a. Default Dashboards
+
+There are a number of dashboard created by default:
+
+* Coherence Dashboard main for inspecting coherence clusters
+
+* Coherence Cluster Members Summary and Details
+
+* Coherence Cluster Members Machines Summary
+
+* Coherence Cache Summary and Details
+
+* Coherence Services Summary and Details
+
+* Coherence Proxy Servers Summary and Details
+
+* Coherence Elastic Data Summary
+
+* Coherence Cache Persistence Summary
+
+* Coherence Http Servers Summary
+
+[#clean]
+=== 4. Clean Up                     
+After running the above the Coherence cluster can be removed using `kubectl`:
 
 [source,bash]
 ----

@@ -21,9 +21,9 @@ spec:
   coherence:
     metrics:
       enabled: true
-#  logging:
-#    fluentd:
-#      enabled: true
+  logging:
+    fluentd:
+      enabled: true
   application:
     image: deployment-example:2.0.0
   # 

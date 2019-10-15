@@ -45,5 +45,12 @@ Enabling SSL for metrics capture.
 Scraping metrics from your own Prometheus instance.
 --
 
+[CARD]
+.Grafana Dashboards
+[link=metrics/050_dashboards.adoc]
+--
+Details on the Grafana Dashboards available.
+--
+
 ====
 

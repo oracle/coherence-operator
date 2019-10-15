@@ -64,7 +64,6 @@
       <dependency>
         <groupId>com.oracle.coherence</groupId>
         <artifactId>coherence</artifactId>
-        <scope>provided</scope>
         <version>${coherence.version}</version>
       </dependency>
 
