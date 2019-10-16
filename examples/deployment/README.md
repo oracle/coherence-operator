@@ -265,7 +265,7 @@ This saves duplication of role configuration leading to less configuration error
     > Note: Since we cannot yet access the cluster via Coherence*Extend, we will connect via Coherence console to add data. 
    
     ```bash
-    kubectl exec -it --namespace coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
+    kubectl exec -it -n coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
     ```
 
     At the prompt type the following to create a cache called `test`:
@@ -621,7 +621,7 @@ The snippet of yaml added below shows:
 1.  Connect to the Coherence Console to add data
 
     ```bash
-    kubectl exec -it --namespace coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
+    kubectl exec -it -n coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
     ```
 
     At the prompt type the following to create a cache called `test`:
@@ -692,7 +692,7 @@ The snippet of yaml added below shows:
 1.  Confirm the data has been recovered
 
      ```bash
-    kubectl exec -it --namespace coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
+    kubectl exec -it -n coherence-example example-cluster-storage-0 bash /scripts/startCoherence.sh console
     ```
 
     At the prompt type the following to create a cache called `test`:

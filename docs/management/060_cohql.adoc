@@ -18,6 +18,168 @@
 
 = Accessing CohQL
 
-TBC
+You can use Coherence Query Language (CohQL) to interact with Coherence caches.
 
 == Accessing the CohQL client
+
+CohQL is a light-weight syntax (in the tradition of SQL) that is used to
+perform cache operations on a Coherence cluster. The language can be used
+either programmatically or from a command-line tool.
+
+The example shows how to access the Coherence CohQL client in a running cluster.
+
+See the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/develop-applications/using-coherence-query-language.html[Coherence CohQL documentation] for more information.
+
+=== 1. Install a Coherence Cluster
+
+Deploy a simple `CoherenceCluster` resource with a single role like this:
+[source,yaml]
+.example-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: example-cluster
+spec:
+  role: storage
+  replicas: 3
+----
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+
+[source,bash]
+----
+kubectl create -n <namespace> -f  example-cluster.yaml
+
+coherencecluster.coherence.oracle.com/example-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=example-cluster
+
+NAME                        READY   STATUS    RESTARTS   AGE
+example-cluster-storage-0   1/1     Running   0          59s
+example-cluster-storage-1   1/1     Running   0          59s
+example-cluster-storage-2   1/1     Running   0          59s
+----
+
+=== 2. Connect to CohQL client to add data
+
+[source,bash]
+----
+kubectl exec -it -n <namespace> example-cluster-storage-0 bash /scripts/startCoherence.sh queryplus
+----
+
+Run the following `CohQL` commands to view and insert data into the cluster.
+
+[source,sql]
+----
+CohQL> select count() from 'test';
+
+Results
+0
+
+CohQL> insert into 'test' key('key-1') value('value-1');
+
+CohQL> select key(), value() from 'test';
+Results
+["key-1", "value-1"]
+----
+
+You can issue the `help` command to get details help information in each command or
+`commands` command to get a brief view of all commands.
+
+Issue the command `bye` to exit CohQL.
+
+[source,sql]
+----
+CohQL> commands
+
+java com.tangosol.coherence.dslquery.QueryPlus [-t] [-c] [-s] [-e] [-l <cmd>]*
+    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>]
+
+Command Line Arguments:
+-a               the application name to use. Used in combination with the -g
+                 argument.
+-c               exit when command line processing is finished
+-e               or -extend
+                 extended language mode.  Allows object literals in update and
+                 insert statements.
+                 elements between '[' and']'denote an ArrayList.
+                 elements between '{' and'}'denote a HashSet.
+                 elements between '{' and'}'with key/value pairs separated by
+                 ':' denotes a HashMap. A literal HashMap  preceded by a class
+                 name are processed by calling a zero argument constructor then
+                 followed by each pair key being turned into a setter and
+                 invoked with the value.
+-f <value>       Each instance of -f followed by a filename load one file of
+                 statements.
+-g <value>       An optional GAR file to load before running QueryPlus.
+                 If the -a argument is not used the application name will be the
+                 GAR file name without the parent directory name.
+-l <value>       Each instance of -l followed by a statement will execute one
+                 statement.
+-s               silent mode. Suppress prompts and result headings, read from
+                 stdin and write to stdout. Useful for use in pipes or filters
+-t               or -trace
+                 turn on tracing. This shows information useful for debugging
+-dp <list>       A comma delimited list of domain partition names to use.
+                 On start-up the first domain partition in the list will be the
+                 current partition. The -dp argument is only applicable in
+                 combination with the -g argument.
+-timeout <value> Specifies the timeout value for CohQL statements in
+                 milli-seconds.
+BYE |  QUIT
+(ENSURE | CREATE) CACHE 'cache-name'
+(ENSURE | CREATE) INDEX [ON] 'cache-name' value-extractor-list
+DROP CACHE 'cache-name'
+TRUNCATE CACHE 'cache-name'
+DROP INDEX [ON] 'cache-name' value-extractor-list
+BACKUP CACHE 'cache-name' [TO] [FILE] 'filename'
+RESTORE CACHE 'cache-name' [FROM] [FILE] 'filename'
+INSERT INTO 'cache-name' [KEY (literal | new java-constructor | static method)]
+        VALUE (literal |  new java-constructor | static method)
+DELETE FROM 'cache-name'[[AS] alias] [WHERE conditional-expression]
+UPDATE 'cache-name' [[AS] alias] SET update-statement {, update-statement}*
+        [WHERE conditional-expression]
+SELECT (properties* aggregators* | * | alias) FROM 'cache-name' [[AS] alias]
+        [WHERE conditional-expression] [GROUP [BY] properties+]
+SOURCE FROM [FILE] 'filename'
+@ 'filename'
+. filename
+SHOW PLAN 'CohQL command' | EXPLAIN PLAN for 'CohQL command'
+TRACE 'CohQL command'
+LIST SERVICES [ENVIRONMENT]
+LIST [ARCHIVED] SNAPSHOTS ['service']
+LIST ARCHIVER 'service'
+CREATE SNAPSHOT 'snapshot-name' 'service'
+RECOVER SNAPSHOT 'snapshot-name' 'service'
+REMOVE [ARCHIVED] SNAPSHOT 'snapshot-name' 'service'
+VALIDATE SNAPSHOT 'snapshot-directory' [VERBOSE]
+VALIDATE SNAPSHOT 'snapshot-name' 'service-name' [VERBOSE]
+VALIDATE ARCHIVED SNAPSHOT 'snapshot-name' 'service-name' [VERBOSE]
+ARCHIVE SNAPSHOT 'snapshot-name' 'service'
+RETRIEVE ARCHIVED SNAPSHOT 'snapshot-name' 'service' [OVERWIRTE]
+RESUME SERVICE 'service'
+SUSPEND SERVICE 'service'
+FORCE RECOVERY 'service'
+COMMANDS
+EXTENDED LANGUAGE (ON | OFF)
+HELP
+SANITY [CHECK] (ON | OFF)
+SERVICES INFO
+TRACE (ON | OFF)
+WHENEVER COHQLERROR THEN (CONTINUE | EXIT)
+ALTER SESSION SET DOMAIN PARTITION <partition-name>
+ALTER SESSION SET TIMEOUT <milli-seconds>
+
+----
+
+=== 3. Clean Up
+
+After running the above the Coherence cluster can be removed using `kubectl`:
+
+[source,bash]
+----
+kubectl -n <namespace> delete -f example-cluster.yaml
+----
+
+

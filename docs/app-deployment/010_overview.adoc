@@ -46,13 +46,6 @@ Using Coherence Persistence.
 --
 
 [CARD]
-.Scaling Deployments
-[link=app-deployment/080_scaling.adoc]
---
-Scaling a Coherence deployment.
---
-
-[CARD]
 .Rolling Upgrades
 [link=app-deployment/090_rolling.adoc]
 --

@@ -16,8 +16,80 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Accessing the  Console
+= Accessing the Console
 
-TBC
+The Coherence Console is a useful debugging and diagnosis tool usually used by administrators.
 
 == Accessing the Coherence Console
+
+The example shows how to access the Coherence Console in a running cluster.
+
+NOTE: The Coherence Console is for advanced Coherence users and use-cases and care should be taken when using it.
+
+=== 1. Install a Coherence Cluster
+
+Deploy a simple `CoherenceCluster` resource with a single role like this:
+[source,yaml]
+.example-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: example-cluster
+spec:
+  role: storage
+  replicas: 3
+----
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+
+[source,bash]
+----
+kubectl create -n <namespace> -f  example-cluster.yaml
+
+coherencecluster.coherence.oracle.com/example-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=example-cluster
+
+NAME                        READY   STATUS    RESTARTS   AGE
+example-cluster-storage-0   1/1     Running   0          59s
+example-cluster-storage-1   1/1     Running   0          59s
+example-cluster-storage-2   1/1     Running   0          59s
+----
+
+=== 2. Connect to the Coherence Console to add data
+
+[source,bash]
+----
+kubectl exec -it -n <namespace> example-cluster-storage-0 bash /scripts/startCoherence.sh console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Issue the command `size` to verify the cache entry count.
+
+Lastly issue the `help` command to show all available commands.
+
+Type `bye` to exit the console.
+
+=== 3. Clean Up
+
+After running the above the Coherence cluster can be removed using `kubectl`:
+
+[source,bash]
+----
+kubectl -n <namespace> delete -f example-cluster.yaml
+----
+

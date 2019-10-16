@@ -18,7 +18,374 @@
 
 = Persistence
 
-TBC
+The Coherence persistence feature is used to save a cache to disk and ensures that cache
+data can always be recovered especially in the case of a full cluster restart or re-creation.
 
 == Using Coherence Persistence
+
+When enabling Persistence in the Coherence Operator, you have two options:
+
+* Use the default Persistent Volume Claim (PVC) - PVC's will be automatically be created and bound to pods on startup
+
+* Specify existing persistent volumes - allows full control of the underlying allocated volumes
+
+For more information on Coherence Persistence, please see the
+https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/administer/persisting-caches.html[Coherence Documentation].
+
+== Table of Contents
+
+. <<prereqs, Prerequisites>>
+
+. <<default, Use Default Persistent Volume Claim>>
+
+. <<specific, Use Specific Persistent Volumes>>
+
+[#prereqs]
+==  Prerequisites
+
+. Install the Coherence Operator
+. Create any secrets required to pull Docker images
+. Create a new `working directory` and change to that directory
+
+[#default]
+== Use Default Persistent Volume Claim
+
+By default, when you enable Coherence Persistence, the required infrastructure in
+terms of persistent volumes (PV) and persistent volume claims (PVC) is set up automatically. Also, the persistence-mode
+is set to `active`. This allows the Coherence cluster to be restarted and the data to be retained.
+
+This example shows how to enable Persistence with all the defaults.
+
+=== 1. Create the Coherence cluster yaml
+
+In your working directory directory create a file called `persistence-cluster.yaml` with the following contents:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: persistence-cluster
+spec:
+  jvm:
+    memory:
+      heapSize: 512m
+  replicas: 3
+  coherence:
+    persistence:
+      enabled: true                    <1>
+      persistentVolumeClaim:
+        accessModes:
+        - ReadWriteOnce                <2>
+        resources:
+          requests:
+            storage: 1Gi               <3>
+----
+
+<1> Enables `Active` Persistence
+<2> Specifies that the volume can be mounted as read-write by a single node
+<3> Sets the size of the Persistent Volume
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+
+=== 2. Install the Coherence Cluster
+
+Issue the following to install the cluster:
+
+[source,bash]
+----
+kubectl create -n <namespace> -f persistence-cluster.yaml
+
+coherencecluster.coherence.oracle.com/persistence-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=persistence-cluster
+
+NAME                            READY   STATUS    RESTARTS   AGE
+persistence-cluster-storage-0   1/1     Running   0          79s
+persistence-cluster-storage-1   0/1     Running   0          79s
+persistence-cluster-storage-2   0/1     Running   0          79s
+----
+
+Check the Persistent Volumes and PVC are automatically created.
+
+[source,bash]
+----
+kubectl get pvc -n <namespace>
+
+NAME                                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistence-volume-persistence-cluster-storage-0   Bound    pvc-060c61d6-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-1   Bound    pvc-061204e8-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-2   Bound    pvc-06205b32-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+----
+
+Wait until all nodes are Running and READY before continuing.
+
+==== 3. Connect to the Coherence Console to add data
+
+[source,bash]
+----
+kubectl exec -it -n <namespace> persistence-cluster-storage-0 bash /scripts/startCoherence.sh console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Lastly issue the command `size` to verify the cache entry count.
+
+Type `bye` to exit the console.
+
+==== 4. Delete the cluster
+
+NOTE: This will not delete the PVC's.
+
+[source,bash]
+----
+kubectl -n <namespace> delete -f persistence-cluster.yaml
+----
+
+Use `kubectl get pods -n <namespace>` to confirm the pods have terminated.
+
+
+==== 5. Confirm the PVC's are still present
+
+[source,bash]
+----
+kubectl get pvc -n <namespace>
+
+NAME                                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistence-volume-persistence-cluster-storage-0   Bound    pvc-060c61d6-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-1   Bound    pvc-061204e8-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-2   Bound    pvc-06205b32-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+----
+
+==== 6. Re-install the Coherence cluster
+
+[source,bash]
+----
+kubectl create -n <namespace> -f persistence-cluster.yaml
+
+coherencecluster.coherence.oracle.com/persistence-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=persistence-cluster
+
+NAME                            READY   STATUS    RESTARTS   AGE
+persistence-cluster-storage-0   1/1     Running   0          79s
+persistence-cluster-storage-1   0/1     Running   0          79s
+persistence-cluster-storage-2   0/1     Running   0          79s
+----
+
+Wait until the pods are Running and Ready, then confirm the data is still present by using the
+`cache test` and `size` commands only as in step 3 above.
+
+==== 7. Uninstall the Cluster and PVC's
+
+Issue the following to delete the Coherence cluster.
+
+[source,bash]
+----
+kubectl -n <namespace> delete -f persistence-cluster.yaml
+----
+
+Ensure all the pods have all terminated before you delete the PVC's.
+
+[source,bash]
+----
+kubectl get pvc -n <namespace> | sed 1d | awk '{print $1}' | xargs kubectl delete pvc -n <namespace>
+----
+
+
+[#specific]
+== Use Specific Persistent Volumes
+
+This example shows how to use specific persistent volumes (PV) for Coherence
+when using active persistence mode. Local storage is the recommended storage
+type for achieving the best performance for active persistence, but this
+sample can be modified to use any storage class.
+
+=== 1. Create the local storage yaml files
+
+In your working directory directory create the following files:
+
+`local-sc.yaml`
+[source,yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"storage.k8s.io/v1beta1","kind":"StorageClass","metadata":{"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"false"},"name":"localsc","namespace":""},"provisioner":"kubernetes.io/no-provisioner"}
+    storageclass.beta.kubernetes.io/is-default-class: "false"
+  name: localsc
+  selfLink: /apis/storage.k8s.io/v1/storageclasses/localsc
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+----
+
+`mylocal-pv0.yaml`
+[source,yaml]
+----
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mylocal-pv0
+  labels:
+    type: local
+    coherenceCluster: persistence-cluster
+spec:
+  storageClassName: mylocalsc
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/coh/mydata"
+----
+
+`mylocal-pv1.yaml`
+[source,yaml]
+----
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mylocal-pv1
+  labels:
+    type: local
+    coherenceCluster: persistence-cluster
+spec:
+  storageClassName: mylocalsc
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/coh/mydata"
+----
+
+`mylocal-pv2.yaml`
+[source,yaml]
+----
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mylocal-pv2
+  labels:
+    type: local
+    coherenceCluster: persistence-cluster
+spec:
+  storageClassName: mylocalsc
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/coh/mydata"
+----
+
+=== 2. Install the local storage yaml files
+
+[source,bash]
+----
+kubectl -n <namespace> create -f local-sc.yaml
+
+storageclass.storage.k8s.io/localsc created
+
+kubectl -n <namespace> create -f mylocal-pv0.yaml
+
+persistentvolume/mylocal-pv0 created
+
+kubectl -n <namespace> create -f mylocal-pv1.yaml
+
+persistentvolume/mylocal-pv1 created
+
+kubectl -n <namespace> create -f mylocal-pv2.yaml
+persistentvolume/mylocal-pv2 created
+----
+
+List the Persistent Volums
+
+[source,bash]
+----
+kubectl -n <namespace> get pv
+NAME          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+mylocal-pv0   1Gi        RWO            Retain           Available           mylocalsc               80s
+mylocal-pv1   1Gi        RWO            Retain           Available           mylocalsc               49s
+mylocal-pv2   1Gi        RWO            Retain           Available           mylocalsc               46s
+----
+
+=== 3. Create the Coherence cluster yaml
+
+In your working directory directory create a file called `persistence-cluster-pv.yaml` with the following contents:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: persistence-cluster
+spec:
+  jvm:
+    memory:
+      heapSize: 512m
+  replicas: 3
+  coherence:
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        storageClassName: mylocalsc   <1>
+        capacity:
+          storage: 1Gi
+        accessModes:
+          - ReadWriteOnce
+        hostPath:
+          path: "/coh/mydata"
+----
+
+<1> Specifies the storage class to use
+<2> Indicates to only use the PV with this label
+
+NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+
+=== 4. Install the Coherence Cluster
+
+Issue the following to install the cluster:
+
+[source,bash]
+----
+kubectl create -n <namespace> -f persistence-cluster-pv.yaml
+
+coherencecluster.coherence.oracle.com/persistence-cluster created
+
+kubectl -n <namespace> get pod -l coherenceCluster=persistence-cluster
+
+NAME                            READY   STATUS    RESTARTS   AGE
+persistence-cluster-storage-0   1/1     Running   0          79s
+persistence-cluster-storage-1   0/1     Running   0          79s
+persistence-cluster-storage-2   0/1     Running   0          79s
+----
+
+Check the Persistent Volumes and PVC are automatically created.
+
+[source,bash]
+----
+kubectl get pvc -n <namespace>
+
+NAME                                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistence-volume-persistence-cluster-storage-0   Bound    pvc-060c61d6-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-1   Bound    pvc-061204e8-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+persistence-volume-persistence-cluster-storage-2   Bound    pvc-06205b32-ee2d-11e9-aa71-025000000001   1Gi        RWO            hostpath       2m32s
+----
+
+Wait until all  nodes are Running and READY before continuing.
 

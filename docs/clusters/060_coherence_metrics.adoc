@@ -208,7 +208,7 @@ spec:
 
 <2> The corresponding `port` value of `9000` must be used when exposing the port on a `Service`.
 
-
+[#ssl]
 === Configuring metrics With SSL
 
 It is possible to configure metrics endpoint to use SSL to secure the communication between server and

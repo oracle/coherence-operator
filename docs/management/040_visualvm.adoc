@@ -16,9 +16,21 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Using JVisualVM
+= Using VisualVM
 
-TBC
+https://visualvm.github.io/[VisualVM] is a visual tool integrating commandline JDK tools and lightweight profiling capabilities.
+Designed for both development and production time use.
 
-== Access the Coherence cluster via JVisualVM.
+== Access the Coherence cluster via VisualVM
 
+Coherence management is implemented using Java Management Extensions (JMX). JMX is a Java standard
+for managing and monitoring Java applications and services. VisualVM and other JMX tools can be used to
+manage and monitor Coherence Clusters via JMX.
+
+This example shows how to connect to a cluster via VisualVM over JMXMP.
+
+Please see <<020_manegement_over_rest.adoc,Management over ReST>> for how to connect
+to a cluster via the VisualVM plugin using ReST.
+
+NOTE: See the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/manage/introduction-oracle-coherence-management.html[Coherence Management Documentation]
+for more information on JMX and Management.
