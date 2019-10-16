@@ -46,6 +46,7 @@ persistence as they have a lifetime outside of the `Pods` are are reattached to 
 restarted.
 
 
+[#pvc]
 == Managing Coherence Snapshots using Persistent Volumes
 
 When managing Coherence clusters using the Coherence Operator the simples configuration is to write snapshots to a

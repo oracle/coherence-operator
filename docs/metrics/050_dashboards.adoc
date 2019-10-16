@@ -207,11 +207,11 @@ Shows overview of Federation including metrics such as:
 
 ==== Federation Summary
 
-TBC
+image::../images/grafana-federation-summary.png[Federation Summary,width="950",align="center"]
 
 ==== Federation Details
 
-TBC
+image::../images/grafana-federation-detail.png[Federation Details,width="950",align="center"]
 
 
 [#machines]
