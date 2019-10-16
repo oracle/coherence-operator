@@ -27,13 +27,10 @@ This example shows how to enable log capture and access the Kibana user interfac
 Logs are scraped via a Fluentd sidecar image, parsed and sent to Elasticsearch. A default
 index pattern called `coherence-cluster-*` is created which holds all captured logs.
 
-== Table of Contents
-
-
 [#install]
 === 1. Install the Coherence Operator with Fluentd logging enabled
 
-To enable the RFK stack, add the following options to the Operator Helm install command:
+To enable the EFK stack, add the following options to the Operator Helm install command:
 
 [source,bash]
 ----
@@ -77,7 +74,7 @@ prometheus-coherence-operator-prometh-prometheus-0       3/3     Running   0    
 [#install-coh]
 === 2. Install a Coherence Cluster with Logging Enabled
 
-Deploy a simple metrics enabled `CoherenceCluster` resource with a single role like this:
+Deploy a simple logging enabled `CoherenceCluster` resource with a single role like this:
 [source,yaml]
 .logging-cluster.yaml
 ----
