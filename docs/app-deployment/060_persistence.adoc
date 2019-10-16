@@ -79,7 +79,7 @@ spec:
         - ReadWriteOnce                <2>
         resources:
           requests:
-            storage: 1Gi               <2>
+            storage: 1Gi               <3>
 ----
 
 <1> Enables `Active` Persistence
@@ -343,7 +343,7 @@ spec:
     persistence:
       enabled: true
       persistentVolumeClaim:
-        storageClassName: mylocalsc
+        storageClassName: mylocalsc   <1>
         capacity:
           storage: 1Gi
         accessModes:

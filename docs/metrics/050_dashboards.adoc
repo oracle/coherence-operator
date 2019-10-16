@@ -25,8 +25,6 @@ The Coherence Operator provides detailed Grafana dashboards to provide insight i
 NOTE: Note: Use of metrics is available only when using the operator with clusters running
 Coherence 12.2.1.4 or later version.
 
-Please see <<clusters/060_coherence_metrics#ssl,Coherence Metrics Documentation>> for information on how to enable SSL.
-
 == Table of Contents
 
 . <<navigation, Navigation>>
@@ -46,20 +44,37 @@ Please see <<clusters/060_coherence_metrics#ssl,Coherence Metrics Documentation>
 == Navigation
 
 The pre-loaded Coherence Dashboards provide a number of common features and
-navigation capabilities.
+navigation capabilities that appear at the top of most dashboards.
 
-image::../images/dashboard-navigation.png[Dashboard Navigation,900,308,align="center"]
+=== Variables
 
-. Variables
-.. Cluster Name - Allows selection of the cluster to view metrics for
-.. Top N Limit - Limits the display of `Top` values for tables that support it
-. Annotations - Vertical red lines on a graph to indicate a change
-.. Show Cluster Size Changes - Displays when the cluster size has changed
-.. Show Partition Transfers - Displays when partition transfers have occurred
-. Navigation
-.. Select Dashboard - In the top right a drop down list of dashboards is available selection
-.. Drill Through - Ability to drill through based upon service, member, node, etc.
+image:../images/grafana-variables.png[Variables,width="250",float="right"]
 
+Allows for selection of information to be displayed where there is more than one item.
+
+. Cluster Name - Allows selection of the cluster to view metrics for
+. Top N Limit - Limits the display of `Top` values for tables that support it
+. Service Name, Member Name, Cache Name - These will appear on various dashboards
+
+See the https://grafana.com/docs/reference/templating/[Grafana Documetation] for more information on Variables.
+
+=== Annotations
+
+image:../images/grafana-annotations.png[Annotations,width="250",float="right"]
+
+Vertical red lines on a graph to indicate a change in a key markers such as:
+
+. Show Cluster Size Changes - Displays when the cluster size has changed
+. Show Partition Transfers - Displays when partition transfers have occurred
+
+See the https://grafana.com/docs/reference/annotations/[Grafana Documetation] for more information on Annotations.
+
+=== Navigation
+
+image:../images/grafana-navigation.png[Navigation,width="250",float="right"]
+
+. Select Dashboard - In the top right a drop down list of dashboards is available selection
+. Drill Through - Ability to drill through based upon service, member, node, etc.
 
 
 [#dashboards]
@@ -68,11 +83,11 @@ image::../images/dashboard-navigation.png[Dashboard Navigation,900,308,align="ce
 [#main]
 === 1. Coherence Dashboard Main
 
-Provides a high-level overview of the selected Coherence cluster including:
+Shows a high-level overview of the selected Coherence cluster including metrics such as:
 
-* Cluster members, services, memory and health
+* Cluster member count, services, memory and health
 
-* Top loaded members, Top heap usage and GC activity
+* Top N loaded members, Top N heap usage and GC activity
 
 * Service backlogs and endangered or vulnerable services
 
@@ -80,33 +95,154 @@ Provides a high-level overview of the selected Coherence cluster including:
 
 * Guardian recoveries and terminations
 
-
-image::../images/dashboard-main.png[Dashboard Main,900,447,align="center"]
+image::../images/grafana-main.png[Dashboard Main,width="950",align="center"]
 
 [#members]
 === 2. Members Summary & Details Dashboards
 
+Shows an overview of all cluster members that are enabled for metrics capture including metrics such as:
+
+* Member list include heap usage
+
+* Top N members for GC time and count
+
+* Total GC collection count and time by Member
+
+* Publisher and Receiver success rates
+
+* Guardian recoveries and send queue size
+
+==== Members Summary
+
+image::../images/grafana-members.png[Members,width="950",align="center"]
+
+==== Member Details
+
+image::../images/grafana-members.png[Member Details,width="950",align="center"]
+
 [#services]
 === 3. Services Summary & Details Dashboards
+
+Shows an overview of all cluster services including metrics such as:
+
+* Service members for storage and non-storage services
+
+* Service task count
+
+* StatusHA values as well as endangered, vulnerable and unbalanced partitions
+
+* Top N services by task count and backlog
+
+* Task rates, request pending counts and task and request averages
+
+==== Services Summary
+
+image::../images/grafana-services.png[Services,width="950",align="center"]
+
+==== Service Details
+
+image::../images/grafana-service.png[Service Details,width="950",align="center"]
 
 [#caches]
 === 4. Caches Summary & Detail Dashboards
 
+Shows an overview of all caches including metrics such as:
+
+* Cache entries, memory and index usage
+
+* Cache access counts including gets, puts and removed,  max query times
+
+* Front cache hit and miss rates
+
+==== Caches Summary
+
+image::../images/grafana-caches.png[Caches,width="950",align="center"]
+
+==== Cache Details
+
+image::../images/grafana-cache.png[Cache Details,width="950",align="center"]
+
 [#proxies]
 === 5. Proxy Servers Summary & Detail Dashboards
+
+Shows and overview of Proxy servers including metrics such as:
+
+* Active connection count and service member count
+
+* Total messages sent/ received
+
+* Proxy server data rates
+
+* Individual connection details abd byte backlogs
+
+==== Proxy Servers Summary
+
+image::../images/grafana-proxies.png[Proxy Servers,width="950",align="center"]
+
+==== Proxy Servers Detail
+
+image::../images/grafana-proxy.png[Proxy Server Details,width="950",align="center"]
 
 [#persistence]
 === 6. Persistence Summary Dashboard
 
+Shows and overview of Persistence including metrics such as:
+
+* Persistence enabled services
+
+* Maximum active persistence latency
+
+* Active space total usage and by service
+
+image::../images/grafana-persistence.png[Persistence,width="950",align="center"]
+
 [#federation]
 === 7. Federation Summary & Details Dashboards
+
+Shows overview of Federation including metrics such as:
+
+* Destination and Origins details
+
+* Entries, records and bytes send and received
+
+==== Federation Summary
+
+TBC
+
+==== Federation Details
+
+TBC
+
 
 [#machines]
 === 8. Machines Summary Dashboard
 
+Shows an overview of all machines that make up the Kubernetes cluster underlying the Coherence cluster including metrics such as:
+
+* Machine processors, free swap space and physical memory
+
+* Load averages
+
+image::../images/grafana-machines.png[Machines,width="950",align="center"]
+
 [#http]
 === 9. HTTP Servers Summary Dashboard
+
+Shows an overview of all HTTP Servers running in the cluster including metrics such as:
+
+* Service member count, requests, error count and average request time
+
+* HTTP Request rates and response codes
+
+image::../images/grafana-http.png[HTTP Servers,width="950",align="center"]
 
 [#ed]
 === 10. Elastic Data Summary Dashboard
 
+Shows an overview of all HTTP Servers running in the cluster including metrics such as:
+
+* RAM and Flash journal files in use
+
+* RAM and Flash compactions
+
+image::../images/grafana-elastic-data.png[Elastic Data,width="950",align="center"]

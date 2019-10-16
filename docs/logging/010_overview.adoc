@@ -33,9 +33,16 @@ Capturing and viewing Coherence cluster Logs.
 
 [CARD]
 .Using Your Own Elasticsearch
-[link=logging/040_own.adoc]
+[link=logging/030_own.adoc]
 --
 Pushing logs to your own Elasticsearch instance.
+--
+
+[CARD]
+.Kibana Dashboards
+[link=logging/040_dashboards.adoc]
+--
+Details on the Kibana Dashboards available..
 --
 
 ====
