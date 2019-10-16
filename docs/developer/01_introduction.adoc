@@ -28,7 +28,7 @@ https://github.com/operator-framework/operator-sdk[Operator SDK].
 The following prerequisites are required to build and test the operator (the prerequisites to just run the operator
 are obviously a sub-set of these).
 
-* https://github.com/operator-framework/operator-sdk/tree/v0.9.0[operator-sdk] version *v0.9.0*
+* https://github.com/operator-framework/operator-sdk/tree/v0.11.0[operator-sdk] version *v0.11.0*
 * https://git-scm.com/downloads[git]
 * https://golang.org/dl/[go] version v1.12+.
 * https://www.mercurial-scm.org/downloads[mercurial] version 3.9+
@@ -46,7 +46,7 @@ version 1.2.0+ (for local debugging with `operator-sdk up local --enable-delve`)
 
 * This project uses `make` for building, which should already be installed on most systems
 
-NOTE: This project currently uses the Operator SDK v0.9.0 so make sure you install the correct version of
+NOTE: This project currently uses the Operator SDK v0.11.0 so make sure you install the correct version of
 the Operator SDK CLI.
 
 NOTE: As stated above this project requires K8s v1.11.3+ so if using Docker on MacOS you need at least version 2.1.0.0

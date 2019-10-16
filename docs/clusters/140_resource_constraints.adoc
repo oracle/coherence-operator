@@ -21,4 +21,123 @@
 
 == Container Resource Limits
 
+When creating a `CoherenceCluster` you can optionally specify how much CPU and memory (RAM) each Coherence Container
+needs. The container resources are specified in the `resources` section of a role in a `CoherenceCluster`, the format
+is exactly the same as documented in the Kubernetes documentation
+https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/[Managing Compute Resources for Containers].
+
+WARNING: When setting resource limits, in particular memory limits, for a container it is important to ensure that the
+Coherence JVM is properly configured so that it does not consume more memory than the limits. If the JVM attempts to
+consume more memory than the resource limits allow the `Pod` can be killed by Kubernetes.
+See <<clusters/080_jvm.adoc,Configuring the JVM>> for details on the different memory settings.
+
+
+=== Configure Resource Limits for the Single Implicit Role
+
+When using the implicit role configuration of the resource limits is set directly in the `CoherenceCluster` `spec`
+`resources` section.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  resources:               # <1>
+    requests:
+      memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+----
+
+<1> The `coherence` container in the implicit role's `Pods` has a request of 0.25 cpu and 64MiB (226 bytes) of memory.
+The `coherence` container has a limit of 0.5 cpu and 128MiB of memory.
+
+
+===  Configure Resource Limits for Explicit Roles
+
+When using the explicit roles in a `CoherenceCluster` `roles` list the Coherence image to use is set for each role.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      resources:               # <1>
+        requests:
+          memory: "10Gi"
+            cpu: "4"
+          limits:
+            memory: "15Gi"
+            cpu: "4"
+    - role: proxy
+      resources:               # <2>
+        requests:
+          memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+----
+
+<1> The `coherence` container in the `data` role's `Pods` has a request of 4 cpu and 10GiB of memory.
+The `coherence` container has a limit of 4 cpu and 15GiB of memory.
+<2> The `coherence` container in the `proxy` role's `Pods` has a request of 0.25 cpu and 64MiB of memory.
+The `coherence` container has a limit of 0.5 cpu and 128MiB of memory.
+
+
+===  Configure Resource Limits for Explicit Roles with a Default
+
+When using the explicit roles in a `CoherenceCluster` `roles` list the resource limits to use can be set in the
+`CoherenceCluster` `spec` section and will apply to all roles unless specifically overridden for a `role` in the
+`roles` list.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  resources:                   # <1>
+    requests:
+      memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+  roles:
+    - role: data
+      resources:               # <2>
+        requests:
+          memory: "10Gi"
+            cpu: "4"
+          limits:
+            memory: "15Gi"
+            cpu: "4"
+    - role: proxy              # <3>
+    - role: web
+----
+
+<1> The default resource limits has a request of 0.25 cpu and 64MiB (226 bytes) of memory and has a limit of 0.5 cpu
+and 128MiB of memory.
+<2> The `data` role overrides the defaults and specifies a request of 4 cpu and 10GiB of memory.
+The `coherence` container has a limit of 4 cpu and 15GiB of memory.
+<3> The `proxy` role and the `web` role do not specify resource limits so the defaults will apply so that `Pods` in the
+`proxy` and `web` roles have a request of 0.25 cpu and 64MiB (226 bytes) of memory and has a limit of 0.5 cpu and 128MiB
+of memory.
+
 
