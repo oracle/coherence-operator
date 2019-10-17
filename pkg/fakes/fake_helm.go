@@ -37,7 +37,6 @@ import (
 	"k8s.io/helm/pkg/tiller"
 	"k8s.io/helm/pkg/tiller/environment"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
 )
@@ -156,21 +155,21 @@ func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, v
 func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string, values []byte) (*HelmInstallResult, error) {
 	storageBackend := storage.Init(driver.NewMemory())
 
-	cfg, _, err := helper.GetKubeconfigAndNamespace("")
-	if err != nil {
-		return nil, err
-	}
+	//cfg, _, err := helper.GetKubeconfigAndNamespace("")
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//mgrReal, err := manager.New(cfg, manager.Options{
+	//	Namespace:      namespace,
+	//	MapperProvider: apiutil.NewDiscoveryRESTMapper,
+	//	LeaderElection: false,
+	//})
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	mgrReal, err := manager.New(cfg, manager.Options{
-		Namespace:      namespace,
-		MapperProvider: apiutil.NewDiscoveryRESTMapper,
-		LeaderElection: false,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	tillerKubeClient, err := client.NewFromManager(mgrReal)
+	tillerKubeClient, err := client.NewFromManager(mgr)
 	if err != nil {
 		return nil, err
 	}

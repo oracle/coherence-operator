@@ -10,6 +10,7 @@ import (
 	"context"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -21,13 +22,14 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission/types"
 )
 
 // NewFakeManager creates a fake manager.Manager for use when testing controllers.
-func NewFakeManager(initObjs ...runtime.Object) *FakeManager {
+func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 	gv := schema.GroupVersion{Group: "coherence.oracle.com", Version: "v1"}
 
 	s := scheme.Scheme
@@ -42,15 +44,36 @@ func NewFakeManager(initObjs ...runtime.Object) *FakeManager {
 	//s.AddKnownTypes(gv, &coherence.CoherenceInternalList{})
 	s.AddKnownTypeWithName(schema.GroupVersionKind{Group: gv.Group, Version: gv.Version, Kind: "CoherenceInternalList"}, &unstructured.UnstructuredList{})
 
+	cfg, _, err := helper.GetKubeconfigAndNamespace("")
+	if err != nil {
+		return nil, err
+	}
+
+	options := manager.Options{
+		Namespace:      helper.GetTestNamespace(),
+		MapperProvider: apiutil.NewDiscoveryRESTMapper,
+		LeaderElection: false,
+	}
+
+	// Create the mapper provider
+	mapper, err := options.MapperProvider(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	cl := NewFakeClient(initObjs...)
 
-	return &FakeManager{Scheme: s, Client: cl, Events: NewFakeEventRecorder(20)}
+	mgr := FakeManager{Scheme: s, Client: cl, Events: NewFakeEventRecorder(20), Mapper: mapper, Config: cfg}
+
+	return &mgr, nil
 }
 
 type FakeManager struct {
 	Scheme *runtime.Scheme
 	Client ClientWithErrors
 	Events *FakeEventRecorder
+	Mapper meta.RESTMapper
+	Config *rest.Config
 }
 
 type ReconcileResult struct {
@@ -77,7 +100,7 @@ func (f *FakeManager) Start(<-chan struct{}) error {
 }
 
 func (f *FakeManager) GetConfig() *rest.Config {
-	panic("fake method not implemented")
+	return f.Config
 }
 
 func (f *FakeManager) GetScheme() *runtime.Scheme {
@@ -105,7 +128,7 @@ func (f *FakeManager) GetRecorder(name string) record.EventRecorder {
 }
 
 func (f *FakeManager) GetRESTMapper() meta.RESTMapper {
-	panic("fake method not implemented")
+	return f.Mapper
 }
 
 // AssertEvent asserts that there is an event in the event channel and returns it.

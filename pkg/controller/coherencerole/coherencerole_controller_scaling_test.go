@@ -36,6 +36,7 @@ var _ = Describe("coherencerole_controller scaling tests", func() {
 		role     *coherence.CoherenceRole
 		existing []runtime.Object
 		result   stubs.ReconcileResult
+		err      error
 
 		defaultCluster = &coherence.CoherenceCluster{
 			ObjectMeta: metav1.ObjectMeta{
@@ -46,7 +47,8 @@ var _ = Describe("coherencerole_controller scaling tests", func() {
 	)
 
 	JustBeforeEach(func() {
-		mgr = stubs.NewFakeManager(existing...)
+		mgr, err = stubs.NewFakeManager(existing...)
+		Expect(err).NotTo(HaveOccurred())
 
 		if cluster != nil {
 			_ = mgr.Client.Create(context.TODO(), cluster)

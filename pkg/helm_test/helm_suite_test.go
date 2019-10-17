@@ -40,7 +40,11 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 		return nil, nil, err
 	}
 
-	mgr := stubs.NewFakeManager()
+	mgr, err := stubs.NewFakeManager()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	cr := coherencecluster.NewClusterReconciler(mgr)
 	rr := coherencerole.NewRoleReconciler(mgr)
 	helm := stubs.NewFakeHelm(mgr, cr, rr)

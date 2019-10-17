@@ -314,7 +314,8 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 
 	// We use the fake Operator Helm install with EFK enabled to obtain
 	// the yaml to use to install the EFK stack.
-	mgrFake := fakes.NewFakeManager()
+	mgrFake, err := fakes.NewFakeManager()
+	g.Expect(err).ToNot(HaveOccurred())
 	values := helper.OperatorValues{}
 
 	chartDir, err := helper.FindOperatorHelmChartDir()
