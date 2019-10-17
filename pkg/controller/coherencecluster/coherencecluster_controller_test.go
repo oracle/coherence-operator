@@ -32,10 +32,12 @@ var _ = Describe("coherencecluster_controller", func() {
 		cluster  *coherence.CoherenceCluster
 		existing []runtime.Object
 		result   stubs.ReconcileResult
+		err      error
 	)
 
 	JustBeforeEach(func() {
-		mgr = stubs.NewFakeManager(existing...)
+		mgr, err = stubs.NewFakeManager(existing...)
+		Expect(err).NotTo(HaveOccurred())
 
 		if cluster != nil {
 			_ = mgr.Client.Create(context.TODO(), cluster)

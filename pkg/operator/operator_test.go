@@ -27,7 +27,8 @@ func TestShouldCreateCRDs(t *testing.T) {
 	var err error
 
 	g := NewGomegaWithT(t)
-	mgr := fakes.NewFakeManager()
+	mgr, err := fakes.NewFakeManager()
+	g.Expect(err).NotTo(HaveOccurred())
 
 	err = v1beta1.AddToScheme(mgr.Scheme)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -77,7 +78,8 @@ func TestShouldUpdateCRDs(t *testing.T) {
 	var err error
 
 	g := NewGomegaWithT(t)
-	mgr := fakes.NewFakeManager()
+	mgr, err := fakes.NewFakeManager()
+	g.Expect(err).NotTo(HaveOccurred())
 	err = v1beta1.AddToScheme(mgr.Scheme)
 	g.Expect(err).NotTo(HaveOccurred())
 

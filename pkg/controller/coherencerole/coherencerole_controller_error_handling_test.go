@@ -41,6 +41,7 @@ var _ = Describe("coherencerole_controller", func() {
 		existing    []runtime.Object
 		result      stubs.ReconcileResult
 		errors      stubs.ClientErrors
+		err         error
 
 		controller *ReconcileCoherenceRole
 
@@ -53,7 +54,8 @@ var _ = Describe("coherencerole_controller", func() {
 	)
 
 	JustBeforeEach(func() {
-		mgr = stubs.NewFakeManager(existing...)
+		mgr, err = stubs.NewFakeManager(existing...)
+		Expect(err).NotTo(HaveOccurred())
 		controller = newReconciler(mgr)
 
 		mgr.Client.DisableErrors()

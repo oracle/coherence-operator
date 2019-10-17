@@ -25,8 +25,9 @@ func main() {
 	var err error
 
 	namespace := helper.GetTestNamespace()
-	mgr := fakes.NewFakeManager()
 	values := helper.OperatorValues{}
+	mgr, err := fakes.NewFakeManager()
+	panicIfErr(err)
 
 	chartDir, err := helper.FindOperatorHelmChartDir()
 	panicIfErr(err)

@@ -479,10 +479,10 @@ install-crds: uninstall-crds
 .PHONY: uninstall-crds
 uninstall-crds:
 	@echo "Removing CRDs"
+	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 	for i in $(CRDS); do \
 		(kubectl delete -f $${i} & ); \
 	done
-	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
 
 # ---------------------------------------------------------------------------
