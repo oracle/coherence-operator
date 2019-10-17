@@ -1,0 +1,16 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        jmxmp:
+          enabled: true
+          port: 7000
+    - role: proxy
+      jvm:
+        jmxmp:
+          enabled: true
+          port: 8000

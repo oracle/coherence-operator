@@ -468,6 +468,19 @@ spec:
                         -XX:+PrintGCApplicationConcurrentTime Default is true
                       type: boolean
                   type: object
+                jmxmp:
+                  description: Configure JMX using JMXMP.
+                  properties:
+                    enabled:
+                      description: If set to true the JMXMP support will be enabled.
+                        Default is false
+                      type: boolean
+                    port:
+                      description: The port tht the JMXMP MBeanServer should bind
+                        to. If not set the default port is 9099
+                      format: int32
+                      type: integer
+                  type: object
                 memory:
                   description: Configure the JVM memory options.
                   properties:

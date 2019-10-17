@@ -290,6 +290,9 @@ type JVMSpec struct {
 	// Configure the JVM memory options.
 	// +optional
 	Memory *JvmMemorySpec `json:"memory,omitempty"`
+	// Configure JMX using JMXMP.
+	// +optional
+	Jmxmp *JvmJmxmpSpec `json:"jmxmp,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this JVMSpec struct with any nil or not set
@@ -310,6 +313,7 @@ func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
 	clone.Debug = in.Debug.DeepCopyWithDefaults(defaults.Debug)
 	clone.Gc = in.Gc.DeepCopyWithDefaults(defaults.Gc)
 	clone.Memory = in.Memory.DeepCopyWithDefaults(defaults.Memory)
+	clone.Jmxmp = in.Jmxmp.DeepCopyWithDefaults(defaults.Jmxmp)
 
 	if in.UseContainerLimits != nil {
 		clone.UseContainerLimits = in.UseContainerLimits
@@ -1067,6 +1071,51 @@ func (in *JvmOutOfMemorySpec) DeepCopyWithDefaults(defaults *JvmOutOfMemorySpec)
 		clone.HeapDump = in.HeapDump
 	} else {
 		clone.HeapDump = defaults.HeapDump
+	}
+
+	return &clone
+}
+
+// ----- JvmJmxmpSpec struct -------------------------------------------------------
+
+// Options for configuring JMX using JMXMP.
+type JvmJmxmpSpec struct {
+	// If set to true the JMXMP support will be enabled.
+	// Default is false
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// The port tht the JMXMP MBeanServer should bind to.
+	// If not set the default port is 9099
+	// +optional
+	Port *int32 `json:"port,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this JvmJmxmpSpec struct with any nil or not set values set
+// by the corresponding value in the defaults JvmJmxmpSpec struct.
+func (in *JvmJmxmpSpec) DeepCopyWithDefaults(defaults *JvmJmxmpSpec) *JvmJmxmpSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := JvmJmxmpSpec{}
+
+	if in.Enabled != nil {
+		clone.Enabled = in.Enabled
+	} else {
+		clone.Enabled = defaults.Enabled
+	}
+
+	if in.Port != nil {
+		clone.Port = in.Port
+	} else {
+		clone.Port = defaults.Port
 	}
 
 	return &clone

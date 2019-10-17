@@ -277,6 +277,14 @@ spec:
             - name: JVM_NATIVE_MEMORY_TRACKING
               value: {{ .Values.jvm.memory.nativeMemoryTracking | quote }}
 {{-     end }}
+{{-     if .Values.jvm.jmxmp }}
+{{-       if .Values.jvm.jmxmp.enabled }}
+            - name: JVM_JMXMP_ENABLED
+              value: {{ .Values.jvm.jmxmp.enabled | quote }}
+            - name: JVM_JMXMP_PORT
+              value: {{ .Values.jvm.jmxmp.port | quote }}
+{{-       end }}
+{{-     end }}
 {{-     if .Values.jvm.memory.onOutOfMemory }}
 {{-       if .Values.jvm.memory.onOutOfMemory.exit }}
             - name: JVM_OOM_EXIT
