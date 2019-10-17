@@ -1298,11 +1298,17 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 							Ref:         ref("./pkg/apis/coherence/v1.JvmMemorySpec"),
 						},
 					},
+					"jmxmp": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Configure JMX using JMXMP.",
+							Ref:         ref("./pkg/apis/coherence/v1.JvmJmxmpSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.JvmDebugSpec", "./pkg/apis/coherence/v1.JvmGarbageCollectorSpec", "./pkg/apis/coherence/v1.JvmMemorySpec", "k8s.io/api/core/v1.VolumeSource"},
+			"./pkg/apis/coherence/v1.JvmDebugSpec", "./pkg/apis/coherence/v1.JvmGarbageCollectorSpec", "./pkg/apis/coherence/v1.JvmJmxmpSpec", "./pkg/apis/coherence/v1.JvmMemorySpec", "k8s.io/api/core/v1.VolumeSource"},
 	}
 }
 

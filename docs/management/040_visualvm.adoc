@@ -34,3 +34,59 @@ to a cluster via the VisualVM plugin using ReST.
 
 NOTE: See the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/manage/introduction-oracle-coherence-management.html[Coherence Management Documentation]
 for more information on JMX and Management.
+
+
+=== Create a CoherenceCluster With an MBean Server Role
+
+The following `.yaml` file will create a `CoherenceCluster` with an additional `management` role that uses JMXMP as the
+transport for JMX.
+
+[source,yaml]
+.cluster-with-jmx.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+  roles:
+    - role: data                                                  # <1>
+        replicas: 3
+    - role: management                                            # <2>
+      replicas: 1                                                 # <3>
+      coherence:
+        storageEnabled: false                                     # <4>
+      application:
+        main: com.oracle.coherence.k8s.JmxmpServer                # <5>
+      jvm:
+        args:
+          - -Dcoherence.distributed.localstorage=false            # <6>
+          - -Dcoherence.management=all
+          - -Dcoherence.management.remote=true
+          - -Dcom.sun.management.jmxremote.ssl=false
+          - -Dcom.sun.management.jmxremote.authenticate=false
+        jmxmp:
+          enabled: true                                           # <7>
+      ports:
+        - name: jmx                                               # <8>
+          port: 9099
+----
+
+<1> This example uses a role named `data` as the storage enabled part of the cluster
+<2> The `management` role will be configured to run the MBean server
+<3> Only one replica is typically required for the MBean server role
+<4> The MBean server should be storage disabled
+<5> The main class that the JVM should run should be the custom MBean server class `com.oracle.coherence.k8s.JmxmpServer`
+<6> Additional system properties are added to enable Coherence management
+See the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/manage/introduction-oracle-coherence-management.html[Coherence Management Documentation]
+<7> JMXMP is enabled so that a reliable connection can be made to the MBean server from outside the `Pods`
+<8> The default port that the JMXMP server binds to is `9099` so this port is exposed as an additional port for the
+`management` role
+
+Once the cluster is running a JMX connection can be made to the URL `service:jmx:jmxmp://<host-name>:9099` where the
+ `<host-name>` to use will depend on how the container port is exposed.
+If using `kubectl` port forwarding to expose
+port `9099` on the management `Pod` then the URL would be `service:jmx:jmxmp://127.0.0.1:9099`.

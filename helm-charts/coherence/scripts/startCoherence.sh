@@ -67,12 +67,6 @@ server()
 
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/coherence-utils.jar"
 
-#   if the main class is the JMXMP server add the JMXMP jar to the classpath
-    if [[ "${COH_MAIN_CLASS}" == "com.oracle.coherence.k8s.JmxmpServer" ]]
-    then
-      CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/opendmk_jmxremote_optional_jar.jar"
-    fi
-
 #   Configure the Coherence member's role
     if [[ -n "${COH_ROLE}" ]]
     then
@@ -164,9 +158,8 @@ mbeanserver()
     CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/*"
     MAIN_CLASS="com.oracle.coherence.k8s.JmxmpServer"
     MAIN_ARGS=""
+    JVM_JMXMP_ENABLED="true"
     PROPS="${PROPS} -Dcoherence.distributed.localstorage=false \
-         -Dcoherence.management.serverfactory=com.oracle.coherence.k8s.JmxmpServer \
-         -Dcoherence.jmxmp.port=9099 \
          -Dcoherence.management=all \
          -Dcoherence.management.remote=true \
          -Dcom.sun.management.jmxremote.ssl=false \
@@ -238,6 +231,19 @@ start()
     COH_JVM_ARGS="-Dcoherence.ttl=0 -XshowSettings:all -XX:+PrintCommandLineFlags -XX:+PrintFlagsFinal \
                   -XX:+UnlockDiagnosticVMOptions -XX:+UnlockCommercialFeatures -XX:+UnlockExperimentalVMOptions \
                   -XX:ErrorFile=${JVM_DIR}/hs-err-${COH_MEMBER_NAME}-${COH_POD_UID}.log"
+
+    if [[ "${JVM_JMXMP_ENABLED}" == "true" ]]
+    then
+        CLASSPATH="${CLASSPATH}:${COH_UTIL_DIR}/lib/opendmk_jmxremote_optional_jar.jar"
+        PROPS="${PROPS} -Dcoherence.management.serverfactory=com.oracle.coherence.k8s.JmxmpServer"
+
+        if [[ "${JVM_JMXMP_PORT}" == "" ]]
+        then
+            PROPS="${PROPS} -Dcoherence.jmxmp.port=9099"
+        else
+            PROPS="${PROPS} -Dcoherence.jmxmp.port=${JVM_JMXMP_PORT}"
+        fi
+    fi
 
     if [[ "${JVM_GC_COLLECTOR}" == "" || "${JVM_GC_COLLECTOR,,}" == "g1" ]]
     then

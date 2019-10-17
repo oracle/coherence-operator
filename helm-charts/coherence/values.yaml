@@ -293,6 +293,9 @@ jvm:
     collector:
     args: []
     logging: true
+  jmxmp:
+    enabled: false
+    port:
 
 # ----- Coherence Container specific configuration --------------------------
 

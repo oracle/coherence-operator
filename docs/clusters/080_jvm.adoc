@@ -35,6 +35,7 @@ These fields are all in the `jvm` section when configuring a `role` in the CRD.
 ** <<#nio-size,Native Memory Size>>
 ** <<#nmt,Native Memory Tracking>>
 * <<#oom,Behaviour on Out Of Memory Error>>
+* <<#jmx,JMX Management>>
 * <<#useContainerLimits,Container Resource Limits>>
 * <<#flightRecorder,Flight Recorder>>
 * <<#diagnosticsVolume,Diagnostic Volume>>
@@ -1106,6 +1107,127 @@ dump if an out of memory error occurs, `-XX:+HeapDumpOnOutOfMemoryError"` argume
 <5> The `proxy` role does not specify any values for `jvm.memory.onOutOfMemory.exit` or
 `jvm.memory.onOutOfMemory.heapDump` so it will use the default values of `false`, the `-XX:+ExitOnOutOfMemoryError` and
 `-XX:+HeapDumpOnOutOfMemoryError"` arguments will not be passed to the JVM
+
+
+// ----- JMX Configuration ---------------------------------------------------------------------------------------------
+'''
+[#jmx]
+== JMX Management Configuration
+
+Using Java Management Extensions (JMX) can be unreliable in container based environments due to the limitations of the
+default RMI transport used by JMX. A more reliable approach is to use an alternative transport and to this end the
+Coherence Operator enables JMXMP to be configured and used to expose JMX functionality outside of the containers.
+
+JMXMP is configured using the fields in the `jvm.jmxmp` section of the configuration.
+Enabling JMXMP support adds the `opendmk_jmxremote_optional_jar.jar` JMXMP library to the classpath and sets the
+configures the Coherence MBean server factory to produce a JMXMP MBean server. By default the JMXMP server will bind
+to port 9099 in the container but this can be configured to bind to a different port.
+
+NOTE: Using a custom transport for JMX, such as JMXMP, requires any JMX client that will connect to the JMX server to
+also have a JMXMP library on its classpath.
+
+See the <<management/040_visualvm.adoc,VisualVM Example>> for a detailed example of how to configure a JMX Management
+role in a `CoherenceCluster`.
+
+
+=== Configure JMXMP for the Implicit Role
+
+When creating a `CoherenceCluster` with a single implicit role the `useContainerLimits` is set in the `spec.jvm`
+section of the configuration. For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    jmxmp:
+      enabled: true  # <1>
+----
+
+<1> JMXMP is enabled for the implicit storage role
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    jmxmp:
+      enabled: true  # <1>
+      port: 7000     # <2>
+----
+
+<1> JMXMP is enabled for the implicit storage role
+<2> The JMXMP server will bind to port `7000` in the container instead of the default `9099`
+
+=== Setting Container Resource Limits for Explicit Roles
+
+When creating a `CoherenceCluster` with one or more explicit roles the `jmxmp` can be configured in the `jvm`
+section of the configuration for each `role` in the `roles` list. For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      jvm:
+        jmxmp:           # <1>
+          enabled: true
+          port: 7000
+    - role: proxy
+      jvm:
+        jmxmp:           # <2>
+          enabled: false
+----
+
+<1> The `data` role has JMXMP enabled and bound to port 7000
+<2> The `proxy` role specifically has JMXMP disabled
+
+=== Setting Container Resource Limits for Explicit Roles with a Default
+
+When creating a `CoherenceCluster` with one or more explicit roles a default `jmxmp` values can be configured in
+the `CoherenceCluster` `spec` section that will apply to all of the roles in the `roles` list unless explicitly
+overridden for a role. For example:
+
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  jvm:
+    jmxmp:                 # <1>
+      enabled: true
+  roles:
+    - role: data
+      jvm:
+        jmxmp:             # <2>
+          port: 7000
+    - role: proxy
+      jvm:
+        jmxmp:             # <3>
+          enabled: false
+    - role: web            # <4>
+----
+
+<1> The default settings enable JMXMP support for all roles in the `roles` list unless overridden
+<2> The `data` role will have JMXMP enabled due to the default setting and also adds the `port` configuration to bind
+JMXMP to port `7000`
+<3> The `proxy` role explicity overrides the default to disable JMXMP
+<4> The `web` role has no specific `jmxmp` configuration so will use the default that will enable JMXMP and bind the
+server to port `9099`
+
 
 
 // ----- Use Container Limits ------------------------------------------------------------------------------------------
