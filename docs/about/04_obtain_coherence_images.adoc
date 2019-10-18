@@ -47,4 +47,45 @@ See <<clusters/200_private_repos.adoc,Using Private Image Registries>>
 * Click the `Get Content` button
 
 Once this is done the Docker Hub credentials can be used to create Kubernetes secret to pull the Coherence image.
-See <<clusters/200_private_repos.adoc,Using Private Image Registries>>
+
+== Use ImagePullSecrets
+
+Kubernetes supports configuring pods to use `imagePullSecrets` for pulling images. If possible, this is the preferable
+and most portable route.
+See the https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod[kubernetes docs]
+for this.
+
+Once secrets have been created in the namespace that the `CoherenceCluster` is to be installed in then the secret name
+can be specified in the `CoherenceCluster` `spec`. It is possible to specify multiple secrets in the case where the different
+images being used are pulled from different registries.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  imagePullSecrets:
+    - name: coherence-secret  # <1>
+----
+
+<1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  imagePullSecrets:           # <1>
+    - name: coherence-secret
+    - name: application-secret
+----
+
+<1> In this case two secrets have been specified, `coherence-secret` and `application-secret`
+
+
+
+Also see <<clusters/200_private_repos.adoc,Using Private Image Registries>>

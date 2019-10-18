@@ -1132,7 +1132,7 @@ role in a `CoherenceCluster`.
 
 === Configure JMXMP for the Implicit Role
 
-When creating a `CoherenceCluster` with a single implicit role the `useContainerLimits` is set in the `spec.jvm`
+When creating a `CoherenceCluster` with a single implicit role the `jmxmp` is set in the `spec.jvm`
 section of the configuration. For example:
 
 [source,yaml]

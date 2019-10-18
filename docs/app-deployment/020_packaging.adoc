@@ -164,7 +164,11 @@ spec:
     image: packaging-example:1.0.0
 ----
 
-NOTE: Add an `imagePullSecrets` entry if required to pull images from a private repository.
+NOTE: The default Coherence image used comes from https://container-registry.oracle.com[Oracle Container Registry]
+so unless that image has already been pulled onto the Kubernetes nodes an `imagePullSecrets` field will be required
+to pull the image.
+See <<about/04_obtain_coherence_images.adoc,Obtain Coherence Images>>
+
 
 ==== 6. Install the Coherence Cluster
 

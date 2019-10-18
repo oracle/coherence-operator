@@ -73,13 +73,13 @@ spec:
   replicas: 3
   coherence:
     persistence:
-      enabled: true                    <1>
+      enabled: true                    # <1>
       persistentVolumeClaim:
         accessModes:
-        - ReadWriteOnce                <2>
+        - ReadWriteOnce                # <2>
         resources:
           requests:
-            storage: 1Gi               <3>
+            storage: 1Gi               # <3>
 ----
 
 <1> Enables `Active` Persistence
