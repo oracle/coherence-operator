@@ -33,7 +33,7 @@
     <!-- library dependency versions -->
     <commons.io.version>2.5</commons.io.version>
     <commonjava.directory.version>0.3.1</commonjava.directory.version>
-    <jackson.version>2.9.9</jackson.version>
+    <jackson.version>2.10.0</jackson.version>
     <jline.version>2.14.6</jline.version>
     <javax.activation.version>1.2.0</javax.activation.version>
     <javax.xml.bind.version>2.3.0</javax.xml.bind.version>
