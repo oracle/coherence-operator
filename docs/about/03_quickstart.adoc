@@ -50,12 +50,12 @@ NOTE: Use the same namespace that the operator was installed into,
 e.g. if the namespace is `coherence` the command would be
 `helm install --namespace coherence  --name operator coherence/coherence-operator`
 
-See the <<install/01_introduction.adoc, full install guide>> for more details.
+See the <<install/01_installation.adoc, full install guide>> for more details.
 
 == 2. Install a Coherence Cluster
 
 Ensure that the Coherence images can be pulled by the Kubernetes cluster
-see <<04_obtain_coherence_images.adoc,Obtain Coherence Images>>
+see <<about/04_obtain_coherence_images.adoc,Obtain Coherence Images>>
 By default a `CoherenceCluster` will use images from Oracle Container Registry.
 If a different registry is used the image name will need to be specified in the `CoherenceCluster` yaml,
 see <<clusters/056_coherence_image.adoc,Setting the Coherence Image>> for documentation on how to

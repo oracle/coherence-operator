@@ -836,7 +836,7 @@ ifeq (true, $(PRE_RELEASE))
 	git add charts-unstable/*
 else
 	mkdir docs/$(VERSION_FULL) || true
-	cp -r $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
+	cp -R $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
 	ls -ls docs
 
 	mkdir -p charts || true
