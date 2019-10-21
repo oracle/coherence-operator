@@ -62,7 +62,7 @@ ask questions about using the operator or give us feedback or
 suggestions about what features and improvements you would like to see.
 We would love to hear from you. To join our channel, please [visit this
 site to get an
-invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ). The
+invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE). The
 invitation email will include details of how to access our Slack workspace.  After you are logged in, please come to `#operator` and say, "hello!"
 
 
