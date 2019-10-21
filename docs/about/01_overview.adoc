@@ -45,13 +45,6 @@ Installing and running the Coherence Operator.
 Deploying Coherence Applications using the Coherence Operator.
 --
 
-[CARD]
-.Examples
-[icon=list,link=examples/010_overview.adoc]
---
-Step-by-step examples with code for various tasks with the Coherence Operator.
---
-
 ====
 
 

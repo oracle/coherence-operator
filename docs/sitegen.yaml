@@ -101,14 +101,6 @@ backend:
               items:
                 - includes:
                     - "management/*.adoc"
-            - title: "Examples"
-              pathprefix: "/examples"
-              glyph:
-                type: "icon"
-                value: "explore"
-              items:
-                - includes:
-                    - "examples/*.adoc"
             - title: "Coherence CRD Reference"
               pathprefix: "/clusters"
               glyph:
