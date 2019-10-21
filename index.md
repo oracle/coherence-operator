@@ -50,8 +50,7 @@ The current version of the [Coherence Operator is 2.0.0](https://oracle.github.i
 
 ## Getting Started
 
-The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md), or try out the
-[samples](docs/samples/README.md).
+The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md).
 
 
 ## Need more help? Have a suggestion? Come and say "Hello!"
