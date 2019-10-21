@@ -138,17 +138,17 @@ For example if the Operator has been built with `make all` there will be the fol
 docker images --format "table {{.Repository}}\t{{.Tag}}"
 
 REPOSITORY                                                     TAG
-iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.0-ci
-iad.ocir.io/odx-stateservice/test/oracle/operator-test-image   2.0.0-ci
-iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.0-ci-utils
+iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.1-ci
+iad.ocir.io/odx-stateservice/test/oracle/operator-test-image   2.0.1-ci
+iad.ocir.io/odx-stateservice/test/oracle/coherence-operator    2.0.1-ci-utils
 ----
 
 These images can be added to the Kind cluster with the commands:
 
 [source,bash]
 ----
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-ci
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.0-ci-utils
-kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/operator-test-image:2.0.0-ci
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.1-ci
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/coherence-operator:2.0.1-ci-utils
+kind load docker-image iad.ocir.io/odx-stateservice/test/oracle/operator-test-image:2.0.1-ci
 ----
 
