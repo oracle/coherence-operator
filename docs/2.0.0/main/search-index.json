@@ -407,7 +407,7 @@
         },
         {
             "location": "/about/01_overview",
-            "text": " fa-rocket Quick Start Quick start guide to running your first Coherence cluster using the Coherence Operator. settings Install Installing and running the Coherence Operator. extension Application Deployment Deploying Coherence Applications using the Coherence Operator. list Examples Step-by-step examples with code for various tasks with the Coherence Operator. ",
+            "text": " fa-rocket Quick Start Quick start guide to running your first Coherence cluster using the Coherence Operator. settings Install Installing and running the Coherence Operator. extension Application Deployment Deploying Coherence Applications using the Coherence Operator. ",
             "title": "Get Going"
         },
         {

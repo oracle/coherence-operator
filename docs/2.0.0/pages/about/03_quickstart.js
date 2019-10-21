@@ -54,7 +54,7 @@ lang="bash"
 e.g. if the namespace is <code>coherence</code> the command would be
 <code>helm install --namespace coherence --name operator coherence/coherence-operator</code></p>
 </div>
-<p>See the <router-link to="#install/01_introduction.adoc" @click.native="this.scrollFix('#install/01_introduction.adoc')">full install guide</router-link> for more details.</p>
+<p>See the <router-link to="/install/01_installation">full install guide</router-link> for more details.</p>
 
 </div>
 </div>
@@ -62,7 +62,7 @@ e.g. if the namespace is <code>coherence</code> the command would be
 <h2 id="_2_install_a_coherence_cluster">2. Install a Coherence Cluster</h2>
 <div class="section">
 <p>Ensure that the Coherence images can be pulled by the Kubernetes cluster
-see <router-link to="#04_obtain_coherence_images.adoc" @click.native="this.scrollFix('#04_obtain_coherence_images.adoc')">Obtain Coherence Images</router-link>
+see <router-link to="/about/04_obtain_coherence_images">Obtain Coherence Images</router-link>
 By default a <code>CoherenceCluster</code> will use images from Oracle Container Registry.
 If a different registry is used the image name will need to be specified in the <code>CoherenceCluster</code> yaml,
 see <router-link to="/clusters/056_coherence_image">Setting the Coherence Image</router-link> for documentation on how to

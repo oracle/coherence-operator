@@ -362,18 +362,6 @@ function createRoutes(){
             component: loadPage('management-060_cohql', '/management/060_cohql', {})
         },
         {
-            path: '/examples/010_overview',
-            meta: {
-                h1: 'Overview',
-                title: 'Overview',
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('examples-010_overview', '/examples/010_overview', {})
-        },
-        {
             path: '/clusters/010_introduction',
             meta: {
                 h1: 'CoherenceCluster CRD Overview',
@@ -758,6 +746,18 @@ function createRoutes(){
             component: loadPage('developer-07_execution', '/developer/07_execution', {})
         },
         {
+            path: '/examples/010_overview',
+            meta: {
+                h1: 'Overview',
+                title: 'Overview',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('examples-010_overview', '/examples/010_overview', {})
+        },
+        {
             path: '/developer/08_docs',
             meta: {
                 h1: 'Building the Docs',
@@ -849,14 +849,6 @@ function createNav(){
                 { href: '/management/040_visualvm', title: 'Using VisualVM' },
                 { href: '/management/050_console', title: 'Accessing the Console' },
                 { href: '/management/060_cohql', title: 'Accessing CohQL' }
-            ]
-        },
-        {
-            title: 'Examples',
-            action: 'explore',
-            group: '/examples',
-            items: [
-                { href: '/examples/010_overview', title: 'Overview' }
             ]
         },
         {
