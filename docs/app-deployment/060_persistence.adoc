@@ -38,7 +38,6 @@ https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/admin
 
 . <<default, Use Default Persistent Volume Claim>>
 
-. <<specific, Use Specific Persistent Volumes>>
 
 [#prereqs]
 ==  Prerequisites
@@ -204,13 +203,3 @@ Ensure all the pods have all terminated before you delete the PVC's.
 kubectl get pvc -n <namespace> | sed 1d | awk '{print $1}' | xargs kubectl delete pvc -n <namespace>
 ----
 
-
-[#specific]
-== Use Specific Persistent Volumes
-
-This example shows how to use specific persistent volumes (PV) for Coherence
-when using active persistence mode. Local storage is the recommended storage
-type for achieving the best performance for active persistence, but this
-sample can be modified to use any storage class.
-
-TBD

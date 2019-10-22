@@ -294,7 +294,7 @@ kubectl exec -it -n <namespace> rolling-cluster-storage-0 bash /scripts/startCoh
 At the prompt, type `cache hr-test` and then `size` and you will see the 10,000 entries are still present
 because the upgrade was done is a safe manner.
 
-=== 11. Add Data to a cache in the new HR service
+=== 11. Add Data to a cache in the new FIN service
 
 At the prompt, type `cache find-test` and you will notice the following indicating your
 cache configuration file with the service name of `FINPartitionedCache` is now being loaded.

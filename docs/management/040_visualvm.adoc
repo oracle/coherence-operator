@@ -94,8 +94,7 @@ spec:
         main: com.oracle.coherence.k8s.JmxmpServer                # <5>
       jvm:
         args:
-          - -Dcoherence.distributed.localstorage=false            # <6>
-          - -Dcoherence.management=all
+          - -Dcoherence.management=all                            # <6>
           - -Dcoherence.management.remote=true
           - -Dcom.sun.management.jmxremote.ssl=false
           - -Dcom.sun.management.jmxremote.authenticate=false
