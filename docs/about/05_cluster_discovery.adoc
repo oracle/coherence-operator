@@ -23,8 +23,10 @@
 A Coherence cluster is made up of one or more JVMs. In order for these JVMs to form a cluster they need to be able to
 discover other cluster members. The default mechanism for discovery is multicast broadcast but this does not work in
 most container environments. Coherence provides an alternative mechanism where the addresses of the hosts where the
-members of the cluster will run is provided in the form of a "well known address" (or WKA) list. This address list is
-then used by Coherence when it starts in a JVM to discover other cluster members running on the hosts in the WKA list.
+members of the cluster will run is provided in the form of a
+https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/develop-applications/setting-cluster.html#GUID-E8CC7C9A-5739-4D12-B88E-A3575F20D63B["well known address" (or WKA) list].
+This address list is then used by Coherence when it starts in a JVM to discover other cluster members running on the
+hosts in the WKA list.
 
 When running in containers each container is effectively a host and has its own host name and IP address (or addresses)
 and in Kubernetes it is the `Pod` that is effectively a host. When starting a container it is usually not possible to

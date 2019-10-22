@@ -111,11 +111,16 @@ backend:
                     - "clusters/*.adoc"
         - title: "Additional resources"
           items:
-            - title: "Community"
+            - title: "Slack"
               glyph:
                 type: "icon"
                 value: "fa-slack"
               href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ"
+            - title: "Coherence Community"
+              glyph:
+                type: "icon"
+                value: "people"
+              href: "https://coherence.java.net"
             - title: "GitHub"
               glyph:
                 type: "icon"
