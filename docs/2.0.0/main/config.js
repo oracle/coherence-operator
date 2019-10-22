@@ -74,19 +74,7 @@ function createRoutes(){
             component: loadPage('about-04_obtain_coherence_images', '/about/04_obtain_coherence_images', {})
         },
         {
-            path: '/about/05_kubernetes',
-            meta: {
-                h1: 'Kubernetes on your Desktop',
-                title: 'Kubernetes on your Desktop',
-                description: 'Running Kubernetes on your desktop.',
-                keywords: 'kubernetes',
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('about-05_kubernetes', '/about/05_kubernetes', {})
-        },
-        {
-            path: '/about/06_cluster_discovery',
+            path: '/about/05_cluster_discovery',
             meta: {
                 h1: 'Coherence Cluster Discovery',
                 title: 'Coherence Cluster Discovery',
@@ -95,7 +83,7 @@ function createRoutes(){
                 customLayout: null,
                 hasNav: true
             },
-            component: loadPage('about-06_cluster_discovery', '/about/06_cluster_discovery', {})
+            component: loadPage('about-05_cluster_discovery', '/about/05_cluster_discovery', {})
         },
         {
             path: '/install/01_installation',
@@ -790,8 +778,7 @@ function createNav(){
                 { href: '/about/02_concepts', title: 'Coherence Operator Concepts' },
                 { href: '/about/03_quickstart', title: 'Quick Start' },
                 { href: '/about/04_obtain_coherence_images', title: 'Obtain Coherence Images' },
-                { href: '/about/05_kubernetes', title: 'Kubernetes on your Desktop' },
-                { href: '/about/06_cluster_discovery', title: 'Coherence Cluster Discovery' }
+                { href: '/about/05_cluster_discovery', title: 'Coherence Cluster Discovery' }
             ]
         },
         {
@@ -886,9 +873,15 @@ function createNav(){
         { divider: true },
         { header: 'Additional resources' },
         {
-            title: 'Community',
+            title: 'Slack',
             action: 'fa-slack',
-            href: 'https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE',
+            href: 'https://join.slack.com/t/oraclecoherence/shared_invite/enQtNjA3MTU3MTk0MTE3LWZhMTdhM2E0ZDY2Y2FmZDhiOThlYzJjYTc5NzdkYWVlMzUzODZiNTI4ZWU3ZTlmNDQ4MmE1OTRhOWI1MmIxZjQ',
+            target: '_blank'
+        },
+        {
+            title: 'Coherence Community',
+            action: 'people',
+            href: 'https://coherence.java.net',
             target: '_blank'
         },
         {

@@ -133,49 +133,41 @@ lang="yaml"
   livenessProbe: {}          <span class="conum" data-value="20" /></markup>
 
 <ul class="colist">
-<li data-value="1">The <code>role</code> field sets the name of the role, if omitted the default name of <code>storage</code> will be used. If configuring
-multiple roles in a <code>CoherenceCluster</code> each role must have a unique name.
-See <router-link to="/clusters/030_roles">Define Coherence Roles</router-link> for more details.</li>
-<li data-value="2">The <code>replicas</code> field sets the number of replicas (<code>Pods</code>) that will be vreated for the role. If not specified the
-default value is <code>3</code>.
-See configuring a <router-link to="/clusters/040_replicas">Role&#8217;s Replica Count</router-link> for more details.</li>
-<li data-value="3">The <code>application</code> section contains fields for configuring custom application code.
-See <router-link to="/clusters/070_applications">Configure Applications</router-link> for more details.</li>
-<li data-value="4">The <code>coherence</code> section contains fields for configuring Coherence specific settings.
-See <router-link to="/clusters/050_coherence">Configure Coherence</router-link> for more details.</li>
-<li data-value="5">The <code>jvm</code> section contains fields for configuring how the JVM behaves.
-See <router-link to="/clusters/080_jvm">Configure the JVM</router-link> for more details.</li>
-<li data-value="6">The <code>scaling</code> section contains fields for configuring how the number of replicas in a role is safely scaled up
-and down.
-See <router-link to="/clusters/085_safe_scaling">Configure Safe Scaling</router-link> for more details.</li>
-<li data-value="7">The <code>ports</code> section contains fields for configuring how ports are exposed via services.
-See <router-link to="/clusters/090_ports_and_services">Expose Ports and Services</router-link> for more details.</li>
-<li data-value="8">The <code>logging</code> section contains fields for configuring logging.
-See <router-link to="/clusters/100_logging">Configure Logging</router-link> for more details.</li>
-<li data-value="9">The <code>volumes</code> section contains fields for configuring additional volumes to add to the <code>Pods</code> for a role.
-See <router-link to="/clusters/110_volumes">Configure Additional Volumes</router-link> for more details.</li>
-<li data-value="10">The <code>volumeClaimTemplates</code> section contains fields for configuring additional PVCs to add to the <code>Pods</code> for a role.
-See <router-link to="/clusters/110_volumes">Configure Additional Volumes</router-link> for more details.</li>
-<li data-value="11">The <code>volumeMounts</code> section contains fields for configuring additional volume mounts to add to the <code>Pods</code> for a role.
-See <router-link to="/clusters/110_volumes">Configure Additional Volumes</router-link> for more details.</li>
-<li data-value="12">The <code>env</code> section contains extra environment variables to add to the Coherence container.
-See <router-link to="/clusters/115_environment_variables">Environment Variables</router-link> for more details.</li>
-<li data-value="13">The <code>annotations</code> map contains extra annotations to add to the <code>Pods</code> for the role.
-See <router-link to="/clusters/120_annotations">Configure Pod Annotations</router-link> for more details.</li>
-<li data-value="14">The <code>labels</code> map contains extra labels to add to the <code>Pods</code> for the role.
-See <router-link to="/clusters/125_labels">Configure Pod Labels</router-link> for more details.</li>
-<li data-value="15">The <code>nodeSelector</code> map contains node selectors to determine how Kubernetes schedules the <code>Pods</code> in the role.
-See <router-link to="/clusters/130_pod_scheduling">Configure Pod Scheduling</router-link> for more details.</li>
-<li data-value="16">The <code>tolerations</code> array contains taints and tolerations to determine how Kubernetes schedules the <code>Pods</code> in the role.
-See <router-link to="/clusters/130_pod_scheduling">Configure Pod Scheduling</router-link> for more details.</li>
-<li data-value="17">The <code>affinity</code> contains <code>Pod</code> affinity fields to determine how Kubernetes schedules the <code>Pods</code> in the role.
-See <router-link to="/clusters/130_pod_scheduling">Configure Pod Scheduling</router-link> for more details.</li>
-<li data-value="18">The <code>resources</code> contains configures resource limits for the Coherence containers.
-See <router-link to="/clusters/140_resource_constraints">Configure Container Resource Limits</router-link> for more details.</li>
-<li data-value="19">The <code>readinessProbe</code> section configures the readiness probe for the Coherence containers.
-See <router-link to="/clusters/150_readiness_liveness">Readiness &amp; Liveness Probes</router-link> for more details.</li>
-<li data-value="20">The <code>livenessProbe</code> section configures the liveness probe for the Coherence containers.
-See <router-link to="/clusters/150_readiness_liveness">Readiness &amp; Liveness Probes</router-link> for more details.</li>
+<li data-value="1">The <router-link to="/clusters/030_roles"><code>role</code></router-link> field sets the name of the role, if omitted the default name of <code>storage</code>
+will be used. If configuring multiple roles in a <code>CoherenceCluster</code> each role must have a unique name.</li>
+<li data-value="2">The <router-link to="/clusters/040_replicas"><code>replicas</code></router-link> field sets the number of replicas (<code>Pods</code>) that will be created for
+the role. If not specified the default value is <code>3</code>.</li>
+<li data-value="3">The <router-link to="/clusters/070_applications"><code>application</code></router-link> section contains fields for configuring custom application code.</li>
+<li data-value="4">The <router-link to="/clusters/050_coherence"><code>coherence</code></router-link> section contains fields for configuring Coherence specific settings.</li>
+<li data-value="5">The <router-link to="/clusters/080_jvm"><code>jvm</code></router-link> section contains fields for configuring how the JVM behaves.</li>
+<li data-value="6">The <router-link to="/clusters/085_safe_scaling"><code>scaling</code></router-link> section contains fields for configuring how the number of replicas
+in a role is safely scaled up and down.</li>
+<li data-value="7">The <router-link to="/clusters/090_ports_and_services"><code>ports</code></router-link> section contains fields for configuring how ports are exposed
+via services.</li>
+<li data-value="8">The <router-link to="/clusters/100_logging"><code>logging</code></router-link> section contains fields for configuring logging.</li>
+<li data-value="9">The <router-link to="/clusters/110_volumes"><code>volumes</code></router-link> section contains fields for configuring additional volumes to add to
+the <code>Pods</code> for a role.</li>
+<li data-value="10">The <router-link to="/clusters/110_volumes"><code>volumeClaimTemplates</code></router-link> section contains fields for configuring additional PVCs
+to add to the <code>Pods</code> for a role.</li>
+<li data-value="11">The <router-link to="/clusters/110_volumes"><code>volumeMounts</code></router-link> section contains fields for configuring additional volume mounts
+to add to the <code>Pods</code> for a role.</li>
+<li data-value="12">The <router-link to="/clusters/115_environment_variables"><code>env</code></router-link> section contains extra environment variables to add to the
+Coherence container.</li>
+<li data-value="13">The <router-link to="/clusters/120_annotations"><code>annotations</code></router-link> map contains extra annotations to add to the <code>Pods</code> for the
+role.</li>
+<li data-value="14">The <router-link to="/clusters/125_labels"><code>labels</code></router-link> map contains extra labels to add to the <code>Pods</code> for the role.</li>
+<li data-value="15">The <router-link to="/clusters/130_pod_scheduling"><code>nodeSelector</code></router-link> map contains node selectors to determine how Kubernetes
+schedules the <code>Pods</code> in the role.</li>
+<li data-value="16">The <router-link to="/clusters/130_pod_scheduling"><code>tolerations</code></router-link> array contains taints and tolerations to determine how
+Kubernetes schedules the <code>Pods</code> in the role.</li>
+<li data-value="17">The <router-link to="/clusters/130_pod_scheduling"><code>affinity</code></router-link> contains <code>Pod</code> affinity fields to determine how Kubernetes
+schedules the <code>Pods</code> in the role.</li>
+<li data-value="18">The <router-link to="/clusters/140_resource_constraints"><code>resources</code></router-link> contains configures resource limits for the Coherence
+containers.</li>
+<li data-value="19">The <router-link to="/clusters/150_readiness_liveness"><code>readinessProbe</router-link></code> section configures the readiness probe for the
+Coherence containers.</li>
+<li data-value="20">The <router-link to="/clusters/150_readiness_liveness"><code>livenessProbe</code></router-link> section configures the liveness probe for the
+Coherence containers.</li>
 </ul>
 </div>
 </doc-view>

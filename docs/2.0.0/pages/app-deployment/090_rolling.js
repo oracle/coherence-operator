@@ -334,7 +334,7 @@ because the upgrade was done is a safe manner.</p>
 
 </div>
 
-<h3 id="_11_add_data_to_a_cache_in_the_new_hr_service">11. Add Data to a cache in the new HR service</h3>
+<h3 id="_11_add_data_to_a_cache_in_the_new_fin_service">11. Add Data to a cache in the new FIN service</h3>
 <div class="section">
 <p>At the prompt, type <code>cache find-test</code> and you will notice the following indicating your
 cache configuration file with the service name of <code>FINPartitionedCache</code> is now being loaded.</p>

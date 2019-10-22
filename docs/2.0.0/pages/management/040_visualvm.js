@@ -99,8 +99,7 @@ spec:
         main: com.oracle.coherence.k8s.JmxmpServer                <span class="conum" data-value="5" />
       jvm:
         args:
-          - -Dcoherence.distributed.localstorage=false            <span class="conum" data-value="6" />
-          - -Dcoherence.management=all
+          - -Dcoherence.management=all                            <span class="conum" data-value="6" />
           - -Dcoherence.management.remote=true
           - -Dcom.sun.management.jmxremote.ssl=false
           - -Dcom.sun.management.jmxremote.authenticate=false

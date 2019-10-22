@@ -49,10 +49,6 @@ data can always be recovered especially in the case of a full cluster restart or
 <router-link to="#default" @click.native="this.scrollFix('#default')">Use Default Persistent Volume Claim</router-link>
 
 </li>
-<li>
-<router-link to="#specific" @click.native="this.scrollFix('#specific')">Use Specific Persistent Volumes</router-link>
-
-</li>
 </ol>
 </div>
 
@@ -246,16 +242,5 @@ lang="bash"
 
 </div>
 </div>
-</div>
-
-<h2 id="specific">Use Specific Persistent Volumes</h2>
-<div class="section">
-<p>This example shows how to use specific persistent volumes (PV) for Coherence
-when using active persistence mode. Local storage is the recommended storage
-type for achieving the best performance for active persistence, but this
-sample can be modified to use any storage class.</p>
-
-<p>TBD</p>
-
 </div>
 </doc-view>
