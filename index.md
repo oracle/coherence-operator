@@ -17,7 +17,8 @@ The current version of the [Coherence Operator is 2.0.0](https://oracle.github.i
 
 ## Features
 
-* The Coherence Operator is a Go based application built using the [Operator SDK](https://github.com/operator-framework/operator-sdk)
+* The Coherence Operator is a Go based application built using the 
+[Operator SDK](https://github.com/operator-framework/operator-sdk)
 
 * Deploy Coherence clusters into Kubernetes using a custom resource definition
 
@@ -50,24 +51,24 @@ The current version of the [Coherence Operator is 2.0.0](https://oracle.github.i
 
 ## Getting Started
 
-The fastest way to experience the operator is to follow the [Quick Start guide](docs/quickstart.md).
+The fastest way to experience the operator is to follow the 
+[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.0/#/about/03_quickstart)
 
 
 ## Need more help? Have a suggestion? Come and say "Hello!"
 
 ### Join Our Public Slack Channel
 
-We have a **public Slack channel** where you can get in touch with us to
-ask questions about using the operator or give us feedback or
-suggestions about what features and improvements you would like to see.
-We would love to hear from you. To join our channel, please [visit this
-site to get an
-invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE). The
-invitation email will include details of how to access our Slack workspace.  After you are logged in, please come to `#operator` and say, "hello!"
+We have a **public Slack channel** where you can get in touch with us to ask questions about using the operator or give us
+feedback or suggestions about what features and improvements you would like to see.
+We would love to hear from you. To join our channel, please 
+[visit this site to get an invitation](https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE).
+The invitation email will include details of how to access our Slack workspace. 
+After you are logged in, please come to `#operator` and say, "hello!"
 
 
 #### Previous Versions
 
-Looking for previous versions documentation?
+Looking for a previous version's documentation?
 
 [Version 1.0.0](https://oracle.github.io/coherence-operator/docs/1.0.0/)
