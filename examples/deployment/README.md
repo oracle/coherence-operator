@@ -152,7 +152,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:2.0.0
+deployment-example:2.0.1
 ```
 ## Install the Coherence Operator
 
@@ -608,7 +608,7 @@ The snippet of yaml added below shows:
     Active Persistence is enabled.
     
     ```bash
-    kubectl logs example-cluster-storage-0 -n coherence-example | grep 'Created persistent'
+    kubectl logs example-cluster-storage-0 -c coherence -n coherence-example | grep 'Created persistent'
     
     ...
     019-10-10 04:52:00.179/77.023 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=4): Created persistent store /persistence/active/example-cluster/PartitionedCache/126-2-16db40199bc-4
@@ -670,7 +670,7 @@ The snippet of yaml added below shows:
 1.  Follow the logs for Persistence messages
 
     ```bash
-    kubectl logs example-cluster-storage-0 -n coherence-example -f
+    kubectl logs example-cluster-storage-0 -c coherence -n coherence-example -f
     ```
 
     You should see a message regarding recovering partitions, similar to the following:
