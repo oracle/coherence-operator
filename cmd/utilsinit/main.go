@@ -89,16 +89,22 @@ func main() {
 		}
 	}
 
-	dirNames := []string{snapshotDir, persistenceDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+	dirNames := []string{snapshotDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
 	for _, dirName := range dirNames {
 		fmt.Printf("Creating directory %s\n", dirName)
 		err = os.MkdirAll(dirName, os.ModePerm)
 		if err != nil {
 			panic(err)
 		}
-		err = os.Chmod(dirName, os.ModePerm)
+		info, err := os.Stat(dirName)
 		if err != nil {
 			panic(err)
+		}
+		if info.Mode().Perm() != os.ModePerm {
+			err = os.Chmod(dirName, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
