@@ -93,7 +93,7 @@ spec:
   roles:
   - role: data   # <1>
     replicas: 6
-  - role: data   # <2>
+  - role: proxy   # <2>
     replicas: 3
 ----
 
