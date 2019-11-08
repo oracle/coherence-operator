@@ -334,11 +334,14 @@ func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
 	}
 
 	// Merge Args
-	clone.Args = []string{}
 	if in.Args != nil {
+		clone.Args = []string{}
+		clone.Args = append(clone.Args, defaults.Args...)
 		clone.Args = append(clone.Args, in.Args...)
+	} else if defaults.Args != nil {
+		clone.Args = []string{}
+		clone.Args = append(clone.Args, defaults.Args...)
 	}
-	clone.Args = defaults.Args
 
 	return &clone
 }

@@ -93,7 +93,7 @@ func TestJvmSingleArgWhenDefaultSetAndOverriddenInClusterWithExplicitRoles(t *te
 
 	proxyContainer, err := findContainerForRole(result, cluster, "proxy", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_ARGS", Value: "-DargTwo=2 -DargOne=1"}))
+	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_ARGS", Value: "-DargOne=1 -DargTwo=2"}))
 }
 
 func TestJvmSingleArgWhenSetInClusterWithExplicitRoles(t *testing.T) {
@@ -153,7 +153,7 @@ func TestJvmMultipleArgsWhenDefaultSetAndOverriddenInClusterWithExplicitRoles(t 
 
 	proxyContainer, err := findContainerForRole(result, cluster, "proxy", coherenceContainer)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_ARGS", Value: "-DargThree=3 -DargFour=4 -DargOne=1 -DargTwo=2"}))
+	g.Expect(proxyContainer.Env).To(HaveEnvVar(corev1.EnvVar{Name: "JVM_ARGS", Value: "-DargOne=1 -DargTwo=2 -DargThree=3 -DargFour=4"}))
 }
 
 func TestJvmMultipleArgsWhenSetInClusterWithExplicitRoles(t *testing.T) {

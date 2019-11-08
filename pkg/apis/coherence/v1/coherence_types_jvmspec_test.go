@@ -817,9 +817,9 @@ var _ = Describe("Testing JVMSpec struct", func() {
 				defaults.Args = []string{"three", "four"}
 			})
 
-			It("should merge the original and default Args", func() {
+			It("should merge the original and default Args, default first", func() {
 				expected := original.DeepCopy()
-				expected.Args = []string{"one", "two", "three", "four"}
+				expected.Args = []string{"three", "four", "one", "two"}
 				Expect(clone).To(Equal(expected))
 			})
 		})
