@@ -1641,13 +1641,13 @@ type NetworkSpec struct {
 	// Specifies the DNS parameters of a pod. Parameters specified here will be merged to the
 	// generated DNS configuration based on DNSPolicy.
 	// +optional
-	DnsConfig *PodDNSConfig `json:"dnsConfig,omitempty"`
+	DNSConfig *PodDNSConfig `json:"dnsConfig,omitempty"`
 	// Set DNS policy for the pod. Defaults to "ClusterFirst". Valid values are 'ClusterFirstWithHostNet',
 	// 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy
 	// selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS
 	// policy explicitly to 'ClusterFirstWithHostNet'.
 	// +optional
-	DnsPolicy *string `json:"dnsPolicy,omitempty"`
+	DNSPolicy *string `json:"dnsPolicy,omitempty"`
 	// HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
 	// This is only valid for non-hostNetwork pods.
 	// +optional
@@ -1676,12 +1676,12 @@ func (in *NetworkSpec) DeepCopyWithDefaults(defaults *NetworkSpec) *NetworkSpec 
 	}
 
 	clone := NetworkSpec{}
-	clone.DnsConfig = in.DnsConfig.DeepCopyWithDefaults(defaults.DnsConfig)
+	clone.DNSConfig = in.DNSConfig.DeepCopyWithDefaults(defaults.DNSConfig)
 
-	if in.DnsPolicy != nil {
-		clone.DnsPolicy = in.DnsPolicy
+	if in.DNSPolicy != nil {
+		clone.DNSPolicy = in.DNSPolicy
 	} else {
-		clone.DnsPolicy = defaults.DnsPolicy
+		clone.DNSPolicy = defaults.DNSPolicy
 	}
 
 	// merge HostAlias list
