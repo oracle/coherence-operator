@@ -1,0 +1,15 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    hostAliases:
+      - ip: "10.10.10.100"
+        hostnames:
+          - "foo1.com"
+          - "foo2.com"
+      - ip: "10.10.10.200"
+        hostnames:
+          - "bar1.com"
+          - "bar2.com"

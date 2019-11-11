@@ -1632,3 +1632,172 @@ const (
 // LocalObjectReference contains enough information to let you locate the
 // referenced object inside the same namespace.
 type LocalObjectReference corev1.LocalObjectReference
+
+// ----- NetworkSpec --------------------------------------------------------
+
+// NetworkSpec configures various networking and DNS settings for Pods in a role.
+// +k8s:openapi-gen=true
+type NetworkSpec struct {
+	// Specifies the DNS parameters of a pod. Parameters specified here will be merged to the
+	// generated DNS configuration based on DNSPolicy.
+	// +optional
+	DnsConfig *PodDNSConfig `json:"dnsConfig,omitempty"`
+	// Set DNS policy for the pod. Defaults to "ClusterFirst". Valid values are 'ClusterFirstWithHostNet',
+	// 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy
+	// selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS
+	// policy explicitly to 'ClusterFirstWithHostNet'.
+	// +optional
+	DnsPolicy *string `json:"dnsPolicy,omitempty"`
+	// HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
+	// This is only valid for non-hostNetwork pods.
+	// +optional
+	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
+	// Host networking requested for this pod. Use the host's network namespace. If this option is set,
+	// the ports that will be used must be specified. Default to false.
+	// +optional
+	HostNetwork *bool `json:"hostNetwork,omitempty"`
+	// Specifies the hostname of the Pod If not specified, the pod's hostname will be set to a system-defined value.
+	// +optional
+	Hostname *string `json:"hostname,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this NetworkSpec struct with any nil or not set values set
+// by the corresponding value in the defaults NetworkSpec struct.
+func (in *NetworkSpec) DeepCopyWithDefaults(defaults *NetworkSpec) *NetworkSpec {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := NetworkSpec{}
+	clone.DnsConfig = in.DnsConfig.DeepCopyWithDefaults(defaults.DnsConfig)
+
+	if in.DnsPolicy != nil {
+		clone.DnsPolicy = in.DnsPolicy
+	} else {
+		clone.DnsPolicy = defaults.DnsPolicy
+	}
+
+	// merge HostAlias list
+	m := make(map[string]corev1.HostAlias)
+	if defaults.HostAliases != nil {
+		for _, h := range defaults.HostAliases {
+			m[h.IP] = h
+		}
+	}
+	if in.HostAliases != nil {
+		for _, h := range in.HostAliases {
+			m[h.IP] = h
+		}
+	}
+	if len(m) > 0 {
+		i := 0
+		clone.HostAliases = make([]corev1.HostAlias, len(m))
+		for _, h := range m {
+			clone.HostAliases[i] = h
+			i++
+		}
+	}
+
+	if in.HostNetwork != nil {
+		clone.HostNetwork = in.HostNetwork
+	} else {
+		clone.HostNetwork = defaults.HostNetwork
+	}
+
+	if in.Hostname != nil {
+		clone.Hostname = in.Hostname
+	} else {
+		clone.Hostname = defaults.Hostname
+	}
+
+	return &clone
+}
+
+// ----- PodDNSConfig -------------------------------------------------------
+
+// PodDNSConfig defines the DNS parameters of a pod in addition to
+// those generated from DNSPolicy.
+// +k8s:openapi-gen=true
+type PodDNSConfig struct {
+	// A list of DNS name server IP addresses.
+	// This will be appended to the base nameservers generated from DNSPolicy.
+	// Duplicated nameservers will be removed.
+	// +optional
+	Nameservers []string `json:"nameservers,omitempty"`
+	// A list of DNS search domains for host-name lookup.
+	// This will be appended to the base search paths generated from DNSPolicy.
+	// Duplicated search paths will be removed.
+	// +optional
+	Searches []string `json:"searches,omitempty"`
+	// A list of DNS resolver options.
+	// This will be merged with the base options generated from DNSPolicy.
+	// Duplicated entries will be removed. Resolution options given in Options
+	// will override those that appear in the base DNSPolicy.
+	// +optional
+	Options []corev1.PodDNSConfigOption `json:"options,omitempty"`
+}
+
+// DeepCopyWithDefaults returns a copy of this PodDNSConfig struct with any nil or not set values set
+// by the corresponding value in the defaults PodDNSConfig struct.
+func (in *PodDNSConfig) DeepCopyWithDefaults(defaults *PodDNSConfig) *PodDNSConfig {
+	if in == nil {
+		if defaults != nil {
+			return defaults.DeepCopy()
+		}
+		return nil
+	}
+
+	if defaults == nil {
+		return in.DeepCopy()
+	}
+
+	clone := PodDNSConfig{}
+
+	// merge Options list
+	m := make(map[string]corev1.PodDNSConfigOption)
+	if defaults.Options != nil {
+		for _, opt := range defaults.Options {
+			m[opt.Name] = opt
+		}
+	}
+	if in.Options != nil {
+		for _, opt := range in.Options {
+			m[opt.Name] = opt
+		}
+	}
+	if len(m) > 0 {
+		i := 0
+		clone.Options = make([]corev1.PodDNSConfigOption, len(m))
+		for _, opt := range m {
+			clone.Options[i] = opt
+			i++
+		}
+	}
+
+	if in.Nameservers != nil {
+		clone.Nameservers = []string{}
+		clone.Nameservers = append(clone.Nameservers, defaults.Nameservers...)
+		clone.Nameservers = append(clone.Nameservers, in.Nameservers...)
+	} else if defaults.Nameservers != nil {
+		clone.Nameservers = []string{}
+		clone.Nameservers = append(clone.Nameservers, defaults.Nameservers...)
+	}
+
+	if in.Searches != nil {
+		clone.Searches = []string{}
+		clone.Searches = append(clone.Searches, defaults.Searches...)
+		clone.Searches = append(clone.Searches, in.Searches...)
+	} else if defaults.Searches != nil {
+		clone.Searches = []string{}
+		clone.Searches = append(clone.Searches, defaults.Searches...)
+	}
+
+	return &clone
+}

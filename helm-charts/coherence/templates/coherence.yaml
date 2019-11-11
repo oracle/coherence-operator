@@ -52,6 +52,39 @@ spec:
 {{- if eq $automountServiceAccountTokenType "bool" }}
       automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
 {{- end }}
+
+{{- if .Values.securityContext }}
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
+{{- end }}
+{{- $shareProcessNamespaceType := typeOf .Values.shareProcessNamespace }}
+{{- if eq $shareProcessNamespaceType "bool" }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
+{{- end }}
+{{- $hostIPCType := typeOf .Values.hostIPC }}
+{{- if eq $hostIPCType "bool" }}
+      hostIPC: {{ .Values.hostIPC }}
+{{- end }}
+{{- if .Values.network }}
+{{-   if .Values.network.dnsConfig }}
+      dnsConfig:
+{{ toYaml .Values.network.dnsConfig | indent 8 }}
+{{-   end }}
+{{-   if .Values.network.dnsPolicy }}
+      dnsPolicy: {{ .Values.network.dnsPolicy }}
+{{-   end }}
+{{-   if .Values.network.hostAliases }}
+      hostAliases:
+{{ toYaml .Values.network.hostAliases | indent 8 }}
+{{-   end }}
+{{- $hostNetworkType := typeOf .Values.network.hostNetwork }}
+{{- if eq $hostNetworkType "bool" }}
+      hostNetwork: {{ .Values.network.hostNetwork }}
+{{- end }}
+{{-   if .Values.network.hostname }}
+      hostname: {{ .Values.network.hostname }}
+{{-   end }}
+{{- end }}
 {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}

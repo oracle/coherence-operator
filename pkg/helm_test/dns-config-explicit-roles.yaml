@@ -1,0 +1,34 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      network:
+        dnsConfig:
+          nameServers:
+            - "ns-one"
+            - "ns-two"
+          searches:
+            - "s-one"
+            - "s-two"
+          options:
+            - name: "o1"
+              value: "v1"
+            - name: "o2"
+              value: "v2"
+    - role: proxy
+      network:
+        dnsConfig:
+          nameServers:
+            - "ns-three"
+            - "ns-four"
+          searches:
+            - "s-three"
+            - "s-four"
+          options:
+            - name: "o3"
+              value: "v3"
+            - name: "o4"
+              value: "v4"

@@ -237,6 +237,27 @@ coherenceUtils:
   image: "${UTILS_IMAGE}"
   imagePullPolicy:
 
+# ----- Network  configuration ----------------------------------------------
+
+# NetworkSpec configures various networking and DNS settings for Pods in a role.
+network:
+  # Specifies the DNS parameters of a pod. Parameters specified here will be merged to the
+  # generated DNS configuration based on DNSPolicy.
+#  dnsConfig:
+  # Set DNS policy for the pod. Defaults to "ClusterFirst". Valid values are 'ClusterFirstWithHostNet',
+  # 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy
+  # selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS
+  # policy explicitly to 'ClusterFirstWithHostNet'.
+  dnsPolicy:
+  # HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
+  # This is only valid for non-hostNetwork pods.
+  hostAliases: []
+  # Host networking requested for this pod. Use the host's network namespace. If this option is set,
+  # the ports that will be used must be specified. Default to false.
+  hostNetwork:
+  # Specifies the hostname of the Pod If not specified, the pod's hostname will be set to a system-defined value.
+  hostname:
+
 # ----- Logging configuration -----------------------------------------------
 
 # logging allows configuration of Coherence and java util logging.
@@ -304,6 +325,17 @@ ports: []
 
 # Environment variables to add to the container in the Coherence Pods
 env: []
+
+# SecurityContext is the PodSecurityContext that will be added to all of the Pods in this role.
+# See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+securityContext:
+# Share a single process namespace between all of the containers in a pod. When this is set containers will
+# be able to view and signal processes from other containers in the same pod, and the first process in each
+# container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set.
+# Optional: Default to false.
+shareProcessNamespace:
+# Use the host's ipc namespace. Optional: Default to false.
+hostIPC:
 
 # -------------------------------------------------------------------------
 # readinessProbe is the readiness probe config.

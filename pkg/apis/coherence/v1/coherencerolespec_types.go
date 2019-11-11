@@ -135,6 +135,22 @@ type CoherenceRoleSpec struct {
 	//   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// SecurityContext is the PodSecurityContext that will be added to all of the Pods in this role.
+	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+	// +optional
+	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// Share a single process namespace between all of the containers in a pod. When this is set containers will
+	// be able to view and signal processes from other containers in the same pod, and the first process in each
+	// container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set.
+	// Optional: Default to false.
+	// +optional
+	ShareProcessNamespace *bool `json:"shareProcessNamespace,omitempty"`
+	// Use the host's ipc namespace. Optional: Default to false.
+	// +optional
+	HostIPC *bool `json:"hostIPC,omitempty"`
+	// Configure various networks and DNS settings for Pods in this rolw.
+	// +optional
+	Network *NetworkSpec `json:"network,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -276,6 +292,8 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	// Labels are a map and are merged
 	clone.Labels = MergeMap(in.Labels, defaults.Labels)
 	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)
+	// Network configuration is merged
+	clone.Network = in.Network.DeepCopyWithDefaults(defaults.Network)
 
 	// NodeSelector is a map and is NOT merged
 	clone.NodeSelector = MergeMap(in.NodeSelector, defaults.NodeSelector)
@@ -327,6 +345,25 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 		for i := 0; i < len(defaults.Tolerations); i++ {
 			clone.Tolerations[i] = *defaults.Tolerations[i].DeepCopy()
 		}
+	}
+
+	// SecurityContext is NOT merged
+	if in.SecurityContext != nil {
+		clone.SecurityContext = in.SecurityContext
+	} else {
+		clone.SecurityContext = defaults.SecurityContext
+	}
+
+	if in.ShareProcessNamespace != nil {
+		clone.ShareProcessNamespace = in.ShareProcessNamespace
+	} else {
+		clone.ShareProcessNamespace = defaults.ShareProcessNamespace
+	}
+
+	if in.HostIPC != nil {
+		clone.HostIPC = in.HostIPC
+	} else {
+		clone.HostIPC = defaults.HostIPC
 	}
 
 	// VolumeClaimTemplates is an array of named PersistentVolumeClaims and is merged
