@@ -65,7 +65,7 @@ COPY files/lib/  /app/lib/
 COPY files/conf/ /app/conf/
 ----
 
-NOTE: Is is recommended to use the `scratch` image in the `FROM` clause to minimize the size of the resultant image.
+NOTE: It is recommended to use the `scratch` image in the `FROM` clause to minimize the size of the resultant image.
 
 See the <<clusters/070_applications.adoc,Coherence Applications>> section for
 full details on each of the fields in the application section.

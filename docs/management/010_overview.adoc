@@ -17,18 +17,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
-:description: Management Over ReST
-:keywords: oracle coherence, kubernetes, operator, Management, ReST
+:description: Management Over REST
+:keywords: oracle coherence, kubernetes, operator, Management, REST
 
 == Management
 
 [PILLARS]
 ====
 [CARD]
-.Management Over ReST
+.Management Over REST
 [link=management/020_management_over_rest.adoc]
 --
-Management Over ReST.
+Management Over REST.
 --
 
 [CARD]

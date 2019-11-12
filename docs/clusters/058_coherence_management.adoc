@@ -16,24 +16,24 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Coherence Management over ReST
+= Coherence Management over REST
 
 
-== Coherence Management over ReST
+== Coherence Management over REST
 
-Since version 12.2.1.4 Coherence has had functionality to expose a management API over ReST.
+Since version 12.2.1.4 Coherence has had functionality to expose a management API over REST.
 This API is disabled by default in Coherence clusters but can be enabled and configured by setting the relevant fields
 in the `CoherenceCluster` resource.
 
 
 
-== Enabling Management Over ReST
+== Enabling Management Over REST
 
-Coherence management over ReST can be enabled or disabled by setting the `coherence.management.enabled` field.
+Coherence management over REST can be enabled or disabled by setting the `coherence.management.enabled` field.
 
 [NOTE]
 ====
-Enabling management over ReST will add a number of `.jar` files to the classpath of the Coherence JVM.
+Enabling management over REST will add a number of `.jar` files to the classpath of the Coherence JVM.
 In Coherence 12.2.1.4 those `.jar` file are:
 ```
 org.glassfish.hk2.external:aopalliance-repackaged:jar:2.4.0-b34
@@ -60,15 +60,15 @@ org.glassfish.hk2:osgi-resource-locator:jar:1.0.1
 ```
 If adding additional application `.jar` files care should be taken that there are no version conflicts.
 
-If conflicts are an issue there are alternative approaches available to exposing the management over ReST API.
+If conflicts are an issue there are alternative approaches available to exposing the management over REST API.
 
 The list above is subject to change in later Coherence patches and version.
 ====
 
 
-=== Enabling Management Over ReST for the Implicit Role
+=== Enabling Management Over REST for the Implicit Role
 
-When configuring a single implicit role in a `CoherenceCluster` the management over ReST API can be enabled by setting
+When configuring a single implicit role in a `CoherenceCluster` the management over REST API can be enabled by setting
 the `coherence.management.enabled` to `true` in the `CoherenceCluster` `spec` section.
 For example:
 
@@ -84,13 +84,13 @@ spec:
       enabled: true  # <1>
 ----
 
-<1> Management over ReST will be enabled and the http endpoint will bind to port `30000` in the container.
+<1> Management over REST will be enabled and the http endpoint will bind to port `30000` in the container.
 The port is not exposed in a `Service`.
 
 
-=== Enabling Management Over ReST for Explicit Roles
+=== Enabling Management Over REST for Explicit Roles
 
-When configuring a explicit roles in the `roles` list of a `CoherenceCluster` the management over ReST API can be
+When configuring a explicit roles in the `roles` list of a `CoherenceCluster` the management over REST API can be
 enabled or disabled by setting the `coherence.management.enabled` for each role.
 For example:
 
@@ -112,11 +112,11 @@ spec:
           enabled: false  # <2>
 ----
 
-<1> The `data` role has the management over ReST enabled.
-<2> The `proxy` role has the management over ReST disabled.
+<1> The `data` role has the management over REST enabled.
+<2> The `proxy` role has the management over REST disabled.
 
 
-=== Enabling Management Over ReST for Explicit Roles with a Default
+=== Enabling Management Over REST for Explicit Roles with a Default
 
 When configuring a explicit roles in the `roles` list of a `CoherenceCluster` a default value for the
 `coherence.management.enabled` field can be set in the `CoherenceCluster` `spec` section that will apply to
@@ -141,20 +141,20 @@ spec:
           enabled: false  # <3>
 ----
 
-<1> The default value for enabling management over ReST is `true` which will apply to all roles in the `roles` list
+<1> The default value for enabling management over REST is `true` which will apply to all roles in the `roles` list
 unless the field is specifically overridden.
 
 <2> The `data` role does not specify a value for the `coherence.management.enabled` field so it will use the default
-value of `true` so management over ReST will be enabled.
+value of `true` so management over REST will be enabled.
 
 <3> The `proxy` role overrides the default value for the `coherence.management.enabled` field and sets it to `false`
-so management over ReST will be disabled.
+so management over REST will be disabled.
 
 
 
-=== Exposing the Management over ReST API via a Service
+=== Exposing the Management over REST API via a Service
 
-Enabling management over ReST only enables the http server so that the endpoint is available in the container.
+Enabling management over REST only enables the http server so that the endpoint is available in the container.
 If external access to the API is required via a service then the port needs to be exposed just like any other
 additional ports as described in <<clusters/090_ports_and_services.adoc,Expose Ports and Services>>.
 
@@ -175,14 +175,14 @@ spec:
       port: 30000
 ----
 
-<1> Management over ReST will be enabled and the default port value will be used so that the http endpoint will bind
+<1> Management over REST will be enabled and the default port value will be used so that the http endpoint will bind
 to port `30000` in the container.
 
 <2> An additional port named `management` is added to the `ports` array which will cause the management port to be
 exposed on a service. The port specified is `30000` as that is the default port that the management API will bind to.
 
 
-=== Expose Management Over ReST on a Different Port
+=== Expose Management Over REST on a Different Port
 
 The default port in the container that the management API uses is 30000. It is possible to change ths port using the
 `coherence.management.port` field.
@@ -205,16 +205,16 @@ spec:
       port: 9000        # <2>
 ----
 
-<1> Management over ReST is enabled and configured to bind to port `9000` in the container.
+<1> Management over REST is enabled and configured to bind to port `9000` in the container.
 
 <2> The corresponding `port` value of `9000` must be used when exposing the port on a `Service`.
 
 
-=== Configuring Management Over ReST With SSL
+=== Configuring Management Over REST With SSL
 
 It is possible to configure the management API endpoint to use SSL to secure the communication between server and
 client. The SSL configuration is in the `coherence.management.ssl` section of the spec.
-See <<management/020_manegement_over_rest.adoc,Management over ReST>> for a more in depth guide to configuring SSL.
+See <<management/020_manegement_over_rest.adoc,Management over REST>> for a more in depth guide to configuring SSL.
 
 For example:
 

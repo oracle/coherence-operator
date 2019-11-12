@@ -54,8 +54,8 @@ See the <<install/01_installation.adoc, full install guide>> for more details.
 
 == 2. Install a Coherence Cluster
 
-Ensure that the Coherence images can be pulled by the Kubernetes cluster
-see <<about/04_obtain_coherence_images.adoc,Obtain Coherence Images>>
+Ensure that the Coherence images can be pulled by the Kubernetes cluster,
+see <<about/04_obtain_coherence_images.adoc,Obtain Coherence Images>>.
 By default a `CoherenceCluster` will use images from Oracle Container Registry.
 If a different registry is used the image name will need to be specified in the `CoherenceCluster` yaml,
 see <<clusters/056_coherence_image.adoc,Setting the Coherence Image>> for documentation on how to

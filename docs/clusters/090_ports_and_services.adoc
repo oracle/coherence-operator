@@ -40,7 +40,7 @@ that the headless `Service` used for Coherence WKA can declare a port.
 
 |`6676`
 | `health`
-| This is the port used to expose the default readiness, liveness and StatusHA ReST endpoints on.
+| This is the port used to expose the default readiness, liveness and StatusHA REST endpoints on.
 
 |===
 

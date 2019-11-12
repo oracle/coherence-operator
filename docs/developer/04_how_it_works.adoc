@@ -24,7 +24,7 @@ The high level operation of the Coherence Operator can be seen in the diagram be
 image::../images/operator.png[operator,1000,562,pdfwidth=90%,scaledwidth=90%]
 
 The entry point to the operator is the`main()` function in the `cmd/manager/main.go` file. This function performs
-the creation and initialisation of the three controllers and the ReST server. It also creates a configuration k8s
+the creation and initialisation of the three controllers and the REST server. It also creates a configuration k8s
 `secret` that is used by Coherence Pods. The Coherence Operator works in a single namespace, that is it manages CRDs
 and hence Coherence clusters only in the same namespace that it is installed into.
 

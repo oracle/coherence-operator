@@ -58,7 +58,7 @@ operator-coherence-operator-5d779ffc7-7xz7j            1/1     Running   0      
 
 === 2. Install Prometheus Operator (Optional)
 
-Id you do not already have a Prometheus environment installed, you can use the `Prometheus Operator`
+If you do not already have a Prometheus environment installed, you can use the `Prometheus Operator`
 chart from https://github.com/helm/charts/tree/master/stable/prometheus-operator using the following:
 
 [source,bash]

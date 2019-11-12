@@ -47,11 +47,11 @@ See <<clusters/100_logging.adoc,Logging Configuration>> for more details.
 See <<clusters/054_coherence_storage_enabled.adoc,Storage Enabled or Disabled Roles>> for more details.
 <5> The `imageSpec` section configures the Coherence image details such as image name, pull policy etc.
 See <<clusters/056_coherence_image.adoc,Setting the Coherence Image>> for more details.
-<6> The `management` configures how Coherence management over ReST behaves, whether it is enabled, etc.
-See <<clusters/058_coherence_management.adoc,Coherence Management Over ReST>> for more details.
+<6> The `management` configures how Coherence management over REST behaves, whether it is enabled, etc.
+See <<clusters/058_coherence_management.adoc,Coherence Management Over REST>> for more details.
 <7> The `metrics` configures how Coherence metrics behaves, whether it is enabled, etc.
 See <<clusters/060_coherence_metrics.adoc,Coherence Metrics>> for more details.
-<8> The `persistence` configures how Coherence management over ReST behaves, whether it is enabled, etc.
+<8> The `persistence` configures how Coherence management over REST behaves, whether it is enabled, etc.
 See <<clusters/062_coherence_persistence.adoc,Coherence Persistence>> for more details.
-<9> The `snapshot` configures how Coherence management over ReST behaves, whether it is enabled, etc.
+<9> The `snapshot` configures how Coherence management over REST behaves, whether it is enabled, etc.
 See <<clusters/064_coherence_snapshots.adoc,Coherence Snapshots>> for more details.

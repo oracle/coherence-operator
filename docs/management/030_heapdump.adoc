@@ -30,7 +30,7 @@ A single-command technique is also included at the end of this sample.
 NOTE: Coherence Pods are configured to  produce a heap dump on OOM error by default. See
 <<clusters/080_jvm.adoc, Configure The JVM>> for more information.
 
-NOTE: You cal also trigger a heap dump via the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/op-management-coherence-cluster-members-memberidentifier-dumpheap-post.html[Management over ReST API].
+NOTE: You cal also trigger a heap dump via the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/rest-reference/op-management-coherence-cluster-members-memberidentifier-dumpheap-post.html[Management over REST API].
 
 === 1. Install a Coherence Cluster
 
