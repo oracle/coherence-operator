@@ -1,0 +1,13 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      securityContext:
+        runAsUser: 1001
+        runAsNonRoot: true
+    - role: proxy
+      securityContext:
+        runAsUser: 2002

@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      network:
+        dnsPolicy: "ClusterFirstWithHostNet"
+    - role: proxy
+      network:
+        dnsPolicy: "None"

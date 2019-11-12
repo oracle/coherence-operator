@@ -1,0 +1,10 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: data
+      shareProcessNamespace: true
+    - role: proxy
+      shareProcessNamespace: false

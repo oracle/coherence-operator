@@ -1,0 +1,272 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Network Configuration
+
+== Logging Configuration
+
+When configuring a `Pod` in Kubernetes there are a number of settings related to networking and DNS and these can also
+be configured for roles in a `CoherenceCluster`.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    hostname: "foo.com"                  # <1>
+    hostNetwork: false                   # <2>
+    hostAliases:
+      - ip: "10.10.10.100"               # <3>
+        hostnames:
+          - "a.foo.com"
+          - "b.foo.com"
+    dnsPolicy: "ClusterFirstWithHostNet" # <4>
+    dnsConfig:                           # <5>
+      nameservers:
+        - "dns.foo.com"
+        - "dns.bar.com"
+      searches:
+        - "foo.com"
+        - "bar.com"
+      options:
+        - name: "option-name"
+          value: "option-value"
+----
+
+<1> the `network.hostname` field specifies the hostname of the Pod If not specified, the pod's hostname will be set
+to a system-defined value as per the Kubernetes defaults.
+
+<2> the `hostNetwork` field setw whether host networking is requested for Pods in a role . If set to true Pods will use
+the host's network namespace. If this option is set, the ports that will be used must be specified. If set to `true`
+care must be taken not to schedule multiple Pods for a role onto the same Kubernetes node. Default to false.
+
+<3> the `hostAliases` field adds host aliases to the Pods in a roles.
+See the Kubernetes documentation on
+https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/[Adding entries to Pod /etc/hosts with HostAliases]
+
+<4> the `dnsPolicy` field sets the DNS policy for the pod. Defaults to "ClusterFirst". Valid values are
+'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with
+the policy selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS policy
+explicitly to 'ClusterFirstWithHostNet'.
+See the Kubernetes documentation on
+https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/[DNS for Services and Pods]
+
+<5> the `dnsConfig` section sets other DNS configuration that will be applied to Pods for a role.
+See the Kubernetes documentation on
+https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/[DNS for Services and Pods]
+
+
+As with other configuration secions in the CRD `spec` the `network` section can be specified under the `spec` section
+if configuring a single implied role or under individual roles if configuring explicit roles or a combination of both
+if configuring explicit roles with defaults.
+
+=== Setting Network Defaults with Explicit Roles
+
+If configuring explicit roles with default values it is important to note how some fields are merged.
+
+==== HostAliases
+
+When using default values the `hostAliases` field is merged using the `ip` field to identify duplicate aliases.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    hostAliases:                # <1>
+      - ip: "10.10.10.100"
+        hostnames:
+          - "a.foo.com"
+          - "b.foo.com"
+      - ip: "10.10.10.200"
+        hostnames:
+          - "a.bar.com"
+          - "b.bar.com"
+  roles:
+    - role: data                # <2>
+    - role: proxy
+      network:
+        hostAliases:            # <3>
+          - ip: "10.10.10.100"
+            hostnames:
+              - "c.foo.com"
+          - ip: "10.10.10.300"
+            hostnames:
+              - "acme.com"
+----
+
+<1> The default `hostAliases` list contains aliases for the ip addresses `10.10.10.100` and `10.10.10.200`
+
+<2> The `data` role does not specify any `hostAliases` so it will use the default aliases for the ip addresses
+`10.10.10.100` and `10.10.10.200`
+
+<3> The `proxy` role specifies an alias for the ip addresses `10.10.10.100` and `10.10.10.300` so when the `proxy`
+role's alias list is merged with the defaults the alias for `10.10.10.200` will be inherited from the defaults, the
+`proxy` role's own alias for `10.10.10.100` will override the default alias for the same ip address, and the `proxy`
+role's alias for `10.10.10.300` will also be used. The `proxy` role's effective alias list will be:
+
+[source,yaml]
+----
+hostAliases:
+  - ip: "10.10.10.100"
+    hostnames:
+      - "c.foo.com"
+  - ip: "10.10.10.200"
+    hostnames:
+      - "a.bar.com"
+      - "b.bar.com"
+  - ip: "10.10.10.300"
+    hostnames:
+      - "acme.com"
+----
+
+
+==== DNS Config NameServers
+
+The `dnsConfig.nameservers` field is a list of strings so the effective list of `nameservers` that applies for a role is
+any `nameservers` set at the default level with any `nameservers` set for the role appended to it.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    dnsConfig:
+      nameservers:
+        - "dns.foo.com"    # <1>
+  roles:
+    - role: data           # <2>
+    - role proxy
+      network:
+        dnsConfig:
+          nameservers:
+          - "dns.bar.com"  # <3>
+----
+
+<1> The default `dnsConfig.nameservers` list has a single entry for `dns.foo.com`
+
+<2> The `data` role does not specify a `nameservers` list so it will inherit just the default `dns.foo.com`
+
+<3> The `proxy` role does specify `nameservers` list so this will be merged with the defaults giving an effective
+list of `dns.foo.com` and `dns.bar.com`
+
+NOTE: The operator will not attempt to remove duplicate values when merging `nameserver` lists so if a value appears in
+the default list and in a role list then that value will appear twice in the effective list used to create Pods.
+
+
+
+==== DNS Config Searches
+
+The `dnsConfig.searches` field is a list of strings so the effective list of `searches` that applies for a role is
+any `searches` set at the default level with any `searches` set for the role appended to it.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    dnsConfig:
+      searches:
+        - "foo.com"    # <1>
+  roles:
+    - role: data       # <2>
+    - role proxy
+      network:
+        dnsConfig:
+          searches:
+          - "bar.com"  # <3>
+----
+
+<1> The default `dnsConfig.searches` list has a single entry for `foo.com`
+
+<2> The `data` role does not specify a `searches` list so it will inherit just the default `foo.com`
+
+<3> The `proxy` role does specify `searches` list so this will be merged with the defaults giving an effective
+list of `foo.com` and `bar.com`
+
+NOTE: The operator will not attempt to remove duplicate values when merging `searches` lists so if a value appears in
+the default list and in a role list then that value will appear twice in the effective list used to create Pods.
+
+
+==== DNS Config Options
+
+The `network.dnsConfig.options` field is a list of name/value pairs. If `options` are set at both the default and role
+level then the lists are merged using the `name` to identify options.
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  network:
+    dnsConfig:
+      options:                        # <1>
+        - name: "option-one"
+          value: "value-one"
+        - name: "option-two"
+          value: "value-two"
+  roles:
+    - role: data                      # <2>
+    - role: proxy
+      network:
+        dnsConfig:
+          options:
+            - name: "option-one"      # <3>
+              value: "different-one"
+            - name: "option-three"
+              value: "value-three"
+----
+
+<1> The default `options` has a single value with `name: option-one`, `value: value-one` and
+`name: option-two`, `value: value-two`
+
+<2> The `data` role does not specify any options so it will just inherit the defaults of `name: option-one`,
+`value: value-one` and `name: option-two`, `value: value-two`
+
+<3> The `proxy` role specifies two `options`, one with the name `option-one` which will override the default option
+named `option-one` and an additonal option named `option-three` so the effective list applied to the proxy role will be:
+
+
+[source,yaml]
+----
+options:
+    - name: "option-one"
+      value: "different-one"
+    - name: "option-two"
+      value: "value-two"
+    - name: "option-three"
+      value: "value-three"
+----
