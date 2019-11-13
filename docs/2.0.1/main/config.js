@@ -530,6 +530,18 @@ function createRoutes(){
             component: loadPage('clusters-090_ports_and_services', '/clusters/090_ports_and_services', {})
         },
         {
+            path: '/clusters/095_networking',
+            meta: {
+                h1: 'Network & DNS Configuration',
+                title: 'Network & DNS Configuration',
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('clusters-095_networking', '/clusters/095_networking', {})
+        },
+        {
             path: '/clusters/100_logging',
             meta: {
                 h1: 'Logging Configuration',
@@ -648,18 +660,6 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('clusters-200_private_repos', '/clusters/200_private_repos', {})
-        },
-        {
-            path: '/clusters/95_networking',
-            meta: {
-                h1: 'Network Configuration',
-                title: 'Network Configuration',
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('clusters-95_networking', '/clusters/95_networking', {})
         },
         {
             path: '/developer/09_useful',
@@ -870,6 +870,7 @@ function createNav(){
                 { href: '/clusters/080_jvm', title: 'Configure the JVM' },
                 { href: '/clusters/085_safe_scaling', title: 'Configure Safe Scaling' },
                 { href: '/clusters/090_ports_and_services', title: 'Expose Ports and Services' },
+                { href: '/clusters/095_networking', title: 'Network & DNS Configuration' },
                 { href: '/clusters/100_logging', title: 'Logging Configuration' },
                 { href: '/clusters/110_volumes', title: 'Configure Additional Volumes' },
                 { href: '/clusters/115_environment_variables', title: 'Environment Variables' },
@@ -879,8 +880,7 @@ function createNav(){
                 { href: '/clusters/140_resource_constraints', title: 'Container Resource Limits' },
                 { href: '/clusters/150_readiness_liveness', title: 'Readiness & Liveness Probes' },
                 { href: '/clusters/190_service_account', title: 'Kubernetes Service Account' },
-                { href: '/clusters/200_private_repos', title: 'Using Private Image Registries' },
-                { href: '/clusters/95_networking', title: 'Network Configuration' }
+                { href: '/clusters/200_private_repos', title: 'Using Private Image Registries' }
             ]
         },
         { divider: true },
