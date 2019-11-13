@@ -16,9 +16,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Network Configuration
+= Network & DNS Configuration
 
-== Logging Configuration
+== Network & DNS Configuration
 
 When configuring a `Pod` in Kubernetes there are a number of settings related to networking and DNS and these can also
 be configured for roles in a `CoherenceCluster`.
