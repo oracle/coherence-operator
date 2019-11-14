@@ -164,7 +164,7 @@ kubectl scale coherencerole test-cluster-storage --replicas=6
 ----
 
 The Coherence Operator will now scale the `storage` role down by removing one member at a time until the desired replica
-count is reached. Eventually listing the roles will show the desried state:
+count is reached. Eventually listing the roles will show the desired state:
 
 [source]
 ----
