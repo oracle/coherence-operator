@@ -337,16 +337,28 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	logger.Info("Reconciling existing Coherence Role")
 
 	clusterRole := cluster.GetRole(role.Spec.GetRoleName())
-	if !reflect.DeepEqual(clusterRole, role.Spec) {
+	clusterReplicas := clusterRole.GetReplicas()
+	roleReplicas := role.Spec.GetReplicas()
+	// Get the effective role - what the role spec should be according to the Cluster spec
+	effectiveRole := clusterRole.DeepCopyWithDefaults(&cluster.Spec.CoherenceRoleSpec)
+	if !reflect.DeepEqual(effectiveRole, &role.Spec) {
 		// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
 		// been caused by a direct update to the CoherenceRole, even though we really discourage that.
-		// Update the cluster which will cause this update to come around again.
-		diff := deep.Equal(clusterRole, role.Spec)
-		logger.Info("CoherenceCluster role spec is different to this spec - updating CoherenceCluster '" + cluster.Name + "'. Diff\n" + strings.Join(diff, "\n"))
-		cluster.SetRole(role.Spec)
-		err := r.client.Update(context.TODO(), cluster)
-		if err != nil {
-			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
+
+		if clusterReplicas == roleReplicas {
+			// Something other than the Replicas has been changed so reset the role back to what is should be.
+			diff := deep.Equal(effectiveRole, &role.Spec)
+			logger.Info("CoherenceCluster role spec is different to CoherenceRole spec and will be reset to match the cluster - diff:\n" + strings.Join(diff, "\n"))
+			effectiveRole.DeepCopyInto(&role.Spec)
+		} else {
+			// Update the cluster's Replicas count to match the role, which will cause this update to come around again.
+			clusterRole.SetReplicas(roleReplicas)
+			cluster.SetRole(clusterRole)
+			logger.Info(fmt.Sprintf("Reconciling existing Coherence Role - updating cluster's role Replicas from %d to %d", clusterReplicas, clusterRole.GetReplicas()))
+			err := r.client.Update(context.TODO(), cluster)
+			if err != nil {
+				return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
+			}
 		}
 	}
 
@@ -391,8 +403,6 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 
 	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
 	isUpgrade := r.isUpgrade(&existing.Spec, desiredRole)
-
-	// ToDo: If desiredReplicas == 0 then we must delete the CoherenceRole.
 
 	switch {
 	case currentReplicas < desiredReplicas:

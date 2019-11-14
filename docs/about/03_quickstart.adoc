@@ -78,9 +78,10 @@ metadata:
 
 The only required field is `metadata.name` which will be used as the Coherence cluster name, in this case `my-cluster`
 
-```
+[source]
+----
 kubectl -n <namespace> apply -f my-cluster.yaml
-```
+----
 
 NOTE: Use the same namespace that the operator was installed into,
 e.g. if the namespace is `coherence` the command would be
@@ -92,20 +93,22 @@ e.g. if the namespace is `coherence` the command would be
 After installing the `my-cluster.yaml` above here should be a single `coherencecluster` resource  named `my-cluster`
 and a single `coherencerole` resource named `my-cluster-storage` created in the Coherence Operator namespace.
 
-```
+[source]
+----
 kubectl -n <namespace> get coherencecluster
-```
+----
 
 NOTE: Use the same namespace that the operator was installed into, e.g. if the namespace is `coherence` the command
 would be `kubectl -n coherence get coherence`
 
-```
+[source]
+----
 NAME                                                    AGE
 coherencerole.coherence.oracle.com/my-cluster-storage   19s
 
 NAME                                               AGE
 coherencecluster.coherence.oracle.com/my-cluster   19s
-```
+----
 
 See the <<clusters/020_k8s_resources.adoc,in-depth documentation>> on the Kubernetes resources created by the
 Coherence Operator.
@@ -115,20 +118,22 @@ Coherence Operator.
 The Coherence Operator applies a `coherenceCluster` label to all
 of the `Pods` so this label can be used with the `kubectl` command to find `Pods` for a Coherence cluster.
 
-```
+[source]
+----
 kubectl -n <namespace> get pod -l coherenceCluster=my-cluster
-```
+----
 
 NOTE: Use the same namespace that the operator was installed into,
 e.g. if the namespace is `coherence` the command would be
 `kubectl -n coherence get pod -l coherenceCluster=my-cluster`
 
-```
+[source]
+----
 NAME                   READY   STATUS    RESTARTS   AGE
 my-cluster-storage-0   1/1     Running   0          2m58s
 my-cluster-storage-1   1/1     Running   0          2m58s
 my-cluster-storage-2   1/1     Running   0          2m58s
-```
+----
 
 The default cluster size is three so there should be three `Pods`
 
@@ -138,9 +143,10 @@ The default cluster size is three so there should be three `Pods`
 
 Using the `kubectl scale` command a specific `CoherenceRole` can be scaled up or down.
 
-```
+[source]
+----
 kubectl -n <namespace> scale coherencerole/storage --replicas=6
-```
+----
 
 NOTE: Use the same namespace that the operator was installed into,
 e.g. if the namespace is `coherence` the command would be
@@ -148,15 +154,17 @@ e.g. if the namespace is `coherence` the command would be
 
 === 3.2 List all of the `Pods` fo the Coherence cluster
 
-```
+[source]
+----
 kubectl -n <namespace> get pod -l coherenceCluster=my-cluster
-```
+----
 
 NOTE: Use the same namespace that the operator was installed into,
 e.g. if the namespace is `coherence` the command would be
 `kubectl -n coherence get pod -l coherenceCluster=my-cluster`
 
-```
+[source]
+----
 NAME                   READY   STATUS    RESTARTS   AGE
 my-cluster-storage-0   1/1     Running   0          4m23s
 my-cluster-storage-1   1/1     Running   0          4m23s
@@ -164,6 +172,6 @@ my-cluster-storage-2   1/1     Running   0          4m23s
 my-cluster-storage-3   1/1     Running   0          1m19s
 my-cluster-storage-4   1/1     Running   0          1m19s
 my-cluster-storage-5   1/1     Running   0          1m19s
-```
+----
 
 There should eventually be six running `Pods`.

@@ -9,6 +9,7 @@ package coherencerole
 import (
 	"context"
 	"fmt"
+	"github.com/go-test/deep"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -161,8 +162,6 @@ var _ = Describe("coherencerole_controller", func() {
 
 	When("a CoherenceRole is updated", func() {
 		BeforeEach(func() {
-			cluster = defaultCluster
-
 			imageOrig := "coherence:1.0"
 			imageNew := "coherence:2.0"
 			var replicas int32 = 3
@@ -192,6 +191,10 @@ var _ = Describe("coherencerole_controller", func() {
 					},
 				},
 			}
+
+			// The cluster would have the new role state
+			cluster = defaultCluster.DeepCopy()
+			roleNew.Spec.DeepCopyInto(&cluster.Spec.CoherenceRoleSpec)
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
@@ -228,7 +231,7 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
-				Expect(roleSpec).To(Equal(expected))
+				Expect(roleSpec).To(Equal(expected), fmt.Sprintf("Expected roles to match:\n%s", deep.Equal(roleSpec, expected)))
 			})
 		})
 	})
@@ -326,6 +329,10 @@ var _ = Describe("coherencerole_controller", func() {
 					ReadyReplicas:   2,
 				},
 			}
+
+			// The cluster would have the new role state
+			cluster = defaultCluster.DeepCopy()
+			roleNew.Spec.DeepCopyInto(&cluster.Spec.CoherenceRoleSpec)
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},

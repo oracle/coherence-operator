@@ -391,6 +391,9 @@ spec:
               description: The port that the health check endpoint will bind to.
               format: int32
               type: integer
+            hostIPC:
+              description: 'Use the host''s ipc namespace. Optional: Default to false.'
+              type: boolean
             imagePullSecrets:
               description: 'ImagePullSecrets is an optional list of references to
                 secrets in the same namespace to use for pulling any of the images
@@ -632,6 +635,63 @@ spec:
               type: object
             nameOverride:
               type: string
+            network:
+              description: Configure various networks and DNS settings for Pods in
+                this rolw.
+              properties:
+                dnsConfig:
+                  description: Specifies the DNS parameters of a pod. Parameters specified
+                    here will be merged to the generated DNS configuration based on
+                    DNSPolicy.
+                  properties:
+                    nameservers:
+                      description: A list of DNS name server IP addresses. This will
+                        be appended to the base nameservers generated from DNSPolicy.
+                        Duplicated nameservers will be removed.
+                      items:
+                        type: string
+                      type: array
+                    options:
+                      description: A list of DNS resolver options. This will be merged
+                        with the base options generated from DNSPolicy. Duplicated
+                        entries will be removed. Resolution options given in Options
+                        will override those that appear in the base DNSPolicy.
+                      items:
+                        type: object
+                      type: array
+                    searches:
+                      description: A list of DNS search domains for host-name lookup.
+                        This will be appended to the base search paths generated from
+                        DNSPolicy. Duplicated search paths will be removed.
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                dnsPolicy:
+                  description: Set DNS policy for the pod. Defaults to "ClusterFirst".
+                    Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default'
+                    or 'None'. DNS parameters given in DNSConfig will be merged with
+                    the policy selected with DNSPolicy. To have DNS options set along
+                    with hostNetwork, you have to specify DNS policy explicitly to
+                    'ClusterFirstWithHostNet'.
+                  type: string
+                hostAliases:
+                  description: HostAliases is an optional list of hosts and IPs that
+                    will be injected into the pod's hosts file if specified. This
+                    is only valid for non-hostNetwork pods.
+                  items:
+                    type: object
+                  type: array
+                hostNetwork:
+                  description: Host networking requested for this pod. Use the host's
+                    network namespace. If this option is set, the ports that will
+                    be used must be specified. Default to false.
+                  type: boolean
+                hostname:
+                  description: Specifies the hostname of the Pod If not specified,
+                    the pod's hostname will be set to a system-defined value.
+                  type: string
+              type: object
             nodeSelector:
               additionalProperties:
                 type: string
@@ -851,12 +911,23 @@ spec:
                       type: integer
                   type: object
               type: object
+            securityContext:
+              description: 'SecurityContext is the PodSecurityContext that will be
+                added to all of the Pods in this role. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/'
+              type: object
             serviceAccountName:
               description: The name to use for the service account to use when RBAC
                 is enabled The role bindings must already have been created as this
                 chart does not create them it just sets the serviceAccountName value
                 in the Pod spec.
               type: string
+            shareProcessNamespace:
+              description: 'Share a single process namespace between all of the containers
+                in a pod. When this is set containers will be able to view and signal
+                processes from other containers in the same pod, and the first process
+                in each container will not be assigned PID 1. HostPID and ShareProcessNamespace
+                cannot both be set. Optional: Default to false.'
+              type: boolean
             tolerations:
               description: 'Tolerations is for nodes that have taints on them.   Useful
                 if you want to dedicate nodes to just run the coherence container

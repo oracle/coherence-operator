@@ -55,6 +55,11 @@ PRE_RELEASE      ?= true
 # Coherence Operator chart
 PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 
+# The EFK images to use
+ELASTICSEARCH_IMAGE ?= docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
+FLUENTD_IMAGE       ?= fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
+KIBANA_IMAGE        ?= docker.elastic.co/kibana/kibana-oss:6.6.0
+
 # Extra arguments to pass to the go test command for the various test steps.
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
@@ -142,6 +147,9 @@ $(BUILD_PROPS):
 	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
 	UTILS_IMAGE=$(UTILS_IMAGE)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
+	ELASTICSEARCH_IMAGE=$(ELASTICSEARCH_IMAGE)\n\
+	FLUENTD_IMAGE=$(FLUENTD_IMAGE)\n\
+	KIBANA_IMAGE=$(KIBANA_IMAGE)\n\
 	PROMETHEUS_HELMCHART_VERSION=$(PROMETHEUS_HELMCHART_VERSION)\n\
 	VERSION_FULL=$(VERSION_FULL)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
@@ -268,6 +276,7 @@ e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBA
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
@@ -311,6 +320,7 @@ debug-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
 debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+debug-e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-local-test:
@@ -338,6 +348,7 @@ script-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_M
 script-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 script-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 script-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+script-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
@@ -373,6 +384,7 @@ e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
@@ -422,6 +434,7 @@ debug-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+debug-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-test:
@@ -447,6 +460,7 @@ helm-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
@@ -479,10 +493,10 @@ install-crds: uninstall-crds
 .PHONY: uninstall-crds
 uninstall-crds:
 	@echo "Removing CRDs"
-	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 	for i in $(CRDS); do \
 		(kubectl delete -f $${i} & ); \
 	done
+	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
 
 # ---------------------------------------------------------------------------
@@ -822,7 +836,7 @@ release-ghpages: helm-chart docs
 	git pull
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
-	cp -R $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
+	cp -r $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
 	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
@@ -836,7 +850,7 @@ ifeq (true, $(PRE_RELEASE))
 	git add charts-unstable/*
 else
 	mkdir docs/$(VERSION_FULL) || true
-	cp -R $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
+	cp -r $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
 	ls -ls docs
 
 	mkdir -p charts || true
@@ -885,3 +899,64 @@ release: build-all-images release-tag release-ghpages
 else
 release: build-all-images release-tag release-ghpages push-release-images
 endif
+
+
+# ---------------------------------------------------------------------------
+# Initialise a Kind k8s cluster
+# ---------------------------------------------------------------------------
+.PHONY: kind-up
+kind-up: kind-create-cluster kind-upload-coherence kind-upload-operator kind-upload-efk
+
+.PHONY: kind-create-cluster
+export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+export UTILS_IMAGE := $(UTILS_IMAGE)
+export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+kind-create-cluster:
+	./hack/start-kind.sh
+
+.PHONY: kind-upload-coherence
+export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+export UTILS_IMAGE := $(UTILS_IMAGE)
+export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+kind-upload-coherence:
+	docker pull "${HELM_COHERENCE_IMAGE}"
+	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${HELM_COHERENCE_IMAGE}"
+
+.PHONY: kind-upload-operator
+export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+export UTILS_IMAGE := $(UTILS_IMAGE)
+export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+kind-upload-operator:
+	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${OPERATOR_IMAGE}"
+	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${UTILS_IMAGE}"
+	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${TEST_USER_IMAGE}"
+
+.PHONY: kind-upload-efk
+export ELASTICSEARCH_IMAGE := $(ELASTICSEARCH_IMAGE)
+export FLUENTD_IMAGE := $(FLUENTD_IMAGE)
+export KIBANA_IMAGE := $(KIBANA_IMAGE)
+kind-upload-efk:
+#	docker pull ${ELASTICSEARCH_IMAGE}
+#	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${ELASTICSEARCH_IMAGE}"
+	docker pull ${FLUENTD_IMAGE}
+	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${FLUENTD_IMAGE}"
+#	docker pull ${KIBANA_IMAGE}
+#	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${KIBANA_IMAGE}"
+
+# ---------------------------------------------------------------------------
+# Clean-up a Kind k8s cluster
+# ---------------------------------------------------------------------------
+.PHONY: kind-init
+kind-down:
+	kind delete cluster --name operator-test || true
+	unset KUBECONFIG || true
+
+# ---------------------------------------------------------------------------
+# List all of the targets in the Makefile
+# ---------------------------------------------------------------------------
+.PHONY: list
+list:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
