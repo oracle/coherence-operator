@@ -1,0 +1,179 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Scaling Roles
+
+== Scaling Roles
+
+For various reasons it is sometimes desirable to scale up or down the number of members of a Coherence cluster.
+Whilst it has always been simple to add new members to a cluster (scale up) it needs care when removing members
+(scale down) so that data is not lost. The Coherence Operator makes both of these operations simple by properly
+managing safe scale down.
+
+As already described, a cluster managed by the Coherence Operator is made up of roles, whether that is a single implicit
+role or one or more explicit roles. The member count of a role is controlled by the role's `replicas` field and the
+Coherence Operator manages scaling at the role level by monitoring changes to the `replicas` field for a role.
+Individual roles in a cluster can be scaled up or down independently (and without affecting) other roles in the cluster.
+
+=== Scale Up
+
+By default operations that scale up a cluster will add members in parallel. Adding members to a role is a safe operation
+and will not result in data loss so adding in parallel will scale up faster. This can be important if a cluster is under
+heavy load and members need to be added quickly to keep the cluster healthy.
+
+=== Scale Down
+
+By default when scaling down the Coherence Operator will remove members safely to ensure no data loss. Before removing
+a member from a role the operator will check that the cluster is STatus HA (this is, no partitions are endangered) and
+only then will a member be removed. In this way members are removed one at a time, which can be slow if scaling down by
+a large number but the slowness is outweighed by the fact that there will be no data loss.
+
+==== Storage Disabled Roles
+
+When scaling down a storage disabled role the default will be to remove members in parallel. If a role is storage
+disabled (i.e. the role's `coherence.storageEnabled` field is set to `false`) then scaling down is parallel is safe as
+those members are not managing data that might be lost.
+
+=== Scale Down to Zero
+
+Scaling down a role to have a replica count of zero is a special case which basically tells the Coherence Operator to
+effectively un-deploy that role from the cluster. Scaling to zero will terminate all of the `Pods` of a role at the
+same time. Obviously if the members of the role are storage enabled and persistence is not used then data will be lost.
+
+Scaling down to zero is a way to remove all of the members of a role from a cluster without actually deleting the role
+or cluster yaml from the Kubernetes cluster. This could be useful for example in cases where a role is used for a
+one-off purpose such as data loading where it can run and then after completion be scaled back to zero until it is
+required again when it can be scaled back up.
+
+
+=== Scaling Policy
+
+Whether a role is scaled up or down in parallel or safely is controlled by the `scaling.policy` field of the role's
+spec. This is described in detail in the
+<<clusters/085_safe_scaling.adoc,Scaling section of the CoherenceCluster CRD documentation>>
+
+
+== The Mechanics of Scaling
+
+There are two ways to scale a role within a cluster; update the `replicas` field in the cluster `yaml`/`json` or
+use the `kubectl scale` command to scale a specific role.
+
+For example:
+
+A Coherence cluster can be defined in a `.yaml` file called `test-cluster.yaml` like this:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: storage
+      replicas: 6
+    - role: http
+      replicas: 2
+----
+
+The cluster can be created in Kubernetes using `kubectl`:
+[source]
+----
+kubectl create -f test-cluster.yaml
+----
+
+After the cluster has started the roles in the cluster can be listed:
+[source]
+----
+kubectl get coherenceroles
+----
+...which might display something like the following:
+[source]
+----
+NAME                   ROLE      CLUSTER        REPLICAS   READY   STATUS
+test-cluster-http      http      test-cluster   2          2       Ready
+test-cluster-storage   storage   test-cluster   6          6       Ready
+----
+
+As defined in the `yaml` the `test-cluster` has two roles `test-cluster-http` and `test-cluster-storage`.
+
+=== Update the CoherenceCluster YAML
+
+To scale up the `storage` role to nine members one option would be to update the yaml:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  roles:
+    - role: storage
+      replicas: 9        #<1>
+    - role: http
+      replicas: 2
+----
+
+The `storage` role now has `replicas` set to `9` so re-apply the `yaml` Kubernetes using `kubectl`:
+[source]
+----
+kubectl apply -f test-cluster.yaml
+----
+...after the new `Pods` have started listing the roles might look like this:
+[source]
+----
+kubectl get coherenceroles
+----
+
+[source]
+----
+NAME                   ROLE      CLUSTER        REPLICAS   READY   STATUS
+test-cluster-http      http      test-cluster   2          2       Ready
+test-cluster-storage   storage   test-cluster   9          9       Ready
+----
+
+
+=== Use the kubectl scale Command
+
+The `kubectl` CLI offers a simple way to scale a Kubernetes resource providing that the resource is properly configured
+to allow this (which the Coherence CRDs are).
+
+Continuing the example if the `storage` role is to now be scale down from nine back to six then `kubectl` can be used as follows:
+
+[source]
+----
+kubectl scale coherencerole test-cluster-storage --replicas=6
+----
+
+The Coherence Operator will now scale the `storage` role down by removing one member at a time until the desired replica
+count is reached. Eventually listing the roles will show the desried state:
+
+[source]
+----
+kubectl get coherenceroles
+----
+
+[source]
+----
+NAME                   ROLE      CLUSTER        REPLICAS   READY   STATUS
+test-cluster-http      http      test-cluster   2          2       Ready
+test-cluster-storage   storage   test-cluster   6          6       Ready
+----
