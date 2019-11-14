@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	stubs "github.com/oracle/coherence-operator/pkg/fakes"
@@ -78,7 +79,7 @@ var _ = Describe("coherencecluster_controller", func() {
 				mgr.AssertCoherenceRoles(testNamespace, 1)
 				name := cluster.Spec.CoherenceRoleSpec.GetFullRoleName(cluster)
 				role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-				Expect(role.Spec).To(Equal(coherence.CoherenceRoleSpec{}))
+				Expect(role.Spec).To(Equal(coherence.CoherenceRoleSpec{Replicas: pointer.Int32Ptr(coherence.DefaultReplicas)}))
 			})
 
 			It("should fire a successful CoherenceRole create event", func() {
@@ -149,7 +150,9 @@ var _ = Describe("coherencecluster_controller", func() {
 				mgr.AssertCoherenceRoles(testNamespace, 1)
 				name := roleSpec.GetFullRoleName(cluster)
 				role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-				Expect(role.Spec).To(Equal(roleSpec))
+				expected := roleSpec.DeepCopy()
+				expected.SetReplicas(coherence.DefaultReplicas)
+				Expect(role.Spec).To(Equal(*expected))
 			})
 		})
 	})
@@ -220,13 +223,17 @@ var _ = Describe("coherencecluster_controller", func() {
 			It("should create a CoherenceRole for the first role", func() {
 				name := roleSpecOne.GetFullRoleName(cluster)
 				role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-				Expect(role.Spec).To(Equal(roleSpecOne))
+				expected := roleSpecOne.DeepCopy()
+				expected.SetReplicas(coherence.DefaultReplicas)
+				Expect(role.Spec).To(Equal(*expected))
 			})
 
 			It("should create a CoherenceRole for the second role", func() {
 				name := roleSpecTwo.GetFullRoleName(cluster)
 				role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-				Expect(role.Spec).To(Equal(roleSpecTwo))
+				expected := roleSpecTwo.DeepCopy()
+				expected.SetReplicas(coherence.DefaultReplicas)
+				Expect(role.Spec).To(Equal(*expected))
 			})
 		})
 	})
@@ -320,7 +327,9 @@ var _ = Describe("coherencecluster_controller", func() {
 					mgr.AssertCoherenceRoles(testNamespace, 1)
 					name := existingRoleSpec.GetFullRoleName(cluster)
 					role := mgr.AssertCoherenceRoleExists(testNamespace, name)
-					Expect(role.Spec).To(Equal(updatedRoleSpec))
+					expected := updatedRoleSpec.DeepCopy()
+					expected.SetReplicas(coherence.DefaultReplicas)
+					Expect(role.Spec).To(Equal(*expected))
 				})
 
 				It("should fire a successful CoherenceRole update event", func() {
@@ -426,7 +435,8 @@ var _ = Describe("coherencecluster_controller", func() {
 						Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 					},
 					Spec: coherence.CoherenceRoleSpec{
-						Role: "storage",
+						Role:     "storage",
+						Replicas: pointer.Int32Ptr(2),
 					},
 				}
 
@@ -437,7 +447,8 @@ var _ = Describe("coherencecluster_controller", func() {
 						Labels:    map[string]string{coherence.CoherenceClusterLabel: testClusterName},
 					},
 					Spec: coherence.CoherenceRoleSpec{
-						Role: "proxy",
+						Role:     "proxy",
+						Replicas: pointer.Int32Ptr(2),
 					},
 				}
 
