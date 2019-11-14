@@ -5,7 +5,6 @@ metadata:
 spec:
   roles:
   - role: one
-    replicas: 2
     scaling:
       policy: Parallel
     readinessProbe:
