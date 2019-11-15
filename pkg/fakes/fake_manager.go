@@ -51,7 +51,7 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 
 	options := manager.Options{
 		Namespace:      helper.GetTestNamespace(),
-		MapperProvider: apiutil.NewDiscoveryRESTMapper,
+		MapperProvider: restMapper,
 		LeaderElection: false,
 	}
 
@@ -67,6 +67,8 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 
 	return &mgr, nil
 }
+
+var restMapper = apiutil.NewDiscoveryRESTMapper
 
 type FakeManager struct {
 	Scheme *runtime.Scheme

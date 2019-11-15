@@ -400,7 +400,9 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.CoherenceCluster) (map[string]coherence.CoherenceRoleSpec, []string) {
 	defaultSpec := cluster.Spec.CoherenceRoleSpec
 	if len(cluster.Spec.Roles) == 0 {
-		return map[string]coherence.CoherenceRoleSpec{defaultSpec.GetRoleName(): defaultSpec}, []string{defaultSpec.GetRoleName()}
+		clone := *defaultSpec.DeepCopy()
+		clone.SetReplicas(clone.GetReplicas())
+		return map[string]coherence.CoherenceRoleSpec{clone.GetRoleName(): clone}, []string{clone.GetRoleName()}
 	}
 
 	m := make(map[string]coherence.CoherenceRoleSpec)
@@ -408,6 +410,12 @@ func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.Coherence
 	index := 0
 	for _, role := range cluster.Spec.Roles {
 		clone := role.DeepCopyWithDefaults(&defaultSpec)
+
+		// Ensure that the role specifically has a replica value set.
+		// The original yaml may not have had a replicas field but some versions of kubectl scale
+		// will not work if the field is missing.
+		clone.SetReplicas(clone.GetReplicas())
+
 		names[index] = role.GetRoleName()
 		m[names[index]] = *clone
 		index++
