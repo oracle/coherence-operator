@@ -64,8 +64,8 @@ KIBANA_IMAGE        ?= docker.elastic.co/kibana/kibana-oss:6.6.0
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
 #   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
-GO_TEST_FLAGS     ?=
-GO_TEST_FLAGS_E2E := -timeout=100m $(GO_TEST_FLAGS)
+GO_TEST_FLAGS     ?= -timeout=20m
+GO_TEST_FLAGS_E2E := -timeout=100m
 
 # This is the Coherence image that will be used in the Go tests.
 # Changing this variable will allow test builds to be run against differet Coherence versions
