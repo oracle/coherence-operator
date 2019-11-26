@@ -18,11 +18,39 @@
 
 = Overview
 
-This comprehensive example shows how to build applications using the Coherence Operator.
+This section includes links to a number of examples which uses the Coherence Operator.
 
 == Examples Overview
 
-TBC - We will have a description of the examples and then a link to the
-GitHub repository which will have the full example in details and README.md.
+There are a number of examples which show you how to build and deploy applications for the Coherence Operator.
+
+=== 1. Deployment Example
+
+This example showcases how to deploy Coherence applications using the Coherence Operator.
+
+The following scenarios are covered:
+
+1. Installing the Coherence Operator
+1. Installing a Coherence cluster
+1. Deploying a Proxy tier
+1. Deploying an storage-disabled application
+1. Enabling Active Persistence
+
+After the initial install of the Coherence cluster, the following examples build on the previous ones by issuing a kubectl apply to modify the install adding additional roles.
+
+Please see https://github.com/oracle/coherence-operator/tree/master/examples/deployment[GitHub] for full instructions.
+
+=== 2. Coherence Demo
+
+The Coherence Demonstration application is an application which demonstrates various Coherence
+related features such include Persistence, Federation and Lambda support.  This demonstration
+can run stand alone but can also be installed on the Coherence Operator.
+
+When installed using the Coherence Operator, the setup includes two Coherence Clusters, in the same Kubernetes cluster,
+which are configured with Active/Active Federation.
+
+image::../images/coherence-demo.png[Service Details,width="950",align="center"]
+
+Please see https://github.com/coherence-community/coherence-demo[The Coherence Demo GitHub project] for full instructions.
 
 

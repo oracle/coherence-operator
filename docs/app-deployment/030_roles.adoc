@@ -18,6 +18,9 @@
 
 = Using Application Roles
 
-TBC
+A Coherence cluster can be made up of a number of Pods that perform different roles.
 
 == Defining and using application roles.
+
+Please refer to <<about/02_concepts.adoc,Coherence Operator Concepts>> for detailed information on
+using Application Roles.
