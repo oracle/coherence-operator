@@ -109,6 +109,14 @@ backend:
               items:
                 - includes:
                     - "clusters/*.adoc"
+            - title: "Examples"
+              pathprefix: "/examples"
+              glyph:
+                type: "icon"
+                value: "explore"
+              items:
+                - includes:
+                    - "examples/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Slack"
