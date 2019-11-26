@@ -40,7 +40,7 @@ After the initial install of the Coherence cluster, the following examples build
 
 Please see https://github.com/oracle/coherence-operator/tree/master/examples/deployment[GitHub] for full instructions.
 
-==== 2. Coherence Demo
+=== 2. Coherence Demo
 
 The Coherence Demonstration application is an application which demonstrates various Coherence
 related features such include Persistence, Federation and Lambda support.  This demonstration
