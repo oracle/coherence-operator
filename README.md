@@ -22,12 +22,12 @@ Oracle enables organizations using Coherence to move their clusters into the clo
 * Use popular industry standard tools such as Grafana, ELK (or more specifically the Elasticsearch, Fluentd and Kibana (EFK) stack), and Prometheus to monitor the performance, logs, and health of your clusters.
 
 -------
-The current release of the operator is 2.0.0
+The current release of the operator is 2.0.2
 
-Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/2.0.0)
+Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/2.0.2)
 
 The fastest way to experience the operator is to follow the 
-[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.0/#/about/03_quickstart).
+[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.2/#/about/03_quickstart).
 -------
 
 # Need more help? Have a suggestion? Come and say "Hello!"
