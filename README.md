@@ -27,7 +27,7 @@ The current release of the operator is 2.0.2
 Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/2.0.2)
 
 The fastest way to experience the operator is to follow the 
-[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.0/#/about/03_quickstart).
+[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.2/#/about/03_quickstart).
 -------
 
 # Need more help? Have a suggestion? Come and say "Hello!"
