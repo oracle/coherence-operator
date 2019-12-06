@@ -751,7 +751,7 @@ delete-coherence-clusters:
 # ---------------------------------------------------------------------------
 $(BUILD_OUTPUT)/bin/golangci-lint:
 	@mkdir -p $(BUILD_OUTPUT)/bin
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_OUTPUT)/bin v1.17.1
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_OUTPUT)/bin v1.21.0
 
 # ---------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
@@ -790,10 +790,12 @@ copyright:
 	  -X LICENSE.txt \
 	  -X Makefile \
 	  -X .md \
+	  -X sdk/ \
 	  -X .sh \
 	  -X temp/ \
 	  -X /test-report.xml \
 	  -X THIRD_PARTY_LICENSES.txt \
+	  -X tools.go \
 	  -X .tpl \
 	  -X .yaml \
 	  -X zz_generated.

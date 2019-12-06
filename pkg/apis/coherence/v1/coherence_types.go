@@ -526,7 +526,7 @@ type SSLSpec struct {
 	// Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
 	//   when configuring component over REST to use SSL.
 	// +optional
-	KeyStore *string `json:"keyStore,omitemtpy"`
+	KeyStore *string `json:"keyStore,omitempty"`
 	// KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore
 	//   password when configuring component over REST to use SSL.
 	// +optional
