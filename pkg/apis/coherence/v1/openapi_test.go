@@ -33,7 +33,7 @@ const crdBase = "../../../../deploy/crds/"
 func TestCoherenceClusterOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceclusters_crd")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceclusters_crd.yaml")
 
 	// This is the minimal valid spec for a CoherenceCluster.
 	// This structure should be valid against the CRD spec
