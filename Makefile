@@ -41,6 +41,7 @@ GOPROXY         ?= https://proxy.golang.org
 UNAME_S      = $(shell uname -s)
 UNAME_M      = $(shell uname -m)
 OPERATOR_SDK = $(CURRDIR)/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
+OP_CHMOD     := $(shell chmod +x $(OPERATOR_SDK))
 
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
