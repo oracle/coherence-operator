@@ -182,12 +182,7 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx.AddCleanupFn(func() error {
-		deleteCluster(cluster.Namespace, cluster.Name)
-		return nil
-	})
-
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer cleanup(t, namespace, cluster.Name, ctx)
 
 	//Give the cluster a unique name based on the test name
 	cluster.SetName(fmt.Sprintf("%s-%d", cluster.GetName(), uid))

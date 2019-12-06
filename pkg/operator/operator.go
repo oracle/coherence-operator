@@ -15,12 +15,12 @@ import (
 	"github.com/oracle/coherence-operator/pkg/flags"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
 	"io/ioutil"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"os"
 	"path/filepath"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	crdclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"

@@ -37,6 +37,11 @@ OS              ?= linux
 UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
 
+# Set the location of the Operator SDK executable
+UNAME_S      = $(shell uname -s)
+UNAME_M      = $(shell uname -m)
+OPERATOR_SDK = $(CURRDIR)/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
+
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 # The Coherence image name to inject into the Helm chart
@@ -171,7 +176,7 @@ $(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence $(CHART_D
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	operator-sdk build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
+	$(OPERATOR_SDK) build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator copy artifacts utility
@@ -282,7 +287,7 @@ e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
+	$(OPERATOR_SDK) test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
@@ -324,7 +329,7 @@ debug-e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-local-test:
-	operator-sdk test local ./test/e2e/local \
+	$(OPERATOR_SDK) test local ./test/e2e/local \
 	    --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags \
 		"$(GO_TEST_FLAGS_E2E)" --no-setup
@@ -353,7 +358,7 @@ script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/script --namespace $(TEST_NAMESPACE) --up-local \
+	$(OPERATOR_SDK) test local ./test/e2e/script --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
@@ -389,7 +394,7 @@ e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
@@ -438,7 +443,7 @@ debug-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-test:
-	operator-sdk test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
 
@@ -464,7 +469,7 @@ helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
-	operator-sdk test local ./test/e2e/helm --namespace $(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) test local ./test/e2e/helm --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
 		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-helm-test.out
 	$(MAKE) uninstall-crds
@@ -509,9 +514,9 @@ uninstall-crds:
 .PHONY: generate
 generate:
 	@echo "Generating deep copy code"
-	operator-sdk generate k8s
+	$(OPERATOR_SDK) generate k8s
 	@echo "Generating Open API code and CRDs"
-	operator-sdk generate openapi
+	$(OPERATOR_SDK) generate openapi
 
 # ---------------------------------------------------------------------------
 # Clean-up all of the build artifacts
@@ -680,7 +685,7 @@ build-all: build-mvn build-operator
 # ---------------------------------------------------------------------------
 .PHONY: run
 run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets uninstall-crds
-	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -695,7 +700,7 @@ run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets uninstall-crds
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets uninstall-crds
-	operator-sdk up local --namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) up local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out

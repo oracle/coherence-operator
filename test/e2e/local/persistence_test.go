@@ -22,7 +22,7 @@ import (
 	"k8s.io/klog"
 	"net/http"
 	"os"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
 	"testing"
 	"time"

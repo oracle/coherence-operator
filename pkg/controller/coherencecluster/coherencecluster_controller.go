@@ -24,9 +24,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 	"sync"
@@ -70,7 +70,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileCoherenceCluster{
 		client:        mgr.GetClient(),
 		scheme:        mgr.GetScheme(),
-		events:        mgr.GetRecorder(controllerName),
+		events:        mgr.GetEventRecorderFor(controllerName),
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
 	}
@@ -427,16 +427,10 @@ func (r *ReconcileCoherenceCluster) getDesiredRoles(cluster *coherence.Coherence
 func (r *ReconcileCoherenceCluster) findExistingRoles(clusterName string, namespace string, roles map[string]coherence.CoherenceRole) error {
 	list := &coherence.CoherenceRoleList{}
 
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
+	labels := client.MatchingLabels{}
+	labels[coherence.CoherenceClusterLabel] = clusterName
 
-	err := opts.SetLabelSelector(coherence.CoherenceClusterLabel + "=" + clusterName)
-	if err != nil {
-		return err
-	}
-
-	err = r.client.List(context.TODO(), &opts, list)
+	err := r.client.List(context.TODO(), list, client.InNamespace(namespace), labels)
 	if err != nil {
 		return err
 	}
