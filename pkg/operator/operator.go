@@ -13,11 +13,11 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/pkg/flags"
-	cohrest "github.com/oracle/coherence-operator/pkg/rest"
 	"io/ioutil"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -33,6 +33,12 @@ const (
 	// configName is the name of the internal Coherence Operator configuration secret.
 	configName = "coherence-operator-config"
 )
+
+var restHostAndPort string
+
+func SetHostAndPort(hostAndPort string) {
+	restHostAndPort = hostAndPort
+}
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureCRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, log logr.Logger) error {
@@ -122,18 +128,15 @@ func EnsureCRDsUsingClient(mgr manager.Manager, cohFlags *flags.CoherenceOperato
 }
 
 // EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func EnsureOperatorSecret(namespace string, mgr manager.Manager, server cohrest.Server, cohFlags *flags.CoherenceOperatorFlags, log logr.Logger) error {
+func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) error {
 	log.Info("Ensuring configuration secret")
 
-	client := mgr.GetClient()
-
-	err := client.Get(context.TODO(), types.NamespacedName{Name: configName, Namespace: namespace}, &corev1.Secret{})
+	err := c.Get(context.TODO(), types.NamespacedName{Name: configName, Namespace: namespace}, &corev1.Secret{})
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 
-	hostAndPort := server.GetHostAndPort(cohFlags)
-	log.Info("Operator Configuration: 'operatorhost' value set to " + hostAndPort)
+	log.Info("Operator Configuration: 'operatorhost' value set to " + restHostAndPort)
 
 	secret := &corev1.Secret{}
 	secret.SetNamespace(namespace)
@@ -143,16 +146,16 @@ func EnsureOperatorSecret(namespace string, mgr manager.Manager, server cohrest.
 		secret.StringData = make(map[string]string)
 	}
 
-	secret.StringData["operatorhost"] = hostAndPort
+	secret.StringData["operatorhost"] = restHostAndPort
 
 	if errors.IsNotFound(err) {
 		// for some reason we're getting here even if the secret exists so delete it!!
-		_ = client.Delete(context.TODO(), secret)
+		_ = c.Delete(context.TODO(), secret)
 		log.Info("Creating secret " + configName + " in namespace " + namespace)
-		err = client.Create(context.TODO(), secret)
+		err = c.Create(context.TODO(), secret)
 	} else {
 		log.Info("Updating secret " + configName + " in namespace " + namespace)
-		err = client.Update(context.TODO(), secret)
+		err = c.Update(context.TODO(), secret)
 	}
 
 	return err

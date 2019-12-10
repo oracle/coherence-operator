@@ -13,6 +13,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -251,6 +252,11 @@ type params struct {
 
 // createRole create a new cluster role.
 func (r *ReconcileCoherenceCluster) createRole(p params) error {
+	//ensure that the configuration secret exists in the new cluster's namespace
+	if err := operator.EnsureOperatorSecret(p.cluster.Namespace, r.client, log); err != nil {
+		return err
+	}
+
 	fullName := p.desiredRole.GetFullRoleName(p.cluster)
 
 	logger := p.reqLogger.WithValues("Role", fullName)

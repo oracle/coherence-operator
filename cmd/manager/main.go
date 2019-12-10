@@ -173,11 +173,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ensure that the configuration secret exists
-	if err := operator.EnsureOperatorSecret(namespace, mgr, restServer, cohf, log); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
+	operator.SetHostAndPort(restServer.GetHostAndPort(cohf))
 
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 

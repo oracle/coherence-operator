@@ -341,6 +341,8 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	roleReplicas := role.Spec.GetReplicas()
 	// Get the effective role - what the role spec should be according to the Cluster spec
 	effectiveRole := clusterRole.DeepCopyWithDefaults(&cluster.Spec.CoherenceRoleSpec)
+	effectiveRole.SetReplicas(effectiveRole.GetReplicas())
+
 	if !reflect.DeepEqual(effectiveRole, &role.Spec) {
 		// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
 		// been caused by a direct update to the CoherenceRole, even though we really discourage that.
