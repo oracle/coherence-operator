@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
+	"strings"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -370,14 +371,14 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	roles := &coh.CoherenceRoleList{}
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		err = f.Client.List(goctx.TODO(), roles, client.InNamespace(namespace))
-		if err == nil {
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(roles.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceRole resources\n", len(roles.Items))
 				return false, nil
 			}
 			return true, nil
 		} else {
-			fmt.Printf("Error waiting for deletion of CoherenceRole resources: %s\n", err.Error())
+			fmt.Printf("Error waiting for deletion of CoherenceRole resources: %s\n%v\n", err.Error(), err)
 			return false, nil
 		}
 	})
@@ -387,7 +388,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	// Wait for removal of the CoherenceInternals
 	err = wait.Poll(time.Second*5, time.Minute*1, func() (done bool, err error) {
 		err = f.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
-		if err == nil {
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(uList.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(uList.Items))
 				return false, nil
@@ -401,7 +402,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// List and print the remaining CoherenceInternals
 	err = f.Client.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
-	if err != nil {
+	if err != nil && !isNoResources(err) && !errors.IsNotFound(err) {
 		fmt.Printf("Error listing CoherenceInternal resources - %s\n", err.Error())
 	} else {
 		if len(uList.Items) > 0 {
@@ -440,6 +441,10 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	})
 
 	return err
+}
+
+func isNoResources(err error) bool {
+	return err != nil && strings.HasPrefix(err.Error(), "no matches for kind")
 }
 
 // WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
