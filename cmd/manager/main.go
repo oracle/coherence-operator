@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
+	"k8s.io/klog"
 	"net/http"
 	"os"
 	"runtime"
@@ -81,12 +82,21 @@ func main() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
 	// >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
+
+	// ensure that klog always logs to the console
+	klog.InitFlags(flag.CommandLine)
+	if err := flag.CommandLine.Set("logtostderr", "true"); err != nil {
+		fmt.Println(err)
+		log.Error(err, "Failed to get set logtostderr command line flag")
+		os.Exit(1)
+	}
+
 	// create Coherence Operator flags
 	cohf := flags.AddTo(pflag.CommandLine)
 
 	// create Helm Operator flags
 	hflags := hoflags.AddTo(pflag.CommandLine)
-	fmt.Println(hflags)
+
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 	pflag.Parse()
