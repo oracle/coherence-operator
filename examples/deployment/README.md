@@ -152,7 +152,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:2.0.3
+deployment-example:2.0.4
 ```
 ## Install the Coherence Operator
 

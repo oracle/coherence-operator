@@ -47,7 +47,7 @@ By default the version number used to tag the Docker images and Helm charts is s
 in the `Makefile` and in the `pom.xml` files in the `java/` directory.
 
 The `Makefile` also contains a `VERSION_SUFFIX` variable that is used to add a suffix to the build. By default
-this suffix is `ci` so the default version of the build artifacts is `2.0.3-ci`. Change this suffix, for
+this suffix is `ci` so the default version of the build artifacts is `2.0.4-ci`. Change this suffix, for
 example when building a release candidate or a full release.
 
 For example, if building a release called `alpha2` the following command can be used:
