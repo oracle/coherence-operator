@@ -18,7 +18,6 @@ const (
 	utilsDirEnv             = "UTIL_DIR"
 	utilsDirDefault         = pathSep + "utils"
 	filesDir                = pathSep + "files"
-	snapshotDir             = pathSep + "snapshot"
 	persistenceDir          = pathSep + "persistence"
 	persistenceActiveDir    = persistenceDir + pathSep + "active"
 	persistenceTrashDir     = persistenceDir + pathSep + "trash"
@@ -89,7 +88,7 @@ func main() {
 		}
 	}
 
-	dirNames := []string{snapshotDir, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+	dirNames := []string{persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
 	for _, dirName := range dirNames {
 		fmt.Printf("Creating directory %s\n", dirName)
 		err = os.MkdirAll(dirName, os.ModePerm)
