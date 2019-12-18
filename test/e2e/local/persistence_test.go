@@ -42,21 +42,21 @@ const (
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the cluster,
 // re-deploy the cluster and assert that the data is recovered.
 func TestActivePersistence(t *testing.T) {
-	assertPersistence("persistence-active.yaml", "persistence-volume", false, false,true, t)
+	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
 }
 
 // Deploy a CoherenceCluster with the minimal default configuration. Persistence will be on-demand.
 // Put data in a cache, take a snapshot, delete the data, recover the snapshot,
 // assert that the data is recovered.
 func TestOnDemandPersistence(t *testing.T) {
-	assertPersistence("persistence-on-demand.yaml", "", true, true,false, t)
+	assertPersistence("persistence-on-demand.yaml", "", true, true, false, t)
 }
 
 // Deploy a CoherenceCluster with snapshot enabled. Persistence will be on-demand,
 // a PVC will be created for the StatefulSet to use for snapshots. Put data in a cache, take a snapshot,
 // delete the cluster, re-deploy the cluster, recover the snapshot, assert that the data is recovered.
 func TestSnapshotPersistence(t *testing.T) {
-	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false,true, t)
+	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false, true, t)
 }
 
 func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isRestart bool, t *testing.T) {
@@ -86,7 +86,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 				if vol.PersistentVolumeClaim != nil {
 					pvcName = vol.PersistentVolumeClaim.ClaimName
 				}
-				break;
+				break
 			}
 		}
 
@@ -121,13 +121,14 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	}
 	// restart Coherence may be on a different instance, local storage will not work
 	if isRestart && !localStorageRestart {
+		// dump the pod logs before deleting
+		helper.DumpPodsForTest(t, ctx)
 		// delete the cluster
-		helper.WaitForCoherenceInternalCleanup(f, ns)
+		err = helper.WaitForCoherenceInternalCleanup(f, ns)
+		g.Expect(err).NotTo(HaveOccurred())
 
 		// re-deploy the cluster
 		cluster, pods = ensureClusterPods(g, ctx, yamlFile, ns, t)
-		// capture the Pod log in case we need it for debugging
-		helper.DumpPodLog(f.KubeClient, &pods[0], t.Name(), t)
 	}
 
 	if isSnapshot {
@@ -168,9 +169,6 @@ func ensureClusterPods(g *GomegaWithT, ctx *framework.TestCtx, yamlFile, ns stri
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).Should(BeNumerically(">", 0))
 
-	// capture the Pod log in case we need it for debugging
-	helper.DumpPodLog(f.KubeClient, &pods[0], t.Name(), t)
-
 	return cluster, pods
 }
 
@@ -194,13 +192,14 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 
 	client := &http.Client{}
 	var resp *http.Response
+	var req *http.Request
 	// try a max of 5 times
 	for i := 0; i < 5; i++ {
-		req, err := http.NewRequest(httpMethod, url, nil)
+		req, err = http.NewRequest(httpMethod, url, nil)
 		if err == nil {
 			resp, err = client.Do(req)
 			if err == nil {
-				break;
+				break
 			}
 		}
 		time.Sleep(5 * time.Second)
@@ -212,7 +211,7 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("snapshot request returned non-200 status %d", resp.StatusCode)
-    }
+	}
 
 	// wait for idle
 	err = wait.Poll(helper.RetryInterval, helper.Timeout, func() (done bool, err error) {

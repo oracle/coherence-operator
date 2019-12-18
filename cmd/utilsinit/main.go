@@ -16,8 +16,10 @@ import (
 const (
 	pathSep                 = string(os.PathSeparator)
 	utilsDirEnv             = "UTIL_DIR"
+	clusterEnv              = "COH_CLUSTER_NAME"
 	utilsDirDefault         = pathSep + "utils"
 	filesDir                = pathSep + "files"
+	snapshotDir             = pathSep + "snapshot"
 	persistenceDir          = pathSep + "persistence"
 	persistenceActiveDir    = persistenceDir + pathSep + "active"
 	persistenceTrashDir     = persistenceDir + pathSep + "trash"
@@ -89,6 +91,17 @@ func main() {
 	}
 
 	dirNames := []string{persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+
+	_, err = os.Stat(snapshotDir)
+	if err == nil {
+		// if "/snapshot" exists then we'll create the cluster snapshot directory
+		clusterName := os.Getenv(clusterEnv)
+		if clusterName != "" {
+			snapshotClusterDir := pathSep + "snapshot" + pathSep + clusterName
+			dirNames = append(dirNames, snapshotClusterDir)
+		}
+	}
+
 	for _, dirName := range dirNames {
 		fmt.Printf("Creating directory %s\n", dirName)
 		err = os.MkdirAll(dirName, os.ModePerm)
