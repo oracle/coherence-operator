@@ -502,7 +502,14 @@ func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory stri
 			name := logs + pathSep + directory
 			err = os.MkdirAll(name, os.ModePerm)
 			if err == nil {
+				suffix := 0
 				logName := fmt.Sprintf("%s%s%s(%s).log", name, pathSep, pod.Name, container.Name)
+				_, err = os.Stat(logName)
+				for err == nil {
+					suffix++
+					logName = fmt.Sprintf("%s%s%s(%s)-%d.log", name, pathSep, pod.Name, container.Name, suffix)
+					_, err = os.Stat(logName)
+				}
 				out, err := os.Create(logName)
 				if err == nil {
 					_, err = io.Copy(out, s)
@@ -635,8 +642,11 @@ func DumpOperatorLogsAndCleanup(t *testing.T, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
 	if err == nil {
 		DumpOperatorLog(framework.Global.KubeClient, namespace, t.Name(), t)
+		DumpState(namespace, t.Name(), t)
+	} else {
+		t.Logf("Could not dump logs and state\n")
+		t.Log(err)
 	}
-	DumpState(namespace, t.Name(), t)
 	ctx.Cleanup()
 }
 
@@ -1056,6 +1066,16 @@ func dumpServiceAccounts(namespace, dir string, logger Logger) {
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No ServiceAccount resources found in namespace "+namespace)
+	}
+}
+
+func DumpPodsForTest(t *testing.T, ctx *framework.TestCtx) {
+	namespace, err := ctx.GetNamespace()
+	if err == nil {
+		dumpPods(namespace, t.Name(), t)
+	} else {
+		t.Logf("Could not dump Pod logs and state\n")
+		t.Log(err)
 	}
 }
 

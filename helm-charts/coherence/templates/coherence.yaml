@@ -136,6 +136,8 @@ spec:
           env:
           - name: COH_UTIL_DIR
             value: "/utils"
+          - name: COH_CLUSTER_NAME
+            value: {{ template "coherence.clusterName" . }}
           volumeMounts:
           - name: utils-dir
             mountPath: /utils

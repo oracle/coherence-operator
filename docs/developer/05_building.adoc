@@ -111,12 +111,12 @@ The local end-to-end test suite is run using make:
 make e2e-local-test
 ----
 
-It is possible to run a sub-set of the tests or an individual test by using the `GO_TEST_FLAGS=<regex>` parameter.
+It is possible to run a sub-set of the tests or an individual test by using the `GO_TEST_FLAGS_E2E=<regex>` parameter.
 For example, to just run the `TestMinimalCoherenceCluster` clustering test in the `test/e2e/local/clustering_test.go`
 file:
 [source,bash]
 ----
-make e2e-local-test GO_TEST_FLAGS='-run=^TestMinimalCoherenceCluster$$'
+make e2e-local-test GO_TEST_FLAGS_E2E='-run=^TestMinimalCoherenceCluster$$'
 ----
 
 The reg-ex above matches exactly the `TestMinimalCoherenceCluster` test name because it uses the reg-ex start `^` and
@@ -126,13 +126,13 @@ For example, to run all of the clustering tests where the test name starts with 
 the reg-ex `^TestOneRole.*'`
 [source,bash]
 ----
-make e2e-local-test  GO_TEST_FLAGS='-run=^TestOneRole.*'
+make e2e-local-test  GO_TEST_FLAGS_E2E='-run=^TestOneRole.*'
 ----
 
 *Note* Any `$` signs in the reg-ex need to be escaped by using a double dollar sign `$$`.
 
-The `GO_TEST_FLAGS` parameter can actually consist of any valid argument to be passed to the `go test` command. There is plenty of
-documentation on https://tip.golang.org/cmd/go/#hdr-Test_packages[go test]
+The `GO_TEST_FLAGS_E2E` parameter can actually consist of any valid argument to be passed to the `go test` command.
+There is plenty of documentation on https://tip.golang.org/cmd/go/#hdr-Test_packages[go test]
 
 * Remote tests require the operator to actually be installed in a container in k8s. An example of this is the scaling
 tests because the operator needs to be able to directly reach the Pods. Very few end-to-end tests fall into this categrory.
@@ -142,4 +142,4 @@ The local end-to-end test suite is run using make:
 make e2e-test
 ----
 
-As with local tests the `GO_TEST_FLAGS` parameter can be used to execute a sub-set of tests or a single test.
+As with local tests the `GO_TEST_FLAGS_E2E` parameter can be used to execute a sub-set of tests or a single test.
