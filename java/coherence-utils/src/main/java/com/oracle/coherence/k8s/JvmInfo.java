@@ -10,6 +10,10 @@ package com.oracle.coherence.k8s;
  * Determine the JVM information.
  */
 public class JvmInfo {
+
+    private JvmInfo() {
+    }
+
     /**
      * Program entry point.
      *
