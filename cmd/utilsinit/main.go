@@ -90,7 +90,13 @@ func main() {
 		}
 	}
 
-	dirNames := []string{persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir}
+	var dirNames []string
+
+	_, err = os.Stat(persistenceDir)
+	if err == nil {
+		// if "/persistence" exists then we'll create the sub-directories
+		dirNames = append(dirNames, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir)
+	}
 
 	_, err = os.Stat(snapshotDir)
 	if err == nil {
