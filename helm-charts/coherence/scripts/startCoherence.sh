@@ -229,7 +229,7 @@ start()
 
     MEM_OPTS="-XX:HeapDumpPath=${JVM_DIR}/heap-dumps/${COH_MEMBER_NAME}-${COH_POD_UID}.hprof"
     COH_JVM_ARGS="-Dcoherence.ttl=0 -XshowSettings:all -XX:+PrintCommandLineFlags -XX:+PrintFlagsFinal \
-                  -XX:+UnlockDiagnosticVMOptions -XX:+UnlockCommercialFeatures -XX:+UnlockExperimentalVMOptions \
+                  -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions \
                   -XX:ErrorFile=${JVM_DIR}/hs-err-${COH_MEMBER_NAME}-${COH_POD_UID}.log"
 
     if [[ "${JVM_JMXMP_ENABLED}" == "true" ]]
@@ -298,7 +298,11 @@ start()
 
     if [[ "${JVM_FLIGHT_RECORDER}" == "true" ]]
     then
-        COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${JVM_DIR}/jfr"
+        ${JAVA_HOME}/bin/java -cp ${COH_UTIL_DIR}/lib/* com.oracle.coherence.k8s.JvmInfo java.vm.name | grep HotSpot
+        if [[ "$?" == "0" ]]
+        then
+          COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${JVM_DIR}/jfr"
+        fi
     fi
 
     if [[ "${JVM_USE_CONTAINER_LIMITS}" == "true" ]]
