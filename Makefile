@@ -836,7 +836,8 @@ release-ghpages: helm-chart docs
 	git pull
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
-	cp -r $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
+	rm -rf docs-unstable/$(VERSION_FULL)/ || true
+	mv $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION_FULL)/
 	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
@@ -850,7 +851,8 @@ ifeq (true, $(PRE_RELEASE))
 	git add charts-unstable/*
 else
 	mkdir docs/$(VERSION_FULL) || true
-	cp -r $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
+	rm -rf docs/$(VERSION_FULL)/ || true
+	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
 	ls -ls docs
 
 	mkdir -p charts || true
