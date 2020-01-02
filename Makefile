@@ -780,6 +780,7 @@ copyright:
 	  -X etc/intellij-codestyle.xml \
 	  -X go.mod \
 	  -X go.sum \
+	  -X HEADER.txt \
 	  -X helm-charts/coherence/templates/NOTES.txt \
 	  -X helm-charts/coherence-operator/charts/prometheus-operator/ \
 	  -X helm-charts/coherence-operator/templates/NOTES.txt \
