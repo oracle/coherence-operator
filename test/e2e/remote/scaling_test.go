@@ -255,13 +255,13 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceClu
 	condition := helper.ReplicasRoleCondition(replicas)
 
 	// wait for the role to match the condition
-	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*5, t)
+	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*10, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	// wait for the StatefulSet to have three ready replicas
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
+	// wait for the StatefulSet to have the required ready replicas
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*10, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
