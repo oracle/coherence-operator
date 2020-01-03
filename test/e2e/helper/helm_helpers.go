@@ -62,6 +62,7 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 
 	namespace := GetTestNamespace()
 
+
 	mgr, err := createManager(cfg, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error (2): %v", err)
@@ -238,6 +239,7 @@ func createManager(cfg *rest.Config, namespace string) (manager.Manager, error) 
 		Namespace:      namespace,
 		MapperProvider: apiutil.NewDiscoveryRESTMapper,
 		LeaderElection: false,
+		MetricsBindAddress: "0",
 	})
 	if err != nil {
 		return nil, err
