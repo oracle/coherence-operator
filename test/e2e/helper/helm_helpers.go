@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -57,26 +57,26 @@ type HelmReleaseManager struct {
 func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 	cfg, _, err := GetKubeconfigAndNamespace("")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error (1): %v", err)
 	}
 
 	namespace := GetTestNamespace()
 
 	mgr, err := createManager(cfg, namespace)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error (2): %v", err)
 	}
 
 	err = apis.AddToScheme(mgr.GetScheme())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error (3): %v", err)
 	}
 
 	f := release.NewManagerFactory(mgr, chartDir)
 
 	kubeclient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error (4): %v", err)
 	}
 
 	// Ensure that the namespace exists
@@ -87,10 +87,10 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 				ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: namespace},
 			})
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error (5): %v", err)
 			}
 		} else {
-			return nil, err
+			return nil, fmt.Errorf("error (6): %v", err)
 		}
 	}
 
