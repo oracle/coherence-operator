@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -70,6 +71,8 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 
 var restMapper = apiutil.NewDiscoveryRESTMapper
 
+var _ manager.Manager = &FakeManager{}
+
 type FakeManager struct {
 	Scheme *runtime.Scheme
 	Client ClientWithErrors
@@ -99,6 +102,14 @@ type ReconcileResult struct {
 func (f *FakeManager) Reset(initObjs ...runtime.Object) {
 	f.Client = NewFakeClient(initObjs...)
 	f.Events = NewFakeEventRecorder(20)
+}
+
+func (f *FakeManager) AddHealthzCheck(name string, check healthz.Checker) error {
+	panic("fake method not implemented")
+}
+
+func (f *FakeManager) AddReadyzCheck(name string, check healthz.Checker) error {
+	panic("fake method not implemented")
 }
 
 func (f *FakeManager) Add(manager.Runnable) error {

@@ -1,33 +1,30 @@
 module github.com/oracle/coherence-operator
 
 require (
+	github.com/Azure/go-autorest v12.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v6 v6.8.3-0.20190731061920-efbed2e4c2f8
-	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/ghodss/yaml v1.0.1-0.20180820084758-c7ce16629ff4
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.3
-	github.com/go-openapi/validate v0.19.0
+	github.com/go-openapi/validate v0.19.2
 	github.com/go-test/deep v1.0.3
-	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
 	github.com/operator-framework/operator-sdk v0.13.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0 // indirect
 	github.com/tebeka/go2xunit v1.4.10
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apiextensions-apiserver v0.0.0
 	k8s.io/apimachinery v0.0.0
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/helm v2.16.1+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
-	k8s.io/kubernetes v1.15.4
+	k8s.io/kubernetes v1.16.2
 	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/testing_frameworks v0.1.2

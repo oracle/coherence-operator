@@ -759,7 +759,7 @@ $(BUILD_OUTPUT)/bin/golangci-lint:
 # ---------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_OUTPUT)/bin/golangci-lint
-	$(BUILD_OUTPUT)/bin/golangci-lint run -v --deadline=5m  ./pkg/... ./cmd/...
+	$(BUILD_OUTPUT)/bin/golangci-lint run -v --timeout=5m  ./pkg/... ./cmd/...
 
 
 # ---------------------------------------------------------------------------
