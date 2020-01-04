@@ -516,8 +516,8 @@ uninstall-crds:
 generate:
 	@echo "Generating deep copy code"
 	$(OPERATOR_SDK) generate k8s
-	@echo "Generating Open API code and CRDs"
-	$(OPERATOR_SDK) generate openapi
+	@echo "Generating CRDs"
+	$(OPERATOR_SDK) generate crds
 
 # ---------------------------------------------------------------------------
 # Clean-up all of the build artifacts
