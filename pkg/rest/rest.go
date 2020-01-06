@@ -15,8 +15,8 @@ import (
 	k8s "k8s.io/client-go/kubernetes"
 	"net"
 	"net/http"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 

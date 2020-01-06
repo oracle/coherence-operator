@@ -1,13 +1,5 @@
-/*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
- * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
- */
-
 // +build tools
 
+// Place any runtime dependencies as imports in this file.
+// Go modules will be forced to download and install them.
 package tools
-
-import (
-	_ "sigs.k8s.io/controller-tools/pkg/crd/generator"
-)

@@ -88,7 +88,7 @@ func (in *CoherenceCluster) DeepCopyObject() runtime.Object {
 func (in *CoherenceClusterList) DeepCopyInto(out *CoherenceClusterList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]CoherenceCluster, len(*in))
@@ -204,7 +204,7 @@ func (in *CoherenceInternal) DeepCopyObject() runtime.Object {
 func (in *CoherenceInternalList) DeepCopyInto(out *CoherenceInternalList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]CoherenceInternal, len(*in))
@@ -313,7 +313,7 @@ func (in *CoherenceRole) DeepCopyObject() runtime.Object {
 func (in *CoherenceRoleList) DeepCopyInto(out *CoherenceRoleList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]CoherenceRole, len(*in))

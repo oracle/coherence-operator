@@ -43,6 +43,8 @@ type CoherenceRoleSpec struct {
 	// +optional
 	JVM *JVMSpec `json:"jvm,omitempty"`
 	// Ports specifies additional port mappings for the Pod and additional Services for those ports
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	Ports []NamedPortSpec `json:"ports,omitempty"`
 	// Env is additional environment variable mappings that will be passed to
@@ -57,6 +59,8 @@ type CoherenceRoleSpec struct {
 	//     value "bar-value"
 	//
 	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
 	// The port that the health check endpoint will bind to.
@@ -104,15 +108,21 @@ type CoherenceRoleSpec struct {
 	// Volumes defines extra volume mappings that will be added to the Coherence Pod.
 	//   The content of this yaml should match the normal k8s volumes section of a Pod definition
 	//   as described in https://kubernetes.io/docs/concepts/storage/volumes/
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
 	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
 	//   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
 	//   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// +listType=map
+	// +listMapKey=metaData.name
 	// +optional
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
 	// VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
 	//   in store.volumes and store.volumeClaimTemplates
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Affinity controls Pod scheduling preferences.
@@ -133,6 +143,8 @@ type CoherenceRoleSpec struct {
 	//     effect: "NoSchedule"
 	//
 	//   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+	// +listType=map
+	// +listMapKey=key
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// SecurityContext is the PodSecurityContext that will be added to all of the Pods in this role.

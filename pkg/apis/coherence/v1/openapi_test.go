@@ -33,7 +33,7 @@ const crdBase = "../../../../deploy/crds/"
 func TestCoherenceClusterOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence_v1_coherencecluster_crd.yaml")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceclusters_crd.yaml")
 
 	// This is the minimal valid spec for a CoherenceCluster.
 	// This structure should be valid against the CRD spec
@@ -48,7 +48,7 @@ func TestCoherenceClusterOpenApiSpec(t *testing.T) {
 func TestCoherenceRoleOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence_v1_coherencerole_crd.yaml")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceroles_crd.yaml")
 
 	// This is the minimal valid spec for a CoherenceRole.
 	// This structure should be valid against the CRD spec
@@ -63,7 +63,7 @@ func TestCoherenceRoleOpenApiSpec(t *testing.T) {
 func TestCoherenceInternalOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence_v1_coherenceinternal_crd.yaml")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceinternals_crd.yaml")
 
 	// This is the minimal valid spec for a CoherenceInternal.
 	// This structure should be valid against the CRD spec

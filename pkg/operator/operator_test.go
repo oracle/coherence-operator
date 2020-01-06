@@ -18,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"testing"
 )
@@ -52,7 +51,7 @@ func TestShouldCreateCRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &client.ListOptions{}, &crdList)
+	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(crdList.Items)).To(Equal(3))
@@ -116,7 +115,7 @@ func TestShouldUpdateCRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &client.ListOptions{}, &crdList)
+	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(crdList.Items)).To(Equal(3))

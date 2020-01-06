@@ -28,7 +28,7 @@ def archiveAndCleanup() {
 
 pipeline {
     agent {
-        label 'go1.12'
+        label 'go1.13.5'
     }
     environment {
         HTTP_PROXY  = credentials('coherence-operator-http-proxy')

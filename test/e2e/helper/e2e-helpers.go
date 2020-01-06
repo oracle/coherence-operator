@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
+	"strings"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -116,7 +117,7 @@ func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName stri
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{IncludeUninitialized: true})
+		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Logf("Waiting for availability of %s StatefulSet - NotFound\n", stsName)
@@ -336,11 +337,8 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	fmt.Printf("Waiting for clean-up of CoherenceInternal resources in namespace %s\n", namespace)
 
 	// wait for all CoherenceInternal resources to be deleted
-	opts := &client.ListOptions{}
-	opts.InNamespace(namespace)
-
 	list := &coh.CoherenceClusterList{}
-	err := f.Client.List(goctx.TODO(), opts, list)
+	err := f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -356,7 +354,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// Wait for removal of the CoherenceClusters
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), opts, list)
+		err = f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 		if err == nil {
 			if len(list.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceCluster resources\n", len(list.Items))
@@ -372,15 +370,15 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	// Wait for removal of the CoherenceRoles
 	roles := &coh.CoherenceRoleList{}
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), opts, roles)
-		if err == nil {
+		err = f.Client.List(goctx.TODO(), roles, client.InNamespace(namespace))
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(roles.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceRole resources\n", len(roles.Items))
 				return false, nil
 			}
 			return true, nil
 		} else {
-			fmt.Printf("Error waiting for deletion of CoherenceRole resources: %s\n", err.Error())
+			fmt.Printf("Error waiting for deletion of CoherenceRole resources: %s\n%v\n", err.Error(), err)
 			return false, nil
 		}
 	})
@@ -389,8 +387,8 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// Wait for removal of the CoherenceInternals
 	err = wait.Poll(time.Second*5, time.Minute*1, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), opts, &uList)
-		if err == nil {
+		err = f.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(uList.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(uList.Items))
 				return false, nil
@@ -403,8 +401,8 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	})
 
 	// List and print the remaining CoherenceInternals
-	err = f.Client.Client.List(goctx.TODO(), opts, &uList)
-	if err != nil {
+	err = f.Client.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
+	if err != nil && !isNoResources(err) && !errors.IsNotFound(err) {
 		fmt.Printf("Error listing CoherenceInternal resources - %s\n", err.Error())
 	} else {
 		if len(uList.Items) > 0 {
@@ -421,7 +419,7 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// Force delete the remaining CoherenceInternals
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), opts, &uList)
+		err = f.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
 		if err == nil {
 			if len(uList.Items) > 0 {
 				fmt.Printf("Waiting for deletion of %d CoherenceInternal resources\n", len(uList.Items))
@@ -445,12 +443,13 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	return err
 }
 
+func isNoResources(err error) bool {
+	return err != nil && strings.HasPrefix(err.Error(), "no matches for kind")
+}
+
 // WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
 func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, logger Logger) error {
 	// wait for all CoherenceInternal resources to be deleted
-	opts := &client.ListOptions{}
-	opts.InNamespace(namespace)
-
 	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		list, err := ListOperatorPods(kubeClient, namespace)
 		if err == nil {
@@ -639,6 +638,12 @@ func readCertFile(name string) ([]byte, error) {
 
 // Dump the operator logs and clean-up the test context
 func DumpOperatorLogsAndCleanup(t *testing.T, ctx *framework.TestCtx) {
+	DumpOperatorLogs(t, ctx)
+	ctx.Cleanup()
+}
+
+// Dump the operator logs and clean-up the test context
+func DumpOperatorLogs(t *testing.T, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
 	if err == nil {
 		DumpOperatorLog(framework.Global.KubeClient, namespace, t.Name(), t)
@@ -665,10 +670,8 @@ func dumpCoherenceClusters(namespace, dir string, logger Logger) {
 	const message = "Could not dump CoherenceClusters for namespace %s due to %s\n"
 
 	f := framework.Global
-	listOpts := &client.ListOptions{}
-	listOpts.InNamespace(namespace)
 	list := coh.CoherenceClusterList{}
-	err := f.Client.List(context.TODO(), listOpts, &list)
+	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	if err != nil {
 		fmt.Printf(message, namespace, err.Error())
 		return
@@ -725,10 +728,8 @@ func dumpCoherenceRoles(namespace, dir string, logger Logger) {
 	const message = "Could not dump CoherenceRoles for namespace %s due to %s\n"
 
 	f := framework.Global
-	listOpts := &client.ListOptions{}
-	listOpts.InNamespace(namespace)
 	list := coh.CoherenceRoleList{}
-	err := f.Client.List(context.TODO(), listOpts, &list)
+	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	if err != nil {
 		fmt.Printf(message, namespace, err.Error())
 		return
@@ -785,10 +786,8 @@ func dumpCoherenceInternals(namespace, dir string, logger Logger) {
 	const message = "Could not dump CoherenceInternals for namespace %s due to %s\n"
 
 	f := framework.Global
-	listOpts := &client.ListOptions{}
-	listOpts.InNamespace(namespace)
 	list := NewUnstructuredCoherenceInternalList()
-	err := f.Client.List(context.TODO(), listOpts, &list)
+	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return

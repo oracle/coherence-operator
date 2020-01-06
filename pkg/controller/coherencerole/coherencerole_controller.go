@@ -27,9 +27,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 	"sync"
@@ -96,7 +96,7 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 		client:        mgr.GetClient(),
 		scheme:        scheme,
 		gvk:           gvk,
-		events:        mgr.GetRecorder(controllerName),
+		events:        mgr.GetEventRecorderFor(controllerName),
 		statusHARetry: retry,
 		mgr:           mgr,
 		resourceLocks: make(map[types.NamespacedName]bool),
@@ -341,6 +341,8 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	roleReplicas := role.Spec.GetReplicas()
 	// Get the effective role - what the role spec should be according to the Cluster spec
 	effectiveRole := clusterRole.DeepCopyWithDefaults(&cluster.Spec.CoherenceRoleSpec)
+	effectiveRole.SetReplicas(effectiveRole.GetReplicas())
+
 	if !reflect.DeepEqual(effectiveRole, &role.Spec) {
 		// Role spec is not the same as the cluster's role spec - likely caused by a scale but could have
 		// been caused by a direct update to the CoherenceRole, even though we really discourage that.

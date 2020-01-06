@@ -20,7 +20,7 @@ metadata:
     {{- include "coherence.release_labels" . | indent 4 }}
     component: coherence
 spec:
-  replicas: {{ .Values.replicas | default 3 | int }}
+  replicas: {{ .Values.replicas | default 3 }}
   podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate

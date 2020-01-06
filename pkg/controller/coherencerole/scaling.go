@@ -159,15 +159,17 @@ func (in *ScalableChecker) TranslatePort(name string, port int) int {
 // IsStatusHA will return true if the cluster represented by the role is StatusHA.
 func (in *ScalableChecker) IsStatusHA(role *coh.CoherenceRole, sts *appsv1.StatefulSet) bool {
 	list := corev1.PodList{}
-	opts := client.ListOptions{}
-	opts.InNamespace(role.Namespace)
-	opts.MatchingLabels(sts.Spec.Selector.MatchLabels)
 
 	if log.Enabled() {
 		log.Info("Checking StatefulSet "+sts.Name+" for StatusHA", "Namespace", role.Name, "Name", role.Name)
 	}
 
-	err := in.Client.List(context.TODO(), &opts, &list)
+	labels := client.MatchingLabels{}
+	for k, v := range sts.Spec.Selector.MatchLabels {
+		labels[k] = v
+	}
+
+	err := in.Client.List(context.TODO(), &list, client.InNamespace(role.Namespace), labels)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false
@@ -287,7 +289,7 @@ func (in *ScalableChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.Scalin
 		}
 	}
 
-	p := httpprobe.New()
+	p := httpprobe.New(true)
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
 	log.Info(fmt.Sprintf("StatusHA check URL: %s result=%s msg=%s error=%s", u.String(), result, s, err))

@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -98,7 +99,7 @@ var _ ClientWithErrors = &clientWithErrors{}
 // NewFakeClient creates a new ClientWithErrors and initialises it
 // with the specified objects.
 func NewFakeClient(initObjs ...runtime.Object) ClientWithErrors {
-	c := clientWithErrors{wrapped: fake.NewFakeClient(initObjs...)}
+	c := clientWithErrors{wrapped: fake.NewFakeClientWithScheme(scheme.Scheme, initObjs...)}
 	return &c
 }
 
@@ -111,11 +112,11 @@ func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj ru
 	return c.wrapped.Get(ctx, key, obj)
 }
 
-func (c *clientWithErrors) List(ctx context.Context, opts *client.ListOptions, list runtime.Object) error {
-	return c.wrapped.List(ctx, opts, list)
+func (c *clientWithErrors) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+	return c.wrapped.List(ctx, list, opts...)
 }
 
-func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object) error {
+func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object, opts ...client.CreateOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -123,10 +124,10 @@ func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object) error
 			return err
 		}
 	}
-	return c.wrapped.Create(ctx, obj)
+	return c.wrapped.Create(ctx, obj, opts...)
 }
 
-func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts ...client.DeleteOptionFunc) error {
+func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts ...client.DeleteOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -137,7 +138,7 @@ func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts 
 	return c.wrapped.Delete(ctx, obj, opts...)
 }
 
-func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object) error {
+func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object, opts ...client.UpdateOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -145,11 +146,19 @@ func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object) error
 			return err
 		}
 	}
-	return c.wrapped.Update(ctx, obj)
+	return c.wrapped.Update(ctx, obj, opts...)
 }
 
 func (c *clientWithErrors) Status() client.StatusWriter {
 	return c.wrapped.Status()
+}
+
+func (c *clientWithErrors) Patch(ctx context.Context, obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
+	return c.wrapped.Patch(ctx, obj, patch, opts...)
+}
+
+func (c *clientWithErrors) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...client.DeleteAllOfOption) error {
+	return c.wrapped.DeleteAllOf(ctx, obj, opts...)
 }
 
 func (c *clientWithErrors) EnableErrors(errors ClientErrors) {

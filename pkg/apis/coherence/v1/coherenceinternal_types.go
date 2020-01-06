@@ -66,6 +66,8 @@ type CoherenceInternalSpec struct {
 	// If specified, these secrets will be passed to individual puller implementations for them to use. For example,
 	// in the case of docker, only DockerConfig type secrets are honored.
 	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// The timeout to apply to rest requests made back to the operator from Coherence Pods.
