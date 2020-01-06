@@ -155,20 +155,6 @@ func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, v
 func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string, values []byte) (*HelmInstallResult, error) {
 	storageBackend := storage.Init(driver.NewMemory())
 
-	//cfg, _, err := helper.GetKubeconfigAndNamespace("")
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//mgrReal, err := manager.New(cfg, manager.Options{
-	//	Namespace:      namespace,
-	//	MapperProvider: apiutil.NewDiscoveryRESTMapper,
-	//	LeaderElection: false,
-	//})
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	tillerKubeClient, err := client.NewFromManager(mgr)
 	if err != nil {
 		return nil, err
@@ -223,8 +209,15 @@ func (f *fakeHelm) getReleaseServer(cr *unstructured.Unstructured, storageBacken
 	ownerRefs := []metav1.OwnerReference{
 		*controllerRef,
 	}
+
 	baseEngine := helmengine.New()
-	e := engine.NewOwnerRefEngine(baseEngine, ownerRefs)
+
+	restMapper, err := tillerKubeClient.Factory.ToRESTMapper()
+	if err != nil {
+		return nil, err
+	}
+
+	e := engine.NewOwnerRefEngine(baseEngine, restMapper, ownerRefs)
 	var ey environment.EngineYard = map[string]environment.Engine{
 		environment.GoTplEngine: e,
 	}

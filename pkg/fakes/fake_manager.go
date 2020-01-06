@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,9 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission/types"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
 // NewFakeManager creates a fake manager.Manager for use when testing controllers.
@@ -70,12 +71,26 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 
 var restMapper = apiutil.NewDiscoveryRESTMapper
 
+var _ manager.Manager = &FakeManager{}
+
 type FakeManager struct {
 	Scheme *runtime.Scheme
 	Client ClientWithErrors
 	Events *FakeEventRecorder
 	Mapper meta.RESTMapper
 	Config *rest.Config
+}
+
+func (f *FakeManager) GetEventRecorderFor(name string) record.EventRecorder {
+	return f.Events
+}
+
+func (f *FakeManager) GetAPIReader() client.Reader {
+	panic("implement me")
+}
+
+func (f *FakeManager) GetWebhookServer() *webhook.Server {
+	panic("implement me")
 }
 
 type ReconcileResult struct {
@@ -87,6 +102,14 @@ type ReconcileResult struct {
 func (f *FakeManager) Reset(initObjs ...runtime.Object) {
 	f.Client = NewFakeClient(initObjs...)
 	f.Events = NewFakeEventRecorder(20)
+}
+
+func (f *FakeManager) AddHealthzCheck(name string, check healthz.Checker) error {
+	panic("fake method not implemented")
+}
+
+func (f *FakeManager) AddReadyzCheck(name string, check healthz.Checker) error {
+	panic("fake method not implemented")
 }
 
 func (f *FakeManager) Add(manager.Runnable) error {
@@ -109,10 +132,6 @@ func (f *FakeManager) GetScheme() *runtime.Scheme {
 	return f.Scheme
 }
 
-func (f *FakeManager) GetAdmissionDecoder() types.Decoder {
-	panic("fake method not implemented")
-}
-
 func (f *FakeManager) GetClient() client.Client {
 	return f.Client
 }
@@ -123,10 +142,6 @@ func (f *FakeManager) GetFieldIndexer() client.FieldIndexer {
 
 func (f *FakeManager) GetCache() cache.Cache {
 	panic("fake method not implemented")
-}
-
-func (f *FakeManager) GetRecorder(name string) record.EventRecorder {
-	return f.Events
 }
 
 func (f *FakeManager) GetRESTMapper() meta.RESTMapper {
@@ -183,11 +198,7 @@ func (f *FakeManager) ServiceExists(namespace, name string) bool {
 func (f *FakeManager) AssertCoherenceClusters(namespace string, count int) {
 	list := &coherence.CoherenceClusterList{}
 
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
-
-	err := f.Client.List(context.TODO(), &opts, list)
+	err := f.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	Expect(err).To(BeNil())
 	Expect(len(list.Items)).To(Equal(count))
 }
@@ -204,11 +215,7 @@ func (f *FakeManager) AssertCoherenceRoleExists(namespace, name string) *coheren
 func (f *FakeManager) GetCoherenceRoles(namespace string) (coherence.CoherenceRoleList, error) {
 	list := coherence.CoherenceRoleList{}
 
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
-
-	err := f.Client.List(context.TODO(), &opts, &list)
+	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	return list, err
 }
 
@@ -223,14 +230,10 @@ func (f *FakeManager) AssertCoherenceRoles(namespace string, count int) {
 func (f *FakeManager) AssertCoherenceRolesForCluster(namespace, clusterName string, count int) {
 	list := &coherence.CoherenceRoleList{}
 
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
+	labels := client.MatchingLabels{}
+	labels[coherence.CoherenceClusterLabel] = clusterName
 
-	err := opts.SetLabelSelector(coherence.CoherenceClusterLabel + "=" + clusterName)
-	Expect(err).To(BeNil())
-
-	err = f.Client.List(context.TODO(), &opts, list)
+	err := f.Client.List(context.TODO(), list, client.InNamespace(namespace), labels)
 	Expect(err).To(BeNil())
 	Expect(len(list.Items)).To(Equal(count))
 }
@@ -259,11 +262,7 @@ func (f *FakeManager) GetCoherenceInternals(namespace string) unstructured.Unstr
 	list.SetGroupVersionKind(gvk)
 	list.SetKind("CoherenceInternalList")
 
-	opts := client.ListOptions{
-		Namespace: namespace,
-	}
-
-	_ = f.Client.List(context.TODO(), &opts, &list)
+	_ = f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	return list
 }
 

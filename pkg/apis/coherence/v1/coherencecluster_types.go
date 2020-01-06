@@ -21,6 +21,8 @@ type CoherenceClusterSpec struct {
 	// If specified, these secrets will be passed to individual puller implementations for them to use. For example,
 	// in the case of docker, only DockerConfig type secrets are honored.
 	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
+	// +listType=map
+	// +listMapKey=name
 	// +optional
 	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
@@ -39,6 +41,8 @@ type CoherenceClusterSpec struct {
 	CoherenceRoleSpec `json:",inline"`
 	// Roles is the list of different roles in the cluster
 	// There must be at least one role in a cluster.
+	// +listType=map
+	// +listMapKey=role
 	// +optional
 	Roles []CoherenceRoleSpec `json:"roles,omitempty"`
 }

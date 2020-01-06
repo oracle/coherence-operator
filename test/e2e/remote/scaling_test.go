@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -182,12 +182,7 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx.AddCleanupFn(func() error {
-		deleteCluster(cluster.Namespace, cluster.Name)
-		return nil
-	})
-
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer cleanup(t, namespace, cluster.Name, ctx)
 
 	//Give the cluster a unique name based on the test name
 	cluster.SetName(fmt.Sprintf("%s-%d", cluster.GetName(), uid))
@@ -260,13 +255,13 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceClu
 	condition := helper.ReplicasRoleCondition(replicas)
 
 	// wait for the role to match the condition
-	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*5, t)
+	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*10, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
 
-	// wait for the StatefulSet to have three ready replicas
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*5, t)
+	// wait for the StatefulSet to have the required ready replicas
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*10, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 

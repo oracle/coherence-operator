@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -42,6 +42,7 @@ var _ = Describe("coherencecluster_controller", func() {
 
 		if cluster != nil {
 			_ = mgr.Client.Create(context.TODO(), cluster)
+			_ = mgr.Client.Get(context.TODO(), types.NamespacedName{Namespace: testNamespace, Name: testClusterName}, cluster)
 		}
 
 		request := reconcile.Request{
@@ -482,7 +483,7 @@ var _ = Describe("coherencecluster_controller", func() {
 				It("should delete the proxy CoherenceRole leaving storage unchanged", func() {
 					mgr.AssertCoherenceRoles(testNamespace, 1)
 					role := mgr.AssertCoherenceRoleExists(testNamespace, storage.Name)
-					Expect(role).To(Equal(&storage))
+					Expect(role.Spec).To(Equal(storage.Spec))
 				})
 
 				It("should fire a successful CoherenceRole delete event", func() {
