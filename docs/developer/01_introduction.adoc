@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2019,  Oracle and/or its affiliates. All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ https://github.com/operator-framework/operator-sdk[Operator SDK].
 The following prerequisites are required to build and test the operator (the prerequisites to just run the operator
 are obviously a sub-set of these).
 
-* https://github.com/operator-framework/operator-sdk/tree/v0.12.0[operator-sdk] version *v0.12.0*
+* https://github.com/operator-framework/operator-sdk/tree/v0.13.0[operator-sdk] version *v0.13.0*
 * https://git-scm.com/downloads[git]
 * https://golang.org/dl/[go] version v1.13.4+.
 * https://www.mercurial-scm.org/downloads[mercurial] version 3.9+
