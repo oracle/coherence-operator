@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -74,7 +74,7 @@ GO_TEST_FLAGS     ?= -timeout=20m
 GO_TEST_FLAGS_E2E := -timeout=100m
 
 # This is the Coherence image that will be used in the Go tests.
-# Changing this variable will allow test builds to be run against differet Coherence versions
+# Changing this variable will allow test builds to be run against different Coherence versions
 TEST_COHERENCE_IMAGE ?= $(HELM_COHERENCE_IMAGE)
 
 # default as in test/e2e/helper/proj_helpers.go
