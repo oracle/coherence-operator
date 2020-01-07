@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -56,18 +56,22 @@ public class CoherenceVersion {
             coherenceVersion = coherenceVersion.substring(coherenceVersion.indexOf(":") + 1);
         }
 
-        boolean result = true;
         int[] coherenceParts = splitVersion(coherenceVersion);
         int[] versionParts = splitVersion(args[0]);
         int partCount = Math.min(coherenceParts.length, versionParts.length);
 
         if (partCount > 0) {
-            for (int i = 0; i < partCount && result; i++) {
-                result = coherenceParts[i] >= versionParts[i];
+            for (int i = 0; i < partCount; i++) {
+                if (coherenceParts[i] == versionParts[i]) {
+                    continue;
+                }
+                // else versions differ
+                return coherenceParts[i] > versionParts[i];
             }
         }
 
-        return result;
+        // versions are equal
+        return true;
     }
 
     private static int[] splitVersion(String version) {
