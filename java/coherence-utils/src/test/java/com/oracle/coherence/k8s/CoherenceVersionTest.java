@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -24,6 +24,8 @@ public class CoherenceVersionTest {
         assertThat(CoherenceVersion.versionCheck("1.1.1.1", "1.1.1.0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1", "1.1.1.1.0"), is(true));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1.1", "1.1.1.1.1.0"), is(true));
+        assertThat(CoherenceVersion.versionCheck("2.1", "1.2"), is(true));
+        assertThat(CoherenceVersion.versionCheck("2.1-some-text", "1.2"), is(true));
     }
 
     @Test
@@ -45,5 +47,6 @@ public class CoherenceVersionTest {
         assertThat(CoherenceVersion.versionCheck("1.1.1", "1.1.2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1", "1.1.1.2"), is(false));
         assertThat(CoherenceVersion.versionCheck("1.1.1.1.1", "1.1.1.1.2"), is(false));
+        assertThat(CoherenceVersion.versionCheck("1.2", "2.1"), is(false));
     }
 }
