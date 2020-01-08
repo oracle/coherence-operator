@@ -19,12 +19,12 @@ spec:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
             of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
           description: 'Kind is a string value representing the REST resource this
             object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata'
@@ -1104,7 +1104,7 @@ spec:
                           properties:
                             monitors:
                               description: 'Required: Monitors is a collection of
-                                Ceph monitors More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                Ceph monitors More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               items:
                                 type: string
                               type: array
@@ -1115,17 +1115,17 @@ spec:
                             readOnly:
                               description: 'Optional: Defaults to false (read/write).
                                 ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: boolean
                             secretFile:
                               description: 'Optional: SecretFile is the path to key
                                 ring for User, default is /etc/ceph/user.secret More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: string
                             secretRef:
                               description: 'Optional: SecretRef is reference to the
                                 authentication secret for User, default is empty.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               properties:
                                 name:
                                   description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -1135,25 +1135,25 @@ spec:
                               type: object
                             user:
                               description: 'Optional: User is the rados user name,
-                                default is admin More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                default is admin More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: string
                           required:
                           - monitors
                           type: object
                         cinder:
                           description: 'Cinder represents a cinder volume attached
-                            and mounted on kubelets host machine More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                            and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                           properties:
                             fsType:
                               description: 'Filesystem type to mount. Must be a filesystem
                                 type supported by the host operating system. Examples:
                                 "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4"
-                                if unspecified. More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                if unspecified. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: string
                             readOnly:
                               description: 'Optional: Defaults to false (read/write).
                                 ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                                More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: boolean
                             secretRef:
                               description: 'Optional: points to a secret object containing
@@ -1167,7 +1167,7 @@ spec:
                               type: object
                             volumeID:
                               description: 'volume id used to identify the volume
-                                in cinder More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                in cinder. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: string
                           required:
                           - volumeID
@@ -1522,20 +1522,20 @@ spec:
                           type: object
                         glusterfs:
                           description: 'Glusterfs represents a Glusterfs mount on
-                            the host that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md'
+                            the host that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md'
                           properties:
                             endpoints:
                               description: 'EndpointsName is the endpoint name that
-                                details Glusterfs topology. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                details Glusterfs topology. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: string
                             path:
                               description: 'Path is the Glusterfs volume path. More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: string
                             readOnly:
                               description: 'ReadOnly here will force the Glusterfs
                                 volume to be mounted with read-only permissions. Defaults
-                                to false. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                to false. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: boolean
                           required:
                           - endpoints
@@ -1567,7 +1567,7 @@ spec:
                         iscsi:
                           description: 'ISCSI represents an ISCSI Disk resource that
                             is attached to a kubelet''s host machine and then exposed
-                            to the pod. More info: https://releases.k8s.io/HEAD/examples/volumes/iscsi/README.md'
+                            to the pod. More info: https://examples.k8s.io/volumes/iscsi/README.md'
                           properties:
                             chapAuthDiscovery:
                               description: whether support iSCSI Discovery CHAP authentication
@@ -1998,7 +1998,7 @@ spec:
                         rbd:
                           description: 'RBD represents a Rados Block Device mount
                             on the host that shares a pod''s lifetime. More info:
-                            https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md'
+                            https://examples.k8s.io/volumes/rbd/README.md'
                           properties:
                             fsType:
                               description: 'Filesystem type of the volume that you
@@ -2010,31 +2010,31 @@ spec:
                                 compromising the machine'
                               type: string
                             image:
-                              description: 'The rados image name. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                              description: 'The rados image name. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             keyring:
                               description: 'Keyring is the path to key ring for RBDUser.
-                                Default is /etc/ceph/keyring. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                Default is /etc/ceph/keyring. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             monitors:
                               description: 'A collection of Ceph monitors. More info:
-                                https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               items:
                                 type: string
                               type: array
                             pool:
                               description: 'The rados pool name. Default is rbd. More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             readOnly:
                               description: 'ReadOnly here will force the ReadOnly
                                 setting in VolumeMounts. Defaults to false. More info:
-                                https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: boolean
                             secretRef:
                               description: 'SecretRef is name of the authentication
                                 secret for RBDUser. If provided overrides keyring.
-                                Default is nil. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                Default is nil. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               properties:
                                 name:
                                   description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -2044,7 +2044,7 @@ spec:
                               type: object
                             user:
                               description: 'The rados user name. Default is admin.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                           required:
                           - image
@@ -2468,7 +2468,7 @@ spec:
                           properties:
                             monitors:
                               description: 'Required: Monitors is a collection of
-                                Ceph monitors More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                Ceph monitors More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               items:
                                 type: string
                               type: array
@@ -2479,17 +2479,17 @@ spec:
                             readOnly:
                               description: 'Optional: Defaults to false (read/write).
                                 ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: boolean
                             secretFile:
                               description: 'Optional: SecretFile is the path to key
                                 ring for User, default is /etc/ceph/user.secret More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: string
                             secretRef:
                               description: 'Optional: SecretRef is reference to the
                                 authentication secret for User, default is empty.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               properties:
                                 name:
                                   description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -2499,25 +2499,25 @@ spec:
                               type: object
                             user:
                               description: 'Optional: User is the rados user name,
-                                default is admin More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                                default is admin More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                               type: string
                           required:
                           - monitors
                           type: object
                         cinder:
                           description: 'Cinder represents a cinder volume attached
-                            and mounted on kubelets host machine More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                            and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                           properties:
                             fsType:
                               description: 'Filesystem type to mount. Must be a filesystem
                                 type supported by the host operating system. Examples:
                                 "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4"
-                                if unspecified. More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                if unspecified. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: string
                             readOnly:
                               description: 'Optional: Defaults to false (read/write).
                                 ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                                More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: boolean
                             secretRef:
                               description: 'Optional: points to a secret object containing
@@ -2531,7 +2531,7 @@ spec:
                               type: object
                             volumeID:
                               description: 'volume id used to identify the volume
-                                in cinder More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                                in cinder. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                               type: string
                           required:
                           - volumeID
@@ -2886,20 +2886,20 @@ spec:
                           type: object
                         glusterfs:
                           description: 'Glusterfs represents a Glusterfs mount on
-                            the host that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md'
+                            the host that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md'
                           properties:
                             endpoints:
                               description: 'EndpointsName is the endpoint name that
-                                details Glusterfs topology. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                details Glusterfs topology. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: string
                             path:
                               description: 'Path is the Glusterfs volume path. More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: string
                             readOnly:
                               description: 'ReadOnly here will force the Glusterfs
                                 volume to be mounted with read-only permissions. Defaults
-                                to false. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                                to false. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                               type: boolean
                           required:
                           - endpoints
@@ -2931,7 +2931,7 @@ spec:
                         iscsi:
                           description: 'ISCSI represents an ISCSI Disk resource that
                             is attached to a kubelet''s host machine and then exposed
-                            to the pod. More info: https://releases.k8s.io/HEAD/examples/volumes/iscsi/README.md'
+                            to the pod. More info: https://examples.k8s.io/volumes/iscsi/README.md'
                           properties:
                             chapAuthDiscovery:
                               description: whether support iSCSI Discovery CHAP authentication
@@ -3362,7 +3362,7 @@ spec:
                         rbd:
                           description: 'RBD represents a Rados Block Device mount
                             on the host that shares a pod''s lifetime. More info:
-                            https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md'
+                            https://examples.k8s.io/volumes/rbd/README.md'
                           properties:
                             fsType:
                               description: 'Filesystem type of the volume that you
@@ -3374,31 +3374,31 @@ spec:
                                 compromising the machine'
                               type: string
                             image:
-                              description: 'The rados image name. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                              description: 'The rados image name. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             keyring:
                               description: 'Keyring is the path to key ring for RBDUser.
-                                Default is /etc/ceph/keyring. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                Default is /etc/ceph/keyring. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             monitors:
                               description: 'A collection of Ceph monitors. More info:
-                                https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               items:
                                 type: string
                               type: array
                             pool:
                               description: 'The rados pool name. Default is rbd. More
-                                info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                             readOnly:
                               description: 'ReadOnly here will force the ReadOnly
                                 setting in VolumeMounts. Defaults to false. More info:
-                                https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: boolean
                             secretRef:
                               description: 'SecretRef is name of the authentication
                                 secret for RBDUser. If provided overrides keyring.
-                                Default is nil. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                Default is nil. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               properties:
                                 name:
                                   description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -3408,7 +3408,7 @@ spec:
                               type: object
                             user:
                               description: 'The rados user name. Default is admin.
-                                More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                                More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                               type: string
                           required:
                           - image
@@ -3877,7 +3877,7 @@ spec:
                       properties:
                         monitors:
                           description: 'Required: Monitors is a collection of Ceph
-                            monitors More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                            monitors More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                           items:
                             type: string
                           type: array
@@ -3888,16 +3888,16 @@ spec:
                         readOnly:
                           description: 'Optional: Defaults to false (read/write).
                             ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                            More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                            More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                           type: boolean
                         secretFile:
                           description: 'Optional: SecretFile is the path to key ring
                             for User, default is /etc/ceph/user.secret More info:
-                            https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                            https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                           type: string
                         secretRef:
                           description: 'Optional: SecretRef is reference to the authentication
-                            secret for User, default is empty. More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                            secret for User, default is empty. More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                           properties:
                             name:
                               description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -3906,25 +3906,25 @@ spec:
                           type: object
                         user:
                           description: 'Optional: User is the rados user name, default
-                            is admin More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                            is admin More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                           type: string
                       required:
                       - monitors
                       type: object
                     cinder:
                       description: 'Cinder represents a cinder volume attached and
-                        mounted on kubelets host machine More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                        mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                       properties:
                         fsType:
                           description: 'Filesystem type to mount. Must be a filesystem
                             type supported by the host operating system. Examples:
                             "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4"
-                            if unspecified. More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                            if unspecified. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                           type: string
                         readOnly:
                           description: 'Optional: Defaults to false (read/write).
                             ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                            More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                            More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                           type: boolean
                         secretRef:
                           description: 'Optional: points to a secret object containing
@@ -3936,8 +3936,8 @@ spec:
                               type: string
                           type: object
                         volumeID:
-                          description: 'volume id used to identify the volume in cinder
-                            More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                          description: 'volume id used to identify the volume in cinder.
+                            More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                           type: string
                       required:
                       - volumeID
@@ -4283,20 +4283,20 @@ spec:
                       type: object
                     glusterfs:
                       description: 'Glusterfs represents a Glusterfs mount on the
-                        host that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md'
+                        host that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md'
                       properties:
                         endpoints:
                           description: 'EndpointsName is the endpoint name that details
-                            Glusterfs topology. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                            Glusterfs topology. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                           type: string
                         path:
                           description: 'Path is the Glusterfs volume path. More info:
-                            https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                            https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                           type: string
                         readOnly:
                           description: 'ReadOnly here will force the Glusterfs volume
                             to be mounted with read-only permissions. Defaults to
-                            false. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                            false. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                           type: boolean
                       required:
                       - endpoints
@@ -4326,7 +4326,7 @@ spec:
                     iscsi:
                       description: 'ISCSI represents an ISCSI Disk resource that is
                         attached to a kubelet''s host machine and then exposed to
-                        the pod. More info: https://releases.k8s.io/HEAD/examples/volumes/iscsi/README.md'
+                        the pod. More info: https://examples.k8s.io/volumes/iscsi/README.md'
                       properties:
                         chapAuthDiscovery:
                           description: whether support iSCSI Discovery CHAP authentication
@@ -4742,7 +4742,7 @@ spec:
                       type: object
                     rbd:
                       description: 'RBD represents a Rados Block Device mount on the
-                        host that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md'
+                        host that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/rbd/README.md'
                       properties:
                         fsType:
                           description: 'Filesystem type of the volume that you want
@@ -4754,30 +4754,30 @@ spec:
                             compromising the machine'
                           type: string
                         image:
-                          description: 'The rados image name. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          description: 'The rados image name. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           type: string
                         keyring:
                           description: 'Keyring is the path to key ring for RBDUser.
-                            Default is /etc/ceph/keyring. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            Default is /etc/ceph/keyring. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           type: string
                         monitors:
                           description: 'A collection of Ceph monitors. More info:
-                            https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           items:
                             type: string
                           type: array
                         pool:
                           description: 'The rados pool name. Default is rbd. More
-                            info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           type: string
                         readOnly:
                           description: 'ReadOnly here will force the ReadOnly setting
-                            in VolumeMounts. Defaults to false. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            in VolumeMounts. Defaults to false. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           type: boolean
                         secretRef:
                           description: 'SecretRef is name of the authentication secret
                             for RBDUser. If provided overrides keyring. Default is
-                            nil. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            nil. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           properties:
                             name:
                               description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -4786,7 +4786,7 @@ spec:
                           type: object
                         user:
                           description: 'The rados user name. Default is admin. More
-                            info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                            info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                           type: string
                       required:
                       - image
@@ -5763,7 +5763,10 @@ spec:
                     type: object
                   type: array
                 windowsOptions:
-                  description: Windows security options.
+                  description: The Windows specific settings applied to all containers.
+                    If unspecified, the options within a container's SecurityContext
+                    will be used. If set in both SecurityContext and PodSecurityContext,
+                    the value specified in SecurityContext takes precedence.
                   properties:
                     gmsaCredentialSpec:
                       description: GMSACredentialSpec is where the GMSA admission
@@ -5777,6 +5780,15 @@ spec:
                       description: GMSACredentialSpecName is the name of the GMSA
                         credential spec to use. This field is alpha-level and is only
                         honored by servers that enable the WindowsGMSA feature flag.
+                      type: string
+                    runAsUserName:
+                      description: The UserName in Windows to run the entrypoint of
+                        the container process. Defaults to the user specified in image
+                        metadata if unspecified. May also be set in PodSecurityContext.
+                        If set in both SecurityContext and PodSecurityContext, the
+                        value specified in SecurityContext takes precedence. This
+                        field is alpha-level and it is only honored by servers that
+                        enable the WindowsRunAsUserName feature flag.
                       type: string
                   type: object
               type: object
@@ -5849,16 +5861,16 @@ spec:
                     description: 'APIVersion defines the versioned schema of this
                       representation of an object. Servers should convert recognized
                       schemas to the latest internal value, and may reject unrecognized
-                      values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+                      values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
                     type: string
                   kind:
                     description: 'Kind is a string value representing the REST resource
                       this object represents. Servers may infer this from the endpoint
                       the client submits requests to. Cannot be updated. In CamelCase.
-                      More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                     type: string
                   metadata:
-                    description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata'
+                    description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata'
                     type: object
                   spec:
                     description: 'Spec defines the desired characteristics of a volume
@@ -6175,7 +6187,7 @@ spec:
                     properties:
                       monitors:
                         description: 'Required: Monitors is a collection of Ceph monitors
-                          More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                          More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                         items:
                           type: string
                         type: array
@@ -6186,15 +6198,15 @@ spec:
                       readOnly:
                         description: 'Optional: Defaults to false (read/write). ReadOnly
                           here will force the ReadOnly setting in VolumeMounts. More
-                          info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                          info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                         type: boolean
                       secretFile:
                         description: 'Optional: SecretFile is the path to key ring
-                          for User, default is /etc/ceph/user.secret More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                          for User, default is /etc/ceph/user.secret More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                         type: string
                       secretRef:
                         description: 'Optional: SecretRef is reference to the authentication
-                          secret for User, default is empty. More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                          secret for User, default is empty. More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                         properties:
                           name:
                             description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -6203,25 +6215,25 @@ spec:
                         type: object
                       user:
                         description: 'Optional: User is the rados user name, default
-                          is admin More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it'
+                          is admin More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it'
                         type: string
                     required:
                     - monitors
                     type: object
                   cinder:
                     description: 'Cinder represents a cinder volume attached and mounted
-                      on kubelets host machine More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                      on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                     properties:
                       fsType:
                         description: 'Filesystem type to mount. Must be a filesystem
                           type supported by the host operating system. Examples: "ext4",
                           "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
-                          More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                          More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                         type: string
                       readOnly:
                         description: 'Optional: Defaults to false (read/write). ReadOnly
                           here will force the ReadOnly setting in VolumeMounts. More
-                          info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                          info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                         type: boolean
                       secretRef:
                         description: 'Optional: points to a secret object containing
@@ -6233,8 +6245,8 @@ spec:
                             type: string
                         type: object
                       volumeID:
-                        description: 'volume id used to identify the volume in cinder
-                          More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md'
+                        description: 'volume id used to identify the volume in cinder.
+                          More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
                         type: string
                     required:
                     - volumeID
@@ -6575,20 +6587,20 @@ spec:
                     type: object
                   glusterfs:
                     description: 'Glusterfs represents a Glusterfs mount on the host
-                      that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md'
+                      that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md'
                     properties:
                       endpoints:
                         description: 'EndpointsName is the endpoint name that details
-                          Glusterfs topology. More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                          Glusterfs topology. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                         type: string
                       path:
                         description: 'Path is the Glusterfs volume path. More info:
-                          https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                          https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                         type: string
                       readOnly:
                         description: 'ReadOnly here will force the Glusterfs volume
                           to be mounted with read-only permissions. Defaults to false.
-                          More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod'
+                          More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod'
                         type: boolean
                     required:
                     - endpoints
@@ -6618,7 +6630,7 @@ spec:
                   iscsi:
                     description: 'ISCSI represents an ISCSI Disk resource that is
                       attached to a kubelet''s host machine and then exposed to the
-                      pod. More info: https://releases.k8s.io/HEAD/examples/volumes/iscsi/README.md'
+                      pod. More info: https://examples.k8s.io/volumes/iscsi/README.md'
                     properties:
                       chapAuthDiscovery:
                         description: whether support iSCSI Discovery CHAP authentication
@@ -7028,7 +7040,7 @@ spec:
                     type: object
                   rbd:
                     description: 'RBD represents a Rados Block Device mount on the
-                      host that shares a pod''s lifetime. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md'
+                      host that shares a pod''s lifetime. More info: https://examples.k8s.io/volumes/rbd/README.md'
                     properties:
                       fsType:
                         description: 'Filesystem type of the volume that you want
@@ -7040,29 +7052,29 @@ spec:
                           the machine'
                         type: string
                       image:
-                        description: 'The rados image name. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                        description: 'The rados image name. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         type: string
                       keyring:
                         description: 'Keyring is the path to key ring for RBDUser.
-                          Default is /etc/ceph/keyring. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          Default is /etc/ceph/keyring. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         type: string
                       monitors:
-                        description: 'A collection of Ceph monitors. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                        description: 'A collection of Ceph monitors. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         items:
                           type: string
                         type: array
                       pool:
                         description: 'The rados pool name. Default is rbd. More info:
-                          https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         type: string
                       readOnly:
                         description: 'ReadOnly here will force the ReadOnly setting
-                          in VolumeMounts. Defaults to false. More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          in VolumeMounts. Defaults to false. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         type: boolean
                       secretRef:
                         description: 'SecretRef is name of the authentication secret
                           for RBDUser. If provided overrides keyring. Default is nil.
-                          More info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         properties:
                           name:
                             description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -7071,7 +7083,7 @@ spec:
                         type: object
                       user:
                         description: 'The rados user name. Default is admin. More
-                          info: https://releases.k8s.io/HEAD/examples/volumes/rbd/README.md#how-to-use-it'
+                          info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it'
                         type: string
                     required:
                     - image
