@@ -23,8 +23,13 @@ easily be installed into a Kubernetes cluster.
 
 == Prerequisites
 
-* Access to a Kubernetes v1.11.3+ cluster.
+* Access to a Kubernetes v1.12.0+ cluster.
 * Access to Oracle Coherence Docker images.
+
+NOTE: OpenShift - the Coherence Operator works without modification on OpenShift but some versions
+of the Coherence images will not work out of the box.
+See the <<about/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
+run Coherence clusters with the Operator on OpenShift.
 
 === Image Pull Secrets
 

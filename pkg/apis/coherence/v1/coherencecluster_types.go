@@ -52,8 +52,7 @@ type CoherenceClusterSpec struct {
 // CoherenceCluster is the Schema for the coherenceclusters API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-// +kubebuilder:categories=coherence
-// +kubebuilder:resource:shortName=coh
+// +kubebuilder:resource:shortName=coh,categories=coherence
 // +kubebuilder:printcolumn:name="Roles",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster"
 type CoherenceCluster struct {
 	metav1.TypeMeta   `json:",inline"`
