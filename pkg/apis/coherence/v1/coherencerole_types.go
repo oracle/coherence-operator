@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -19,8 +19,7 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:categories=coherence
-// +kubebuilder:resource:shortName=cohrole
+// +kubebuilder:resource:shortName=cohrole,categories=coherence
 // +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".spec.role",description="The name of this role"
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".metadata.labels.coherenceCluster",description="The name of the Coherence cluster that this role belongs to"
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="The number of Coherence Pods for this role"
