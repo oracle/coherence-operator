@@ -256,6 +256,8 @@ func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, response *helm.InstallRel
 
 	parts := strings.Split(response.Release.Manifest, "\n---\n")
 	list := make([]runtime.Object, len(parts))
+	ownerRefs := make([]metav1.OwnerReference, 0)
+
 	index := 0
 	for _, part := range parts {
 		trimmed := strings.TrimSpace(part)
@@ -267,11 +269,18 @@ func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, response *helm.InstallRel
 			}
 			gvr, _ := meta.UnsafeGuessKindToResource(u.GroupVersionKind())
 
+			// remove owner references
+			u.SetOwnerReferences(ownerRefs)
+			data, err := yaml.Marshal(u.Object)
+			if err != nil {
+				return nil, err
+			}
+
 			o, err := s.New(u.GroupVersionKind())
 			if err != nil {
 				return nil, err
 			}
-			_, _, err = decoder.Decode([]byte(trimmed), nil, o)
+			_, _, err = decoder.Decode(data, nil, o)
 			if err != nil {
 				return nil, err
 			}
