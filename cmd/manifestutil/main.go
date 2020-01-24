@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -50,13 +50,13 @@ func main() {
 		return kind == "ClusterRole" || kind == "ClusterRoleBinding"
 	}
 
-	filterNamesapced := func(o runtime.Object) bool {
+	filterNamespaced := func(o runtime.Object) bool {
 		return !filterGlobal(o)
 	}
 
 	filterLocal := func(o runtime.Object) bool {
 		kind := o.GetObjectKind().GroupVersionKind().Kind
-		return kind != "Deployment" && filterNamesapced(o)
+		return kind != "Deployment" && filterNamespaced(o)
 	}
 
 	namespacedName, err := helper.GetTestManifestFileName()
@@ -83,7 +83,7 @@ func main() {
 	err = result.ToString(filterLocal, localFile)
 	panicIfErr(err)
 
-	err = result.ToString(filterNamesapced, namespacedFile)
+	err = result.ToString(filterNamespaced, namespacedFile)
 	panicIfErr(err)
 
 	err = result.ToString(filterGlobal, globalFile)
