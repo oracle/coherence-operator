@@ -48,7 +48,7 @@
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
     <version.lib.asciidoctor.diagram>1.5.4.1</version.lib.asciidoctor.diagram>
-    <version.lib.checkstyle>8.18</version.lib.checkstyle>
+    <version.lib.checkstyle>8.29</version.lib.checkstyle>
     <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
     <version.plugin.helidon-build-tools>1.0.10</version.plugin.helidon-build-tools>
