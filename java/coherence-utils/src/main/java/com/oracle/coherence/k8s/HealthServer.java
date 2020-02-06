@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -88,6 +88,11 @@ public class HealthServer {
      */
     public static final String ATTRIB_NODE_COUNT = "servicenodecount";
 
+    /**
+     * The error message in an exception due to there being no management member in the cluster.
+     */
+    public static final String NO_MANAGED_NODES = "None of the nodes are managed";
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -158,31 +163,57 @@ public class HealthServer {
     /**
      * Process a ready request.
      *
-     * @param t the {@link HttpExchange} to send the response to
+     * @param exchange the {@link HttpExchange} to send the response to
      */
-    private void ready(HttpExchange t) {
-        int response = hasClusterMembers() && isStatusHA() ? 200 : 400;
-        send(t, response);
+    void ready(HttpExchange exchange) {
+        try {
+            int response = hasClusterMembers() && isStatusHA() ? 200 : 400;
+            send(exchange, response);
+        }
+        catch (Throwable thrown) {
+            handleError(exchange, thrown, "Ready check");
+        }
     }
 
     /**
      * Process a health request.
      *
-     * @param t the {@link HttpExchange} to send the response to
+     * @param exchange the {@link HttpExchange} to send the response to
      */
-    private void health(HttpExchange t) {
-        int response = hasClusterMembers() ? 200 : 400;
-        send(t, response);
+    void health(HttpExchange exchange) {
+        try {
+            int response = hasClusterMembers() ? 200 : 400;
+            send(exchange, response);
+        }
+        catch (Throwable thrown) {
+            handleError(exchange, thrown, "Health check");
+        }
     }
 
     /**
      * Process a status HA request.
      *
-     * @param t the {@link HttpExchange} to send the response to
+     * @param exchange the {@link HttpExchange} to send the response to
      */
-    private void statusHA(HttpExchange t) {
-        int response = isStatusHA() ? 200 : 400;
-        send(t, response);
+    void statusHA(HttpExchange exchange) {
+        try {
+            int response = isStatusHA() ? 200 : 400;
+            send(exchange, response);
+        }
+        catch (Throwable thrown) {
+            handleError(exchange, thrown, "StatusHA check");
+        }
+    }
+
+    private void handleError(HttpExchange t, Throwable thrown, String action) {
+        String msg = thrown.getMessage();
+        CacheFactory.log(action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
+        if (msg != null && msg.contains(NO_MANAGED_NODES)) {
+            send(t, 400);
+        } else {
+            CacheFactory.err(thrown);
+            send(t, 500);
+        }
     }
 
     /**
@@ -200,22 +231,16 @@ public class HealthServer {
      *
      * @return {@code true} if the JVM is StatusHA
      */
-    boolean isStatusHA() {
+    private boolean isStatusHA() {
         boolean statusHA = false;
 
-        try {
-            Cluster cluster = clusterSupplier.get();
+        Cluster cluster = clusterSupplier.get();
 
-            if (cluster != null && cluster.isRunning()) {
-                statusHA = getPartitionAssignmentMBeans()
-                        .stream()
-                        .map(this::getMBeanServiceStatusHAAttributes)
-                        .filter(Objects::nonNull)
-                        .allMatch(this::isServiceStatusHA);
-            }
-        }
-        catch (Throwable t) {
-            CacheFactory.log(t);
+        if (cluster != null && cluster.isRunning()) {
+            statusHA = getPartitionAssignmentMBeans()
+                    .stream()
+                    .map(this::getMBeanServiceStatusHAAttributes)
+                    .allMatch(this::isServiceStatusHA);
         }
 
         return statusHA;
@@ -234,7 +259,7 @@ public class HealthServer {
         boolean statusHA = true;
 
         // convert the attribute case as MBeanProxy or ReST return them with different cases
-        Map map = mapAttributes.entrySet()
+        Map<String, Object> map = mapAttributes.entrySet()
                 .stream()
                 .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
 
