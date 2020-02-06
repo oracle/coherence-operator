@@ -210,7 +210,8 @@ public class HealthServer {
         CacheFactory.log(action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
         if (msg != null && msg.contains(NO_MANAGED_NODES)) {
             send(t, 400);
-        } else {
+        }
+        else {
             CacheFactory.err(thrown);
             send(t, 500);
         }
