@@ -222,6 +222,7 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 			if canCreate {
 				if err := r.createRole(parameters); err != nil {
 					status = coherence.RoleStatusFailed
+					cluster.SetRoleStatus(role.Role, false, 0, status)
 					_, _ = r.updateClusterStatus(cluster, int32(len(desiredRoles)))
 					return reconcile.Result{}, err
 				} else {
