@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -128,6 +128,7 @@ fields that may be configured:
   resources: {}              # <18>
   readinessProbe: {}         # <19>
   livenessProbe: {}          # <20>
+  startQuorum: []            # <21>
 ----
 
 <1> The <<clusters/030_roles.adoc,`role`>> field sets the name of the role, if omitted the default name of `storage`
@@ -185,4 +186,5 @@ Coherence containers.
 <20> The <<clusters/150_readiness_liveness.adoc,`livenessProbe`>> section configures the liveness probe for the
 Coherence containers.
 
-
+<21> The <<clusters/035_role_startup_ordering.adoc, `startQuorum`>> section configures the start-up dependencies for a role,
+that is the roles that must be started before this role can start.
