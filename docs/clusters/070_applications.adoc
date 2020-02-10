@@ -570,6 +570,10 @@ class. Sometimes an application requires a different class as the main class (or
 for example when running a Node JS application on top of the Graal VM the `main` could be a Javascript file).
 The main to be used can be configured for each role in a `CoherenceCluster`.
 
+NOTE: Note: When using a different main class, if you wish to ensure that Metrics and Management over REST services
+are started correctly, you should include the following call before accessing any Coherence API's - 
+   `DefaultCacheServer.startServerDaemon()`.
+
 === Setting the Application Main Class for the Implicit Role
 
 When configuring a `CoherenceCluster` with a single implicit role the application's working directory is specified
