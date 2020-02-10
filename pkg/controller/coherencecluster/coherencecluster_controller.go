@@ -225,9 +225,8 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 					cluster.SetRoleStatus(role.Role, false, 0, status)
 					_, _ = r.updateClusterStatus(cluster, int32(len(desiredRoles)))
 					return reconcile.Result{}, err
-				} else {
-					status = coherence.RoleStatusCreated
 				}
+				status = coherence.RoleStatusCreated
 			} else {
 				// Just log the reason that the quorum has not been met.
 				// We do not need to requeue the request because as roles start the cluster status will update causing
