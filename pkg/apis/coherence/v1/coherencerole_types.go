@@ -60,6 +60,8 @@ type CoherenceRoleStatus struct {
 	// by clients. The string will be in the same format as the query-param syntax.
 	// More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors
 	Selector string `json:"selector,omitempty"`
+	// The status of the start quorums for this role.
+	StartQuorum []StartQuorumStatus `json:"startQuorum,omitempty"`
 }
 
 func init() {
@@ -93,4 +95,5 @@ const (
 	RoleStatusScaling        RoleStatus = "Scaling"
 	RoleStatusRollingUpgrade RoleStatus = "RollingUpgrade"
 	RoleStatusFailed         RoleStatus = "Failed"
+	RoleStatusWaiting        RoleStatus = "Waiting"
 )

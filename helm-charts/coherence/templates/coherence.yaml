@@ -1,4 +1,4 @@
-{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
+{{/* Copyright 2019, 2020, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
@@ -35,6 +35,11 @@ spec:
       labels:
 {{- include "coherence.release_labels" . | indent 8 }}
         component: coherencePod
+{{- if .Values.coherence.excludeFromWKA }}
+        coherenceWKAMember: "false"
+{{- else }}
+        coherenceWKAMember: "true"
+{{- end }}
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 8 }}
 {{- end }}

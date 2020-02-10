@@ -88,7 +88,6 @@ var _ = Describe("coherencecluster_controller", func() {
 				msg := fmt.Sprintf(createEventMessage, name, testClusterName)
 				event := mgr.AssertEvent()
 
-				Expect(event.Owner).To(Equal(cluster))
 				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
@@ -135,7 +134,6 @@ var _ = Describe("coherencecluster_controller", func() {
 				msg := fmt.Sprintf(createEventMessage, name, testClusterName)
 				event := mgr.AssertEvent()
 
-				Expect(event.Owner).To(Equal(cluster))
 				Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(event.Reason).To(Equal(eventReasonCreated))
 				Expect(event.Message).To(Equal(msg))
@@ -200,12 +198,10 @@ var _ = Describe("coherencecluster_controller", func() {
 				eventOne := mgr.AssertEvent()
 				eventTwo := mgr.AssertEvent()
 
-				Expect(eventOne.Owner).To(Equal(cluster))
 				Expect(eventOne.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(eventOne.Reason).To(Equal(eventReasonCreated))
 				Expect(eventOne.Message).To(Equal(msgOne))
 
-				Expect(eventTwo.Owner).To(Equal(cluster))
 				Expect(eventTwo.Type).To(Equal(corev1.EventTypeNormal))
 				Expect(eventTwo.Reason).To(Equal(eventReasonCreated))
 				Expect(eventTwo.Message).To(Equal(msgTwo))
@@ -338,7 +334,6 @@ var _ = Describe("coherencecluster_controller", func() {
 					msg := fmt.Sprintf(updateEventMessage, roleName, testClusterName)
 					event := mgr.AssertEvent()
 
-					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonUpdated))
 					Expect(event.Message).To(Equal(msg))
@@ -414,7 +409,6 @@ var _ = Describe("coherencecluster_controller", func() {
 					msg := fmt.Sprintf(updateEventMessage, roleName, testClusterName)
 					event := mgr.AssertEvent()
 
-					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonUpdated))
 					Expect(event.Message).To(Equal(msg))
@@ -490,7 +484,6 @@ var _ = Describe("coherencecluster_controller", func() {
 					msg := fmt.Sprintf(deleteEventMessage, proxy.Name, testClusterName)
 					event := mgr.AssertEvent()
 
-					Expect(event.Owner).To(Equal(cluster))
 					Expect(event.Type).To(Equal(corev1.EventTypeNormal))
 					Expect(event.Reason).To(Equal(eventReasonDeleted))
 					Expect(event.Message).To(Equal(msg))

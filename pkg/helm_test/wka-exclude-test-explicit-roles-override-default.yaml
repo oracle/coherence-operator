@@ -1,0 +1,12 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceCluster
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    excludeFromWKA: false
+  roles:
+    - role: data
+    - role: proxy
+      coherence:
+        excludeFromWKA: true

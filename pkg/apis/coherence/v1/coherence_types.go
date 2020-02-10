@@ -212,6 +212,8 @@ type CoherenceSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
+	// Exclude members of this role from being part of the cluster's WKA list.
+	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceSpec struct with any nil or not set
@@ -259,7 +261,18 @@ func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *Coherenc
 		clone.LogLevel = defaults.LogLevel
 	}
 
+	if in.ExcludeFromWKA != nil {
+		clone.ExcludeFromWKA = in.ExcludeFromWKA
+	} else {
+		clone.ExcludeFromWKA = defaults.ExcludeFromWKA
+	}
+
 	return &clone
+}
+
+// IsWKAMember returns true if this role is a WKA list member.
+func (in *CoherenceSpec) IsWKAMember() bool {
+	return in != nil && (in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA)
 }
 
 // ----- JVMSpec struct -----------------------------------------------------
@@ -1826,4 +1839,29 @@ func (in *PodDNSConfig) DeepCopyWithDefaults(defaults *PodDNSConfig) *PodDNSConf
 	}
 
 	return &clone
+}
+
+// ----- StartQuorum --------------------------------------------------------
+
+// StartQuorum defines the order that roles will be created when initially
+// creating a new cluster.
+// +k8s:openapi-gen=true
+type StartQuorum struct {
+	// The list of roles to start first.
+	// +optional
+	Role string `json:"role"`
+	// The number of the dependency Pods that should have been started
+	// before this roles will be started.
+	// +optional
+	PodCount int32 `json:"podCount,omitempty"`
+}
+
+// ----- StartStatus --------------------------------------------------------
+
+// StartQuorumStatus tracks the state of a role's start quorums.
+type StartQuorumStatus struct {
+	// The inlined start quorum.
+	StartQuorum `json:",inline"`
+	// Whether this quorum's condition has been met
+	Ready bool `json:"ready"`
 }

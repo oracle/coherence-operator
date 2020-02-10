@@ -1151,3 +1151,48 @@ func ensureLogsDir(subDir string) (string, error) {
 
 	return dir, err
 }
+
+// Obtain the latest ready time from all of the specified Pods for a given role
+func GetLastPodReadyTime(pods []corev1.Pod, role string) metav1.Time {
+	t := metav1.NewTime(time.Time{})
+	for _, p := range pods {
+		if p.GetLabels()["coherenceRole"] == role {
+			for _, c := range p.Status.Conditions {
+				if c.Type == corev1.PodReady && t.Before(&c.LastTransitionTime) {
+					t = c.LastTransitionTime
+				}
+			}
+		}
+	}
+	return t
+}
+
+// Obtain the first ready time from all of the specified Pods for a given role
+func GetFirstPodReadyTime(pods []corev1.Pod, role string) metav1.Time {
+	t := metav1.NewTime(time.Now())
+	for _, p := range pods {
+		if p.GetLabels()["coherenceRole"] == role {
+			for _, c := range p.Status.Conditions {
+				if c.Type == corev1.PodReady && t.After(c.LastTransitionTime.Time) {
+					t = c.LastTransitionTime
+				}
+			}
+		}
+	}
+	return t
+}
+
+// Obtain the earliest scheduled time from all of the specified Pods for a given role
+func GetFirstPodScheduledTime(pods []corev1.Pod, role string) metav1.Time {
+	t := metav1.NewTime(time.Now())
+	for _, p := range pods {
+		if p.GetLabels()["coherenceRole"] == role {
+			for _, c := range p.Status.Conditions {
+				if c.Type == corev1.PodScheduled && t.After(c.LastTransitionTime.Time) {
+					t = c.LastTransitionTime
+				}
+			}
+		}
+	}
+	return t
+}

@@ -697,6 +697,10 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
+                excludeFromWKA:
+                  description: Exclude members of this role from being part of the
+                    cluster's WKA list.
+                  type: boolean
                 image:
                   description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                   type: string
@@ -5796,6 +5800,22 @@ spec:
                 in each container will not be assigned PID 1. HostPID and ShareProcessNamespace
                 cannot both be set. Optional: Default to false.'
               type: boolean
+            startQuorum:
+              description: The roles that must be started before this role can start.
+              items:
+                description: StartQuorum defines the order that roles will be created
+                  when initially creating a new cluster.
+                properties:
+                  podCount:
+                    description: The number of the dependency Pods that should have
+                      been started before this roles will be started.
+                    format: int32
+                    type: integer
+                  role:
+                    description: The list of roles to start first.
+                    type: string
+                type: object
+              type: array
             tolerations:
               description: "Tolerations is for nodes that have taints on them.   Useful
                 if you want to dedicate nodes to just run the coherence container
@@ -7284,6 +7304,27 @@ spec:
                 introspection by clients. The string will be in the same format as
                 the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors'
               type: string
+            startQuorum:
+              description: The status of the start quorums for this role.
+              items:
+                description: StartQuorumStatus tracks the state of a role's start
+                  quorums.
+                properties:
+                  podCount:
+                    description: The number of the dependency Pods that should have
+                      been started before this roles will be started.
+                    format: int32
+                    type: integer
+                  ready:
+                    description: Whether this quorum's condition has been met
+                    type: boolean
+                  role:
+                    description: The list of roles to start first.
+                    type: string
+                required:
+                - ready
+                type: object
+              type: array
             status:
               description: The current status.
               type: string

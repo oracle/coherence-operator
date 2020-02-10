@@ -679,6 +679,10 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
+                excludeFromWKA:
+                  description: Exclude members of this role from being part of the
+                    cluster's WKA list.
+                  type: boolean
                 image:
                   description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                   type: string
@@ -6266,6 +6270,10 @@ spec:
                         description: CacheConfig is the name of the cache configuration
                           file to use
                         type: string
+                      excludeFromWKA:
+                        description: Exclude members of this role from being part
+                          of the cluster's WKA list.
+                        type: boolean
                       image:
                         description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                         type: string
@@ -11675,6 +11683,23 @@ spec:
                       assigned PID 1. HostPID and ShareProcessNamespace cannot both
                       be set. Optional: Default to false.'
                     type: boolean
+                  startQuorum:
+                    description: The roles that must be started before this role can
+                      start.
+                    items:
+                      description: StartQuorum defines the order that roles will be
+                        created when initially creating a new cluster.
+                      properties:
+                        podCount:
+                          description: The number of the dependency Pods that should
+                            have been started before this roles will be started.
+                          format: int32
+                          type: integer
+                        role:
+                          description: The list of roles to start first.
+                          type: string
+                      type: object
+                    type: array
                   tolerations:
                     description: "Tolerations is for nodes that have taints on them.
                       \  Useful if you want to dedicate nodes to just run the coherence
@@ -13445,6 +13470,22 @@ spec:
                 in each container will not be assigned PID 1. HostPID and ShareProcessNamespace
                 cannot both be set. Optional: Default to false.'
               type: boolean
+            startQuorum:
+              description: The roles that must be started before this role can start.
+              items:
+                description: StartQuorum defines the order that roles will be created
+                  when initially creating a new cluster.
+                properties:
+                  podCount:
+                    description: The number of the dependency Pods that should have
+                      been started before this roles will be started.
+                    format: int32
+                    type: integer
+                  role:
+                    description: The list of roles to start first.
+                    type: string
+                type: object
+              type: array
             tolerations:
               description: "Tolerations is for nodes that have taints on them.   Useful
                 if you want to dedicate nodes to just run the coherence container
@@ -14912,8 +14953,46 @@ spec:
         status:
           description: CoherenceClusterStatus defines the observed state of CoherenceCluster
           properties:
+            roleStatus:
+              description: The status of the roles in the cluster
+              items:
+                description: ClusterRoleStatus defines the observed state of role
+                  within the cluster
+                properties:
+                  conditions:
+                    description: The status transitions for the role
+                    items:
+                      description: ClusterRoleStatusCondition defines a specific role
+                        status condition
+                      properties:
+                        lastTransitionTime:
+                          description: Last time the condition transitioned from one
+                            status to another.
+                          format: date-time
+                          type: string
+                        status:
+                          description: The status description
+                          type: string
+                      type: object
+                    type: array
+                  count:
+                    description: The number of ready Pods.
+                    format: int32
+                    type: integer
+                  ready:
+                    description: A flag indicating the role's ready state
+                    type: boolean
+                  role:
+                    description: The role name
+                    type: string
+                  status:
+                    description: A status description
+                    type: string
+                type: object
+              type: array
             roles:
               description: The number of roles in this cluster
+              format: int32
               type: integer
           type: object
       type: object
