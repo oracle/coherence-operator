@@ -212,6 +212,8 @@ type CoherenceSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
+	// Exclude members of this role from being part of the cluster's WKA list.
+	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
 }
 
 // DeepCopyWithDefaults returns a copy of this CoherenceSpec struct with any nil or not set
@@ -259,7 +261,18 @@ func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *Coherenc
 		clone.LogLevel = defaults.LogLevel
 	}
 
+	if in.ExcludeFromWKA != nil {
+		clone.ExcludeFromWKA = in.ExcludeFromWKA
+	} else {
+		clone.ExcludeFromWKA = defaults.ExcludeFromWKA
+	}
+
 	return &clone
+}
+
+// IsWKAMember returns true if this role is a WKA list member.
+func (in *CoherenceSpec) IsWKAMember() bool {
+	return in != nil && (in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA)
 }
 
 // ----- JVMSpec struct -----------------------------------------------------
