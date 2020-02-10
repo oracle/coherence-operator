@@ -449,6 +449,7 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 		service.Spec.Selector = make(map[string]string)
 		service.Spec.Selector[coherence.CoherenceClusterLabel] = cluster.Name
 		service.Spec.Selector["component"] = "coherencePod"
+		service.Spec.Selector["coherenceWKAMember"] = "true"
 
 		// Set CoherenceCluster instance as the owner and controller of the service structure
 		if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {

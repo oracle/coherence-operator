@@ -618,6 +618,11 @@ func (in *CoherenceSpec) DeepCopyInto(out *CoherenceSpec) {
 		*out = new(PortSpecWithSSL)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.ExcludeFromWKA != nil {
+		in, out := &in.ExcludeFromWKA, &out.ExcludeFromWKA
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

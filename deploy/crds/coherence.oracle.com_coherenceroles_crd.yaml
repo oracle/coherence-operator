@@ -697,6 +697,10 @@ spec:
                   description: CacheConfig is the name of the cache configuration
                     file to use
                   type: string
+                excludeFromWKA:
+                  description: Exclude members of this role from being part of the
+                    cluster's WKA list.
+                  type: boolean
                 image:
                   description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                   type: string
