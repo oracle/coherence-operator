@@ -71,7 +71,7 @@ func TestWKAExcludeWhenDefaultSetInClusterWithExplicitRoles(t *testing.T) {
 
 	// Obtain the coherenceWKAMember label from the data role's StatefulSet Pod template
 	isMemberData := stsData.Spec.Template.GetLabels()["coherenceWKAMember"]
-	g.Expect(isMemberData).To(Equal("true"))
+	g.Expect(isMemberData).To(Equal("false"))
 
 	// Obtain the proxy role's StatefulSet
 	stsProxy, err := findStatefulSet(result, cluster, "proxy")
