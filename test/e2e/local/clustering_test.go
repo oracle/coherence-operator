@@ -11,7 +11,9 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 	"time"
 
@@ -52,10 +54,100 @@ func TestTwoRolesTwoReplicas(t *testing.T) {
 	assertCluster(t, "cluster-two-roles-different-replica.yaml", map[string]int32{"data": 2, "proxy": 1})
 }
 
+func TestStartQuorumDependentRoleReadySingleRole(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cluster, pods := assertCluster(t, "cluster-ready-quorum.yaml", map[string]int32{"data": 2, "test": 1})
+	ready := helper.GetLastPodReadyTime(pods, "data")
+	scheduled := helper.GetFirstPodScheduledTime(pods, "test")
+
+	g.Expect(scheduled.Before(&ready)).To(BeFalse())
+
+	dataStatus := cluster.GetRoleStatus("data")
+	testStatus := cluster.GetRoleStatus("test")
+	dataReady := dataStatus.GetCondition(coh.RoleStatusReady)
+	testCreated := testStatus.GetCondition(coh.RoleStatusCreated)
+
+	g.Expect(testCreated.LastTransitionTime.Before(&dataReady.LastTransitionTime)).To(BeFalse())
+}
+
+func TestStartQuorumDependentRoleReadyTwoRoles(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cluster, pods := assertCluster(t, "cluster-ready-quorum-two-roles.yaml", map[string]int32{"data": 2, "proxy": 2, "test": 1})
+	readyData := helper.GetLastPodReadyTime(pods, "data")
+	readyProxy := helper.GetLastPodReadyTime(pods, "proxy")
+	scheduled := helper.GetFirstPodScheduledTime(pods, "test")
+
+	g.Expect(scheduled.Before(&readyData)).To(BeFalse())
+	g.Expect(scheduled.Before(&readyProxy)).To(BeFalse())
+
+	dataStatus := cluster.GetRoleStatus("data")
+	dataReady := dataStatus.GetCondition(coh.RoleStatusReady)
+	proxyStatus := cluster.GetRoleStatus("proxy")
+	proxyReady := proxyStatus.GetCondition(coh.RoleStatusReady)
+	testStatus := cluster.GetRoleStatus("test")
+	testCreated := testStatus.GetCondition(coh.RoleStatusCreated)
+
+	g.Expect(testCreated.LastTransitionTime.Before(&dataReady.LastTransitionTime)).To(BeFalse())
+	g.Expect(testCreated.LastTransitionTime.Before(&proxyReady.LastTransitionTime)).To(BeFalse())
+}
+
+func TestStartQuorumDependentRoleReadyChained(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cluster, pods := assertCluster(t, "cluster-ready-quorum-chained.yaml", map[string]int32{"data": 2, "proxy": 2, "test": 1})
+
+	readyData := helper.GetLastPodReadyTime(pods, "data")
+	scheduledProxy := helper.GetFirstPodScheduledTime(pods, "proxy")
+
+	g.Expect(scheduledProxy.Before(&readyData)).To(BeFalse())
+
+	dataStatus := cluster.GetRoleStatus("data")
+	proxyStatus := cluster.GetRoleStatus("proxy")
+	dataReady := dataStatus.GetCondition(coh.RoleStatusReady)
+	proxyCreated := proxyStatus.GetCondition(coh.RoleStatusCreated)
+
+	g.Expect(proxyCreated.LastTransitionTime.Before(&dataReady.LastTransitionTime)).To(BeFalse())
+
+	readyProxy := helper.GetLastPodReadyTime(pods, "proxy")
+	scheduledTest := helper.GetFirstPodScheduledTime(pods, "test")
+
+	g.Expect(scheduledTest.Before(&readyProxy)).To(BeFalse())
+
+	proxyReady := proxyStatus.GetCondition(coh.RoleStatusReady)
+	testStatus := cluster.GetRoleStatus("test")
+	testCreated := testStatus.GetCondition(coh.RoleStatusCreated)
+
+	g.Expect(testCreated.LastTransitionTime.Before(&proxyReady.LastTransitionTime)).To(BeFalse())
+}
+
+func TestStartQuorumDependentRoleOnePodReadySingleRole(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	_, pods := assertCluster(t, "cluster-ready-quorum-one-pod.yaml", map[string]int32{"data": 2, "test": 1})
+	ready := helper.GetFirstPodReadyTime(pods, "data")
+	scheduled := helper.GetFirstPodScheduledTime(pods, "test")
+
+	g.Expect(scheduled.Before(&ready)).To(BeFalse())
+}
+
+func TestStartQuorumDependentRoleOnePodReadyTwoRoles(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	_, pods := assertCluster(t, "cluster-ready-quorum-two-roles-one-pod.yaml", map[string]int32{"data": 2, "proxy": 2, "test": 1})
+	readyData := helper.GetFirstPodReadyTime(pods, "data")
+	readyProxy := helper.GetFirstPodReadyTime(pods, "proxy")
+	scheduled := helper.GetFirstPodScheduledTime(pods, "test")
+
+	g.Expect(scheduled.Before(&readyData)).To(BeFalse())
+	g.Expect(scheduled.Before(&readyProxy)).To(BeFalse())
+}
+
 // ----- helpers ------------------------------------------------------------
 
 // Test that a cluster can be created using the specified yaml.
-func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32) {
+func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32) (*coh.CoherenceCluster, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 	f := framework.Global
@@ -126,4 +218,10 @@ func assertCluster(t *testing.T, yamlFile string, expectedRoles map[string]int32
 
 	subset := ep.Subsets[0]
 	g.Expect(len(subset.Addresses)).To(Equal(clusterSize))
+
+	opts := client.ObjectKey{Namespace: namespace, Name: cluster.Name}
+	err = f.Client.Get(context.TODO(), opts, &cluster)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return &cluster, pods
 }

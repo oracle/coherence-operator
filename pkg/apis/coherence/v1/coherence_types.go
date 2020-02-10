@@ -1827,3 +1827,28 @@ func (in *PodDNSConfig) DeepCopyWithDefaults(defaults *PodDNSConfig) *PodDNSConf
 
 	return &clone
 }
+
+// ----- StartQuorum --------------------------------------------------------
+
+// StartQuorum defines the order that roles will be created when initially
+// creating a new cluster.
+// +k8s:openapi-gen=true
+type StartQuorum struct {
+	// The list of roles to start first.
+	// +optional
+	Role string `json:"role"`
+	// The number of the dependency Pods that should have been started
+	// before this roles will be started.
+	// +optional
+	PodCount int32 `json:"podCount,omitempty"`
+}
+
+// ----- StartStatus --------------------------------------------------------
+
+// StartQuorumStatus tracks the state of a role's start quorums.
+type StartQuorumStatus struct {
+	// The inlined start quorum.
+	StartQuorum `json:",inline"`
+	// Whether this quorum's condition has been met
+	Ready bool `json:"ready"`
+}

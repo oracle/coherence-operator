@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -191,8 +192,11 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 		}
 	}
 
+	log.Info("Desired role names: '"+strings.Join(desiredRoleNames, "', '")+"'", "Namespace", request.Namespace, "Name", request.Name)
+
 	// Process the inserts and updates in the order they are specified in the cluster spec
 	for _, roleName := range desiredRoleNames {
+		log.Info("Reconciling role", "Namespace", request.Namespace, "Name", request.Name, "Role", roleName)
 		role := desiredRoles[roleName]
 		existingRole, found := existingRoles[role.GetRoleName()]
 
@@ -210,33 +214,56 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 			if err != nil || result.Requeue {
 				return result, err
 			}
-		} else if err := r.createRole(parameters); err != nil {
+		} else {
 			// this is a request for a new cluster role
-			return reconcile.Result{}, err
+
+			var status coherence.RoleStatus
+			canCreate, reason := r.canCreateRole(parameters)
+			if canCreate {
+				if err := r.createRole(parameters); err != nil {
+					status = coherence.RoleStatusFailed
+					_, _ = r.updateClusterStatus(cluster, int32(len(desiredRoles)))
+					return reconcile.Result{}, err
+				} else {
+					status = coherence.RoleStatusCreated
+				}
+			} else {
+				// Just log the reason that the quorum has not been met.
+				// We do not need to requeue the request because as roles start the cluster status will update causing
+				// a new reconcile call. If the customer messes up the quorum then potentially it will never start but
+				// we do not bother doing any validation, e.g. checking for circular dependencies.
+				// The log will give the reason why so the customer can see what conditions are being waited on.
+				log.Info("Cannot create role - "+reason, "Namespace", request.Namespace, "Name", request.Name, "Role", roleName)
+				status = coherence.RoleStatusWaiting
+			}
+
+			cluster.SetRoleStatus(role.Role, false, 0, status)
 		}
 	}
 
-	if len(desiredRoles) != cluster.Status.Roles {
-		// re-fetch the cluster in case it has been updated
-		cluster := &coherence.CoherenceCluster{}
-		if err := r.client.Get(context.TODO(), request.NamespacedName, cluster); err != nil {
-			log.Error(err, "failed to get cluster to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
-			return reconcile.Result{}, err
-		}
+	return r.updateClusterStatus(cluster, int32(len(desiredRoles)))
+}
 
-		// Update the role count in the cluster status
-		cluster.Status.Roles = len(desiredRoles)
-
-		// Update the new status in k8s
-		if err = r.client.Status().Update(context.TODO(), cluster); err != nil {
-			// failed to update the CoherenceClusters's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the cluster is in the desired state
-			log.Error(err, "failed to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
-			return reconcile.Result{}, err
-		}
+func (r *ReconcileCoherenceCluster) updateClusterStatus(cluster *coherence.CoherenceCluster, roleCount int32) (reconcile.Result, error) {
+	// Update the cluster status
+	// re-fetch the cluster in case it has been updated
+	clusterStatus := &coherence.CoherenceCluster{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, clusterStatus); err != nil {
+		log.Error(err, "failed to get cluster to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
 	}
 
-	// we're done so do not requeue
+	// Update the role count in the cluster status
+	clusterStatus.Status.Roles = roleCount
+	clusterStatus.Status.Roles = cluster.Status.Roles
+
+	// Update the new status in k8s
+	if err := r.client.Status().Update(context.TODO(), cluster); err != nil {
+		// failed to update the CoherenceClusters's status
+		log.Error(err, "failed to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -248,6 +275,40 @@ type params struct {
 	desiredRole  coherence.CoherenceRoleSpec
 	existingRole coherence.CoherenceRole
 	reqLogger    logr.Logger
+}
+
+// canCreateRole determines whether any specified start quorum has been met.
+func (r *ReconcileCoherenceCluster) canCreateRole(p params) (bool, string) {
+	if p.desiredRole.StartQuorum == nil {
+		return true, ""
+	}
+
+	canCreate := true
+	var quorum []string
+
+	for _, q := range p.desiredRole.StartQuorum {
+		roleStatus := p.cluster.GetRoleStatus(q.Role)
+		if q.PodCount <= 0 {
+			if !roleStatus.Ready {
+				canCreate = false
+				quorum = append(quorum, fmt.Sprintf("role '%s' to be ready", q.Role))
+			}
+		} else {
+			if roleStatus.Count < q.PodCount {
+				canCreate = false
+				quorum = append(quorum, fmt.Sprintf("role '%s' to have %d ready Pods (ready=%d)", q.Role, q.PodCount, roleStatus.Count))
+			}
+		}
+	}
+
+	var reason string
+	if len(quorum) > 0 {
+		reason = "Waiting for creation quorum to be met: \"" + strings.Join(quorum, "\" and \"") + "\""
+	} else {
+		reason = ""
+	}
+
+	return canCreate, reason
 }
 
 // createRole create a new cluster role.

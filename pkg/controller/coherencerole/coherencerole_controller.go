@@ -238,18 +238,18 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 		return r.scaleDownToZero(cluster, role, helmValues)
 	case replicas <= 0 && err == nil && helmValues.GetDeletionTimestamp() != nil:
 		// Helm values already deleted but not yet gone
-		if err = r.updateStatus(role, nil); err != nil {
+		if err = r.updateStatus(role, nil, cluster); err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
 			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 		return reconcile.Result{}, nil
 	case replicas <= 0 && err != nil && errors.IsNotFound(err):
 		// Helm values has been deleted
-		if err = r.updateStatus(role, nil); err != nil {
+		if err = r.updateStatus(role, nil, cluster); err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
 			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 		return reconcile.Result{}, nil
 	case replicas > 0 && err != nil && errors.IsNotFound(err):
@@ -392,11 +392,11 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 		// but do update this role's status with the current StatefulSet status if it has changed.
 		// When the state of the StatefulSet changes again then reconcile will be called again and
 		// hence when the StatfulSet reaches the desired state the role update will be processed.
-		err = r.updateStatus(role, sts)
+		err = r.updateStatus(role, sts, cluster)
 		if err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
 			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 		logger.Info(fmt.Sprintf("Skipping update request. StatefulSet %s ReadyReplicas=%d expected Replicas=%d", sts.Name, readyReplicas, currentReplicas))
 		// Do not need to re-queue as when the StatefulSet changes reconcile will be called again.
@@ -408,6 +408,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 
 	switch {
 	case currentReplicas < desiredReplicas:
+		logger.Info("Reconciling existing Coherence Role: currentReplicas < desiredReplicas")
 		// Scaling UP
 
 		// if scaling up and upgrading then upgrade first and scale second
@@ -428,6 +429,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 		logger.Info(fmt.Sprintf("Request to scale up from %d to %d", currentReplicas, desiredReplicas))
 		return r.scale(role, helmValues, existing, desiredReplicas, currentReplicas, sts)
 	case currentReplicas > desiredReplicas:
+		logger.Info("Reconciling existing Coherence Role: case currentReplicas > desiredReplicas")
 		// Scaling DOWN
 
 		// if scaling down and upgrading then scale down first and upgrade second
@@ -445,23 +447,26 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 		}
 		return result, err
 	case isUpgrade:
+		logger.Info("Reconciling existing Coherence Role: case isUpgrade")
 		// no scaling, just a rolling upgrade
 		if err := r.upgrade(role, helmValues, currentReplicas, desiredRole); err != nil {
 			return r.handleErrAndRequeue(err, nil, fmt.Sprintf(updateFailedMessage, helmValues.GetName(), role.Name, err), logger)
 		}
 		return reconcile.Result{Requeue: false}, nil
 	case sts != nil:
+		logger.Info("Reconciling existing Coherence Role: case sts != nil")
 		// nothing to do to update or scale
 		// We probably arrived here due to a change in the StatefulSet for a role
 		// In this case we can potentially update the role's status based on what changed in the StatefulSet
-		err = r.updateStatus(role, sts)
+		err = r.updateStatus(role, sts, cluster)
 		if err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
 			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 	}
 
+	logger.Info("Finished reconciling existing Coherence Role")
 	return reconcile.Result{Requeue: false}, nil
 }
 
@@ -532,8 +537,10 @@ func (r *ReconcileCoherenceRole) upgrade(role *coh.CoherenceRole, existingRole *
 }
 
 // Update the role's status based on the status of the StatefulSet.
-func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *appsv1.StatefulSet) error {
+func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *appsv1.StatefulSet, cluster *coh.CoherenceCluster) error {
 	var err error
+
+	log.Info("Updating role status", "Namespace", role.Namespace, "Name", role.Name, "Cluster", cluster.Name)
 
 	if sts == nil {
 		role.Status.CurrentReplicas = 0
@@ -541,8 +548,8 @@ func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *apps
 
 		if err = r.client.Status().Update(context.TODO(), role); err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
-			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name, "Cluster", cluster.Name)
+			return err
 		}
 	} else if role.Status.CurrentReplicas != sts.Status.Replicas || role.Status.ReadyReplicas != sts.Status.ReadyReplicas {
 		// Update this CoherenceRole's status
@@ -555,9 +562,28 @@ func (r *ReconcileCoherenceRole) updateStatus(role *coh.CoherenceRole, sts *apps
 
 		if err = r.client.Status().Update(context.TODO(), role); err != nil {
 			// failed to update the CoherenceRole's status
-			// ToDo - handle this properly by re-queuing the request and then in the reconcile method properly handle setting status even if the role is in the desired state
-			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
+			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name, "Cluster", cluster.Name)
+			return err
 		}
+	}
+
+	// Update this role's status in the parent cluster
+	// re-fetch the cluster in case it has been updated
+	clusterToUpdate := &coh.CoherenceCluster{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, clusterToUpdate); err != nil {
+		log.Error(err, "failed to get parent cluster to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
+		return err
+	}
+
+	ready := role.Status.Status == coh.RoleStatusReady
+	clusterToUpdate.SetRoleStatus(role.Spec.Role, ready, role.Status.ReadyReplicas, role.Status.Status)
+
+	log.Info("Updating role's status in parent cluster", "Namespace", role.Namespace, "Name", role.Name, "Cluster", cluster.Name)
+
+	if err = r.client.Status().Update(context.TODO(), clusterToUpdate); err != nil {
+		// failed to update the CoherenceCluster's status
+		log.Error(err, "failed to update role's parent cluster status", "Namespace", role.Namespace, "Name", role.Name, "Cluster", cluster.Name)
+		return err
 	}
 
 	return err
