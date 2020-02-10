@@ -163,6 +163,11 @@ type CoherenceRoleSpec struct {
 	// Configure various networks and DNS settings for Pods in this rolw.
 	// +optional
 	Network *NetworkSpec `json:"network,omitempty"`
+	// The roles that must be started before this role can start.
+	// +listType=map
+	// +listMapKey=role
+	// +optional
+	StartQuorum []StartQuorum `json:"startQuorum,omitempty"`
 }
 
 // Obtain the number of replicas required for a role.
@@ -306,6 +311,9 @@ func (in *CoherenceRoleSpec) DeepCopyWithDefaults(defaults *CoherenceRoleSpec) *
 	clone.Logging = in.Logging.DeepCopyWithDefaults(defaults.Logging)
 	// Network configuration is merged
 	clone.Network = in.Network.DeepCopyWithDefaults(defaults.Network)
+
+	// The quorum is NEVER taken from defaults
+	clone.StartQuorum = in.StartQuorum
 
 	// NodeSelector is a map and is NOT merged
 	clone.NodeSelector = MergeMap(in.NodeSelector, defaults.NodeSelector)

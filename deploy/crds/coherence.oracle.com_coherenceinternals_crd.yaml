@@ -5805,6 +5805,22 @@ spec:
                 in each container will not be assigned PID 1. HostPID and ShareProcessNamespace
                 cannot both be set. Optional: Default to false.'
               type: boolean
+            startQuorum:
+              description: The roles that must be started before this role can start.
+              items:
+                description: StartQuorum defines the order that roles will be created
+                  when initially creating a new cluster.
+                properties:
+                  podCount:
+                    description: The number of the dependency Pods that should have
+                      been started before this roles will be started.
+                    format: int32
+                    type: integer
+                  role:
+                    description: The list of roles to start first.
+                    type: string
+                type: object
+              type: array
             tolerations:
               description: "Tolerations is for nodes that have taints on them.   Useful
                 if you want to dedicate nodes to just run the coherence container
