@@ -1,4 +1,4 @@
-# Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2020, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -78,6 +78,9 @@ coherence:
   # logLevel sets the Coherence log level. This value should be an integer in the range 1 to 9,
   #   the default being 5 (info level).
   logLevel:
+  # excludeFromWka when set to true excludes this member from the WKA service membership.
+  # The default is false, so this member will be part of the WKA list.
+  excludeFromWKA:
   # coherence.metrics configures Coherence metrics publishing
   #   Note: Coherence metrics publishing will be available in 12.2.1.4.
   metrics:

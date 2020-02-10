@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ metadata:
   name: test-cluster # <1>
 ----
 
-<1> A Coherence cluster will br created with a cluster name `test-cluster`
+<1> A Coherence cluster will be created with a cluster name `test-cluster`
 
 The yaml for the WKA `Service` would look like the following:
 
@@ -91,7 +91,7 @@ spec:
 members of this service regardless of their ready state. This is important so that Coherence JVMs can discover other
 members before they are fully ready.
 
-<3> The service has a `clusterIP` of `Nonde` so it is headless
+<3> The service has a `clusterIP` of `None` so it is headless
 
 <4> A single port is exposed, in this case the echo port (7) even though nothing in the Coherence `Pods` binds to this
 port. Ideally no port would be included but the service has to have at least one port defined.
@@ -102,4 +102,21 @@ which are labels that the Coherence Operator will assign to all `Pods` in this c
 Because this `Service` is created in the same `Namespace` as the rest of the Coherence cluster `Pods` the JVMs can use
 the raw `Service` name as the WKA list, in the example above the WKA list would just be `test-cluster-wka`.
 
+
+=== Exclude Roles From WKA
+
+In some situations it may be desirable to exclude the Pods belonging to certain roles in the cluster from being members of the
+well known address list. For example certain K8s network configurations cause WKA issues if some roles are using host networking.
+
+A role can be excluded from the WKA list by setting the `excludeFromWKA` field of the `coherence` section of the role spec to `true`.
+
+WARNING: The operator does not validate the `excludeFromWKA` fields for a cluster so it is possible to try to create a cluster
+where all of the roles have `excludeFromWKA` set to `true` which will cause the cluster to either fail to start or fail to form
+a correct cluster. For example setting `excludeFromWKA` to `true` at the default level when defining explicit roles but then
+forgetting to override that value to `false` for any of the roles.
+
+WARNING: When excluding roles from WKA it is important that roles that are part of the WKA list have been started first otherwise
+the non-WKA role members cannot start. Eventually the K8s readiness probe for these Pods would time-out causing K8s to restart them
+but this would not be a desirable way to start a cluster. The start-up order can be controlled by configuring the role's `startQuorum`
+list, as described in the documentation section on <<clusters/035_role_startup_ordering.adoc, role start-up ordering>>.
 

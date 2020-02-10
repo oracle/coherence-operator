@@ -1,0 +1,124 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Define Coherence Role Start Order
+
+The roles in a `CoherenceCluster` can be configured to start in a specific order.
+
+== Define Coherence Role Start Order
+
+The default behaviour of the operator is to create the `StatefulSets` for all of the roles in parallel so that they all start at
+the same time. Sometimes this behaviour is not suitable if, for example, application code running in one role depends on the
+availability of another role. The `CoherenceCluster` CRD allows roles to be configured with a `startQuorum` that defines a role's
+dependency on other roles in the cluster.
+
+NOTE: The `startQuorum` only applies when a cluster is being created by the operator, it does not apply in other functions such as
+upgrades, scaling, shut down etc.
+
+An individual role can depend on one or more other roles. The dependency can be such that the role will not be created until all
+of the `Pods` of the dependent role are ready, or it can be configured so that just a single `Pod` of the dependent role must be
+ready.
+
+For example:
+In the yaml snippet below there are two roles, `data` and `proxy`
+[source,yaml]
+----
+- role: data
+  replicas: 3      # <1>
+- role: proxy
+  startQuorum:     # <2>
+    - role: data
+      podCount: 1
+----
+
+<1> The `data` role does not specify a `startQuorum` so this role will be created immediately by the operator.
+
+<2> The `proxy` role has a start quorum that means that the `proxy` role depends on the `data` role.
+The `podCount` field is set to `1` meaning that the `proxy` role will not be created until at least `1` of the `data` role `Pods`
+in in the `Ready` state.
+
+Omitting the `podCount` from the quorum means that the role will not start until all of the configured replicas of the dependent
+role are ready; for example:
+[source,yaml]
+----
+- role: data
+  replicas: 3
+- role: proxy
+  startQuorum:  # <1>
+    - role: data
+----
+
+<1> The `proxy` role's `startQuorum` just specifies a dependency on the `data` role with no `podCount` so all `3` of the `data`
+role's `Pods` must be `Ready` before the `proxy` role is created by the operator.
+
+NOTE: Setting a `podCount` less than or equal to zero is the same as not specifying a count.
+
+=== Multiple Dependencies
+
+The `startQuorum` can specify a dependency on more than on role; for example:
+[source,yaml]
+----
+- role: data      # <1>
+  replicas: 5
+- role: proxy
+  replicas: 3
+- role: web
+  startQuorum:    # <2>
+    - role: data
+    - role: proxy
+      podCount: 1
+----
+
+<1> The `data` and `proxy` roles do not specify a `startQuorum` so these roles will be created immediately by the operator.
+
+<2> The `web` role has a `startQuorum` the defines a dependency on both the `data` role and the `proxy` role. The `proxy`
+dependency also specifies a `podCount` of `1`. This means that the operator wil not create the `web` role until all `5` replicas
+of the `data` role are `Ready` and at least `1` of the `proxy` role's `Pods` is `Ready`.
+
+
+=== Chained Dependencies
+
+It is also possible to chain dependencies, for example:
+[source,yaml]
+----
+- role: data      # <1>
+  replicas: 5
+- role: proxy
+  replicas: 3
+  startQuorum:    # <2>
+    - role: data
+- role: web
+  startQuorum:    # <3>
+    - role: proxy
+      podCount: 1
+----
+
+<1> The `data` role does not specify a `startQuorum` so this role will be created immediately by the operator.
+
+<2> The `proxy` role defines a dependency on the `data` role without a `podCount` so all three `Pods` of the `data` role must be
+in a `Ready` state before the operator will create the `proxy` role.
+
+<3> The `web` role depends on the `proxy` role with a `podCount` of one, so the operator will not create the `web` role until
+at least one `proxy` role `Pod` is in a `Ready` state.
+
+WARNING: The operator does not validate that a `startQuorum` makes sense. It is possible to declare a quorum with circular
+dependencies, in which case the roles will never start. It would also be possible to create a quorum with a `podCount` greater
+than the `replicas` value of the dependent role, in which case the quorum would never be met and the role would not start.
+
+NOTE: If creating a cluster with multiple explicit roles a `startQuorum` declared in the cluster's default section will be
+ignored. A `startQuorum` can only be specified at the individual role level.

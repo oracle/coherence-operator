@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -48,7 +48,7 @@ var _ = Describe("Testing CoherenceCluster", func() {
 		cluster.Spec.Roles[0] = roleOne
 		cluster.Spec.Roles[1] = roleTwo
 
-		Expect(cluster.GetRole("foo")).To(Equal(coherence.CoherenceRoleSpec{}))
+		Expect(cluster.GetRole("foo")).To(Equal(coherence.CoherenceRoleSpec{Role: "foo"}))
 	})
 
 	It("set cluster role", func() {

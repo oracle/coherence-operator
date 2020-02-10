@@ -8,6 +8,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -75,7 +76,100 @@ type CoherenceClusterList struct {
 // +k8s:openapi-gen=true
 type CoherenceClusterStatus struct {
 	// The number of roles in this cluster
-	Roles int `json:"roles,omitempty"`
+	Roles int32 `json:"roles,omitempty"`
+	// The status of the roles in the cluster
+	// +listType=map
+	// +listMapKey=role
+	RoleStatus []ClusterRoleStatus `json:"roleStatus,omitempty"`
+}
+
+// Set the CoherenceRoleSpec
+func (in *CoherenceClusterStatus) SetRoleStatus(roleName string, ready bool, pods int32, status RoleStatus) {
+	found := false
+
+	if len(in.RoleStatus) > 0 {
+		for index, role := range in.RoleStatus {
+			if role.Role == roleName {
+				s := in.RoleStatus[index]
+				s.Transition(ready, pods, status)
+				in.RoleStatus[index] = s
+				found = true
+				break
+			}
+		}
+	}
+
+	if !found {
+		s := ClusterRoleStatus{Role: roleName}
+		s.Transition(ready, pods, status)
+		in.RoleStatus = append(in.RoleStatus, s)
+	}
+}
+
+// ClusterRoleStatus defines the observed state of role within the cluster
+// +k8s:openapi-gen=true
+type ClusterRoleStatus struct {
+	// The role name
+	Role string `json:"role,omitempty"`
+	// A flag indicating the role's ready state
+	Ready bool `json:"ready,omitempty"`
+	// The number of ready Pods.
+	Count int32 `json:"count,omitempty"`
+	// A status description
+	Status RoleStatus `json:"status,omitempty"`
+	// The status transitions for the role
+	// +optional
+	// +listType=map
+	// +listMapKey=status
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	Conditions []ClusterRoleStatusCondition `json:"conditions,omitempty"`
+}
+
+func (in *ClusterRoleStatus) Transition(ready bool, count int32, status RoleStatus) {
+	in.Ready = ready
+	lastStatus := in.Status
+	in.Status = status
+	in.Count = count
+
+	if lastStatus != status {
+		now := metav1.NewTime(time.Now())
+		found := false
+		for index, condition := range in.Conditions {
+			if condition.Status == status {
+				condition.LastTransitionTime = now
+				in.Conditions[index] = condition
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			in.Conditions = append(in.Conditions, ClusterRoleStatusCondition{Status: status, LastTransitionTime: now})
+		}
+	}
+}
+
+func (in *ClusterRoleStatus) GetCondition(status RoleStatus) ClusterRoleStatusCondition {
+	for _, c := range in.Conditions {
+		if c.Status == status {
+			return c
+		}
+	}
+	return ClusterRoleStatusCondition{
+		Status:             status,
+		LastTransitionTime: metav1.Time{},
+	}
+}
+
+// ClusterRoleStatusCondition defines a specific role status condition
+// +k8s:openapi-gen=true
+type ClusterRoleStatusCondition struct {
+	// The status description
+	Status RoleStatus `json:"status,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 }
 
 func init() {
@@ -145,7 +239,7 @@ func (in *CoherenceCluster) GetRole(name string) CoherenceRoleSpec {
 	} else if name == in.Spec.CoherenceRoleSpec.GetRoleName() {
 		return in.Spec.CoherenceRoleSpec
 	}
-	return CoherenceRoleSpec{}
+	return CoherenceRoleSpec{Role: name}
 }
 
 // Set the CoherenceRoleSpec
@@ -170,4 +264,24 @@ func (in *CoherenceCluster) GetClusterSize() int {
 		size += int(role.GetReplicas())
 	}
 	return size
+}
+
+// Obtain the ClusterRoleStatus for the specified role name
+func (in *CoherenceCluster) GetRoleStatus(name string) ClusterRoleStatus {
+	if len(in.Status.RoleStatus) > 0 {
+		for _, role := range in.Status.RoleStatus {
+			if role.Role == name {
+				return role
+			}
+		}
+	}
+	role := ClusterRoleStatus{Role: name}
+	return role
+}
+
+// Update the status for a role
+func (in *CoherenceCluster) SetRoleStatus(roleName string, ready bool, pods int32, status RoleStatus) {
+	if in != nil {
+		in.Status.SetRoleStatus(roleName, ready, pods, status)
+	}
 }
