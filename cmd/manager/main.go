@@ -11,6 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/operator-framework/operator-sdk/pkg/helm"
 	hoflags "github.com/operator-framework/operator-sdk/pkg/helm/flags"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
@@ -256,6 +257,9 @@ func serveCRMetrics(cfg *rest.Config) error {
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 func setupHelm(mgr manager.Manager, namespace string, hflags *hoflags.HelmOperatorFlags) error {
+
+	helm.Run(hflags)
+
 	// Setup Helm controller
 	watchList, err := watches.Load(hflags.WatchesFile)
 	if err != nil {
