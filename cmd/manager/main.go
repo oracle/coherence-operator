@@ -8,10 +8,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/helm"
 	hoflags "github.com/operator-framework/operator-sdk/pkg/helm/flags"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
@@ -37,9 +37,11 @@ import (
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/operator-framework/operator-sdk/pkg/restmapper"
+	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -141,7 +143,6 @@ func main() {
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
-		MapperProvider:     restmapper.NewDynamicRESTMapper,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
@@ -207,18 +208,10 @@ func main() {
 	}
 
 	// >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
-	// We do not want to add a service here so the gernated code is commented out.
+	// We do not want to add a service here so the generated code is commented out.
 
-	//// Add to the below struct any other metrics ports you want to expose.
-	//servicePorts := []v1.ServicePort{
-	//	{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{TypeIs: intstr.Int, IntVal: metricsPort}},
-	//	{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{TypeIs: intstr.Int, IntVal: operatorMetricsPort}},
-	//}
-	//// Create Service object to expose the metrics port(s).
-	//_, err = metrics.CreateMetricsService(ctx, cfg, servicePorts)
-	//if err != nil {
-	//	log.Info(err.Error())
-	//}
+	// Add the Metrics Service
+	addMetrics(ctx, cfg, namespace)
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 	log.Info("Starting the Cmd.")
@@ -227,6 +220,43 @@ func main() {
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)
+	}
+}
+
+// addMetrics will create the Services and Service Monitors to allow the operator export the metrics by using
+// the Prometheus operator
+func addMetrics(ctx context.Context, cfg *rest.Config, namespace string) {
+	if err := serveCRMetrics(cfg); err != nil {
+		if errors.Is(err, k8sutil.ErrRunLocal) {
+			log.Info("Skipping CR metrics server creation; not running in a cluster.")
+			return
+		}
+		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
+	}
+
+	// Add to the below struct any other metrics ports you want to expose.
+	servicePorts := []v1.ServicePort{
+		{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+		{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
+	}
+
+	// Create Service object to expose the metrics port(s).
+	service, err := metrics.CreateMetricsService(ctx, cfg, servicePorts)
+	if err != nil {
+		log.Info("Could not create metrics Service", "error", err.Error())
+	}
+
+	// CreateServiceMonitors will automatically create the prometheus-operator ServiceMonitor resources
+	// necessary to configure Prometheus to scrape metrics from this operator.
+	services := []*v1.Service{service}
+	_, err = metrics.CreateServiceMonitors(cfg, namespace, services)
+	if err != nil {
+		log.Info("Could not create ServiceMonitor object", "error", err.Error())
+		// If this operator is deployed to a cluster without the prometheus-operator running, it will return
+		// ErrServiceMonitorNotPresent, which can be used to safely skip ServiceMonitor creation.
+		if err == metrics.ErrServiceMonitorNotPresent {
+			log.Info("Install prometheus-operator in your cluster to create ServiceMonitor objects", "error", err.Error())
+		}
 	}
 }
 
@@ -257,9 +287,6 @@ func serveCRMetrics(cfg *rest.Config) error {
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 func setupHelm(mgr manager.Manager, namespace string, hflags *hoflags.HelmOperatorFlags) error {
-
-	helm.Run(hflags)
-
 	// Setup Helm controller
 	watchList, err := watches.Load(hflags.WatchesFile)
 	if err != nil {
