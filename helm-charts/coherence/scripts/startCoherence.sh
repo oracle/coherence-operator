@@ -298,7 +298,7 @@ start()
 
     if [[ "${JVM_FLIGHT_RECORDER}" == "true" ]]
     then
-        ${JAVA_HOME}/bin/java -cp ${COH_UTIL_DIR}/lib/* com.oracle.coherence.k8s.JvmInfo java.vm.name | grep HotSpot
+        ${JAVA_HOME}/bin/java -cp "${COH_UTIL_DIR}/lib/*" com.oracle.coherence.k8s.JvmInfo java.vm.name | grep HotSpot
         if [[ "$?" == "0" ]]
         then
           COH_JVM_ARGS="${COH_JVM_ARGS} -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${JVM_DIR}/jfr"
