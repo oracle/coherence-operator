@@ -682,7 +682,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "description": "Total and used cluster memory across all members.",
+      "description": "Total and used cluster memory across all members (storage enabled and disabled). Please see tables and graphs directly below for breakdown by Role.",
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -873,13 +873,266 @@
     },
     {
       "columns": [],
+      "description": "Total heap usage summarized by role.",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 122,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "Total Heap Used",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "decbytes"
+        },
+        {
+          "alias": "Total Heap Max",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "decbytes"
+        },
+        {
+          "alias": "Role",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "role",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        },
+        {
+          "alias": "Member Count",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #C",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Total Heap Used %",
+          "colorMode": "value",
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #D",
+          "thresholds": [
+            ".5",
+            ".8"
+          ],
+          "type": "number",
+          "unit": "percentunit"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "count(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "D"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Heap Used By Role",
+      "transform": "table",
+      "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "description": "Memory usage percentage by member role.",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "id": 120,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Role: {{role}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Memory Usage % by Role",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "columns": [],
       "description": "The top  $TopLimit Members that have the lowest physical memory % available.",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 17
+        "y": 24
       },
       "id": 104,
       "links": [],
@@ -973,7 +1226,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 17
+        "y": 24
       },
       "id": 103,
       "links": [],
@@ -981,7 +1234,7 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 3,
+        "col": 2,
         "desc": true
       },
       "styles": [
@@ -1083,7 +1336,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 17
+        "y": 24
       },
       "id": 102,
       "links": [],
@@ -1193,7 +1446,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 30
       },
       "id": 74,
       "links": [],
@@ -1299,7 +1552,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 30
       },
       "id": 119,
       "links": [],
@@ -1405,7 +1658,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 23
+        "y": 30
       },
       "id": 73,
       "links": [],
@@ -1516,7 +1769,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 29
+        "y": 36
       },
       "id": 114,
       "legend": {
@@ -1615,7 +1868,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 29
+        "y": 36
       },
       "id": 113,
       "legend": {
@@ -1714,7 +1967,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 29
+        "y": 36
       },
       "id": 118,
       "legend": {
@@ -1809,7 +2062,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 37
+        "y": 44
       },
       "id": 52,
       "links": [],
@@ -1903,7 +2156,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 44
       },
       "id": 75,
       "links": [],
@@ -2009,7 +2262,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 43
+        "y": 50
       },
       "id": 86,
       "links": [],
@@ -2138,7 +2391,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 43
+        "y": 50
       },
       "id": 85,
       "links": [],
@@ -2268,7 +2521,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 49
+        "y": 56
       },
       "id": 116,
       "legend": {
@@ -2355,7 +2608,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 49
+        "y": 56
       },
       "id": 117,
       "legend": {
@@ -2442,6 +2695,9 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
+          "text": "timmiddleton's cluster",
+          "value": "timmiddleton's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
