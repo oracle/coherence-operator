@@ -248,6 +248,22 @@
           "unit": "percentunit"
         },
         {
+          "alias": "Role",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "role",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        },
+        {
           "alias": "",
           "colorMode": null,
           "colors": [
@@ -264,7 +280,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -272,7 +288,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -280,7 +296,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine)  ",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -487,7 +503,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "Member: {{member}} ({{role}})",
           "refId": "A"
         }
       ],
@@ -574,7 +590,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "Member: {{member}} ({{role}})",
           "refId": "A"
         }
       ],
