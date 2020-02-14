@@ -841,7 +841,7 @@ serve-docs:
 release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
-    git checkout -- $(OPERATOR_SDK) || true
+    git reset
 	git checkout gh-pages
 	git pull
 ifeq (true, $(PRE_RELEASE))
