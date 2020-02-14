@@ -255,7 +255,6 @@ func (r *ReconcileCoherenceCluster) updateClusterStatus(cluster *coherence.Coher
 
 	// Update the role count in the cluster status
 	clusterStatus.Status.Roles = roleCount
-	clusterStatus.Status.Roles = cluster.Status.Roles
 
 	// Update the new status in k8s
 	if err := r.client.Status().Update(context.TODO(), cluster); err != nil {
