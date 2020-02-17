@@ -31,6 +31,21 @@ of the Coherence images will not work out of the box.
 See the <<about/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
 
+=== Upgrading From Older Coherence Operator Versions
+
+If you are upgrading from an older version of the Coherence Operator, we recommend you remove
+the Custom Resource Definitions (CRD's) before installing the new Operator. This should be carried out after you have
+removed the old Operator and Coherence clusters.
+
+To remove the CRD's, issue the following command:
+
+[source,bash]
+----
+kubectl delete crd coherenceclusters.coherence.oracle.com coherenceinternals.coherence.oracle.com coherenceroles.coherence.oracle.com
+----
+
+The updated CRD's will be re-created when a new Coherence Operator is installed.
+
 === Image Pull Secrets
 
 In order for the Coherence Operator to be able to install Coherence clusters it needs to be able to pull Coherence
