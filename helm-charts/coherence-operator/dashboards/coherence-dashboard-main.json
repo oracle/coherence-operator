@@ -2695,9 +2695,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "timmiddleton's cluster",
-          "value": "timmiddleton's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
