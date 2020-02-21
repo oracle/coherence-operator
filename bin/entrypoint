@@ -1,14 +1,5 @@
 #!/bin/sh -e
 
-# This is documented here:
-# https://docs.openshift.com/container-platform/3.11/creating_images/guidelines.html#openshift-specific-guidelines
-
-if ! whoami &>/dev/null; then
-  if [ -w /etc/passwd ]; then
-    echo "${USER_NAME:-coherence}:x:$(id -u):$(id -g):${USER_NAME:-coherence} user:${HOME}:/sbin/nologin" >> /etc/passwd
-  fi
-fi
-
-ARGS="--watches-file=/opt/${USER_NAME:-coherence}/watches.yaml --crd-files=/opt/${USER_NAME:-coherence}/crds"
+ARGS="--watches-file=${HOME}/watches.yaml --crd-files=${HOME}/crds"
 
 exec ${OPERATOR} run helm ${ARGS} $@
