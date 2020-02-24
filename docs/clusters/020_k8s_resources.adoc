@@ -16,7 +16,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Coherence Clusters K8s Resources
+= Coherence Cluster K8s Resources
 
 When a `CoherenceCluster` is deployed into Kubernetes the Coherence Operator will create a number of other resources in Kubernetes.
 
@@ -50,6 +50,37 @@ For each port that a role in a `CoherenceCluster` is configured to expose a corr
 The name of the `Service` will be `<cluster-name>-<role-name>-<port-name>` (although this can be overridden when specifying the port
 in the `CoherenceCLuster` spec for that role and port).
 
+== Kubernetes Resource Group & Short Names
+
+The Coherence CRDs belong to the `coherence` resource group. This means that all instances of `CoherenceClusters` and
+`CoherenceRoles` can be retrieved with a single `kubectl` command.
+Both the `CoherenceCluster` and `CoherenceRole` CRDs have short names allowing them to be retrieved from K8s without needing to enter the full name. The `CoherenceCluster` CRD has a short name of `cc` and the `CoherenceRole` CRD has a short name of `cr`.
+
+For example:
+
+[source,bash]
+.Retrieve all CoherenceCluster instances using the full name
+----
+kubectl get coherencecluster
+----
+
+[source,bash]
+.Retrieve all CoherenceCluster instances using the short name
+----
+kubectl get cc
+----
+
+[source,bash]
+.Retrieve all CoherenceRole instances using the full name
+----
+kubectl get coherencerole
+----
+
+[source,bash]
+.Retrieve all CoherenceRole instances using the short name
+----
+kubectl get cr
+----
 
 
 
