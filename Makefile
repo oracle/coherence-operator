@@ -468,7 +468,7 @@ helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-helm-test: build-operator reset-namespace create-ssl-secrets install-crds
+helm-test: build-operator reset-namespace create-ssl-secrets uninstall-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/helm --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
