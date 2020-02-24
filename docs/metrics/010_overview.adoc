@@ -46,6 +46,13 @@ Scraping metrics from your own Prometheus instance.
 --
 
 [CARD]
+.Importing Dashboards
+[link=metrics/045_importing.adoc]
+--
+Importing Grafana Dashboards into your own instance.
+--
+
+[CARD]
 .Grafana Dashboards
 [link=metrics/050_dashboards.adoc]
 --
