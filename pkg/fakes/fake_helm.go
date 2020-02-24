@@ -12,10 +12,14 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/operator-framework/operator-sdk/pkg/helm/client"
-	"github.com/operator-framework/operator-sdk/pkg/helm/engine"
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"github.com/pborman/uuid"
+	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart/loader"
+	kubev3 "helm.sh/helm/v3/pkg/kube"
+	"helm.sh/helm/v3/pkg/release"
+	storagev3 "helm.sh/helm/v3/pkg/storage"
+	driverv3 "helm.sh/helm/v3/pkg/storage/driver"
 	"io"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -23,19 +27,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	apitypes "k8s.io/apimachinery/pkg/types"
-	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
-	helmengine "k8s.io/helm/pkg/engine"
-	"k8s.io/helm/pkg/kube"
 	cpb "k8s.io/helm/pkg/proto/hapi/chart"
-	helm "k8s.io/helm/pkg/proto/hapi/services"
-	"k8s.io/helm/pkg/storage"
-	"k8s.io/helm/pkg/storage/driver"
-	"k8s.io/helm/pkg/tiller"
-	"k8s.io/helm/pkg/tiller/environment"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
@@ -109,7 +104,17 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 			return nil, err
 		}
 
-		r, err := f.FakeHCoherenceHelmInstall(f.mgr, cluster.GetNamespace(), values)
+		valuesMap, ok := values.Object["spec"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("failed to get spec: expected map[string]interface{}")
+		}
+
+		chartDir, err := helper.FindCoherenceHelmChartDir()
+		if err != nil {
+			return nil, err
+		}
+
+		r, err := f.fakeHelmInstall(f.mgr, cluster.GetNamespace(), chartDir, valuesMap)
 		if err != nil {
 			return nil, err
 		}
@@ -124,22 +129,14 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 	return result, nil
 }
 
-func (f *fakeHelm) FakeHCoherenceHelmInstall(mgr *FakeManager, namespace string, values *unstructured.Unstructured) (*HelmInstallResult, error) {
-	data, err := yaml.Marshal(values.Object["spec"])
-	if err != nil {
-		return nil, err
-	}
-
-	chartDir, err := helper.FindCoherenceHelmChartDir()
-	if err != nil {
-		return nil, err
-	}
-
-	return f.fakeHelmInstall(mgr, namespace, chartDir, data)
-}
-
 func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, values helper.OperatorValues) (*HelmInstallResult, error) {
-	data, err := values.ToYaml()
+	data, err := json.Marshal(values)
+	if err != nil {
+		return nil, err
+	}
+
+	valuesMap := make(map[string]interface{})
+	err = json.Unmarshal(data, &valuesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -149,93 +146,48 @@ func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, v
 		return nil, err
 	}
 
-	return f.fakeHelmInstall(mgr, namespace, chartDir, data)
+	return f.fakeHelmInstall(mgr, namespace, chartDir, valuesMap)
 }
 
-func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string, values []byte) (*HelmInstallResult, error) {
-	storageBackend := storage.Init(driver.NewMemory())
+func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string, values map[string]interface{}) (*HelmInstallResult, error) {
+	var err error
 
-	tillerKubeClient, err := client.NewFromManager(mgr)
+	rcg, err := client.NewRESTClientGetter(f.mgr, namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	u := &unstructured.Unstructured{}
-	u.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "Operator"})
-	u.SetNamespace(namespace)
-
-	uid := uuid.Parse(uuid.New()).String()
-	u.SetUID(types.UID(uid))
-	u.SetName("test")
-
-	releaseServer, err := f.getReleaseServer(u, storageBackend, tillerKubeClient)
+	chart, err := loader.LoadDir(chartDir)
 	if err != nil {
 		return nil, err
 	}
 
-	chart, err := f.loadChart(chartDir)
+	storageBackend := storagev3.Init(driverv3.NewMemory())
+	kubeClient := kubev3.New(rcg)
+
+	cfg := &action.Configuration{
+		RESTClientGetter: rcg,
+		Releases:         storageBackend,
+		KubeClient:       kubeClient,
+		Log:              func(_ string, _ ...interface{}) {},
+	}
+
+	install := action.NewInstall(cfg)
+	install.DryRun = true
+	install.Namespace = namespace
+	install.ReleaseName = "operator"
+
+	r, err := install.Run(chart, values)
 	if err != nil {
 		return nil, err
 	}
 
-	chart.Dependencies = make([]*cpb.Chart, 0)
-
-	config := &cpb.Config{Raw: string(values)}
-
-	dryRunReq := &helm.InstallReleaseRequest{
-		Name:         "operator",
-		Chart:        chart,
-		Values:       config,
-		DryRun:       true,
-		Namespace:    namespace,
-		DisableHooks: true,
-	}
-
-	response, err := releaseServer.InstallRelease(context.TODO(), dryRunReq)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := f.parseHelmManifest(mgr, response)
+	result, err := f.parseHelmManifest(mgr, r)
 	if err != nil {
 		return nil, err
 	}
 
 	return result, nil
-}
-
-func (f *fakeHelm) getReleaseServer(cr *unstructured.Unstructured, storageBackend *storage.Storage, tillerKubeClient *kube.Client) (*tiller.ReleaseServer, error) {
-	controllerRef := metav1.NewControllerRef(cr, cr.GroupVersionKind())
-	ownerRefs := []metav1.OwnerReference{
-		*controllerRef,
-	}
-
-	baseEngine := helmengine.New()
-
-	restMapper, err := tillerKubeClient.Factory.ToRESTMapper()
-	if err != nil {
-		return nil, err
-	}
-
-	e := engine.NewOwnerRefEngine(baseEngine, restMapper, ownerRefs)
-	var ey environment.EngineYard = map[string]environment.Engine{
-		environment.GoTplEngine: e,
-	}
-	env := &environment.Environment{
-		EngineYard: ey,
-		Releases:   storageBackend,
-		KubeClient: tillerKubeClient,
-	}
-	kubeconfig, err := tillerKubeClient.ToRESTConfig()
-	if err != nil {
-		return nil, err
-	}
-	cs, err := clientset.NewForConfig(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return tiller.NewReleaseServer(env, cs, false), nil
 }
 
 func (f *fakeHelm) loadChart(chartDir string) (*cpb.Chart, error) {
@@ -249,12 +201,12 @@ func (f *fakeHelm) loadChart(chartDir string) (*cpb.Chart, error) {
 	return chart, nil
 }
 
-func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, response *helm.InstallReleaseResponse) (*HelmInstallResult, error) {
+func (f *fakeHelm) parseHelmManifest(mgr *FakeManager, release *release.Release) (*HelmInstallResult, error) {
 	resources := make(map[schema.GroupVersionResource]map[string]runtime.Object)
 	s := mgr.GetScheme()
 	decoder := scheme.Codecs.UniversalDecoder()
 
-	parts := strings.Split(response.Release.Manifest, "\n---\n")
+	parts := strings.Split(release.Manifest, "\n---\n")
 	list := make([]runtime.Object, len(parts))
 	ownerRefs := make([]metav1.OwnerReference, 0)
 

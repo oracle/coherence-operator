@@ -686,7 +686,7 @@ build-all: build-mvn build-operator
 # ---------------------------------------------------------------------------
 .PHONY: run
 run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
-	$(OPERATOR_SDK) up local --namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -701,7 +701,7 @@ run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
-	$(OPERATOR_SDK) up local --namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
