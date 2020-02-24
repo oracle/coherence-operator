@@ -1,0 +1,80 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Importing Dashboards
+
+If required, you can import the Grafana dashboards into your own Grafana instance.
+
+== Importing Grafana dashboards into your own instance.
+
+NOTE: Note: Use of metrics is available only when using the operator with clusters running
+Coherence 12.2.1.4 or later version.
+
+This example shows you how to import the Grafana dashboards into your own Grafana instance.
+
+By default the Coherence dashboards require a datasource named `Prometheus` which
+should also be the default datasource.
+
+If this datasource is already used and you cannot add another datasource as the default,
+then please go to <<different,Importing with a different datasource>>.
+
+[#importing]
+=== 1. Importing using the defaults
+
+In your Grafana environment, ensure you either:
+
+* have a Prometheus datasource named `Prometheus` which is also marked as the default datasource
+
+* have added a new Prometheus datasource which you have set as the default
+
+Then continue below.
+
+* Clone the git repository using
+[source,bash]
+----
+git clone https://github.com/oracle/coherence-operator.git
+----
+
+* Login to Grafana and for each dashboard in the cloned directory `<DIR>/helm-charts/coherence-operator/dashboards` carry out the
+following to upload to Grafana:
+[#steps]
+** Highlight the '+' (plus) icons and click on import
+** Click `Upload Json file' button to select a dashboard
+** Leave all the default values and click on `Import`
+
+[#different]
+=== 2. Importing with a different datasource
+
+If your Grafana environment has a default datasource that you cannot change or already has a
+datasource named `Prometheus`, follow these steps to import the dashboards:
+
+* Login to Grafana
+* Create a new datasource named `Coherence-Prometheus` and point to your Prometheus endpoint
+* Create a temporary directory and copy all the dashboards from the cloned directory
+   `<DIR>/helm-charts/coherence-operator/dashboards` to this temporary directory
+* Change to this temporary directory and run the following to update the datasource to `Coherence-Prometheus` or the dataousrce of your own choice:
+[source,bash]
+----
+for file in *.json
+do
+    sed -i '' -e 's/"datasource": "Prometheus"/"datasource": "Coherence-Prometheus"/g' \
+              -e 's/"datasource": null/"datasource": "Coherence-Prometheus"/g' \
+              -e 's/"datasource": "-- Grafana --"/"datasource": "Coherence-Prometheus"/g' $file;
+done
+----
+* Once you have completed the script, proceed to upload the dashboards as described above.
