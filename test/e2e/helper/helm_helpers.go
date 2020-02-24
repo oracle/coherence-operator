@@ -15,6 +15,7 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	"github.com/pborman/uuid"
+	rel "helm.sh/helm/v3/pkg/release"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +26,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	rel "k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/utils/pointer"
 	"net"
 	"net/url"
@@ -61,7 +61,6 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 	}
 
 	namespace := GetTestNamespace()
-
 
 	mgr, err := createManager(cfg, namespace)
 	if err != nil {
@@ -163,7 +162,8 @@ func (h *HelmHelper) NewHelmReleaseManager(releaseName string, values map[string
 	u.SetUID(types.UID(uid))
 	u.SetName(releaseName)
 
-	m, err := h.managerFactory.NewManager(u)
+	empty := make(map[string]string)
+	m, err := h.managerFactory.NewManager(u, empty)
 	if err != nil {
 		return nil, err
 	}
@@ -236,9 +236,9 @@ func (h *HelmReleaseManager) UninstallRelease() (*rel.Release, error) {
 
 func createManager(cfg *rest.Config, namespace string) (manager.Manager, error) {
 	mgr, err := manager.New(cfg, manager.Options{
-		Namespace:      namespace,
-		MapperProvider: apiutil.NewDiscoveryRESTMapper,
-		LeaderElection: false,
+		Namespace:          namespace,
+		MapperProvider:     apiutil.NewDiscoveryRESTMapper,
+		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
 	if err != nil {
