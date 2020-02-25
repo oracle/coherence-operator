@@ -253,11 +253,12 @@ func (r *ReconcileCoherenceCluster) updateClusterStatus(cluster *coherence.Coher
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
 	}
 
-	// Update the role count in the cluster status
+	// Update status in the re-fetched cluster
+	cluster.Status.DeepCopyInto(&clusterStatus.Status)
 	clusterStatus.Status.Roles = roleCount
 
 	// Update the new status in k8s
-	if err := r.client.Status().Update(context.TODO(), cluster); err != nil {
+	if err := r.client.Status().Update(context.TODO(), clusterStatus); err != nil {
 		// failed to update the CoherenceClusters's status
 		log.Error(err, "failed to update status", "Namespace", cluster.Namespace, "Name", cluster.Name)
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
