@@ -8,6 +8,10 @@ spec:
     description: The number of roles in this Coherence cluster
     name: Roles
     type: integer
+  - JSONPath: .status.roles
+    description: The number of roles in this Coherence cluster in a Ready state
+    name: Ready
+    type: integer
   group: coherence.oracle.com
   names:
     categories:
@@ -14965,6 +14969,10 @@ spec:
         status:
           description: CoherenceClusterStatus defines the observed state of CoherenceCluster
           properties:
+            ready:
+              description: The number of roles in this cluster in the Ready state
+              format: int32
+              type: integer
             roleStatus:
               description: The status of the roles in the cluster
               items:
