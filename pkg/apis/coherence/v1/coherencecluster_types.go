@@ -53,8 +53,9 @@ type CoherenceClusterSpec struct {
 // CoherenceCluster is the Schema for the coherenceclusters API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=coh,categories=coherence
+// +kubebuilder:resource:shortName=cc,categories=coherence
 // +kubebuilder:printcolumn:name="Roles",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster"
+// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster in a Ready state"
 type CoherenceCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -77,6 +78,8 @@ type CoherenceClusterList struct {
 type CoherenceClusterStatus struct {
 	// The number of roles in this cluster
 	Roles int32 `json:"roles,omitempty"`
+	// The number of roles in this cluster in the Ready state
+	Ready int32 `json:"ready,omitempty"`
 	// The status of the roles in the cluster
 	// +listType=map
 	// +listMapKey=role
@@ -104,6 +107,15 @@ func (in *CoherenceClusterStatus) SetRoleStatus(roleName string, ready bool, pod
 		s.Transition(ready, pods, status)
 		in.RoleStatus = append(in.RoleStatus, s)
 	}
+
+	// update the ready role count
+	readyCount := int32(0)
+	for _, r := range in.RoleStatus {
+		if r.Ready {
+			readyCount++
+		}
+	}
+	in.Ready = readyCount
 }
 
 // ClusterRoleStatus defines the observed state of role within the cluster
