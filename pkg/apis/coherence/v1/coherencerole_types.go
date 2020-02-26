@@ -19,7 +19,7 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:resource:shortName=cohrole,categories=coherence
+// +kubebuilder:resource:shortName=cr,categories=coherence
 // +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".spec.role",description="The name of this role"
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".metadata.labels.coherenceCluster",description="The name of the Coherence cluster that this role belongs to"
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="The number of Coherence Pods for this role"

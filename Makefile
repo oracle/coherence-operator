@@ -488,7 +488,7 @@ helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 install-crds: uninstall-crds
 	@echo "Installing CRDs"
 	for i in $(CRDS); do \
-		kubectl create -f $${i}; \
+		kubectl --validate=false create -f $${i}; \
 	done
 
 # ---------------------------------------------------------------------------
