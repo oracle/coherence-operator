@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-test/deep"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -155,6 +156,9 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
+				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
+				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImages())
+
 				Expect(roleSpec).To(Equal(expected))
 			})
 		})
@@ -164,6 +168,8 @@ var _ = Describe("coherencerole_controller", func() {
 		BeforeEach(func() {
 			imageOrig := "coherence:1.0"
 			imageNew := "coherence:2.0"
+			utilsImage := "foo/bar:1.0"
+
 			var replicas int32 = 3
 
 			roleCurrent = &coherence.CoherenceRole{
@@ -175,6 +181,9 @@ var _ = Describe("coherencerole_controller", func() {
 						ImageSpec: coherence.ImageSpec{
 							Image: &imageOrig,
 						},
+					},
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &utilsImage,
 					},
 				},
 			}
@@ -189,6 +198,9 @@ var _ = Describe("coherencerole_controller", func() {
 							Image: &imageNew,
 						},
 					},
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &utilsImage,
+					},
 				},
 			}
 
@@ -198,6 +210,24 @@ var _ = Describe("coherencerole_controller", func() {
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							InitContainers: []corev1.Container{
+								{
+									Name:  operator.CoherenceUtilsContainerName,
+									Image: utilsImage,
+								},
+							},
+							Containers: []corev1.Container{
+								{
+									Name:  operator.CoherenceContainerName,
+									Image: imageOrig,
+								},
+							},
+						},
+					},
+				},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
 					ReadyReplicas:   replicas,
@@ -231,6 +261,8 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
+				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
+				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImages())
 				Expect(roleSpec).To(Equal(expected), fmt.Sprintf("Expected roles to match:\n%s", deep.Equal(roleSpec, expected)))
 			})
 		})
@@ -239,12 +271,21 @@ var _ = Describe("coherencerole_controller", func() {
 	When("a CoherenceRole is unchanged and the StatefulSet is unchanged", func() {
 		BeforeEach(func() {
 			var replicas int32 = 3
+			var image = "foo/bar:1.0"
 
 			roleCurrent = &coherence.CoherenceRole{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 			}
 
@@ -254,7 +295,18 @@ var _ = Describe("coherencerole_controller", func() {
 					Name:      testClusterName,
 				},
 				Spec: coherence.CoherenceClusterSpec{Roles: []coherence.CoherenceRoleSpec{
-					{Role: roleName, Replicas: &replicas},
+					{
+						Role:     roleName,
+						Replicas: &replicas,
+						CoherenceUtils: &coherence.ImageSpec{
+							Image: &image,
+						},
+						Coherence: &coherence.CoherenceSpec{
+							ImageSpec: coherence.ImageSpec{
+								Image: &image,
+							},
+						},
+					},
 				}},
 			}
 
@@ -263,6 +315,14 @@ var _ = Describe("coherencerole_controller", func() {
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 				Status: coherence.CoherenceRoleStatus{
 					Status:          coherence.RoleStatusReady,
@@ -274,6 +334,24 @@ var _ = Describe("coherencerole_controller", func() {
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							InitContainers: []corev1.Container{
+								{
+									Name:  operator.CoherenceUtilsContainerName,
+									Image: image,
+								},
+							},
+							Containers: []corev1.Container{
+								{
+									Name:  operator.CoherenceContainerName,
+									Image: image,
+								},
+							},
+						},
+					},
+				},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
 					ReadyReplicas:   replicas,
@@ -304,6 +382,7 @@ var _ = Describe("coherencerole_controller", func() {
 
 	When("a CoherenceRole is unchanged and the StatefulSet replicas has changed to the desired size", func() {
 		var replicas int32 = 3
+		var image = "foo/bar:1.0"
 
 		BeforeEach(func() {
 			cluster = defaultCluster
@@ -313,6 +392,14 @@ var _ = Describe("coherencerole_controller", func() {
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 			}
 
@@ -321,6 +408,14 @@ var _ = Describe("coherencerole_controller", func() {
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 				Status: coherence.CoherenceRoleStatus{
 					Status:          coherence.RoleStatusCreated,
@@ -336,6 +431,24 @@ var _ = Describe("coherencerole_controller", func() {
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							InitContainers: []corev1.Container{
+								{
+									Name:  operator.CoherenceUtilsContainerName,
+									Image: image,
+								},
+							},
+							Containers: []corev1.Container{
+								{
+									Name:  operator.CoherenceContainerName,
+									Image: image,
+								},
+							},
+						},
+					},
+				},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
 					ReadyReplicas:   replicas,
@@ -377,6 +490,7 @@ var _ = Describe("coherencerole_controller", func() {
 
 	When("a CoherenceRole is unchanged and the StatefulSet replicas has changed but not to the desired size", func() {
 		var replicas int32 = 3
+		var image = "foo/bar:1.0"
 
 		BeforeEach(func() {
 			roleCurrent = &coherence.CoherenceRole{
@@ -384,6 +498,14 @@ var _ = Describe("coherencerole_controller", func() {
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 			}
 
@@ -395,6 +517,14 @@ var _ = Describe("coherencerole_controller", func() {
 				Spec: coherence.CoherenceRoleSpec{
 					Role:     roleName,
 					Replicas: &replicas,
+					CoherenceUtils: &coherence.ImageSpec{
+						Image: &image,
+					},
+					Coherence: &coherence.CoherenceSpec{
+						ImageSpec: coherence.ImageSpec{
+							Image: &image,
+						},
+					},
 				},
 				Status: coherence.CoherenceRoleStatus{
 					Status:          coherence.RoleStatusCreated,
@@ -406,6 +536,24 @@ var _ = Describe("coherencerole_controller", func() {
 
 			statefulSet = &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{Namespace: testNamespace, Name: fullRoleName},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							InitContainers: []corev1.Container{
+								{
+									Name:  operator.CoherenceUtilsContainerName,
+									Image: image,
+								},
+							},
+							Containers: []corev1.Container{
+								{
+									Name:  operator.CoherenceContainerName,
+									Image: image,
+								},
+							},
+						},
+					},
+				},
 				Status: appsv1.StatefulSetStatus{
 					Replicas:        replicas,
 					ReadyReplicas:   2,
