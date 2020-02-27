@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -449,7 +450,8 @@ func isNoResources(err error) bool {
 
 // WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
 func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, logger Logger) error {
-	// wait for all CoherenceInternal resources to be deleted
+	logger.Logf("Waiting for deletion of Coherence Operator Pods\n")
+	// wait for all Operator Pods to be deleted
 	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		list, err := ListOperatorPods(kubeClient, namespace)
 		if err == nil {
@@ -464,6 +466,7 @@ func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, l
 		}
 	})
 
+	logger.Logf("Coherence Operator Pods deleted\n")
 	return err
 }
 
@@ -1195,4 +1198,49 @@ func GetFirstPodScheduledTime(pods []corev1.Pod, role string) metav1.Time {
 		}
 	}
 	return t
+}
+
+func UninstallCrds(t *testing.T) error {
+	if err := UninstallCrd(t, "coherenceclusters.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	if err := UninstallCrd(t, "coherenceroles.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	if err := UninstallCrd(t, "coherenceinternals.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UninstallCrd(t *testing.T, name string) error {
+	var err error
+
+	t.Logf("Will delete CRD %s", name)
+
+	f := framework.Global
+	crd := &v1beta1.CustomResourceDefinition{}
+	crd.SetName(name)
+
+	mergePatch, err := json.Marshal(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"finalizers": []string{},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	patch := client.ConstantPatch(types.MergePatchType, mergePatch)
+
+	t.Logf("Removing finalizer from CRD %s", name)
+	if err = f.Client.Patch(context.TODO(), crd, patch); err != nil {
+		return err
+	}
+
+	t.Logf("Actually deleting finalizer from CRD %s", name)
+	return f.Client.Delete(context.TODO(), crd)
 }

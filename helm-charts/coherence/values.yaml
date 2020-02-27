@@ -72,7 +72,7 @@ coherence:
   # The policy used to scale the number of replicas in this role.
   scalingPolicy: ParallelUpSafeDownScaling
   # The Coherence image
-  image: "${HELM_COHERENCE_IMAGE}"
+  image:
   # The Coherence image pull policy
   imagePullPolicy:
   # logLevel sets the Coherence log level. This value should be an integer in the range 1 to 9,
@@ -237,7 +237,7 @@ healthPort: 6676
 # ----- Coherence Utils configuration ---------------------------------------
 
 coherenceUtils:
-  image: "${UTILS_IMAGE}"
+  image:
   imagePullPolicy:
 
 # ----- Network  configuration ----------------------------------------------

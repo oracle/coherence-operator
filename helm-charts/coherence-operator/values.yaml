@@ -57,6 +57,8 @@ coherenceOperator:
   # imagePullPolicy controls the K8s container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
+  defaultCoherenceImage: "${HELM_COHERENCE_IMAGE}"
+  defaultCoherenceUtilsImage: "${UTILS_IMAGE}"
 
 # Controls whether to install the demo Elasticsearch and Kibana stack
 installEFK: false

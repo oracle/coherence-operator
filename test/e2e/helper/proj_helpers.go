@@ -29,6 +29,9 @@ const (
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv   = "COHERENCE_VERSION"
+	PreviousVersionEnv    = "PREV_VERSION"
+	VersionEnv            = "VERSION_FULL"
+	OperatorImageEnv      = "OPERATOR_IMAGE"
 
 	defaultNamespace = "operator-test"
 
@@ -90,6 +93,18 @@ func GetTestGlobalManifestFileName() (string, error) {
 
 func GetTestManifestValuesFileName() string {
 	return os.Getenv(TestManifestValuesEnv)
+}
+
+func GetOperatorImage() string {
+	return os.Getenv(OperatorImageEnv)
+}
+
+func GetOperatorVersion() string {
+	return os.Getenv(VersionEnv)
+}
+
+func GetPreviousOperatorVersion() string {
+	return os.Getenv(PreviousVersionEnv)
 }
 
 func GetTestSSLSecretName() string {
@@ -177,6 +192,15 @@ func FindOperatorHelmChartDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + operatorChart, nil
+}
+
+func FindPreviousOperatorHelmChartDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	return pd + string(os.PathSeparator) + operatorChart + "-" + GetPreviousOperatorVersion(), nil
 }
 
 func FindTestLogsDir() (string, error) {

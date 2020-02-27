@@ -2,8 +2,6 @@
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
-{{- $utilsImage := required "A value is required for the value .Values.coherenceUtils.image" .Values.coherenceUtils.image -}}
-{{- $cohImage := required "A value is required for the value .Values.coherence.image" .Values.coherence.image -}}
 {{- $extAppDir := "/u01/oracle/oracle_home/coherence/app" -}}
 {{- $extLibDir := "/u01/oracle/oracle_home/coherence/app/lib" -}}
 {{- $extConfDir := "/u01/oracle/oracle_home/coherence/app/conf" -}}

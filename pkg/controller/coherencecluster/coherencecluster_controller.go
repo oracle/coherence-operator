@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
+	"os"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -51,6 +52,9 @@ const (
 	eventReasonFailedUpdate string = "FailedUpdate"
 	eventReasonDeleted      string = "SuccessfulDelete"
 	eventReasonFailedDelete string = "FailedDelete"
+
+	versionEnv     = "VERSION_FULL"
+	versionUnknown = "UNKNOWN"
 )
 
 var log = logf.Log.WithName(controllerName)
@@ -69,12 +73,18 @@ func NewClusterReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	version, ok := os.LookupEnv(versionEnv)
+	if !ok {
+		version = versionUnknown
+	}
+
 	return &ReconcileCoherenceCluster{
 		client:        mgr.GetClient(),
 		scheme:        mgr.GetScheme(),
 		events:        mgr.GetEventRecorderFor(controllerName),
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
+		version:       version,
 	}
 }
 
@@ -107,6 +117,7 @@ type ReconcileCoherenceCluster struct {
 	events        record.EventRecorder
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
+	version       string
 }
 
 // Attempt to lock the requested resource.
@@ -337,6 +348,7 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	labels := make(map[string]string)
 	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
 	labels[coherence.CoherenceRoleLabel] = p.desiredRole.GetRoleName()
+	labels[coherence.CoherenceOperatorVersionLabel] = r.version
 	role.SetLabels(labels)
 
 	// Set CoherenceCluster instance as the owner and controller of the CoherenceRole structure
@@ -453,7 +465,9 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 
 		// Set CoherenceCluster instance as the owner and controller of the service structure
 		if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
-			return err
+			if !errors.IsAlreadyExists(err) { // _in theory_ we should never see an AlreadyExists error!!
+				return err
+			}
 		}
 
 		return r.client.Create(context.TODO(), service)

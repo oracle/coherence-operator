@@ -110,6 +110,11 @@ func NewOperatorChartHelper() (*HelmHelper, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewOperatorChartHelperForChart(chart)
+}
+
+// Obtain a new HelmHelper for managing the specified Coherence Operator Helm chart.
+func NewOperatorChartHelperForChart(chart string) (*HelmHelper, error) {
 	f, err := os.Stat(chart)
 	if err != nil {
 		return nil, err
