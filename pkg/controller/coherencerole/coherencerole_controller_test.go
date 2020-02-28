@@ -157,7 +157,7 @@ var _ = Describe("coherencerole_controller", func() {
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
 				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
-				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImages())
+				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImage())
 
 				Expect(roleSpec).To(Equal(expected))
 			})
@@ -262,7 +262,7 @@ var _ = Describe("coherencerole_controller", func() {
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
 				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
-				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImages())
+				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImage())
 				Expect(roleSpec).To(Equal(expected), fmt.Sprintf("Expected roles to match:\n%s", deep.Equal(roleSpec, expected)))
 			})
 		})

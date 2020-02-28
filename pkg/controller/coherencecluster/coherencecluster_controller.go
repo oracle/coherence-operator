@@ -13,6 +13,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -62,17 +63,17 @@ var log = logf.Log.WithName(controllerName)
 // Add creates a new CoherenceCluster Controller and adds it to the Manager.
 // The Manager will set fields on the Controller.
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
+	return add(mgr, newReconciler(mgr, opFlags))
 }
 
 // NewClusterReconciler returns a new reconcile.Reconciler.
-func NewClusterReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return newReconciler(mgr)
+func NewClusterReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
+	return newReconciler(mgr, opFlags)
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
 	version, ok := os.LookupEnv(versionEnv)
 	if !ok {
 		version = versionUnknown
@@ -85,6 +86,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
 		version:       version,
+		opFlags:       opFlags,
 	}
 }
 
@@ -118,6 +120,7 @@ type ReconcileCoherenceCluster struct {
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
 	version       string
+	opFlags       *flags.CoherenceOperatorFlags
 }
 
 // Attempt to lock the requested resource.

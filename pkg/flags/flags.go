@@ -22,6 +22,11 @@ const (
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
 
+	// The environment variable holding the default Coherence image name
+	coherenceImageEnv = "HELM_COHERENCE_IMAGE"
+	// The environment variable holding the default Coherence Utils image name
+	utilsImageEnv = "UTILS_IMAGE"
+
 	FlagCrdFiles       = "crd-files"
 	FlagRestHost       = "rest-host"
 	FlagRestPort       = "rest-port"
@@ -30,6 +35,8 @@ const (
 	FlagSiteLabel      = "site-label"
 	FlagRackLabel      = "rack-label"
 	FlagAlwaysPullTags = "force-always-pull-tags"
+	FlagCoherenceImage = "coherence-image"
+	FlagUtilsImage     = "utils-image"
 )
 
 // The default CRD location
@@ -53,6 +60,10 @@ type CoherenceOperatorFlags struct {
 	RackLabel string
 	// If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS.
 	AlwaysPullSuffixes string
+	// The default Coherence image to use if one is not specified for a role.
+	CoherenceImage string
+	// The default Coherence Utils image to use if one is not specified for a role.
+	CoherenceUtilsImage string
 }
 
 // cohf is the struct containing the command line flags.
@@ -101,6 +112,20 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ..
 		"",
 		strings.Join(append(helpTextPrefix, "If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS."), " "),
 	)
+
+	cohImg := os.Getenv(coherenceImageEnv)
+	flagSet.StringVar(&f.CoherenceImage,
+		FlagCoherenceImage,
+		cohImg,
+		strings.Join(append(helpTextPrefix, "The Coherence image to use if one is not specified for a role."), " "),
+	)
+
+	utilsImg := os.Getenv(utilsImageEnv)
+	flagSet.StringVar(&f.CoherenceUtilsImage,
+		FlagUtilsImage,
+		utilsImg,
+		strings.Join(append(helpTextPrefix, "The Coherence Utils image to use if one is not specified for a role."), " "),
+	)
 }
 
 func (f *CoherenceOperatorFlags) DefaultCrdFiles() string {
@@ -122,6 +147,30 @@ func (f *CoherenceOperatorFlags) DefaultCrdFiles() string {
 		}
 	}
 	return crds
+}
+
+func (f *CoherenceOperatorFlags) GetCoherenceImage() *string {
+	if f.CoherenceImage != "" {
+		return &f.CoherenceImage
+	}
+
+	img, ok := os.LookupEnv(coherenceImageEnv)
+	if ok {
+		return &img
+	}
+	return nil
+}
+
+func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() *string {
+	if f.CoherenceUtilsImage != "" {
+		return &f.CoherenceUtilsImage
+	}
+
+	img, ok := os.LookupEnv(utilsImageEnv)
+	if ok {
+		return &img
+	}
+	return nil
 }
 
 func SetDefaultCrdFiles(crds string) {

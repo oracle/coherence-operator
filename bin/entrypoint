@@ -1,5 +1,0 @@
-#!/bin/sh -e
-
-ARGS="--watches-file=${HOME}/watches.yaml --crd-files=${HOME}/crds"
-
-exec ${OPERATOR} run helm ${ARGS} $@

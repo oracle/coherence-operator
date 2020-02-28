@@ -12,10 +12,8 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"io/ioutil"
-	v12 "k8s.io/api/apps/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"os"
 	"path/filepath"
@@ -34,15 +32,6 @@ import (
 const (
 	// configName is the name of the internal Coherence Operator configuration secret.
 	configName = "coherence-operator-config"
-	// The environment variable holding the default Coherence image name
-	coherenceImageEnv = "HELM_COHERENCE_IMAGE"
-	// The environment variable holding the default Coherence Utils image name
-	utilsImageEnv = "UTILS_IMAGE"
-
-	// The name of the Coherence container in the Coherence Pods
-	CoherenceContainerName = "coherence"
-	// The name of the Coherence Utils container in the Coherence Pods
-	CoherenceUtilsContainerName = "coherence-k8s-utils"
 )
 
 var restHostAndPort string
@@ -170,79 +159,4 @@ func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) er
 	}
 
 	return err
-}
-
-func GetDefaultCoherenceImage() *string {
-	img, ok := os.LookupEnv(coherenceImageEnv)
-	if ok {
-		return &img
-	}
-	return nil
-}
-
-func GetDefaultCoherenceUtilsImages() *string {
-	img, ok := os.LookupEnv(utilsImageEnv)
-	if ok {
-		return &img
-	}
-	return nil
-}
-
-// If the CoherenceInternalSpec does not have a Coherence image specified we set the default here.
-// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
-// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func EnsureImages(ci *v1.CoherenceInternalSpec, logger logr.Logger) {
-	coherenceImage := GetDefaultCoherenceImage()
-	if ci.EnsureCoherenceImage(coherenceImage) {
-		logger.Info(fmt.Sprintf("Injected Coherence image name into role: '%s'", *coherenceImage))
-	}
-
-	utilsImage := GetDefaultCoherenceUtilsImages()
-	if ci.EnsureCoherenceUtilsImage(utilsImage) {
-		logger.Info(fmt.Sprintf("Injected Coherence Utils image name into role: '%s'", *utilsImage))
-	}
-}
-
-// Create the desired CoherenceInternalSpec for a given role.
-func CreateDesiredRole(cluster *v1.CoherenceCluster, role *v1.CoherenceRole, existing *v1.CoherenceInternalSpec, sts *v12.StatefulSet) *v1.CoherenceInternalSpec {
-	desiredRole := v1.NewCoherenceInternalSpec(cluster, role)
-
-	coherenceImage := existing.GetCoherenceImage()
-
-	if sts != nil && desiredRole.GetCoherenceImage() == nil {
-		// if the desired Coherence image is still nil then this could be an update to a cluster
-		// started with a much older Operator so we'll obtain the current image from the StatefulSet
-		for _, c := range sts.Spec.Template.Spec.Containers {
-			if c.Name == CoherenceContainerName {
-				coherenceImage = &c.Image
-			}
-		}
-	}
-
-	if coherenceImage == nil {
-		// If the Coherence image is still nil then use the default
-		coherenceImage = GetDefaultCoherenceUtilsImages()
-	}
-
-	utilsImage := existing.GetCoherenceImage()
-
-	if sts != nil && utilsImage == nil {
-		// if the desired Coherence Utils image is still nil then this could be an update to a cluster
-		// started with a much older Operator so we'll obtain the current image from the StatefulSet
-		for _, c := range sts.Spec.Template.Spec.InitContainers {
-			if c.Name == CoherenceUtilsContainerName {
-				utilsImage = &c.Image
-			}
-		}
-	}
-
-	if utilsImage == nil {
-		// If the utils image is still nil then use the default
-		utilsImage = GetDefaultCoherenceUtilsImages()
-	}
-
-	desiredRole.EnsureCoherenceImage(coherenceImage)
-	desiredRole.EnsureCoherenceUtilsImage(utilsImage)
-
-	return desiredRole
 }

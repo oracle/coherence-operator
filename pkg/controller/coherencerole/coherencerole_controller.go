@@ -13,7 +13,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -61,23 +61,28 @@ const (
 	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
 
 	statusHaRetryEnv = "STATUS_HA_RETRY"
+
+	// The name of the Coherence container in the Coherence Pods
+	CoherenceContainerName = "coherence"
+	// The name of the Coherence Utils container in the Coherence Pods
+	CoherenceUtilsContainerName = "coherence-k8s-utils"
 )
 
 var log = logf.Log.WithName(controllerName)
 
 // Add creates a new CoherenceRole Controller and adds it to the Manager. The Manager will set fields on the Controller.
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
+	return add(mgr, newReconciler(mgr, opFlags))
 }
 
 // NewRoleReconciler returns a new reconcile.Reconciler.
-func NewRoleReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return newReconciler(mgr)
+func NewRoleReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
+	return newReconciler(mgr, opFlags)
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
+func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceRole {
 	scheme := mgr.GetScheme()
 	gvk := coh.GetCoherenceInternalGroupVersionKind(scheme)
 
@@ -102,6 +107,7 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 		mgr:           mgr,
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
+		opFlags:       opFlags,
 	}
 }
 
@@ -148,6 +154,7 @@ type ReconcileCoherenceRole struct {
 	mgr           manager.Manager
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
+	opFlags       *flags.CoherenceOperatorFlags
 }
 
 // Attempt to lock the requested resource.
@@ -296,7 +303,7 @@ func (r *ReconcileCoherenceRole) createRole(cluster *coh.CoherenceCluster, role 
 	// If the CoherenceInternalSpec does not have a Coherence or Coherence Utils images specified we set the defaults here.
 	// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 	// and means that the Helm controller does not do a rolling upgrade of the Pods if the Operator is upgraded.
-	operator.EnsureImages(ci, logger)
+	r.EnsureImages(ci, logger)
 
 	// define a new Helm values map
 	spec, err := coh.CoherenceInternalSpecAsMapFromSpec(ci)
@@ -396,7 +403,7 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	}
 
 	currentReplicas := existing.Spec.GetReplicas()
-	desiredRole := operator.CreateDesiredRole(cluster, role, &existing.Spec, sts)
+	desiredRole := r.CreateDesiredRole(cluster, role, &existing.Spec, sts)
 	isUpgrade := r.isUpgrade(&existing.Spec, desiredRole)
 
 	switch {
@@ -684,4 +691,63 @@ func (r *ReconcileCoherenceRole) failed(err error, role *coh.CoherenceRole, msg 
 		return reconcile.Result{Requeue: true}, nil
 	}
 	return reconcile.Result{Requeue: false}, nil
+}
+
+// If the CoherenceInternalSpec does not have a Coherence image specified we set the default here.
+// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
+// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
+func (r *ReconcileCoherenceRole) EnsureImages(ci *coh.CoherenceInternalSpec, logger logr.Logger) {
+	coherenceImage := r.opFlags.GetCoherenceImage()
+	if ci.EnsureCoherenceImage(coherenceImage) {
+		logger.Info(fmt.Sprintf("Injected Coherence image name into role: '%s'", *coherenceImage))
+	}
+
+	utilsImage := r.opFlags.GetCoherenceUtilsImage()
+	if ci.EnsureCoherenceUtilsImage(utilsImage) {
+		logger.Info(fmt.Sprintf("Injected Coherence Utils image name into role: '%s'", *utilsImage))
+	}
+}
+
+// Create the desired CoherenceInternalSpec for a given role.
+func (r *ReconcileCoherenceRole) CreateDesiredRole(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, existing *coh.CoherenceInternalSpec, sts *appsv1.StatefulSet) *coh.CoherenceInternalSpec {
+	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
+
+	coherenceImage := existing.GetCoherenceImage()
+
+	if sts != nil && desiredRole.GetCoherenceImage() == nil {
+		// if the desired Coherence image is still nil then this could be an update to a cluster
+		// started with a much older Operator so we'll obtain the current image from the StatefulSet
+		for _, c := range sts.Spec.Template.Spec.Containers {
+			if c.Name == CoherenceContainerName {
+				coherenceImage = &c.Image
+			}
+		}
+	}
+
+	if coherenceImage == nil {
+		// If the Coherence image is still nil then use the default
+		coherenceImage = r.opFlags.GetCoherenceImage()
+	}
+
+	utilsImage := existing.GetCoherenceUtilsImage()
+
+	if sts != nil && utilsImage == nil {
+		// if the desired Coherence Utils image is still nil then this could be an update to a cluster
+		// started with a much older Operator so we'll obtain the current image from the StatefulSet
+		for _, c := range sts.Spec.Template.Spec.InitContainers {
+			if c.Name == CoherenceUtilsContainerName {
+				utilsImage = &c.Image
+			}
+		}
+	}
+
+	if utilsImage == nil {
+		// If the utils image is still nil then use the default
+		utilsImage = r.opFlags.GetCoherenceUtilsImage()
+	}
+
+	desiredRole.EnsureCoherenceImage(coherenceImage)
+	desiredRole.EnsureCoherenceUtilsImage(utilsImage)
+
+	return desiredRole
 }

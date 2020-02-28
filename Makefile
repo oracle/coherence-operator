@@ -263,6 +263,8 @@ $(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
 # ---------------------------------------------------------------------------
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
+test-operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
 test-operator: build-operator
 	@echo "Running operator tests"
 	go test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/... ./pkg/helm_test/... \
@@ -297,11 +299,12 @@ e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-local-test: export PREV_VERSION := $(PREV_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
@@ -344,6 +347,7 @@ debug-e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 debug-e2e-local-test: export PREV_VERSION := $(PREV_VERSION)
 debug-e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 debug-e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-local-test:
 	$(OPERATOR_SDK) test local ./test/e2e/local \
 	    --namespace $(TEST_NAMESPACE) \
@@ -376,11 +380,12 @@ script-test: export VERSION_FULL := $(VERSION_FULL)
 script-test: export PREV_VERSION := $(PREV_VERSION)
 script-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 script-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+script-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/script --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-script-test.out
@@ -416,6 +421,7 @@ e2e-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-test: export PREV_VERSION := $(PREV_VERSION)
 e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
@@ -470,6 +476,7 @@ debug-e2e-test: export VERSION_FULL := $(VERSION_FULL)
 debug-e2e-test: export PREV_VERSION := $(PREV_VERSION)
 debug-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 debug-e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-test:
 	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -499,6 +506,7 @@ helm-test: export PREV_VERSION := $(PREV_VERSION)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
@@ -547,6 +555,7 @@ uninstall-crds:
 		(kubectl delete -f $${i} & ); \
 	done
 	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+	kubectl delete crd coherenceinternals.coherence.oracle.com || true
 
 
 # ---------------------------------------------------------------------------
@@ -731,10 +740,13 @@ build-all: build-mvn build-operator
 .PHONY: run
 run: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
+run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ---------------------------------------------------------------------------
@@ -749,10 +761,13 @@ run: $(CHART_DIR)/coherence create-ssl-secrets
 .PHONY: run-debug
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
+run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 

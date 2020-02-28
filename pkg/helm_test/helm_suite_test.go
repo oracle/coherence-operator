@@ -13,6 +13,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencecluster"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -46,8 +47,9 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 		return nil, nil, err
 	}
 
-	cr := coherencecluster.NewClusterReconciler(mgr)
-	rr := coherencerole.NewRoleReconciler(mgr)
+	opFlags := &flags.CoherenceOperatorFlags{}
+	cr := coherencecluster.NewClusterReconciler(mgr, opFlags)
+	rr := coherencerole.NewRoleReconciler(mgr, opFlags)
 	helm, err := stubs.NewFakeHelm(mgr, cr, rr, namespace)
 	if err != nil {
 		return nil, nil, err
