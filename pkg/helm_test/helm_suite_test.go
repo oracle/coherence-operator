@@ -35,7 +35,8 @@ const (
 // Use the specified yaml files to create a CoherenceCluster and trigger a fake end-to-end
 // reconcile to obtain the resources that would have been created by the Helm operator.
 func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceCluster, error) {
-	cluster, err := helper.NewCoherenceClusterFromYaml("test-namespace", yamlFile)
+	namespace := "test-namespace"
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -47,7 +48,10 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 
 	cr := coherencecluster.NewClusterReconciler(mgr)
 	rr := coherencerole.NewRoleReconciler(mgr)
-	helm := stubs.NewFakeHelm(mgr, cr, rr)
+	helm, err := stubs.NewFakeHelm(mgr, cr, rr, namespace)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	r, err := helm.HelmInstallFromCoherenceCluster(&cluster)
 

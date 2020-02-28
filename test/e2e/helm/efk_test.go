@@ -326,7 +326,8 @@ func installExternalEFK(t *testing.T, ctx *framework.TestCtx, includeSecret bool
 
 	values.InstallEFK = true
 
-	helm := fakes.NewFakeHelm(mgrFake, nil, nil)
+	helm, err := fakes.NewFakeHelm(mgrFake, nil, nil, namespace)
+	g.Expect(err).ToNot(HaveOccurred())
 	result, err := helm.FakeOperatorHelmInstall(mgrFake, namespace, values)
 	g.Expect(err).ToNot(HaveOccurred())
 
