@@ -149,12 +149,23 @@ func (f *CoherenceOperatorFlags) DefaultCrdFiles() string {
 	return crds
 }
 
+func GetDefaultCoherenceImage() *string {
+	img, ok := os.LookupEnv(coherenceImageEnv)
+	if ok {
+		return &img
+	}
+	return nil
+}
+
 func (f *CoherenceOperatorFlags) GetCoherenceImage() *string {
 	if f.CoherenceImage != "" {
 		return &f.CoherenceImage
 	}
+	return GetDefaultCoherenceImage()
+}
 
-	img, ok := os.LookupEnv(coherenceImageEnv)
+func GetDefaultCoherenceUtilsImage() *string {
+	img, ok := os.LookupEnv(utilsImageEnv)
 	if ok {
 		return &img
 	}
@@ -165,12 +176,7 @@ func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() *string {
 	if f.CoherenceUtilsImage != "" {
 		return &f.CoherenceUtilsImage
 	}
-
-	img, ok := os.LookupEnv(utilsImageEnv)
-	if ok {
-		return &img
-	}
-	return nil
+	return GetDefaultCoherenceUtilsImage()
 }
 
 func SetDefaultCrdFiles(crds string) {

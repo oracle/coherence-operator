@@ -216,10 +216,15 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	}
 
 	if !found {
+		logger.Info("CoherenceRole not found - assuming normal deletion")
 		// Request object not found, could have been deleted after reconcile request.
 		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-		// Return and don't requeue
-		logger.Info("CoherenceRole not found - assuming normal deletion")
+
+		// Ensure that the CoherenceInternal for this role is deleted.
+		// It should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
+		// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
+		r.deleteCoherenceInternal(request, logger)
+
 		return reconcile.Result{Requeue: false}, nil
 	}
 
@@ -750,4 +755,14 @@ func (r *ReconcileCoherenceRole) CreateDesiredRole(cluster *coh.CoherenceCluster
 	desiredRole.EnsureCoherenceUtilsImage(utilsImage)
 
 	return desiredRole
+}
+
+func (r *ReconcileCoherenceRole) deleteCoherenceInternal(request reconcile.Request, logger logr.Logger) {
+	ci := &unstructured.Unstructured{}
+	ci.SetGroupVersionKind(r.gvk)
+	ci.SetNamespace(request.Namespace)
+	ci.SetName(request.Name)
+
+	logger.Info(fmt.Sprintf("Ensuring CoherenceInternal '%s' is deleted", request.Name))
+	_ = r.client.Delete(context.TODO(), ci)
 }

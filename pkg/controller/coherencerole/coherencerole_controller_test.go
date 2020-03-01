@@ -10,10 +10,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-test/deep"
-	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -58,7 +61,7 @@ var _ = Describe("coherencerole_controller", func() {
 	JustBeforeEach(func() {
 		mgr, err = stubs.NewFakeManager(existing...)
 		Expect(err).NotTo(HaveOccurred())
-		controller = newReconciler(mgr)
+		controller = newReconciler(mgr, &flags.CoherenceOperatorFlags{})
 
 		if cluster != nil {
 			_ = mgr.Client.Create(context.TODO(), cluster)
@@ -94,6 +97,11 @@ var _ = Describe("coherencerole_controller", func() {
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})
 
+	AfterEach(func() {
+		// clear the existing items
+		existing = []runtime.Object{}
+	})
+
 	When("a CoherenceRole does not exist (has been deleted)", func() {
 		BeforeEach(func() {
 			cluster = defaultCluster
@@ -101,6 +109,46 @@ var _ = Describe("coherencerole_controller", func() {
 		})
 
 		When("reconcile is called", func() {
+			It("should not return error", func() {
+				Expect(result.Error).To(BeNil())
+			})
+
+			It("should not re-queue the request", func() {
+				Expect(result.Result).To(Equal(reconcile.Result{}))
+			})
+
+			It("should not fire an event", func() {
+				_, found := mgr.NextEvent()
+				Expect(found).To(BeFalse())
+			})
+
+			It("should not create any CoherenceInternals", func() {
+				mgr.AssertCoherenceInternals(testNamespace, 0)
+			})
+		})
+	})
+
+	When("a CoherenceRole does not exist but has an orphaned CoherenceInternal", func() {
+		var ci unstructured.Unstructured
+
+		BeforeEach(func() {
+			ci = unstructured.Unstructured{}
+			ci.SetGroupVersionKind(schema.GroupVersionKind{Group: "coherence.oracle.com", Version: "v1", Kind: "CoherenceInternal"})
+			ci.SetNamespace(testNamespace)
+			ci.SetName(fullRoleName)
+			existing = []runtime.Object{&ci}
+
+			cluster = defaultCluster
+			roleNew = nil
+		})
+
+		When("reconcile is called", func() {
+			It("should delete the orphaned CoherenceInternal", func() {
+				err := mgr.Client.Get(context.TODO(), types.NamespacedName{Namespace: testNamespace, Name: fullRoleName}, &ci)
+				Expect(err).To(HaveOccurred())
+				Expect(errors.IsNotFound(err)).To(BeTrue())
+			})
+
 			It("should not return error", func() {
 				Expect(result.Error).To(BeNil())
 			})
@@ -156,8 +204,8 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
-				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
-				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImage())
+				expected.EnsureCoherenceImage(flags.GetDefaultCoherenceImage())
+				expected.EnsureCoherenceUtilsImage(flags.GetDefaultCoherenceUtilsImage())
 
 				Expect(roleSpec).To(Equal(expected))
 			})
@@ -215,13 +263,13 @@ var _ = Describe("coherencerole_controller", func() {
 						Spec: corev1.PodSpec{
 							InitContainers: []corev1.Container{
 								{
-									Name:  operator.CoherenceUtilsContainerName,
+									Name:  CoherenceUtilsContainerName,
 									Image: utilsImage,
 								},
 							},
 							Containers: []corev1.Container{
 								{
-									Name:  operator.CoherenceContainerName,
+									Name:  CoherenceContainerName,
 									Image: imageOrig,
 								},
 							},
@@ -261,8 +309,8 @@ var _ = Describe("coherencerole_controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				roleSpec := UnstructuredToCoherenceInternalSpec(u)
 				expected := coherence.NewCoherenceInternalSpec(cluster, roleNew)
-				expected.EnsureCoherenceImage(operator.GetDefaultCoherenceImage())
-				expected.EnsureCoherenceUtilsImage(operator.GetDefaultCoherenceUtilsImage())
+				expected.EnsureCoherenceImage(flags.GetDefaultCoherenceImage())
+				expected.EnsureCoherenceUtilsImage(flags.GetDefaultCoherenceUtilsImage())
 				Expect(roleSpec).To(Equal(expected), fmt.Sprintf("Expected roles to match:\n%s", deep.Equal(roleSpec, expected)))
 			})
 		})
@@ -339,13 +387,13 @@ var _ = Describe("coherencerole_controller", func() {
 						Spec: corev1.PodSpec{
 							InitContainers: []corev1.Container{
 								{
-									Name:  operator.CoherenceUtilsContainerName,
+									Name:  CoherenceUtilsContainerName,
 									Image: image,
 								},
 							},
 							Containers: []corev1.Container{
 								{
-									Name:  operator.CoherenceContainerName,
+									Name:  CoherenceContainerName,
 									Image: image,
 								},
 							},
@@ -436,13 +484,13 @@ var _ = Describe("coherencerole_controller", func() {
 						Spec: corev1.PodSpec{
 							InitContainers: []corev1.Container{
 								{
-									Name:  operator.CoherenceUtilsContainerName,
+									Name:  CoherenceUtilsContainerName,
 									Image: image,
 								},
 							},
 							Containers: []corev1.Container{
 								{
-									Name:  operator.CoherenceContainerName,
+									Name:  CoherenceContainerName,
 									Image: image,
 								},
 							},
@@ -541,13 +589,13 @@ var _ = Describe("coherencerole_controller", func() {
 						Spec: corev1.PodSpec{
 							InitContainers: []corev1.Container{
 								{
-									Name:  operator.CoherenceUtilsContainerName,
+									Name:  CoherenceUtilsContainerName,
 									Image: image,
 								},
 							},
 							Containers: []corev1.Container{
 								{
-									Name:  operator.CoherenceContainerName,
+									Name:  CoherenceContainerName,
 									Image: image,
 								},
 							},

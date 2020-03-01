@@ -8,6 +8,7 @@ package coherencerole
 
 import (
 	"context"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -65,7 +66,7 @@ var _ = Describe("coherencerole_controller scaling tests", func() {
 			},
 		}
 
-		controller := newReconciler(mgr)
+		controller := newReconciler(mgr, &flags.CoherenceOperatorFlags{})
 		r, err := controller.Reconcile(request)
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})

@@ -176,9 +176,15 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 	err := r.client.Get(context.TODO(), request.NamespacedName, cluster)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("CoherenceCluster '" + request.Name + "' deleted")
+			logger.Info("CoherenceCluster not found - assuming normal deletion")
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+
+			// Ensure that the roles for this cluster are deleted.
+			// They should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
+			// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
+			r.deleteAllRoles(request, logger)
+
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
@@ -432,51 +438,58 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 		Name:      cluster.GetWkaServiceName(),
 	}
 
-	err := r.client.Get(context.TODO(), name, &v1.Service{})
+	var err error
 
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger := log.WithValues("Namespace", cluster.Namespace, "Cluster.Name", cluster.Name)
-		reqLogger.Info("Creating WKA service '" + name.Name + "'")
-
-		service := &v1.Service{}
-
-		service.Namespace = name.Namespace
-		service.Name = name.Name
-
-		service.Annotations = make(map[string]string)
-		service.Annotations["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
-
-		service.Labels = make(map[string]string)
-		service.Labels[coherence.CoherenceClusterLabel] = cluster.Name
-		service.Labels[coherence.CoherenceComponentLabel] = "coherenceWkaService"
-
-		service.Spec = v1.ServiceSpec{}
-		service.Spec.ClusterIP = v1.ClusterIPNone
-		service.Spec.Ports = make([]v1.ServicePort, 1)
-
-		service.Spec.Ports[0] = v1.ServicePort{
-			Name:       "coherence-extend",
-			Protocol:   v1.ProtocolTCP,
-			Port:       7,
-			TargetPort: intstr.FromString("coherence"),
-		}
-
-		service.Spec.Selector = make(map[string]string)
-		service.Spec.Selector[coherence.CoherenceClusterLabel] = cluster.Name
-		service.Spec.Selector["component"] = "coherencePod"
-		service.Spec.Selector["coherenceWKAMember"] = "true"
-
-		// Set CoherenceCluster instance as the owner and controller of the service structure
-		if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
-			if !errors.IsAlreadyExists(err) { // _in theory_ we should never see an AlreadyExists error!!
-				return err
-			}
-		}
-
-		return r.client.Create(context.TODO(), service)
+	err = r.client.Get(context.TODO(), name, &v1.Service{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
 	}
 
-	return err
+	reqLogger := log.WithValues("Namespace", cluster.Namespace, "Cluster.Name", cluster.Name)
+	reqLogger.Info("Creating WKA service '" + name.Name + "'")
+
+	service := &v1.Service{}
+
+	service.Namespace = name.Namespace
+	service.Name = name.Name
+
+	service.Annotations = make(map[string]string)
+	service.Annotations["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
+
+	service.Labels = make(map[string]string)
+	service.Labels[coherence.CoherenceClusterLabel] = cluster.Name
+	service.Labels[coherence.CoherenceComponentLabel] = "coherenceWkaService"
+
+	service.Spec = v1.ServiceSpec{}
+	service.Spec.ClusterIP = v1.ClusterIPNone
+	service.Spec.Ports = make([]v1.ServicePort, 1)
+
+	service.Spec.Ports[0] = v1.ServicePort{
+		Name:       "coherence-extend",
+		Protocol:   v1.ProtocolTCP,
+		Port:       7,
+		TargetPort: intstr.FromString("coherence"),
+	}
+
+	service.Spec.Selector = make(map[string]string)
+	service.Spec.Selector[coherence.CoherenceClusterLabel] = cluster.Name
+	service.Spec.Selector["component"] = "coherencePod"
+	service.Spec.Selector["coherenceWKAMember"] = "true"
+
+	// Set CoherenceCluster instance as the owner and controller of the service structure
+	if err = controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		return err
+	}
+
+	err = r.client.Create(context.TODO(), service)
+	if err != nil && errors.IsAlreadyExists(err) {
+		// we shouldn't see this as we've already checked for an existing service
+		reqLogger.Error(err, fmt.Sprintf("unexpected error for service '%s' already exists", name.Name))
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // getDesiredRoles returns a map with all of the desired roles from the cluster and a slice of role names in the order they
@@ -525,4 +538,19 @@ func (r *ReconcileCoherenceCluster) findExistingRoles(clusterName string, namesp
 	}
 
 	return nil
+}
+
+func (r *ReconcileCoherenceCluster) deleteAllRoles(request reconcile.Request, logger logr.Logger) {
+	logger.Info("Ensuring all roles are deleted for cluster")
+
+	roles := make(map[string]coherence.CoherenceRole)
+	if err := r.findExistingRoles(request.Name, request.Name, roles); err != nil {
+		logger.Error(err, "Error finding roles to delete")
+	}
+
+	for name, role := range roles {
+		if err := r.client.Delete(context.TODO(), &role); err != nil {
+			logger.Error(err, fmt.Sprintf("Error deleting role '%s'", name))
+		}
+	}
 }

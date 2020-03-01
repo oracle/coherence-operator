@@ -9,6 +9,7 @@ package coherencerole
 import (
 	"context"
 	"fmt"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,7 +57,7 @@ var _ = Describe("coherencerole_controller", func() {
 	JustBeforeEach(func() {
 		mgr, err = stubs.NewFakeManager(existing...)
 		Expect(err).NotTo(HaveOccurred())
-		controller = newReconciler(mgr)
+		controller = newReconciler(mgr, &flags.CoherenceOperatorFlags{})
 
 		mgr.Client.DisableErrors()
 

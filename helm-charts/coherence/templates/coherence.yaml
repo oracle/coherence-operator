@@ -2,6 +2,8 @@
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
+{{- $cohImage := .Values.coherence.image | default "${HELM_COHERENCE_IMAGE}" -}}
+{{- $utilsImage := .Values.coherenceUtils.image | default "${UTILS_IMAGE}" -}}
 {{- $extAppDir := "/u01/oracle/oracle_home/coherence/app" -}}
 {{- $extLibDir := "/u01/oracle/oracle_home/coherence/app/lib" -}}
 {{- $extConfDir := "/u01/oracle/oracle_home/coherence/app/conf" -}}
@@ -132,7 +134,7 @@ spec:
 #  Container: For adding required artifacts e.g. startup scripts to the pod.
 # ---------------------------------------------------------------------------
         - name: coherence-k8s-utils
-          image: {{ .Values.coherenceUtils.image | quote }}
+          image: {{ $utilsImage | quote }}
 {{- if .Values.coherenceUtils.imagePullPolicy }}
           imagePullPolicy: {{ .Values.coherenceUtils.imagePullPolicy }}
 {{- end }}
@@ -199,7 +201,7 @@ spec:
 #  Container: coherence
 # ---------------------------------------------------------------------------
         - name: "coherence"
-          image: {{ .Values.coherence.image | quote }}
+          image: {{ $cohImage | quote }}
 {{- if .Values.coherence.imagePullPolicy }}
           imagePullPolicy: {{ .Values.coherence.imagePullPolicy }}
 {{- end }}

@@ -255,7 +255,7 @@ $(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
 	rm -rf $(CHART_DIR)/coherence
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence $(CHART_DIR)
-	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
+	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml coherence/templates/coherence.yaml)
 	helm lint $(CHART_DIR)/coherence
 
 # ---------------------------------------------------------------------------
