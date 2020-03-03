@@ -29,23 +29,25 @@ const (
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv   = "COHERENCE_VERSION"
-	PreviousVersionEnv    = "PREV_VERSION"
+	CompatibleVersionsEnv = "COMPATIBLE_VERSIONS"
 	VersionEnv            = "VERSION_FULL"
 	OperatorImageEnv      = "OPERATOR_IMAGE"
 	SkipCompatibilityEnv  = "SKIP_COMPATIBILITY"
 
 	defaultNamespace = "operator-test"
 
-	buildDir       = "build"
-	outDir         = buildDir + string(os.PathSeparator) + "_output"
-	chartDir       = outDir + string(os.PathSeparator) + "helm-charts"
-	coherenceChart = chartDir + string(os.PathSeparator) + "coherence"
-	operatorChart  = chartDir + string(os.PathSeparator) + "coherence-operator"
-	testLogs       = outDir + string(os.PathSeparator) + "test-logs"
-	certs          = outDir + string(os.PathSeparator) + "certs"
-	deploy         = "deploy"
-	crds           = deploy + string(os.PathSeparator) + "crds"
-	manifest       = outDir + string(os.PathSeparator) + "manifest"
+	buildDir           = "build"
+	outDir             = buildDir + string(os.PathSeparator) + "_output"
+	chartDir           = outDir + string(os.PathSeparator) + "helm-charts"
+	compatibleChartDir = outDir + string(os.PathSeparator) + "previous-charts"
+	coherenceChart     = chartDir + string(os.PathSeparator) + "coherence"
+	operatorChart      = chartDir + string(os.PathSeparator) + "coherence-operator"
+	compatibleCharts   = compatibleChartDir + string(os.PathSeparator) + "coherence-operator"
+	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
+	certs              = outDir + string(os.PathSeparator) + "certs"
+	deploy             = "deploy"
+	crds               = deploy + string(os.PathSeparator) + "crds"
+	manifest           = outDir + string(os.PathSeparator) + "manifest"
 )
 
 func GetTestNamespace() string {
@@ -104,8 +106,15 @@ func GetOperatorVersion() string {
 	return os.Getenv(VersionEnv)
 }
 
-func GetPreviousOperatorVersion() string {
-	return os.Getenv(PreviousVersionEnv)
+func GetCompatibleOperatorVersions() []string {
+	var versions []string
+	list, ok := os.LookupEnv(CompatibleVersionsEnv)
+	if ok {
+		versions = strings.Split(list, " ")
+	} else {
+		versions = []string{}
+	}
+	return versions
 }
 
 func GetTestSSLSecretName() string {
@@ -202,13 +211,13 @@ func FindOperatorHelmChartDir() (string, error) {
 	return pd + string(os.PathSeparator) + operatorChart, nil
 }
 
-func FindPreviousOperatorHelmChartDir() (string, error) {
+func FindPreviousOperatorHelmChartDir(v string) (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
 		return "", err
 	}
 
-	return pd + string(os.PathSeparator) + operatorChart + "-" + GetPreviousOperatorVersion(), nil
+	return pd + string(os.PathSeparator) + compatibleCharts + "-" + v, nil
 }
 
 func FindTestLogsDir() (string, error) {

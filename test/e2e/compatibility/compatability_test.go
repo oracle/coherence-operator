@@ -4,11 +4,12 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package helm_test
+package compatibility_test
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -21,15 +22,23 @@ import (
 
 func TestCompatibility(t *testing.T) {
 	helper.AssumeRunningCompatibilityTests(t)
+	versions := helper.GetCompatibleOperatorVersions()
+	for _, version := range versions {
+		name := fmt.Sprintf("%s", version)
+		t.Run(name, func(t *testing.T) {
+			assertCompatibilityForVersion(t, version)
+		})
+	}
+}
 
+func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	var err error
 
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
 	values := helper.OperatorValues{}
-	prevVersion := helper.GetPreviousOperatorVersion()
-	chart, err := helper.FindPreviousOperatorHelmChartDir()
+	chart, err := helper.FindPreviousOperatorHelmChartDir(prevVersion)
 	g.Expect(err).NotTo(HaveOccurred())
 	t.Logf("Running compatibility test against previous chart %s", chart)
 

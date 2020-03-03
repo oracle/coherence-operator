@@ -4,7 +4,3 @@ metadata:
   name: test-cluster
 spec:
   replicas: 2
-  coherence:
-    image: ${TEST_COHERENCE_IMAGE}
-  coherenceUtils:
-    image: ${UTILS_IMAGE}

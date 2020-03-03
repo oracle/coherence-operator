@@ -26,7 +26,10 @@ else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
 
-PREV_VERSION := 2.1.0
+# A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
+# These must be released versions as their released Helm charts will be downloaded prior to
+# running the compatibility tests.
+COMPATIBLE_VERSIONS = 2.1.0
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
@@ -93,11 +96,12 @@ IMAGE_PULL_POLICY  ?=
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
-override BUILD_OUTPUT  := ./build/_output
-override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
-override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
-override CRD_DIR       := deploy/crds
-override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
+override BUILD_OUTPUT   := ./build/_output
+override BUILD_PROPS    := $(BUILD_OUTPUT)/build.properties
+override CHART_DIR      := $(BUILD_OUTPUT)/helm-charts
+override PREV_CHART_DIR := $(BUILD_OUTPUT)/previous-charts
+override CRD_DIR        := deploy/crds
+override TEST_LOGS_DIR  := $(BUILD_OUTPUT)/test-logs
 
 ifeq (, $(shell which ginkgo))
 GO_TEST_CMD = go
@@ -150,6 +154,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_OUTPUT)
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(CHART_DIR)
+	@mkdir -p $(PREV_CHART_DIR)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
@@ -296,7 +301,6 @@ e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
-e2e-local-test: export PREV_VERSION := $(PREV_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -344,7 +348,6 @@ debug-e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
-debug-e2e-local-test: export PREV_VERSION := $(PREV_VERSION)
 debug-e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 debug-e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 debug-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -377,7 +380,6 @@ script-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 script-test: export VERSION_FULL := $(VERSION_FULL)
-script-test: export PREV_VERSION := $(PREV_VERSION)
 script-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 script-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 script-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -418,7 +420,6 @@ e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-test: export VERSION_FULL := $(VERSION_FULL)
-e2e-test: export PREV_VERSION := $(PREV_VERSION)
 e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -473,7 +474,6 @@ debug-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-test: export VERSION_FULL := $(VERSION_FULL)
-debug-e2e-test: export PREV_VERSION := $(PREV_VERSION)
 debug-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 debug-e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 debug-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -502,7 +502,6 @@ helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export VERSION_FULL := $(VERSION_FULL)
-helm-test: export PREV_VERSION := $(PREV_VERSION)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
@@ -520,16 +519,59 @@ helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	    -output $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml
 
 # ---------------------------------------------------------------------------
-# Obtain the previous version of the Operator Helm chart.
+# Executes the Go end-to-end Operator Compatibility tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# These tests require the Operator CRDs and will install them before tests start
+# and remove them afterwards.
+# Note that the namespace will be created if it does not exist.
+# This step will use whatever Kubeconfig the current environment is
+# configured to use.
 # ---------------------------------------------------------------------------
-$(CHART_DIR)/coherence-operator-$(PREV_VERSION).tgz: build-operator
-	@echo "Downloading Operator Helm chart version $(PREV_VERSION)"
-	curl -X GET https://oracle.github.io/coherence-operator/charts/coherence-operator-$(PREV_VERSION).tgz -o $(CHART_DIR)/coherence-operator-$(PREV_VERSION).tgz && \
-    mkdir $(CHART_DIR)/coherence-operator-$(PREV_VERSION) && \
-    tar -C $(CHART_DIR)/coherence-operator-$(PREV_VERSION) -xzf $(CHART_DIR)/coherence-operator-$(PREV_VERSION).tgz
+.PHONY: helm-test
+compatibility-test: export CGO_ENABLED = 0
+compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+compatibility-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+compatibility-test: export VERSION_FULL := $(VERSION_FULL)
+compatibility-test: export COMPATIBLE_VERSIONS := $(COMPATIBLE_VERSIONS)
+compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+compatibility-test: build-operator reset-namespace create-ssl-secrets install-crds get-previous
+	@echo "executing Operator compatibility tests"
+	$(OPERATOR_SDK) test local ./test/e2e/compatibility --namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-compatibility-test.out
+	$(MAKE) uninstall-crds
+	$(MAKE) delete-namespace
+	go run ./cmd/testreports/ -fail -suite-name-prefix=compatibility-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-compatibility-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-compatibility-test.xml
 
-.PHONY: get-prev-version
-get-prev-version: $(CHART_DIR)/coherence-operator-$(PREV_VERSION).tgz
+# ---------------------------------------------------------------------------
+# Obtain the previous versions of the Operator Helm chart that will be used
+# torun compatibiity tests.
+# ---------------------------------------------------------------------------
+.PHONY: get-previous
+get-previous: $(BUILD_PROPS)
+	for i in $(COMPATIBLE_VERSIONS); do \
+      FILE=$(PREV_CHART_DIR)/coherence-operator-$${i}.tgz; \
+      DIR=$(PREV_CHART_DIR)/coherence-operator-$${i}; \
+      if [ ! -f "$${FILE}" ]; then \
+	    echo "Downloading Operator Helm chart version $${i} to file $${FILE}"; \
+	    curl -X GET https://oracle.github.io/coherence-operator/charts/coherence-operator-$${i}.tgz -o $${FILE}; \
+      fi; \
+	  echo "Unpacking Operator Helm chart version $${i} to $${DIR}"; \
+      rm -rf $${DIR}; \
+      mkdir $${DIR}; \
+      tar -C $${DIR} -xzf $${FILE}; \
+    done
 
 # ---------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
