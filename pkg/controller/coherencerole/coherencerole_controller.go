@@ -12,6 +12,10 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	helmctl "github.com/operator-framework/operator-sdk/pkg/helm/controller"
+	"github.com/operator-framework/operator-sdk/pkg/helm/release"
+	"github.com/operator-framework/operator-sdk/pkg/helm/watches"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	appsv1 "k8s.io/api/apps/v1"
@@ -37,8 +41,8 @@ import (
 	"time"
 )
 
-// The name of this controller. This is used in events, log messages, etc.
 const (
+	// The name of this controller. This is used in events, log messages, etc.
 	controllerName = "coherencerole.controller"
 
 	invalidRoleEventMessage      string = "invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'"
@@ -155,6 +159,7 @@ type ReconcileCoherenceRole struct {
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
 	opFlags       *flags.CoherenceOperatorFlags
+	initialized   bool
 }
 
 // Attempt to lock the requested resource.
@@ -194,7 +199,10 @@ func (r *ReconcileCoherenceRole) unlock(request reconcile.Request) {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling CoherenceRole")
+
+	if err := r.EnsureInitialized(logger); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -204,6 +212,18 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer r.unlock(request)
+
+	return r.reconcileInternal(request)
+}
+
+// Reconcile reads that state of a CoherenceRole object and makes changes based on the state read
+// and what is in the CoherenceRole.Spec.
+// Note:
+// The Controller will requeue the Request to be processed again if the returned error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+func (r *ReconcileCoherenceRole) reconcileInternal(request reconcile.Request) (reconcile.Result, error) {
+	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
+	logger.Info("Reconciling CoherenceRole")
 
 	// Fetch the CoherenceRole role
 	role, found, err := r.getRole(request.Namespace, request.Name)
@@ -215,11 +235,10 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(failedToReconcileRole, role.Name, err), logger)
 	}
 
-	if !found {
-		logger.Info("CoherenceRole not found - assuming normal deletion")
-		// Request object not found, could have been deleted after reconcile request.
+	if !found || role.GetDeletionTimestamp() != nil {
+		logger.Info("CoherenceRole deleted")
+		// Request object not found (could have been deleted after reconcile request) or this is a delete notification.
 		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-
 		// Ensure that the CoherenceInternal for this role is deleted.
 		// It should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
 		// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
@@ -765,4 +784,98 @@ func (r *ReconcileCoherenceRole) deleteCoherenceInternal(request reconcile.Reque
 
 	logger.Info(fmt.Sprintf("Ensuring CoherenceInternal '%s' is deleted", request.Name))
 	_ = r.client.Delete(context.TODO(), ci)
+}
+
+func (r *ReconcileCoherenceRole) EnsureInitialized(logger logr.Logger) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.initialized {
+		return nil
+	}
+
+	logger.Info("Initializing controller")
+
+	// Reconcile all of the existing clusters first
+	if err := r.reconcileExistingRoles(); err != nil {
+		return err
+	}
+
+	r.initialized = true
+
+	// Start the Helm controller
+	logger.Info("Starting Helm controller")
+	return r.setupHelm(r.mgr)
+}
+
+// Produces pseudo reconcile requests for all of the existing CoherenceRoles in the watch namespace
+// We typically call this function first before the Helm operator has stated to ensure that everything
+// is in the required state before the Helm operator gets a chance to think it has to update installs.
+func (r *ReconcileCoherenceRole) reconcileExistingRoles() error {
+	log.Info("Reconciling all existing CoherenceRoles")
+
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	logger := log.WithValues("Namespace", namespace)
+
+	list := coh.CoherenceRoleList{}
+	if err := r.client.List(context.TODO(), &list, client.InNamespace(namespace)); err != nil {
+		return err
+	}
+
+	if len(list.Items) == 0 {
+		logger.Info("Zero existing CoherenceRoles to reconcile")
+	}
+
+	for _, role := range list.Items {
+		logger.Info("Reconciling existing role", "Name", role.GetName())
+		request := reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Namespace: role.GetNamespace(),
+				Name:      role.GetName(),
+			},
+		}
+
+		_, err = r.reconcileInternal(request)
+		if err != nil {
+			log.Error(err, "Error reconciling existing role", "Name", role.GetName())
+		}
+	}
+
+	return nil
+}
+
+func (r *ReconcileCoherenceRole) setupHelm(mgr manager.Manager) error {
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	// Setup Helm controller
+	watchList, err := watches.Load(r.opFlags.WatchesFile)
+	if err != nil {
+		log.Error(err, "failed to load Helm watches")
+		return err
+	}
+
+	fmt.Println(watchList)
+	for _, w := range watchList {
+		fmt.Println(w)
+		err := helmctl.Add(mgr, helmctl.WatchOptions{
+			Namespace:               namespace,
+			GVK:                     w.GroupVersionKind,
+			ManagerFactory:          release.NewManagerFactory(mgr, w.ChartDir),
+			ReconcilePeriod:         r.opFlags.ReconcilePeriod,
+			WatchDependentResources: w.WatchDependentResources,
+		})
+		if err != nil {
+			log.Error(err, "failed to add Helm watche")
+			return err
+		}
+	}
+
+	return nil
 }

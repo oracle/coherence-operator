@@ -12,7 +12,9 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/api/core/v1"
@@ -87,6 +89,7 @@ func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) r
 		mutex:         sync.Mutex{},
 		version:       version,
 		opFlags:       opFlags,
+		mgr:           mgr,
 	}
 }
 
@@ -121,6 +124,8 @@ type ReconcileCoherenceCluster struct {
 	mutex         sync.Mutex
 	version       string
 	opFlags       *flags.CoherenceOperatorFlags
+	mgr           manager.Manager
+	initialized   bool
 }
 
 // Attempt to lock the requested resource.
@@ -160,7 +165,10 @@ func (r *ReconcileCoherenceCluster) unlock(request reconcile.Request) {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
-	logger.Info("Reconciling CoherenceCluster")
+
+	if err := r.EnsureInitialized(logger); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -171,15 +179,26 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 	// Make sure that the request is unlocked when this method exits
 	defer r.unlock(request)
 
+	return r.reconcileInternal(request)
+}
+
+// reconcileInternal reads that state of a CoherenceCluster object and makes changes based on the state read
+// and what is in the CoherenceCluster.Spec.
+// Note:
+// The Controller will requeue the Request to be processed again if the returned error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+func (r *ReconcileCoherenceCluster) reconcileInternal(request reconcile.Request) (reconcile.Result, error) {
+	logger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
+	logger.Info("Reconciling CoherenceCluster")
+
 	// Fetch the CoherenceCluster instance
 	cluster := &coherence.CoherenceCluster{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, cluster)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info("CoherenceCluster not found - assuming normal deletion")
+		if errors.IsNotFound(err) || cluster.GetDeletionTimestamp() != nil {
+			logger.Info("CoherenceCluster deleted")
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-
 			// Ensure that the roles for this cluster are deleted.
 			// They should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
 			// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
@@ -553,4 +572,66 @@ func (r *ReconcileCoherenceCluster) deleteAllRoles(request reconcile.Request, lo
 			logger.Error(err, fmt.Sprintf("Error deleting role '%s'", name))
 		}
 	}
+}
+
+func (r *ReconcileCoherenceCluster) EnsureInitialized(logger logr.Logger) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.initialized {
+		return nil
+	}
+
+	logger.Info("Initializing controller")
+
+	// Reconcile all of the existing clusters first
+	if err := r.ReconcileExistingClusters(); err != nil {
+		return err
+	}
+
+	r.initialized = true
+
+	// Start the role controller
+	logger.Info("Starting CoherenceRole controller")
+	return coherencerole.Add(r.mgr, r.opFlags)
+}
+
+// Produces pseudo reconcile requests for all of the existing CoherenceClusters in the watch namespace
+// We typically call this function first before the Helm operator has stated to ensure that everything
+// is in the required state before the Helm operator gets a chance to think it has to update installs.
+func (r *ReconcileCoherenceCluster) ReconcileExistingClusters() error {
+	log.Info("Reconciling all existing CoherenceCluster")
+
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	logger := log.WithValues("Namespace", namespace)
+
+	list := coherence.CoherenceClusterList{}
+	if err := r.client.List(context.TODO(), &list, client.InNamespace(namespace)); err != nil {
+		return err
+	}
+
+	if len(list.Items) == 0 {
+		logger.Info("Zero existing CoherenceClusters to reconcile")
+	}
+
+	for _, cluster := range list.Items {
+		logger.Info("Reconciling existing cluster", "Cluster.Name", cluster.GetName())
+		request := reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Namespace: cluster.GetNamespace(),
+				Name:      cluster.GetName(),
+			},
+		}
+
+		_, err = r.reconcileInternal(request)
+		if err != nil {
+			log.Error(err, "Error reconciling existing cluster", "Cluster.Name", cluster.GetName())
+		}
+	}
+
+	return nil
 }

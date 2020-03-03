@@ -38,19 +38,21 @@ import (
 	"time"
 )
 
+const operatorPodSelector = "name=coherence-operator"
+
 var (
 	RetryInterval        = time.Second * 5
 	Timeout              = time.Minute * 3
 	CleanupRetryInterval = time.Second * 1
 	CleanupTimeout       = time.Second * 5
+
+	tenSeconds int32 = 10
+
+	Readiness = &coh.ReadinessProbeSpec{
+		InitialDelaySeconds: &tenSeconds,
+		PeriodSeconds:       &tenSeconds,
+	}
 )
-
-var tenSeconds int32 = 10
-
-var Readiness = &coh.ReadinessProbeSpec{
-	InitialDelaySeconds: &tenSeconds,
-	PeriodSeconds:       &tenSeconds,
-}
 
 type Logger interface {
 	Log(args ...interface{})
@@ -229,10 +231,15 @@ func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coh.Cohe
 
 // WaitForOperatorPods waits for a Coherence Operator Pods to be created.
 func WaitForOperatorPods(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	return WaitForPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout)
+}
+
+// WaitForOperatorPods waits for a Coherence Operator Pods to be created.
+func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pods, err = ListOperatorPods(k8s, namespace)
+		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
 		if err != nil {
 			return false, err
 		}
@@ -263,7 +270,7 @@ func WaitForDeletion(f *framework.Framework, namespace, name string, resource ru
 
 // List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
 func ListOperatorPods(client kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
-	return ListPodsWithLabelSelector(client, namespace, "name=coherence-operator")
+	return ListPodsWithLabelSelector(client, namespace, operatorPodSelector)
 }
 
 // List the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
@@ -663,6 +670,7 @@ func DumpState(namespace, dir string, logger Logger) {
 	dumpCoherenceRoles(namespace, dir, logger)
 	dumpCoherenceInternals(namespace, dir, logger)
 	dumpStatefulSets(namespace, dir, logger)
+	dumpServices(namespace, dir, logger)
 	dumpPods(namespace, dir, logger)
 	dumpRoles(namespace, dir, logger)
 	dumpRoleBindings(namespace, dir, logger)
@@ -897,6 +905,63 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+	}
+}
+
+func dumpServices(namespace, dir string, logger Logger) {
+	const message = "Could not dump Services for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "svc-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Service-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprintf(listFile, "No Service resources found in namespace %s", namespace)
 	}
 }
 

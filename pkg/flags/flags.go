@@ -7,6 +7,7 @@
 package flags
 
 import (
+	"github.com/operator-framework/operator-sdk/pkg/helm/flags"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/spf13/pflag"
 	"os"
@@ -44,6 +45,9 @@ var defaultCrds string
 
 // CoherenceOperatorFlags - Options to be used by a Coherence operator.
 type CoherenceOperatorFlags struct {
+	// include all of the Helm operator flags too
+	flags.HelmOperatorFlags
+
 	// The directory where the Operator's CRD file are located.
 	CrdFiles string
 	// The host name that the ReST server binds to.
@@ -192,6 +196,7 @@ func GetOperatorFlags() *CoherenceOperatorFlags {
 // helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
 func AddTo(flagSet *pflag.FlagSet, helpTextPrefix ...string) *CoherenceOperatorFlags {
 	cohf.AddTo(flagSet, helpTextPrefix...)
+	cohf.HelmOperatorFlags.AddTo(flagSet, helpTextPrefix...)
 	flagSet.AddFlagSet(zap.FlagSet())
 	return cohf
 }

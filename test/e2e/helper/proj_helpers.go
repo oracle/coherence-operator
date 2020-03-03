@@ -32,6 +32,7 @@ const (
 	PreviousVersionEnv    = "PREV_VERSION"
 	VersionEnv            = "VERSION_FULL"
 	OperatorImageEnv      = "OPERATOR_IMAGE"
+	SkipCompatibilityEnv  = "SKIP_COMPATIBILITY"
 
 	defaultNamespace = "operator-test"
 
@@ -140,6 +141,13 @@ func FindProjectRootDir() (string, error) {
 	}
 
 	return "", os.ErrNotExist
+}
+
+func AssumeRunningCompatibilityTests(t *testing.T) {
+	s := os.Getenv(SkipCompatibilityEnv)
+	if strings.ToLower(s) == "true" {
+		t.Skipf("Skipping compatibility tests, %s environment variable set to '%s'", SkipCompatibilityEnv, s)
+	}
 }
 
 func FindBuildDir() (string, error) {

@@ -26,7 +26,7 @@ else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
 
-PREV_VERSION := 2.0.5
+PREV_VERSION := 2.1.0
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
@@ -744,7 +744,7 @@ run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: $(CHART_DIR)/coherence create-ssl-secrets
+run: reset-namespace $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -765,7 +765,7 @@ run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: $(CHART_DIR)/coherence create-ssl-secrets
+run-debug: reset-namespace $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
 	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
