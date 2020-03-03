@@ -54,6 +54,9 @@ var _ = Describe("coherencecluster_controller", func() {
 		}
 
 		controller := newReconciler(mgr, &flags.CoherenceOperatorFlags{})
+		// skip initialization for unit tests
+		controller.SetInitialized(true)
+
 		r, err := controller.Reconcile(request)
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})

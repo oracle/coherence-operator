@@ -49,7 +49,11 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 
 	opFlags := &flags.CoherenceOperatorFlags{}
 	cr := coherencecluster.NewClusterReconciler(mgr, opFlags)
+	// skip initialization for unit tests
+	cr.SetInitialized(true)
 	rr := coherencerole.NewRoleReconciler(mgr, opFlags)
+	// skip initialization for unit tests
+	rr.SetInitialized(true)
 	helm, err := stubs.NewFakeHelm(mgr, cr, rr, namespace)
 	if err != nil {
 		return nil, nil, err

@@ -67,6 +67,9 @@ var _ = Describe("coherencerole_controller scaling tests", func() {
 		}
 
 		controller := newReconciler(mgr, &flags.CoherenceOperatorFlags{})
+		// skip initialization for unit tests
+		controller.SetInitialized(true)
+
 		r, err := controller.Reconcile(request)
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})

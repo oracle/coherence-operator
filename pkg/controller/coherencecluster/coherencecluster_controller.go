@@ -70,12 +70,12 @@ func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
 }
 
 // NewClusterReconciler returns a new reconcile.Reconciler.
-func NewClusterReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
+func NewClusterReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceCluster {
 	return newReconciler(mgr, opFlags)
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceCluster {
 	version, ok := os.LookupEnv(versionEnv)
 	if !ok {
 		version = versionUnknown
@@ -126,6 +126,13 @@ type ReconcileCoherenceCluster struct {
 	opFlags       *flags.CoherenceOperatorFlags
 	mgr           manager.Manager
 	initialized   bool
+}
+
+// Set the initialized flag for this controller.
+func (r *ReconcileCoherenceCluster) SetInitialized(i bool) {
+	if r != nil {
+		r.initialized = i
+	}
 }
 
 // Attempt to lock the requested resource.

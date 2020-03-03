@@ -81,7 +81,7 @@ func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
 }
 
 // NewRoleReconciler returns a new reconcile.Reconciler.
-func NewRoleReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) reconcile.Reconciler {
+func NewRoleReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceRole {
 	return newReconciler(mgr, opFlags)
 }
 
@@ -160,6 +160,13 @@ type ReconcileCoherenceRole struct {
 	mutex         sync.Mutex
 	opFlags       *flags.CoherenceOperatorFlags
 	initialized   bool
+}
+
+// Set the initialized flag for this controller.
+func (r *ReconcileCoherenceRole) SetInitialized(i bool) {
+	if r != nil {
+		r.initialized = i
+	}
 }
 
 // Attempt to lock the requested resource.

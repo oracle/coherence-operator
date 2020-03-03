@@ -62,6 +62,8 @@ var _ = Describe("coherencerole_controller", func() {
 		mgr, err = stubs.NewFakeManager(existing...)
 		Expect(err).NotTo(HaveOccurred())
 		controller = newReconciler(mgr, &flags.CoherenceOperatorFlags{})
+		// skip initialization for unit tests
+		controller.initialized = true
 
 		if cluster != nil {
 			_ = mgr.Client.Create(context.TODO(), cluster)
