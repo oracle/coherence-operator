@@ -248,6 +248,26 @@ func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector strin
 	return pods, err
 }
 
+// WaitForOperatorDeletion waits for deletion of the Operator Pods.
+func WaitForOperatorDeletion(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) error {
+	return WaitForDeleteOfPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout)
+}
+
+// WaitForDeleteOfPodsWithSelector waits for Pods to be deleted.
+func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration) error {
+	var pods []corev1.Pod
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		if err != nil {
+			return false, err
+		}
+		return len(pods) == 0, nil
+	})
+
+	return err
+}
+
 // WaitForDeletion waits for deletion of the specified resource.
 func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
 	key := types.NamespacedName{Namespace: namespace, Name: name}

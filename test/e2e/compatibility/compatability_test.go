@@ -108,7 +108,13 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	// Upgrade to the current Operator - we do this by running cleanup to remove the previous operator and then install the new one
 	t.Logf("Removing previous operator version %s", prevVersion)
 	CleanupHelm(t, rmPrevious, helmHelperPrevious)
-	t.Logf("Installing current operator")
+	// Wait for the Operator Pod to be removed
+	t.Log("Waiting for removal of previous operator...")
+	err = helper.WaitForOperatorDeletion(helmHelperCurrent.KubeClient, helmHelperCurrent.Namespace, time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	version := helper.GetOperatorVersion()
+	t.Logf("Installing current version of Operator %s", version)
 	_, err = rmCurrent.InstallRelease()
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -117,7 +123,6 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	pods, err = helper.WaitForOperatorPods(helmHelperCurrent.KubeClient, helmHelperCurrent.Namespace, time.Second*10, time.Minute*5)
 	d, err := json.Marshal(pods[0])
 	g.Expect(err).ToNot(HaveOccurred())
-	version := helper.GetOperatorVersion()
 	t.Logf("JSON for new Operator Pod version %s:\n%s", version, string(d))
 	image := helper.GetOperatorImage()
 	g.Expect(pods[0].Spec.Containers[0].Image).To(Equal(image))
