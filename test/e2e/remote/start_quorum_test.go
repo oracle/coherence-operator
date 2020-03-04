@@ -83,7 +83,9 @@ func assertCluster(t *testing.T, yamlFile string) {
 
 	t.Logf("Test Times ready=" + testTimes.Ready.String() + " scheduled=" + testTimes.Scheduled.String())
 	t.Logf("Role Times ready=" + roleTimes.Ready.String() + " scheduled=" + roleTimes.Scheduled.String())
-	if testTimes.Scheduled.Before(roleTimes.Ready) {
+	jitter := time.Second * 1
+	// add some jitter to the Ready time to round it up a second
+	if testTimes.Scheduled.Before(roleTimes.Ready.Add(jitter)) {
 		t.Fatalf("Expected test role scheduled time " + testTimes.Scheduled.String() + " to be after (or equal to) dependent pods ready time ")
 	}
 }
