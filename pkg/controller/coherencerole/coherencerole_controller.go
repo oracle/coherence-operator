@@ -353,6 +353,20 @@ func (r *ReconcileCoherenceRole) createRole(cluster *coh.CoherenceCluster, role 
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
 	}
 
+	// Clean-up previous Helm v3 state if any exists, we've seen orphaned state causing issues in testing
+	hsList := corev1.SecretList{}
+	err = r.client.List(context.TODO(), &hsList, client.InNamespace(role.Namespace))
+	if err == nil {
+		prefix := fmt.Sprintf("sh.helm.release.v1.%s.", role.Name)
+		for _, hs := range hsList.Items {
+			if strings.HasPrefix(hs.Name, prefix) {
+				// Helm state exists so delete it
+				logger.Info(fmt.Sprintf("Deleting existing Helm state for role %s in secret %s", role.Name, hs.Name))
+				_ = r.client.Delete(context.TODO(), &hs)
+			}
+		}
+	}
+
 	// Create the CoherenceInternal resource in k8s which will be detected
 	// by the Helm operator and trigger a Helm install
 
