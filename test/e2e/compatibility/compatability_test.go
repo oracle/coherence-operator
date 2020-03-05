@@ -92,7 +92,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Get the cluster StatefulSet before Operator Upgrade
-	stsBefore, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, cluster.GetFirstRole(), time.Second*10, time.Minute*5, t)
+	role := cluster.GetFirstRole()
+	stsBefore, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	dir := t.Name() + "/Before"
@@ -137,7 +138,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	time.Sleep(time.Minute * 1)
 
 	// Get the cluster StatefulSet after Operator Upgrade
-	stsAfter, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, cluster.GetFirstRole(), time.Second*10, time.Minute*5, t)
+	stsAfter, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Assert that the StatefulSet has not been changed by the upgrade (i.e. its generation is unchanged)
@@ -151,6 +152,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	// Ensure that everything is still linked, i.e. the cluster to the role to the CoherenceInternal
 	// by upgrading the Coherence cluster. We're just going to add a label to the Pods
 
+	t.Log("Re-fetching Coherence cluster to update with Pod labels")
+
 	// re-fetch the Coherence cluster as it might have changed
 	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: f.Namespace, Name: cluster.Name}, &cluster)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -163,10 +166,29 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	cluster.Spec.CoherenceRoleSpec.Labels = labels
 
 	// Update the Coherence cluster in k8s
+	t.Log("Updating Coherence cluster")
 	err = f.Client.Update(context.TODO(), &cluster)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// wait for at least one Pod with the new label, this will verify that the update worked and the Coherence cluster is still good
-	_, err = helper.WaitForPodsWithLabel(cl, f.Namespace, "foo=bar", 1, time.Second*10, time.Minute*5)
+	t.Log("Waiting for Pods to update with new labels")
+	_, err = helper.WaitForPodsWithLabel(cl, f.Namespace, "foo=bar", int(role.GetReplicas()), time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
+	// Get the cluster StatefulSet after cluster update
+	_, err = helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Delete the CoherenceCluster
+	t.Log("Re-fetching Coherence cluster to delete it")
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+	t.Log("Deleting Coherence cluster")
+	err = f.Client.Delete(context.TODO(), &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Wait for the updated cluster Pods to be deleted
+	t.Log("Waiting for Coherence cluster Pods to be removed")
+	selector := fmt.Sprintf("coherenceCluster=%s", cluster.Name)
+	err = helper.WaitForDeleteOfPodsWithSelector(cl, f.Namespace, selector, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 }
