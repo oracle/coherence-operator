@@ -249,22 +249,27 @@ func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector strin
 }
 
 // WaitForOperatorDeletion waits for deletion of the Operator Pods.
-func WaitForOperatorDeletion(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) error {
-	return WaitForDeleteOfPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout)
+func WaitForOperatorDeletion(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration, logger Logger) error {
+	return WaitForDeleteOfPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout, logger)
 }
 
 // WaitForDeleteOfPodsWithSelector waits for Pods to be deleted.
-func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration) error {
+func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration, logger Logger) error {
+	logger.Logf("Waiting for Pods in namespace %s with selector '%s' to be deleted", namespace, selector)
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		logger.Logf("List Pods in namespace %s with selector '%s'", namespace, selector)
 		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
 		if err != nil {
+			logger.Logf("Error listing Pods in namespace %s with selector '%s' - %s", namespace, selector, err.Error())
 			return false, err
 		}
+		logger.Logf("Found %d Pods in namespace %s with selector '%s'", len(pods), namespace, selector)
 		return len(pods) == 0, nil
 	})
 
+	logger.Logf("Finished waiting for Pods in namespace %s with selector '%s' to be deleted. Error=%s", namespace, selector, err)
 	return err
 }
 
