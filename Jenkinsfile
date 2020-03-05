@@ -231,30 +231,30 @@ pipeline {
 //                 '''
 //             }
 //         }
-//         stage('helm-test') {
-//             when {
-//                 expression { env.SKIP_TESTS != 'true' }
-//             }
-//             steps {
-//                 echo 'Operator Helm tests'
-//                 script {
-//                     setBuildStatus("Running Operator Helm tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
-//                 }
-//                 sh '''
-//                     export http_proxy=$HTTP_PROXY
-//                     export CREATE_TEST_NAMESPACE=false
-//                     export IMAGE_PULL_POLICY=Always
-//                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
-//                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-//                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
-//                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-//                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-//                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-//                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-//                     make helm-test GO_TEST_FLAGS='-short'
-//                 '''
-//             }
-//         }
+        stage('helm-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
+            steps {
+                echo 'Operator Helm tests'
+                script {
+                    setBuildStatus("Running Operator Helm tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+                    kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+                    kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+                    kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+                    make helm-test GO_TEST_FLAGS='-short'
+                '''
+            }
+        }
         stage('compatibility-test') {
             when {
                 expression { env.SKIP_TESTS != 'true' }
