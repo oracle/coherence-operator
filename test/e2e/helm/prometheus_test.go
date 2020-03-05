@@ -7,13 +7,16 @@
 package helm_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/onsi/gomega"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -116,6 +119,29 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Ensure that we can see the cluster size metric
 	ShouldGetClusterSizeMetric(t, promPod)
+
+	// Delete the CoherenceCluster
+	t.Log("Re-fetching Coherence cluster to delete it")
+	f := framework.Global
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+	t.Log("Deleting Coherence cluster")
+	err = f.Client.Delete(context.TODO(), &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Wait for the updated cluster Pods to be deleted
+	t.Log("Waiting for Coherence cluster Pods to be removed")
+	selector := fmt.Sprintf("coherenceCluster=%s", cluster.Name)
+	err = helper.WaitForDeleteOfPodsWithSelector(client, f.Namespace, selector, time.Second*10, time.Minute*5, t)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// clean up the Operator Helm release
+	t.Log("Removing the Operator release")
+	CleanupHelm(t, hm, helmHelper)
+
+	t.Log("Waiting for Prometheus Pods to be removed...")
+	err = helper.WaitForDeleteOfPodsWithSelector(client, f.Namespace, "app=prometheus", time.Second*10, time.Minute*5, t)
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 // Ensure that the Prometheus status/config endpoint can be accessed.
