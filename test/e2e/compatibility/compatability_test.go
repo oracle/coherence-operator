@@ -56,8 +56,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
-	defer helper.DumpState(f.Namespace, t.Name(), t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	cleaner := Cleanup{t: t, ctx: ctx}
+	defer cleaner.Run()
 
 	// Create the previous version helper.HelmHelper
 	hhPrev, err := helper.NewOperatorChartHelperForChart(chart)
@@ -69,6 +69,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	rmPrev, err := hhPrev.NewOperatorHelmReleaseManager("prev-operator", &values)
 	g.Expect(err).ToNot(HaveOccurred())
 	defer CleanupHelm(t, rmPrev, hhPrev)
+	cleaner.rm = rmPrev
+	cleaner.hh = hhPrev
 
 	// Delete the CRDs so that the previous version Operator installs the previous version CRDs
 	t.Logf("Removing CRDs")
@@ -120,7 +122,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	t.Logf("Installing current version of Operator %s", version)
 	rmCurr, err := hhCurr.NewOperatorHelmReleaseManager("current-operator", &values)
 	g.Expect(err).ToNot(HaveOccurred())
-	defer CleanupHelm(t, rmCurr, hhCurr)
+	cleaner.rm = rmCurr
+	cleaner.hh = hhCurr
 
 	_, err = rmCurr.InstallRelease()
 	g.Expect(err).ToNot(HaveOccurred())

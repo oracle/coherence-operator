@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 	framework.MainEntry(m)
 }
 
-func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, helmHelper *helper.HelmHelper) {
+func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, hh *helper.HelmHelper) {
 	// ensure that the chart is uninstalled
 	_, err := hm.UninstallRelease()
 	if err != nil {
@@ -30,7 +30,7 @@ func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, helmHelper *helper
 
 	// Wait for the Operator Pods to die as terminating Pods can mess up the next test that runs
 	// if it is too quick after this test.
-	err = helper.WaitForOperatorCleanup(helmHelper.KubeClient, helmHelper.Namespace, t)
+	err = helper.WaitForOperatorCleanup(hh.KubeClient, hh.Namespace, t)
 	if err != nil {
 		fmt.Println("Failed waiting for Operator clean-up " + err.Error())
 	}
@@ -59,4 +59,23 @@ func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yam
 	}
 
 	return cluster, nil
+}
+
+type Cleanup struct {
+	t   *testing.T
+	ctx *framework.TestCtx
+	rm  *helper.HelmReleaseManager
+	hh  *helper.HelmHelper
+}
+
+func (in Cleanup) Run() {
+	if in.t != nil {
+		ns := helper.GetTestNamespace()
+		helper.DumpState(ns, in.t.Name(), in.t)
+		helper.DumpOperatorLogsAndCleanup(in.t, in.ctx)
+
+		if in.rm != nil && in.hh != nil {
+			CleanupHelm(in.t, in.rm, in.hh)
+		}
+	}
 }
