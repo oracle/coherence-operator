@@ -190,47 +190,47 @@ pipeline {
                 }
             }
         }
-//         stage('e2e-local-test') {
-//             when {
-//                 expression { env.SKIP_TESTS != 'true' }
-//             }
-//             steps {
-//                 echo 'Operator end-to-end local tests'
-//                 script {
-//                     setBuildStatus("Running Operator end-to-end local tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
-//                 }
-//                 sh '''
-//                     export http_proxy=$HTTP_PROXY
-//                     export CREATE_TEST_NAMESPACE=false
-//                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
-//                     export IMAGE_PULL_POLICY=Always
-//                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-//                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
-//                     make e2e-local-test
-//                     make script-test
-//                 '''
-//             }
-//         }
-//         stage('e2e-test') {
-//             when {
-//                 expression { env.SKIP_TESTS != 'true' }
-//             }
-//             steps {
-//                 echo 'Operator end-to-end tests'
-//                 script {
-//                     setBuildStatus("Running Operator end-to-end tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
-//                 }
-//                 sh '''
-//                     export http_proxy=$HTTP_PROXY
-//                     export CREATE_TEST_NAMESPACE=false
-//                     export IMAGE_PULL_POLICY=Always
-//                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
-//                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-//                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
-//                     make e2e-test
-//                 '''
-//             }
-//         }
+        stage('e2e-local-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
+            steps {
+                echo 'Operator end-to-end local tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end local tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export IMAGE_PULL_POLICY=Always
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-local-test
+                    make script-test
+                '''
+            }
+        }
+        stage('e2e-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
+            steps {
+                echo 'Operator end-to-end tests'
+                script {
+                    setBuildStatus("Running Operator end-to-end tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make e2e-test
+                '''
+            }
+        }
         stage('helm-test') {
             when {
                 expression { env.SKIP_TESTS != 'true' }
