@@ -543,7 +543,7 @@ compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: build-operator reset-namespace create-ssl-secrets install-crds get-previous
+compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets install-crds get-previous
 	@echo "executing Operator compatibility tests"
 	$(OPERATOR_SDK) test local ./test/e2e/compatibility --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -664,6 +664,16 @@ ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Deleting test namespace $(TEST_NAMESPACE)"
 	kubectl delete namespace $(TEST_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
 endif
+
+# ---------------------------------------------------------------------------
+# Delete all resource from the test namespace
+# ---------------------------------------------------------------------------
+.PHONY: clean-namespace
+clean-namespace: delete-coherence-clusters
+	for i in $$(kubectl -n $(TEST_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(TEST_NAMESPACE)" \
+		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
+	done
 
 # ---------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.

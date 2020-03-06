@@ -40,11 +40,6 @@ func TestOperatorWithPrometheus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
 	hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
 	fmt.Printf("Check for Prometheus CRDs - found=%t\n", hasCRDs)
 
@@ -107,6 +102,11 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Deploy the Coherence cluster with the metrics port exposed on a service.
 	// We need to do this because the default Prometheus install uses a ServiceMonitor
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
 	cluster, err := DeployCoherenceCluster(t, ctx, namespace, "coherence-with-metrics.yaml")
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -138,10 +138,6 @@ func TestOperatorWithPrometheus(t *testing.T) {
 	// clean up the Operator Helm release
 	t.Log("Removing the Operator release")
 	CleanupHelm(t, hm, helmHelper)
-
-	t.Log("Waiting for Prometheus Pods to be removed...")
-	err = helper.WaitForDeleteOfPodsWithSelector(client, f.Namespace, "app=prometheus", time.Second*10, time.Minute*5, t)
-	g.Expect(err).ToNot(HaveOccurred())
 }
 
 // Ensure that the Prometheus status/config endpoint can be accessed.
