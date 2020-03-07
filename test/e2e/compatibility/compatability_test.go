@@ -205,15 +205,15 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Logf("Waiting for CoherenceCluster %s/%s to be removed", namespace, cluster.Name)
-	err = helper.WaitForDeletion(f, namespace, cluster.Name, &cluster, time.Second*10, time.Minute*5)
+	err = helper.WaitForDeletion(f, namespace, cluster.Name, &cluster, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Logf("Waiting for CoherenceRole %s/%s to be removed", namespace, cr.Name)
-	err = helper.WaitForDeletion(f, namespace, cr.Name, &cr, time.Second*10, time.Minute*5)
+	err = helper.WaitForDeletion(f, namespace, cr.Name, &cr, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Logf("Waiting for CoherenceInternal %s/%s to be removed", namespace, ci.GetName())
-	err = helper.WaitForDeletion(f, namespace, ci.GetName(), &ci, time.Second*10, time.Minute*5)
+	err = helper.WaitForDeletion(f, namespace, ci.GetName(), &ci, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Wait for the updated cluster Pods to be deleted
