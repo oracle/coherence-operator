@@ -274,7 +274,10 @@ func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, select
 }
 
 // WaitForDeletion waits for deletion of the specified resource.
-func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
+func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration, logger Logger) error {
+	gvk := resource.GetObjectKind().GroupVersionKind().String()
+	logger.Logf("Waiting for deletion of %s %s/%s", gvk, namespace, name)
+
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -283,13 +286,15 @@ func WaitForDeletion(f *framework.Framework, namespace, name string, resource ru
 		case err != nil && errors.IsNotFound(err):
 			return true, nil
 		case err != nil && !errors.IsNotFound(err):
+			logger.Logf("Waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
 			return false, err
 		default:
-			fmt.Printf("Waiting for deletion of %s in namespace %s\n", name, namespace)
+			logger.Logf("Still waiting for deletion of %s %s/%s", gvk, namespace, name)
 			return false, nil
 		}
 	})
 
+	logger.Logf("Finished waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
 	return err
 }
 

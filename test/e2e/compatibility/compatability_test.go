@@ -13,7 +13,9 @@ import (
 	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	"os"
@@ -37,6 +39,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	g := NewGomegaWithT(t)
 	f := framework.Global
+	namespace := f.Namespace
 
 	values := helper.OperatorValues{
 		InstallEFK: false,
@@ -84,23 +87,23 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	// The chart is installed but the Pod(s) may not exist yet so wait for it...
 	// (we wait a maximum of 5 minutes, retrying every 10 seconds)
-	pods, err := helper.WaitForOperatorPods(cl, f.Namespace, time.Second*10, time.Minute*5)
+	pods, err := helper.WaitForOperatorPods(cl, namespace, time.Second*10, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
 
 	// Deploy the Coherence cluster using the previous operator
 	t.Logf("Installing Coherence cluster")
-	cluster, err := DeployCoherenceCluster(t, ctx, f.Namespace, "coherence.yaml")
+	cluster, err := DeployCoherenceCluster(t, ctx, namespace, "coherence.yaml")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Get the cluster StatefulSet before Operator Upgrade
 	role := cluster.GetFirstRole()
-	stsBefore, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	stsBefore, err := helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	dir := t.Name() + "/Before"
-	helper.DumpOperatorLog(framework.Global.KubeClient, f.Namespace, dir, t)
-	helper.DumpState(f.Namespace, dir, t)
+	helper.DumpOperatorLog(framework.Global.KubeClient, namespace, dir, t)
+	helper.DumpState(namespace, dir, t)
 
 	// Upgrade to the current Operator - we do this by running cleanup to remove the previous operator and then install the new one
 	t.Logf("Removing previous operator version %s", prevVersion)
@@ -109,7 +112,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	// Wait for the Operator Pod to be removed
 	t.Log("Waiting for removal of previous operator...")
-	err = helper.WaitForOperatorDeletion(cl, f.Namespace, time.Second*10, time.Minute*5, t)
+	err = helper.WaitForOperatorDeletion(cl, namespace, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Create a current version HelmReleaseManager with a release name and values
@@ -130,7 +133,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	// The chart is installed but the Pod may not exist yet so wait for it...
 	// (we wait a maximum of 5 minutes, retrying every 10 seconds)
-	pods, err = helper.WaitForOperatorPods(hhCurr.KubeClient, hhCurr.Namespace, time.Second*10, time.Minute*5)
+	pods, err = helper.WaitForOperatorPods(hhCurr.KubeClient, namespace, time.Second*10, time.Minute*5)
 	d, err := json.Marshal(pods[0])
 	g.Expect(err).ToNot(HaveOccurred())
 	t.Logf("JSON for new Operator Pod version %s:\n%s", version, string(d))
@@ -141,7 +144,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	time.Sleep(time.Minute * 1)
 
 	// Get the cluster StatefulSet after Operator Upgrade
-	stsAfter, err := helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	stsAfter, err := helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Assert that the StatefulSet has not been changed by the upgrade (i.e. its generation is unchanged)
@@ -158,7 +161,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	t.Log("Re-fetching Coherence cluster to update with Pod labels")
 
 	// re-fetch the Coherence cluster as it might have changed
-	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: f.Namespace, Name: cluster.Name}, &cluster)
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cluster.Name}, &cluster)
 	g.Expect(err).ToNot(HaveOccurred())
 	// add the labels
 	labels := cluster.Spec.CoherenceRoleSpec.Labels
@@ -175,23 +178,47 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	// wait for at least one Pod with the new label, this will verify that the update worked and the Coherence cluster is still good
 	t.Log("Waiting for Pods to update with new labels")
-	_, err = helper.WaitForPodsWithLabel(cl, f.Namespace, "foo=bar", int(role.GetReplicas()), time.Second*10, time.Minute*5)
+	_, err = helper.WaitForPodsWithLabel(cl, namespace, "foo=bar", int(role.GetReplicas()), time.Second*10, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
 	// Get the cluster StatefulSet after cluster update
-	_, err = helper.WaitForStatefulSetForRole(cl, f.Namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Delete the CoherenceCluster
-	t.Log("Re-fetching Coherence cluster to delete it")
-	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, &cluster)
+	t.Logf("Re-fetching Coherence cluster %s/%s to delete it", namespace, cluster.Name)
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cluster.Name}, &cluster)
 	g.Expect(err).ToNot(HaveOccurred())
-	t.Log("Deleting Coherence cluster")
+	cr := coh.CoherenceRole{}
+	cr.SetNamespace(namespace)
+	cr.SetName(cluster.GetFullRoleName(role.Role))
+	t.Logf("Fetching CoherenceRole %s/%s", namespace, cr.GetName())
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &cr)
+	g.Expect(err).ToNot(HaveOccurred())
+	ci := unstructured.Unstructured{}
+	ci.SetGroupVersionKind(coh.GetCoherenceInternalGroupVersionKind(f.Scheme))
+	t.Logf("Fetching CoherenceInternal %s/%s", namespace, cr.GetName())
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &ci)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	t.Logf("Deleting Coherence cluster %s/%s", namespace, cluster.Name)
 	err = f.Client.Delete(context.TODO(), &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	t.Logf("Waiting for CoherenceCluster %s/%s to be removed", namespace, cluster.Name)
+	err = helper.WaitForDeletion(f, namespace, cluster.Name, &cluster, time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	t.Logf("Waiting for CoherenceRole %s/%s to be removed", namespace, cr.Name)
+	err = helper.WaitForDeletion(f, namespace, cr.Name, &cr, time.Second*10, time.Minute*5)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	t.Logf("Waiting for CoherenceInternal %s/%s to be removed", namespace, ci.GetName())
+	err = helper.WaitForDeletion(f, namespace, ci.GetName(), &ci, time.Second*10, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Wait for the updated cluster Pods to be deleted
 	t.Log("Waiting for Coherence cluster Pods to be removed")
 	selector := fmt.Sprintf("coherenceCluster=%s", cluster.Name)
-	err = helper.WaitForDeleteOfPodsWithSelector(cl, f.Namespace, selector, time.Second*10, time.Minute*5, t)
+	err = helper.WaitForDeleteOfPodsWithSelector(cl, namespace, selector, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 }
