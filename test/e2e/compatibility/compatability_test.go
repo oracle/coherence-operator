@@ -190,7 +190,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	g.Expect(err).ToNot(HaveOccurred())
 	cr := coh.CoherenceRole{}
 	cr.SetNamespace(namespace)
-	cr.SetName(cluster.GetFullRoleName(role.Role))
+	cr.SetName(cluster.GetFullRoleName(role.GetRoleName()))
 	t.Logf("Fetching CoherenceRole %s/%s", namespace, cr.GetName())
 	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &cr)
 	g.Expect(err).ToNot(HaveOccurred())
