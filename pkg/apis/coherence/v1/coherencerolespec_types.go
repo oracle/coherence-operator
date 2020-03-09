@@ -212,6 +212,42 @@ func (in *CoherenceRoleSpec) GetRoleName() string {
 	return in.Role
 }
 
+func (in *CoherenceRoleSpec) GetCoherenceImage() *string {
+	if in != nil && in.Coherence != nil {
+		return in.Coherence.Image
+	}
+	return nil
+}
+
+// Ensure that the Coherence image is set for the role.
+// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
+// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
+func (in *CoherenceRoleSpec) EnsureCoherenceImage(coherenceImage *string) bool {
+	if in.Coherence == nil {
+		in.Coherence = &CoherenceSpec{}
+	}
+
+	return in.Coherence.EnsureImage(coherenceImage)
+}
+
+func (in *CoherenceRoleSpec) GetCoherenceUtilsImage() *string {
+	if in != nil && in.CoherenceUtils != nil {
+		return in.CoherenceUtils.Image
+	}
+	return nil
+}
+
+// Ensure that the Coherence Utils image is set for the role.
+// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
+// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
+func (in *CoherenceRoleSpec) EnsureCoherenceUtilsImage(utilsImage *string) bool {
+	if in.CoherenceUtils == nil {
+		in.CoherenceUtils = &ImageSpec{}
+	}
+
+	return in.CoherenceUtils.EnsureImage(utilsImage)
+}
+
 func (in *CoherenceRoleSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	if in == nil {
 		return SafeScaling

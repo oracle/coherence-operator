@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,6 +13,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencecluster"
 	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,7 +36,8 @@ const (
 // Use the specified yaml files to create a CoherenceCluster and trigger a fake end-to-end
 // reconcile to obtain the resources that would have been created by the Helm operator.
 func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceCluster, error) {
-	cluster, err := helper.NewCoherenceClusterFromYaml("test-namespace", yamlFile)
+	namespace := "test-namespace"
+	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -45,9 +47,17 @@ func CreateCluster(yamlFile string) (*stubs.HelmInstallResult, *cohv1.CoherenceC
 		return nil, nil, err
 	}
 
-	cr := coherencecluster.NewClusterReconciler(mgr)
-	rr := coherencerole.NewRoleReconciler(mgr)
-	helm := stubs.NewFakeHelm(mgr, cr, rr)
+	opFlags := &flags.CoherenceOperatorFlags{}
+	cr := coherencecluster.NewClusterReconciler(mgr, opFlags)
+	// skip initialization for unit tests
+	cr.SetInitialized(true)
+	rr := coherencerole.NewRoleReconciler(mgr, opFlags)
+	// skip initialization for unit tests
+	rr.SetInitialized(true)
+	helm, err := stubs.NewFakeHelm(mgr, cr, rr, namespace)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	r, err := helm.HelmInstallFromCoherenceCluster(&cluster)
 

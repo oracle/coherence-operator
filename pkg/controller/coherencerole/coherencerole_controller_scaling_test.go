@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package coherencerole
 
 import (
 	"context"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -65,7 +66,10 @@ var _ = Describe("coherencerole_controller scaling tests", func() {
 			},
 		}
 
-		controller := newReconciler(mgr)
+		controller := newReconciler(mgr, &flags.CoherenceOperatorFlags{})
+		// skip initialization for unit tests
+		controller.SetInitialized(true)
+
 		r, err := controller.Reconcile(request)
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})

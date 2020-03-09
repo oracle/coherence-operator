@@ -203,7 +203,7 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 
 	// Wait for deletion of the CoherenceInternal
 	u := helper.NewUnstructuredCoherenceInternal()
-	err = helper.WaitForDeletion(f, namespace, roleFullName, &u, time.Second*5, time.Minute*5)
+	err = helper.WaitForDeletion(f, namespace, roleFullName, &u, time.Second*5, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The CoherenceCluster should still exist

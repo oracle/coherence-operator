@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -52,7 +53,10 @@ var _ = Describe("coherencecluster_controller", func() {
 			},
 		}
 
-		controller := newReconciler(mgr)
+		controller := newReconciler(mgr, &flags.CoherenceOperatorFlags{})
+		// skip initialization for unit tests
+		controller.SetInitialized(true)
+
 		r, err := controller.Reconcile(request)
 		result = stubs.ReconcileResult{Result: r, Error: err}
 	})

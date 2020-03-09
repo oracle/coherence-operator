@@ -41,7 +41,8 @@ func main() {
 		panicIfErr(err)
 	}
 
-	helm := fakes.NewFakeHelm(mgr, nil, nil)
+	helm, err := fakes.NewFakeHelm(mgr, nil, nil, namespace)
+	panicIfErr(err)
 	result, err := helm.FakeOperatorHelmInstall(mgr, namespace, values)
 	panicIfErr(err)
 

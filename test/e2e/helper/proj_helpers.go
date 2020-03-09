@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -29,19 +29,25 @@ const (
 	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
 	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv   = "COHERENCE_VERSION"
+	CompatibleVersionsEnv = "COMPATIBLE_VERSIONS"
+	VersionEnv            = "VERSION_FULL"
+	OperatorImageEnv      = "OPERATOR_IMAGE"
+	SkipCompatibilityEnv  = "SKIP_COMPATIBILITY"
 
 	defaultNamespace = "operator-test"
 
-	buildDir       = "build"
-	outDir         = buildDir + string(os.PathSeparator) + "_output"
-	chartDir       = outDir + string(os.PathSeparator) + "helm-charts"
-	coherenceChart = chartDir + string(os.PathSeparator) + "coherence"
-	operatorChart  = chartDir + string(os.PathSeparator) + "coherence-operator"
-	testLogs       = outDir + string(os.PathSeparator) + "test-logs"
-	certs          = outDir + string(os.PathSeparator) + "certs"
-	deploy         = "deploy"
-	crds           = deploy + string(os.PathSeparator) + "crds"
-	manifest       = outDir + string(os.PathSeparator) + "manifest"
+	buildDir           = "build"
+	outDir             = buildDir + string(os.PathSeparator) + "_output"
+	chartDir           = outDir + string(os.PathSeparator) + "helm-charts"
+	compatibleChartDir = outDir + string(os.PathSeparator) + "previous-charts"
+	coherenceChart     = chartDir + string(os.PathSeparator) + "coherence"
+	operatorChart      = chartDir + string(os.PathSeparator) + "coherence-operator"
+	compatibleCharts   = compatibleChartDir + string(os.PathSeparator) + "coherence-operator"
+	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
+	certs              = outDir + string(os.PathSeparator) + "certs"
+	deploy             = "deploy"
+	crds               = deploy + string(os.PathSeparator) + "crds"
+	manifest           = outDir + string(os.PathSeparator) + "manifest"
 )
 
 func GetTestNamespace() string {
@@ -92,6 +98,25 @@ func GetTestManifestValuesFileName() string {
 	return os.Getenv(TestManifestValuesEnv)
 }
 
+func GetOperatorImage() string {
+	return os.Getenv(OperatorImageEnv)
+}
+
+func GetOperatorVersion() string {
+	return os.Getenv(VersionEnv)
+}
+
+func GetCompatibleOperatorVersions() []string {
+	var versions []string
+	list, ok := os.LookupEnv(CompatibleVersionsEnv)
+	if ok {
+		versions = strings.Split(list, " ")
+	} else {
+		versions = []string{}
+	}
+	return versions
+}
+
 func GetTestSSLSecretName() string {
 	return os.Getenv(TestSslSecretEnv)
 }
@@ -125,6 +150,13 @@ func FindProjectRootDir() (string, error) {
 	}
 
 	return "", os.ErrNotExist
+}
+
+func AssumeRunningCompatibilityTests(t *testing.T) {
+	s := os.Getenv(SkipCompatibilityEnv)
+	if strings.ToLower(s) == "true" {
+		t.Skipf("Skipping compatibility tests, %s environment variable set to '%s'", SkipCompatibilityEnv, s)
+	}
 }
 
 func FindBuildDir() (string, error) {
@@ -177,6 +209,15 @@ func FindOperatorHelmChartDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + operatorChart, nil
+}
+
+func FindPreviousOperatorHelmChartDir(v string) (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	return pd + string(os.PathSeparator) + compatibleCharts + "-" + v, nil
 }
 
 func FindTestLogsDir() (string, error) {

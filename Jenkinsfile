@@ -255,6 +255,26 @@ pipeline {
                 '''
             }
         }
+        stage('compatibility-test') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
+            steps {
+                echo 'Operator compatibility tests'
+                script {
+                    setBuildStatus("Running Operator compatibility tests...", "PENDING", "${env.PROJECT_URL}", "${env.GIT_COMMIT}")
+                }
+                sh '''
+                    export http_proxy=$HTTP_PROXY
+                    export CREATE_TEST_NAMESPACE=false
+                    export IMAGE_PULL_POLICY=Always
+                    export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
+                    export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
+                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
+                    make compatibility-test
+                '''
+            }
+        }
         stage('release') {
             when {
                 expression { env.RELEASE_ON_SUCCESS == 'true' }

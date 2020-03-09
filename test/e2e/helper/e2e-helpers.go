@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -37,19 +38,21 @@ import (
 	"time"
 )
 
+const operatorPodSelector = "name=coherence-operator"
+
 var (
 	RetryInterval        = time.Second * 5
 	Timeout              = time.Minute * 3
 	CleanupRetryInterval = time.Second * 1
 	CleanupTimeout       = time.Second * 5
+
+	tenSeconds int32 = 10
+
+	Readiness = &coh.ReadinessProbeSpec{
+		InitialDelaySeconds: &tenSeconds,
+		PeriodSeconds:       &tenSeconds,
+	}
 )
-
-var tenSeconds int32 = 10
-
-var Readiness = &coh.ReadinessProbeSpec{
-	InitialDelaySeconds: &tenSeconds,
-	PeriodSeconds:       &tenSeconds,
-}
 
 type Logger interface {
 	Log(args ...interface{})
@@ -228,10 +231,15 @@ func GetCoherenceRole(f *framework.Framework, namespace, name string) (*coh.Cohe
 
 // WaitForOperatorPods waits for a Coherence Operator Pods to be created.
 func WaitForOperatorPods(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	return WaitForPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout)
+}
+
+// WaitForOperatorPods waits for a Coherence Operator Pods to be created.
+func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pods, err = ListOperatorPods(k8s, namespace)
+		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
 		if err != nil {
 			return false, err
 		}
@@ -240,8 +248,36 @@ func WaitForOperatorPods(k8s kubernetes.Interface, namespace string, retryInterv
 	return pods, err
 }
 
+// WaitForOperatorDeletion waits for deletion of the Operator Pods.
+func WaitForOperatorDeletion(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration, logger Logger) error {
+	return WaitForDeleteOfPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout, logger)
+}
+
+// WaitForDeleteOfPodsWithSelector waits for Pods to be deleted.
+func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration, logger Logger) error {
+	logger.Logf("Waiting for Pods in namespace %s with selector '%s' to be deleted", namespace, selector)
+	var pods []corev1.Pod
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		logger.Logf("List Pods in namespace %s with selector '%s'", namespace, selector)
+		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		if err != nil {
+			logger.Logf("Error listing Pods in namespace %s with selector '%s' - %s", namespace, selector, err.Error())
+			return false, err
+		}
+		logger.Logf("Found %d Pods in namespace %s with selector '%s'", len(pods), namespace, selector)
+		return len(pods) == 0, nil
+	})
+
+	logger.Logf("Finished waiting for Pods in namespace %s with selector '%s' to be deleted. Error=%s", namespace, selector, err)
+	return err
+}
+
 // WaitForDeletion waits for deletion of the specified resource.
-func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
+func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration, logger Logger) error {
+	gvk := resource.GetObjectKind().GroupVersionKind().String()
+	logger.Logf("Waiting for deletion of %s %s/%s", gvk, namespace, name)
+
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -250,19 +286,21 @@ func WaitForDeletion(f *framework.Framework, namespace, name string, resource ru
 		case err != nil && errors.IsNotFound(err):
 			return true, nil
 		case err != nil && !errors.IsNotFound(err):
+			logger.Logf("Waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
 			return false, err
 		default:
-			fmt.Printf("Waiting for deletion of %s in namespace %s\n", name, namespace)
+			logger.Logf("Still waiting for deletion of %s %s/%s", gvk, namespace, name)
 			return false, nil
 		}
 	})
 
+	logger.Logf("Finished waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
 	return err
 }
 
 // List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
 func ListOperatorPods(client kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
-	return ListPodsWithLabelSelector(client, namespace, "name=coherence-operator")
+	return ListPodsWithLabelSelector(client, namespace, operatorPodSelector)
 }
 
 // List the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
@@ -337,14 +375,14 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	fmt.Printf("Waiting for clean-up of CoherenceInternal resources in namespace %s\n", namespace)
 
 	// wait for all CoherenceInternal resources to be deleted
-	list := &coh.CoherenceClusterList{}
-	err := f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	clusters := &coh.CoherenceClusterList{}
+	err := f.Client.List(goctx.TODO(), clusters, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
 
 	// Delete all of the CoherenceClusters
-	for _, c := range list.Items {
+	for _, c := range clusters.Items {
 		fmt.Printf("Deleting CoherenceCluster %s in namespace %s\n", c.Name, c.Namespace)
 		err = f.Client.Delete(goctx.TODO(), &c)
 		if err != nil {
@@ -354,10 +392,10 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 
 	// Wait for removal of the CoherenceClusters
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		err = f.Client.List(goctx.TODO(), clusters, client.InNamespace(namespace))
 		if err == nil {
-			if len(list.Items) > 0 {
-				fmt.Printf("Waiting for deletion of %d CoherenceCluster resources\n", len(list.Items))
+			if len(clusters.Items) > 0 {
+				fmt.Printf("Waiting for deletion of %d CoherenceCluster resources\n", len(clusters.Items))
 				return false, nil
 			}
 			return true, nil
@@ -367,8 +405,22 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 		}
 	})
 
-	// Wait for removal of the CoherenceRoles
 	roles := &coh.CoherenceRoleList{}
+	err = f.Client.List(goctx.TODO(), roles, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Delete all of the CoherenceRoles
+	for _, r := range roles.Items {
+		fmt.Printf("Deleting CoherenceRoles %s in namespace %s\n", r.Name, r.Namespace)
+		err = f.Client.Delete(goctx.TODO(), &r)
+		if err != nil {
+			fmt.Printf("Error deleting CoherenceRoles %s - %s\n", r.Name, err.Error())
+		}
+	}
+
+	// Wait for removal of the CoherenceRoles
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		err = f.Client.List(goctx.TODO(), roles, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
@@ -384,6 +436,19 @@ func WaitForCoherenceInternalCleanup(f *framework.Framework, namespace string) e
 	})
 
 	uList := NewUnstructuredCoherenceInternalList()
+	err = f.Client.List(goctx.TODO(), &uList, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Delete all of the CoherenceInternals
+	for _, ci := range uList.Items {
+		fmt.Printf("Deleting CoherenceInternals %s in namespace %s\n", ci.GetName(), ci.GetNamespace())
+		err = f.Client.Delete(goctx.TODO(), &ci)
+		if err != nil {
+			fmt.Printf("Error deleting CoherenceInternals %s - %s\n", ci.GetName(), err.Error())
+		}
+	}
 
 	// Wait for removal of the CoherenceInternals
 	err = wait.Poll(time.Second*5, time.Minute*1, func() (done bool, err error) {
@@ -449,7 +514,8 @@ func isNoResources(err error) bool {
 
 // WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
 func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, logger Logger) error {
-	// wait for all CoherenceInternal resources to be deleted
+	logger.Logf("Waiting for deletion of Coherence Operator Pods\n")
+	// wait for all Operator Pods to be deleted
 	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		list, err := ListOperatorPods(kubeClient, namespace)
 		if err == nil {
@@ -464,6 +530,7 @@ func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, l
 		}
 	})
 
+	logger.Logf("Coherence Operator Pods deleted\n")
 	return err
 }
 
@@ -660,6 +727,7 @@ func DumpState(namespace, dir string, logger Logger) {
 	dumpCoherenceRoles(namespace, dir, logger)
 	dumpCoherenceInternals(namespace, dir, logger)
 	dumpStatefulSets(namespace, dir, logger)
+	dumpServices(namespace, dir, logger)
 	dumpPods(namespace, dir, logger)
 	dumpRoles(namespace, dir, logger)
 	dumpRoleBindings(namespace, dir, logger)
@@ -894,6 +962,63 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No StatefulSet resources found in namespace "+namespace)
+	}
+}
+
+func dumpServices(namespace, dir string, logger Logger) {
+	const message = "Could not dump Services for namespace %s due to %s\n"
+
+	f := framework.Global
+	list, err := f.KubeClient.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := ensureLogsDir(dir)
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "svc-list.txt")
+	if err != nil {
+		logger.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.Marshal(item)
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Service-" + item.GetName() + ".json")
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				logger.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprintf(listFile, "No Service resources found in namespace %s", namespace)
 	}
 }
 
@@ -1195,4 +1320,49 @@ func GetFirstPodScheduledTime(pods []corev1.Pod, role string) metav1.Time {
 		}
 	}
 	return t
+}
+
+func UninstallCrds(t *testing.T) error {
+	if err := UninstallCrd(t, "coherenceclusters.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	if err := UninstallCrd(t, "coherenceroles.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	if err := UninstallCrd(t, "coherenceinternals.coherence.oracle.com"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UninstallCrd(t *testing.T, name string) error {
+	var err error
+
+	t.Logf("Will delete CRD %s", name)
+
+	f := framework.Global
+	crd := &v1beta1.CustomResourceDefinition{}
+	crd.SetName(name)
+
+	mergePatch, err := json.Marshal(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"finalizers": []string{},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	patch := client.ConstantPatch(types.MergePatchType, mergePatch)
+
+	t.Logf("Removing finalizer from CRD %s", name)
+	if err = f.Client.Patch(context.TODO(), crd, patch); err != nil {
+		return err
+	}
+
+	t.Logf("Actually deleting finalizer from CRD %s", name)
+	return f.Client.Delete(context.TODO(), crd)
 }

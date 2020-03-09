@@ -65,6 +65,9 @@ var _ = Describe("coherencecluster_controller start quorum tests", func() {
 		}
 
 		controller := &ReconcileCoherenceCluster{}
+		// skip initialization for unit tests
+		controller.SetInitialized(true)
+
 		canCreate, reason = controller.canCreateRole(p)
 	})
 

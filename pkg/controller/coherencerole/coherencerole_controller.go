@@ -12,7 +12,12 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	helmctl "github.com/operator-framework/operator-sdk/pkg/helm/controller"
+	"github.com/operator-framework/operator-sdk/pkg/helm/release"
+	"github.com/operator-framework/operator-sdk/pkg/helm/watches"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,8 +41,8 @@ import (
 	"time"
 )
 
-// The name of this controller. This is used in events, log messages, etc.
 const (
+	// The name of this controller. This is used in events, log messages, etc.
 	controllerName = "coherencerole.controller"
 
 	invalidRoleEventMessage      string = "invalid CoherenceRole '%s' cannot find parent CoherenceCluster '%s'"
@@ -60,23 +65,28 @@ const (
 	selectorTemplate = "coherenceCluster=%s,coherenceRole=%s"
 
 	statusHaRetryEnv = "STATUS_HA_RETRY"
+
+	// The name of the Coherence container in the Coherence Pods
+	CoherenceContainerName = "coherence"
+	// The name of the Coherence Utils container in the Coherence Pods
+	CoherenceUtilsContainerName = "coherence-k8s-utils"
 )
 
 var log = logf.Log.WithName(controllerName)
 
 // Add creates a new CoherenceRole Controller and adds it to the Manager. The Manager will set fields on the Controller.
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
+	return add(mgr, newReconciler(mgr, opFlags))
 }
 
 // NewRoleReconciler returns a new reconcile.Reconciler.
-func NewRoleReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return newReconciler(mgr)
+func NewRoleReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceRole {
+	return newReconciler(mgr, opFlags)
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
+func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceRole {
 	scheme := mgr.GetScheme()
 	gvk := coh.GetCoherenceInternalGroupVersionKind(scheme)
 
@@ -101,6 +111,7 @@ func newReconciler(mgr manager.Manager) *ReconcileCoherenceRole {
 		mgr:           mgr,
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
+		opFlags:       opFlags,
 	}
 }
 
@@ -147,6 +158,15 @@ type ReconcileCoherenceRole struct {
 	mgr           manager.Manager
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
+	opFlags       *flags.CoherenceOperatorFlags
+	initialized   bool
+}
+
+// Set the initialized flag for this controller.
+func (r *ReconcileCoherenceRole) SetInitialized(i bool) {
+	if r != nil {
+		r.initialized = i
+	}
 }
 
 // Attempt to lock the requested resource.
@@ -186,7 +206,10 @@ func (r *ReconcileCoherenceRole) unlock(request reconcile.Request) {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling CoherenceRole")
+
+	if err := r.EnsureInitialized(logger); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -196,6 +219,18 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer r.unlock(request)
+
+	return r.reconcileInternal(request)
+}
+
+// Reconcile reads that state of a CoherenceRole object and makes changes based on the state read
+// and what is in the CoherenceRole.Spec.
+// Note:
+// The Controller will requeue the Request to be processed again if the returned error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+func (r *ReconcileCoherenceRole) reconcileInternal(request reconcile.Request) (reconcile.Result, error) {
+	logger := log.WithValues("Namespace", request.Namespace, "Name", request.Name)
+	logger.Info("Reconciling CoherenceRole")
 
 	// Fetch the CoherenceRole role
 	role, found, err := r.getRole(request.Namespace, request.Name)
@@ -207,11 +242,15 @@ func (r *ReconcileCoherenceRole) Reconcile(request reconcile.Request) (reconcile
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(failedToReconcileRole, role.Name, err), logger)
 	}
 
-	if !found {
-		// Request object not found, could have been deleted after reconcile request.
+	if !found || role.GetDeletionTimestamp() != nil {
+		logger.Info("CoherenceRole deleted")
+		// Request object not found (could have been deleted after reconcile request) or this is a delete notification.
 		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-		// Return and don't requeue
-		logger.Info("CoherenceRole not found - assuming normal deletion")
+		// Ensure that the CoherenceInternal for this role is deleted.
+		// It should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
+		// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
+		r.deleteCoherenceInternal(request, logger)
+
 		return reconcile.Result{Requeue: false}, nil
 	}
 
@@ -289,25 +328,50 @@ func (r *ReconcileCoherenceRole) createRole(cluster *coh.CoherenceCluster, role 
 	logger := log.WithValues("Namespace", role.Namespace, "Name", role.Name)
 	logger.Info("Creating Coherence Role Helm values")
 
+	// create the CoherenceInternal for the role
+	ci := coh.NewCoherenceInternalSpec(cluster, role)
+	// Ensure that the CoherenceInternal has images set
+	// If the CoherenceInternalSpec does not have a Coherence or Coherence Utils images specified we set the defaults here.
+	// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
+	// and means that the Helm controller does not do a rolling upgrade of the Pods if the Operator is upgraded.
+	r.EnsureImages(ci, logger)
+
 	// define a new Helm values map
-	spec, err := coh.NewCoherenceInternalSpecAsMap(cluster, role)
+	spec, err := coh.CoherenceInternalSpecAsMapFromSpec(ci)
 	if err != nil {
 		// this error would only occur if there was a json marshalling issue which would be unlikely
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, role.Name, role.Name, err), logger)
 	}
 
 	helmValues := r.CreateHelmValues(cluster, role, spec)
+	labels := helmValues.GetLabels()
+	labels[coh.CoherenceOperatorVersionLabel] = role.GetLabels()[coh.CoherenceOperatorVersionLabel]
+	helmValues.SetLabels(labels)
 
 	// Set this CoherenceRole instance as the owner and controller of the Helm values structure
 	if err := controllerutil.SetControllerReference(role, helmValues, r.scheme); err != nil {
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
 	}
 
+	// Clean-up previous Helm v3 state if any exists, we've seen orphaned state causing issues in testing
+	hsList := corev1.SecretList{}
+	err = r.client.List(context.TODO(), &hsList, client.InNamespace(role.Namespace))
+	if err == nil {
+		prefix := fmt.Sprintf("sh.helm.release.v1.%s.", role.Name)
+		for _, hs := range hsList.Items {
+			if strings.HasPrefix(hs.Name, prefix) {
+				// Helm state exists so delete it
+				logger.Info(fmt.Sprintf("Deleting existing Helm state for role %s in secret %s", role.Name, hs.Name))
+				_ = r.client.Delete(context.TODO(), &hs)
+			}
+		}
+	}
+
 	// Create the CoherenceInternal resource in k8s which will be detected
 	// by the Helm operator and trigger a Helm install
 
 	d, _ := json.Marshal(helmValues)
-	logger.Info("Creating CoherenceInternal\n------------\n" + string(d) + "\n------------\n")
+	logger.V(2).Info("Creating CoherenceInternal\n------------\n" + string(d) + "\n------------\n")
 
 	if err := r.client.Create(context.TODO(), helmValues); err != nil {
 		return r.handleErrAndRequeue(err, nil, fmt.Sprintf(createFailedMessage, helmValues.GetName(), role.Name, err), logger)
@@ -378,37 +442,18 @@ func (r *ReconcileCoherenceRole) updateRole(cluster *coh.CoherenceCluster, role 
 	}
 
 	if errors.IsNotFound(err) {
-		// ToDo: we should be using proper back-off here to requeue with a time
 		// The StatefulSet is not found, it could be being created or recovered
 		logger.Info(fmt.Sprintf("Re-queing update request. Could not find StatefulSet for CoherenceRole %s", role.Name))
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	}
 
 	currentReplicas := existing.Spec.GetReplicas()
-	readyReplicas := sts.Status.ReadyReplicas
-
-	if readyReplicas != currentReplicas {
-		// The underlying StatefulSet is not in the desired state so skip this update request
-		// but do update this role's status with the current StatefulSet status if it has changed.
-		// When the state of the StatefulSet changes again then reconcile will be called again and
-		// hence when the StatfulSet reaches the desired state the role update will be processed.
-		err = r.updateStatus(role, sts, cluster)
-		if err != nil {
-			// failed to update the CoherenceRole's status
-			log.Error(err, "failed to update role status", "Namespace", role.Namespace, "Name", role.Name)
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
-		}
-		logger.Info(fmt.Sprintf("Skipping update request. StatefulSet %s ReadyReplicas=%d expected Replicas=%d", sts.Name, readyReplicas, currentReplicas))
-		// Do not need to re-queue as when the StatefulSet changes reconcile will be called again.
-		return reconcile.Result{Requeue: false}, nil
-	}
-
-	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
+	desiredRole := r.CreateDesiredRole(cluster, role, &existing.Spec, sts)
 	isUpgrade := r.isUpgrade(&existing.Spec, desiredRole)
 
 	switch {
 	case currentReplicas < desiredReplicas:
-		logger.Info("Reconciling existing Coherence Role: currentReplicas < desiredReplicas")
+		logger.Info("Reconciling existing Coherence Role: case currentReplicas < desiredReplicas")
 		// Scaling UP
 
 		// if scaling up and upgrading then upgrade first and scale second
@@ -691,4 +736,167 @@ func (r *ReconcileCoherenceRole) failed(err error, role *coh.CoherenceRole, msg 
 		return reconcile.Result{Requeue: true}, nil
 	}
 	return reconcile.Result{Requeue: false}, nil
+}
+
+// If the CoherenceInternalSpec does not have a Coherence image specified we set the default here.
+// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
+// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
+func (r *ReconcileCoherenceRole) EnsureImages(ci *coh.CoherenceInternalSpec, logger logr.Logger) {
+	coherenceImage := r.opFlags.GetCoherenceImage()
+	if ci.EnsureCoherenceImage(coherenceImage) {
+		logger.Info(fmt.Sprintf("Injected Coherence image name into role: '%s'", *coherenceImage))
+	}
+
+	utilsImage := r.opFlags.GetCoherenceUtilsImage()
+	if ci.EnsureCoherenceUtilsImage(utilsImage) {
+		logger.Info(fmt.Sprintf("Injected Coherence Utils image name into role: '%s'", *utilsImage))
+	}
+}
+
+// Create the desired CoherenceInternalSpec for a given role.
+func (r *ReconcileCoherenceRole) CreateDesiredRole(cluster *coh.CoherenceCluster, role *coh.CoherenceRole, existing *coh.CoherenceInternalSpec, sts *appsv1.StatefulSet) *coh.CoherenceInternalSpec {
+	desiredRole := coh.NewCoherenceInternalSpec(cluster, role)
+
+	coherenceImage := existing.GetCoherenceImage()
+
+	if sts != nil && desiredRole.GetCoherenceImage() == nil {
+		// if the desired Coherence image is still nil then this could be an update to a cluster
+		// started with a much older Operator so we'll obtain the current image from the StatefulSet
+		for _, c := range sts.Spec.Template.Spec.Containers {
+			if c.Name == CoherenceContainerName {
+				coherenceImage = &c.Image
+			}
+		}
+	}
+
+	if coherenceImage == nil {
+		// If the Coherence image is still nil then use the default
+		coherenceImage = r.opFlags.GetCoherenceImage()
+	}
+
+	utilsImage := existing.GetCoherenceUtilsImage()
+
+	if sts != nil && utilsImage == nil {
+		// if the desired Coherence Utils image is still nil then this could be an update to a cluster
+		// started with a much older Operator so we'll obtain the current image from the StatefulSet
+		for _, c := range sts.Spec.Template.Spec.InitContainers {
+			if c.Name == CoherenceUtilsContainerName {
+				utilsImage = &c.Image
+			}
+		}
+	}
+
+	if utilsImage == nil {
+		// If the utils image is still nil then use the default
+		utilsImage = r.opFlags.GetCoherenceUtilsImage()
+	}
+
+	desiredRole.EnsureCoherenceImage(coherenceImage)
+	desiredRole.EnsureCoherenceUtilsImage(utilsImage)
+
+	return desiredRole
+}
+
+func (r *ReconcileCoherenceRole) deleteCoherenceInternal(request reconcile.Request, logger logr.Logger) {
+	ci := &unstructured.Unstructured{}
+	ci.SetGroupVersionKind(r.gvk)
+	ci.SetNamespace(request.Namespace)
+	ci.SetName(request.Name)
+
+	logger.Info(fmt.Sprintf("Ensuring CoherenceInternal '%s' is deleted", request.Name))
+	_ = r.client.Delete(context.TODO(), ci)
+}
+
+func (r *ReconcileCoherenceRole) EnsureInitialized(logger logr.Logger) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.initialized {
+		return nil
+	}
+
+	logger.Info("Initializing controller")
+
+	// Reconcile all of the existing clusters first
+	if err := r.reconcileExistingRoles(); err != nil {
+		return err
+	}
+
+	r.initialized = true
+
+	// Start the Helm controller
+	logger.Info("Starting Helm controller")
+	return r.setupHelm(r.mgr)
+}
+
+// Produces pseudo reconcile requests for all of the existing CoherenceRoles in the watch namespace
+// We typically call this function first before the Helm operator has stated to ensure that everything
+// is in the required state before the Helm operator gets a chance to think it has to update installs.
+func (r *ReconcileCoherenceRole) reconcileExistingRoles() error {
+	log.Info("Reconciling all existing CoherenceRoles")
+
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	logger := log.WithValues("Namespace", namespace)
+
+	list := coh.CoherenceRoleList{}
+	if err := r.client.List(context.TODO(), &list, client.InNamespace(namespace)); err != nil {
+		return err
+	}
+
+	if len(list.Items) == 0 {
+		logger.Info("Zero existing CoherenceRoles to reconcile")
+	}
+
+	for _, role := range list.Items {
+		logger.Info("Reconciling existing role", "Name", role.GetName())
+		request := reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Namespace: role.GetNamespace(),
+				Name:      role.GetName(),
+			},
+		}
+
+		_, err = r.reconcileInternal(request)
+		if err != nil {
+			log.Error(err, "Error reconciling existing role", "Name", role.GetName())
+		}
+	}
+
+	return nil
+}
+
+func (r *ReconcileCoherenceRole) setupHelm(mgr manager.Manager) error {
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	// Setup Helm controller
+	watchList, err := watches.Load(r.opFlags.WatchesFile)
+	if err != nil {
+		log.Error(err, "failed to load Helm watches")
+		return err
+	}
+
+	fmt.Println(watchList)
+	for _, w := range watchList {
+		fmt.Println(w)
+		err := helmctl.Add(mgr, helmctl.WatchOptions{
+			Namespace:               namespace,
+			GVK:                     w.GroupVersionKind,
+			ManagerFactory:          release.NewManagerFactory(mgr, w.ChartDir),
+			ReconcilePeriod:         r.opFlags.ReconcilePeriod,
+			WatchDependentResources: w.WatchDependentResources,
+		})
+		if err != nil {
+			log.Error(err, "failed to add Helm watche")
+			return err
+		}
+	}
+
+	return nil
 }
