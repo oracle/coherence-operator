@@ -39,6 +39,9 @@ const (
 
 	// The key of the label used to hold the component name
 	CoherenceComponentLabel string = "component"
+
+	// The key of the label used to hold the Coherence Operator version name
+	CoherenceOperatorVersionLabel string = "coherenceOperatorVersion"
 )
 
 // ----- helper functions ---------------------------------------------------
@@ -375,6 +378,15 @@ type ImageSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
 	// +optional
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+}
+
+// Ensure that the image value is set.
+func (in *ImageSpec) EnsureImage(image *string) bool {
+	if in != nil && in.Image == nil {
+		in.Image = image
+		return true
+	}
+	return false
 }
 
 // DeepCopyWithDefaults returns a copy of this ImageSpec struct with any nil or not set values set

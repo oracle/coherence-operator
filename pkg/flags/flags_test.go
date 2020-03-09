@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,6 +21,8 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 		var cohFlags flags.CoherenceOperatorFlags
 		var defaultCRDs string
 		var err error
+		var dfltCohImg = *flags.GetDefaultCoherenceImage()
+		var dfltUtilsImg = *flags.GetDefaultCoherenceUtilsImage()
 
 		JustBeforeEach(func() {
 			defaultCRDs, err = helper.FindCrdDir()
@@ -67,6 +69,14 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			It("should have negative service port", func() {
 				Expect(cohFlags.ServicePort).To(Equal(int32(-1)))
 			})
+
+			It("should have the default Coherence Image", func() {
+				Expect(cohFlags.CoherenceImage).To(Equal(dfltCohImg))
+			})
+
+			It("should have negative service port", func() {
+				Expect(cohFlags.CoherenceUtilsImage).To(Equal(dfltUtilsImg))
+			})
 		})
 
 		When("crd-files set", func() {
@@ -76,14 +86,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 				crds := "/test-crds"
 				args = []string{"--crd-files", crds}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           crds,
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            crds,
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -99,14 +111,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 				restHost := "10.10.123.0"
 				args = []string{"--rest-host", restHost}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           restHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            restHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -121,14 +135,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rest-port", "9000"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           9000,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            9000,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -143,14 +159,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-name", "foo.com"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "foo.com",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "foo.com",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -165,14 +183,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--service-port", "80"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        80,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         80,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -187,14 +207,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--site-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          "foo",
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           "foo",
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -209,14 +231,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--rack-label", "foo"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          "foo",
-					AlwaysPullSuffixes: "",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           "foo",
+					AlwaysPullSuffixes:  "",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 
@@ -231,14 +255,16 @@ var _ = Describe("Coherence Operator Flags tests", func() {
 			BeforeEach(func() {
 				args = []string{"--force-always-pull-tags", "-ci,latest"}
 				expected = flags.CoherenceOperatorFlags{
-					CrdFiles:           cohFlags.DefaultCrdFiles(),
-					RestHost:           flags.DefaultRestHost,
-					RestPort:           flags.DefaultRestPort,
-					ServiceName:        "",
-					ServicePort:        -1,
-					SiteLabel:          flags.DefaultSiteLabel,
-					RackLabel:          flags.DefaultRackLabel,
-					AlwaysPullSuffixes: "-ci,latest",
+					CrdFiles:            cohFlags.DefaultCrdFiles(),
+					RestHost:            flags.DefaultRestHost,
+					RestPort:            flags.DefaultRestPort,
+					ServiceName:         "",
+					ServicePort:         -1,
+					SiteLabel:           flags.DefaultSiteLabel,
+					RackLabel:           flags.DefaultRackLabel,
+					AlwaysPullSuffixes:  "-ci,latest",
+					CoherenceImage:      dfltCohImg,
+					CoherenceUtilsImage: dfltUtilsImg,
 				}
 			})
 

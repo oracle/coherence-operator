@@ -100,12 +100,6 @@ func NewCoherenceInternalSpec(cluster *CoherenceCluster, role *CoherenceRole) *C
 	return &out
 }
 
-// NewCoherenceInternalSpecAsMap creates a new CoherenceInternalSpec as a map from the specified cluster and role
-func NewCoherenceInternalSpecAsMap(cluster *CoherenceCluster, role *CoherenceRole) (map[string]interface{}, error) {
-	spec := NewCoherenceInternalSpec(cluster, role)
-	return CoherenceInternalSpecAsMapFromSpec(spec)
-}
-
 // CoherenceInternalSpecAsMapFromSpec creates a new CoherenceInternalSpec as a map from the specified and role
 func CoherenceInternalSpecAsMapFromSpec(spec *CoherenceInternalSpec) (map[string]interface{}, error) {
 	b, _ := json.Marshal(spec)

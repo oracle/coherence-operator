@@ -26,6 +26,11 @@ else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
 
+# A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
+# These must be released versions as their released Helm charts will be downloaded prior to
+# running the compatibility tests.
+COMPATIBLE_VERSIONS = 2.1.0
+
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
 GITREPO         := https://github.com/oracle/coherence-operator.git
@@ -91,11 +96,12 @@ IMAGE_PULL_POLICY  ?=
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
-override BUILD_OUTPUT  := ./build/_output
-override BUILD_PROPS   := $(BUILD_OUTPUT)/build.properties
-override CHART_DIR     := $(BUILD_OUTPUT)/helm-charts
-override CRD_DIR       := deploy/crds
-override TEST_LOGS_DIR := $(BUILD_OUTPUT)/test-logs
+override BUILD_OUTPUT   := ./build/_output
+override BUILD_PROPS    := $(BUILD_OUTPUT)/build.properties
+override CHART_DIR      := $(BUILD_OUTPUT)/helm-charts
+override PREV_CHART_DIR := $(BUILD_OUTPUT)/previous-charts
+override CRD_DIR        := deploy/crds
+override TEST_LOGS_DIR  := $(BUILD_OUTPUT)/test-logs
 
 ifeq (, $(shell which ginkgo))
 GO_TEST_CMD = go
@@ -148,6 +154,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_OUTPUT)
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(CHART_DIR)
+	@mkdir -p $(PREV_CHART_DIR)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
@@ -173,11 +180,16 @@ $(BUILD_OUTPUT)/bin/operator: export CGO_ENABLED = 0
 $(BUILD_OUTPUT)/bin/operator: export GOARCH = $(ARCH)
 $(BUILD_OUTPUT)/bin/operator: export GOOS = $(OS)
 $(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
+$(BUILD_OUTPUT)/bin/operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+$(BUILD_OUTPUT)/bin/operator: export UTILS_IMAGE := $(UTILS_IMAGE)
+$(BUILD_OUTPUT)/bin/operator: export VERSION_FULL := $(VERSION_FULL)
 $(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	$(OPERATOR_SDK) build $(OPERATOR_IMAGE) --verbose --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
+	$(OPERATOR_SDK) build $(OPERATOR_IMAGE) --verbose \
+	    --image-build-args "--build-arg version=$(VERSION_FULL) --build-arg coherence_image=$(HELM_COHERENCE_IMAGE) --build-arg utils_image=$(UTILS_IMAGE)" \
+	    --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator copy artifacts utility
@@ -248,7 +260,7 @@ $(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
 	rm -rf $(CHART_DIR)/coherence
 	# Copy the Helm charts from their source location to the distribution folder
 	cp -R ./helm-charts/coherence $(CHART_DIR)
-	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml)
+	$(call replaceprop,coherence/Chart.yaml coherence/values.yaml coherence/templates/coherence.yaml)
 	helm lint $(CHART_DIR)/coherence
 
 # ---------------------------------------------------------------------------
@@ -256,6 +268,8 @@ $(CHART_DIR)/coherence: $(COH_CHARTS) $(BUILD_PROPS)
 # ---------------------------------------------------------------------------
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
+test-operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
 test-operator: build-operator
 	@echo "Running operator tests"
 	go test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/... ./pkg/helm_test/... \
@@ -286,11 +300,15 @@ e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
+e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
+e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/local --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
@@ -329,6 +347,10 @@ debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+debug-e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
+debug-e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+debug-e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-local-test:
 	$(OPERATOR_SDK) test local ./test/e2e/local \
 	    --namespace $(TEST_NAMESPACE) \
@@ -357,11 +379,15 @@ script-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 script-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+script-test: export VERSION_FULL := $(VERSION_FULL)
+script-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+script-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+script-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/script --namespace $(TEST_NAMESPACE) --up-local \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+		--local-operator-flags "--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-script-test.out
@@ -393,6 +419,10 @@ e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+e2e-test: export VERSION_FULL := $(VERSION_FULL)
+e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
@@ -443,6 +473,10 @@ debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 debug-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+debug-e2e-test: export VERSION_FULL := $(VERSION_FULL)
+debug-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+debug-e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-test:
 	$(OPERATOR_SDK) test local ./test/e2e/remote --namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -467,6 +501,11 @@ helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+helm-test: export VERSION_FULL := $(VERSION_FULL)
+helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	@echo "executing Operator Helm Chart end-to-end tests"
@@ -478,6 +517,61 @@ helm-test: build-operator reset-namespace create-ssl-secrets install-crds
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-helm-test/ \
 	    -input $(TEST_LOGS_DIR)/operator-e2e-helm-test.out \
 	    -output $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml
+
+# ---------------------------------------------------------------------------
+# Executes the Go end-to-end Operator Compatibility tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# These tests require the Operator CRDs and will install them before tests start
+# and remove them afterwards.
+# Note that the namespace will be created if it does not exist.
+# This step will use whatever Kubeconfig the current environment is
+# configured to use.
+# ---------------------------------------------------------------------------
+.PHONY: helm-test
+compatibility-test: export CGO_ENABLED = 0
+compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+compatibility-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+compatibility-test: export VERSION_FULL := $(VERSION_FULL)
+compatibility-test: export COMPATIBLE_VERSIONS := $(COMPATIBLE_VERSIONS)
+compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets install-crds get-previous
+	@echo "executing Operator compatibility tests"
+	$(OPERATOR_SDK) test local ./test/e2e/compatibility --namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-compatibility-test.out
+	$(MAKE) uninstall-crds
+	$(MAKE) delete-namespace
+	go run ./cmd/testreports/ -fail -suite-name-prefix=compatibility-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-compatibility-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-compatibility-test.xml
+
+# ---------------------------------------------------------------------------
+# Obtain the previous versions of the Operator Helm chart that will be used
+# torun compatibiity tests.
+# ---------------------------------------------------------------------------
+.PHONY: get-previous
+get-previous: $(BUILD_PROPS)
+	for i in $(COMPATIBLE_VERSIONS); do \
+      FILE=$(PREV_CHART_DIR)/coherence-operator-$${i}.tgz; \
+      DIR=$(PREV_CHART_DIR)/coherence-operator-$${i}; \
+      if [ ! -f "$${FILE}" ]; then \
+	    echo "Downloading Operator Helm chart version $${i} to file $${FILE}"; \
+	    curl -X GET https://oracle.github.io/coherence-operator/charts/coherence-operator-$${i}.tgz -o $${FILE}; \
+      fi; \
+	  echo "Unpacking Operator Helm chart version $${i} to $${DIR}"; \
+      rm -rf $${DIR}; \
+      mkdir $${DIR}; \
+      tar -C $${DIR} -xzf $${FILE}; \
+    done
 
 # ---------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
@@ -503,6 +597,7 @@ uninstall-crds:
 		(kubectl delete -f $${i} & ); \
 	done
 	kubectl patch crd coherenceinternals.coherence.oracle.com -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+	kubectl delete crd coherenceinternals.coherence.oracle.com || true
 
 
 # ---------------------------------------------------------------------------
@@ -564,11 +659,21 @@ endif
 # Delete the test namespace
 # ---------------------------------------------------------------------------
 .PHONY: delete-namespace
-delete-namespace:
+delete-namespace: delete-coherence-clusters
 ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Deleting test namespace $(TEST_NAMESPACE)"
-	kubectl delete namespace $(TEST_NAMESPACE) && echo "deleted namespace" || true
+	kubectl delete namespace $(TEST_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
 endif
+
+# ---------------------------------------------------------------------------
+# Delete all resource from the test namespace
+# ---------------------------------------------------------------------------
+.PHONY: clean-namespace
+clean-namespace: delete-coherence-clusters
+	for i in $$(kubectl -n $(TEST_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(TEST_NAMESPACE)" \
+		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
+	done
 
 # ---------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.
@@ -685,9 +790,15 @@ build-all: build-mvn build-operator
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run
-run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
+run: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run: export UTILS_IMAGE := $(UTILS_IMAGE)
+run: export VERSION_FULL := $(VERSION_FULL)
+run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run: export UTILS_IMAGE := $(UTILS_IMAGE)
+run: reset-namespace $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ---------------------------------------------------------------------------
@@ -700,9 +811,15 @@ run: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: $(CHART_DIR)/coherence reset-namespace create-ssl-secrets
+run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-debug: export VERSION_FULL := $(VERSION_FULL)
+run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-debug: reset-namespace $(CHART_DIR)/coherence create-ssl-secrets
 	$(OPERATOR_SDK) run --local --namespace=$(TEST_NAMESPACE) \
-	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR)" \
+	--operator-flags="--watches-file=local-watches.yaml --crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -745,6 +862,7 @@ delete-coherence-clusters:
 	done
 	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherenceinternal -o name); do \
 		kubectl -n $(TEST_NAMESPACE) patch $${i}  -p '{"metadata":{"finalizers": []}}' --type=merge; \
+		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
 	done
 
 # ---------------------------------------------------------------------------

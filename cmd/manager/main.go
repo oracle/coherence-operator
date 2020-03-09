@@ -12,8 +12,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-logr/logr"
-	hoflags "github.com/operator-framework/operator-sdk/pkg/helm/flags"
-	"github.com/operator-framework/operator-sdk/pkg/helm/release"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	cohrest "github.com/oracle/coherence-operator/pkg/rest"
@@ -31,8 +29,6 @@ import (
 	"github.com/oracle/coherence-operator/pkg/apis"
 	"github.com/oracle/coherence-operator/pkg/controller"
 
-	helmctl "github.com/operator-framework/operator-sdk/pkg/helm/controller"
-	"github.com/operator-framework/operator-sdk/pkg/helm/watches"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -96,9 +92,6 @@ func main() {
 
 	// create Coherence Operator flags
 	cohf := flags.AddTo(pflag.CommandLine)
-
-	// create Helm Operator flags
-	hflags := hoflags.AddTo(pflag.CommandLine)
 
 	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
@@ -188,20 +181,10 @@ func main() {
 	}
 
 	// Setup all Controllers
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr, cohf); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-
-	// >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
-
-	// Configure the Helm operator
-	if err := setupHelm(mgr, namespace, hflags); err != nil {
-		log.Error(err, "Manager exited non-zero")
-		os.Exit(1)
-	}
-
-	// <<<<<<<< Coherence Operator code added to Operator SDK the generated file ---------------------------
 
 	if err = serveCRMetrics(cfg); err != nil {
 		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
@@ -285,33 +268,6 @@ func serveCRMetrics(cfg *rest.Config) error {
 }
 
 // >>>>>>>> Coherence Operator code added to Operator SDK the generated file ---------------------------
-
-func setupHelm(mgr manager.Manager, namespace string, hflags *hoflags.HelmOperatorFlags) error {
-	// Setup Helm controller
-	watchList, err := watches.Load(hflags.WatchesFile)
-	if err != nil {
-		log.Error(err, "failed to load Helm watches")
-		return err
-	}
-
-	fmt.Println(watchList)
-	for _, w := range watchList {
-		fmt.Println(w)
-		err := helmctl.Add(mgr, helmctl.WatchOptions{
-			Namespace:               namespace,
-			GVK:                     w.GroupVersionKind,
-			ManagerFactory:          release.NewManagerFactory(mgr, w.ChartDir),
-			ReconcilePeriod:         hflags.ReconcilePeriod,
-			WatchDependentResources: w.WatchDependentResources,
-		})
-		if err != nil {
-			log.Error(err, "failed to add Helm watche")
-			return err
-		}
-	}
-
-	return nil
-}
 
 // PrintBuildInfo prints the Coherence Operator build information to the log.
 func printBuildInfo(log logr.Logger) {

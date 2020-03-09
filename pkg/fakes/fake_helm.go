@@ -36,6 +36,10 @@ import (
 	"strings"
 )
 
+var (
+	cfg *action.Configuration
+)
+
 // A fake Helm install
 type FakeHelm interface {
 	// HelmInstallFromCoherenceCluster takes a CoherenceCluster and passes it through
@@ -47,14 +51,42 @@ type FakeHelm interface {
 }
 
 // NewFakeHelm creates a FakeHelm from a manager, a ReconcileCoherenceCluster and a ReconcileCoherenceRole
-func NewFakeHelm(mgr *FakeManager, clusterReconciler, roleReconciler reconcile.Reconciler) FakeHelm {
-	return &fakeHelm{mgr, clusterReconciler, roleReconciler}
+func NewFakeHelm(mgr *FakeManager, clusterReconciler, roleReconciler reconcile.Reconciler, namespace string) (FakeHelm, error) {
+
+	if cfg == nil {
+		rcg, err := client.NewRESTClientGetter(mgr, namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		storageBackend := storagev3.Init(driverv3.NewMemory())
+		kubeClient := kubev3.New(rcg)
+
+		cfg = &action.Configuration{
+			RESTClientGetter: rcg,
+			Releases:         storageBackend,
+			KubeClient:       kubeClient,
+			Log:              func(_ string, _ ...interface{}) {},
+		}
+	}
+
+	fh := &fakeHelm{
+		mgr:               mgr,
+		clusterReconciler: clusterReconciler,
+		roleReconciler:    roleReconciler,
+		cfg:               cfg,
+		namespace:         namespace,
+	}
+
+	return fh, nil
 }
 
 type fakeHelm struct {
 	mgr               *FakeManager
 	clusterReconciler reconcile.Reconciler
 	roleReconciler    reconcile.Reconciler
+	namespace         string
+	cfg               *action.Configuration
 }
 
 func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceCluster) (*HelmInstallResult, error) {
@@ -62,7 +94,8 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 		return &HelmInstallResult{}, nil
 	}
 
-	err := f.mgr.GetClient().Create(context.TODO(), cluster)
+	cl := f.mgr.GetClient()
+	err := cl.Create(context.TODO(), cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +159,9 @@ func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceClust
 		}
 	}
 
-	return result, nil
+	err = cl.Delete(context.TODO(), cluster)
+
+	return result, err
 }
 
 func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, values helper.OperatorValues) (*HelmInstallResult, error) {
@@ -152,27 +187,12 @@ func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, v
 func (f *fakeHelm) fakeHelmInstall(mgr *FakeManager, namespace, chartDir string, values map[string]interface{}) (*HelmInstallResult, error) {
 	var err error
 
-	rcg, err := client.NewRESTClientGetter(f.mgr, namespace)
-	if err != nil {
-		return nil, err
-	}
-
 	chart, err := loader.LoadDir(chartDir)
 	if err != nil {
 		return nil, err
 	}
 
-	storageBackend := storagev3.Init(driverv3.NewMemory())
-	kubeClient := kubev3.New(rcg)
-
-	cfg := &action.Configuration{
-		RESTClientGetter: rcg,
-		Releases:         storageBackend,
-		KubeClient:       kubeClient,
-		Log:              func(_ string, _ ...interface{}) {},
-	}
-
-	install := action.NewInstall(cfg)
+	install := action.NewInstall(f.cfg)
 	install.DryRun = true
 	install.Namespace = namespace
 	install.ReleaseName = "operator"

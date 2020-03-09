@@ -12,7 +12,10 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	coherence "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/pkg/controller/coherencerole"
+	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -20,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
+	"os"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -51,6 +55,9 @@ const (
 	eventReasonFailedUpdate string = "FailedUpdate"
 	eventReasonDeleted      string = "SuccessfulDelete"
 	eventReasonFailedDelete string = "FailedDelete"
+
+	versionEnv     = "VERSION_FULL"
+	versionUnknown = "UNKNOWN"
 )
 
 var log = logf.Log.WithName(controllerName)
@@ -58,23 +65,31 @@ var log = logf.Log.WithName(controllerName)
 // Add creates a new CoherenceCluster Controller and adds it to the Manager.
 // The Manager will set fields on the Controller.
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
+	return add(mgr, newReconciler(mgr, opFlags))
 }
 
 // NewClusterReconciler returns a new reconcile.Reconciler.
-func NewClusterReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return newReconciler(mgr)
+func NewClusterReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceCluster {
+	return newReconciler(mgr, opFlags)
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceCluster {
+	version, ok := os.LookupEnv(versionEnv)
+	if !ok {
+		version = versionUnknown
+	}
+
 	return &ReconcileCoherenceCluster{
 		client:        mgr.GetClient(),
 		scheme:        mgr.GetScheme(),
 		events:        mgr.GetEventRecorderFor(controllerName),
 		resourceLocks: make(map[types.NamespacedName]bool),
 		mutex:         sync.Mutex{},
+		version:       version,
+		opFlags:       opFlags,
+		mgr:           mgr,
 	}
 }
 
@@ -107,6 +122,17 @@ type ReconcileCoherenceCluster struct {
 	events        record.EventRecorder
 	resourceLocks map[types.NamespacedName]bool
 	mutex         sync.Mutex
+	version       string
+	opFlags       *flags.CoherenceOperatorFlags
+	mgr           manager.Manager
+	initialized   bool
+}
+
+// Set the initialized flag for this controller.
+func (r *ReconcileCoherenceCluster) SetInitialized(i bool) {
+	if r != nil {
+		r.initialized = i
+	}
 }
 
 // Attempt to lock the requested resource.
@@ -146,7 +172,10 @@ func (r *ReconcileCoherenceCluster) unlock(request reconcile.Request) {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
-	logger.Info("Reconciling CoherenceCluster")
+
+	if err := r.EnsureInitialized(logger); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -157,14 +186,31 @@ func (r *ReconcileCoherenceCluster) Reconcile(request reconcile.Request) (reconc
 	// Make sure that the request is unlocked when this method exits
 	defer r.unlock(request)
 
+	return r.reconcileInternal(request)
+}
+
+// reconcileInternal reads that state of a CoherenceCluster object and makes changes based on the state read
+// and what is in the CoherenceCluster.Spec.
+// Note:
+// The Controller will requeue the Request to be processed again if the returned error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+func (r *ReconcileCoherenceCluster) reconcileInternal(request reconcile.Request) (reconcile.Result, error) {
+	logger := log.WithValues("Namespace", request.Namespace, "Cluster.Name", request.Name)
+	logger.Info("Reconciling CoherenceCluster")
+
 	// Fetch the CoherenceCluster instance
 	cluster := &coherence.CoherenceCluster{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, cluster)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info("CoherenceCluster '" + request.Name + "' deleted")
+		if errors.IsNotFound(err) || cluster.GetDeletionTimestamp() != nil {
+			logger.Info("CoherenceCluster deleted")
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Ensure that the roles for this cluster are deleted.
+			// They should be cleaned-up by k8s garbage collection but belt and braces as we've seen when
+			// upgrading or reinstalling the Operator existing clusters are not always cleaned automatically
+			r.deleteAllRoles(request, logger)
+
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
@@ -337,6 +383,7 @@ func (r *ReconcileCoherenceCluster) createRole(p params) error {
 	labels := make(map[string]string)
 	labels[coherence.CoherenceClusterLabel] = p.cluster.Name
 	labels[coherence.CoherenceRoleLabel] = p.desiredRole.GetRoleName()
+	labels[coherence.CoherenceOperatorVersionLabel] = r.version
 	role.SetLabels(labels)
 
 	// Set CoherenceCluster instance as the owner and controller of the CoherenceRole structure
@@ -417,49 +464,58 @@ func (r *ReconcileCoherenceCluster) ensureWkaService(cluster *coherence.Coherenc
 		Name:      cluster.GetWkaServiceName(),
 	}
 
-	err := r.client.Get(context.TODO(), name, &v1.Service{})
+	var err error
 
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger := log.WithValues("Namespace", cluster.Namespace, "Cluster.Name", cluster.Name)
-		reqLogger.Info("Creating WKA service '" + name.Name + "'")
-
-		service := &v1.Service{}
-
-		service.Namespace = name.Namespace
-		service.Name = name.Name
-
-		service.Annotations = make(map[string]string)
-		service.Annotations["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
-
-		service.Labels = make(map[string]string)
-		service.Labels[coherence.CoherenceClusterLabel] = cluster.Name
-		service.Labels[coherence.CoherenceComponentLabel] = "coherenceWkaService"
-
-		service.Spec = v1.ServiceSpec{}
-		service.Spec.ClusterIP = v1.ClusterIPNone
-		service.Spec.Ports = make([]v1.ServicePort, 1)
-
-		service.Spec.Ports[0] = v1.ServicePort{
-			Name:       "coherence-extend",
-			Protocol:   v1.ProtocolTCP,
-			Port:       7,
-			TargetPort: intstr.FromString("coherence"),
-		}
-
-		service.Spec.Selector = make(map[string]string)
-		service.Spec.Selector[coherence.CoherenceClusterLabel] = cluster.Name
-		service.Spec.Selector["component"] = "coherencePod"
-		service.Spec.Selector["coherenceWKAMember"] = "true"
-
-		// Set CoherenceCluster instance as the owner and controller of the service structure
-		if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
-			return err
-		}
-
-		return r.client.Create(context.TODO(), service)
+	err = r.client.Get(context.TODO(), name, &v1.Service{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
 	}
 
-	return err
+	reqLogger := log.WithValues("Namespace", cluster.Namespace, "Cluster.Name", cluster.Name)
+	reqLogger.Info("Creating WKA service '" + name.Name + "'")
+
+	service := &v1.Service{}
+
+	service.Namespace = name.Namespace
+	service.Name = name.Name
+
+	service.Annotations = make(map[string]string)
+	service.Annotations["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
+
+	service.Labels = make(map[string]string)
+	service.Labels[coherence.CoherenceClusterLabel] = cluster.Name
+	service.Labels[coherence.CoherenceComponentLabel] = "coherenceWkaService"
+
+	service.Spec = v1.ServiceSpec{}
+	service.Spec.ClusterIP = v1.ClusterIPNone
+	service.Spec.Ports = make([]v1.ServicePort, 1)
+
+	service.Spec.Ports[0] = v1.ServicePort{
+		Name:       "coherence-extend",
+		Protocol:   v1.ProtocolTCP,
+		Port:       7,
+		TargetPort: intstr.FromString("coherence"),
+	}
+
+	service.Spec.Selector = make(map[string]string)
+	service.Spec.Selector[coherence.CoherenceClusterLabel] = cluster.Name
+	service.Spec.Selector["component"] = "coherencePod"
+	service.Spec.Selector["coherenceWKAMember"] = "true"
+
+	// Set CoherenceCluster instance as the owner and controller of the service structure
+	if err = controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		return err
+	}
+
+	err = r.client.Create(context.TODO(), service)
+	if err != nil && errors.IsAlreadyExists(err) {
+		// we shouldn't see this as we've already checked for an existing service
+		reqLogger.Error(err, fmt.Sprintf("unexpected error for service '%s' already exists", name.Name))
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // getDesiredRoles returns a map with all of the desired roles from the cluster and a slice of role names in the order they
@@ -505,6 +561,83 @@ func (r *ReconcileCoherenceCluster) findExistingRoles(clusterName string, namesp
 
 	for _, role := range list.Items {
 		roles[role.Spec.GetRoleName()] = role
+	}
+
+	return nil
+}
+
+func (r *ReconcileCoherenceCluster) deleteAllRoles(request reconcile.Request, logger logr.Logger) {
+	logger.Info("Ensuring all roles are deleted for cluster")
+
+	roles := make(map[string]coherence.CoherenceRole)
+	if err := r.findExistingRoles(request.Name, request.Name, roles); err != nil {
+		logger.Error(err, "Error finding roles to delete")
+	}
+
+	for name, role := range roles {
+		if err := r.client.Delete(context.TODO(), &role); err != nil {
+			logger.Error(err, fmt.Sprintf("Error deleting role '%s'", name))
+		}
+	}
+}
+
+func (r *ReconcileCoherenceCluster) EnsureInitialized(logger logr.Logger) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.initialized {
+		return nil
+	}
+
+	logger.Info("Initializing controller")
+
+	// Reconcile all of the existing clusters first
+	if err := r.ReconcileExistingClusters(); err != nil {
+		return err
+	}
+
+	r.initialized = true
+
+	// Start the role controller
+	logger.Info("Starting CoherenceRole controller")
+	return coherencerole.Add(r.mgr, r.opFlags)
+}
+
+// Produces pseudo reconcile requests for all of the existing CoherenceClusters in the watch namespace
+// We typically call this function first before the Helm operator has stated to ensure that everything
+// is in the required state before the Helm operator gets a chance to think it has to update installs.
+func (r *ReconcileCoherenceCluster) ReconcileExistingClusters() error {
+	log.Info("Reconciling all existing CoherenceCluster")
+
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		return err
+	}
+
+	logger := log.WithValues("Namespace", namespace)
+
+	list := coherence.CoherenceClusterList{}
+	if err := r.client.List(context.TODO(), &list, client.InNamespace(namespace)); err != nil {
+		return err
+	}
+
+	if len(list.Items) == 0 {
+		logger.Info("Zero existing CoherenceClusters to reconcile")
+	}
+
+	for _, cluster := range list.Items {
+		logger.Info("Reconciling existing cluster", "Cluster.Name", cluster.GetName())
+		request := reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Namespace: cluster.GetNamespace(),
+				Name:      cluster.GetName(),
+			},
+		}
+
+		_, err = r.reconcileInternal(request)
+		if err != nil {
+			log.Error(err, "Error reconciling existing cluster", "Cluster.Name", cluster.GetName())
+		}
 	}
 
 	return nil

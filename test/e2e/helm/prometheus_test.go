@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,13 +7,16 @@
 package helm_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/onsi/gomega"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -36,11 +39,6 @@ func TestOperatorWithPrometheus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	hasCRDs, err := HasPrometheusCRDs(helmHelper.Manager.GetConfig())
 	fmt.Printf("Check for Prometheus CRDs - found=%t\n", hasCRDs)
@@ -104,6 +102,11 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Deploy the Coherence cluster with the metrics port exposed on a service.
 	// We need to do this because the default Prometheus install uses a ServiceMonitor
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
 	cluster, err := DeployCoherenceCluster(t, ctx, namespace, "coherence-with-metrics.yaml")
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -116,6 +119,25 @@ func TestOperatorWithPrometheus(t *testing.T) {
 
 	// Ensure that we can see the cluster size metric
 	ShouldGetClusterSizeMetric(t, promPod)
+
+	// Delete the CoherenceCluster
+	t.Log("Re-fetching Coherence cluster to delete it")
+	f := framework.Global
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: cluster.Namespace, Name: cluster.Name}, &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+	t.Log("Deleting Coherence cluster")
+	err = f.Client.Delete(context.TODO(), &cluster)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Wait for the updated cluster Pods to be deleted
+	t.Log("Waiting for Coherence cluster Pods to be removed")
+	selector := fmt.Sprintf("coherenceCluster=%s", cluster.Name)
+	err = helper.WaitForDeleteOfPodsWithSelector(client, f.Namespace, selector, time.Second*10, time.Minute*5, t)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// clean up the Operator Helm release
+	t.Log("Removing the Operator release")
+	CleanupHelm(t, hm, helmHelper)
 }
 
 // Ensure that the Prometheus status/config endpoint can be accessed.

@@ -56,6 +56,11 @@ spec:
         - name: {{ .Chart.Name }}
           image: {{ .Values.coherenceOperator.image }}
           imagePullPolicy: {{ .Values.coherenceOperator.imagePullPolicy | default "IfNotPresent" }}
+          env:
+            - name: HELM_COHERENCE_IMAGE
+              value: {{ .Values.coherenceOperator.defaultCoherenceImage | quote }}
+            - name: UTILS_IMAGE
+              value: {{ .Values.coherenceOperator.defaultCoherenceUtilsImage | quote }}
           ports:
             - name: "rest"
               containerPort: 8000
