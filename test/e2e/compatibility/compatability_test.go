@@ -75,11 +75,6 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	cleaner.rm = rmPrev
 	cleaner.hh = hhPrev
 
-	// Delete the CRDs so that the previous version Operator installs the previous version CRDs
-	t.Logf("Removing CRDs")
-	err = helper.UninstallCrds(t)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	// Install the previous Operator chart
 	t.Logf("Installing previous Operator version %s", prevVersion)
 	_, err = rmPrev.InstallRelease()
