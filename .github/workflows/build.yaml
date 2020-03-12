@@ -1,0 +1,128 @@
+# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence Operator GitHub Actions CI build.
+# ---------------------------------------------------------------------------
+name: Operator CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
+  OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
+  RELEASE_IMAGE_PREFIX: "localhost:5000/"
+  TEST_MANIFEST_VALUES: "deploy/oci-values.yaml"
+  COHERENCE_IMAGE: "container-registry.oracle.com/middleware/coherence:12.2.1.4.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: '1.8'
+
+    - name: Cache Go Modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-mods-
+
+    - name: Cache Maven packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2-beta
+      with:
+        go-version: 1.13.x
+
+    - name: Docker Login OCR
+      run: |
+        echo $OCR_DOCKER_PASSWORD | docker login container-registry.oracle.com -u $OCR_DOCKER_USERNAME --password-stdin
+
+    - name: Start KinD Cluster
+#     Start a KinD K8s cluster using K8s 1.14.1 with single worker node
+      shell: bash
+      run: |
+        sh ./hack/kind.sh --image kindest/node:v1.14.10@sha256:81ae5a3237c779efc4dda43cc81c696f88a194abcc4f8fa34f86cf674aa14977
+        kubectl version
+        kubectl get nodes
+        docker pull $COHERENCE_IMAGE
+        kind load docker-image --name operator $COHERENCE_IMAGE
+
+    - name: Install Coherence Jar
+#     This step installs coherence.jar into the local Maven repo by obtaining it from the OCR 12.2.1.4 Docker image
+      run: |
+        docker pull $COHERENCE_IMAGE
+        docker run -d --name coh $COHERENCE_IMAGE
+        docker cp coh:/u01/oracle/oracle_home/coherence/lib/coherence.jar ./coherence.jar
+        docker rm -f coh
+        mvn -B install:install-file -Dfile=./coherence.jar -DgroupId=com.oracle.coherence -DartifactId=coherence -Dversion=12.2.1-4-0-74512 -Dpackaging=jar
+        mvn -B install:install-file -Dfile=./coherence.jar -DgroupId=com.oracle.coherence -DartifactId=coherence -Dversion=12.2.1-4-0 -Dpackaging=jar
+        rm coherence.jar
+
+    - name: Code Review
+      shell: bash
+      run: make golangci
+
+    - name: Build
+      shell: bash
+      run: make all
+
+    - name: Push Images
+#     Push the images just built to the local Docker registry localhost:5000 started with KinD cluster
+      shell: bash
+      run: make push-all-images
+
+    - name: Unit Tests
+      shell: bash
+      run: make test-all
+
+    - name: E2E Local Tests
+      shell: bash
+      run: |
+        make e2e-local-test
+        make script-test
+
+    - name: E2E Remote Tests
+      shell: bash
+      run: make e2e-test
+
+    - name: Helm Tests
+      shell: bash
+#     Need to set vm.max_map_count otherwise ElasticSearch will fail to start.
+#     Pre-install the Prometheus CRDs.
+      run: |
+        sudo sysctl -w vm.max_map_count=262144
+        kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+        kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+        kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+        kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+        make helm-test GO_TEST_FLAGS='-short'
+
+    - name: Compatibility Tests
+      shell: bash
+      run: make compatibility-test
+
+    - uses: actions/upload-artifact@v1
+      if: failure()
+      with:
+        name: test-output
+        path: build/_output/test-logs
