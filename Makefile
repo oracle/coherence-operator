@@ -90,7 +90,39 @@ CREATE_TEST_NAMESPACE ?= true
 # restart local storage for persistence
 LOCAL_STORAGE_RESTART ?= false
 
+# Env variables used to create pull secrets
+DOCKER_SERVER ?=
+DOCKER_USERNAME ?=
+DOCKER_PASSWORD ?=
+OCR_DOCKER_USERNAME ?=
+OCR_DOCKER_PASSWORD ?=
+
+# Configure the image pull secrets information
+ifneq ("$(or $(DOCKER_USERNAME),$(DOCKER_PASSWORD))","")
+DOCKER_SECRET = coherence-k8s-operator-development-secret
+else
+DOCKER_SECRET =
+endif
+ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
+OCR_DOCKER_SECRET = ocr-k8s-operator-development-secret
+else
+OCR_DOCKER_SECRET =
+endif
+
+ifneq ("$(and $(DOCKER_SECRET),$(OCR_DOCKER_SECRET))","")
+IMAGE_PULL_SECRETS ?= $(DOCKER_SECRET),$(OCR_DOCKER_SECRET)
+else
+ifneq ("$(DOCKER_SECRET)","")
+IMAGE_PULL_SECRETS ?= $(DOCKER_SECRET)
+else
+ifneq ("$(OCR_DOCKER_SECRET)","")
+IMAGE_PULL_SECRETS ?= $(OCR_DOCKER_SECRET)
+else
 IMAGE_PULL_SECRETS ?=
+endif
+endif
+endif
+
 IMAGE_PULL_POLICY  ?=
 
 # Env variable used by the kubectl test framework to locate the kubectl binary
@@ -134,7 +166,7 @@ define replaceprop
 	for i in $(1); do \
 		filename="$(CHART_DIR)/$${i}"; \
 		echo "Replacing properties in file $${filename}"; \
-		if [[ -f $${filename} ]]; then \
+		if [ -f $${filename} ]; then \
 			temp_file=$(BUILD_OUTPUT)/temp.out; \
 			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
 			mv $${temp_file} $${filename}; \
@@ -649,17 +681,41 @@ $(BUILD_OUTPUT)/certs:
 # Delete and re-create the test namespace
 # ---------------------------------------------------------------------------
 .PHONY: reset-namespace
+reset-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
+reset-namespace: export DOCKER_SERVER := $(DOCKER_SERVER)
+reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
+reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
+reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
+reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
 reset-namespace: delete-namespace
 ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Creating test namespace $(TEST_NAMESPACE)"
 	kubectl create namespace $(TEST_NAMESPACE)
+endif
+ifneq ($(DOCKER_SERVER),)
+	@echo "Creating pull secrets for $(DOCKER_SERVER)"
+	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+								--namespace $(TEST_NAMESPACE) \
+								--docker-server "$(DOCKER_SERVER)" \
+								--docker-username "$(DOCKER_USERNAME)" \
+								--docker-password "$(DOCKER_PASSWORD)" \
+								--docker-email="docker@dummy.com"
+endif
+ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
+	@echo "Creating pull secrets for container-registry.oracle.com"
+	kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+								--namespace $(TEST_NAMESPACE) \
+								--docker-server container-registry.oracle.com \
+								--docker-username "$(OCR_DOCKER_USERNAME)" \
+								--docker-password "$(OCR_DOCKER_PASSWORD)" \
+								--docker-email "docker@dummy.com"
 endif
 
 # ---------------------------------------------------------------------------
 # Delete the test namespace
 # ---------------------------------------------------------------------------
 .PHONY: delete-namespace
-delete-namespace: delete-coherence-clusters
+delete-namespace: clean-namespace
 ifeq ($(CREATE_TEST_NAMESPACE),true)
 	@echo "Deleting test namespace $(TEST_NAMESPACE)"
 	kubectl delete namespace $(TEST_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
@@ -699,15 +755,15 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ---------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
-	mvn -f java package -DskipTests
-	mvn -f examples package -DskipTests
+	mvn -B -f java package -DskipTests
+	mvn -B -f examples package -DskipTests
 
 # ---------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ---------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: build-mvn
-	mvn -f java verify
+	mvn -B -f java verify
 
 # ---------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
@@ -925,8 +981,8 @@ copyright:
 # ---------------------------------------------------------------------------
 .PHONY: code-review
 code-review: golangci copyright
-	mvn -f java package -DskipTests -P checkstyle
-	mvn -f examples package -DskipTests -P checkstyle
+	mvn -B -f java package -DskipTests -P checkstyle
+	mvn -B -f examples package -DskipTests -P checkstyle
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -940,7 +996,7 @@ version:
 # ---------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	mvn -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION_FULL)
+	mvn -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION_FULL)
 
 # ---------------------------------------------------------------------------
 # Start a local web server to serve the documentation.
@@ -1031,59 +1087,6 @@ else
 release: build-all-images release-tag release-ghpages push-release-images
 endif
 
-
-# ---------------------------------------------------------------------------
-# Initialise a Kind k8s cluster
-# ---------------------------------------------------------------------------
-.PHONY: kind-up
-kind-up: kind-create-cluster kind-upload-coherence kind-upload-operator kind-upload-efk
-
-.PHONY: kind-create-cluster
-export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-export UTILS_IMAGE := $(UTILS_IMAGE)
-export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-kind-create-cluster:
-	./hack/start-kind.sh
-
-.PHONY: kind-upload-coherence
-export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-export UTILS_IMAGE := $(UTILS_IMAGE)
-export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-kind-upload-coherence:
-	docker pull "${HELM_COHERENCE_IMAGE}"
-	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${HELM_COHERENCE_IMAGE}"
-
-.PHONY: kind-upload-operator
-export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-export UTILS_IMAGE := $(UTILS_IMAGE)
-export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-kind-upload-operator:
-	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${OPERATOR_IMAGE}"
-	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${UTILS_IMAGE}"
-	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${TEST_USER_IMAGE}"
-
-.PHONY: kind-upload-efk
-export ELASTICSEARCH_IMAGE := $(ELASTICSEARCH_IMAGE)
-export FLUENTD_IMAGE := $(FLUENTD_IMAGE)
-export KIBANA_IMAGE := $(KIBANA_IMAGE)
-kind-upload-efk:
-#	docker pull ${ELASTICSEARCH_IMAGE}
-#	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${ELASTICSEARCH_IMAGE}"
-	docker pull ${FLUENTD_IMAGE}
-	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${FLUENTD_IMAGE}"
-#	docker pull ${KIBANA_IMAGE}
-#	kind load docker-image --name operator-test --nodes operator-test-worker,operator-test-worker2,operator-test-worker3 "${KIBANA_IMAGE}"
-
-# ---------------------------------------------------------------------------
-# Clean-up a Kind k8s cluster
-# ---------------------------------------------------------------------------
-.PHONY: kind-init
-kind-down:
-	kind delete cluster --name operator-test || true
-	unset KUBECONFIG || true
 
 # ---------------------------------------------------------------------------
 # List all of the targets in the Makefile
