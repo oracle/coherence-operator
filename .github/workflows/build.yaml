@@ -10,7 +10,7 @@ name: Operator CI
 on:
   push:
     branches:
-      - master
+      - *
   pull_request:
     branches:
       - master
@@ -25,8 +25,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+#   Checkout the source, we need a depth of zero to fetch all of the history otherwise
+#   the copyright check cannot work out the date of the files from Git.
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Set up JDK
       uses: actions/setup-java@v1
@@ -80,7 +85,7 @@ jobs:
 
     - name: Code Review
       shell: bash
-      run: make golangci
+      run: make code-review
 
     - name: Build
       shell: bash
