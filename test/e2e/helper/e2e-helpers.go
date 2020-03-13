@@ -199,7 +199,7 @@ func WaitForCoherenceRoleCondition(f *framework.Framework, namespace, name strin
 				return false, nil
 			}
 			logger.Logf("Waiting for availability of CoherenceRole %s - %s\n", name, err.Error())
-			return false, err
+			return false, nil
 		}
 		valid := true
 		if conditon != nil {
