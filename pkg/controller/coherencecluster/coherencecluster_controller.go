@@ -567,14 +567,16 @@ func (r *ReconcileCoherenceCluster) findExistingRoles(clusterName string, namesp
 }
 
 func (r *ReconcileCoherenceCluster) deleteAllRoles(request reconcile.Request, logger logr.Logger) {
-	logger.Info("Ensuring all roles are deleted for cluster")
+	logger.Info(fmt.Sprintf("Ensuring all roles are deleted for cluster %s/%s", request.Namespace, request.Name))
 
 	roles := make(map[string]coherence.CoherenceRole)
-	if err := r.findExistingRoles(request.Name, request.Name, roles); err != nil {
+	if err := r.findExistingRoles(request.Name, request.Namespace, roles); err != nil {
 		logger.Error(err, "Error finding roles to delete")
 	}
 
+	logger.Info(fmt.Sprintf("Found %d existing CoherneceRoles for cluster %s/%s", len(roles), request.Namespace, request.Name))
 	for name, role := range roles {
+		logger.Info(fmt.Sprintf("Deleting CoherenceRole %s in cluster %s/%s", name, request.Namespace, request.Name))
 		if err := r.client.Delete(context.TODO(), &role); err != nil {
 			logger.Error(err, fmt.Sprintf("Error deleting role '%s'", name))
 		}

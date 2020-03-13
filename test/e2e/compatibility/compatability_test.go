@@ -171,7 +171,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	err = f.Client.Update(context.TODO(), &cluster)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	// wait for at least one Pod with the new label, this will verify that the update worked and the Coherence cluster is still good
+	// wait for at all Pods with the new label, this will verify that the update worked and the Coherence cluster is still good
 	t.Log("Waiting for Pods to update with new labels")
 	_, err = helper.WaitForPodsWithLabel(cl, namespace, "foo=bar", int(role.GetReplicas()), time.Second*10, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
