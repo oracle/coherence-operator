@@ -68,8 +68,6 @@ func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceClu
 	f := framework.Global
 	fullName := r.GetFullRoleName(&cluster)
 
-	t.Logf("Asserting CoherenceRole %s exists\n", fullName)
-
 	t.Logf("Asserting CoherenceRole %s exists with %d replicas\n", fullName, replicas)
 
 	// create a RoleStateCondition that checks a role's replica count
