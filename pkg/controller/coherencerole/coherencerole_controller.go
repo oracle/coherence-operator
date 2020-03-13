@@ -803,7 +803,7 @@ func (r *ReconcileCoherenceRole) deleteCoherenceInternal(request reconcile.Reque
 	ci.SetNamespace(request.Namespace)
 	ci.SetName(request.Name)
 
-	logger.Info(fmt.Sprintf("Ensuring CoherenceInternal '%s' is deleted", request.Name))
+	logger.Info(fmt.Sprintf("Ensuring CoherenceInternal '%s/%s' is deleted", request.Namespace, request.Name))
 	_ = r.client.Delete(context.TODO(), ci)
 }
 
