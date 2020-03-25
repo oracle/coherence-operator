@@ -531,7 +531,7 @@
     ]
   },
   "timezone": "",
-  "title": "HTTP Servers Summary Dashboard",
+  "title": "Coherence HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
   "version": 2
 }

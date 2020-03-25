@@ -448,7 +448,7 @@
     ]
   },
   "timezone": "",
-  "title": "Kubernetes Summary Dashboard",
+  "title": "Coherence Kubernetes Summary Dashboard",
   "uid": "coh-kubernetes-summary",
   "version": 1
 }
