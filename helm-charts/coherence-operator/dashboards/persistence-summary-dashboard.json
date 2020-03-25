@@ -842,7 +842,7 @@
     ]
   },
   "timezone": "",
-  "title": "Persistence Summary Dashboard",
+  "title": "Coherence Persistence Summary Dashboard",
   "uid": "coh-persistence-summary",
   "version": 2
 }
