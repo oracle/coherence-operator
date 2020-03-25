@@ -952,7 +952,7 @@
     ]
   },
   "timezone": "",
-  "title": "Proxy Servers Summary Dashboard",
+  "title": "Coherence Proxy Servers Summary Dashboard",
   "uid": "coh-proxy-services-summary",
   "version": 1
 }

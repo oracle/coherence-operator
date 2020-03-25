@@ -1764,7 +1764,7 @@
     ]
   },
   "timezone": "",
-  "title": "Cache Details Dashboard",
+  "title": "Coherence Cache Details Dashboard",
   "uid": "coh-cache-details",
   "version": 1
 }
