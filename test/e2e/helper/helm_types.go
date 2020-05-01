@@ -104,7 +104,7 @@ type ElasticsearchEndpointSpec struct {
 	// The Elasticsearch hosts to be used by fluentd.
 	// +optional
 	Hosts *string `json:"hosts,omitempty"`
-	// The Elasticsearch scheme to be used by fluentd (either HTTP or HTTPS).
+	// The Elasticsearch scheme to be used by fluentd (either http or https).
 	// +optional
 	Scheme *string `json:"scheme,omitempty"`
 }

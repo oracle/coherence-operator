@@ -34,5 +34,5 @@ data:
   elasticsearchuser: {{ .Values.elasticsearchEndpoint.user | default "" | toString | b64enc | quote }}
   elasticsearchpassword: {{ .Values.elasticsearchEndpoint.password | default "" | toString | b64enc | quote }}
   elasticsearchhosts: {{ .Values.elasticsearchEndpoint.hosts | default "" | toString | b64enc | quote }}
-  elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "" | toString | b64enc | quote }}
+  elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "http" | toString | b64enc | quote }}
 {{- end }}
