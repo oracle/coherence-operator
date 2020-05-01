@@ -685,18 +685,6 @@ spec:
               value: fluentd-coherence.conf
             - name: FLUENT_ELASTICSEARCH_SED_DISABLE
               value: "true"
-            - name: ELASTICSEARCH_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-monitoring-config
-                  key: elasticsearchhost
-                  optional: true
-            - name: ELASTICSEARCH_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-monitoring-config
-                  key: elasticsearchport
-                  optional: true
             - name: ELASTICSEARCH_USER
               valueFrom:
                 secretKeyRef:

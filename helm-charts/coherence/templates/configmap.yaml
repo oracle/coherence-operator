@@ -51,8 +51,6 @@ data:
 
     <match coherence-cluster>
       @type elasticsearch
-      host "#{ENV['ELASTICSEARCH_HOST']}"
-      port "#{ENV['ELASTICSEARCH_PORT']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
       hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
       scheme "#{ENV['ELASTICSEARCH_SCHEME']}"

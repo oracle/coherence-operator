@@ -105,7 +105,7 @@ elasticsearchEndpoint:
   # hosts: https://customhost.com:443/path,https://username:password@host-failover.com:443
   hosts:
   # Specify https if your Elasticsearch endpoint supports SSL (default: http)
-  scheme:
+  scheme: http
 
 # Specify the docker image containing Kibana.
 # These parameters are ignored if 'installEFK' is false
