@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -101,6 +101,12 @@ type ElasticsearchEndpointSpec struct {
 	// The Elasticsearch password to be accessed by fluentd.
 	// +optional
 	Password *string `json:"password,omitempty"`
+	// The Elasticsearch hosts to be used by fluentd.
+	// +optional
+	Hosts *string `json:"hosts,omitempty"`
+	// The Elasticsearch scheme to be used by fluentd (either HTTP or HTTPS).
+	// +optional
+	Scheme *string `json:"scheme,omitempty"`
 }
 
 type PrometheusOperatorSpec struct {

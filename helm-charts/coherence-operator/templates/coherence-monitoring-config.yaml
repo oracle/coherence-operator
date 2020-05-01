@@ -1,4 +1,4 @@
-{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.              */}}
+{{/* Copyright 2019, 2020, Oracle Corporation and/or its affiliates.  All rights reserved.              */}}
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at                            */}}
 {{/* http://oss.oracle.com/licenses/upl.                                                          */}}
 {{/*                                                                                              */}}
@@ -33,4 +33,6 @@ data:
   elasticsearchport: {{ .Values.elasticsearchEndpoint.port | default 9200 | toString | b64enc | quote  }}
   elasticsearchuser: {{ .Values.elasticsearchEndpoint.user | default "" | toString | b64enc | quote }}
   elasticsearchpassword: {{ .Values.elasticsearchEndpoint.password | default "" | toString | b64enc | quote }}
+  elasticsearchhosts: {{ .Values.elasticsearchEndpoint.hosts | default "" | toString | b64enc | quote }}
+  elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "" | toString | b64enc | quote }}
 {{- end }}

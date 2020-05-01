@@ -83,6 +83,64 @@ func TestOperatorWithExternalEFK(t *testing.T) {
 }
 
 // Test installing the Operator with an external EFK stack.
+func TestOperatorWithExternalEFKHosts(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
+	helmHelper, err := helper.NewOperatorChartHelper()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	// install the External EFK stack
+	esHost := installExternalEFK(t, ctx, false)
+	esHosts := fmt.Sprintf("http://%s:9200", esHost)
+
+	// Create the values to use with install EFK disabled and the ES endpoint set to the ES Pod
+	values := helper.OperatorValues{
+		InstallEFK:            false,
+		ElasticsearchEndpoint: &helper.ElasticsearchEndpointSpec{Hosts: &esHosts},
+	}
+
+	assertEFK(t, values, "op2", ctx, helmHelper)
+}
+
+// Test installing the Operator with an external EFK stack.
+func TestOperatorWithExternalEFKScheme(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test -short parameter was used")
+	}
+
+	helmHelper, err := helper.NewOperatorChartHelper()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create the Operator SDK test context (this will deploy the Operator)
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator and Coherence cluster) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	// install the External EFK stack
+	esHost := installExternalEFK(t, ctx, false)
+	scheme := "HTTP"
+
+	// Create the values to use with install EFK disabled and the ES endpoint set to the ES Pod
+	values := helper.OperatorValues{
+		InstallEFK:            false,
+		ElasticsearchEndpoint: &helper.ElasticsearchEndpointSpec{Host: &esHost, Scheme: &scheme},
+	}
+
+	assertEFK(t, values, "op2", ctx, helmHelper)
+}
+
+// Test installing the Operator with an external EFK stack.
 func TestOperatorWithExternalEFKAndMonitoringSecret(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test -short parameter was used")
