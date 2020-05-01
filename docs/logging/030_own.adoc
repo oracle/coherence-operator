@@ -27,13 +27,42 @@ This example shows how to instruct Fluentd to push data to your own Elasticsearc
 [#install]
 === 1. Install the Coherence Operator with custom Elasticsearch endpoint
 
+==== Elasticsearch Endpoint Host & Port
 To enable an different Elasticsearch endpoint, add the following options to the Operator Helm install command:
 
 [source,bash]
 ----
 --set elasticsearchEndpoint.host=your-es-host
---set elasticsearchEndpoint.port=your-es-host
+--set elasticsearchEndpoint.port=your-es-port
 ----
+
+==== Setting the Elasticsearch Scheme
+
+If your ElasticSearch server requires https then you must set the scheme value that will be applied to the fluentd configuration.
+See: https://docs.fluentd.org/output/elasticsearch#scheme-optional[Fluend ES Config Docs]
+[source,bash]
+----
+--set elasticsearchEndpoint.scheme=https
+----
+
+Valid values for `elasticsearchEndpoint.scheme` are http or `https`
+
+==== Multiple Elasticsearch Hosts
+
+Instead of specifying host and port as described above you can use the `elasticsearchEndpoint.hosts`
+value to specify one or more host strings as a comma delimited list.
+See: https://docs.fluentd.org/output/elasticsearch#hosts-optional[Fluend ES Config Docs]
+
+For example
+[source,bash]
+----
+--set elasticsearchEndpoint.hosts=https://customhost.com:443/path,https://username:password@host-failover.com:443
+----
+
+If `elasticsearchEndpoint.hosts` is used then Fluentd will ignore any values set for `scheme` host` and `port`
+as described in the https://docs.fluentd.org/output/elasticsearch#hosts-optional[Fluend ES Config Docs]
+
+==== Elasticsearch Credentials
 
 You can also set the user and password if you Elasticsearch instance requires it:
 
@@ -46,6 +75,7 @@ You can also set the user and password if you Elasticsearch instance requires it
 NOTE: For this example we have used the Stable ELK Stack at https://github.com/helm/charts/tree/master/stable/elastic-stack[https://github.com/helm/charts/tree/master/stable/elastic-stack]
 to install the required components and have Elasticsearch runing on coherence-example-elastic-stack.default.svc.cluster.local:9200
 
+=== Example
 
 A more complete helm install command to enable Prometheus is as follows:
 
