@@ -62,8 +62,8 @@ data:
 {{- if .Values.logging.fluentd.tag }}
     <match {{ .Values.logging.fluentd.tag }} >
       @type elasticsearch
-      host "#{ENV['ELASTICSEARCH_HOST']}"
-      port "#{ENV['ELASTICSEARCH_PORT']}"
+      hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+      scheme "#{ENV['ELASTICSEARCH_SCHEME']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
       password "#{ENV['ELASTICSEARCH_PASSWORD']}"
       logstash_format true

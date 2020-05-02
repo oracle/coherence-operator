@@ -17,7 +17,7 @@ data:
   elasticsearchhosts: {{ $eshost | toString | b64enc| quote }}
   elasticsearchuser: {{ "" | b64enc | quote }}
   elasticsearchpassword: {{ "" | b64enc | quote }}
-  elasticsearchscheme: http
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
 {{/*                                                                                              */}}
 {{- else if and .Values.elasticsearchEndpoint .Values.elasticsearchEndpoint.hosts }}
 {{/* else if the customer has added an elasticseach hosts and optionally other values use those    */}}
@@ -35,7 +35,7 @@ data:
 {{-   if .Values.elasticsearchEndpoint.scheme }}
   elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "http" | toString | b64enc | quote }}
 {{-   else }}
-  elasticsearchscheme: http
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
 {{-   end }}
 {{/*                                                                                              */}}
 {{- else if and .Values.elasticsearchEndpoint .Values.elasticsearchEndpoint.host }}
@@ -56,6 +56,6 @@ data:
 {{-   if .Values.elasticsearchEndpoint.scheme }}
   elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "http" | toString | b64enc | quote }}
 {{-   else }}
-  elasticsearchscheme: http
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
 {{-   end }}
 {{- end }}
