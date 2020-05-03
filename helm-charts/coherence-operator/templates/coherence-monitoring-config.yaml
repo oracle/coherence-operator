@@ -1,4 +1,4 @@
-{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.              */}}
+{{/* Copyright 2019, 2020, Oracle Corporation and/or its affiliates.  All rights reserved.              */}}
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at                            */}}
 {{/* http://oss.oracle.com/licenses/upl.                                                          */}}
 {{/*                                                                                              */}}
@@ -6,7 +6,7 @@
 {{/* to generate the config as we assume that they want to use that demo stack for log capture.   */}}
 {{/*                                                                                              */}}
 {{- if .Values.installEFK }}
-{{-   $eshost := printf "elasticsearch.%s.svc.cluster.local" .Release.Namespace }}
+{{-   $eshost := printf "elasticsearch.%s.svc.cluster.local:9200" .Release.Namespace }}
 {{/*                                                                                              */}}
 apiVersion: v1
 kind: Secret
@@ -14,13 +14,13 @@ metadata:
   name: coherence-monitoring-config
 type: Opaque
 data:
-  elasticsearchhost: {{ $eshost | toString | b64enc| quote }}
-  elasticsearchport: {{ "9200" | b64enc | quote  }}
+  elasticsearchhosts: {{ $eshost | toString | b64enc| quote }}
   elasticsearchuser: {{ "" | b64enc | quote }}
   elasticsearchpassword: {{ "" | b64enc | quote }}
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
 {{/*                                                                                              */}}
-{{- else if and .Values.elasticsearchEndpoint .Values.elasticsearchEndpoint.host }}
-{{/* else if the customer has added an elasticseach host and optionally other values use those    */}}
+{{- else if and .Values.elasticsearchEndpoint .Values.elasticsearchEndpoint.hosts }}
+{{/* else if the customer has added an elasticseach hosts and optionally other values use those    */}}
 {{/* to generate the config                                                                       */}}
 {{/*                                                                                              */}}
 apiVersion: v1
@@ -29,8 +29,33 @@ metadata:
   name: coherence-monitoring-config
 type: Opaque
 data:
-  elasticsearchhost: {{ .Values.elasticsearchEndpoint.host | toString | b64enc | quote }}
-  elasticsearchport: {{ .Values.elasticsearchEndpoint.port | default 9200 | toString | b64enc | quote  }}
+  elasticsearchhosts: {{ .Values.elasticsearchEndpoint.hosts | default "" | toString | b64enc | quote }}
   elasticsearchuser: {{ .Values.elasticsearchEndpoint.user | default "" | toString | b64enc | quote }}
   elasticsearchpassword: {{ .Values.elasticsearchEndpoint.password | default "" | toString | b64enc | quote }}
+{{-   if .Values.elasticsearchEndpoint.scheme }}
+  elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "http" | toString | b64enc | quote }}
+{{-   else }}
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
+{{-   end }}
+{{/*                                                                                              */}}
+{{- else if and .Values.elasticsearchEndpoint .Values.elasticsearchEndpoint.host }}
+{{/* else if the customer has added an elasticseach host and optionally other values use those    */}}
+{{/* to generate the config                                                                       */}}
+{{/*                                                                                              */}}
+{{-   $esport := default 9200 .Values.elasticsearchEndpoint.port }}
+{{-   $eshost := printf "%s:%d" .Values.elasticsearchEndpoint.host $esport }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: coherence-monitoring-config
+type: Opaque
+data:
+  elasticsearchhosts: {{ $eshost | toString | b64enc | quote }}
+  elasticsearchuser: {{ .Values.elasticsearchEndpoint.user | default "" | toString | b64enc | quote }}
+  elasticsearchpassword: {{ .Values.elasticsearchEndpoint.password | default "" | toString | b64enc | quote }}
+{{-   if .Values.elasticsearchEndpoint.scheme }}
+  elasticsearchscheme: {{ .Values.elasticsearchEndpoint.scheme | default "http" | toString | b64enc | quote }}
+{{-   else }}
+  elasticsearchscheme: {{ "http" | b64enc | quote }}
+{{-   end }}
 {{- end }}

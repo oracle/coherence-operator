@@ -1,4 +1,4 @@
-{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
+{{/* Copyright 2019, 2020, Oracle Corporation and/or its affiliates.  All rights reserved.*/}}
 {{/* Licensed under the Universal Permissive License v 1.0 as shown at*/}}
 {{/* http://oss.oracle.com/licenses/upl.*/}}
 {{/* */}}
@@ -51,9 +51,9 @@ data:
 
     <match coherence-cluster>
       @type elasticsearch
-      host "#{ENV['ELASTICSEARCH_HOST']}"
-      port "#{ENV['ELASTICSEARCH_PORT']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
+      hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+      scheme "#{ENV['ELASTICSEARCH_SCHEME']}"
       password "#{ENV['ELASTICSEARCH_PASSWORD']}"
       logstash_format true
       logstash_prefix coherence-cluster
@@ -62,8 +62,8 @@ data:
 {{- if .Values.logging.fluentd.tag }}
     <match {{ .Values.logging.fluentd.tag }} >
       @type elasticsearch
-      host "#{ENV['ELASTICSEARCH_HOST']}"
-      port "#{ENV['ELASTICSEARCH_PORT']}"
+      hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+      scheme "#{ENV['ELASTICSEARCH_SCHEME']}"
       user "#{ENV['ELASTICSEARCH_USER']}"
       password "#{ENV['ELASTICSEARCH_PASSWORD']}"
       logstash_format true
