@@ -129,7 +129,7 @@ func TestOperatorWithExternalEFKScheme(t *testing.T) {
 
 	// install the External EFK stack
 	esHost := installExternalEFK(t, ctx, false)
-	scheme := "HTTP"
+	scheme := "http"
 
 	// Create the values to use with install EFK disabled and the ES endpoint set to the ES Pod
 	values := helper.OperatorValues{

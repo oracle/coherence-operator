@@ -45,7 +45,8 @@ See: https://docs.fluentd.org/output/elasticsearch#scheme-optional[Fluend ES Con
 --set elasticsearchEndpoint.scheme=https
 ----
 
-Valid values for `elasticsearchEndpoint.scheme` are http or `https`
+Valid values for `elasticsearchEndpoint.scheme` are http or `https` *Note* the scheme value is
+case sensetive, fluentd will fail to start with any value other than exactly `http` or `https`.
 
 ==== Multiple Elasticsearch Hosts
 
