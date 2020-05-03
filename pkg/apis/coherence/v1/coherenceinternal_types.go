@@ -23,10 +23,7 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 type CoherenceInternal struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
-	// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
-	// +optional
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec contains the specification for a Coherence cluster. The format is the same

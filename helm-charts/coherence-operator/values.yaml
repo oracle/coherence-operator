@@ -1,4 +1,4 @@
-# Copyright 2019 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -99,6 +99,13 @@ elasticsearchEndpoint:
   user:
   # The Elasticsearch password to be accessed by fluentd.
   password:
+  # If you want to connect to more than one Elasticsearch nodes, specify this option in the following format:
+  # hosts: host1:port1,host2:port2,host3:port3
+  # or
+  # hosts: https://customhost.com:443/path,https://username:password@host-failover.com:443
+  hosts:
+  # Specify https if your Elasticsearch endpoint supports SSL (default: http)
+  scheme: http
 
 # Specify the docker image containing Kibana.
 # These parameters are ignored if 'installEFK' is false

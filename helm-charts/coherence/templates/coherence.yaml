@@ -685,26 +685,30 @@ spec:
               value: fluentd-coherence.conf
             - name: FLUENT_ELASTICSEARCH_SED_DISABLE
               value: "true"
-            - name: ELASTICSEARCH_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-monitoring-config
-                  key: elasticsearchhost
-            - name: ELASTICSEARCH_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: coherence-monitoring-config
-                  key: elasticsearchport
             - name: ELASTICSEARCH_USER
               valueFrom:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchuser
+                  optional: true
             - name: ELASTICSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: coherence-monitoring-config
                   key: elasticsearchpassword
+                  optional: true
+            - name: ELASTICSEARCH_HOSTS
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchhosts
+                  optional: true
+            - name: ELASTICSEARCH_SCHEME
+              valueFrom:
+                secretKeyRef:
+                  name: coherence-monitoring-config
+                  key: elasticsearchscheme
+                  optional: true
           volumeMounts:
             - mountPath: /fluentd/etc/fluentd-coherence.conf
               subPath: fluentd-coherence.conf
