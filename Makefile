@@ -1018,8 +1018,8 @@ serve-docs:
 release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
 	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
-	git stash save --keep-index --include-untracked
-	git stash drop
+	git stash save --keep-index --include-untracked || true
+	git stash drop || true
 	git checkout gh-pages
 	git pull
 ifeq (true, $(PRE_RELEASE))
