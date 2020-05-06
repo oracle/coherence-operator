@@ -8,7 +8,7 @@
 # ---------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 2.1.1
+VERSION ?= 2.1.2
 
 # VERSION_SUFFIX is ann optional version suffix. For a full release this should be
 # set to blank, for an interim release it should be set to a value to identify that
