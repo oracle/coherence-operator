@@ -1167,7 +1167,10 @@ type PortSpecWithSSL struct {
 
 // IsSSLEnabled returns true if this port is SSL enabled
 func (in *PortSpecWithSSL) IsSSLEnabled() bool {
-	return in != nil && in.Enabled != nil && *in.Enabled
+	if in == nil || in.SSL == nil {
+		return false
+	}
+	return in.SSL.Enabled != nil && *in.SSL.Enabled
 }
 
 // DeepCopyWithDefaults returns a copy of this PortSpecWithSSL struct with any nil or not set values set
