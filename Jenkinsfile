@@ -88,6 +88,7 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                     docker rmi $(docker images -q -f "dangling=true") || true
+                    docker pull gcr.io/distroless/java
                     make clean
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
