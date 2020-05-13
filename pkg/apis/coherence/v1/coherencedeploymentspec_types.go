@@ -782,10 +782,9 @@ func (in *CoherenceDeploymentSpec) CreateUtilsContainer(deployment *CoherenceDep
 		c.ImagePullPolicy = *in.CoherenceUtils.ImagePullPolicy
 	}
 
-	// set the persistence volumes if required
-	if in.Coherence != nil {
-		in.Coherence.AddPersistenceVolumeMounts(&c)
-	}
+	// set the persistence volume mounts if required
+	in.Coherence.AddPersistenceVolumeMounts(&c)
+
 	return c
 }
 

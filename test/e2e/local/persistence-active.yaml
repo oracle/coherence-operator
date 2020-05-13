@@ -16,7 +16,7 @@ spec:
       enabled: true
       port: 30000
     persistence:
-      enabled: true
+      mode: active
       persistentVolumeClaim:
         accessModes:
         - ReadWriteOnce

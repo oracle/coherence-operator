@@ -26,16 +26,24 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
 		"./pkg/apis/coherence/v1.JvmDebugSpec":            schema_pkg_apis_coherence_v1_JvmDebugSpec(ref),
+		"./pkg/apis/coherence/v1.JvmGarbageCollectorSpec": schema_pkg_apis_coherence_v1_JvmGarbageCollectorSpec(ref),
+		"./pkg/apis/coherence/v1.JvmJmxmpSpec":            schema_pkg_apis_coherence_v1_JvmJmxmpSpec(ref),
+		"./pkg/apis/coherence/v1.JvmMemorySpec":           schema_pkg_apis_coherence_v1_JvmMemorySpec(ref),
+		"./pkg/apis/coherence/v1.JvmOutOfMemorySpec":      schema_pkg_apis_coherence_v1_JvmOutOfMemorySpec(ref),
 		"./pkg/apis/coherence/v1.LoggingSpec":             schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.NamedPortSpec":           schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
 		"./pkg/apis/coherence/v1.NetworkSpec":             schema_pkg_apis_coherence_v1_NetworkSpec(ref),
+		"./pkg/apis/coherence/v1.PersistenceSpec":         schema_pkg_apis_coherence_v1_PersistenceSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":   schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
 		"./pkg/apis/coherence/v1.PodDNSConfig":            schema_pkg_apis_coherence_v1_PodDNSConfig(ref),
 		"./pkg/apis/coherence/v1.PortSpec":                schema_pkg_apis_coherence_v1_PortSpec(ref),
 		"./pkg/apis/coherence/v1.PortSpecWithSSL":         schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
+		"./pkg/apis/coherence/v1.ProbeHandler":            schema_pkg_apis_coherence_v1_ProbeHandler(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":      schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
 		"./pkg/apis/coherence/v1.SSLSpec":                 schema_pkg_apis_coherence_v1_SSLSpec(ref),
 		"./pkg/apis/coherence/v1.ScalingProbe":            schema_pkg_apis_coherence_v1_ScalingProbe(ref),
+		"./pkg/apis/coherence/v1.ScalingSpec":             schema_pkg_apis_coherence_v1_ScalingSpec(ref),
+		"./pkg/apis/coherence/v1.ServiceMonitorSpec":      schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref),
 		"./pkg/apis/coherence/v1.ServiceSpec":             schema_pkg_apis_coherence_v1_ServiceSpec(ref),
 		"./pkg/apis/coherence/v1.StartQuorum":             schema_pkg_apis_coherence_v1_StartQuorum(ref),
 	}
@@ -506,13 +514,7 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 					"persistence": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
-						},
-					},
-					"snapshot": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. The bool Enabled enables or disabled a different location for persistence snapshot data. If set to false then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
-							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+							Ref:         ref("./pkg/apis/coherence/v1.PersistenceSpec"),
 						},
 					},
 					"management": {
@@ -545,7 +547,7 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.PersistentStorageSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
+			"./pkg/apis/coherence/v1.PersistenceSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
 	}
 }
 
@@ -787,7 +789,7 @@ func schema_pkg_apis_coherence_v1_JvmDebugSpec(ref common.ReferenceCallback) com
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "The JVM Debug specific configuration. See:",
+				Description: "The JVM Debug specific configuration.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"enabled": {
@@ -816,6 +818,162 @@ func schema_pkg_apis_coherence_v1_JvmDebugSpec(ref common.ReferenceCallback) com
 							Description: "The port that the debugger will listen on; the default is 5005.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JvmGarbageCollectorSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Options for managing the JVM garbage collector.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"collector": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the JVM garbage collector to use. G1 - adds the -XX:+UseG1GC option CMS - adds the -XX:+UseConcMarkSweepGC option Parallel - adds the -XX:+UseParallelGC Default - use the JVMs default collector The field value is case insensitive If not set G1 is used. If set to a value other than those above then the default collector for the JVM will be used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"args": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Args specifies the GC options to pass to the JVM.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"logging": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime Default is true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JvmJmxmpSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Options for configuring JMX using JMXMP.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true the JMXMP support will be enabled. Default is false",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"port": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port tht the JMXMP MBeanServer should bind to. If not set the default port is 9099",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Options for managing the JVM memory.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"heapSize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"stackSize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "StackSize is the stack size value to pass to the JVM. The format should be the same as that used for Java's -Xss JVM option. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metaspaceSize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MetaspaceSize is the min/max metaspace size to pass to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"directMemorySize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DirectMemorySize sets the maximum total size (in bytes) of the New I/O (the java.nio package) direct-buffer allocations. This value sets the -XX:MaxDirectMemorySize JVM option. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"nativeMemoryTracking": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Adds the -XX:NativeMemoryTracking=mode  JVM options where mode is on of \"off\", \"summary\" or \"detail\", the default is \"summary\" If not set to \"off\" also add -XX:+PrintNMTStatistics",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"onOutOfMemory": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Configure the JVM behaviour when an OutOfMemoryError occurs.",
+							Ref:         ref("./pkg/apis/coherence/v1.JvmOutOfMemorySpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.JvmOutOfMemorySpec"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_JvmOutOfMemorySpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Options for managing the JVM behaviour when an OutOfMemoryError occurs.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"exit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true the JVM will exit when an OOM error occurs. Default is true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"heapDump": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true adds the -XX:+HeapDumpOnOutOfMemoryError JVM option to cause a heap dump to be created when an OOM error occurs. Default is true",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 				},
@@ -991,6 +1149,46 @@ func schema_pkg_apis_coherence_v1_NetworkSpec(ref common.ReferenceCallback) comm
 	}
 }
 
+func schema_pkg_apis_coherence_v1_PersistenceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The spec for Coherence persistence.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mode": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The persistence mode to use. Valid choices are \"on-demand\", \"active\", \"active-async\". This field will set the coherence.distributed.persistence-mode System property to \"default-\" + Mode.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"persistentVolumeClaim": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.",
+							Ref:         ref("k8s.io/api/core/v1.PersistentVolumeClaimSpec"),
+						},
+					},
+					"volume": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.",
+							Ref:         ref("k8s.io/api/core/v1.VolumeSource"),
+						},
+					},
+					"snapshots": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Snapshot values configure the on-disc persistence data snapshot (backup) settings. These settings enable a different location for persistence snapshot data. If not set then snapshot files will be written to the same volume configured for persistence data in the Persistence section.",
+							Ref:         ref("./pkg/apis/coherence/v1.PersistentStorageSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.PersistentStorageSpec", "k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.VolumeSource"},
+	}
+}
+
 func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -998,12 +1196,6 @@ func schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref common.ReferenceCall
 				Description: "PersistenceStorageSpec defines the persistence settings for the Coherence",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"enabled": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
 					"persistentVolumeClaim": {
 						SchemaProps: spec.SchemaProps{
 							Description: "PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.",
@@ -1186,6 +1378,39 @@ func schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"./pkg/apis/coherence/v1.SSLSpec"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_ProbeHandler(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The definition of a probe handler.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"exec": {
+						SchemaProps: spec.SchemaProps{
+							Description: "One and only one of the following should be specified. Exec specifies the action to take.",
+							Ref:         ref("k8s.io/api/core/v1.ExecAction"),
+						},
+					},
+					"httpGet": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HTTPGet specifies the http request to perform.",
+							Ref:         ref("k8s.io/api/core/v1.HTTPGetAction"),
+						},
+					},
+					"tcpSocket": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported",
+							Ref:         ref("k8s.io/api/core/v1.TCPSocketAction"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
 	}
 }
 
@@ -1405,6 +1630,119 @@ func schema_pkg_apis_coherence_v1_ScalingProbe(ref common.ReferenceCallback) com
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_ScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The configuration to control safe scaling.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"policy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ScalingPolicy describes how the replicas of the deployment will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"probe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The probe to use to determine whether a deployment is Phase HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Phase HA to just checking Coherence services then a different handler may be specified.",
+							Ref:         ref("./pkg/apis/coherence/v1.ScalingProbe"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"./pkg/apis/coherence/v1.ScalingProbe"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "The ServiceMonitor spec for a port service.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port. If Prometheus ServiceMonitor CR is not installed no ServiceMonitor then even if this flag is true no ServiceMonitor will be created.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"labels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to add to the ServiceMonitor. More info: http://kubernetes.io/docs/user-guide/labels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"path": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HTTP path to scrape for metrics.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"scheme": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HTTP scheme to use for scraping.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"params": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Optional HTTP URL parameters",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type: []string{"array"},
+										Items: &spec.SchemaOrArray{
+											Schema: &spec.Schema{
+												SchemaProps: spec.SchemaProps{
+													Type:   []string{"string"},
+													Format: "",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"interval": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Interval at which metrics should be scraped",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"scrapeTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Timeout after which the scrape is ended",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
