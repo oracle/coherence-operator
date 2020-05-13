@@ -1067,10 +1067,10 @@ install-elastic:
 	helm repo add elastic https://helm.elastic.co || true
 #   Install Elasticsearch
 	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
+		--debug --values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
 	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--values etc/kibana-values.yaml kibana elastic/kibana
+		--debug --values etc/kibana-values.yaml kibana elastic/kibana
 #   Import Coherence dashboards
 	KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
 	kubectl -n $(TEST_NAMESPACE) -n operator-test exec -it $(KIBANA_POD) /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
