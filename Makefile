@@ -208,7 +208,7 @@ $(BUILD_PROPS):
 # Builds the project, helm charts and Docker image
 # ---------------------------------------------------------------------------
 .PHONY: build-operator
-build-operator: $(BUILD_OUTPUT)/bin/operator
+build-operator: build-runner-artifacts $(BUILD_OUTPUT)/bin/operator
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator Docker image and Helm charts
@@ -1066,10 +1066,10 @@ install-elastic:
 	helm version
 	helm repo add elastic https://helm.elastic.co || true
 #   Install Elasticsearch
-	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait \
+	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
-	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait \
+	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--values etc/kibana-values.yaml kibana elastic/kibana
 #   Import Coherence dashboards
 	KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
