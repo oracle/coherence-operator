@@ -190,13 +190,7 @@ type CoherenceSpec struct {
 	// Persistence values configure the on-disc data persistence settings.
 	// The bool Enabled enables or disabled on disc persistence of data.
 	// +optional
-	Persistence *PersistentStorageSpec `json:"persistence,omitempty"`
-	// Snapshot values configure the on-disc persistence data snapshot (backup) settings.
-	// The bool Enabled enables or disabled a different location for
-	// persistence snapshot data. If set to false then snapshot files will be written
-	// to the same volume configured for persistence data in the Persistence section.
-	// +optional
-	Snapshot *PersistentStorageSpec `json:"snapshot,omitempty"`
+	Persistence *PersistenceSpec `json:"persistence,omitempty"`
 	// Management configures Coherence management over REST
 	//   Note: Coherence management over REST will be available in 12.2.1.4.
 	// +optional
@@ -219,79 +213,25 @@ func (in *CoherenceSpec) IsWKAMember() bool {
 	return in == nil || in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA
 }
 
-// Determine whether persistence is enabled
-func (in *CoherenceSpec) IsPersistenceEnabled() bool {
-	return in.Persistence != nil && in.Persistence.Enabled != nil && *in.Persistence.Enabled
-}
-
-// Determine whether snapshots is enabled
-func (in *CoherenceSpec) IsSnapshotsEnabled() bool {
-	return in.Snapshot != nil && in.Snapshot.Enabled != nil && *in.Snapshot.Enabled
-}
-
 // Add the persistence and snapshot volume mounts to the specified container
 func (in *CoherenceSpec) AddPersistenceVolumeMounts(c *corev1.Container) {
-	if in == nil {
-		// nothing to update
-		return
-	}
-
-	// Add the persistence volume mount if required
-	if in.IsPersistenceEnabled() {
-		// add the persistence volume mount
-		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
-			Name:      VolumeNamePersistence,
-			MountPath: VolumeMountPathPersistence,
-		})
-	}
-
-	// Add the snapshot volume mount if required
-	if in.IsSnapshotsEnabled() {
-		// Snapshots is enabled so use the snapshot mount
-		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{Name: VolumeNameSnapshots, MountPath: VolumeMountPathSnapshots})
-		//} else {
-		//	// no specific snapshot spec set so use the root mount point
-		//	rootSnapshots := corev1.VolumeMount{Name: VolumeNameSnapshots, MountPath: VolumeMountPathRootSnapshots}
-		//	c.VolumeMounts = append(c.VolumeMounts, rootSnapshots)
+	if in != nil {
+		in.Persistence.AddVolumeMounts(c)
 	}
 }
 
 // Add the persistence and snapshot persistent volume claims
 func (in *CoherenceSpec) AddPersistencePVCs(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
 	// Add the persistence PVC if required
-	if required, pvc := in.Persistence.CreatePersistentVolumeClaim(deployment, VolumeNamePersistence); required {
-		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, *pvc)
-	}
-
-	// Add the snapshot PVC if required
-	if required, pvc := in.Snapshot.CreatePersistentVolumeClaim(deployment, VolumeNameSnapshots); required {
-		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, *pvc)
-	}
+	pvcs := in.Persistence.CreatePersistentVolumeClaims(deployment)
+	sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, pvcs...)
 }
 
 // Add the persistence and snapshot volumes
 func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 	// Add the persistence volume if required
-	if in.IsPersistenceEnabled() && in.Persistence.Volume != nil {
-		source := corev1.VolumeSource{}
-		in.Persistence.Volume.DeepCopyInto(&source)
-		vol := corev1.Volume{
-			Name:         VolumeNamePersistence,
-			VolumeSource: source,
-		}
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
-	}
-
-	// Add the snapshot volume if required
-	if in.IsSnapshotsEnabled() && in.Snapshot.Volume != nil {
-		source := corev1.VolumeSource{}
-		in.Snapshot.Volume.DeepCopyInto(&source)
-		vol := corev1.Volume{
-			Name:         VolumeNameSnapshots,
-			VolumeSource: source,
-		}
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
-	}
+	vols := in.Persistence.CreatePersistenceVolumes()
+	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vols...)
 }
 
 // Apply Coherence settings to the StatefulSet.
@@ -327,21 +267,16 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *CoherenceDeployment, sts 
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSkipVersionCheck, Value: BoolPtrToString(in.SkipVersionCheck)})
 	}
 
-	if in.IsPersistenceEnabled() {
-		// enable persistence environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceEnabled, Value: "true"})
-	}
-
-	if in.IsSnapshotsEnabled() {
-		// enable snapshot environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotEnabled, Value: "true"})
-	}
-
 	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
 	c.Env = append(c.Env, in.Management.CreateEnvVars(EnvVarCohMgmtPrefix, VolumeMountPathManagementCerts, DefaultManagementPort)...)
 
 	in.Metrics.AddSSLVolumes(sts, c, VolumeNameMetricsSSL, VolumeMountPathMetricsCerts)
 	c.Env = append(c.Env, in.Metrics.CreateEnvVars(EnvVarCohMetricsPrefix, VolumeMountPathMetricsCerts, DefaultMetricsPort)...)
+
+	// set the persistence mode
+	if mode := in.Persistence.GetMode(); mode != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceMode, Value: *mode})
+	}
 
 	in.AddPersistenceVolumeMounts(c)
 	in.AddPersistenceVolumes(sts)
@@ -658,13 +593,102 @@ func (in LoggingConfigTemplate) Parse() (string, error) {
 	return buf.String(), nil
 }
 
+// ----- PersistenceSpec struct ---------------------------------------------
+
+// The spec for Coherence persistence.
+// +k8s:openapi-gen=true
+type PersistenceSpec struct {
+	// The persistence mode to use.
+	// Valid choices are "on-demand", "active", "active-async".
+	// This field will set the coherence.distributed.persistence-mode System property
+	// to "default-" + Mode.
+	// +optional
+	Mode *string `json:"mode,omitempty"`
+	// The persistence storage spec for.
+	PersistentStorageSpec `json:",inline"`
+	// Snapshot values configure the on-disc persistence data snapshot (backup) settings.
+	// These settings enable a different location for persistence snapshot data.
+	// If not set then snapshot files will be written to the same volume configured for
+	// persistence data in the Persistence section.
+	// +optional
+	Snapshots *PersistentStorageSpec `json:"snapshots,omitempty"`
+}
+
+// Obtain the persistence mode to be used.
+func (in *PersistenceSpec) GetMode() *string {
+	if in == nil || in.Mode == nil {
+		return nil
+	}
+	return in.Mode
+}
+
+func (in *PersistenceSpec) CreatePersistentVolumeClaims(deployment *CoherenceDeployment) []corev1.PersistentVolumeClaim {
+	var pvcs []corev1.PersistentVolumeClaim
+	if in != nil {
+		// Only create the PVC if there is not a volume definition configured
+		if pvc := in.CreatePersistentVolumeClaim(deployment, VolumeNamePersistence); pvc != nil {
+			pvcs = append(pvcs, *pvc)
+		}
+
+		// Only create the snapshots PVC if there is not a snapshots volume definition configured
+		if pvc := in.Snapshots.CreatePersistentVolumeClaim(deployment, VolumeNameSnapshots); pvc != nil {
+			pvcs = append(pvcs, *pvc)
+		}
+	}
+	return pvcs
+}
+
+// Add the persistence and snapshot volumes
+func (in *PersistenceSpec) CreatePersistenceVolumes() []corev1.Volume {
+	var vols []corev1.Volume
+
+	if in != nil {
+		if in.Volume != nil {
+			// A Persistence Volume s configured so use it
+			vols = append(vols, in.CreatePersistenceVolume(VolumeNamePersistence))
+		}
+
+		if in.Snapshots != nil && in.Snapshots.Volume != nil {
+			// A Snapshots Volume s configured so use it
+			vols = append(vols, in.Snapshots.CreatePersistenceVolume(VolumeNameSnapshots))
+		}
+	}
+	return vols
+}
+
+// Add the persistence and snapshot volume mounts to the specified container
+func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
+	if in == nil {
+		return
+	}
+
+	if in.Volume != nil || in.PersistentVolumeClaim != nil {
+		// Set the persistence location environment variable
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceDir, Value: VolumeMountPathPersistence})
+		// Add the persistence volume mount
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
+			Name:      VolumeNamePersistence,
+			MountPath: VolumeMountPathPersistence,
+		})
+	}
+
+	// Add the snapshot volume mount if required
+	if in != nil && in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
+		// Set the snapshot location environment variable
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
+		// Add the snapshot volume mount
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
+			Name:      VolumeNameSnapshots,
+			MountPath: VolumeMountPathSnapshots,
+		})
+	}
+}
+
 // ----- PersistentStorageSpec struct ---------------------------------------
 
 // PersistenceStorageSpec defines the persistence settings for the Coherence
 // +k8s:openapi-gen=true
 type PersistentStorageSpec struct {
-	// +optional
-	Enabled *bool `json:"enabled,omitempty"`
 	// PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim
 	// for persistence data.
 	// +optional
@@ -679,11 +703,11 @@ type PersistentStorageSpec struct {
 	Volume *corev1.VolumeSource `json:"volume,omitempty"` // from k8s.io/api/core/v1
 }
 
-// Create a PersistentVolumeClaim
-func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *CoherenceDeployment, name string) (bool, *corev1.PersistentVolumeClaim) {
-	if in == nil || in.Enabled == nil || !*in.Enabled || in.Volume != nil {
-		// Either persistence is disabled or we're using a normal Volume
-		return false, nil
+// Create a PersistentVolumeClaim if required
+func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *CoherenceDeployment, name string) *corev1.PersistentVolumeClaim {
+	if in == nil || in.Volume != nil || in.PersistentVolumeClaim == nil {
+		// no pv required
+		return nil
 	}
 
 	spec := corev1.PersistentVolumeClaimSpec{}
@@ -694,15 +718,22 @@ func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *Coheren
 	labels := deployment.CreateCommonLabels()
 	labels[LabelComponent] = LabelComponentPVC
 
-	pvc := &corev1.PersistentVolumeClaim{
+	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   name,
 			Labels: labels,
 		},
 		Spec: spec,
 	}
+}
 
-	return true, pvc
+// Create any persistence volumes required.
+func (in *PersistentStorageSpec) CreatePersistenceVolume(name string) corev1.Volume {
+	source := corev1.VolumeSource{}
+	if in.Volume != nil {
+		in.Volume.DeepCopyInto(&source)
+	}
+	return corev1.Volume{Name: name, VolumeSource: source}
 }
 
 // ----- SSLSpec struct -----------------------------------------------------
@@ -1044,6 +1075,8 @@ func (in *NamedPortSpec) CreatePort(d *CoherenceDeployment) corev1.ContainerPort
 
 // ----- ServiceMonitorSpec struct ---------------------------------------------
 
+// The ServiceMonitor spec for a port service.
+// +k8s:openapi-gen=true
 type ServiceMonitorSpec struct {
 	// Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port.
 	// If Prometheus ServiceMonitor CR is not installed no ServiceMonitor then even if this flag
@@ -1100,7 +1133,6 @@ func (in *ServiceMonitorSpec) UpdateEndpoint(ep monitoringv1.Endpoint) {
 // ----- JvmDebugSpec struct ---------------------------------------------------
 
 // The JVM Debug specific configuration.
-// See:
 // +k8s:openapi-gen=true
 type JvmDebugSpec struct {
 	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
@@ -1161,6 +1193,7 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 // ----- JVM GC struct ------------------------------------------------------
 
 // Options for managing the JVM garbage collector.
+// +k8s:openapi-gen=true
 type JvmGarbageCollectorSpec struct {
 	// The name of the JVM garbage collector to use.
 	// G1 - adds the -XX:+UseG1GC option
@@ -1174,6 +1207,7 @@ type JvmGarbageCollectorSpec struct {
 	// +optional
 	Collector *string `json:"collector,omitempty"`
 	// Args specifies the GC options to pass to the JVM.
+	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
 	// Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
@@ -1212,6 +1246,7 @@ func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 // ----- JVM MemoryGC struct ------------------------------------------------
 
 // Options for managing the JVM memory.
+// +k8s:openapi-gen=true
 type JvmMemorySpec struct {
 	// HeapSize is the min/max heap value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
@@ -1279,6 +1314,7 @@ func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 // ----- JVM Out Of Memory struct -------------------------------------------
 
 // Options for managing the JVM behaviour when an OutOfMemoryError occurs.
+// +k8s:openapi-gen=true
 type JvmOutOfMemorySpec struct {
 	// If set to true the JVM will exit when an OOM error occurs.
 	// Default is true
@@ -1310,6 +1346,7 @@ func (in *JvmOutOfMemorySpec) CreateEnvVars() []corev1.EnvVar {
 // ----- JvmJmxmpSpec struct -------------------------------------------------------
 
 // Options for configuring JMX using JMXMP.
+// +k8s:openapi-gen=true
 type JvmJmxmpSpec struct {
 	// If set to true the JMXMP support will be enabled.
 	// Default is false
@@ -1564,6 +1601,7 @@ func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
 // ----- ScalingSpec -----------------------------------------------------
 
 // The configuration to control safe scaling.
+// +k8s:openapi-gen=true
 type ScalingSpec struct {
 	// ScalingPolicy describes how the replicas of the deployment will be scaled.
 	// The default if not specified is based upon the value of the StorageEnabled field.
@@ -1631,6 +1669,8 @@ type ReadinessProbeSpec struct {
 	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
 }
 
+// The definition of a probe handler.
+// +k8s:openapi-gen=true
 type ProbeHandler struct {
 	// One and only one of the following should be specified.
 	// Exec specifies the action to take.

@@ -245,16 +245,17 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	// Configure Coherence persistence
-	if details.IsEnvTrue(v1.EnvVarCohPersistenceEnabled) {
-		details.AddArg("-Dcoherence.distributed.persistence-mode=active")
-		details.AddArg("-Dcoherence.distributed.persistence.base.dir=/persistence")
-	} else {
-		details.AddArg("-Dcoherence.distributed.persistence-mode=on-demand")
+	mode := details.GetenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
+	details.AddArg("-Dcoherence.distributed.persistence-mode=" + mode)
+
+	persistence := details.Getenv(v1.EnvVarCohPersistenceDir)
+	if persistence != "" {
+		details.AddArg("-Dcoherence.distributed.persistence.base.dir=" + persistence)
 	}
 
-	// Configure Coherence persistence snapshots
-	if details.IsEnvTrue(v1.EnvVarCohSnapshotEnabled) {
-		details.AddArg("-Dcoherence.distributed.persistence.snapshot.dir=/snapshot")
+	snapshots := details.Getenv(v1.EnvVarCohSnapshotDir)
+	if snapshots != "" {
+		details.AddArg("-Dcoherence.distributed.persistence.snapshot.dir=" + snapshots)
 	}
 
 	// Set the Coherence site and rack values
@@ -559,7 +560,7 @@ func httpGet(url string, details *RunDetails) string {
 		if err == nil {
 			timeout = t
 		} else {
-			fmt.Printf("ERROR: Invalid value set for %s '%s' using default of 120", v1.EnvVarOperatorTimeout, val)
+			fmt.Printf("ERROR: Invalid value set for %s '%s' using default of 120\n", v1.EnvVarOperatorTimeout, val)
 		}
 	}
 
@@ -576,13 +577,13 @@ func httpGet(url string, details *RunDetails) string {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("ERROR: filed to get 200 response from %s - %s", url, resp.Status)
+		fmt.Printf("ERROR: filed to get 200 response from %s - %s\n", url, resp.Status)
 		return ""
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("ERROR: filed to read response body from %s - %s", url, resp.Status)
+		fmt.Printf("ERROR: filed to read response body from %s - %s\n", url, resp.Status)
 		return ""
 	}
 
@@ -595,7 +596,7 @@ func checkCoherenceVersion(v string, details *RunDetails) (bool, error) {
 	fmt.Printf("INFO: Checking for Coherence version %s\n", v)
 
 	if details.IsEnvTrue(v1.EnvVarCohSkipVersionCheck) {
-		fmt.Printf("INFO: Skipping Coherence version check %s=%s", v1.EnvVarCohSkipVersionCheck, details.Getenv(v1.EnvVarCohSkipVersionCheck))
+		fmt.Printf("INFO: Skipping Coherence version check %s=%s\n", v1.EnvVarCohSkipVersionCheck, details.Getenv(v1.EnvVarCohSkipVersionCheck))
 		return true, nil
 	}
 
@@ -635,7 +636,7 @@ func checkForHotspot(details *RunDetails) (bool, error) {
 		return false, errors.Wrap(err, "checking for hotspot JVM")
 	}
 	isHotspot := strings.Contains(string(out), "Java HotSpot")
-	fmt.Printf("INFO: Checked for Oracle Hotspot JVM - %t", isHotspot)
+	fmt.Printf("INFO: Checked for Oracle Hotspot JVM - %t\n", isHotspot)
 	return isHotspot, nil
 }
 
@@ -783,6 +784,14 @@ type RunDetails struct {
 
 func (in *RunDetails) Getenv(name string) string {
 	return in.Env[name]
+}
+
+func (in *RunDetails) GetenvOrDefault(name string, defaultValue string) string {
+	v, ok := in.Env[name]
+	if ok && v != "" {
+		return v
+	}
+	return defaultValue
 }
 
 func (in *RunDetails) LookupEnv(name string) (string, bool) {

@@ -8,6 +8,8 @@ spec:
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   coherence:
     cacheConfig: test-cache-config.xml
+    persistence:
+      mode: on-demand
     management:
       enabled: true
       port: 30000
