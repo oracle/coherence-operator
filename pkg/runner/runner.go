@@ -303,16 +303,18 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		podUID = "unknown"
 	}
 
-	// Configure the /jvm directory to hold heap dumps, jfr files etc.
-	jvmDir := "/jvm/" + member + "/" + podUID
-	if err = os.MkdirAll(jvmDir, os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	if err = os.MkdirAll(jvmDir+"/jfr", os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	if err = os.MkdirAll(jvmDir+"/heap-dumps", os.ModePerm); err != nil {
-		return "", nil, err
+	// Configure the /jvm directory to hold heap dumps, jfr files etc if the jvm root dir exists.
+	jvmDir := v1.VolumeMountPathJVM + "/" + member + "/" + podUID
+	if _, err = os.Stat(v1.VolumeMountPathJVM); err == nil {
+		if err = os.MkdirAll(jvmDir, os.ModePerm); err != nil {
+			return "", nil, err
+		}
+		if err = os.MkdirAll(jvmDir+"/jfr", os.ModePerm); err != nil {
+			return "", nil, err
+		}
+		if err = os.MkdirAll(jvmDir+"/heap-dumps", os.ModePerm); err != nil {
+			return "", nil, err
+		}
 	}
 
 	details.AddArg(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
