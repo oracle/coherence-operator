@@ -8,10 +8,16 @@ package helper
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"net"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,18 +27,19 @@ import (
 )
 
 const (
-	TestNamespaceEnv      = "TEST_NAMESPACE"
-	TestManifestEnv       = "TEST_MANIFEST"
-	TestLocalManifestEnv  = "TEST_LOCAL_MANIFEST"
-	TestGlobalManifestEnv = "TEST_GLOBAL_MANIFEST"
-	TestSslSecretEnv      = "TEST_SSL_SECRET"
-	TestManifestValuesEnv = "TEST_MANIFEST_VALUES"
-	ImagePullSecretsEnv   = "IMAGE_PULL_SECRETS"
-	CoherenceVersionEnv   = "COHERENCE_VERSION"
-	CompatibleVersionsEnv = "COMPATIBLE_VERSIONS"
-	VersionEnv            = "VERSION_FULL"
-	OperatorImageEnv      = "OPERATOR_IMAGE"
-	SkipCompatibilityEnv  = "SKIP_COMPATIBILITY"
+	TestNamespaceEnv       = "TEST_NAMESPACE"
+	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
+	TestManifestEnv        = "TEST_MANIFEST"
+	TestLocalManifestEnv   = "TEST_LOCAL_MANIFEST"
+	TestGlobalManifestEnv  = "TEST_GLOBAL_MANIFEST"
+	TestSslSecretEnv       = "TEST_SSL_SECRET"
+	TestManifestValuesEnv  = "TEST_MANIFEST_VALUES"
+	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"
+	CoherenceVersionEnv    = "COHERENCE_VERSION"
+	CompatibleVersionsEnv  = "COMPATIBLE_VERSIONS"
+	VersionEnv             = "VERSION_FULL"
+	OperatorImageEnv       = "OPERATOR_IMAGE"
+	SkipCompatibilityEnv   = "SKIP_COMPATIBILITY"
 
 	defaultNamespace = "operator-test"
 
@@ -40,7 +47,6 @@ const (
 	outDir             = buildDir + string(os.PathSeparator) + "_output"
 	chartDir           = outDir + string(os.PathSeparator) + "helm-charts"
 	compatibleChartDir = outDir + string(os.PathSeparator) + "previous-charts"
-	coherenceChart     = chartDir + string(os.PathSeparator) + "coherence"
 	operatorChart      = chartDir + string(os.PathSeparator) + "coherence-operator"
 	compatibleCharts   = compatibleChartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
@@ -54,6 +60,14 @@ func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)
 	if ns == "" {
 		ns = defaultNamespace
+	}
+	return ns
+}
+
+func GetPrometheusNamespace() string {
+	ns := os.Getenv(PrometheusNamespaceEnv)
+	if ns == "" {
+		ns = GetTestNamespace()
 	}
 	return ns
 }
@@ -159,47 +173,12 @@ func AssumeRunningCompatibilityTests(t *testing.T) {
 	}
 }
 
-func FindBuildDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-	return pd + string(os.PathSeparator) + buildDir, nil
-}
-
 func FindCrdDir() (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
 		return "", err
 	}
 	return pd + string(os.PathSeparator) + crds, nil
-}
-
-func FindBuildOutputDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	return pd + string(os.PathSeparator) + outDir, nil
-}
-
-func FindHelmChartsDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	return pd + string(os.PathSeparator) + chartDir, nil
-}
-
-func FindCoherenceHelmChartDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	return pd + string(os.PathSeparator) + coherenceChart, nil
 }
 
 func FindOperatorHelmChartDir() (string, error) {
@@ -247,97 +226,117 @@ func FindTestManifestDir() (string, error) {
 	return pd + string(os.PathSeparator) + manifest, nil
 }
 
-// NewCoherenceCluster creates a new CoherenceCluster from the default yaml file.
-func NewCoherenceCluster(namespace string) (coh.CoherenceCluster, error) {
-	return createCoherenceClusterFromYaml(namespace)
+// NewCoherenceDeployment creates a new CoherenceDeployment from the default minimal yaml file.
+func NewCoherenceDeployment(namespace string) (coh.CoherenceDeployment, error) {
+	return NewSingleCoherenceDeploymentFromYaml(namespace, "")
 }
 
-// NewCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
-func NewCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
-	if len(files) == 0 {
-		return coh.CoherenceCluster{}, fmt.Errorf("no yaml files specified (did you specify a file instead of a namespace as the first argument?)")
+// NewSingleCoherenceDeploymentFromYaml creates a single new CoherenceDeployment from a yaml file.
+func NewSingleCoherenceDeploymentFromYaml(namespace string, file string) (coh.CoherenceDeployment, error) {
+	deps, err := NewCoherenceDeploymentFromYaml(namespace, file)
+	switch {
+	case err == nil && len(deps) == 0:
+		return coh.CoherenceDeployment{}, fmt.Errorf("no deployments created from yaml %s", file)
+	case err != nil:
+		return coh.CoherenceDeployment{}, err
+	default:
+		return deps[0], err
 	}
-	return createCoherenceClusterFromYaml(namespace, files...)
 }
 
-// createCoherenceClusterFromYaml creates a new CoherenceCluster from a yaml file.
-func createCoherenceClusterFromYaml(namespace string, files ...string) (coh.CoherenceCluster, error) {
-	c := coh.CoherenceCluster{}
+// NewCoherenceDeploymentFromYaml creates a new CoherenceDeployment from a yaml file.
+func NewCoherenceDeploymentFromYaml(namespace string, file string) ([]coh.CoherenceDeployment, error) {
+	return createCoherenceDeploymentFromYaml(namespace, file)
+}
 
-	l := coherenceClusterLoader{}
-	err := l.loadYaml(&c, files...)
+// createCoherenceDeploymentFromYaml creates a new CoherenceDeployment from a yaml file.
+func createCoherenceDeploymentFromYaml(namespace string, file string) ([]coh.CoherenceDeployment, error) {
+	l := CoherenceDeploymentLoader{}
+	return l.loadYaml(namespace, file)
+}
 
-	if namespace != "" {
-		c.SetNamespace(namespace)
+type CoherenceDeploymentLoader struct {
+}
+
+func (in *CoherenceDeploymentLoader) loadYaml(namespace, file string) ([]coh.CoherenceDeployment, error) {
+	var deployments []coh.CoherenceDeployment
+
+	if in == nil {
+		return deployments, nil
 	}
 
-	return c, err
-}
-
-type coherenceClusterLoader struct {
-}
-
-// Load this CoherenceCluster from the specified yaml file
-func (in *coherenceClusterLoader) FromYaml(cluster *coh.CoherenceCluster, files ...string) error {
-	return in.loadYaml(cluster, files...)
-}
-
-func (in *coherenceClusterLoader) loadYaml(cluster *coh.CoherenceCluster, files ...string) error {
-	if in == nil || files == nil {
-		return nil
-	}
-
-	// try loading common-coherence-cluster.yaml first as this contains various values common
+	// try loading common-coherence-deployment.yaml first as this contains various values common
 	// to all test structures as well as values replaced by test environment variables.
 	_, c, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(c)
-	common := dir + string(os.PathSeparator) + "common-coherence-cluster.yaml"
-	err := in.loadYamlFromFile(cluster, common)
+	common := dir + string(os.PathSeparator) + "common-coherence-deployment.yaml"
+	templates, err := in.loadYamlFromFile(coh.CoherenceDeployment{}, common)
 	if err != nil {
-		return err
+		return deployments, err
+	}
+
+	if len(templates) == 0 {
+		return deployments, fmt.Errorf("could not load any deployment templates")
+	}
+	template := templates[0]
+
+	if namespace != "" {
+		template.SetNamespace(namespace)
 	}
 
 	// Append any
 	secrets := GetImagePullSecrets()
-	cluster.Spec.ImagePullSecrets = append(cluster.Spec.ImagePullSecrets, secrets...)
+	template.Spec.ImagePullSecrets = append(template.Spec.ImagePullSecrets, secrets...)
 
-	for _, file := range files {
-		err := in.loadYamlFromFile(cluster, file)
-		if err != nil {
-			return err
-		}
+	if file != "" {
+		deployments, err = in.loadYamlFromFile(template, file)
+	} else {
+		deployments = append(deployments, template)
 	}
 
-	return nil
+	return deployments, err
 }
 
-func (in *coherenceClusterLoader) loadYamlFromFile(cluster *coh.CoherenceCluster, file string) error {
+func (in *CoherenceDeploymentLoader) loadYamlFromFile(template coh.CoherenceDeployment, file string) ([]coh.CoherenceDeployment, error) {
+	var deployments []coh.CoherenceDeployment
 	if in == nil || file == "" {
-		return nil
+		return deployments, nil
 	}
 
 	actualFile, err := in.findActualFile(file)
 	if err != nil {
-		return err
+		return deployments, err
 	}
 
+	// read the whole file
 	data, err := ioutil.ReadFile(actualFile)
 	if err != nil {
-		return errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
+		return deployments, errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
 	}
 
 	// expand any ${env-var} references in the yaml file
 	s := os.ExpandEnv(string(data))
 
-	err = yaml.Unmarshal([]byte(s), cluster)
-	if err != nil {
-		return errors.New("Failed to parse yaml file " + actualFile + " caused by " + err.Error())
+	// Get the yaml decoder
+	decoder := yaml.NewYAMLToJSONDecoder(strings.NewReader(s))
+
+	for err == nil {
+		deployment := coh.CoherenceDeployment{}
+		template.DeepCopyInto(&deployment)
+		err = decoder.Decode(&deployment)
+		if err == nil && deployment.Name != "" {
+			deployments = append(deployments, deployment)
+		}
 	}
 
-	return nil
+	if err != io.EOF {
+		return deployments, errors.New("Failed to parse yaml file " + actualFile + " caused by " + err.Error())
+	}
+
+	return deployments, nil
 }
 
-func (in *coherenceClusterLoader) findActualFile(file string) (string, error) {
+func (in *CoherenceDeploymentLoader) findActualFile(file string) (string, error) {
 	_, err := os.Stat(file)
 	if err == nil {
 		return file, nil
@@ -409,4 +408,52 @@ func IsCoherenceVersionAtLeast(version ...int) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// GetKubeconfigAndNamespace returns the *rest.Config and default namespace defined in the
+// kubeconfig at the specified path. If no path is provided, returns the default *rest.Config
+// and namespace
+func GetKubeconfigAndNamespace(configPath string) (*rest.Config, string, error) {
+	var clientConfig clientcmd.ClientConfig
+	var apiConfig *clientcmdapi.Config
+	var err error
+	if configPath != "" {
+		apiConfig, err = clientcmd.LoadFromFile(configPath)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to load user provided kubeconfig: %v", err)
+		}
+	} else {
+		apiConfig, err = clientcmd.NewDefaultClientConfigLoadingRules().Load()
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get kubeconfig: %v", err)
+		}
+	}
+	clientConfig = clientcmd.NewDefaultClientConfig(*apiConfig, &clientcmd.ConfigOverrides{})
+	kubeconfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		return nil, "", err
+	}
+	namespace, _, err := clientConfig.Namespace()
+	if err != nil {
+		return nil, "", err
+	}
+
+	u, err := url.Parse(kubeconfig.Host)
+	if err != nil {
+		return nil, "", err
+	}
+
+	ip, err := net.LookupIP(u.Hostname())
+	if err != nil {
+		return nil, "", err
+	}
+
+	// If this is Docker on Mac the host name resolves to loopback
+	// It seems that if we use the host name we may later get an x509 error
+	// but if we change the host to the loopback IP 127.0.0.1 it works fine
+	if ip[0].IsLoopback() {
+		kubeconfig.Host = strings.Replace(kubeconfig.Host, u.Hostname(), "127.0.0.1", 1)
+	}
+
+	return kubeconfig, namespace, nil
 }

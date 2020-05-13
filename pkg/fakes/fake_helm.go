@@ -7,12 +7,10 @@
 package fakes
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/operator-framework/operator-sdk/pkg/helm/client"
-	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -27,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	apitypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	cpb "k8s.io/helm/pkg/proto/hapi/chart"
@@ -42,10 +39,6 @@ var (
 
 // A fake Helm install
 type FakeHelm interface {
-	// HelmInstallFromCoherenceCluster takes a CoherenceCluster and passes it through
-	// the operator reconciler chain to create a Helm install and returns the result of
-	// the install. The result will contain all of the resources created by the Helm install.
-	HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceCluster) (*HelmInstallResult, error)
 	// Perform a fake Operator helm install.
 	FakeOperatorHelmInstall(mgr *FakeManager, namespace string, values helper.OperatorValues) (*HelmInstallResult, error)
 }
@@ -87,81 +80,6 @@ type fakeHelm struct {
 	roleReconciler    reconcile.Reconciler
 	namespace         string
 	cfg               *action.Configuration
-}
-
-func (f *fakeHelm) HelmInstallFromCoherenceCluster(cluster *cohv1.CoherenceCluster) (*HelmInstallResult, error) {
-	if cluster == nil {
-		return &HelmInstallResult{}, nil
-	}
-
-	cl := f.mgr.GetClient()
-	err := cl.Create(context.TODO(), cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	clusterRequest := reconcile.Request{
-		NamespacedName: apitypes.NamespacedName{
-			Namespace: cluster.Namespace,
-			Name:      cluster.Name,
-		},
-	}
-
-	_, err = f.clusterReconciler.Reconcile(clusterRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	list, err := f.mgr.GetCoherenceRoles(cluster.GetNamespace())
-	if err != nil {
-		return nil, err
-	}
-
-	var result *HelmInstallResult
-
-	for _, role := range list.Items {
-		roleRequest := reconcile.Request{
-			NamespacedName: apitypes.NamespacedName{
-				Namespace: role.Namespace,
-				Name:      role.Name,
-			},
-		}
-
-		_, err := f.roleReconciler.Reconcile(roleRequest)
-		if err != nil {
-			return nil, err
-		}
-
-		values, err := f.mgr.AssertCoherenceInternalExists(role.Namespace, role.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		valuesMap, ok := values.Object["spec"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("failed to get spec: expected map[string]interface{}")
-		}
-
-		chartDir, err := helper.FindCoherenceHelmChartDir()
-		if err != nil {
-			return nil, err
-		}
-
-		r, err := f.fakeHelmInstall(f.mgr, cluster.GetNamespace(), chartDir, valuesMap)
-		if err != nil {
-			return nil, err
-		}
-
-		if result == nil {
-			result = r
-		} else {
-			result.Merge(r)
-		}
-	}
-
-	err = cl.Delete(context.TODO(), cluster)
-
-	return result, err
 }
 
 func (f *fakeHelm) FakeOperatorHelmInstall(mgr *FakeManager, namespace string, values helper.OperatorValues) (*HelmInstallResult, error) {

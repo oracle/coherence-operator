@@ -7,7 +7,27 @@
 package v1
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/go-logr/logr"
+	"github.com/go-test/deep"
+	"github.com/pkg/errors"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"strconv"
+	"strings"
+	"text/template"
 	"time"
 )
 
@@ -16,68 +36,88 @@ import (
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
 // NOTE: json tags are required. Any new fields you add must have json tags for the fields to be serialized.
 
-// ----- constants ----------------------------------------------------------
-
-const (
-	// The default number of replicas that will be created for a role if no value is specified in the spec
-	DefaultReplicas int32 = 3
-
-	// The default health check port.
-	DefaultHealthPort int32 = 6676
-
-	// The defaultrole name that will be used for a role if no value is specified in the spec
-	DefaultRoleName = "storage"
-
-	// The suffix appended to a cluster name to give the WKA service name
-	WKAServiceNameSuffix = "-wka"
-
-	// The key of the label used to hold the Coherence cluster name
-	CoherenceClusterLabel string = "coherenceCluster"
-
-	// The key of the label used to hold the Coherence role name
-	CoherenceRoleLabel string = "coherenceRole"
-
-	// The key of the label used to hold the component name
-	CoherenceComponentLabel string = "component"
-
-	// The key of the label used to hold the Coherence Operator version name
-	CoherenceOperatorVersionLabel string = "coherenceOperatorVersion"
-)
-
 // ----- helper functions ---------------------------------------------------
 
-// Return a map that is two maps merged.
-// If both maps are nil then nil is returned.
-// Where there are duplicate keys those in m1 take precedence.
-// Keys that map to "" will not be added to the merged result
-func MergeMap(m1, m2 map[string]string) map[string]string {
-	if m1 == nil && m2 == nil {
-		return nil
+func notNilBool(b *bool) bool {
+	if b == nil {
+		return false
 	}
+	return *b
+}
 
-	merged := make(map[string]string)
+func notNilString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
 
-	for k, v := range m2 {
-		if v != "" {
-			merged[k] = v
+func notNilInt32(i *int32) int32 {
+	return notNilInt32OrDefault(i, 0)
+}
+
+func notNilInt32OrDefault(i *int32, dflt int32) int32 {
+	if i == nil {
+		return dflt
+	}
+	return *i
+}
+
+// Ensure that the StatefulSet has a container with the specified name
+func EnsureContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
+	c := FindContainer(name, sts)
+	if c == nil {
+		c = &corev1.Container{Name: name}
+		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, *c)
+	}
+	return c
+}
+
+// Ensure that the StatefulSet has a container with the specified name
+func ReplaceContainer(sts *appsv1.StatefulSet, cNew *corev1.Container) {
+	for i, c := range sts.Spec.Template.Spec.Containers {
+		if c.Name == cNew.Name {
+			sts.Spec.Template.Spec.Containers[i] = *cNew
+			return
 		}
 	}
+	sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, *cNew)
+}
 
-	for k, v := range m1 {
-		if v != "" {
-			merged[k] = v
-		} else {
-			delete(merged, k)
+// Find the StatefulSet container with the specified name.
+func FindContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
+	for _, c := range sts.Spec.Template.Spec.Containers {
+		if c.Name == name {
+			return &c
 		}
 	}
+	return nil
+}
 
-	return merged
+// Find the StatefulSet init-container with the specified name.
+func FindInitContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
+	for _, c := range sts.Spec.Template.Spec.InitContainers {
+		if c.Name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
+// Ensure that the StatefulSet has a volume with the specified name
+func ReplaceVolume(sts *appsv1.StatefulSet, volNew corev1.Volume) {
+	for i, v := range sts.Spec.Template.Spec.Volumes {
+		if v.Name == volNew.Name {
+			sts.Spec.Template.Spec.Volumes[i] = volNew
+			return
+		}
+	}
+	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, volNew)
 }
 
 // ----- ApplicationSpec struct ---------------------------------------------
 
-// The specification of the application deployed into the Coherence
-// role members.
+// The specification of the application deployed into the CoherenceDeployment.
 // +k8s:openapi-gen=true
 type ApplicationSpec struct {
 	// The application type to execute.
@@ -96,80 +136,32 @@ type ApplicationSpec struct {
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
-	// The inlined application image definition
-	ImageSpec `json:",inline"`
 	// The application folder in the custom artifacts Docker image containing
 	// application artifacts.
 	// This will effectively become the working directory of the Coherence container.
 	// If not set the application directory default value is "/app".
 	// +optional
-	AppDir *string `json:"appDir,omitempty"`
-	// The folder in the custom artifacts Docker image containing jar
-	// files to be added to the classpath of the Coherence container.
-	// If not set the lib directory default value is "/app/lib".
-	// +optional
-	LibDir *string `json:"libDir,omitempty"`
-	// The folder in the custom artifacts Docker image containing
-	// configuration files to be added to the classpath of the Coherence container.
-	// If not set the config directory default value is "/app/conf".
-	// +optional
-	ConfigDir *string `json:"configDir,omitempty"`
+	WorkingDir *string `json:"workingDir,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this ApplicationSpec struct with any nil or not set
-// values set by the corresponding value in the defaults Images struct.
-func (in *ApplicationSpec) DeepCopyWithDefaults(defaults *ApplicationSpec) *ApplicationSpec {
+func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+		return
 	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := ApplicationSpec{}
-	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
 
 	if in.Type != nil {
-		clone.Type = in.Type
-	} else {
-		clone.Type = defaults.Type
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppType, Value: *in.Type})
 	}
-
 	if in.Main != nil {
-		clone.Main = in.Main
-	} else {
-		clone.Main = defaults.Main
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainClass, Value: *in.Main})
 	}
-
-	if in.Args != nil {
-		clone.Args = in.Args
-	} else {
-		clone.Args = defaults.Args
+	if in.WorkingDir != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
 	}
-
-	if in.AppDir != nil {
-		clone.AppDir = in.AppDir
-	} else {
-		clone.AppDir = defaults.AppDir
+	if in.Args != nil && len(in.Args) > 0 {
+		args := strings.Join(in.Args, " ")
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
 	}
-
-	if in.LibDir != nil {
-		clone.LibDir = in.LibDir
-	} else {
-		clone.LibDir = defaults.LibDir
-	}
-
-	if in.ConfigDir != nil {
-		clone.ConfigDir = in.ConfigDir
-	} else {
-		clone.ConfigDir = defaults.ConfigDir
-	}
-
-	return &clone
 }
 
 // ----- CoherenceSpec struct -----------------------------------------------
@@ -177,9 +169,7 @@ func (in *ApplicationSpec) DeepCopyWithDefaults(defaults *ApplicationSpec) *Appl
 // The Coherence specific configuration.
 // +k8s:openapi-gen=true
 type CoherenceSpec struct {
-	// The Coherence images configuration.
-	ImageSpec `json:",inline"`
-	// A boolean flag indicating whether members of this role are storage enabled.
+	// A boolean flag indicating whether members of this deployment are storage enabled.
 	// This value will set the corresponding coherence.distributed.localstorage System property.
 	// If not specified the default value is true.
 	// This flag is also used to configure the ScalingPolicy value if a value is not specified. If the
@@ -215,67 +205,169 @@ type CoherenceSpec struct {
 	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
-	// Exclude members of this role from being part of the cluster's WKA list.
+	// Exclude members of this deployment from being part of the cluster's WKA list.
 	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
+	// Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4.
+	// The version check relies on the ability of the strat script to find coherence.jar, if due to how the image
+	// has been built this check is failing setting this flag to true will skip version checking and assume
+	// that the lates coherence.jar is being used.
+	SkipVersionCheck *bool `json:"skipVersionCheck,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this CoherenceSpec struct with any nil or not set
-// values set by the corresponding value in the defaults CoherenceSpec struct.
-func (in *CoherenceSpec) DeepCopyWithDefaults(defaults *CoherenceSpec) *CoherenceSpec {
+// IsWKAMember returns true if this deployment is a WKA list member.
+func (in *CoherenceSpec) IsWKAMember() bool {
+	return in == nil || in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA
+}
+
+// Determine whether persistence is enabled
+func (in *CoherenceSpec) IsPersistenceEnabled() bool {
+	return in.Persistence != nil && in.Persistence.Enabled != nil && *in.Persistence.Enabled
+}
+
+// Determine whether snapshots is enabled
+func (in *CoherenceSpec) IsSnapshotsEnabled() bool {
+	return in.Snapshot != nil && in.Snapshot.Enabled != nil && *in.Snapshot.Enabled
+}
+
+// Add the persistence and snapshot volume mounts to the specified container
+func (in *CoherenceSpec) AddPersistenceVolumeMounts(c *corev1.Container) {
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+		// nothing to update
+		return
+	}
+
+	// Add the persistence volume mount if required
+	if in.IsPersistenceEnabled() {
+		// add the persistence volume mount
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
+			Name:      VolumeNamePersistence,
+			MountPath: VolumeMountPathPersistence,
+		})
+	}
+
+	// Add the snapshot volume mount if required
+	if in.IsSnapshotsEnabled() {
+		// Snapshots is enabled so use the snapshot mount
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{Name: VolumeNameSnapshots, MountPath: VolumeMountPathSnapshots})
+		//} else {
+		//	// no specific snapshot spec set so use the root mount point
+		//	rootSnapshots := corev1.VolumeMount{Name: VolumeNameSnapshots, MountPath: VolumeMountPathRootSnapshots}
+		//	c.VolumeMounts = append(c.VolumeMounts, rootSnapshots)
+	}
+}
+
+// Add the persistence and snapshot persistent volume claims
+func (in *CoherenceSpec) AddPersistencePVCs(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+	// Add the persistence PVC if required
+	if required, pvc := in.Persistence.CreatePersistentVolumeClaim(deployment, VolumeNamePersistence); required {
+		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, *pvc)
+	}
+
+	// Add the snapshot PVC if required
+	if required, pvc := in.Snapshot.CreatePersistentVolumeClaim(deployment, VolumeNameSnapshots); required {
+		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, *pvc)
+	}
+}
+
+// Add the persistence and snapshot volumes
+func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
+	// Add the persistence volume if required
+	if in.IsPersistenceEnabled() && in.Persistence.Volume != nil {
+		source := corev1.VolumeSource{}
+		in.Persistence.Volume.DeepCopyInto(&source)
+		vol := corev1.Volume{
+			Name:         VolumeNamePersistence,
+			VolumeSource: source,
 		}
-		return nil
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	// Add the snapshot volume if required
+	if in.IsSnapshotsEnabled() && in.Snapshot.Volume != nil {
+		source := corev1.VolumeSource{}
+		in.Snapshot.Volume.DeepCopyInto(&source)
+		vol := corev1.Volume{
+			Name:         VolumeNameSnapshots,
+			VolumeSource: source,
+		}
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
+	}
+}
+
+// Apply Coherence settings to the StatefulSet.
+func (in *CoherenceSpec) UpdateStatefulSet(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+	// Get the Coherence container
+	c := EnsureContainer(ContainerNameCoherence, sts)
+	defer ReplaceContainer(sts, c)
+
+	if in == nil {
+		// we're nil so disable management and metrics/
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohMgmtPrefix + EnvVarCohEnabledSuffix, Value: "false"},
+			corev1.EnvVar{Name: EnvVarCohMetricsPrefix + EnvVarCohEnabledSuffix, Value: "false"})
+		return
 	}
 
-	clone := CoherenceSpec{}
-	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
-	clone.Persistence = in.Persistence.DeepCopyWithDefaults(defaults.Persistence)
-	clone.Snapshot = in.Snapshot.DeepCopyWithDefaults(defaults.Snapshot)
-	clone.Management = in.Management.DeepCopyWithDefaults(defaults.Management)
-	clone.Metrics = in.Metrics.DeepCopyWithDefaults(defaults.Metrics)
-
-	if in.StorageEnabled != nil {
-		clone.StorageEnabled = in.StorageEnabled
-	} else {
-		clone.StorageEnabled = defaults.StorageEnabled
+	if in.CacheConfig != nil && *in.CacheConfig != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohCacheConfig, Value: *in.CacheConfig})
 	}
 
-	if in.CacheConfig != nil {
-		clone.CacheConfig = in.CacheConfig
-	} else {
-		clone.CacheConfig = defaults.CacheConfig
-	}
-
-	if in.OverrideConfig != nil {
-		clone.OverrideConfig = in.OverrideConfig
-	} else {
-		clone.OverrideConfig = defaults.OverrideConfig
+	if in.OverrideConfig != nil && *in.OverrideConfig != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohOverride, Value: *in.OverrideConfig})
 	}
 
 	if in.LogLevel != nil {
-		clone.LogLevel = in.LogLevel
-	} else {
-		clone.LogLevel = defaults.LogLevel
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLogLevel, Value: Int32PtrToString(in.LogLevel)})
 	}
 
-	if in.ExcludeFromWKA != nil {
-		clone.ExcludeFromWKA = in.ExcludeFromWKA
-	} else {
-		clone.ExcludeFromWKA = defaults.ExcludeFromWKA
+	if in.StorageEnabled != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: BoolPtrToString(in.StorageEnabled)})
 	}
 
-	return &clone
+	if in.SkipVersionCheck != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSkipVersionCheck, Value: BoolPtrToString(in.SkipVersionCheck)})
+	}
+
+	if in.IsPersistenceEnabled() {
+		// enable persistence environment variable
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceEnabled, Value: "true"})
+	}
+
+	if in.IsSnapshotsEnabled() {
+		// enable snapshot environment variable
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotEnabled, Value: "true"})
+	}
+
+	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
+	c.Env = append(c.Env, in.Management.CreateEnvVars(EnvVarCohMgmtPrefix, VolumeMountPathManagementCerts, DefaultManagementPort)...)
+
+	in.Metrics.AddSSLVolumes(sts, c, VolumeNameMetricsSSL, VolumeMountPathMetricsCerts)
+	c.Env = append(c.Env, in.Metrics.CreateEnvVars(EnvVarCohMetricsPrefix, VolumeMountPathMetricsCerts, DefaultMetricsPort)...)
+
+	in.AddPersistenceVolumeMounts(c)
+	in.AddPersistenceVolumes(sts)
+	in.AddPersistencePVCs(deployment, sts)
 }
 
-// IsWKAMember returns true if this role is a WKA list member.
-func (in *CoherenceSpec) IsWKAMember() bool {
-	return in != nil && (in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA)
+func (in *CoherenceSpec) GetMetricsPort() int32 {
+	switch {
+	case in == nil:
+		return 0
+	case in.Metrics == nil || in.Metrics.Port == nil:
+		return DefaultMetricsPort
+	default:
+		return *in.Metrics.Port
+	}
+}
+
+func (in *CoherenceSpec) GetManagementPort() int32 {
+	switch {
+	case in == nil:
+		return 0
+	case in.Management == nil || in.Management.Port == nil:
+		return DefaultMetricsPort
+	default:
+		return *in.Management.Port
+	}
 }
 
 // ----- JVMSpec struct -----------------------------------------------------
@@ -283,6 +375,10 @@ func (in *CoherenceSpec) IsWKAMember() bool {
 // The JVM configuration.
 // +k8s:openapi-gen=true
 type JVMSpec struct {
+	// Classpath specifies additional items to add to the classpath of the JVM.
+	// +listType=atomic
+	// +optional
+	Classpath []string `json:"classpath,omitempty"`
 	// Args specifies the options (System properties, -XX: args etc) to pass to the JVM.
 	// +listType=atomic
 	// +optional
@@ -311,62 +407,84 @@ type JVMSpec struct {
 	// Configure JMX using JMXMP.
 	// +optional
 	Jmxmp *JvmJmxmpSpec `json:"jmxmp,omitempty"`
+	// A flag indicating whether to automatically add the default classpath for images
+	// created by the JIB tool https://github.com/GoogleContainerTools/jib
+	// If true then the /app/lib/* /app/classes and /app/resources
+	// entries are added to the JVM classpath.
+	// The default value fif not specified is true.
+	// +optional
+	UseJibClasspath *bool `json:"useJibClasspath,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JVMSpec struct with any nil or not set
-// values set by the corresponding value in the defaults JVMSpec struct.
-func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+// Update the StatefulSet with any JVM specific settings
+func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
+	c := EnsureContainer(ContainerNameCoherence, sts)
+	defer ReplaceContainer(sts, c)
+
+	var gc *JvmGarbageCollectorSpec
+
+	if in != nil {
+		// Add debug settings
+		in.Debug.UpdateCoherenceContainer(c)
+
+		// Add additional classpath items to the Coherence container
+		if in.Classpath != nil && len(in.Classpath) > 0 {
+			// always use the linux/unix path separator as we only ever run on linux
+			cp := strings.Join(in.Classpath, ":")
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmExtraClasspath, Value: cp})
 		}
-		return nil
+
+		// Add JVM args variables to the Coherence container
+		if in.Args != nil && len(in.Args) > 0 {
+			args := strings.Join(in.Args, " ")
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmArgs, Value: args})
+		}
+
+		if in.Memory != nil {
+			c.Env = append(c.Env, in.Memory.CreateEnvVars()...)
+		}
+
+		if in.Jmxmp != nil {
+			c.Env = append(c.Env, in.Jmxmp.CreateEnvVars()...)
+		}
+
+		if in.Gc != nil {
+			gc = in.Gc
+		}
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	c.Env = append(c.Env, gc.CreateEnvVars()...)
+
+	// Configure the JVM to use container limits (true by default)
+	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits
+	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmUseContainerLimits, Value: strconv.FormatBool(useContainerLimits)})
+
+	// Configure the JVM to use Flight Recorder (true by default)
+	useFlightRecorder := in == nil || in.FlightRecorder == nil || *in.FlightRecorder
+	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmFlightRecorder, Value: strconv.FormatBool(useFlightRecorder)})
+
+	// Configure the JVM to use the JIB classpath if UseJibClasspath is not nil
+	if in != nil && in.UseJibClasspath != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmClasspathJib, Value: strconv.FormatBool(*in.UseJibClasspath)})
 	}
 
-	clone := JVMSpec{}
-	clone.Debug = in.Debug.DeepCopyWithDefaults(defaults.Debug)
-	clone.Gc = in.Gc.DeepCopyWithDefaults(defaults.Gc)
-	clone.Memory = in.Memory.DeepCopyWithDefaults(defaults.Memory)
-	clone.Jmxmp = in.Jmxmp.DeepCopyWithDefaults(defaults.Jmxmp)
-
-	if in.UseContainerLimits != nil {
-		clone.UseContainerLimits = in.UseContainerLimits
+	// Add diagnostic volume if specified otherwise use an empty-volume
+	if in != nil && in.DiagnosticsVolume != nil {
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name:         VolumeNameJVM,
+			VolumeSource: *in.DiagnosticsVolume,
+		})
 	} else {
-		clone.UseContainerLimits = defaults.UseContainerLimits
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name:         VolumeNameJVM,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+		})
 	}
-
-	if in.FlightRecorder != nil {
-		clone.FlightRecorder = in.FlightRecorder
-	} else {
-		clone.FlightRecorder = defaults.FlightRecorder
-	}
-
-	if in.DiagnosticsVolume != nil {
-		clone.DiagnosticsVolume = in.DiagnosticsVolume
-	} else {
-		clone.DiagnosticsVolume = defaults.DiagnosticsVolume
-	}
-
-	// Merge Args
-	if in.Args != nil {
-		clone.Args = []string{}
-		clone.Args = append(clone.Args, defaults.Args...)
-		clone.Args = append(clone.Args, in.Args...)
-	} else if defaults.Args != nil {
-		clone.Args = []string{}
-		clone.Args = append(clone.Args, defaults.Args...)
-	}
-
-	return &clone
 }
 
 // ----- ImageSpec struct ---------------------------------------------------
 
-// CoherenceInternalImageSpec defines the settings for a Docker image
+// ImageSpec defines the settings for a Docker image
 // +k8s:openapi-gen=true
 type ImageSpec struct {
 	// Docker image name.
@@ -389,43 +507,12 @@ func (in *ImageSpec) EnsureImage(image *string) bool {
 	return false
 }
 
-// DeepCopyWithDefaults returns a copy of this ImageSpec struct with any nil or not set values set
-// by the corresponding value in the defaults ImageSpec struct.
-func (in *ImageSpec) DeepCopyWithDefaults(defaults *ImageSpec) *ImageSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := ImageSpec{}
-
-	if in.Image != nil {
-		clone.Image = in.Image
-	} else {
-		clone.Image = defaults.Image
-	}
-
-	if in.ImagePullPolicy != nil {
-		clone.ImagePullPolicy = in.ImagePullPolicy
-	} else {
-		clone.ImagePullPolicy = defaults.ImagePullPolicy
-	}
-
-	return &clone
-}
-
 // ----- LoggingSpec struct -------------------------------------------------
 
 // LoggingSpec defines the settings for the Coherence Pod logging
 // +k8s:openapi-gen=true
 type LoggingSpec struct {
-	// ConfigFile allows the location of the Java util logging configuration file to be overridden.
+	// ConfigFileInclude allows the location of the Java util logging configuration file to be overridden.
 	//  If this value is not set the logging.properties file embedded in this chart will be used.
 	//  If this value is set the configuration will be located by trying the following locations in order:
 	//    1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging
@@ -445,36 +532,130 @@ type LoggingSpec struct {
 	Fluentd *FluentdSpec `json:"fluentd,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this LoggingSpec struct with any nil or not set values set
-// by the corresponding value in the defaults LoggingSpec struct.
-func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec {
+func (in *LoggingSpec) CreateFluentdConfigMap(deployment *CoherenceDeployment) (*Resource, error) {
+	if in == nil || !in.IsFluentdEnabled() {
+		return nil, nil
+	}
+
+	fluentdConfig, err := in.GetFluentdConfig(deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	labels := deployment.CreateCommonLabels()
+	labels[LabelComponent] = LabelComponentEfkConfig
+
+	cm := corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: deployment.GetNamespace(),
+			Name:      fmt.Sprintf(EfkConfigMapNameTemplate, deployment.GetName()),
+			Labels:    labels,
+		},
+		Data: map[string]string{VolumeMountSubPathFluentdConfig: fluentdConfig},
+	}
+
+	res := Resource{
+		Kind: ResourceTypeConfigMap,
+		Name: cm.ObjectMeta.GetName(),
+		Spec: &cm,
+	}
+
+	return &res, nil
+}
+
+func (in *LoggingSpec) IsFluentdEnabled() bool {
+	return in != nil && in.Fluentd != nil && in.Fluentd.Enabled != nil && *in.Fluentd.Enabled
+}
+
+func (in *LoggingSpec) GetFluentdConfig(deployment *CoherenceDeployment) (string, error) {
+	l := LoggingConfigTemplate{
+		ClusterName:    deployment.GetCoherenceClusterName(),
+		DeploymentName: deployment.Name,
+		RoleName:       deployment.GetRoleName(),
+		Logging:        in,
+	}
+
+	cfg, err := l.Parse()
+	if err != nil {
+		return cfg, errors.Wrap(err, "creating Fluentd config")
+	}
+	return cfg, nil
+}
+
+// Apply the logging configuration to the StatefulSet
+func (in *LoggingSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
+	c := EnsureContainer(ContainerNameCoherence, sts)
+	defer ReplaceContainer(sts, c)
+
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+		// just set the default logging config
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: DefaultLoggingConfig})
+		return
+	}
+
+	if in.ConfigFile != nil && *in.ConfigFile != "" {
+		switch {
+		case in.ConfigMapName != nil && *in.ConfigMapName != "":
+			// Logging config should come from the ConfigMap
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: VolumeMountPathLoggingConfig + "/" + *in.ConfigFile})
+		default:
+			// Logging config is as set
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: *in.ConfigFile})
 		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := LoggingSpec{}
-	clone.Fluentd = in.Fluentd.DeepCopyWithDefaults(defaults.Fluentd)
-
-	if in.ConfigFile != nil {
-		clone.ConfigFile = in.ConfigFile
 	} else {
-		clone.ConfigFile = defaults.ConfigFile
+		// Logging config is the default
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: DefaultLoggingConfig})
 	}
 
-	if in.ConfigMapName != nil {
-		clone.ConfigMapName = in.ConfigMapName
-	} else {
-		clone.ConfigMapName = defaults.ConfigMapName
+	if in.ConfigMapName != nil && *in.ConfigMapName != "" {
+		// Append the ConfigMap volume mount
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
+			Name:      VolumeNameLoggingConfig,
+			MountPath: VolumeMountPathLoggingConfig,
+		})
+
+		// Append the ConfigMap volume
+		vol := corev1.Volume{
+			Name: VolumeNameLoggingConfig,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: *in.ConfigMapName,
+					},
+					DefaultMode: pointer.Int32Ptr(int32(0777)),
+				},
+			},
+		}
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
 	}
 
-	return &clone
+	// Apply any fluentd configuration
+	in.Fluentd.UpdateStatefulSet(sts)
+}
+
+// ----- LoggingConfigTemplate struct ---------------------------------------
+
+// A struct used when converting the fluentd config template to a string using go templating.
+type LoggingConfigTemplate struct {
+	ClusterName    string
+	DeploymentName string
+	RoleName       string
+	Logging        *LoggingSpec
+}
+
+// Parse the fluentd configuration.
+func (in LoggingConfigTemplate) Parse() (string, error) {
+	t, err := template.New("efk").Parse(EfkConfig)
+	if err != nil {
+		return "", err
+	}
+
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, in); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 // ----- PersistentStorageSpec struct ---------------------------------------
@@ -498,41 +679,30 @@ type PersistentStorageSpec struct {
 	Volume *corev1.VolumeSource `json:"volume,omitempty"` // from k8s.io/api/core/v1
 }
 
-// DeepCopyWithDefaults returns a copy of this PersistentStorageSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PersistentStorageSpec struct.
-func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorageSpec) *PersistentStorageSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+// Create a PersistentVolumeClaim
+func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *CoherenceDeployment, name string) (bool, *corev1.PersistentVolumeClaim) {
+	if in == nil || in.Enabled == nil || !*in.Enabled || in.Volume != nil {
+		// Either persistence is disabled or we're using a normal Volume
+		return false, nil
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := PersistentStorageSpec{}
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
-	}
-
+	spec := corev1.PersistentVolumeClaimSpec{}
 	if in.PersistentVolumeClaim != nil {
-		clone.PersistentVolumeClaim = in.PersistentVolumeClaim
-	} else {
-		clone.PersistentVolumeClaim = defaults.PersistentVolumeClaim
+		in.PersistentVolumeClaim.DeepCopyInto(&spec)
 	}
 
-	if in.Volume != nil {
-		clone.Volume = in.Volume
-	} else {
-		clone.Volume = defaults.Volume
+	labels := deployment.CreateCommonLabels()
+	labels[LabelComponent] = LabelComponentPVC
+
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   name,
+			Labels: labels,
+		},
+		Spec: spec,
 	}
 
-	return &clone
+	return true, pvc
 }
 
 // ----- SSLSpec struct -----------------------------------------------------
@@ -599,107 +769,71 @@ type SSLSpec struct {
 	RequireClientCert *bool `json:"requireClientCert,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this SSLSpec struct with any nil or not set values set
-// by the corresponding value in the defaults SSLSpec struct.
-func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
+// Create the SSL environment variables
+func (in *SSLSpec) CreateEnvVars(prefix, secretMount string) []corev1.EnvVar {
+	var envVars []corev1.EnvVar
+
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+		return envVars
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	if in.Enabled != nil && *in.Enabled {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLEnabled, Value: "true"})
 	}
 
-	clone := SSLSpec{}
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
+	if in.Secrets != nil && *in.Secrets != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLCerts, Value: secretMount})
 	}
 
-	if in.Secrets != nil {
-		clone.Secrets = in.Secrets
-	} else {
-		clone.Secrets = defaults.Secrets
+	if in.KeyStore != nil && *in.KeyStore != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyStore, Value: *in.KeyStore})
 	}
 
-	if in.KeyStore != nil {
-		clone.KeyStore = in.KeyStore
-	} else {
-		clone.KeyStore = defaults.KeyStore
+	if in.KeyStorePasswordFile != nil && *in.KeyStorePasswordFile != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyStoreCredFile, Value: *in.KeyStorePasswordFile})
 	}
 
-	if in.KeyStorePasswordFile != nil {
-		clone.KeyStorePasswordFile = in.KeyStorePasswordFile
-	} else {
-		clone.KeyStorePasswordFile = defaults.KeyStorePasswordFile
+	if in.KeyPasswordFile != nil && *in.KeyPasswordFile != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyCredFile, Value: *in.KeyPasswordFile})
 	}
 
-	if in.KeyPasswordFile != nil {
-		clone.KeyPasswordFile = in.KeyPasswordFile
-	} else {
-		clone.KeyPasswordFile = defaults.KeyPasswordFile
+	if in.KeyStoreAlgorithm != nil && *in.KeyStoreAlgorithm != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyStoreAlgo, Value: *in.KeyStoreAlgorithm})
 	}
 
-	if in.KeyStoreAlgorithm != nil {
-		clone.KeyStoreAlgorithm = in.KeyStoreAlgorithm
-	} else {
-		clone.KeyStoreAlgorithm = defaults.KeyStoreAlgorithm
+	if in.KeyStoreProvider != nil && *in.KeyStoreProvider != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyStoreProvider, Value: *in.KeyStoreProvider})
 	}
 
-	if in.KeyStoreProvider != nil {
-		clone.KeyStoreProvider = in.KeyStoreProvider
-	} else {
-		clone.KeyStoreProvider = defaults.KeyStoreProvider
+	if in.KeyStoreType != nil && *in.KeyStoreType != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLKeyStoreType, Value: *in.KeyStoreType})
 	}
 
-	if in.KeyStoreType != nil {
-		clone.KeyStoreType = in.KeyStoreType
-	} else {
-		clone.KeyStoreType = defaults.KeyStoreType
+	if in.TrustStore != nil && *in.TrustStore != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLTrustStore, Value: *in.TrustStore})
 	}
 
-	if in.TrustStore != nil {
-		clone.TrustStore = in.TrustStore
-	} else {
-		clone.TrustStore = defaults.TrustStore
+	if in.TrustStorePasswordFile != nil && *in.TrustStorePasswordFile != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLTrustStoreCredFile, Value: *in.TrustStorePasswordFile})
 	}
 
-	if in.TrustStorePasswordFile != nil {
-		clone.TrustStorePasswordFile = in.TrustStorePasswordFile
-	} else {
-		clone.TrustStorePasswordFile = defaults.TrustStorePasswordFile
+	if in.TrustStoreAlgorithm != nil && *in.TrustStoreAlgorithm != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLTrustStoreAlgo, Value: *in.TrustStoreAlgorithm})
 	}
 
-	if in.TrustStoreAlgorithm != nil {
-		clone.TrustStoreAlgorithm = in.TrustStoreAlgorithm
-	} else {
-		clone.TrustStoreAlgorithm = defaults.TrustStoreAlgorithm
+	if in.TrustStoreProvider != nil && *in.TrustStoreProvider != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLTrustStoreProvider, Value: *in.TrustStoreProvider})
 	}
 
-	if in.TrustStoreProvider != nil {
-		clone.TrustStoreProvider = in.TrustStoreProvider
-	} else {
-		clone.TrustStoreProvider = defaults.TrustStoreProvider
+	if in.TrustStoreType != nil && *in.TrustStoreType != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLTrustStoreType, Value: *in.TrustStoreType})
 	}
 
-	if in.TrustStoreType != nil {
-		clone.TrustStoreType = in.TrustStoreType
-	} else {
-		clone.TrustStoreType = defaults.TrustStoreType
+	if in.RequireClientCert != nil && *in.RequireClientCert {
+		envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarSuffixSSLRequireClientCert, Value: "true"})
 	}
 
-	if in.RequireClientCert != nil {
-		clone.RequireClientCert = in.RequireClientCert
-	} else {
-		clone.RequireClientCert = defaults.RequireClientCert
-	}
-
-	return &clone
+	return envVars
 }
 
 // ----- PortSpec struct ----------------------------------------------------
@@ -711,47 +845,26 @@ type PortSpec struct {
 	Port int32 `json:"port,omitempty"`
 	// Protocol for container port. Must be UDP or TCP. Defaults to "TCP"
 	// +optional
-	Protocol *string `json:"protocol,omitempty"`
+	Protocol *corev1.Protocol `json:"protocol,omitempty"`
 	// Service specifies the service used to expose the port.
 	// +optional
 	Service *ServiceSpec `json:"service,omitempty"`
-}
-
-// DeepCopyWithDefaults returns a copy of this PortSpec struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpec struct.
-func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := PortSpec{}
-
-	if in.Port != 0 {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.Protocol != nil {
-		clone.Protocol = in.Protocol
-	} else {
-		clone.Protocol = defaults.Protocol
-	}
-
-	if in.Service != nil {
-		clone.Service = in.Service
-	} else {
-		clone.Service = defaults.Service
-	}
-
-	return &clone
+	// The port on each node on which this service is exposed when type=NodePort or LoadBalancer.
+	// Usually assigned by the system. If specified, it will be allocated to the service
+	// if unused or else creation of the service will fail.
+	// Default is to auto-allocate a port if the ServiceType of this Service requires one.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+	// +optional
+	NodePort *int32 `json:"nodePort,omitempty"`
+	// Number of port to expose on the host.
+	// If specified, this must be a valid port number, 0 < x < 65536.
+	// If HostNetwork is specified, this must match ContainerPort.
+	// Most containers do not need this.
+	// +optional
+	HostPort *int32 `json:"hostPort,omitempty"`
+	// What host IP to bind the external port to.
+	// +optional
+	HostIP *string `json:"hostIP,omitempty"`
 }
 
 // ----- NamedPortSpec struct ----------------------------------------------------
@@ -760,90 +873,228 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 type NamedPortSpec struct {
 	// Name specifies the name of th port.
 	// +optional
-	Name     string `json:"name,omitempty"`
-	PortSpec `json:",inline"`
+	Name string `json:"name,omitempty"`
+	// A flag that, when true, indicates that a Prometheus ServiceMonitor
+	// resource should be created for the Service being exposed for this
+	// port.
+	// +optional
+	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty"`
+	PortSpec       `json:",inline"`
 }
 
-// DeepCopyWithDefaults returns a copy of this NamedPortSpec struct with any nil or not set values set
-// by the corresponding value in the defaults NamedPortSpec struct.
-func (in *NamedPortSpec) DeepCopyWithDefaults(defaults *NamedPortSpec) *NamedPortSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
+// Create the Kubernetes service to expose this port.
+func (in *NamedPortSpec) CreateService(deployment *CoherenceDeployment) *corev1.Service {
+	if in == nil || !in.IsEnabled() {
 		return nil
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := NamedPortSpec{}
-
-	if in.Name != "" {
-		clone.Name = in.Name
+	var name string
+	if in.Service != nil && in.Service.Name != nil {
+		name = in.Service.GetName()
 	} else {
-		clone.Name = defaults.Name
+		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
 	}
 
-	if in.Port != 0 {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.Protocol != nil {
-		clone.Protocol = in.Protocol
-	} else {
-		clone.Protocol = defaults.Protocol
-	}
-
+	// The labels for the service
+	svcLabels := deployment.CreateCommonLabels()
+	svcLabels[LabelComponent] = LabelComponentPortService
+	svcLabels[LabelPort] = in.Name
 	if in.Service != nil {
-		clone.Service = in.Service.DeepCopyWithDefaults(defaults.Service)
-	} else {
-		clone.Service = defaults.Service
+		for k, v := range in.Service.Labels {
+			svcLabels[k] = v
+		}
 	}
 
-	return &clone
+	// The service annotations
+	var ann map[string]string
+	if in.Service != nil && in.Service.Annotations != nil {
+		ann = in.Service.Annotations
+	}
+
+	// Create the Service spec
+	spec := in.Service.createServiceSpec()
+
+	// Add the port
+	spec.Ports = []corev1.ServicePort{
+		{
+			Name:       in.Name,
+			Protocol:   in.GetProtocol(),
+			Port:       in.GetPort(deployment),
+			TargetPort: intstr.FromString(in.Name),
+			NodePort:   in.GetNodePort(),
+		},
+	}
+
+	// Add the service selector
+	spec.Selector = deployment.Spec.CreatePodSelectorLabels(deployment)
+
+	svc := corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:   deployment.GetNamespace(),
+			Name:        name,
+			Labels:      svcLabels,
+			Annotations: ann,
+		},
+		Spec: spec,
+	}
+
+	return &svc
 }
 
-// Merge merges two arrays of NamedPortSpec structs.
-// Any NamedPortSpec instances in both arrays that share the same name will be merged,
-// the field set in the primary NamedPortSpec will take precedence over those in the
-// secondary NamedPortSpec.
-func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
-	if primary == nil {
-		return secondary
+// Create the Prometheus ServiceMonitor to expose this port if enabled.
+func (in *NamedPortSpec) CreateServiceMonitor(deployment *CoherenceDeployment) *monitoringv1.ServiceMonitor {
+	if in == nil || !in.IsEnabled() {
+		return nil
+	}
+	if in.ServiceMonitor == nil || in.ServiceMonitor.Enabled == nil || !*in.ServiceMonitor.Enabled {
+		return nil
 	}
 
-	if secondary == nil {
-		return primary
+	var name string
+	if in.Service != nil && in.Service.Name != nil {
+		name = in.Service.GetName()
+	} else {
+		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
 	}
 
-	if len(primary) == 0 && len(secondary) == 0 {
-		return []NamedPortSpec{}
+	// The labels for the ServiceMonitor
+	labels := deployment.CreateCommonLabels()
+	labels[LabelComponent] = LabelComponentPortServiceMonitor
+	for k, v := range in.ServiceMonitor.Labels {
+		labels[k] = v
 	}
 
-	var mr []NamedPortSpec
-	mr = append(mr, primary...)
+	// The selector labels for the ServiceMonitor
+	selector := deployment.CreateCommonLabels()
+	selector[LabelComponent] = LabelComponentPortService
+	selector[LabelPort] = in.Name
 
-	for _, p := range secondary {
-		found := false
-		for i, pp := range primary {
-			if pp.Name == p.Name {
-				clone := pp.DeepCopyWithDefaults(&p)
-				mr[i] = *clone
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			mr = append(mr, p)
-		}
+	endpoint := monitoringv1.Endpoint{
+		Port:     in.Name,
+		Interval: "30s",
+		RelabelConfigs: []*monitoringv1.RelabelConfig{
+			{
+				Action: "labeldrop",
+				Regex:  "(endpoint|instance|job|service)",
+			},
+		},
 	}
 
-	return mr
+	in.ServiceMonitor.UpdateEndpoint(endpoint)
+
+	return &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: deployment.GetNamespace(),
+			Labels:    labels,
+		},
+		Spec: monitoringv1.ServiceMonitorSpec{
+			Selector: metav1.LabelSelector{
+				MatchLabels: selector,
+			},
+			Endpoints: []monitoringv1.Endpoint{endpoint},
+		},
+	}
+}
+
+func (in *NamedPortSpec) IsEnabled() bool {
+	return in != nil && in.Service.IsEnabled()
+}
+
+func (in *NamedPortSpec) GetProtocol() corev1.Protocol {
+	if in == nil || in.Protocol == nil {
+		return corev1.ProtocolTCP
+	}
+	return *in.Protocol
+}
+
+func (in *NamedPortSpec) GetPort(d *CoherenceDeployment) int32 {
+	switch {
+	case in == nil:
+		return 0
+	case in != nil && in.Service != nil && in.Service.Port != nil:
+		return *in.Service.Port
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
+		// special case for well known port - metrics
+		return d.Spec.GetMetricsPort()
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
+		// special case for well known port - management
+		return d.Spec.GetManagementPort()
+	default:
+		return in.Port
+	}
+}
+
+func (in *NamedPortSpec) GetNodePort() int32 {
+	if in == nil || in.NodePort == nil {
+		return 0
+	}
+	return *in.NodePort
+}
+
+func (in *NamedPortSpec) CreatePort(d *CoherenceDeployment) corev1.ContainerPort {
+	return corev1.ContainerPort{
+		Name:          in.Name,
+		ContainerPort: in.GetPort(d),
+		Protocol:      in.GetProtocol(),
+		HostPort:      notNilInt32(in.HostPort),
+		HostIP:        notNilString(in.HostIP),
+	}
+}
+
+// ----- ServiceMonitorSpec struct ---------------------------------------------
+
+type ServiceMonitorSpec struct {
+	// Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port.
+	// If Prometheus ServiceMonitor CR is not installed no ServiceMonitor then even if this flag
+	// is true no ServiceMonitor will be created.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// Additional labels to add to the ServiceMonitor.
+	// More info: http://kubernetes.io/docs/user-guide/labels
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+	// HTTP path to scrape for metrics.
+	// +optional
+	Path *string `json:"path,omitempty"`
+	// HTTP scheme to use for scraping.
+	// +optional
+	Scheme *string `json:"scheme,omitempty"`
+	// Optional HTTP URL parameters
+	// +optional
+	Params *map[string][]string `json:"params,omitempty"`
+	// Interval at which metrics should be scraped
+	// +optional
+	Interval *string `json:"interval,omitempty"`
+	// Timeout after which the scrape is ended
+	// +optional
+	ScrapeTimeout *string `json:"scrapeTimeout,omitempty"`
+}
+
+func (in *ServiceMonitorSpec) UpdateEndpoint(ep monitoringv1.Endpoint) {
+	if in == nil {
+		return
+	}
+
+	if in.Interval != nil {
+		ep.Interval = *in.Interval
+	}
+
+	if in.Path != nil {
+		ep.Path = *in.Path
+	}
+
+	if in.Scheme != nil {
+		ep.Scheme = *in.Scheme
+	}
+
+	if in.Params != nil {
+		ep.Params = *in.Params
+	}
+
+	if in.ScrapeTimeout != nil {
+		ep.ScrapeTimeout = *in.ScrapeTimeout
+	}
 }
 
 // ----- JvmDebugSpec struct ---------------------------------------------------
@@ -868,47 +1119,43 @@ type JvmDebugSpec struct {
 	Port *int32 `json:"port,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JvmDebugSpec struct with any nil or not set values set
-// by the corresponding value in the defaults JvmDebugSpec struct.
-func (in *JvmDebugSpec) DeepCopyWithDefaults(defaults *JvmDebugSpec) *JvmDebugSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+// Update the Coherence Container with any JVM specific settings
+func (in *JvmDebugSpec) UpdateCoherenceContainer(c *corev1.Container) {
+	if in == nil || in.Enabled == nil || !*in.Enabled {
+		// nothing to do, debug is either nil or disabled
+		return
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	c.Ports = append(c.Ports, corev1.ContainerPort{
+		Name:          PortNameDebug,
+		ContainerPort: notNilInt32OrDefault(in.Port, DefaultDebugPort),
+	})
+
+	c.Env = append(c.Env, in.CreateEnvVars()...)
+}
+
+// Create the JVM debugger environment variables for the Coherence container.
+func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
+	var envVars []corev1.EnvVar
+
+	if in == nil || in.Enabled == nil || !*in.Enabled {
+		return envVars
 	}
 
-	clone := JvmDebugSpec{}
+	envVars = append(envVars,
+		corev1.EnvVar{Name: EnvVarJvmDebugEnabled, Value: "true"},
+		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: Int32PtrToStringWithDefault(in.Port, DefaultDebugPort)},
+	)
 
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
+	if in != nil && in.Suspend != nil && *in.Suspend {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugSuspended, Value: "true"})
 	}
 
-	if in.Suspend != nil {
-		clone.Suspend = in.Suspend
-	} else {
-		clone.Suspend = defaults.Suspend
+	if in != nil && in.Attach != nil {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugAttach, Value: *in.Attach})
 	}
 
-	if in.Port != nil {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.Attach != nil {
-		clone.Attach = in.Attach
-	} else {
-		clone.Attach = defaults.Attach
-	}
-
-	return &clone
+	return envVars
 }
 
 // ----- JVM GC struct ------------------------------------------------------
@@ -925,7 +1172,7 @@ type JvmGarbageCollectorSpec struct {
 	// If set to a value other than those above then
 	// the default collector for the JVM will be used.
 	// +optional
-	Collector *string `json:"enabled,omitempty"`
+	Collector *string `json:"collector,omitempty"`
 	// Args specifies the GC options to pass to the JVM.
 	// +optional
 	Args []string `json:"args,omitempty"`
@@ -937,41 +1184,29 @@ type JvmGarbageCollectorSpec struct {
 	Logging *bool `json:"logging,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JvmGarbageCollectorSpec struct with any nil or not set values set
-// by the corresponding value in the defaults JvmGarbageCollectorSpec struct.
-func (in *JvmGarbageCollectorSpec) DeepCopyWithDefaults(defaults *JvmGarbageCollectorSpec) *JvmGarbageCollectorSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+// Create the GC environment variables for the Coherence container.
+func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
+	var envVars []corev1.EnvVar
+
+	// Add any GC args
+	if in != nil && in.Args != nil && len(in.Args) > 0 {
+		args := strings.Join(in.Args, " ")
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcArgs, Value: args})
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	// Set the collector to use
+	if in != nil && in.Collector != nil && *in.Collector != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcCollector, Value: *in.Collector})
 	}
 
-	clone := JvmGarbageCollectorSpec{}
-
-	if in.Collector != nil {
-		clone.Collector = in.Collector
+	// Enable or disable GC logging
+	if in != nil && in.Logging != nil {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: BoolPtrToString(in.Logging)})
 	} else {
-		clone.Collector = defaults.Collector
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: "false"})
 	}
 
-	if in.Args != nil {
-		clone.Args = in.Args
-	} else {
-		clone.Args = defaults.Args
-	}
-
-	if in.Logging != nil {
-		clone.Logging = in.Logging
-	} else {
-		clone.Logging = defaults.Logging
-	}
-
-	return &clone
+	return envVars
 }
 
 // ----- JVM MemoryGC struct ------------------------------------------------
@@ -983,7 +1218,7 @@ type JvmMemorySpec struct {
 	// If not set the JVM defaults are used.
 	// +optional
 	HeapSize *string `json:"heapSize,omitempty"`
-	// StackSize is the stack sixe value to pass to the JVM.
+	// StackSize is the stack size value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xss JVM option.
 	// If not set the JVM defaults are used.
 	// +optional
@@ -1008,54 +1243,37 @@ type JvmMemorySpec struct {
 	OnOutOfMemory *JvmOutOfMemorySpec `json:"onOutOfMemory,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JvmMemorySpec struct with any nil or not set values set
-// by the corresponding value in the defaults JvmMemorySpec struct.
-func (in *JvmMemorySpec) DeepCopyWithDefaults(defaults *JvmMemorySpec) *JvmMemorySpec {
+// Create the environment variables to add to the Coherence container
+func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
+	var envVars []corev1.EnvVar
+
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+		return envVars
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	if in.HeapSize != nil && *in.HeapSize != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryHeap, Value: *in.HeapSize})
 	}
 
-	clone := JvmMemorySpec{}
-	clone.OnOutOfMemory = in.OnOutOfMemory.DeepCopyWithDefaults(defaults.OnOutOfMemory)
-
-	if in.HeapSize != nil {
-		clone.HeapSize = in.HeapSize
-	} else {
-		clone.HeapSize = defaults.HeapSize
+	if in.DirectMemorySize != nil && *in.DirectMemorySize != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryDirect, Value: *in.DirectMemorySize})
 	}
 
-	if in.StackSize != nil {
-		clone.StackSize = in.StackSize
-	} else {
-		clone.StackSize = defaults.StackSize
+	if in.StackSize != nil && *in.StackSize != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryStack, Value: *in.StackSize})
 	}
 
-	if in.MetaspaceSize != nil {
-		clone.MetaspaceSize = in.MetaspaceSize
-	} else {
-		clone.MetaspaceSize = defaults.MetaspaceSize
+	if in.MetaspaceSize != nil && *in.MetaspaceSize != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryMeta, Value: *in.MetaspaceSize})
 	}
 
-	if in.DirectMemorySize != nil {
-		clone.DirectMemorySize = in.DirectMemorySize
-	} else {
-		clone.DirectMemorySize = defaults.DirectMemorySize
+	if in.NativeMemoryTracking != nil && *in.NativeMemoryTracking != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryNativeTracking, Value: *in.NativeMemoryTracking})
 	}
 
-	if in.NativeMemoryTracking != nil {
-		clone.NativeMemoryTracking = in.NativeMemoryTracking
-	} else {
-		clone.NativeMemoryTracking = defaults.NativeMemoryTracking
-	}
+	envVars = append(envVars, in.OnOutOfMemory.CreateEnvVars()...)
 
-	return &clone
+	return envVars
 }
 
 // ----- JVM Out Of Memory struct -------------------------------------------
@@ -1073,35 +1291,20 @@ type JvmOutOfMemorySpec struct {
 	HeapDump *bool `json:"heapDump,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JvmOutOfMemorySpec struct with any nil or not set values set
-// by the corresponding value in the defaults JvmOutOfMemorySpec struct.
-func (in *JvmOutOfMemorySpec) DeepCopyWithDefaults(defaults *JvmOutOfMemorySpec) *JvmOutOfMemorySpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+// Create the environment variables for the out of memory actions
+func (in *JvmOutOfMemorySpec) CreateEnvVars() []corev1.EnvVar {
+	var envVars []corev1.EnvVar
+
+	if in != nil {
+		if in.Exit != nil {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmOomExit, Value: BoolPtrToString(in.Exit)})
 		}
-		return nil
+		if in.HeapDump != nil {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmOomHeapDump, Value: BoolPtrToString(in.HeapDump)})
+		}
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := JvmOutOfMemorySpec{}
-
-	if in.Exit != nil {
-		clone.Exit = in.Exit
-	} else {
-		clone.Exit = defaults.Exit
-	}
-
-	if in.HeapDump != nil {
-		clone.HeapDump = in.HeapDump
-	} else {
-		clone.HeapDump = defaults.HeapDump
-	}
-
-	return &clone
+	return envVars
 }
 
 // ----- JvmJmxmpSpec struct -------------------------------------------------------
@@ -1118,35 +1321,14 @@ type JvmJmxmpSpec struct {
 	Port *int32 `json:"port,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this JvmJmxmpSpec struct with any nil or not set values set
-// by the corresponding value in the defaults JvmJmxmpSpec struct.
-func (in *JvmJmxmpSpec) DeepCopyWithDefaults(defaults *JvmJmxmpSpec) *JvmJmxmpSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
+// Create any required environment variables for the Coherence container
+func (in *JvmJmxmpSpec) CreateEnvVars() []corev1.EnvVar {
+	enabled := in != nil && in.Enabled != nil && *in.Enabled
 
-	if defaults == nil {
-		return in.DeepCopy()
-	}
+	envVars := []corev1.EnvVar{{Name: EnvVarJvmJmxmpEnabled, Value: strconv.FormatBool(enabled)}}
+	envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmJmxmpPort, Value: Int32PtrToStringWithDefault(in.Port, DefaultJmxmpPort)})
 
-	clone := JvmJmxmpSpec{}
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
-	}
-
-	if in.Port != nil {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	return &clone
+	return envVars
 }
 
 // ----- PortSpecWithSSL struct ----------------------------------------------------
@@ -1173,41 +1355,48 @@ func (in *PortSpecWithSSL) IsSSLEnabled() bool {
 	return in.SSL.Enabled != nil && *in.SSL.Enabled
 }
 
-// DeepCopyWithDefaults returns a copy of this PortSpecWithSSL struct with any nil or not set values set
-// by the corresponding value in the defaults PortSpecWithSSL struct.
-func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *PortSpecWithSSL {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+// Create environment variables for the Coherence container
+func (in *PortSpecWithSSL) CreateEnvVars(prefix, secretMount string, defaultPort int32) []corev1.EnvVar {
+	if in == nil || !notNilBool(in.Enabled) {
+		// disabled
+		return []corev1.EnvVar{{Name: prefix + EnvVarCohEnabledSuffix, Value: "false"}}
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	envVars := []corev1.EnvVar{{Name: prefix + EnvVarCohEnabledSuffix, Value: "true"}}
+	envVars = append(envVars, in.SSL.CreateEnvVars(prefix, secretMount)...)
+
+	// add the port environment variable
+	port := notNilInt32OrDefault(in.Port, defaultPort)
+	envVars = append(envVars, corev1.EnvVar{Name: prefix + EnvVarCohPortSuffix, Value: Int32ToString(port)})
+
+	return envVars
+}
+
+// Add the SSL secret volume and volume mount if required
+func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Container, volName, path string) {
+	if in == nil || !notNilBool(in.Enabled) || in.SSL == nil || !notNilBool(in.SSL.Enabled) {
+		// the port spec is nil or disabled or SSL is nil or disabled
+		return
 	}
 
-	clone := PortSpecWithSSL{}
+	if in.SSL.Secrets != nil && *in.SSL.Secrets != "" {
+		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
+			Name:      volName,
+			ReadOnly:  true,
+			MountPath: path,
+		})
 
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
+		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: volName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  *in.SSL.Secrets,
+					DefaultMode: pointer.Int32Ptr(int32(0777)),
+				},
+			},
+		})
 	}
 
-	if in.Port != nil {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.SSL != nil {
-		clone.SSL = in.SSL
-	} else {
-		clone.SSL = defaults.SSL
-	}
-
-	return &clone
 }
 
 // ----- ServiceSpec struct -------------------------------------------------
@@ -1223,10 +1412,29 @@ type ServiceSpec struct {
 	// The service port value
 	// +optional
 	Port *int32 `json:"port,omitempty"`
-	// Type is the K8s service type (typically ClusterIP or LoadBalancer)
+	// Kind is the K8s service type (typically ClusterIP or LoadBalancer)
 	// The default is "ClusterIP".
 	// +optional
 	Type *corev1.ServiceType `json:"type,omitempty"`
+	// externalIPs is a list of IP addresses for which nodes in the cluster
+	// will also accept traffic for this service.  These IPs are not managed by
+	// Kubernetes.  The user is responsible for ensuring that traffic arrives
+	// at a node with this IP.  A common example is external load-balancers
+	// that are not part of the Kubernetes system.
+	// +optional
+	// +listType=atomic
+	ExternalIPs []string `json:"externalIPs,omitempty"`
+	// clusterIP is the IP address of the service and is usually assigned
+	// randomly by the master. If an address is specified manually and is not in
+	// use by others, it will be allocated to the service; otherwise, creation
+	// of the service will fail. This field can not be changed through updates.
+	// Valid values are "None", empty string (""), or a valid IP address. "None"
+	// can be specified for headless services when proxying is not required.
+	// Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if
+	// type is ExternalName.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// +optional
+	ClusterIP *string `json:"clusterIP,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
@@ -1254,7 +1462,7 @@ type ServiceSpec struct {
 	// externalName is the external reference that kubedns or equivalent will
 	// return as a CNAME record for this service. No proxying will be involved.
 	// Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123)
-	// and requires Type to be ExternalName.
+	// and requires Kind to be ExternalName.
 	// +optional
 	ExternalName *string `json:"externalName,omitempty"`
 	// externalTrafficPolicy denotes if this Service desires to route external
@@ -1268,7 +1476,7 @@ type ServiceSpec struct {
 	// healthCheckNodePort specifies the healthcheck nodePort for the service.
 	// If not specified, HealthCheckNodePort is created by the service api
 	// backend with the allocated nodePort. Will use user-specified nodePort value
-	// if specified by the client. Only effects when Type is set to LoadBalancer
+	// if specified by the client. Only effects when Kind is set to LoadBalancer
 	// and ExternalTrafficPolicy is set to Local.
 	// +optional
 	HealthCheckNodePort *int32 `json:"healthCheckNodePort,omitempty"`
@@ -1283,168 +1491,102 @@ type ServiceSpec struct {
 	// sessionAffinityConfig contains the configurations of session affinity.
 	// +optional
 	SessionAffinityConfig *corev1.SessionAffinityConfig `json:"sessionAffinityConfig,omitempty"`
+	// ipFamily specifies whether this Service has a preference for a particular IP family (e.g. IPv4 vs.
+	// IPv6).  If a specific IP family is requested, the clusterIP field will be allocated from that family, if it is
+	// available in the cluster.  If no IP family is requested, the cluster's primary IP family will be used.
+	// Other IP fields (loadBalancerIP, loadBalancerSourceRanges, externalIPs) and controllers which
+	// allocate external load-balancers should use the same IP family.  Endpoints for this Service will be of
+	// this family.  This field is immutable after creation. Assigning a ServiceIPFamily not available in the
+	// cluster (e.g. IPv6 in IPv4 only cluster) is an error condition and will fail during clusterIP assignment.
+	// +optional
+	IPFamily *corev1.IPFamily `json:"ipFamily,omitempty"`
 }
 
-// Set the Type of the service.
+// Set the Kind of the service.
+func (in *ServiceSpec) GetName() string {
+	if in == nil || in.Name == nil {
+		return ""
+	}
+	return *in.Name
+}
+
+// Set the Kind of the service.
+func (in *ServiceSpec) IsEnabled() bool {
+	if in == nil || in.Enabled == nil {
+		return true
+	}
+	return *in.Enabled
+}
+
+// Set the Kind of the service.
 func (in *ServiceSpec) SetServiceType(t corev1.ServiceType) {
 	if in != nil {
 		in.Type = &t
 	}
 }
 
-// DeepCopyWithDefaults returns a copy of this ServiceSpec struct with any nil or not set values set
-// by the corresponding value in the defaults ServiceSpec struct.
-func (in *ServiceSpec) DeepCopyWithDefaults(defaults *ServiceSpec) *ServiceSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+// Create the service spec for the port.
+func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
+	spec := corev1.ServiceSpec{}
+	if in != nil {
+		if in.Type != nil {
+			spec.Type = *in.Type
 		}
-		return nil
+		if in.LoadBalancerIP != nil {
+			spec.LoadBalancerIP = *in.LoadBalancerIP
+		}
+		if in.SessionAffinity != nil {
+			spec.SessionAffinity = *in.SessionAffinity
+		}
+		spec.LoadBalancerSourceRanges = in.LoadBalancerSourceRanges
+		if in.ExternalName != nil {
+			spec.ExternalName = *in.ExternalName
+		}
+		if in.ExternalTrafficPolicy != nil {
+			spec.ExternalTrafficPolicy = *in.ExternalTrafficPolicy
+		}
+		if in.HealthCheckNodePort != nil {
+			spec.HealthCheckNodePort = *in.HealthCheckNodePort
+		}
+		if in.PublishNotReadyAddresses != nil {
+			spec.PublishNotReadyAddresses = *in.PublishNotReadyAddresses
+		}
+		if in.ClusterIP != nil {
+			spec.ClusterIP = *in.ClusterIP
+		}
+		spec.SessionAffinityConfig = in.SessionAffinityConfig
+		spec.IPFamily = in.IPFamily
+		spec.ExternalIPs = in.ExternalIPs
 	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := ServiceSpec{}
-	// Annotations are a map and are merged
-	clone.Annotations = MergeMap(in.Annotations, defaults.Annotations)
-	// Labels are a map and are merged
-	clone.Labels = MergeMap(in.Labels, defaults.Labels)
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
-	}
-
-	if in.Type != nil {
-		clone.Type = in.Type
-	} else {
-		clone.Type = defaults.Type
-	}
-
-	if in.Name != nil {
-		clone.Name = in.Name
-	} else {
-		clone.Name = defaults.Name
-	}
-
-	if in.Port != nil {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.LoadBalancerIP != nil {
-		clone.LoadBalancerIP = in.LoadBalancerIP
-	} else {
-		clone.LoadBalancerIP = defaults.LoadBalancerIP
-	}
-
-	if in.Port != nil {
-		clone.Port = in.Port
-	} else {
-		clone.Port = defaults.Port
-	}
-
-	if in.SessionAffinity != nil {
-		clone.SessionAffinity = in.SessionAffinity
-	} else {
-		clone.SessionAffinity = defaults.SessionAffinity
-	}
-
-	if in.LoadBalancerSourceRanges != nil {
-		clone.LoadBalancerSourceRanges = in.LoadBalancerSourceRanges
-	} else {
-		clone.LoadBalancerSourceRanges = defaults.LoadBalancerSourceRanges
-	}
-
-	if in.ExternalName != nil {
-		clone.ExternalName = in.ExternalName
-	} else {
-		clone.ExternalName = defaults.ExternalName
-	}
-
-	if in.ExternalTrafficPolicy != nil {
-		clone.ExternalTrafficPolicy = in.ExternalTrafficPolicy
-	} else {
-		clone.ExternalTrafficPolicy = defaults.ExternalTrafficPolicy
-	}
-
-	if in.HealthCheckNodePort != nil {
-		clone.HealthCheckNodePort = in.HealthCheckNodePort
-	} else {
-		clone.HealthCheckNodePort = defaults.HealthCheckNodePort
-	}
-
-	if in.PublishNotReadyAddresses != nil {
-		clone.PublishNotReadyAddresses = in.PublishNotReadyAddresses
-	} else {
-		clone.PublishNotReadyAddresses = defaults.PublishNotReadyAddresses
-	}
-
-	if in.SessionAffinityConfig != nil {
-		clone.SessionAffinityConfig = in.SessionAffinityConfig
-	} else {
-		clone.SessionAffinityConfig = defaults.SessionAffinityConfig
-	}
-
-	return &clone
+	return spec
 }
 
 // ----- ScalingSpec -----------------------------------------------------
 
 // The configuration to control safe scaling.
 type ScalingSpec struct {
-	// ScalingPolicy describes how the replicas of the cluster role will be scaled.
+	// ScalingPolicy describes how the replicas of the deployment will be scaled.
 	// The default if not specified is based upon the value of the StorageEnabled field.
 	// If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is
 	// set to false the default scaling will be parallel.
 	// +optional
 	Policy *ScalingPolicy `json:"policy,omitempty"`
-	// The probe to use to determine whether a role is Status HA.
+	// The probe to use to determine whether a deployment is Phase HA.
 	// If not set the default handler will be used.
 	// In most use-cases the default handler would suffice but in
 	// advanced use-cases where the application code has a different
-	// concept of Status HA to just checking Coherence services then
+	// concept of Phase HA to just checking Coherence services then
 	// a different handler may be specified.
 	// +optional
 	Probe *ScalingProbe `json:"probe,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this ScalingSpec struct with any nil or not set values set
-// by the corresponding value in the defaults ScalingSpec struct.
-func (in *ScalingSpec) DeepCopyWithDefaults(defaults *ScalingSpec) *ScalingSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := ScalingSpec{}
-	clone.Probe = in.Probe.DeepCopyWithDefaults(defaults.Probe)
-
-	if in.Policy != nil {
-		clone.Policy = in.Policy
-	} else {
-		clone.Policy = defaults.Policy
-	}
-
-	return &clone
-}
-
 // ----- ScalingProbe ----------------------------------------------------
 
-// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
-// StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state
-// before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled
-// to false then no check will take place and a role will be assumed to be safe).
+// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceDeployment.
+// StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA
+// state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting
+// Enabled to false then no check will take place and a deployment will be assumed to be safe).
 // +k8s:openapi-gen=true
 type ScalingProbe struct {
 	corev1.Handler `json:",inline"`
@@ -1461,49 +1603,6 @@ func (in *ScalingProbe) GetTimeout() time.Duration {
 	}
 
 	return time.Second * time.Duration(*in.TimeoutSeconds)
-}
-
-// DeepCopyWithDefaults returns a copy of this ReadinessProbeSpec struct with any nil or not set values set
-// by the corresponding value in the defaults ReadinessProbeSpec struct.
-func (in *ScalingProbe) DeepCopyWithDefaults(defaults *ScalingProbe) *ScalingProbe {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
-	}
-
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := ScalingProbe{}
-
-	if in.TimeoutSeconds != nil {
-		clone.TimeoutSeconds = in.TimeoutSeconds
-	} else {
-		clone.TimeoutSeconds = defaults.TimeoutSeconds
-	}
-
-	if in.Handler.HTTPGet != nil {
-		clone.Handler.HTTPGet = in.Handler.HTTPGet
-	} else {
-		clone.Handler.HTTPGet = defaults.Handler.HTTPGet
-	}
-
-	if in.Handler.TCPSocket != nil {
-		clone.Handler.TCPSocket = in.Handler.TCPSocket
-	} else {
-		clone.Handler.TCPSocket = defaults.Handler.TCPSocket
-	}
-
-	if in.Handler.Exec != nil {
-		clone.Handler.Exec = in.Handler.Exec
-	} else {
-		clone.Handler.Exec = defaults.Handler.Exec
-	}
-
-	return &clone
 }
 
 // ----- ReadinessProbeSpec struct ------------------------------------------
@@ -1546,53 +1645,40 @@ type ProbeHandler struct {
 	TCPSocket *corev1.TCPSocketAction `json:"tcpSocket,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this ReadinessProbeSpec struct with any nil or not set values set
-// by the corresponding value in the defaults ReadinessProbeSpec struct.
-func (in *ReadinessProbeSpec) DeepCopyWithDefaults(defaults *ReadinessProbeSpec) *ReadinessProbeSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+// Update the specified probe spec with the required configuration
+func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *corev1.Probe) {
+	switch {
+	case in != nil && in.Exec != nil:
+		probe.Exec = in.Exec
+	case in != nil && in.HTTPGet != nil:
+		probe.HTTPGet = in.HTTPGet
+	case in != nil && in.TCPSocket != nil:
+		probe.TCPSocket = in.TCPSocket
+	default:
+		probe.HTTPGet = &corev1.HTTPGetAction{
+			Path:   path,
+			Port:   intstr.FromInt(int(port)),
+			Scheme: corev1.URISchemeHTTP,
 		}
-		return nil
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	if in != nil {
+		if in.InitialDelaySeconds != nil {
+			probe.InitialDelaySeconds = *in.InitialDelaySeconds
+		}
+		if in.PeriodSeconds != nil {
+			probe.PeriodSeconds = *in.PeriodSeconds
+		}
+		if in.FailureThreshold != nil {
+			probe.FailureThreshold = *in.FailureThreshold
+		}
+		if in.SuccessThreshold != nil {
+			probe.SuccessThreshold = *in.SuccessThreshold
+		}
+		if in.TimeoutSeconds != nil {
+			probe.TimeoutSeconds = *in.TimeoutSeconds
+		}
 	}
-
-	clone := ReadinessProbeSpec{}
-
-	if in.InitialDelaySeconds != nil {
-		clone.InitialDelaySeconds = in.InitialDelaySeconds
-	} else {
-		clone.InitialDelaySeconds = defaults.InitialDelaySeconds
-	}
-
-	if in.TimeoutSeconds != nil {
-		clone.TimeoutSeconds = in.TimeoutSeconds
-	} else {
-		clone.TimeoutSeconds = defaults.TimeoutSeconds
-	}
-
-	if in.PeriodSeconds != nil {
-		clone.PeriodSeconds = in.PeriodSeconds
-	} else {
-		clone.PeriodSeconds = defaults.PeriodSeconds
-	}
-
-	if in.SuccessThreshold != nil {
-		clone.SuccessThreshold = in.SuccessThreshold
-	} else {
-		clone.SuccessThreshold = defaults.SuccessThreshold
-	}
-
-	if in.FailureThreshold != nil {
-		clone.FailureThreshold = in.FailureThreshold
-	} else {
-		clone.FailureThreshold = defaults.FailureThreshold
-	}
-
-	return &clone
 }
 
 // ----- FluentdSpec struct -------------------------------------------------
@@ -1602,70 +1688,206 @@ func (in *ReadinessProbeSpec) DeepCopyWithDefaults(defaults *ReadinessProbeSpec)
 type FluentdSpec struct {
 	ImageSpec `json:",inline"`
 	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
-	// If this flag i set to true it is expected that the coherence-monitoring-config secret exists in
-	// the namespace that the cluster is being deployed to. This secret is either created by the
-	// Coherence Operator Helm chart if it was installed with the correct parameters or it should
-	// have already been created manually.
 	Enabled *bool `json:"enabled,omitempty"`
-	// The Fluentd configuration file configuring source for application log.
+	// An optional Fluentd configuration file to be added as an @include to the main Fluentd configuration.
 	// +optional
-	ConfigFile *string `json:"configFile,omitempty"`
-	// This value should be source.tag from fluentd.application.configFile.
+	ConfigFileInclude *string `json:"configFileInclude,omitempty"`
+	// The Fluentd configuration file to use.
+	// This file will completely override the default Fluentd configuration normally
+	// provided by the Coherence Operator.
+	// +optional
+	ConfigFileOverride *string `json:"configFileOverride,omitempty"`
+	// This value should be the source.tag from fluentd.application.configFile.
 	// +optional
 	Tag *string `json:"tag,omitempty"`
+	// A comma delimited string of Elasticsearch hosts.
+	// These will be used for the hosts variable in the ES
+	// section of the Fluentd configuration as described in
+	// https://docs.fluentd.org/output/elasticsearch
+	// +optional
+	EsHosts *string `json:"esHosts,omitempty"`
+	// The Elasticsearch user name.
+	// This will be used for the user variable in the ES
+	// section of the Fluentd configuration as described in
+	// https://docs.fluentd.org/output/elasticsearch
+	// +optional
+	EsUser *string `json:"esUser,omitempty"`
+	// The Elasticsearch password.
+	// This will be used for the user variable in the ES
+	// section of the Fluentd configuration as described in
+	// https://docs.fluentd.org/output/elasticsearch
+	// +optional
+	EsPassword *string `json:"esPassword,omitempty"`
+	// The name of the Secret to use to obtain the Elasticsearch details.
+	// +optional
+	EsSecret *string `json:"esSecret,omitempty"`
+	// The key in the secret to use to obtain the Elasticsearch hosts value.
+	// If the EsHosts field has a value that will take precedence over the value from the secret.
+	// If not specified the default value will be "hosts"
+	// +optional
+	EsSecretHostsKey *string `json:"esSecretHostsKey,omitempty"`
+	// The key in the secret to use to obtain the Elasticsearch user name value.
+	// If the EsUser field has a value that will take precedence over the value from the secret.
+	// If not specified the default value will be "user"
+	// +optional
+	EsSecretUserKey *string `json:"esSecretUserKey,omitempty"`
+	// The key in the secret to use to obtain the Elasticsearch password value.
+	// If the EsPassword field has a value that will take precedence over the value from the secret.
+	// If not specified the default value will be "password"
+	// +optional
+	EsSecretPasswordKey *string `json:"esSecretPasswordKey,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this FluentdSpec struct with any nil or not set values set
-// by the corresponding value in the defaults FluentdSpec struct.
-func (in *FluentdSpec) DeepCopyWithDefaults(defaults *FluentdSpec) *FluentdSpec {
-	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
+func (in *FluentdSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
+	if in == nil || in.Enabled == nil || !*in.Enabled {
+		// either the fluentd spec is nil or disabled
+		return
+	}
+
+	// add the fluentd container
+	sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, in.CreateFluentdContainer())
+
+	// add the fluentd configuration ConfigMap volume
+	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+		Name: VolumeNameFluentdConfig,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(EfkConfigMapNameTemplate, sts.Name)},
+				DefaultMode:          pointer.Int32Ptr(420),
+			},
+		},
+	})
+}
+
+func (in *FluentdSpec) CreateFluentdContainer() corev1.Container {
+	var pullPolicy corev1.PullPolicy
+	if in.ImagePullPolicy == nil {
+		pullPolicy = corev1.PullIfNotPresent
+	} else {
+		pullPolicy = *in.ImagePullPolicy
+	}
+
+	var imageName string
+	if in.Image == nil {
+		imageName = DefaultFluentdImage
+	} else {
+		imageName = *in.Image
+	}
+
+	env := []corev1.EnvVar{
+		{
+			Name: EnvVarFluentdPodID,
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.uid",
+				},
+			},
+		},
+		{
+			Name:  EnvVarFluentdConf,
+			Value: VolumeMountSubPathFluentdConfig,
+		},
+		{
+			Name:  EnvVarFluentdSedDisable,
+			Value: "true",
+		},
+	}
+
+	if in.EsHosts != nil {
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsHosts, Value: *in.EsHosts})
+	} else if in.EsSecret != nil {
+		var key string
+		if in.EsSecretHostsKey == nil {
+			key = "hosts"
+		} else {
+			key = *in.EsSecretHostsKey
 		}
-		return nil
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsHosts, ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: *in.EsSecret,
+				},
+				Key:      key,
+				Optional: pointer.BoolPtr(true),
+			},
+		}})
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	if in.EsUser != nil {
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsUser, Value: *in.EsUser})
+	} else if in.EsSecret != nil {
+		var key string
+		if in.EsSecretUserKey == nil {
+			key = "user"
+		} else {
+			key = *in.EsSecretUserKey
+		}
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsUser, ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: *in.EsSecret,
+				},
+				Key:      key,
+				Optional: pointer.BoolPtr(true),
+			},
+		}})
 	}
 
-	clone := FluentdSpec{}
-	clone.ImageSpec = *in.ImageSpec.DeepCopyWithDefaults(&defaults.ImageSpec)
-
-	if in.Enabled != nil {
-		clone.Enabled = in.Enabled
-	} else {
-		clone.Enabled = defaults.Enabled
+	if in.EsPassword != nil {
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsCreds, Value: *in.EsPassword})
+	} else if in.EsSecret != nil {
+		var key string
+		if in.EsSecretUserKey == nil {
+			key = "password"
+		} else {
+			key = *in.EsSecretPasswordKey
+		}
+		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsCreds, ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: *in.EsSecret,
+				},
+				Key:      key,
+				Optional: pointer.BoolPtr(true),
+			},
+		}})
 	}
 
-	if in.ConfigFile != nil {
-		clone.ConfigFile = in.ConfigFile
-	} else {
-		clone.ConfigFile = defaults.ConfigFile
+	mounts := []corev1.VolumeMount{
+		{
+			Name:      VolumeNameFluentdConfig,
+			MountPath: VolumeMountPathFluentdConfig,
+			SubPath:   VolumeMountSubPathFluentdConfig,
+		},
+		{
+			Name:      VolumeNameLogs,
+			MountPath: VolumeMountPathLogs,
+		},
 	}
 
-	if in.Tag != nil {
-		clone.Tag = in.Tag
-	} else {
-		clone.Tag = defaults.Tag
+	return corev1.Container{
+		Name:            ContainerNameFluentd,
+		Image:           imageName,
+		ImagePullPolicy: pullPolicy,
+		Args:            []string{"-c", "/etc/fluent.conf"},
+		Env:             env,
+		VolumeMounts:    mounts,
 	}
-
-	return &clone
 }
 
 // ----- ScalingPolicy type -------------------------------------------------
 
-// ScalingPolicy describes a policy for scaling a cluster role
+// ScalingPolicy describes a policy for scaling a cluster deployment
 type ScalingPolicy string
 
 // Scaling policy constants
 const (
-	// Safe means that a role will be scaled up or down in a safe manner to ensure no data loss.
+	// Safe means that a deployment will be scaled up or down in a safe manner to ensure no data loss.
 	SafeScaling ScalingPolicy = "Safe"
-	// Parallel means that a role will be scaled up or down by adding or removing members in parallel.
-	// If the members of the role are storage enabled then this could cause data loss
+	// Parallel means that a deployment will be scaled up or down by adding or removing members in parallel.
+	// If the members of the deployment are storage enabled then this could cause data loss
 	ParallelScaling ScalingPolicy = "Parallel"
-	// ParallelUpSafeDown means that a role will be scaled up by adding or removing members in parallel
+	// ParallelUpSafeDown means that a deployment will be scaled up by adding or removing members in parallel
 	// but will be scaled down in a safe manner to ensure no data loss.
 	ParallelUpSafeDownScaling ScalingPolicy = "ParallelUpSafeDown"
 )
@@ -1683,7 +1905,7 @@ type LocalObjectReference struct {
 
 // ----- NetworkSpec --------------------------------------------------------
 
-// NetworkSpec configures various networking and DNS settings for Pods in a role.
+// NetworkSpec configures various networking and DNS settings for Pods in a deployment.
 // +k8s:openapi-gen=true
 type NetworkSpec struct {
 	// Specifies the DNS parameters of a pod. Parameters specified here will be merged to the
@@ -1695,7 +1917,7 @@ type NetworkSpec struct {
 	// selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS
 	// policy explicitly to 'ClusterFirstWithHostNet'.
 	// +optional
-	DNSPolicy *string `json:"dnsPolicy,omitempty"`
+	DNSPolicy *corev1.DNSPolicy `json:"dnsPolicy,omitempty"`
 	// HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
 	// This is only valid for non-hostNetwork pods.
 	// +listType=map
@@ -1711,63 +1933,21 @@ type NetworkSpec struct {
 	Hostname *string `json:"hostname,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this NetworkSpec struct with any nil or not set values set
-// by the corresponding value in the defaults NetworkSpec struct.
-func (in *NetworkSpec) DeepCopyWithDefaults(defaults *NetworkSpec) *NetworkSpec {
+// Update the specified StatefulSet's network settings.
+func (in *NetworkSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+		return
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
-	}
-
-	clone := NetworkSpec{}
-	clone.DNSConfig = in.DNSConfig.DeepCopyWithDefaults(defaults.DNSConfig)
+	in.DNSConfig.UpdateStatefulSet(sts)
 
 	if in.DNSPolicy != nil {
-		clone.DNSPolicy = in.DNSPolicy
-	} else {
-		clone.DNSPolicy = defaults.DNSPolicy
+		sts.Spec.Template.Spec.DNSPolicy = *in.DNSPolicy
 	}
 
-	// merge HostAlias list
-	m := make(map[string]corev1.HostAlias)
-	if defaults.HostAliases != nil {
-		for _, h := range defaults.HostAliases {
-			m[h.IP] = h
-		}
-	}
-	if in.HostAliases != nil {
-		for _, h := range in.HostAliases {
-			m[h.IP] = h
-		}
-	}
-	if len(m) > 0 {
-		i := 0
-		clone.HostAliases = make([]corev1.HostAlias, len(m))
-		for _, h := range m {
-			clone.HostAliases[i] = h
-			i++
-		}
-	}
-
-	if in.HostNetwork != nil {
-		clone.HostNetwork = in.HostNetwork
-	} else {
-		clone.HostNetwork = defaults.HostNetwork
-	}
-
-	if in.Hostname != nil {
-		clone.Hostname = in.Hostname
-	} else {
-		clone.Hostname = defaults.Hostname
-	}
-
-	return &clone
+	sts.Spec.Template.Spec.HostAliases = in.HostAliases
+	sts.Spec.Template.Spec.HostNetwork = notNilBool(in.HostNetwork)
+	sts.Spec.Template.Spec.Hostname = notNilString(in.Hostname)
 }
 
 // ----- PodDNSConfig -------------------------------------------------------
@@ -1798,85 +1978,378 @@ type PodDNSConfig struct {
 	Options []corev1.PodDNSConfigOption `json:"options,omitempty"`
 }
 
-// DeepCopyWithDefaults returns a copy of this PodDNSConfig struct with any nil or not set values set
-// by the corresponding value in the defaults PodDNSConfig struct.
-func (in *PodDNSConfig) DeepCopyWithDefaults(defaults *PodDNSConfig) *PodDNSConfig {
+func (in *PodDNSConfig) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	if in == nil {
-		if defaults != nil {
-			return defaults.DeepCopy()
-		}
-		return nil
+		return
 	}
 
-	if defaults == nil {
-		return in.DeepCopy()
+	cfg := corev1.PodDNSConfig{}
+
+	if in.Nameservers != nil && len(in.Nameservers) > 0 {
+		cfg.Nameservers = in.Nameservers
+		sts.Spec.Template.Spec.DNSConfig = &cfg
 	}
 
-	clone := PodDNSConfig{}
-
-	// merge Options list
-	m := make(map[string]corev1.PodDNSConfigOption)
-	if defaults.Options != nil {
-		for _, opt := range defaults.Options {
-			m[opt.Name] = opt
-		}
-	}
-	if in.Options != nil {
-		for _, opt := range in.Options {
-			m[opt.Name] = opt
-		}
-	}
-	if len(m) > 0 {
-		i := 0
-		clone.Options = make([]corev1.PodDNSConfigOption, len(m))
-		for _, opt := range m {
-			clone.Options[i] = opt
-			i++
-		}
+	if in.Searches != nil && len(in.Searches) > 0 {
+		cfg.Searches = in.Searches
+		sts.Spec.Template.Spec.DNSConfig = &cfg
 	}
 
-	if in.Nameservers != nil {
-		clone.Nameservers = []string{}
-		clone.Nameservers = append(clone.Nameservers, defaults.Nameservers...)
-		clone.Nameservers = append(clone.Nameservers, in.Nameservers...)
-	} else if defaults.Nameservers != nil {
-		clone.Nameservers = []string{}
-		clone.Nameservers = append(clone.Nameservers, defaults.Nameservers...)
+	if in.Options != nil && len(in.Options) > 0 {
+		cfg.Options = in.Options
+		sts.Spec.Template.Spec.DNSConfig = &cfg
 	}
-
-	if in.Searches != nil {
-		clone.Searches = []string{}
-		clone.Searches = append(clone.Searches, defaults.Searches...)
-		clone.Searches = append(clone.Searches, in.Searches...)
-	} else if defaults.Searches != nil {
-		clone.Searches = []string{}
-		clone.Searches = append(clone.Searches, defaults.Searches...)
-	}
-
-	return &clone
 }
 
 // ----- StartQuorum --------------------------------------------------------
 
-// StartQuorum defines the order that roles will be created when initially
-// creating a new cluster.
+// StartQuorum defines the order that deployments will be started in a Coherence cluster
+// made up of multiple deployments.
 // +k8s:openapi-gen=true
 type StartQuorum struct {
-	// The list of roles to start first.
+	// The name of deployment that this deployment depends on.
 	// +optional
-	Role string `json:"role"`
-	// The number of the dependency Pods that should have been started
-	// before this roles will be started.
+	Deployment string `json:"deployment"`
+	// The namespace that the deployment that this deployment depends on is installed into.
+	// Default to the same namespace as this deployment
+	// +optional
+	Namespace string `json:"namespace"`
+	// The number of the Pods that should have been started before this
+	// deployments will be started, defaults to all Pods for the deployment.
 	// +optional
 	PodCount int32 `json:"podCount,omitempty"`
 }
 
-// ----- StartStatus --------------------------------------------------------
+// ----- StartQuorumStatus --------------------------------------------------
 
-// StartQuorumStatus tracks the state of a role's start quorums.
+// StartQuorumStatus tracks the state of a deployment's start quorums.
 type StartQuorumStatus struct {
 	// The inlined start quorum.
 	StartQuorum `json:",inline"`
 	// Whether this quorum's condition has been met
 	Ready bool `json:"ready"`
+}
+
+// ----- ResourceType -------------------------------------------------------
+
+type ResourceType string
+
+func (t ResourceType) Name() string {
+	return string(t)
+}
+
+const (
+	ResourceTypeDeployment     ResourceType = "CoherenceDeployment"
+	ResourceTypeConfigMap      ResourceType = "ConfigMap"
+	ResourceTypeSecret         ResourceType = "Secret"
+	ResourceTypeService        ResourceType = "Service"
+	ResourceTypeServiceMonitor ResourceType = ServiceMonitorKind
+	ResourceTypeStatefulSet    ResourceType = "StatefulSet"
+)
+
+func ToResourceType(kind string) (ResourceType, error) {
+	var t ResourceType
+	var err error
+
+	switch kind {
+	case ResourceTypeDeployment.Name():
+		t = ResourceTypeDeployment
+	case ResourceTypeConfigMap.Name():
+		t = ResourceTypeConfigMap
+	case ResourceTypeSecret.Name():
+		t = ResourceTypeSecret
+	case ResourceTypeService.Name():
+		t = ResourceTypeService
+	case ResourceTypeServiceMonitor.Name():
+		t = ResourceTypeServiceMonitor
+	case ResourceTypeStatefulSet.Name():
+		t = ResourceTypeStatefulSet
+	default:
+		err = fmt.Errorf("attempt to obtain ResourceType unsupported kind %s", kind)
+	}
+	return t, err
+}
+
+func (t ResourceType) toObject() (runtime.Object, error) {
+	var o runtime.Object
+	var err error
+
+	switch t {
+	case ResourceTypeDeployment:
+		o = &CoherenceDeployment{}
+	case ResourceTypeConfigMap:
+		o = &corev1.ConfigMap{}
+	case ResourceTypeSecret:
+		o = &corev1.Secret{}
+	case ResourceTypeService:
+		o = &corev1.Service{}
+	case ResourceTypeServiceMonitor:
+		o = &monitoringv1.ServiceMonitor{}
+	case ResourceTypeStatefulSet:
+		o = &appsv1.StatefulSet{}
+	default:
+		err = fmt.Errorf("attempt to obtain runtime.Object for unsupported type %s", t)
+	}
+	return o, err
+}
+
+// ----- Resource -----------------------------------------------------------
+
+type Resource struct {
+	Kind ResourceType   `json:"kind"`
+	Name string         `json:"name"`
+	Spec runtime.Object `json:"spec"`
+}
+
+func (in *Resource) GetFullName() string {
+	if in == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s_%s", in.Kind, in.Name)
+}
+
+func (in *Resource) IsDelete() bool {
+	if in == nil {
+		return false
+	}
+	// this resource is a delete if the Spec is nil
+	return in.Spec == nil
+}
+
+// Set the the controller/owner of the resource
+func (in *Resource) SetController(object runtime.Object, scheme *runtime.Scheme) error {
+	if in == nil || in.Spec == nil {
+		return nil
+	}
+	owner, ok := object.(metav1.Object)
+	if !ok {
+		return fmt.Errorf("%s is not a metav1.Template cannot call SetControllerReference", in.GetFullName())
+	}
+	m, ok := in.Spec.(metav1.Object)
+	if !ok {
+		return fmt.Errorf("%s is not a metav1.Template cannot call SetControllerReference", in.GetFullName())
+	}
+	if err := controllerutil.SetControllerReference(owner, m, scheme); err != nil {
+		if _, owned := err.(*controllerutil.AlreadyOwnedError); !owned {
+			// if the error is not an AlreadyOwnedError then return
+			err = errors.Wrap(err, fmt.Sprintf("setting resource owner/controller in %s", in.GetFullName()))
+			return err
+		}
+	}
+	return nil
+}
+
+// ----- Resources ------------------------------------------------------
+
+type Resources struct {
+	Version int32      `json:"version"`
+	Items   []Resource `json:"items"`
+}
+
+func (in Resources) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString("{")
+	buffer.WriteString(fmt.Sprintf(`"apiVersion":"%d"`, in.Version))
+	buffer.WriteString(`, "kind": "Resources"`)
+	buffer.WriteString(`, "items":[`)
+
+	for i, item := range in.Items {
+		if !item.IsDelete() {
+			if i > 0 {
+				buffer.WriteString(", ")
+			}
+			b, err := json.Marshal(item.Spec)
+			if err != nil {
+				return nil, err
+			}
+			buffer.Write(b)
+		}
+	}
+	buffer.WriteString("]}")
+	return buffer.Bytes(), nil
+}
+
+func (in *Resources) UnmarshalJSON(b []byte) error {
+	l := unstructured.UnstructuredList{}
+	if err := l.UnmarshalJSON(b); err != nil {
+		return err
+	}
+	v, err := strconv.Atoi(l.GetAPIVersion())
+	if err != nil {
+		return err
+	}
+	in.Version = int32(v)
+	for _, u := range l.Items {
+		var o runtime.Object
+		kind := u.GetObjectKind().GroupVersionKind().Kind
+		t, err := ToResourceType(kind)
+		if err != nil {
+			return err
+		}
+		o, err = t.toObject()
+		if err != nil {
+			return err
+		}
+		if err = runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, o); err != nil {
+			return errors.Wrapf(err, "converting unstructured to %s", kind)
+		}
+
+		in.Items = append(in.Items, Resource{
+			Kind: t,
+			Name: u.GetName(),
+			Spec: o,
+		})
+	}
+	return nil
+}
+
+func (in Resources) EnsureGVK(s *runtime.Scheme) {
+	for _, r := range in.Items {
+		switch {
+		case !r.IsDelete() && r.Kind == ResourceTypeServiceMonitor:
+			gvk := schema.GroupVersionKind{
+				Group:   ServiceMonitorGroup,
+				Version: ServiceMonitorVersion,
+				Kind:    ServiceMonitorKind,
+			}
+			r.Spec.GetObjectKind().SetGroupVersionKind(gvk)
+		case !r.IsDelete():
+			gvks, _, _ := s.ObjectKinds(r.Spec)
+			if len(gvks) > 0 {
+				r.Spec.GetObjectKind().SetGroupVersionKind(gvks[0])
+			}
+		}
+	}
+}
+
+func (in Resources) GetResource(kind ResourceType, name string) (Resource, bool) {
+	for _, r := range in.Items {
+		if r.Kind == kind && r.Name == name {
+			return r, true
+		}
+	}
+	return Resource{}, false
+}
+
+func (in Resources) GetResourcesOfKind(kind ResourceType) []Resource {
+	var items []Resource
+	for _, r := range in.Items {
+		if r.Kind == kind {
+			items = append(items, r)
+		}
+	}
+	return items
+}
+
+// Obtain the diff between the previous deployment resources and this deployment resources.
+func (in Resources) Diff(previous Resources) []Resource {
+	var diff []Resource
+
+	// work out any deletions
+	for _, r := range previous.Items {
+		_, found := in.GetResource(r.Kind, r.Name)
+		if !found {
+			// previous resource is deleted from this Resources
+			diff = append(diff, Resource{Kind: r.Kind, Name: r.Name})
+		}
+	}
+
+	// work out any additions or updates
+	for _, r := range in.Items {
+		prev, found := previous.GetResource(r.Kind, r.Name)
+		if found {
+			if len(deep.Equal(prev, r)) != 0 {
+				// r and prev are different so there is something to update
+				diff = append(diff, r)
+			}
+		} else {
+			// r is a new resource so append it to the diff
+			diff = append(diff, r)
+		}
+	}
+	diff = append(diff, in.Items...)
+
+	return diff
+}
+
+// Obtain the diff between the previous deployment resources of a specific kind and this deployment resources.
+func (in Resources) DiffForKind(kind ResourceType, previous Resources) []Resource {
+	var diff []Resource
+
+	// work out any deletions
+	for _, r := range previous.GetResourcesOfKind(kind) {
+		_, found := in.GetResource(kind, r.Name)
+		if !found {
+			// previous resource is deleted from this Resources
+			diff = append(diff, Resource{Kind: r.Kind, Name: r.Name})
+		}
+	}
+
+	// work out any additions or updates
+	for _, r := range in.GetResourcesOfKind(kind) {
+		prev, found := previous.GetResource(r.Kind, r.Name)
+		if found {
+			if len(deep.Equal(prev, r)) != 0 {
+				// r and prev are different so there is something to update
+				diff = append(diff, r)
+			}
+		} else {
+			// r is a new resource so append it to the diff
+			diff = append(diff, r)
+		}
+	}
+
+	return diff
+}
+
+// Set the deployment as the controller/owner of all of the resources
+func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme) error {
+	for _, r := range in.Items {
+		if err := r.SetController(object, scheme); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Create the specified resource
+func (in Resources) Create(kind ResourceType, name string, mgr manager.Manager, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Creating %s for deployment", kind))
+	// Get the resource state
+	resource, found := in.GetResource(kind, name)
+	if !found {
+		return fmt.Errorf("cannot create %s for deployment %s as state not present in store", kind, name)
+	}
+	// create the resource
+	if err := mgr.GetClient().Create(context.TODO(), resource.Spec); err != nil {
+		return errors.Wrapf(err, "failed to create %s", kind)
+	}
+	return nil
+}
+
+// ----- helper methods -----------------------------------------------------
+
+// Convert an int32 pointer to a string using the default if the pointer is nil.
+func Int32PtrToStringWithDefault(i *int32, d int32) string {
+	if i == nil {
+		return Int32ToString(d)
+	}
+	return Int32ToString(*i)
+}
+
+// Convert an int32 pointer to a string.
+func Int32PtrToString(i *int32) string {
+	return Int32ToString(*i)
+}
+
+// Convert an int32 to a string.
+func Int32ToString(i int32) string {
+	return strconv.FormatInt(int64(i), 10)
+}
+
+// Convert a bool pointer to a string.
+func BoolPtrToString(b *bool) string {
+	if b != nil && *b {
+		return "true"
+	}
+	return "false"
 }

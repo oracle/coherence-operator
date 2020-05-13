@@ -28,7 +28,7 @@ on MacOS).
 *NOTE:* The Coherence Operator by default runs in and monitors a *single* namespace.
 This is different behaviour to v1.0 of the Coherence Operator.
 For more details see the Operator SDK document on
-https://github.com/operator-framework/operator-sdk/blob/v0.11.0/doc/operator-scope.md[Operator Scope].
+https://github.com/operator-framework/operator-sdk/blob/v0.17.0/doc/operator-scope.md[Operator Scope].
 
 === Running Locally
 

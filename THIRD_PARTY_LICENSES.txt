@@ -435,10 +435,6 @@ Project URL: https://github.com/go-openapi/validate
 License: The MIT License (MIT)
 Project URL: https://github.com/go-test/deep
 
-6.	github.com/onsi/ginkgo v1.7.0
-License: The MIT License (MIT)
-Project URL: https://github.com/onsi/ginkgo
-
 7.	github.com/onsi/gomega v1.4.3
 License: The MIT License (MIT)
 Project URL: https://github.com/onsi/gomega

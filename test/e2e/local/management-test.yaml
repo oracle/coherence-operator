@@ -1,17 +1,13 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
-  name: test-mgmt
+  name: management
 spec:
+  replicas: 1
   coherence:
     management:
       enabled: true
       port: 30000
   ports:
-    - name: mgmt-port
+    - name: management
       port: 30000
-  roles:
-  - role: one
-    replicas: 1
-  - role: two
-    replicas: 1

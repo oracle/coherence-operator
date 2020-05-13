@@ -59,7 +59,7 @@ public class HealthServer {
     /**
      * Service MBean Attributes required to compute HAStatus.
      *
-     * @see #isServiceStatusHA(Map)
+     * @see #isServiceStatusHA(java.util.Map, boolean)
      */
     public static final String[] SERVICE_STATUS_HA_ATTRIBUTES =
             {
@@ -134,7 +134,7 @@ public class HealthServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            System.out.println("ReST server is UP! http://localhost:" + server.getAddress().getPort());
+            System.out.println("REST server is UP! http://localhost:" + server.getAddress().getPort());
 
             httpServer = server;
         }
@@ -167,7 +167,7 @@ public class HealthServer {
      */
     void ready(HttpExchange exchange) {
         try {
-            int response = hasClusterMembers() && isStatusHA() ? 200 : 400;
+            int response = hasClusterMembers() && isStatusHA(false) ? 200 : 400;
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -197,7 +197,9 @@ public class HealthServer {
      */
     void statusHA(HttpExchange exchange) {
         try {
-            int response = isStatusHA() ? 200 : 400;
+            CacheFactory.log("HealthServer: StatusHA check request", CacheFactory.LOG_INFO);
+            int response = isStatusHA(true) ? 200 : 400;
+            CacheFactory.log("HealthServer: StatusHA check response " + response, CacheFactory.LOG_INFO);
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -232,19 +234,27 @@ public class HealthServer {
      *
      * @return {@code true} if the JVM is StatusHA
      */
-    private boolean isStatusHA() {
-        boolean statusHA = false;
-
+    private boolean isStatusHA(boolean log) {
         Cluster cluster = clusterSupplier.get();
-
         if (cluster != null && cluster.isRunning()) {
-            statusHA = getPartitionAssignmentMBeans()
-                    .stream()
-                    .map(this::getMBeanServiceStatusHAAttributes)
-                    .allMatch(this::isServiceStatusHA);
+            for (String mBean : getPartitionAssignmentMBeans()) {
+                if (log) {
+                    CacheFactory.log("HealthServer: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
+                }
+                Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
+                if (!isServiceStatusHA(attributes, log)) {
+                    if (log) {
+                        CacheFactory.log("HealthServer: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
+                    }
+                    return false;
+                }
+            }
+            return true;
         }
-
-        return statusHA;
+        else {
+            CacheFactory.log("HealthServer: StatusHA check failed - cluster is null", CacheFactory.LOG_DEBUG);
+            return false;
+        }
     }
 
     /**
@@ -254,21 +264,28 @@ public class HealthServer {
      * this method will return {@code false}.
      *
      * @param mapAttributes the MBean attributes to use to determine whether the service is HA
+     * @param log           whether to log the progess of the check
      * @return {@code true} if the service is endangered
      */
-    private boolean isServiceStatusHA(Map<String, Object> mapAttributes) {
+    private boolean isServiceStatusHA(Map<String, Object> mapAttributes, boolean log) {
         boolean statusHA = true;
 
-        // convert the attribute case as MBeanProxy or ReST return them with different cases
+        // convert the attribute case as MBeanProxy or REST return them with different cases
         Map<String, Object> map = mapAttributes.entrySet()
                 .stream()
                 .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
 
         Number nodeCount = (Number) map.get(ATTRIB_NODE_COUNT);
         Number backupCount = (Number) map.get(ATTRIB_BACKUPS);
+        Object status = map.get(ATTRIB_HASTATUS);
 
         if (nodeCount != null && nodeCount.intValue() > 1 && backupCount != null && backupCount.intValue() > 0) {
-            statusHA = !Objects.equals(STATUS_ENDANGERED, map.get(ATTRIB_HASTATUS));
+            statusHA = !Objects.equals(STATUS_ENDANGERED, status);
+        }
+
+        if (log) {
+            CacheFactory.log(String.format("HealthServer: StatusHA=%s Nodes=%s Backups=%s Status=%s",
+                                           statusHA, nodeCount, backupCount, status), CacheFactory.LOG_DEBUG);
         }
 
         return statusHA;

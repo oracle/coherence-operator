@@ -1,21 +1,19 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
-  name: test-cluster
+  name: test
 spec:
-  roles:
-  - role: one
-    scaling:
-      policy: Parallel
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 5
-    application:
-      main: com.oracle.coherence.k8s.testing.RestServer
-      image: ${TEST_USER_IMAGE}
-      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-    coherence:
-      cacheConfig: test-cache-config.xml
-    ports:
-    - name: rest
-      port: 8080
+  image: ${TEST_USER_IMAGE}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
+  scaling:
+    policy: Parallel
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+  application:
+    main: com.oracle.coherence.k8s.testing.RestServer
+  coherence:
+    cacheConfig: test-cache-config.xml
+  ports:
+  - name: rest
+    port: 8080

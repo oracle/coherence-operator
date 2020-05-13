@@ -8,16 +8,38 @@ package controller
 
 import (
 	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/rest"
+	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // AddToManagerFuncs is a list of functions to add all Controllers to the Manager
-var AddToManagerFuncs []func(manager.Manager, *flags.CoherenceOperatorFlags) error
+var AddToManagerFuncs []func(manager.Manager) error
 
 // AddToManager adds all Controllers to the Manager
-func AddToManager(m manager.Manager, opFlags *flags.CoherenceOperatorFlags) error {
+func AddToManager(m manager.Manager) error {
+	opFlags := flags.GetOperatorFlags()
+
+	// Ensure that the CRDs exist
+	err := operator.EnsureCRDs(m)
+	if err != nil {
+		return errors.Wrap(err, "failed to ensure CRDs")
+	}
+
+	// Create the REST server
+	s, err := rest.EnsureServer(m, opFlags)
+	if err != nil {
+		return errors.Wrap(err, "failed to create REST server")
+	}
+	// Add the REST server to the Manager so that is is started after the Manager is initialized
+	err = s.Start()
+	if err != nil {
+		return errors.Wrap(err, "failed to start the REST server")
+	}
+
 	for _, f := range AddToManagerFuncs {
-		if err := f(m, opFlags); err != nil {
+		if err := f(m); err != nil {
 			return err
 		}
 	}

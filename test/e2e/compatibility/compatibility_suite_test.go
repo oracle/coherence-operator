@@ -36,11 +36,11 @@ func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, hh *helper.HelmHel
 	}
 }
 
-func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yamlFile string) (v1.CoherenceCluster, error) {
+func DeployCoherenceCluster(t *testing.T, ctx *framework.Context, namespace, yamlFile string) (v1.CoherenceCluster, error) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
-	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
+	cluster, err := helper.NewCoherenceDeploymentFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// deploy the CoherenceCluster
@@ -52,7 +52,7 @@ func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yam
 	// Wait for the StatefulSet(s)
 	roles := cluster.GetRoles()
 	for _, role := range roles {
-		_, err = helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role, time.Second*5, time.Minute*5, t)
+		_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &cluster, role, time.Second*5, time.Minute*5, t)
 		if err != nil {
 			return cluster, err
 		}
@@ -63,7 +63,7 @@ func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yam
 
 type Cleanup struct {
 	t   *testing.T
-	ctx *framework.TestCtx
+	ctx *framework.Context
 	rm  *helper.HelmReleaseManager
 	hh  *helper.HelmHelper
 }

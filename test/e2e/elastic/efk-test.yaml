@@ -1,0 +1,14 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: cluster-one
+spec:
+  replicas: 2
+  role: storage
+  coherence:
+    logLevel: 9
+  logging:
+    fluentd:
+      enabled: true
+      esHosts: http://elasticsearch-master:9200
+

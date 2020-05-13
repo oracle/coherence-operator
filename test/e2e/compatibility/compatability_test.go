@@ -15,7 +15,7 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	"os"
@@ -93,7 +93,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	// Get the cluster StatefulSet before Operator Upgrade
 	role := cluster.GetFirstRole()
-	stsBefore, err := helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	stsBefore, err := helper.WaitForStatefulSetForDeployment(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	dir := t.Name() + "/Before"
@@ -139,7 +139,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	time.Sleep(time.Minute * 1)
 
 	// Get the cluster StatefulSet after Operator Upgrade
-	stsAfter, err := helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	stsAfter, err := helper.WaitForStatefulSetForDeployment(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Assert that the StatefulSet has not been changed by the upgrade (i.e. its generation is unchanged)
@@ -150,7 +150,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	}
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
-	// Ensure that everything is still linked, i.e. the cluster to the role to the CoherenceInternal
+	// Ensure that everything is still linked, i.e. the cluster to the role to the StatefulSet
 	// by upgrading the Coherence cluster. We're just going to add a label to the Pods
 
 	t.Log("Re-fetching Coherence cluster to update with Pod labels")
@@ -176,7 +176,7 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	_, err = helper.WaitForPodsWithLabel(cl, namespace, "foo=bar", int(role.GetReplicas()), time.Second*10, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
 	// Get the cluster StatefulSet after cluster update
-	_, err = helper.WaitForStatefulSetForRole(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(cl, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Delete the CoherenceCluster
@@ -189,10 +189,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	t.Logf("Fetching CoherenceRole %s/%s", namespace, cr.GetName())
 	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &cr)
 	g.Expect(err).ToNot(HaveOccurred())
-	ci := unstructured.Unstructured{}
-	ci.SetGroupVersionKind(coh.GetCoherenceInternalGroupVersionKind(f.Scheme))
-	t.Logf("Fetching CoherenceInternal %s/%s", namespace, cr.GetName())
-	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &ci)
+	sts := appsv1.StatefulSet{}
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: cr.GetName()}, &sts)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Logf("Deleting Coherence cluster %s/%s", namespace, cluster.Name)
@@ -207,8 +205,8 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 	err = helper.WaitForDeletion(f, namespace, cr.Name, &cr, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Logf("Waiting for CoherenceInternal %s/%s to be removed", namespace, ci.GetName())
-	err = helper.WaitForDeletion(f, namespace, ci.GetName(), &ci, time.Second*10, time.Minute*5, t)
+	t.Logf("Waiting for StatefulSet %s/%s to be removed", namespace, sts.GetName())
+	err = helper.WaitForDeletion(f, namespace, sts.GetName(), &sts, time.Second*10, time.Minute*5, t)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Wait for the updated cluster Pods to be deleted

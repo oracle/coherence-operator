@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"os"
-	"strings"
 )
 
 const (
@@ -36,9 +35,9 @@ func main() {
 		utilDir = utilsDirDefault
 	}
 
-	scriptsDir := utilDir + string(os.PathSeparator) + "scripts"
-	confDir := utilDir + string(os.PathSeparator) + "conf"
-	libDir := utilDir + string(os.PathSeparator) + "lib"
+	scriptsDir := utilDir + pathSep + "scripts"
+	confDir := utilDir + pathSep + "conf"
+	libDir := utilDir + pathSep + "lib"
 
 	fmt.Printf("Creating target directories under %s\n", utilDir)
 	err = os.MkdirAll(scriptsDir, os.ModePerm)
@@ -58,33 +57,45 @@ func main() {
 
 	fmt.Printf("Copying files to %s\n", utilDir)
 
-	fmt.Printf("Copying files/*.sh to %s\n", scriptsDir)
-	err = utils.CopyDir(filesDir, scriptsDir, func(f string) bool { return strings.HasSuffix(f, ".sh") })
+	scriptSrc := filesDir + pathSep + "scripts"
+	fmt.Printf("Copying %s to %s\n", scriptSrc, scriptsDir)
+	err = utils.CopyDir(scriptSrc, scriptsDir, func(f string) bool { return true })
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Copying files/*.jar to %s\n", libDir)
-	err = utils.CopyDir(filesDir, libDir, func(f string) bool { return strings.HasSuffix(f, ".jar") })
+	libSrc := filesDir + pathSep + "lib"
+	fmt.Printf("Copying %s to %s\n", libSrc, libDir)
+	err = utils.CopyDir(libSrc, libDir, func(f string) bool { return true })
 	if err != nil {
 		panic(err)
 	}
 
-	cp := filesDir + string(os.PathSeparator) + "copy"
+	cp := filesDir + pathSep + "copy"
 	_, err = os.Stat(cp)
 	if err == nil {
 		fmt.Println("Copying copy utility")
-		err = utils.CopyFile(cp, utilDir+string(os.PathSeparator)+"copy")
+		err = utils.CopyFile(cp, utilDir+pathSep+"copy")
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	opTest := filesDir + string(os.PathSeparator) + "op-test"
+	run := filesDir + pathSep + "runner"
+	_, err = os.Stat(run)
+	if err == nil {
+		fmt.Println("Copying runner utility")
+		err = utils.CopyFile(run, utilDir+pathSep+"runner")
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	opTest := filesDir + pathSep + "op-test"
 	_, err = os.Stat(opTest)
 	if err == nil {
 		fmt.Println("Copying op-test utility")
-		err = utils.CopyFile(opTest, utilDir+string(os.PathSeparator)+"op-test")
+		err = utils.CopyFile(opTest, utilDir+pathSep+"op-test")
 		if err != nil {
 			panic(err)
 		}

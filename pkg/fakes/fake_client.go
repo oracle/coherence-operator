@@ -8,13 +8,17 @@ package fakes
 
 import (
 	"context"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"time"
 )
 
 // ClientWithErrors is a client.Client that can be configured
@@ -23,13 +27,21 @@ type ClientWithErrors interface {
 	client.Client
 	EnableErrors(errors ClientErrors)
 	DisableErrors()
+	GetOperations() []ClientOperation
+	GetCreates() []runtime.Object
+	GetUpdates() []runtime.Object
+	GetDeletes() []runtime.Object
+	GetPatches() []ClientOperation
+	GetStatefulSet(namespace, name string) (*appsv1.StatefulSet, error)
+	GetService(namespace, name string) (*corev1.Service, error)
 }
 
 // clientWithErrors an internal implementation of ClientWithErrors
 type clientWithErrors struct {
-	wrapped  client.Client
-	errorsOn bool
-	errors   ClientErrors
+	wrapped    client.Client
+	errorsOn   bool
+	errors     ClientErrors
+	operations []ClientOperation
 }
 
 // ClientErrors is the configuration used by ClientWithErrors to
@@ -112,6 +124,18 @@ func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj ru
 	return c.wrapped.Get(ctx, key, obj)
 }
 
+func (c *clientWithErrors) GetStatefulSet(namespace, name string) (*appsv1.StatefulSet, error) {
+	sts := &appsv1.StatefulSet{}
+	err := c.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, sts)
+	return sts, err
+}
+
+func (c *clientWithErrors) GetService(namespace, name string) (*corev1.Service, error) {
+	svc := &corev1.Service{}
+	err := c.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, svc)
+	return svc, err
+}
+
 func (c *clientWithErrors) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
 	return c.wrapped.List(ctx, list, opts...)
 }
@@ -124,7 +148,15 @@ func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object, opts 
 			return err
 		}
 	}
-	return c.wrapped.Create(ctx, obj, opts...)
+	err := c.wrapped.Create(ctx, obj, opts...)
+	if err == nil {
+		if _, ok := obj.(metav1.Object); ok {
+			mo := obj.(metav1.Object)
+			mo.SetCreationTimestamp(metav1.Time{Time: time.Now()})
+		}
+		c.operations = append(c.operations, ClientOperation{Action: ClientActionCreate, Object: obj})
+	}
+	return err
 }
 
 func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts ...client.DeleteOption) error {
@@ -135,7 +167,16 @@ func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts 
 			return err
 		}
 	}
-	return c.wrapped.Delete(ctx, obj, opts...)
+	err := c.wrapped.Delete(ctx, obj, opts...)
+	if err == nil {
+		if _, ok := obj.(metav1.Object); ok {
+			t := metav1.Time{Time: time.Now()}
+			mo := obj.(metav1.Object)
+			mo.SetDeletionTimestamp(&t)
+			c.operations = append(c.operations, ClientOperation{Action: ClientActionDelete, Object: obj})
+		}
+	}
+	return err
 }
 
 func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object, opts ...client.UpdateOption) error {
@@ -146,15 +187,33 @@ func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object, opts 
 			return err
 		}
 	}
-	return c.wrapped.Update(ctx, obj, opts...)
+	err := c.wrapped.Update(ctx, obj, opts...)
+	if err == nil {
+		if _, ok := obj.(metav1.Object); ok {
+			mo := obj.(metav1.Object)
+			mo.SetGeneration(obj.(metav1.Object).GetGeneration() + 1)
+			c.operations = append(c.operations, ClientOperation{Action: ClientActionUpdate, Object: obj})
+		}
+	}
+	return err
+}
+
+func (c *clientWithErrors) Patch(ctx context.Context, obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
+	err := c.wrapped.Patch(ctx, obj, patch, opts...)
+	if err == nil {
+		if _, ok := obj.(metav1.Object); ok {
+			mo := obj.(metav1.Object)
+			mo.SetGeneration(obj.(metav1.Object).GetGeneration() + 1)
+			cpy := obj.DeepCopyObject()
+			_ = c.wrapped.Get(context.TODO(), types.NamespacedName{Namespace: mo.GetNamespace(), Name: mo.GetName()}, cpy)
+			c.operations = append(c.operations, ClientOperation{Action: ClientActionPatch, Object: cpy, Patch: patch})
+		}
+	}
+	return err
 }
 
 func (c *clientWithErrors) Status() client.StatusWriter {
 	return c.wrapped.Status()
-}
-
-func (c *clientWithErrors) Patch(ctx context.Context, obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
-	return c.wrapped.Patch(ctx, obj, patch, opts...)
 }
 
 func (c *clientWithErrors) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...client.DeleteAllOfOption) error {
@@ -168,6 +227,62 @@ func (c *clientWithErrors) EnableErrors(errors ClientErrors) {
 
 func (c *clientWithErrors) DisableErrors() {
 	c.errorsOn = false
+}
+
+func (c *clientWithErrors) GetOperations() []ClientOperation {
+	var ops []ClientOperation
+	if c != nil {
+		ops = append(ops, c.operations...)
+	}
+	return ops
+}
+
+func (c *clientWithErrors) GetCreates() []runtime.Object {
+	var objects []runtime.Object
+	if c != nil {
+		for _, op := range c.operations {
+			if op.Action == ClientActionCreate {
+				objects = append(objects, op.Object)
+			}
+		}
+	}
+	return objects
+}
+
+func (c *clientWithErrors) GetUpdates() []runtime.Object {
+	var objects []runtime.Object
+	if c != nil {
+		for _, op := range c.operations {
+			if op.Action == ClientActionUpdate {
+				objects = append(objects, op.Object)
+			}
+		}
+	}
+	return objects
+}
+
+func (c *clientWithErrors) GetDeletes() []runtime.Object {
+	var objects []runtime.Object
+	if c != nil {
+		for _, op := range c.operations {
+			if op.Action == ClientActionDelete {
+				objects = append(objects, op.Object)
+			}
+		}
+	}
+	return objects
+}
+
+func (c *clientWithErrors) GetPatches() []ClientOperation {
+	var objects []ClientOperation
+	if c != nil {
+		for _, op := range c.operations {
+			if op.Action == ClientActionPatch {
+				objects = append(objects, op)
+			}
+		}
+	}
+	return objects
 }
 
 func (c *ClientErrors) isError(key client.ObjectKey, obj runtime.Object, errors map[ErrorOpts]error) error {
@@ -221,4 +336,19 @@ func (c *ClientErrors) AddDeleteError(opts ErrorOpts, err error) {
 		c.deleteErrors = make(map[ErrorOpts]error)
 	}
 	c.deleteErrors[opts] = err
+}
+
+type ClientAction string
+
+const (
+	ClientActionCreate ClientAction = "Create"
+	ClientActionUpdate ClientAction = "Update"
+	ClientActionDelete ClientAction = "Delete"
+	ClientActionPatch  ClientAction = "ThreeWayPatch"
+)
+
+type ClientOperation struct {
+	Action ClientAction
+	Object runtime.Object
+	Patch  client.Patch
 }

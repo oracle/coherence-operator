@@ -1,15 +1,14 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
   name: status-ha-exec-test
 spec:
-  roles:
-  - role: storage
-    replicas: 1
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 10
-    scaling:
-      probe:
-        exec:
-          command: [ "/bin/sh", "-x", "/scripts/startCoherence.sh", "probe", "com.oracle.coherence.k8s.PodChecker", "statusha" ]
+  role: storage
+  replicas: 2
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  scaling:
+    probe:
+      exec:
+        command: [ "/utils/runner", "version" ]

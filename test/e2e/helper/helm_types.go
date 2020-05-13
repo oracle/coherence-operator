@@ -203,7 +203,7 @@ type OperatorServiceSpec struct {
 	// The external domain name.
 	// +optional
 	Domain string `json:"domain,omitempty"`
-	// Only applies to Service Type: LoadBalancer
+	// Only applies to Service Kind: LoadBalancer
 	// LoadBalancer will get created with the IP specified in this field.
 	// This feature depends on whether the underlying cloud-provider supports specifying
 	// the loadBalancerIP when a load balancer is created.

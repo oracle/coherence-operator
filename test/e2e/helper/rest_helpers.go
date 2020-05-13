@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,24 +16,24 @@ import (
 	"time"
 )
 
-// Initialise the canary test in the role being scaled.
-func StartCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryStart", http.MethodPut)
+// Initialise the canary test in the deployment being scaled.
+func StartCanary(namespace, deploymentName string) error {
+	return canary(namespace, deploymentName, "canaryStart", http.MethodPut)
 }
 
-// Invoke the canary test in the role being scaled.
-func CheckCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryCheck", http.MethodGet)
+// Invoke the canary test in the deployment being scaled.
+func CheckCanary(namespace, deploymentName string) error {
+	return canary(namespace, deploymentName, "canaryCheck", http.MethodGet)
 }
 
-// Clear the canary test in the role being scaled.
-func ClearCanary(namespace, clusterName, roleName string) error {
-	return canary(namespace, clusterName, roleName, "canaryClear", http.MethodPost)
+// Clear the canary test in the deployment being scaled.
+func ClearCanary(namespace, deploymentName string) error {
+	return canary(namespace, deploymentName, "canaryClear", http.MethodPost)
 }
 
-// Make a canary ReST PUT call to Pod zero of the role.
-func canary(namespace, clusterName, roleName, endpoint, method string) error {
-	podName := fmt.Sprintf("%s-%s-0", clusterName, roleName)
+// Make a canary ReST PUT call to Pod zero of the deployment.
+func canary(namespace, deploymentName, endpoint, method string) error {
+	podName := fmt.Sprintf("%s-0", deploymentName)
 	f := framework.Global
 
 	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
@@ -52,14 +52,16 @@ func canary(namespace, clusterName, roleName, endpoint, method string) error {
 	client := &http.Client{}
 
 	var resp *http.Response
+	var request *http.Request
 	// try a max of 5 times
+
 	for i := 0; i < 5; i++ {
-		request, err := http.NewRequest(method, url, strings.NewReader(""))
+		request, err = http.NewRequest(method, url, strings.NewReader(""))
 		if err == nil {
 			request.ContentLength = 0
 			resp, err = client.Do(request)
 			if err == nil {
-				break;
+				break
 			}
 		}
 		time.Sleep(5 * time.Second)

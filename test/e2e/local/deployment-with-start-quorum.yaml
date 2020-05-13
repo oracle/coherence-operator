@@ -1,0 +1,20 @@
+# Two deployments with inter-dependencies.
+# The dependent resource is first in the document just to ensure that any start-up
+# test does not pass due to some weird blocking in the test.
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test
+spec:
+  clusterName: test-cluster
+  replicas: 1
+  startQuorum:
+    - deployment: data
+---
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: data
+spec:
+  clusterName: test-cluster
+  replicas: 2

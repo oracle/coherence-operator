@@ -1,22 +1,20 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
   name: on-demand-cluster
 spec:
+  role: one
+  image: ${TEST_USER_IMAGE}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   coherence:
+    cacheConfig: test-cache-config.xml
     management:
       enabled: true
       port: 30000
-  roles:
-  - role: one
-    coherence:
-      cacheConfig: test-cache-config.xml
-    application:
-      image: ${TEST_USER_IMAGE}
-      imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-      main: com.oracle.coherence.k8s.testing.RestServer
-    ports:
-      - name: mgmt-port
-        port: 30000
-      - name: rest
-        port: 8080
+  application:
+    main: com.oracle.coherence.k8s.testing.RestServer
+  ports:
+    - name: management
+      port: 30000
+    - name: rest
+      port: 8080

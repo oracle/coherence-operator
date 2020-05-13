@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -38,27 +38,27 @@ func CleanupHelm(t *testing.T, hm *helper.HelmReleaseManager, helmHelper *helper
 	}
 }
 
-func DeployCoherenceCluster(t *testing.T, ctx *framework.TestCtx, namespace, yamlFile string) (v1.CoherenceCluster, error) {
+func DeployCoherence(t *testing.T, ctx *framework.Context, namespace, yamlFile string) ([]v1.CoherenceDeployment, error) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
-	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, yamlFile)
+	deployments, err := helper.NewCoherenceDeploymentFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// deploy the CoherenceCluster
-	err = f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
-	if err != nil {
-		return cluster, err
-	}
-
-	// Wait for the StatefulSet(s)
-	roles := cluster.GetRoles()
-	for _, role := range roles {
-		_, err = helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role, time.Second*5, time.Minute*5, t)
+	for _, d := range deployments {
+		err = f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
 		if err != nil {
-			return cluster, err
+			return deployments, err
 		}
 	}
 
-	return cluster, nil
+	// Wait for the StatefulSet(s)
+	for _, d := range deployments {
+		_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &d, time.Second*5, time.Minute*5, t)
+		if err != nil {
+			return deployments, err
+		}
+	}
+
+	return deployments, nil
 }

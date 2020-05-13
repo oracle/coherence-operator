@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,9 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.oracle.common.util.Duration;
-import com.oracle.common.util.Duration.Magnitude;
 
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.ConfigurableAddressProvider;
@@ -34,17 +31,15 @@ public class RetryingWkaAddressProvider
 
     /**
      * The name of the System property to configure maximum time to attempt to resolve wka addresses.
-     * Provides default value for {link #f_WkaDNSResolutionTimeout_ms}. Set this system property
-     * to the format of the string parameter described in {@link Duration(String)}.  Example settings
-     * are "10s", "20m", "60000ms" for 10 seconds, 20 minutes and 60,000 milliseconds respectively.
+     * Provides default value for {link #f_WkaDNSResolutionTimeout_ms}.
+     * Set this system property to the number of milli-seconds.
      */
     public static final String PROP_WKA_TIMEOUT = RetryingWkaAddressProvider.class.getName() + ".dnsResolutionTimeout";
 
     /**
      * System property for configuring the frequency to attempt dns resolution of wka addresses.
-     * Provides default value for {link #f_WkaDNSReresolveFrequency_ms}. Set this system property
-     * to the format of the string parameter described in {@link Duration(String)}.  Example settings
-     * are "10s", "20m", "60000ms" for 10 seconds, 20 minutes and 60,000 milliseconds respectively.
+     * Provides default value for {link #f_WkaDNSReresolveFrequency_ms}.
+     * Set this system property to the number of milli-seconds.
      */
     public static final String PROP_WKA_RERESOLVE_FREQUENCY = RetryingWkaAddressProvider.class
             .getName() + ".dnsResolutionFrequency";
@@ -116,8 +111,8 @@ public class RetryingWkaAddressProvider
      */
     public static AddressProvider create(String sWkaOverride) throws UnknownHostException {
         return create(sWkaOverride,
-                      new Duration(System.getProperty(PROP_WKA_RERESOLVE_FREQUENCY, "2s")).as(Duration.Magnitude.MILLI),
-                      new Duration(System.getProperty(PROP_WKA_TIMEOUT, "6m")).as(Duration.Magnitude.MILLI));
+                      Long.getLong(PROP_WKA_RERESOLVE_FREQUENCY, 2L),
+                      Long.getLong(PROP_WKA_TIMEOUT, 6L * 60L * 1000L));
     }
 
     /**
@@ -155,16 +150,16 @@ public class RetryingWkaAddressProvider
      * If {@link #PROP_WKA_OVERRIDE} is not set an empty
      * {@link ConfigurableAddressProvider} will be returned.
      *
-     * @param durationFrequency retry wka resolve frequency as duration string, see format documented in {@see Duration(String)}
-     * @param durationTimeout   timeout wka resolve as duration string, examples are "120s", "2m" and "2000ms", all durations
-     *                          of 2 minutes.
+     * @param durationFrequency retry wka resolve frequency as duration string
+     * @param durationTimeout   timeout wka resolve as duration string
+     *
      * @return {@link AddressProvider}
      * @throws UnknownHostException if unable to dns resolve at least one address in wka list
      */
     public static AddressProvider create(String durationFrequency, String durationTimeout) throws UnknownHostException {
         return create(System.getProperty(PROP_WKA_OVERRIDE),
-                      new Duration(durationFrequency).as(Magnitude.MILLI),
-                      new Duration(durationTimeout).as(Magnitude.MILLI));
+                      Long.parseLong(durationFrequency),
+                      Long.parseLong(durationTimeout));
     }
 
     long getWkaDNSReresolveFrequency() {
