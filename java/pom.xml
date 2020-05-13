@@ -16,7 +16,7 @@
   <groupId>com.oracle.coherence.kubernetes</groupId>
   <artifactId>operator-parent</artifactId>
   <packaging>pom</packaging>
-  <version>2.1.2</version>
+  <version>3.0.0</version>
 
   <description>Oracle Coherence Kubernetes Operator Project</description>
   <name>coherence-operator parent</name>
@@ -28,7 +28,7 @@
 
   <properties>
     <operator.version>${project.version}</operator.version>
-    
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
@@ -37,6 +37,7 @@
     <bedrock.version>5.0.11</bedrock.version>
     <commonjava.directory.version>0.3.1</commonjava.directory.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
+    <glassfish.copyright.version>2.1</glassfish.copyright.version>
     <helidon.version>1.2.0</helidon.version>
     <hamcrest.version>1.3</hamcrest.version>
     <junit.version>4.12</junit.version>
@@ -50,28 +51,29 @@
     <version.lib.asciidoctor.diagram>1.5.4.1</version.lib.asciidoctor.diagram>
     <version.lib.checkstyle>8.18</version.lib.checkstyle>
     <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
+    <version.plugin.jib>2.2.0</version.plugin.jib>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
     <version.plugin.helidon-build-tools>1.0.10</version.plugin.helidon-build-tools>
     <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
 
     <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>12.2.1-4-0-74512</coherence.version>
+    <coherence.version>14.1.2-0-0-SNAPSHOT</coherence.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.oracle.coherence</groupId>
+        <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
         <version>${coherence.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.oracle.coherence</groupId>
+        <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence-management</artifactId>
         <version>${coherence.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.oracle.coherence</groupId>
+        <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence-metrics</artifactId>
         <version>${coherence.version}</version>
       </dependency>
@@ -151,6 +153,17 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven.failsafe.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${version.plugin.jib}</version>
+          <configuration>
+            <from>
+              <image>docker://gcr.io/distroless/java</image>
+            </from>
+          </configuration>
         </plugin>
 
         <plugin>

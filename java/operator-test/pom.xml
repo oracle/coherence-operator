@@ -15,7 +15,7 @@
   <parent>
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>operator-parent</artifactId>
-    <version>2.1.2</version>
+    <version>3.0.0</version>
   </parent>
 
   <artifactId>operator-test</artifactId>
@@ -25,36 +25,16 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence</groupId>
+      <groupId>com.oracle.coherence.ce</groupId>
       <artifactId>coherence</artifactId>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence-management</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence-metrics</artifactId>
     </dependency>
   </dependencies>
-
-  <build>
-    <!-- Use the assembly plugin to pull together the files to use to build the
-         docker image under the target/docker folder -->
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>docker</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>docker</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-              <descriptors>
-                <descriptor>src/assembly/image-assembly.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -1,0 +1,17 @@
+---
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: one
+spec:
+  clusterName: test
+  replicas: 1
+---
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: two
+spec:
+  clusterName: test
+  replicas: 1
+

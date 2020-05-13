@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+package elastic
+
+import (
+	"fmt"
+	es "github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	. "github.com/onsi/gomega"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"github.com/oracle/coherence-operator/test/e2e/local"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"testing"
+	"time"
+)
+
+func TestElasticSearch(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	// Create the Operator SDK test context
+	ctx := helper.CreateTestContext(t)
+	// Make sure we defer clean-up (uninstall the operator) when we're done
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	esPod, kPod := AssertElasticsearchInstalled(t)
+
+	// Create an Elasticsearch client
+	cl := ESClient{Pod: esPod}
+	// Test that the client connects
+	shouldConnectToES(t, cl)
+
+	// Deploy the Coherence cluster
+	_, pods := local.AssertDeploymentsWithContext(t, ctx, "efk-test.yaml")
+	assertAllHaveFluentdContainers(t, pods)
+
+	// It can take a while for things to start to appear in Elasticsearch so wait...
+	err := cl.WaitForCoherenceIndices(t, time.Second*5, time.Minute*10)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	assertHaveLogsFromAllCoherencePods(t, cl, pods)
+	assertCoherenceClusterIndexInKibana(t, kPod)
+}
+
+// Assert that it is possible to connect to Elasticsearch
+func shouldConnectToES(t *testing.T, cl ESClient) {
+	g := NewGomegaWithT(t)
+	_, _ = AssertElasticsearchInstalled(t)
+
+	res, err := cl.Query(func(es *es.Client) (*esapi.Response, error) {
+		return es.Info()
+	})
+
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.IsError()).To(BeFalse(), fmt.Sprintf("Error response from ES %s", res.String()))
+}
+
+// Assert that all of the Pods have a Fluentd container
+func assertAllHaveFluentdContainers(t *testing.T, pods []corev1.Pod) {
+	g := NewGomegaWithT(t)
+
+	for _, pod := range pods {
+		found := false
+		for _, c := range pod.Spec.Containers {
+			if c.Name == coh.ContainerNameFluentd {
+				found = true
+				break
+			}
+		}
+		g.Expect(found).To(BeTrue(), fmt.Sprintf("Pod %s does not have a Fluentd container", pod.Name))
+	}
+}
+
+// Assert that there are log messages in Elasticsearch for each Coherence Cluster member Pod
+func assertHaveLogsFromAllCoherencePods(t *testing.T, cl ESClient, pods []corev1.Pod) {
+	g := NewGomegaWithT(t)
+
+	// An ES search query template to find log messages with a specific "host" field value
+	esQuery := `{"query": {"match": {"host": "%s"}}}`
+
+	// Iterate over the Pods in the cluster and make sure that there are log messages from each one.
+	// The "host" field in the log message will be the Pod name.
+	for _, pod := range pods {
+		t.Logf("Looking for ES logs for Pod %s", pod.Name)
+		fn := NewESSearchFunction("coherence-cluster-*", fmt.Sprintf(esQuery, pod.Name))
+
+		// Do the check in a loop as it can take a while for logs to appear for the Pods
+		err := wait.Poll(time.Second*5, time.Minute*2, func() (done bool, err error) {
+			result := ESSearchResult{}
+			err = cl.QueryAndParse(&result, fn)
+			if err != nil {
+				return false, err
+			}
+			return result.Size() != 0, nil
+		})
+
+		g.Expect(err).ToNot(HaveOccurred(), "Did not find logs in Elasticsearch for Pod "+pod.Name)
+	}
+}

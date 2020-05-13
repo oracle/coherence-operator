@@ -7,12 +7,10 @@
 package flags
 
 import (
-	"github.com/operator-framework/operator-sdk/pkg/helm/flags"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/spf13/pflag"
+	"k8s.io/utils/pointer"
 	"os"
 	"os/user"
-	"strings"
 )
 
 const (
@@ -35,19 +33,36 @@ const (
 	FlagServicePort    = "service-port"
 	FlagSiteLabel      = "site-label"
 	FlagRackLabel      = "rack-label"
-	FlagAlwaysPullTags = "force-always-pull-tags"
 	FlagCoherenceImage = "coherence-image"
 	FlagUtilsImage     = "utils-image"
+	FlagScriptsDir     = "scripts-dir"
 )
 
 // The default CRD location
-var defaultCrds string
+var (
+	defaultCrds string
+
+	flagSet  *pflag.FlagSet
+	cohFlags CoherenceOperatorFlags
+)
+
+func init() {
+	flagSet = pflag.NewFlagSet("coh", pflag.ExitOnError)
+	cohFlags = CoherenceOperatorFlags{}
+	cohFlags.AddTo(flagSet)
+}
+
+// FlagSet - The Coherence flag set.
+func FlagSet() *pflag.FlagSet {
+	return flagSet
+}
+
+func GetFlags() *CoherenceOperatorFlags {
+	return &cohFlags
+}
 
 // CoherenceOperatorFlags - Options to be used by a Coherence operator.
 type CoherenceOperatorFlags struct {
-	// include all of the Helm operator flags too
-	flags.HelmOperatorFlags
-
 	// The directory where the Operator's CRD file are located.
 	CrdFiles string
 	// The host name that the ReST server binds to.
@@ -62,73 +77,70 @@ type CoherenceOperatorFlags struct {
 	SiteLabel string
 	// The label to use to obtain the rack value for a Node.
 	RackLabel string
-	// If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS.
-	AlwaysPullSuffixes string
-	// The default Coherence image to use if one is not specified for a role.
+	// The default Coherence image to use if one is not specified for a deployment.
 	CoherenceImage string
-	// The default Coherence Utils image to use if one is not specified for a role.
+	// The default Coherence Utils image to use if one is not specified for a deployment.
 	CoherenceUtilsImage string
+	// The locations of the scripts to add to the Operator Scripts ConfigMap
+	ScriptsDir string
 }
-
-// cohf is the struct containing the command line flags.
-var cohf = &CoherenceOperatorFlags{}
 
 // AddTo - Add the reconcile period and watches file flags to the the flag-set
 // helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
-func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet, helpTextPrefix ...string) {
-	flagSet.StringVar(&f.CrdFiles,
+func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
+	flagSet.StringVar(&cohFlags.CrdFiles,
 		FlagCrdFiles,
-		f.DefaultCrdFiles(),
-		strings.Join(append(helpTextPrefix, "The directory where the Operator's CRD file are located"), " "),
+		cohFlags.DefaultCrdFiles(),
+		"The directory where the Operator's CRD file are located",
 	)
-	flagSet.StringVar(&f.RestHost,
+	flagSet.StringVar(&cohFlags.RestHost,
 		FlagRestHost,
 		DefaultRestHost,
-		strings.Join(append(helpTextPrefix, "The address that the ReST server will bind to"), " "),
+		"The address that the ReST server will bind to",
 	)
-	flagSet.Int32Var(&f.RestPort,
+	flagSet.Int32Var(&cohFlags.RestPort,
 		FlagRestPort,
 		DefaultRestPort,
-		strings.Join(append(helpTextPrefix, "The port that the ReST server will bind to"), " "),
+		"The port that the ReST server will bind to",
 	)
-	flagSet.StringVar(&f.ServiceName,
+	flagSet.StringVar(&cohFlags.ServiceName,
 		FlagServiceName,
 		"",
-		strings.Join(append(helpTextPrefix, "The service name that operator clients use as the host name to make ReST calls back to the operator."), " "),
+		"The service name that operator clients use as the host name to make ReST calls back to the operator.",
 	)
-	flagSet.Int32Var(&f.ServicePort,
+	flagSet.Int32Var(&cohFlags.ServicePort,
 		FlagServicePort,
 		-1,
-		strings.Join(append(helpTextPrefix, "The service port that operator clients use in the host name to make ReST calls back to the operator. If not set defaults to the same as the ReST port"), " "),
+		"The service port that operator clients use in the host name to make ReST calls back to the operator. If not set defaults to the same as the ReST port",
 	)
-	flagSet.StringVar(&f.SiteLabel,
+	flagSet.StringVar(&cohFlags.SiteLabel,
 		FlagSiteLabel,
 		DefaultSiteLabel,
-		strings.Join(append(helpTextPrefix, "The node label to use when obtaining a value for a Pod's Coherence site."), " "),
+		"The node label to use when obtaining a value for a Pod's Coherence site.",
 	)
-	flagSet.StringVar(&f.RackLabel,
+	flagSet.StringVar(&cohFlags.RackLabel,
 		FlagRackLabel,
 		DefaultRackLabel,
-		strings.Join(append(helpTextPrefix, "The node label to use when obtaining a value for a Pod's Coherence rack."), " "),
+		"The node label to use when obtaining a value for a Pod's Coherence rack.",
 	)
-	flagSet.StringVar(&f.AlwaysPullSuffixes,
-		FlagAlwaysPullTags,
+	flagSet.StringVar(&cohFlags.ScriptsDir,
+		FlagScriptsDir,
 		"",
-		strings.Join(append(helpTextPrefix, "If any image names in the CoherenceCluster spec end with any suffix in the specified comma-delimited list the imagePullPolicy will be forced to ALWAYS."), " "),
+		"The location of the scripts to use in the scripts ConfigMap",
 	)
 
 	cohImg := os.Getenv(coherenceImageEnv)
-	flagSet.StringVar(&f.CoherenceImage,
+	flagSet.StringVar(&cohFlags.CoherenceImage,
 		FlagCoherenceImage,
 		cohImg,
-		strings.Join(append(helpTextPrefix, "The Coherence image to use if one is not specified for a role."), " "),
+		"The Coherence image to use if one is not specified for a deployment.",
 	)
 
 	utilsImg := os.Getenv(utilsImageEnv)
-	flagSet.StringVar(&f.CoherenceUtilsImage,
+	flagSet.StringVar(&cohFlags.CoherenceUtilsImage,
 		FlagUtilsImage,
 		utilsImg,
-		strings.Join(append(helpTextPrefix, "The Coherence Utils image to use if one is not specified for a role."), " "),
+		"The Coherence Utils image to use if one is not specified for a deployment.",
 	)
 }
 
@@ -158,7 +170,7 @@ func GetDefaultCoherenceImage() *string {
 	if ok {
 		return &img
 	}
-	return nil
+	return pointer.StringPtr("")
 }
 
 func (f *CoherenceOperatorFlags) GetCoherenceImage() *string {
@@ -173,7 +185,7 @@ func GetDefaultCoherenceUtilsImage() *string {
 	if ok {
 		return &img
 	}
-	return nil
+	return pointer.StringPtr("")
 }
 
 func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() *string {
@@ -189,14 +201,5 @@ func SetDefaultCrdFiles(crds string) {
 
 // GetOperatorFlags returns the Operator command line flags.
 func GetOperatorFlags() *CoherenceOperatorFlags {
-	return cohf
-}
-
-// AddTo - Add the Coherence operator flags to the the flagset
-// helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
-func AddTo(flagSet *pflag.FlagSet, helpTextPrefix ...string) *CoherenceOperatorFlags {
-	cohf.AddTo(flagSet, helpTextPrefix...)
-	cohf.HelmOperatorFlags.AddTo(flagSet, helpTextPrefix...)
-	flagSet.AddFlagSet(zap.FlagSet())
-	return cohf
+	return &cohFlags
 }

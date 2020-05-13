@@ -13,10 +13,9 @@ ENV OPERATOR=/usr/local/bin/coherence-operator \
     UTILS_IMAGE=$utils_image \
     VERSION_FULL=$version
 
-COPY watches.yaml                          ${HOME}/watches.yaml
-COPY build/_output/helm-charts/coherence   ${HOME}/helm-charts/coherence
 COPY deploy/crds/*_crd.yaml                ${HOME}/crds/
+COPY image/scripts                         ${HOME}/operator-scripts
 COPY build/_output/bin/operator            ${OPERATOR}
 
 ENTRYPOINT ["/usr/local/bin/coherence-operator"]
-CMD ["run", "helm", "--watches-file=/opt/coherence/watches.yaml", "--crd-files=/opt/coherence/crds"]
+CMD ["run", "--crd-files=/opt/coherence/crds", "--scripts-dir=/opt/coherence/operator-scripts"]

@@ -1,11 +1,10 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
   name: status-ha-test
 spec:
-  roles:
-  - role: storage
-    replicas: 1
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 10
+  role: storage
+  replicas: 1
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10

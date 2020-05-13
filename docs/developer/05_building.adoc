@@ -37,26 +37,26 @@ make all
 
 The `all` make target will build the Go and Java parts of the Operator and create all of the images required.
 
-NOTE: There have been issues with Go not being able to resolve all of the module dependencies required to build the Coherence Operator.
-This can be resolved by setting the `GOPROXY` environment variable `GOPROXY=https://proxy.golang.org`
+NOTE: There have been issues with Go not being able to resolve all of the module dependencies required to build the
+Coherence Operator. This can be resolved by setting the `GOPROXY` environment variable `GOPROXY=https://proxy.golang.org`
+
 
 == Build Versions
 
-By default the version number used to tag the Docker images and Helm charts is set in the `VERSION` property in the `Makefile` and in the `pom.xml` files in the `java/` directory.
+By default the version number used to tag the Docker images and Helm charts is set in the `VERSION` property
+in the `Makefile` and in the `pom.xml` files in the `java/` directory.
 
-The `Makefile` also contains a `VERSION_SUFFIX` variable that is used to add a suffix to the build.
-By default this suffix is `ci` so the default version of the build artifacts is `2.1.2-ci`.
-Change this suffix, for example when building a release candidate or a full release.
+The `Makefile` also contains a `VERSION_SUFFIX` variable that is used to add a suffix to the build. By default
+this suffix is `ci` so the default version of the build artifacts is `3.0.0-ci`. Change this suffix, for
+example when building a release candidate or a full release.
 
 For example, if building a release called `alpha2` the following command can be used:
-
 [source,bash]
 ----
 make build-all-images VERSION_SUFFIX=alpha2
 ----
 
 If building a full release without a suffix the following command can be used
-
 [source,bash]
 ----
 make build-all-images VERSION_SUFFIX=""
@@ -66,8 +66,7 @@ make build-all-images VERSION_SUFFIX=""
 === Testing
 
 ==== Unit Tests
-The Coherence Operator contains tests that can be executed using `make`.The tests are plain Go tests and
-also https://github.com/onsi/ginkgo[Ginkgo] test suites.
+The Coherence Operator contains tests that can be executed using `make test`.
 
 To execute the unit and functional tests that do not require a k8s cluster you can execute the following command:
 [source,bash]

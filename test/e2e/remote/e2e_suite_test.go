@@ -16,73 +16,63 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	f "github.com/operator-framework/operator-sdk/pkg/test"
 )
 
 // Operator SDK test suite entry point
 func TestMain(m *testing.M) {
-	f.MainEntry(m)
+	framework.MainEntry(m)
 }
 
-func cleanup(t *testing.T, namespace, clusterName string, ctx *framework.TestCtx) {
+func cleanup(t *testing.T, ctx *framework.Context, names ...types.NamespacedName) {
 	helper.DumpOperatorLogs(t, ctx)
-	deleteCluster(namespace, clusterName)
+	for _, name := range names {
+		deleteDeployment(name.Namespace, name.Name)
+	}
 	ctx.Cleanup()
 }
 
-// deleteCluster deletes a cluster.
-func deleteCluster(namespace, name string) {
-	cluster := cohv1.CoherenceCluster{}
-	f := f.Global
+// deleteDeployment deletes a deployment.
+func deleteDeployment(namespace, name string) {
+	deployment := cohv1.CoherenceDeployment{}
+	f := framework.Global
 
-	err := f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &cluster)
+	err := f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
 	if err == nil {
-		_ = f.Client.Delete(context.TODO(), &cluster)
+		_ = f.Client.Delete(context.TODO(), &deployment)
 	}
 }
 
-// installSimpleCluster installs a cluster and asserts that the underlying StatefulSet resources reach the correct state.
-func installSimpleCluster(t *testing.T, ctx *framework.TestCtx, cluster cohv1.CoherenceCluster) {
+// installSimpleDeployment installs a deployment and asserts that the underlying StatefulSet resources reach the correct state.
+func installSimpleDeployment(t *testing.T, ctx *framework.Context, d cohv1.CoherenceDeployment) {
 	g := NewGomegaWithT(t)
-
 	f := framework.Global
-
-	err := f.Client.Create(context.TODO(), &cluster, helper.DefaultCleanup(ctx))
+	err := f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
-
-	if len(cluster.Spec.Roles) > 0 {
-		for _, r := range cluster.Spec.Roles {
-			assertRoleEventuallyInDesiredState(t, cluster, r, r.GetReplicas())
-		}
-	} else {
-		r := cluster.Spec.CoherenceRoleSpec
-		assertRoleEventuallyInDesiredState(t, cluster, r, r.GetReplicas())
-	}
+	assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 }
 
-// assertRoleEventuallyInDesiredState asserts that a CoherenceRole exists and has the correct spec and that the
+// assertDeploymentEventuallyInDesiredState asserts that a CoherenceDeployment exists and has the correct spec and that the
 // underlying StatefulSet exists with the correct status and ready replicas.
-func assertRoleEventuallyInDesiredState(t *testing.T, cluster cohv1.CoherenceCluster, r cohv1.CoherenceRoleSpec, replicas int32) {
+func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.CoherenceDeployment, replicas int32) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
-	fullName := r.GetFullRoleName(&cluster)
 
-	t.Logf("Asserting CoherenceRole %s exists with %d replicas\n", fullName, replicas)
+	t.Logf("Asserting CoherenceDeployment %s exists with %d replicas\n", d.Name, replicas)
 
-	// create a RoleStateCondition that checks a role's replica count
-	condition := helper.ReplicasRoleCondition(replicas)
+	// create a DeploymentStateCondition that checks a deployment's replica count
+	condition := helper.ReplicaCountCondition(replicas)
 
-	// wait for the role to match the condition
-	_, err := helper.WaitForCoherenceRoleCondition(f, cluster.Namespace, fullName, condition, time.Second*10, time.Minute*10, t)
+	// wait for the deployment to match the condition
+	_, err := helper.WaitForCoherenceDeploymentCondition(f, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", fullName, replicas)
+	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", d.Name, replicas)
 
 	// wait for the StatefulSet to have the required ready replicas
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, cluster.Namespace, fullName, replicas, time.Second*10, time.Minute*10, t)
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
-	t.Logf("Asserting StatefulSet %s exist with %d replicas - Done!\n", fullName, replicas)
+	t.Logf("Asserting StatefulSet %s exist with %d replicas - Done!\n", d.Name, replicas)
 }

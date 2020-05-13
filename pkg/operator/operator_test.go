@@ -13,7 +13,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"github.com/spf13/pflag"
+	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -22,7 +22,102 @@ import (
 	"testing"
 )
 
-func TestShouldCreateCRDs(t *testing.T) {
+func TestShouldCreateV1CRDs(t *testing.T) {
+	var err error
+
+	g := NewGomegaWithT(t)
+	mgr, err := fakes.NewFakeManager()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = crdv1.AddToScheme(mgr.Scheme)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	log := fakes.TestLogger{T: t}
+	cohFlags := flags.CoherenceOperatorFlags{}
+
+	crdDir, err := helper.FindCrdDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cohFlags = flags.CoherenceOperatorFlags{
+		CrdFiles: crdDir,
+	}
+
+	crdClient := FakeV1Client{Mgr: mgr}
+
+	err = operator.EnsureV1CRDs(mgr, &cohFlags, log, crdClient)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	crdList := crdv1.CustomResourceDefinitionList{}
+	err = mgr.Client.List(context.TODO(), &crdList)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(len(crdList.Items)).To(Equal(1))
+
+	expected := map[string]bool{
+		"coherencedeployments.coherence.oracle.com": false,
+	}
+
+	for _, crd := range crdList.Items {
+		expected[crd.Name] = true
+	}
+
+	for crd, found := range expected {
+		if !found {
+			t.Errorf("Failed to create CRD " + crd)
+		}
+	}
+}
+
+func TestShouldUpdateV1CRDs(t *testing.T) {
+	var err error
+
+	g := NewGomegaWithT(t)
+	mgr, err := fakes.NewFakeManager()
+	g.Expect(err).NotTo(HaveOccurred())
+	err = crdv1.AddToScheme(mgr.Scheme)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	oldCRDs := map[string]*crdv1.CustomResourceDefinition{
+		"coherencedeployments.coherence.oracle.com": nil,
+	}
+
+	for name := range oldCRDs {
+		crd := crdv1.CustomResourceDefinition{}
+		crd.SetName(name)
+		crd.SetResourceVersion(name + "-1234")
+		oldCRDs[name] = &crd
+		_ = mgr.GetClient().Create(context.TODO(), &crd)
+	}
+
+	log := fakes.TestLogger{T: t}
+	cohFlags := flags.CoherenceOperatorFlags{}
+
+	crdDir, err := helper.FindCrdDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cohFlags = flags.CoherenceOperatorFlags{
+		CrdFiles: crdDir,
+	}
+
+	crdClient := FakeV1Client{Mgr: mgr}
+
+	err = operator.EnsureV1CRDs(mgr, &cohFlags, log, crdClient)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	crdList := crdv1.CustomResourceDefinitionList{}
+	err = mgr.Client.List(context.TODO(), &crdList)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(len(crdList.Items)).To(Equal(1))
+
+	for _, crd := range crdList.Items {
+		oldCRD := oldCRDs[crd.Name]
+		g.Expect(crd).NotTo(Equal(oldCRD))
+		g.Expect(crd.GetResourceVersion()).To(Equal(oldCRD.GetResourceVersion()))
+	}
+}
+
+func TestShouldCreateV1beta1CRDs(t *testing.T) {
 	var err error
 
 	g := NewGomegaWithT(t)
@@ -38,28 +133,23 @@ func TestShouldCreateCRDs(t *testing.T) {
 	crdDir, err := helper.FindCrdDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	args := []string{"--crd-files", crdDir}
-	flagSet := pflag.FlagSet{}
-	cohFlags = flags.CoherenceOperatorFlags{}
-	cohFlags.AddTo(&flagSet)
-	err = flagSet.Parse(args)
-	g.Expect(err).NotTo(HaveOccurred())
+	cohFlags = flags.CoherenceOperatorFlags{
+		CrdFiles: crdDir,
+	}
 
-	crdClient := FakeCustomResourceDefinitionInterface{Mgr: mgr}
+	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureCRDsUsingClient(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(mgr, &cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
 	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(len(crdList.Items)).To(Equal(3))
+	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	expected := map[string]bool{
-		"coherenceclusters.coherence.oracle.com":  false,
-		"coherenceinternals.coherence.oracle.com": false,
-		"coherenceroles.coherence.oracle.com":     false,
+		"coherencedeployments.coherence.oracle.com": false,
 	}
 
 	for _, crd := range crdList.Items {
@@ -73,7 +163,7 @@ func TestShouldCreateCRDs(t *testing.T) {
 	}
 }
 
-func TestShouldUpdateCRDs(t *testing.T) {
+func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 	var err error
 
 	g := NewGomegaWithT(t)
@@ -83,9 +173,7 @@ func TestShouldUpdateCRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	oldCRDs := map[string]*v1beta1.CustomResourceDefinition{
-		"coherenceclusters.coherence.oracle.com":  nil,
-		"coherenceinternals.coherence.oracle.com": nil,
-		"coherenceroles.coherence.oracle.com":     nil,
+		"coherencedeployments.coherence.oracle.com": nil,
 	}
 
 	for name := range oldCRDs {
@@ -102,23 +190,20 @@ func TestShouldUpdateCRDs(t *testing.T) {
 	crdDir, err := helper.FindCrdDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	args := []string{"--crd-files", crdDir}
-	flagSet := pflag.FlagSet{}
-	cohFlags = flags.CoherenceOperatorFlags{}
-	cohFlags.AddTo(&flagSet)
-	err = flagSet.Parse(args)
-	g.Expect(err).NotTo(HaveOccurred())
+	cohFlags = flags.CoherenceOperatorFlags{
+		CrdFiles: crdDir,
+	}
 
-	crdClient := FakeCustomResourceDefinitionInterface{Mgr: mgr}
+	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureCRDsUsingClient(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(mgr, &cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
 	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(len(crdList.Items)).To(Equal(3))
+	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	for _, crd := range crdList.Items {
 		oldCRD := oldCRDs[crd.Name]
@@ -127,17 +212,19 @@ func TestShouldUpdateCRDs(t *testing.T) {
 	}
 }
 
-type FakeCustomResourceDefinitionInterface struct {
+// ----- FakeV1Client --------------------------------------------------------------------------------------------------
+
+type FakeV1Client struct {
 	Mgr manager.Manager
 }
 
-func (f FakeCustomResourceDefinitionInterface) Get(name string, options metav1.GetOptions) (*v1beta1.CustomResourceDefinition, error) {
-	crd := &v1beta1.CustomResourceDefinition{}
+func (f FakeV1Client) Get(name string, options metav1.GetOptions) (*crdv1.CustomResourceDefinition, error) {
+	crd := &crdv1.CustomResourceDefinition{}
 	err := f.Mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: name}, crd)
 	return crd, err
 }
 
-func (f FakeCustomResourceDefinitionInterface) Create(crd *v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+func (f FakeV1Client) Create(crd *crdv1.CustomResourceDefinition) (*crdv1.CustomResourceDefinition, error) {
 	err := f.Mgr.GetClient().Create(context.TODO(), crd)
 	if err == nil {
 		return f.Get(crd.Name, metav1.GetOptions{})
@@ -145,7 +232,7 @@ func (f FakeCustomResourceDefinitionInterface) Create(crd *v1beta1.CustomResourc
 	return nil, err
 }
 
-func (f FakeCustomResourceDefinitionInterface) Update(crd *v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+func (f FakeV1Client) Update(crd *crdv1.CustomResourceDefinition) (*crdv1.CustomResourceDefinition, error) {
 	err := f.Mgr.GetClient().Update(context.TODO(), crd)
 	if err == nil {
 		return f.Get(crd.Name, metav1.GetOptions{})
@@ -153,26 +240,78 @@ func (f FakeCustomResourceDefinitionInterface) Update(crd *v1beta1.CustomResourc
 	return nil, err
 }
 
-func (f FakeCustomResourceDefinitionInterface) UpdateStatus(*v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+func (f FakeV1Client) UpdateStatus(definition *crdv1.CustomResourceDefinition) (*crdv1.CustomResourceDefinition, error) {
 	panic("implement me")
 }
 
-func (f FakeCustomResourceDefinitionInterface) Delete(name string, options *metav1.DeleteOptions) error {
+func (f FakeV1Client) Delete(name string, options *metav1.DeleteOptions) error {
 	panic("implement me")
 }
 
-func (f FakeCustomResourceDefinitionInterface) DeleteCollection(options *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
+func (f FakeV1Client) DeleteCollection(options *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
 	panic("implement me")
 }
 
-func (f FakeCustomResourceDefinitionInterface) List(opts metav1.ListOptions) (*v1beta1.CustomResourceDefinitionList, error) {
+func (f FakeV1Client) List(opts metav1.ListOptions) (*crdv1.CustomResourceDefinitionList, error) {
 	panic("implement me")
 }
 
-func (f FakeCustomResourceDefinitionInterface) Watch(opts metav1.ListOptions) (watch.Interface, error) {
+func (f FakeV1Client) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	panic("implement me")
 }
 
-func (f FakeCustomResourceDefinitionInterface) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.CustomResourceDefinition, err error) {
+func (f FakeV1Client) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *crdv1.CustomResourceDefinition, err error) {
+	panic("implement me")
+}
+
+// ----- FakeV1beta1Client ---------------------------------------------------------------------------------------------
+
+type FakeV1beta1Client struct {
+	Mgr manager.Manager
+}
+
+func (f FakeV1beta1Client) Get(name string, options metav1.GetOptions) (*v1beta1.CustomResourceDefinition, error) {
+	crd := &v1beta1.CustomResourceDefinition{}
+	err := f.Mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: name}, crd)
+	return crd, err
+}
+
+func (f FakeV1beta1Client) Create(crd *v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+	err := f.Mgr.GetClient().Create(context.TODO(), crd)
+	if err == nil {
+		return f.Get(crd.Name, metav1.GetOptions{})
+	}
+	return nil, err
+}
+
+func (f FakeV1beta1Client) Update(crd *v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+	err := f.Mgr.GetClient().Update(context.TODO(), crd)
+	if err == nil {
+		return f.Get(crd.Name, metav1.GetOptions{})
+	}
+	return nil, err
+}
+
+func (f FakeV1beta1Client) UpdateStatus(*v1beta1.CustomResourceDefinition) (*v1beta1.CustomResourceDefinition, error) {
+	panic("implement me")
+}
+
+func (f FakeV1beta1Client) Delete(name string, options *metav1.DeleteOptions) error {
+	panic("implement me")
+}
+
+func (f FakeV1beta1Client) DeleteCollection(options *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
+	panic("implement me")
+}
+
+func (f FakeV1beta1Client) List(opts metav1.ListOptions) (*v1beta1.CustomResourceDefinitionList, error) {
+	panic("implement me")
+}
+
+func (f FakeV1beta1Client) Watch(opts metav1.ListOptions) (watch.Interface, error) {
+	panic("implement me")
+}
+
+func (f FakeV1beta1Client) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.CustomResourceDefinition, err error) {
 	panic("implement me")
 }

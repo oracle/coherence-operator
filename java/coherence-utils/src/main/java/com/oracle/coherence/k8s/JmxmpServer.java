@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,8 +12,6 @@ import javax.management.MBeanServer;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
-
-import com.oracle.common.base.Blocking;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -112,7 +110,7 @@ public class JmxmpServer
 
         while (cluster.isRunning()) {
             try {
-                Blocking.sleep(1000);
+                Thread.sleep(1000);
             }
             catch (InterruptedException e) {
                 // we don't know what effect setting the interrupt flag will

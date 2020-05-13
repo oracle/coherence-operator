@@ -1,8 +1,9 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
+kind: CoherenceDeployment
 metadata:
-  name: test-metric
+  name: metrics
 spec:
+  replicas: 1
   coherence:
     metrics:
       enabled: true
@@ -10,8 +11,3 @@ spec:
   ports:
     - name: metrics
       port: 9612
-  roles:
-  - role: one
-    replicas: 1
-  - role: two
-    replicas: 1

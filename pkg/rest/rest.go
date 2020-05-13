@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	onet "github.com/oracle/coherence-operator/pkg/net"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
 	"net"
@@ -18,10 +19,15 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
+	"sync"
 )
 
 // The logger to use to log messages
-var log = logf.Log.WithName("rest-server")
+var (
+	log   = logf.Log.WithName("rest-server")
+	svr   *server
+	mutex = sync.Mutex{}
+)
 
 type handler struct {
 	fn func(w http.ResponseWriter, r *http.Request)
@@ -39,44 +45,60 @@ type Server interface {
 	// Close closes this server's listener
 	Close() error
 	// GetHostAndPort returns the address that the ReST server should be reached on by external processes
-	GetHostAndPort(*flags.CoherenceOperatorFlags) string
+	GetHostAndPort() string
+	// Start the REST server
+	Start() error
 }
 
-// StartRestServer starts a ReST server to server Coherence Operator requests,
-// for example node zone information.
-func StartRestServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Server, error) {
-	address := fmt.Sprintf("%s:%d", cf.RestHost, cf.RestPort)
-
-	client, err := k8s.NewForConfig(m.GetConfig())
-	if err != nil {
-		return nil, err
+// Obtain the host and port that the REST server is listening on of empty string if the server
+// is not started.
+func GetServerHostAndPort() string {
+	if svr == nil {
+		return ""
 	}
+	return svr.GetHostAndPort()
+}
 
-	s := server{cohFlags: cf, client: client}
-
-	mux := http.NewServeMux()
-	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
-	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
-
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		return nil, err
+func EnsureServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Server, error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if svr == nil {
+		client, err := k8s.NewForConfig(m.GetConfig())
+		if err != nil {
+			return nil, err
+		}
+		svr = &server{
+			cohFlags: cf,
+			client:   client,
+		}
 	}
-
-	s.listener = listener
-
-	go func() {
-		log.Info("Serving ReST requests on " + s.listener.Addr().String())
-		panic(http.Serve(s.listener, mux))
-	}()
-
-	return s, nil
+	return svr, nil
 }
 
 type server struct {
 	cohFlags *flags.CoherenceOperatorFlags
 	listener net.Listener
 	client   *k8s.Clientset
+}
+
+func (s server) Start() error {
+	mux := http.NewServeMux()
+	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
+	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
+
+	address := fmt.Sprintf("%s:%d", s.cohFlags.RestHost, s.cohFlags.RestPort)
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return errors.Wrap(err, "failed to start REST server")
+	}
+
+	s.listener = listener
+
+	go func() {
+		log.Info("Serving REST requests on " + s.listener.Addr().String())
+		panic(http.Serve(s.listener, mux))
+	}()
+	return nil
 }
 
 func (s server) GetAddress() net.Addr {
@@ -93,21 +115,19 @@ func (s server) Close() error {
 }
 
 // GetHostAndPort returns the address and port that this endpoint can be reached on by external processes.
-func (s server) GetHostAndPort(cof *flags.CoherenceOperatorFlags) string {
-	f := flags.GetOperatorFlags()
-
+func (s server) GetHostAndPort() string {
 	var service string
 	var port int32
 
 	switch {
-	case f.ServiceName != "":
+	case s.cohFlags.ServiceName != "":
 		// use the service name if it was specifically set
-		service = f.ServiceName
-	case f.RestHost != "0.0.0.0":
-		// if no service name was set but ReST is bound to a specific address then use that
-		service = f.RestHost
+		service = s.cohFlags.ServiceName
+	case s.cohFlags.RestHost != "0.0.0.0":
+		// if no service name was set but REST is bound to a specific address then use that
+		service = s.cohFlags.RestHost
 	default:
-		// ReST is bound to 0.0.0.0 so use any of our local addresses.
+		// REST is bound to 0.0.0.0 so use any of our local addresses.
 		// This does not guarantee we're reachable but would be OK in local testing
 		ip, err := onet.GetLocalAddress()
 		if err == nil && ip != nil {
@@ -116,10 +136,10 @@ func (s server) GetHostAndPort(cof *flags.CoherenceOperatorFlags) string {
 	}
 
 	switch {
-	case f.ServicePort != -1:
-		port = f.ServicePort
-	case f.RestPort > 0:
-		port = f.RestPort
+	case s.cohFlags.ServicePort != -1:
+		port = s.cohFlags.ServicePort
+	case s.cohFlags.RestPort > 0:
+		port = s.cohFlags.RestPort
 	default:
 		port = s.GetPort()
 	}

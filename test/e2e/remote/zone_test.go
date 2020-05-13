@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	goctx "context"
 	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
@@ -22,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Verify that a CoherenceCluster deployed by the Operator has the correct site value
+// Verify that a CoherenceDeployment deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
 func TestSiteLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the site
@@ -33,13 +34,13 @@ func TestSiteLabel(t *testing.T) {
 	}
 
 	dfn := func(namespace string) string {
-		return fmt.Sprintf("coherence.%s.svc.cluster.local", namespace)
+		return fmt.Sprintf("test.%s.svc.cluster.local", namespace)
 	}
 
 	assertLabel(t, flags.DefaultSiteLabel, fn, dfn)
 }
 
-// Verify that a CoherenceCluster deployed by the Operator has the correct rack value
+// Verify that a CoherenceDeployment deployed by the Operator has the correct rack value
 // set from the Node's failure domain region.
 func TestRackLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the rack
@@ -58,33 +59,31 @@ func TestRackLabel(t *testing.T) {
 
 func assertLabel(t *testing.T, label string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
-
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
-	namespace, err := ctx.GetNamespace()
+	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// load the test CoherenceCluster from a yaml files
-	cluster, err := helper.NewCoherenceClusterFromYaml(namespace, "zone-test.yaml")
+	// load the test CoherenceDeployment from a yaml files
+	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "zone-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// deploy the CoherenceCluster
-	err = f.Client.Create(goctx.TODO(), &cluster, helper.DefaultCleanup(ctx))
+	// deploy to k8s
+	err = f.Client.Create(goctx.TODO(), &deployment, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	role := cluster.Spec.Roles[0]
-	replicas := role.GetReplicas()
+	replicas := deployment.GetReplicas()
 
-	// Wait for the StatefulSet for the role to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, namespace, &cluster, role, time.Second*10, time.Minute*5, t)
+	// Wait for the StatefulSet for the deployment to be ready - wait five minutes max
+	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &deployment, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, namespace, cluster.Name, role.GetRoleName())
+	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, namespace, deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// capture the Pod log in case we need it for debugging
@@ -95,9 +94,9 @@ func assertLabel(t *testing.T, label string, fn func(management.MemberData) stri
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
-	// Do a Management over ReST query for the cluster members
+	// Do a Management over ReST query for the deployment members
 	cl := &http.Client{}
-	members, _, err := management.GetMembers(cl, "127.0.0.1", ports["mgmt-port"])
+	members, _, err := management.GetMembers(cl, "127.0.0.1", ports[coh.PortNameManagement])
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the site for each member matches the Node's zone label
@@ -109,12 +108,13 @@ func assertLabel(t *testing.T, label string, fn func(management.MemberData) stri
 		zone := node.GetLabels()[label]
 
 		actual := fn(member)
-
 		if zone != "" {
+			t.Logf("Expecting label value to be: %s", zone)
 			g.Expect(actual).To(Equal(zone))
 		} else {
 			// when running locally (for example in Docker on MacOS) the node might not
 			// have a zone unless one has been explicitly set by the developer.
+			t.Logf("Expecting label value to be: %s", dfn(namespace))
 			g.Expect(actual).To(Equal(dfn(namespace)))
 		}
 	}

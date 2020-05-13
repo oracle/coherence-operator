@@ -1,9 +1,0 @@
-apiVersion: coherence.oracle.com/v1
-kind: CoherenceCluster
-metadata:
-  name: test-cluster
-spec:
-  logging:
-    fluentd:
-      enabled: true
-      imagePullPolicy: Never

@@ -1,0 +1,19 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test
+spec:
+  replicas: 2
+  coherence:
+    metrics:
+      enabled: true
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true
+  imagePullSecrets:
+    - name: coherence-k8s-operator-development-secret
+    - name: ocr-k8s-operator-development-secret
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10

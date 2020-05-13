@@ -1,0 +1,14 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: management-jib
+spec:
+  replicas: 1
+  image: ${TEST_USER_IMAGE}
+  coherence:
+    management:
+      enabled: true
+      port: 30000
+  ports:
+    - name: management
+      port: 30000

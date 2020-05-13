@@ -30,45 +30,15 @@ each CRD passes the Open API validator.
 // The base location for CRD files - this is relative to this test file's location.
 const crdBase = "../../../../deploy/crds/"
 
-func TestCoherenceClusterOpenApiSpec(t *testing.T) {
+func TestCoherenceDeploymentOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceclusters_crd.yaml")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherencedeployments_crd.yaml")
 
-	// This is the minimal valid spec for a CoherenceCluster.
+	// This is the minimal valid spec for a CoherenceDeployment.
 	// This structure should be valid against the CRD spec
-	spec := v1.CoherenceCluster{
-		ObjectMeta: metav1.ObjectMeta{Namespace: "test-ns", Name: "test-cluster"},
-	}
-
-	result := v.Validate(spec)
-	g.Expect(result.IsValid()).To(BeTrue(), resultToString(result))
-}
-
-func TestCoherenceRoleOpenApiSpec(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceroles_crd.yaml")
-
-	// This is the minimal valid spec for a CoherenceRole.
-	// This structure should be valid against the CRD spec
-	spec := v1.CoherenceRole{
-		ObjectMeta: metav1.ObjectMeta{Namespace: "test-ns", Name: "test-role"},
-	}
-
-	result := v.Validate(spec)
-	g.Expect(result.IsValid()).To(BeTrue(), resultToString(result))
-}
-
-func TestCoherenceInternalOpenApiSpec(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	v := createValidator(t, crdBase+"coherence.oracle.com_coherenceinternals_crd.yaml")
-
-	// This is the minimal valid spec for a CoherenceInternal.
-	// This structure should be valid against the CRD spec
-	spec := v1.CoherenceInternal{
-		ObjectMeta: metav1.ObjectMeta{Namespace: "test-ns", Name: "test-role"},
+	spec := v1.CoherenceDeployment{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "test-ns", Name: "test-deployment"},
 	}
 
 	result := v.Validate(spec)

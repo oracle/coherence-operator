@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,9 +27,9 @@ import (
 
 // A struct used to define a metrics test case.
 type MetricsTestCase struct {
-	Cluster       *coh.CoherenceCluster
+	Deployment    *coh.CoherenceDeployment
 	Name          string
-	Ctx           *framework.TestCtx
+	Ctx           *framework.Context
 	KeyFile       string
 	CertFile      string
 	CaCertFile    string
@@ -37,7 +37,7 @@ type MetricsTestCase struct {
 }
 
 // TestMetrics is a go test that uses sub-tests (test cases) to basically run the
-// same test with different parameters. In this case different CoherenceCluster
+// same test with different parameters. In this case different CoherenceDeployment
 // configurations with metrics configured with and without SSL.
 func TestMetrics(t *testing.T) {
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
@@ -51,7 +51,7 @@ func TestMetrics(t *testing.T) {
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	// Get the test namespace
-	namespace, err := ctx.GetNamespace()
+	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the test SSL information (secret name etc.)
@@ -61,23 +61,31 @@ func TestMetrics(t *testing.T) {
 	// require 2-way auth
 	ssl.RequireClientCert = pointer.BoolPtr(true)
 
-	// load the test CoherenceCluster from a yaml files
-	clusterWithoutSSL, err := helper.NewCoherenceClusterFromYaml(namespace, "metrics-test.yaml")
+	// load the test CoherenceDeployment from a yaml files
+	deploymentWithoutSSL, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "metrics-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// Copy clusterWithoutSSL and configure it to use SSL at the Spec level in all roles
-	clusterSSL := clusterWithoutSSL.DeepCopy()
+	// load the test CoherenceDeployment that used a distroless JIB image from a yaml files
+	deploymentJib, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "metrics-jib-test.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Copy deploymentWithoutSSL and configure it to use SSL at the Spec level in all deployments
+	deploymentSSL := &coh.CoherenceDeployment{}
+	deploymentWithoutSSL.DeepCopyInto(deploymentSSL)
+
 	// Set the SSL settings
-	clusterSSL.SetName("test-cluster-ssl")
-	clusterSSL.Spec.Coherence.Metrics = &coh.PortSpecWithSSL{Enabled: pointer.BoolPtr(true), SSL: ssl}
+	deploymentSSL.Name = "metrics-ssl"
+	deploymentSSL.Spec.Coherence.Metrics.Enabled = pointer.BoolPtr(true)
+	deploymentSSL.Spec.Coherence.Metrics.SSL = ssl
 
 	// Create the test cases
 	testCases := []MetricsTestCase{
-		{&clusterWithoutSSL, "PlainHTTP", ctx, "", "", "", true},
-		{clusterSSL, "WithSSL", ctx, "groot.key", "groot.cert", "guardians-ca.crt", true},
-		{clusterSSL, "ClientHasBadKey", ctx, "yondu.key", "groot.cert", "guardians-ca.crt", false},
-		{clusterSSL, "BadCert", ctx, "groot.key", "yondu.cert", "guardians-ca.crt", false},
-		{clusterSSL, "BadCaCert", ctx, "groot.key", "groot.cert", "ravagers-ca.crt", false},
+		{&deploymentWithoutSSL, "PlainHTTP", ctx, "", "", "", true},
+		{&deploymentJib, "JIB", ctx, "", "", "", true},
+		{deploymentSSL, "WithSSL", ctx, "groot.key", "groot.cert", "guardians-ca.crt", true},
+		{deploymentSSL, "ClientHasBadKey", ctx, "yondu.key", "groot.cert", "guardians-ca.crt", false},
+		{deploymentSSL, "BadCert", ctx, "groot.key", "yondu.cert", "guardians-ca.crt", false},
+		{deploymentSSL, "BadCaCert", ctx, "groot.key", "groot.cert", "ravagers-ca.crt", false},
 	}
 
 	// Run the test cases...
@@ -88,45 +96,45 @@ func TestMetrics(t *testing.T) {
 	}
 }
 
-// This is the actual test method that creates the CoherenceCluster, waits for it to start
-// and then asserts that metrics can be retrieved from the endpoints for the Role Pods
+// This is the actual test method that creates the CoherenceDeployment, waits for it to start
+// and then asserts that metrics can be retrieved from the endpoints for the Deployment Pods
 // using SSL or not depending on the configuration.
 func testClusterMetrics(t *testing.T, tc MetricsTestCase) {
 	f := framework.Global
 	g := NewGomegaWithT(t)
 
-	cluster := tc.Cluster.DeepCopy()
-
-	// deploy the CoherenceCluster
-	err := f.Client.Create(context.TODO(), cluster, helper.DefaultCleanup(tc.Ctx))
+	ns, err := tc.Ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// defer clean-up so that we remove the cluster after this test case is finished
-	defer cleanup(t, cluster)
+	// deploy the CoherenceDeployment
+	deployment := tc.Deployment.DeepCopy()
+	err = f.Client.Create(context.TODO(), deployment, helper.DefaultCleanup(tc.Ctx))
+	g.Expect(err).NotTo(HaveOccurred())
 
-	for _, role := range cluster.Spec.Roles {
-		assertMetrics(t, tc, role)
-	}
+	// defer clean-up so that we remove the deployment after this test case is finished
+	defer cleanupMetrics(t, deployment, ns)
+
+	assertMetrics(t, tc)
 }
 
 // assert metrics for a test case
-func assertMetrics(t *testing.T, tc MetricsTestCase, role coh.CoherenceRoleSpec) {
+func assertMetrics(t *testing.T, tc MetricsTestCase) {
 	f := framework.Global
 	g := NewGomegaWithT(t)
-	ns := tc.Cluster.GetNamespace()
+	ns := tc.Deployment.GetNamespace()
 
-	replicas := role.GetReplicas()
+	replicas := tc.Deployment.GetReplicas()
 
-	// Wait for the StatefulSet for the role to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSetForRole(f.KubeClient, ns, tc.Cluster, role, time.Second*10, time.Minute*5, t)
+	// Wait for the StatefulSet for the deployment to be ready - wait five minutes max
+	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, tc.Deployment, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
-	// determine whether the cluster is using SSL
-	isSSL := role.Coherence != nil && role.Coherence.Metrics != nil && role.Coherence.Metrics.IsSSLEnabled()
+	// determine whether the deployment is using SSL
+	isSSL := tc.Deployment.Spec.Coherence.Metrics.IsSSLEnabled()
 
-	// Get the cluster Pods
-	pods, err := helper.ListCoherencePodsForRole(f.KubeClient, ns, tc.Cluster.GetName(), role.GetRoleName())
+	// Get the deployment Pods
+	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, tc.Deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// For each Pod test whether we can connect to metrics
@@ -196,7 +204,7 @@ func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string, 
 
 	defer pf.Close()
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", protocol, ports["metrics"])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", protocol, ports[coh.PortNameMetrics])
 
 	var resp *http.Response
 
@@ -220,14 +228,15 @@ func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string, 
 	return nil
 }
 
-func cleanup(t *testing.T, cluster *coh.CoherenceCluster) {
+func cleanupMetrics(t *testing.T, deployment *coh.CoherenceDeployment, ns string) {
+	helper.DumpState(ns, t.Name(), t)
+
 	f := framework.Global
-	err := f.Client.Delete(context.TODO(), cluster)
+	err := f.Client.Delete(context.TODO(), deployment)
 	if err != nil {
 		t.Log(err)
 	}
-
-	err = helper.WaitForCoherenceInternalCleanup(f, cluster.GetNamespace())
+	err = helper.WaitForCoherenceCleanup(f, ns)
 	if err != nil {
 		t.Log(err)
 	}

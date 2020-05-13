@@ -166,7 +166,7 @@ operator-prometheus-node-exporter       ClusterIP   10.102.181.6     <none>     
 operator-prometheusoperato-operator     ClusterIP   10.107.59.229    <none>        8080/TCP    31m
 operator-prometheusoperato-prometheus   ClusterIP   10.99.208.18     <none>        9090/TCP    31m
 prometheus-operated                     ClusterIP   None             <none>        9090/TCP    31m
-test-cluster-storage-headless           ClusterIP   None             <none>        30000/TCP   16m
+test-cluster-storage                    ClusterIP   None             <none>        30000/TCP   16m
 test-cluster-storage-metrics            ClusterIP   10.109.201.211   <none>        9612/TCP    16m  <1>
 test-cluster-wka                        ClusterIP   None             <none>        30000/TCP   16m
 ----
