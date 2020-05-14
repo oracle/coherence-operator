@@ -58,17 +58,17 @@ const (
 	VolumeNameLoggingConfig   = "logging-config"
 
 	// Volume mount paths
-	VolumeMountPathPersistence     = "/persistence"
-	VolumeMountPathSnapshots       = "/snapshot"
-	VolumeMountPathUtils           = UtilsDir
-	VolumeMountPathJVM             = "/jvm"
-	VolumeMountPathLogs            = "/logs"
-	VolumeMountPathManagementCerts = "/coherence/certs/management"
-	VolumeMountPathMetricsCerts    = "/coherence/certs/metrics"
-	VolumeMountPathLoggingConfig   = "/loggingconfig"
-	VolumeMountPathFluentdConfig   = "/fluentd/etc/fluentd-coherence.conf"
-
-	VolumeMountSubPathFluentdConfig = "fluentd-coherence.conf"
+	VolumeMountPathPersistence       = "/persistence"
+	VolumeMountPathSnapshots         = "/snapshot"
+	VolumeMountPathUtils             = UtilsDir
+	VolumeMountPathJVM               = "/jvm"
+	VolumeMountPathLogs              = "/logs"
+	VolumeMountPathManagementCerts   = "/coherence/certs/management"
+	VolumeMountPathMetricsCerts      = "/coherence/certs/metrics"
+	VolumeMountPathLoggingConfig     = "/loggingconfig"
+	VolumeMountPathFluentdConfigBase = "/fluentd/etc/"
+	VolumeMountSubPathFluentdConfig  = "fluentd-coherence.conf"
+	VolumeMountPathFluentdConfig     = VolumeMountPathFluentdConfigBase + VolumeMountSubPathFluentdConfig
 
 	UtilFilesDir     = "/files"
 	UtilsDir         = "/utils"
@@ -227,6 +227,20 @@ const EfkConfig = `# Coherence fluentd configuration
   password "#{ENV['ELASTICSEARCH_PASSWORD']}"
   logstash_format true
   logstash_prefix coherence-cluster
+{{- if .Logging.Fluentd }}
+{{-   if .Logging.Fluentd.SSLVerify }}
+  ssl_verify {{ .Logging.Fluentd.SSLVerify }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLVersion }}
+  ssl_version {{ .Logging.Fluentd.SSLVersion }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLMinVersion }}
+  ssl_min_version {{ .Logging.Fluentd.SSLMinVersion }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLMaxVersion }}
+  ssl_max_version {{ .Logging.Fluentd.SSLMaxVersion }}
+{{-   end }}
+{{- end }}
 </match>
 
 {{- if .Logging.Fluentd }}
@@ -238,6 +252,20 @@ const EfkConfig = `# Coherence fluentd configuration
   password "#{ENV['ELASTICSEARCH_PASSWORD']}"
   logstash_format true
   logstash_prefix {{ .Logging.Fluentd.Tag }}
+{{- if .Logging.Fluentd }}
+{{-   if .Logging.Fluentd.SSLVerify }}
+  ssl_verify {{ .Logging.Fluentd.SSLVerify }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLVersion }}
+  ssl_version {{ .Logging.Fluentd.SSLVersion }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLMinVersion }}
+  ssl_min_version {{ .Logging.Fluentd.SSLMinVersion }}
+{{-   end }}
+{{-   if .Logging.Fluentd.SSLMaxVersion }}
+  ssl_max_version {{ .Logging.Fluentd.SSLMaxVersion }}
+{{-   end }}
+{{- end }}
 </match>
 {{-   end }}
 {{- end }}`

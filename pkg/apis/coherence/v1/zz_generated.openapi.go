@@ -468,11 +468,53 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 							},
 						},
 					},
+					"additionalInitContainers": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of additional initialization containers to add to the deployment's Pod. Init containers cannot be added or removed. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Container"),
+									},
+								},
+							},
+						},
+					},
+					"additionalContainers": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of additional containers to add to the deployment's Pod. Containers cannot be added or removed.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Container"),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.NetworkSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "./pkg/apis/coherence/v1.StartQuorum", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.PodSecurityContext", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.NetworkSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "./pkg/apis/coherence/v1.StartQuorum", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.Container", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.PodSecurityContext", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -595,8 +637,36 @@ func schema_pkg_apis_coherence_v1_FluentdSpec(ref common.ReferenceCallback) comm
 					},
 					"tag": {
 						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the source.tag from fluentd.application.configFile.",
+							Description: "This value should be the source.tag from fluentd configFile.",
 							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"sslVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This value should be the to use to set the fluentd ssl_version parameter in the fluentd configFile.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"sslMinVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This value should be the to use to set the fluentd ssl_min_version parameter in the fluentd configFile.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"sslMaxVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This value should be the to use to set the fluentd ssl_max_version parameter in the fluentd configFile.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"sslVerify": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This value should be the to use to set the fluentd ssl_verify parameter in the fluentd configFile.",
+							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},

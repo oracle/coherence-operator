@@ -36,33 +36,9 @@ type OperatorValues struct {
 	// If specified, the pod's tolerations.
 	// +optional
 	Tolerations *[]coreV1.Toleration `json:"tolerations,omitempty"`
-	// Service groups the values used to configure the internal K8s service.
-	// +optional
-	Service *OperatorServiceSpec `json:"service,omitempty"`
 	// CoherenceOperator groups the values used to configure the operator
 	// +optional
 	CoherenceOperator *OperatorSpec `json:"coherenceOperator,omitempty"`
-	// Controls whether or not log capture via EFK stack is enabled.
-	// +optional
-	InstallEFK bool `json:"installEFK,omitempty"`
-	// Specify the docker image containing Elasticsearch.
-	// These parameters are ignored if 'logCaptureEnabled' is false
-	// or elasticsearchEndpoinit is set.
-	// +optional
-	Elasticsearch *coh.ImageSpec `json:"elasticsearch,omitempty"`
-	// The Elasticsearch endpoint details
-	// +optional
-	ElasticsearchEndpoint *ElasticsearchEndpointSpec `json:"elasticsearchEndpoint,omitempty"`
-	// Specify the kibana image
-	// These parameters are ignored if 'logCaptureEnabled' is false.
-	// +optional
-	Kibana *coh.ImageSpec `json:"kibana,omitempty"`
-	// Specifies values for Kibana Dashboard Imports if logCaptureEnabled is true
-	// +optional
-	DashboardImport *DashboardImportSpec `json:"dashboardImport,omitempty"`
-	// Specifies values for Prometheus Operator
-	// +optional
-	Prometheusoperator *PrometheusOperatorSpec `json:"prometheusoperator,omitempty"`
 	// Specifies whether to generate the ClusterRole yaml.
 	// +optional
 	EnableClusterRole *bool `json:"enableClusterRole,omitempty"`
@@ -83,54 +59,6 @@ type OperatorSSL struct {
 	KeyFile  *string `json:"keyFile,omitempty"`
 	CertFile *string `json:"certFile,omitempty"`
 	CaFile   *string `json:"caFile,omitempty"`
-}
-
-type ElasticsearchEndpointSpec struct {
-	// The Elasticsearch host if there is an existing one.
-	// Default: "elasticsearch.${namespace}.svc.cluster.local"
-	// where ${namespace} is the value of namespace for this release.
-	// +optional
-	Host *string `json:"host,omitempty"`
-	// The Elasticsearch port to be accessed by fluentd.
-	// Default: 9200
-	// +optional
-	Port *string `json:"port,omitempty"`
-	// The Elasticsearch user to be accessed by fluentd.
-	// +optional
-	User *string `json:"user,omitempty"`
-	// The Elasticsearch password to be accessed by fluentd.
-	// +optional
-	Password *string `json:"password,omitempty"`
-	// The Elasticsearch hosts to be used by fluentd.
-	// +optional
-	Hosts *string `json:"hosts,omitempty"`
-	// The Elasticsearch scheme to be used by fluentd (either http or https).
-	// +optional
-	Scheme *string `json:"scheme,omitempty"`
-}
-
-type PrometheusOperatorSpec struct {
-	Enabled            *bool         `json:"enabled,omitempty"`
-	PrometheusOperator *PrometheusOp `json:"prometheusOperator,omitempty"`
-	Prometheus         *Prometheus   `json:"prometheus,omitempty"`
-	Grafana            *Grafana      `json:"grafana,omitempty"`
-}
-
-type PrometheusOp struct {
-	CreateCustomResource  *bool `json:"createCustomResource,omitempty"`
-	CleanupCustomResource *bool `json:"cleanupCustomResource,omitempty"`
-}
-
-type Prometheus struct {
-	PrometheusSpec *PrometheusSpec `json:"prometheusspec,omitempty"`
-}
-
-type PrometheusSpec struct {
-	ScrapeInterval *string `json:"scrapeInterval,omitempty"`
-}
-
-type Grafana struct {
-	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // Set whether to generate the ClusterRole yaml.
@@ -180,40 +108,4 @@ func (v *OperatorValues) ToMap(m *map[string]interface{}) error {
 
 	err = yaml.Unmarshal(d, m)
 	return err
-}
-
-type DashboardImportSpec struct {
-	Timeout   int32          `json:"timeout,omitempty"`
-	Xpackauth *XpackAuthSpec `json:"xpackauth,omitempty"`
-}
-
-type XpackAuthSpec struct {
-	Enabled  bool   `json:"enabled,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
-type OperatorServiceSpec struct {
-	// The name of the service. It must be unique among services.
-	// If not set the operator will use the service name "coherence-operator-service".
-	// +optional
-	Name string `json:"name,omitempty"`
-	// +optional
-	Type coreV1.ServiceType `json:"type,omitempty"`
-	// The external domain name.
-	// +optional
-	Domain string `json:"domain,omitempty"`
-	// Only applies to Service Kind: LoadBalancer
-	// LoadBalancer will get created with the IP specified in this field.
-	// This feature depends on whether the underlying cloud-provider supports specifying
-	// the loadBalancerIP when a load balancer is created.
-	// This field will be ignored if the cloud-provider does not support the feature.
-	// +optional
-	LoadBalancerIP string `json:"loadBalancerIP,omitempty" protobuf:"bytes,8,opt,name=loadBalancerIP"`
-	// Annotations is an unstructured key value map stored with a resource that may be
-	// set by external tools to store and retrieve arbitrary metadata. They are not
-	// queryable and should be preserved when modifying objects.
-	// More info: http://kubernetes.io/docs/user-guide/annotations
-	// +optional
-	Annotations map[string]string `json:"annotations,omitempty"`
 }

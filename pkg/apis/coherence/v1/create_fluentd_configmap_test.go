@@ -336,3 +336,398 @@ func CreateExpectedFluentdConfigMap(deployment *coh.CoherenceDeployment) *corev1
 		Data: map[string]string{},
 	}
 }
+
+func TestCreateFluentdConfigMapWithFluentdSSLVerifyTrue(t *testing.T) {
+	clusterName := "test-cluster"
+	deploymentName := "test"
+	roleName := "fluentd-test"
+	expectedConfig := `# Coherence fluentd configuration
+
+# Ignore fluentd messages
+<match fluent.**>
+  @type null
+</match>
+
+# Coherence Logs
+<source>
+  @type tail
+  path /logs/coherence-*.log
+  pos_file /tmp/cohrence.log.pos
+  read_from_head true
+  tag coherence-cluster
+  multiline_flush_interval 20s
+  <parse>
+    @type multiline
+    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+  </parse>
+</source>
+
+<filter coherence-cluster>
+  @type record_transformer
+  <record>
+    cluster "test-cluster"
+    deployment "test"
+    role "fluentd-test"
+    host "#{ENV['HOSTNAME']}"
+    pod-uid "#{ENV['COHERENCE_POD_ID']}"
+  </record>
+</filter>
+
+<match coherence-cluster>
+  @type elasticsearch
+  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+  user "#{ENV['ELASTICSEARCH_USER']}"
+  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
+  logstash_format true
+  logstash_prefix coherence-cluster
+  ssl_verify true
+</match>`
+
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceDeploymentSpec{
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
+		Logging: &coh.LoggingSpec{
+			Fluentd: &coh.FluentdSpec{
+				Enabled:   pointer.BoolPtr(true),
+				SSLVerify: pointer.BoolPtr(true),
+			},
+		},
+	}
+	deployment := createTestDeployment(spec)
+	deployment.Name = deploymentName
+
+	res, err := deployment.Spec.Logging.CreateFluentdConfigMap(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res).NotTo(BeNil())
+	g.Expect(res.Name).To(Equal(fmt.Sprintf(coh.EfkConfigMapNameTemplate, deployment.GetName())))
+	g.Expect(res.IsDelete()).To(BeFalse())
+
+	cm := res.Spec.(*corev1.ConfigMap)
+	g.Expect(len(cm.Data)).To(Equal(1))
+	actualConfig, found := cm.Data[coh.VolumeMountSubPathFluentdConfig]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actualConfig).To(Equal(expectedConfig))
+
+	expected := CreateExpectedFluentdConfigMap(deployment)
+	expected.Data[coh.VolumeMountSubPathFluentdConfig] = expectedConfig
+	g.Expect(res.Spec).To(Equal(expected))
+}
+
+func TestCreateFluentdConfigMapWithFluentdSSLVerifyFalse(t *testing.T) {
+	clusterName := "test-cluster"
+	deploymentName := "test"
+	roleName := "fluentd-test"
+	expectedConfig := `# Coherence fluentd configuration
+
+# Ignore fluentd messages
+<match fluent.**>
+  @type null
+</match>
+
+# Coherence Logs
+<source>
+  @type tail
+  path /logs/coherence-*.log
+  pos_file /tmp/cohrence.log.pos
+  read_from_head true
+  tag coherence-cluster
+  multiline_flush_interval 20s
+  <parse>
+    @type multiline
+    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+  </parse>
+</source>
+
+<filter coherence-cluster>
+  @type record_transformer
+  <record>
+    cluster "test-cluster"
+    deployment "test"
+    role "fluentd-test"
+    host "#{ENV['HOSTNAME']}"
+    pod-uid "#{ENV['COHERENCE_POD_ID']}"
+  </record>
+</filter>
+
+<match coherence-cluster>
+  @type elasticsearch
+  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+  user "#{ENV['ELASTICSEARCH_USER']}"
+  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
+  logstash_format true
+  logstash_prefix coherence-cluster
+  ssl_verify false
+</match>`
+
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceDeploymentSpec{
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
+		Logging: &coh.LoggingSpec{
+			Fluentd: &coh.FluentdSpec{
+				Enabled:   pointer.BoolPtr(true),
+				SSLVerify: pointer.BoolPtr(false),
+			},
+		},
+	}
+	deployment := createTestDeployment(spec)
+	deployment.Name = deploymentName
+
+	res, err := deployment.Spec.Logging.CreateFluentdConfigMap(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res).NotTo(BeNil())
+	g.Expect(res.Name).To(Equal(fmt.Sprintf(coh.EfkConfigMapNameTemplate, deployment.GetName())))
+	g.Expect(res.IsDelete()).To(BeFalse())
+
+	cm := res.Spec.(*corev1.ConfigMap)
+	g.Expect(len(cm.Data)).To(Equal(1))
+	actualConfig, found := cm.Data[coh.VolumeMountSubPathFluentdConfig]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actualConfig).To(Equal(expectedConfig))
+
+	expected := CreateExpectedFluentdConfigMap(deployment)
+	expected.Data[coh.VolumeMountSubPathFluentdConfig] = expectedConfig
+	g.Expect(res.Spec).To(Equal(expected))
+}
+
+func TestCreateFluentdConfigMapWithFluentdSSLVersion(t *testing.T) {
+	clusterName := "test-cluster"
+	deploymentName := "test"
+	roleName := "fluentd-test"
+	expectedConfig := `# Coherence fluentd configuration
+
+# Ignore fluentd messages
+<match fluent.**>
+  @type null
+</match>
+
+# Coherence Logs
+<source>
+  @type tail
+  path /logs/coherence-*.log
+  pos_file /tmp/cohrence.log.pos
+  read_from_head true
+  tag coherence-cluster
+  multiline_flush_interval 20s
+  <parse>
+    @type multiline
+    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+  </parse>
+</source>
+
+<filter coherence-cluster>
+  @type record_transformer
+  <record>
+    cluster "test-cluster"
+    deployment "test"
+    role "fluentd-test"
+    host "#{ENV['HOSTNAME']}"
+    pod-uid "#{ENV['COHERENCE_POD_ID']}"
+  </record>
+</filter>
+
+<match coherence-cluster>
+  @type elasticsearch
+  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+  user "#{ENV['ELASTICSEARCH_USER']}"
+  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
+  logstash_format true
+  logstash_prefix coherence-cluster
+  ssl_version TLSv1_3
+</match>`
+
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceDeploymentSpec{
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
+		Logging: &coh.LoggingSpec{
+			Fluentd: &coh.FluentdSpec{
+				Enabled:    pointer.BoolPtr(true),
+				SSLVersion: pointer.StringPtr("TLSv1_3"),
+			},
+		},
+	}
+	deployment := createTestDeployment(spec)
+	deployment.Name = deploymentName
+
+	res, err := deployment.Spec.Logging.CreateFluentdConfigMap(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res).NotTo(BeNil())
+	g.Expect(res.Name).To(Equal(fmt.Sprintf(coh.EfkConfigMapNameTemplate, deployment.GetName())))
+	g.Expect(res.IsDelete()).To(BeFalse())
+
+	cm := res.Spec.(*corev1.ConfigMap)
+	g.Expect(len(cm.Data)).To(Equal(1))
+	actualConfig, found := cm.Data[coh.VolumeMountSubPathFluentdConfig]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actualConfig).To(Equal(expectedConfig))
+
+	expected := CreateExpectedFluentdConfigMap(deployment)
+	expected.Data[coh.VolumeMountSubPathFluentdConfig] = expectedConfig
+	g.Expect(res.Spec).To(Equal(expected))
+}
+
+func TestCreateFluentdConfigMapWithFluentdSSLMinVersion(t *testing.T) {
+	clusterName := "test-cluster"
+	deploymentName := "test"
+	roleName := "fluentd-test"
+	expectedConfig := `# Coherence fluentd configuration
+
+# Ignore fluentd messages
+<match fluent.**>
+  @type null
+</match>
+
+# Coherence Logs
+<source>
+  @type tail
+  path /logs/coherence-*.log
+  pos_file /tmp/cohrence.log.pos
+  read_from_head true
+  tag coherence-cluster
+  multiline_flush_interval 20s
+  <parse>
+    @type multiline
+    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+  </parse>
+</source>
+
+<filter coherence-cluster>
+  @type record_transformer
+  <record>
+    cluster "test-cluster"
+    deployment "test"
+    role "fluentd-test"
+    host "#{ENV['HOSTNAME']}"
+    pod-uid "#{ENV['COHERENCE_POD_ID']}"
+  </record>
+</filter>
+
+<match coherence-cluster>
+  @type elasticsearch
+  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+  user "#{ENV['ELASTICSEARCH_USER']}"
+  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
+  logstash_format true
+  logstash_prefix coherence-cluster
+  ssl_min_version TLSv1_3
+</match>`
+
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceDeploymentSpec{
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
+		Logging: &coh.LoggingSpec{
+			Fluentd: &coh.FluentdSpec{
+				Enabled:       pointer.BoolPtr(true),
+				SSLMinVersion: pointer.StringPtr("TLSv1_3"),
+			},
+		},
+	}
+	deployment := createTestDeployment(spec)
+	deployment.Name = deploymentName
+
+	res, err := deployment.Spec.Logging.CreateFluentdConfigMap(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res).NotTo(BeNil())
+	g.Expect(res.Name).To(Equal(fmt.Sprintf(coh.EfkConfigMapNameTemplate, deployment.GetName())))
+	g.Expect(res.IsDelete()).To(BeFalse())
+
+	cm := res.Spec.(*corev1.ConfigMap)
+	g.Expect(len(cm.Data)).To(Equal(1))
+	actualConfig, found := cm.Data[coh.VolumeMountSubPathFluentdConfig]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actualConfig).To(Equal(expectedConfig))
+
+	expected := CreateExpectedFluentdConfigMap(deployment)
+	expected.Data[coh.VolumeMountSubPathFluentdConfig] = expectedConfig
+	g.Expect(res.Spec).To(Equal(expected))
+}
+
+func TestCreateFluentdConfigMapWithFluentdSSLMaxVersion(t *testing.T) {
+	clusterName := "test-cluster"
+	deploymentName := "test"
+	roleName := "fluentd-test"
+	expectedConfig := `# Coherence fluentd configuration
+
+# Ignore fluentd messages
+<match fluent.**>
+  @type null
+</match>
+
+# Coherence Logs
+<source>
+  @type tail
+  path /logs/coherence-*.log
+  pos_file /tmp/cohrence.log.pos
+  read_from_head true
+  tag coherence-cluster
+  multiline_flush_interval 20s
+  <parse>
+    @type multiline
+    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+  </parse>
+</source>
+
+<filter coherence-cluster>
+  @type record_transformer
+  <record>
+    cluster "test-cluster"
+    deployment "test"
+    role "fluentd-test"
+    host "#{ENV['HOSTNAME']}"
+    pod-uid "#{ENV['COHERENCE_POD_ID']}"
+  </record>
+</filter>
+
+<match coherence-cluster>
+  @type elasticsearch
+  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
+  user "#{ENV['ELASTICSEARCH_USER']}"
+  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
+  logstash_format true
+  logstash_prefix coherence-cluster
+  ssl_max_version TLSv1_3
+</match>`
+
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceDeploymentSpec{
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
+		Logging: &coh.LoggingSpec{
+			Fluentd: &coh.FluentdSpec{
+				Enabled:       pointer.BoolPtr(true),
+				SSLMaxVersion: pointer.StringPtr("TLSv1_3"),
+			},
+		},
+	}
+	deployment := createTestDeployment(spec)
+	deployment.Name = deploymentName
+
+	res, err := deployment.Spec.Logging.CreateFluentdConfigMap(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res).NotTo(BeNil())
+	g.Expect(res.Name).To(Equal(fmt.Sprintf(coh.EfkConfigMapNameTemplate, deployment.GetName())))
+	g.Expect(res.IsDelete()).To(BeFalse())
+
+	cm := res.Spec.(*corev1.ConfigMap)
+	g.Expect(len(cm.Data)).To(Equal(1))
+	actualConfig, found := cm.Data[coh.VolumeMountSubPathFluentdConfig]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actualConfig).To(Equal(expectedConfig))
+
+	expected := CreateExpectedFluentdConfigMap(deployment)
+	expected.Data[coh.VolumeMountSubPathFluentdConfig] = expectedConfig
+	g.Expect(res.Spec).To(Equal(expected))
+}

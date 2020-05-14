@@ -202,6 +202,17 @@ type CoherenceDeploymentSpec struct {
 	// +listMapKey=deployment
 	// +optional
 	StartQuorum []StartQuorum `json:"startQuorum,omitempty"`
+	// List of additional initialization containers to add to the deployment's Pod.
+	// Init containers cannot be added or removed.
+	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+	// +listType=map
+	// +listMapKey=name
+	AdditionalInitContainers []corev1.Container `json:"additionalInitContainers,omitempty"`
+	// List of additional containers to add to the deployment's Pod.
+	// Containers cannot be added or removed.
+	// +listType=map
+	// +listMapKey=name
+	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
 }
 
 type PersistentVolumeClaim struct {
@@ -563,6 +574,16 @@ func (in *CoherenceDeploymentSpec) CreateStatefulSet(deployment *CoherenceDeploy
 	in.Coherence.UpdateStatefulSet(deployment, &sts)
 	// Add any logging settings
 	in.Logging.UpdateStatefulSet(&sts)
+
+	// Add any additional init-containers
+	if in.AdditionalInitContainers != nil && len(in.AdditionalInitContainers) > 0 {
+		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, in.AdditionalInitContainers...)
+	}
+
+	// Add any additional containers
+	if in.AdditionalContainers != nil && len(in.AdditionalContainers) > 0 {
+		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, in.AdditionalContainers...)
+	}
 
 	// append any additional Volumes
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, in.Volumes...)

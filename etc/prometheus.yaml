@@ -33,7 +33,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus
-  namespace: default
+  namespace: operator-test
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
