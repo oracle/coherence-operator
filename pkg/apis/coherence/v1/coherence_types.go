@@ -486,7 +486,9 @@ func (in *LoggingSpec) CreateFluentdConfigMap(deployment *CoherenceDeployment) (
 			Name:      fmt.Sprintf(EfkConfigMapNameTemplate, deployment.GetName()),
 			Labels:    labels,
 		},
-		Data: map[string]string{VolumeMountSubPathFluentdConfig: fluentdConfig},
+		Data: map[string]string{
+			VolumeMountSubPathFluentdConfig: fluentdConfig,
+		},
 	}
 
 	res := Resource{
@@ -1737,9 +1739,21 @@ type FluentdSpec struct {
 	// provided by the Coherence Operator.
 	// +optional
 	ConfigFileOverride *string `json:"configFileOverride,omitempty"`
-	// This value should be the source.tag from fluentd.application.configFile.
+	// This value should be the source.tag from fluentd configFile.
 	// +optional
 	Tag *string `json:"tag,omitempty"`
+	// This value should be the to use to set the fluentd ssl_version parameter in the fluentd configFile.
+	// +optional
+	SSLVersion *string `json:"sslVersion,omitempty"`
+	// This value should be the to use to set the fluentd ssl_min_version parameter in the fluentd configFile.
+	// +optional
+	SSLMinVersion *string `json:"sslMinVersion,omitempty"`
+	// This value should be the to use to set the fluentd ssl_max_version parameter in the fluentd configFile.
+	// +optional
+	SSLMaxVersion *string `json:"sslMaxVersion,omitempty"`
+	// This value should be the to use to set the fluentd ssl_verify parameter in the fluentd configFile.
+	// +optional
+	SSLVerify *bool `json:"sslVerify,omitempty"`
 	// A comma delimited string of Elasticsearch hosts.
 	// These will be used for the hosts variable in the ES
 	// section of the Fluentd configuration as described in
@@ -1814,6 +1828,11 @@ func (in *FluentdSpec) CreateFluentdContainer() corev1.Container {
 		imageName = *in.Image
 	}
 
+	config := VolumeMountSubPathFluentdConfig
+	if in.ConfigFileOverride != nil {
+		config = *in.ConfigFileOverride
+	}
+
 	env := []corev1.EnvVar{
 		{
 			Name: EnvVarFluentdPodID,
@@ -1825,7 +1844,7 @@ func (in *FluentdSpec) CreateFluentdContainer() corev1.Container {
 		},
 		{
 			Name:  EnvVarFluentdConf,
-			Value: VolumeMountSubPathFluentdConfig,
+			Value: config,
 		},
 		{
 			Name:  EnvVarFluentdSedDisable,
