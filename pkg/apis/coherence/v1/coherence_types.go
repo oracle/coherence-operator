@@ -504,7 +504,7 @@ func (in *LoggingSpec) IsFluentdEnabled() bool {
 
 func (in *LoggingSpec) GetFluentdConfig(deployment *CoherenceDeployment) (string, error) {
 	l := LoggingConfigTemplate{
-		ClusterName:    deployment.GetCoherenceClusterName(),
+		Cluster:        deployment.GetCoherenceClusterName(),
 		DeploymentName: deployment.Name,
 		RoleName:       deployment.GetRoleName(),
 		Logging:        in,
@@ -572,7 +572,7 @@ func (in *LoggingSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 
 // A struct used when converting the fluentd config template to a string using go templating.
 type LoggingConfigTemplate struct {
-	ClusterName    string
+	Cluster        string
 	DeploymentName string
 	RoleName       string
 	Logging        *LoggingSpec
