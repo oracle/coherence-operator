@@ -942,7 +942,7 @@ run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: create-ssl-secrets
+run: build-all-images create-ssl-secrets
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
@@ -974,13 +974,20 @@ run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: reset-namespace create-ssl-secrets
+run-debug: build-all-images create-ssl-secrets
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
 	--operator-flags="--crd-files=$(CRD_DIR) --scripts-dir=$(IMAGE_SCRIPTS_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+
+# ---------------------------------------------------------------------------
+# Run the Operator locally in debug mode after deleting and recreating
+# the test namespace.
+# ---------------------------------------------------------------------------
+.PHONY: run-debug-clean
+run-debug-clean: reset-namespace run-debug
 
 # ---------------------------------------------------------------------------
 # Kill any locally running Operator
