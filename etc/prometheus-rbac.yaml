@@ -68,7 +68,7 @@ rules:
   - list
   - watch
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus
@@ -97,6 +97,11 @@ metadata:
   name: prometheus-operator
   namespace: operator-test
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -114,12 +119,7 @@ subjects:
   name: prometheus-operator
   namespace: operator-test
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: prometheus
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: prometheus
