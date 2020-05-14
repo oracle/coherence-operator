@@ -54,7 +54,7 @@ COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:12.2.1.4.0
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
-RELEASE_IMAGE_PREFIX ?= "iad.ocir.io/odx-stateservice/test/$(USER)/"
+RELEASE_IMAGE_PREFIX ?= "$(USER)/"
 OPERATOR_IMAGE       := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
 UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
 TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-jib:$(VERSION_FULL)
@@ -1031,7 +1031,7 @@ install-prometheus:
 	kubectl -n $(TEST_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
 
 # ---------------------------------------------------------------------------
-# Uninstall the Prometheus Operator
+# Uninstall Prometheus
 # ---------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus:
@@ -1053,7 +1053,10 @@ port-forward-grafana:
 # Install Elasticsearch & Kibana
 # ---------------------------------------------------------------------------
 .PHONY: install-elastic
-install-elastic:
+install-elastic: helm-install-elastic kibana-import
+
+.PHONY: helm-install-elastic
+helm-install-elastic:
 	kubectl create ns $(TEST_NAMESPACE) || true
 #   Create the ConfigMap containing the Coherence Kibana dashboards
 	kubectl -n $(TEST_NAMESPACE) delete secret coherence-kibana-dashboard || true
@@ -1070,14 +1073,15 @@ install-elastic:
 		--debug --values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
 	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values etc/kibana-values.yaml kibana elastic/kibana
-#   Import Coherence dashboards
-	KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
-	kubectl -n $(TEST_NAMESPACE) -n operator-test exec -it $(KIBANA_POD) /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
+		--debug --values etc/kibana-values.yaml kibana elastic/kibana \
 
+.PHONY: kibana-import
+kibana-import: export KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
+kibana-import:
+	kubectl -n $(TEST_NAMESPACE) exec -it $(KIBANA_POD) /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
 
 # ---------------------------------------------------------------------------
-# Uninstall the Elasticsearch & Kibana
+# Uninstall Elasticsearch & Kibana
 # ---------------------------------------------------------------------------
 .PHONY: uninstall-elastic
 uninstall-elastic:
