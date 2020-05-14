@@ -49,10 +49,10 @@ func (in *CoherenceDeployment) GetCoherenceClusterName() string {
 		return ""
 	}
 
-	if in.Spec.ClusterName == nil {
+	if in.Spec.Cluster == nil {
 		return in.Name
 	}
-	return *in.Spec.ClusterName
+	return *in.Spec.Cluster
 }
 
 // Obtain the name of the headless Service used for Coherence WKA.

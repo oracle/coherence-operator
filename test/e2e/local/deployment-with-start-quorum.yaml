@@ -6,7 +6,7 @@ kind: CoherenceDeployment
 metadata:
   name: test
 spec:
-  clusterName: test-cluster
+  cluster: test-cluster
   replicas: 1
   startQuorum:
     - deployment: data
@@ -16,5 +16,5 @@ kind: CoherenceDeployment
 metadata:
   name: data
 spec:
-  clusterName: test-cluster
+  cluster: test-cluster
   replicas: 2

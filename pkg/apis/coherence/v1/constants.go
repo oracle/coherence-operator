@@ -212,7 +212,7 @@ const EfkConfig = `# Coherence fluentd configuration
 <filter coherence-cluster>
   @type record_transformer
   <record>
-    cluster "{{ .ClusterName }}"
+    cluster "{{ .Cluster }}"
     deployment "{{ .DeploymentName }}"
     role "{{ .RoleName }}"
     host "#{ENV['HOSTNAME']}"

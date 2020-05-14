@@ -165,7 +165,7 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 							Format:      "int32",
 						},
 					},
-					"clusterName": {
+					"cluster": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The optional name of the Coherence cluster that this CoherenceDeployment belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the CoherenceDeployment's name will be used as the cluster name.",
 							Type:        []string{"string"},
