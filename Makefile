@@ -1015,6 +1015,7 @@ operator-helm-delete:
 .PHONY: install-prometheus
 install-prometheus:
 	kubectl create ns $(TEST_NAMESPACE) || true
+	kubectl create -f etc/prometheus-rbac.yaml
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	@echo "Create Grafana Dashboards ConfigMap:"
 	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=dashboards/grafana/
@@ -1038,6 +1039,7 @@ uninstall-prometheus:
 	kubectl -n $(TEST_NAMESPACE) delete -f etc/prometheus.yaml || true
 	kubectl -n $(TEST_NAMESPACE) delete configmap coherence-grafana-dashboards || true
 	helm --namespace $(TEST_NAMESPACE) delete prometheus || true
+	kubectl delete -f etc/prometheus-rbac.yaml || true
 
 # ---------------------------------------------------------------------------
 # Start a port-forward process to the Grafana Pod.
@@ -1129,7 +1131,7 @@ $(BUILD_OUTPUT)/bin/golangci-lint:
 # ---------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_OUTPUT)/bin/golangci-lint
-	$(BUILD_OUTPUT)/bin/golangci-lint run -v --timeout=5m --skip-files=zz_.*  ./pkg/... ./cmd/...
+	$(BUILD_OUTPUT)/bin/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*  ./pkg/... ./cmd/...
 
 
 # ---------------------------------------------------------------------------
@@ -1144,6 +1146,7 @@ copyright:
 	  -X .adoc \
 	  -X bin/ \
 	  -X build/_output/ \
+	  -X clientset/ \
 	  -X dashboards/grafana/ \
 	  -X dashboards/kibana/ \
 	  -X /Dockerfile \
