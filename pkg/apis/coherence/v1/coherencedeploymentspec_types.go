@@ -51,7 +51,7 @@ type CoherenceDeploymentSpec struct {
 	// the same cluster name. If not set the CoherenceDeployment's name will be used as the
 	// cluster name.
 	// +optional
-	ClusterName *string `json:"clusterName,omitempty"`
+	Cluster *string `json:"cluster,omitempty"`
 	// The name of the role that this deployment represents in a Coherence cluster.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional

@@ -132,8 +132,8 @@ func (in *CoherenceDeploymentSpec) DeepCopyInto(out *CoherenceDeploymentSpec) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.ClusterName != nil {
-		in, out := &in.ClusterName, &out.ClusterName
+	if in.Cluster != nil {
+		in, out := &in.Cluster, &out.Cluster
 		*out = new(string)
 		**out = **in
 	}

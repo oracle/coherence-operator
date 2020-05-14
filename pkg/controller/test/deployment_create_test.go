@@ -114,7 +114,7 @@ func TestCreateResourcesForDeploymentWithClusterName(t *testing.T) {
 			Name: "operator-test",
 		},
 		Spec: coh.CoherenceDeploymentSpec{
-			ClusterName: &clusterName,
+			Cluster: &clusterName,
 		},
 	}
 

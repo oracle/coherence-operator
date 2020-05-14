@@ -74,7 +74,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			Name:      "test",
 		},
 		Spec: coh.CoherenceDeploymentSpec{
-			ClusterName: pointer.StringPtr("test-cluster"),
+			Cluster: pointer.StringPtr("test-cluster"),
 		},
 	}
 

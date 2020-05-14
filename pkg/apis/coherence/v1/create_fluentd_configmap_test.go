@@ -128,8 +128,8 @@ func TestCreateFluentdConfigMapWithFluentdEnabledTrue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	spec := coh.CoherenceDeploymentSpec{
-		Role:        roleName,
-		ClusterName: pointer.StringPtr(clusterName),
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
 		Logging: &coh.LoggingSpec{
 			Fluentd: &coh.FluentdSpec{
 				Enabled: pointer.BoolPtr(true),
@@ -207,8 +207,8 @@ func TestCreateFluentdConfigMapWithFluentdConfigInclude(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	spec := coh.CoherenceDeploymentSpec{
-		Role:        roleName,
-		ClusterName: pointer.StringPtr(clusterName),
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
 		Logging: &coh.LoggingSpec{
 			Fluentd: &coh.FluentdSpec{
 				Enabled:           pointer.BoolPtr(true),
@@ -294,8 +294,8 @@ func TestCreateFluentdConfigMapWithFluentdTag(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	spec := coh.CoherenceDeploymentSpec{
-		Role:        roleName,
-		ClusterName: pointer.StringPtr(clusterName),
+		Role:    roleName,
+		Cluster: pointer.StringPtr(clusterName),
 		Logging: &coh.LoggingSpec{
 			Fluentd: &coh.FluentdSpec{
 				Enabled: pointer.BoolPtr(true),

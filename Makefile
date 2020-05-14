@@ -1076,9 +1076,9 @@ helm-install-elastic:
 		--debug --values etc/kibana-values.yaml kibana elastic/kibana \
 
 .PHONY: kibana-import
-kibana-import: export KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
 kibana-import:
-	kubectl -n $(TEST_NAMESPACE) exec -it $(KIBANA_POD) /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
+	KIBANA_POD=$$(kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name) \
+	; kubectl -n $(TEST_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
 
 # ---------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana
