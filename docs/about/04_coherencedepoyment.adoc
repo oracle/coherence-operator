@@ -1,0 +1,941 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= CoherenceDeployment CRD
+
+This section is a quick reference guide to all the fields in the `CoherenceDeployment` CRD Spec.
+
+== CoherenceDeployment CRD Reference
+
+Below is a reference to all the fields in the `CoherenceDeployment` spec.
+All the fields in a `CoherenceDeployment` spec are optional, they all have default behaviour.
+The descriptions below are a quick reference with links to more in-depth explanations
+elsewhere in the documentation.
+
+
+[cols="4,1,10",options="header"]
+|===
+| CRD Spec Field
+| Type
+| Description
+
+|`&#160;&#160;image:`
+| string
+| The name of the image to use in the `coherence` container. Defaults to the Coherence CE image from Docker Hub.
+
+|`&#160;&#160;imagePullPolicy:`
+| string
+| The image pull policy used when the container is deplpye din Kubernetes. If not set the default is the Kubernetes
+default `IfNotPresent`. (see Kubernetes https://kubernetes.io/docs/concepts/containers/images/[images] docs)
+
+|`&#160;&#160;imagePullSecrets: []`
+|&#160;
+| The secrets to use tp pull images from provate repositories
+(see https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/[Pull an Image from a Private Registry])
+
+|`&#160;&#160;replicas:`
+| int32
+| The number of Pods that this deployment will have, sets the replicas value in the underlying `StatefulSet`.
+If not set the default value is three.
+
+|`&#160;&#160;cluster:`
+| string
+| The name of the Coherence cluster that this deployment is part of.
+If not set the cluster name will default to the same name as the `CoherenceDployment`.
+This value will set the `coherence.cluster` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;role:`
+| string
+| The name of the role that this `CoherenceDeployment` represents in a Coherence cluster.
+If not set the default role name will be `storage`
+This value will set the `coherence.role` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;serviceAccountName:`
+| string
+| An optional service account that the Pods will use
+(see the Kubernetes https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/[Configure Service Account] docs)
+
+// ---- Coherence section --------------------------------------------------------------------------
+|`&#160;&#160;coherence:`
+|&#160;
+| This section of the CRD configures a number of Coherence settings
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;cacheConfig:`
+| string
+| The name of the Coherence cache configuration file to use.
+This value will set the `coherence.cacheconfig` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;overrideConfig:`
+| string
+| The name of the Coherence operational configuration file to use.
+This value will set the `coherence.override` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;storageEnabled:`
+| bool
+| Sets whether the Coherence members that this deployment represents are storage enabled.
+This value will set the `coherence.distributed.localstorage` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;logLevel:`
+| int32
+| Sets the Coherence log level and should be a number between 1 and 9.
+This value will set the `coherence.log.level` System property in the JVM.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;excludeFromWKA:`
+| bool
+| Sets whether the Pods in this deployment are part of the Coherence cluster's WKA list.
+(see <<coherence_settings/010_overview.adoc,Coherence Settings>>)
+
+// ---- Coherence Persistence section --------------------------------------------------------------
+|`&#160;&#160;&#160;&#160;&#160;&#160;persistence:`
+|&#160;
+|This section configures Coherence persistence
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;mode:`
+| string
+| Sets the persistence mode to use, should be one of `on-demand` `active` or `active-async`
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;persistentVolumeClaim:`
+|&#160;
+| Configures the optional persistent volume claim that will be attached to the `StatefulSet` and used to store
+Coherence persistence data.
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;volume:`
+|&#160;
+| Configures the optional volume that will be used to store Coherence persistence data.
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;snapshots:`
+|&#160;
+| Configures the storage that will be used for Coherence persistent snapshots if this is to be different
+to the storage used by active persistence.
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;persistentVolumeClaim:`
+|&#160;
+| Configures the optional persistent volume claim that will be attached to the `StatefulSet` and used to store
+snapshot persistence data.
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;volume:`
+|&#160;
+| Configures the optional volume that will be used to store snapshot persistence data.
+(see <<coherence_settings/020_persistence.adoc,Coherence Settings>>)
+
+// ---- Coherence Metrics section ------------------------------------------------------------------
+|`&#160;&#160;&#160;&#160;&#160;&#160;metrics:`
+|&#160;
+| This section configures how Coherence serves metrics.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| Enable or disable publishing of Coherence metrics using the default Coherence metrics http server.
+If not set the default is `false`.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+| The port that the Coherence http server will use to expose metrics.
+If not set the default is `9612`.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;ssl:`
+|&#160;
+| This section configures SSL on the metrics endpoint on the default Coherence http server.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| A flag indicating whether SSL is enabled on the metrics endpoint.
+The default if not set is `false`.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;requireClientCert:`
+| bool
+| A flag indicating whether a client cert is required to perform two-way auth.
+The default if not set is `false`
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;secrets:`
+| string
+| The name of the Kubernetes secret that contains files used by the fields below to configure SSL.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStore:`
+| string
+| The name of the Java keystore that contains the SSL keys and certificates.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStorePasswordFile:`
+| string
+| The name of the file containing the keystore password. Typically this file would be provided in the secret.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyPasswordFile:`
+| string
+| The name of the file containing the password for the key in the keystore.
+Typically this file would be provided in the secret.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreType:`
+| string
+| The type of the keystore. If not set will default to `JKS`
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreAlgorithm:`
+| string
+| The optional keystore algorithm.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreProvider:`
+| string
+| The optional keystore provider.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStore:`
+| string
+| The name of the truststore containing the trust certificates used by SSL.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStorePasswordFile:`
+| string
+| The name of the file containing the truststore password. Typically this file would be provided in the secret.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreType:`
+| string
+| The type of the truststore. If not set will default to `JKS`
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreAlgorithm:`
+| string
+| The optional truststore algorithm.
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreProvider:`
+| string
+| The optional truststore provider
+(see <<metrics/010_overview.adoc,Coherence Settings>>)
+
+// ---- Coherence Management section ---------------------------------------------------------------
+|`&#160;&#160;&#160;&#160;&#160;&#160;management:`
+|&#160;
+| This section configures how Coherence serves management data over REST on the default Coherence
+management http server.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| A flag to indicate whether Coherence should server management data over REST.
+If not set the default is `false`.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+| The port that the Coherence http server binds to to serve management data over REST.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;ssl:`
+|&#160;
+| This section configures SSL for the REST management endpoint.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| A flag to indicate whether SSL is required on the management REST endpoint.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;requireClientCert:`
+| bool
+| A flag indicating whether a client cert is required to perform two-way auth.
+The default if not set is `false`
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;secrets:`
+| string
+| The name of the Kubernetes secret that contains files used by the fields below to configure SSL.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStore:`
+| string
+| The name of the Java keystore that contains the SSL keys and certificates.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStorePasswordFile:`
+| string
+| The name of the file containing the keystore password. Typically this file would be provided in the secret.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyPasswordFile:`
+| string
+| The name of the file containing the password for the key in the keystore.
+Typically this file would be provided in the secret.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreType:`
+| string
+| The type of the keystore. If not set will default to `JKS`
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreAlgorithm:`
+| string
+| The optional keystore algorithm.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;keyStoreProvider:`
+| string
+| The optional keystore provider.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStore:`
+| string
+| The name of the truststore containing the trust certificates used by SSL.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStorePasswordFile:`
+| string
+| The name of the file containing the truststore password. Typically this file would be provided in the secret.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreType:`
+| string
+|  The type of the truststore. If not set will default to `JKS`
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreAlgorithm:`
+| string
+| The optional truststore algorithm.
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;trustStoreProvider:`
+| string
+| The optional truststore provider
+(see <<management_and_diagnostics/010_overview.adoc,Coherence Settings>>)
+
+// ---- Application section ------------------------------------------------------------------------
+|`&#160;&#160;application:`
+|&#160;
+| This section configures settings for the custom application deployed in the container.
+(see <<deploy_applications/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;type:`
+| string
+| The type of the application.
+If not set defaults to `coherence` which is a standard Java process running Coherence `DefaultCacheServer`.
+(see <<deploy_applications/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;args: []`
+|&#160;
+| An array of arguments to pass to the application `main`.
+For example when running a Java class as a `main` these will be arguments passed to the class' `main(String args[])` method.
+(see <<deploy_applications/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;main:`
+| string
+| The name of the main program to run. The meaning of this value will depend on application type. +
+For `coherence` or `helidon` this will be the Java main class to run. +
+For `coherence` this defaults to `com.tangosol.net.DefaultCacheServer` +
+For `helidon` this defaults to `io.helidon.microprofile.server.Main` +
+For `node` this is the main JS file to run and defaults to `main.js` +
+For `generic` this is the o/s command to run. +
+For any other `type` value the `main` value is expected to be passed to a Graal VM.
+(see <<deploy_applications/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;workingDir:`
+| string
+| The optional working directory that will be used to run the process in the container.
+(see <<deploy_applications/010_overview.adoc,Coherence Settings>>)
+
+// ---- Ports section ------------------------------------------------------------------------------
+|`&#160;&#160;ports:`
+|&#160;
+| This section configures ports that the Pod will expose.
+Each port in the array will be added as a port to the `coherence` container in the `StatefulSet` for the deployment,
+see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[K8s API ContainerPort].
+Ports is an array of zero or more Coherence API `NamedPortSpec` types.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;- name:`
+| string
+| The name of the port +
+This must be an IANA_SVC_NAME and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.  +
+The name is combined with the `CoherenceDeployment` name to produce the name for the `Service` that will
+be used to expose the port, for example if the deployment name is `front-end` and the port name is `rest`
+then the service name will be `front-end-rest`. This service name can be overridden in the `service` section.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+| The port number, this sets the `containerPort` value, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[container port]).
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;nodePort:`
+| string
+| see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[K8s API ContainerPort].
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;hostPort:`
+| string
+| Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536.
+If HostNetwork is specified, this must match ContainerPort. Most containers do not need this.
+see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[K8s API ContainerPort].
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;hostIP:`
+| string
+| What host IP to bind the external port to.
+see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[K8s API ContainerPort].
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;protocol:`
+| string
+| Protocol for port. Must be UDP, TCP, or SCTP. Defaults to "TCP".
+see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[K8s API ContainerPort].
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+// ---- Ports Service section ----------------------------------------------------------------------
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;service:`
+|&#160;
+| This section configures the `Service` used to expose the port.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| A flag indicating whether to create a `Service` for the port.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+| The port that the service exposes. For example the container port above might be `8080` but the `Service` can expose
+port `80`.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;name:`
+| string
+| The optional name to use for the `Service`.
+This name will override the name that would have been generated by the operator.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;type:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;labels: {}`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;annotations: {}`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;clusterIP:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;externalIPs:`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;externalName:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;externalTrafficPolicy:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;healthCheckNodePort:`
+| int32
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;ipFamily:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;loadBalancerIP:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;loadBalancerSourceRanges: []`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;publishNotReadyAddresses:`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sessionAffinity:`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sessionAffinityConfig:`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+// ---- Ports ServiceMonitor section ---------------------------------------------------------------
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;serviceMonitor:`
+|&#160;
+| This section configures an optional Prometheus `ServiceMonitor` to enable Prometheus to scrape metrics from this port.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+| A flag to indicate whether a `ServiceMonitor` resource should be created for this port.
+If not set the default is `false`.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;path:`
+| string
+| The path that Prometheus should use when scraping metrics from this port.
+(see https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint[ServiceMonitor.Endpoint])
+If not set the value will not be specified in the `ServiceMonitor` spec and the Prometheus default value of `/metrics` will be used.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;labels: []`
+|&#160;
+| Optional additional labels to add to the `ServiceMonitor`.
+The format is an array of key/value pairs.
+This is useful if the Prometheus instance is configured to scrape from `ServiceMonitors` with specific labels.
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;interval:`
+| string
+| The interval the Prometheus should scapre this port.
+If not set the value will not be specified in the `ServiceMonitor` spec and the Prometheus default value will be used.
+(see https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint[ServiceMonitor.Endpoint])
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;scheme:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;scrapeTimeout:`
+| string
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;params: []`
+|&#160;
+|
+(see <<expose_ports_and_services/010_overview.adoc,Coherence Settings>>)
+
+// ---- JVM Configuration section ------------------------------------------------------------------
+|`&#160;&#160;jvm:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;args: []`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;classpath: []`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;gc:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;collector:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;args: []`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;logging:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;memory:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;heapSize:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;directMemorySize:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;stackSize:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;metaspaceSize:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;nativeMemoryTracking:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;onOutOfMemory:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;exit:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;heapDump:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;debug:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;suspend:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;attach:`
+| string
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;jmxmp:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;port:`
+| int32
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;useContainerLimits:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;flightRecorder:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;useJibClasspath:`
+| bool
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;diagnosticsVolume:`
+|&#160;
+|
+(see <<jvm_settings/010_overview.adoc,Coherence Settings>>)
+
+// ---- Logging section ----------------------------------------------------------------------------
+|`&#160;&#160;logging:`
+|&#160;
+| This section configures container logging.
+(see <<logging/010_overview.adoc,Coherence Settings>>)
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;configFile:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;configMapName:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;fluentd:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;enabled:`
+| bool
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esHosts:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esUser:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esPassword:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esSecret:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esSecretHostsKey:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esSecretUserKey:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;esSecretPasswordKey:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;configFileInclude:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;configFileOverride:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;tag:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sslVerify:`
+| bool
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sslVersion:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sslMinVersion:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;sslMaxVersion:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;image:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;imagePullPolicy:`
+|string
+|
+
+// ---- Scaling section ----------------------------------------------------------------------------
+|`&#160;&#160;scaling:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;policy:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;probe:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;exec:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;httpGet:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;tcpSocket:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;timeoutSeconds:`
+| int32
+|
+
+// ---- Start Quorum section -----------------------------------------------------------------------
+|`&#160;&#160;startQuorum:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;- deployment:`
+| string
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;podCount:`
+| int32
+|
+
+// ---- Miscellaneous Pod settings -----------------------------------------------------------------
+|`&#160;&#160;labels: {}`
+|&#160;
+|
+
+|`&#160;&#160;env: []`
+|&#160;
+|
+
+|`&#160;&#160;additionalInitContainers: []`
+|&#160;
+|
+
+|`&#160;&#160;additionalContainers: []`
+|&#160;
+|
+
+|`&#160;&#160;volumeClaimTemplates: []`
+|&#160;
+|
+
+|`&#160;&#160;volumes: []`
+|&#160;
+|
+
+|`&#160;&#160;volumeMounts: []`
+|&#160;
+|
+
+|`&#160;&#160;tolerations: []`
+|&#160;
+|
+
+|`&#160;&#160;affinity: {}`
+|&#160;
+|
+
+|`&#160;&#160;annotations: {}`
+|&#160;
+|
+
+|`&#160;&#160;automountServiceAccountToken:`
+| string
+|
+
+|`&#160;&#160;healthPort:`
+| int32
+|
+
+|`&#160;&#160;hostIPC:`
+| string
+|
+
+|`&#160;&#160;readinessProbe:`
+|&#160;
+|
+
+|`&#160;&#160;livenessProbe:`
+|&#160;
+|
+
+|`&#160;&#160;securityContext:`
+|&#160;
+|
+|`&#160;&#160;network:`
+|&#160;
+|
+
+|`&#160;&#160;&#160;&#160;&#160;&#160;dnsConfig:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;nameservers:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;options:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;searches:`
+|&#160;
+|
+|`&#160;&#160;nodeSelector:`
+|&#160;
+|
+|`&#160;&#160;shareProcessNamespace:`
+|&#160;
+|
+|`&#160;&#160;resources:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;limits:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;requests:`
+|&#160;
+|
+
+// ---- Operator Specific settings -----------------------------------------------------------------
+|`&#160;&#160;coherenceUtils:`
+|&#160;
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;image:`
+| string
+|
+|`&#160;&#160;&#160;&#160;&#160;&#160;imagePullPolicy:`
+| string
+|
+|`&#160;&#160;operatorRequestTimeout:`
+| int32
+|
+|===
+

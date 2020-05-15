@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,18 +65,50 @@ backend:
               pathprefix: "/install"
               glyph:
                 type: "icon"
-                value: "settings"
+                value: "fa-save"
               items:
                 - includes:
-                    - "install/*.adoc"
-            - title: "Application Deployment"
-              pathprefix: "/app-deployment"
+                    - "installation/*.adoc"
+            - title: "Deploy Applications"
+              pathprefix: "/deploy-apps"
               glyph:
                 type: "icon"
-                value: "extension"
+                value: "cloud_upload"
               items:
                 - includes:
-                    - "app-deployment/*.adoc"
+                    - "deploy_applications/*.adoc"
+            - title: "Coherence Settings"
+              pathprefix: "/coherence"
+              glyph:
+                type: "icon"
+                value: "fa-cogs"
+              items:
+                - includes:
+                    - "coherence_settings/*.adoc"
+            - title: "Ports & Services"
+              pathprefix: "/ports"
+              glyph:
+                type: "icon"
+                value: "control_camera"
+              items:
+                - includes:
+                    - "expose_ports_and_services/*.adoc"
+            - title: "JVM Settings"
+              pathprefix: "/jvm"
+              glyph:
+                type: "icon"
+                value: "fa-cog"
+              items:
+                - includes:
+                    - "jvm_settings/*.adoc"
+            - title: "Logging"
+              pathprefix: "/logging"
+              glyph:
+                type: "icon"
+                value: "find_in_page"
+              items:
+                - includes:
+                    - "logging/*.adoc"
             - title: "Metrics"
               pathprefix: "/metrics"
               glyph:
@@ -85,38 +117,22 @@ backend:
               items:
                 - includes:
                     - "metrics/*.adoc"
-            - title: "Logging"
-              pathprefix: "/logging"
-              glyph:
-                type: "icon"
-                value: "donut_large"
-              items:
-                - includes:
-                    - "logging/*.adoc"
-            - title: "Management and Diagnostics"
+            - title: "Management & Diagnostics"
               pathprefix: "/management"
               glyph:
                 type: "icon"
-                value: "favorite_outline"
+                value: "fa-stethoscope"
               items:
                 - includes:
-                    - "management/*.adoc"
-            - title: "Coherence CRD Reference"
-              pathprefix: "/clusters"
+                    - "management_and_diagnostics/*.adoc"
+            - title: "Other Pod Settings"
+              pathprefix: "/misc"
               glyph:
                 type: "icon"
                 value: "widgets"
               items:
                 - includes:
-                    - "clusters/*.adoc"
-            - title: "Examples"
-              pathprefix: "/examples"
-              glyph:
-                type: "icon"
-                value: "explore"
-              items:
-                - includes:
-                    - "examples/*.adoc"
+                    - "misc_pod_settings/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Slack"

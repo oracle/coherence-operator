@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,23 +33,16 @@ Quick start guide to running your first Coherence cluster using the Coherence Op
 
 [CARD]
 .Install
-[icon=settings,link=install/01_installation.adoc]
+[icon=fa-save,link=install/01_installation.adoc]
 --
 Installing and running the Coherence Operator.
 --
 
 [CARD]
-.Application Deployment
-[icon=extension,link=app-deployment/010_overview.adoc]
+.Build and Deploy Applications
+[icon=cloud_upload,link=deploy_applications/010_overview.adoc]
 --
 Deploying Coherence Applications using the Coherence Operator.
---
-
-[CARD]
-.Examples
-[icon=explore,link=examples/010_overview.adoc]
---
-Coherence Operator Examples.
 --
 
 ====
@@ -68,24 +61,24 @@ Enabling and working with Metrics in the Coherence Operator.
 --
 
 [CARD]
-.Logging
-[icon=donut_large,link=logging/010_overview.adoc]
---
-Viewing and managing log files within using the Coherence Operator.
---
-
-[CARD]
 .Management and Diagnostics
-[icon=cloud,link=management/010_overview.adoc]
+[icon="fa-stethoscope",link=management/010_overview.adoc]
 --
 Management and Diagnostics in the Coherence Operator.
 --
 
 [CARD]
-.CoherenceCluster CRD Reference
-[icon=widgets,link=clusters/010_introduction.adoc]
+.Logging
+[icon=find_in_page,link=logging/010_overview.adoc]
 --
-In depth CoherenceCluster CRD reference documentation.
+Viewing and managing log files within using the Coherence Operator.
+--
+
+[CARD]
+.CoherenceDeployment CRD Reference
+[icon=widgets,link=about/04_coherencedepoyment.adoc]
+--
+CoherenceDeployment CRD reference guide.
 --
 
 ====

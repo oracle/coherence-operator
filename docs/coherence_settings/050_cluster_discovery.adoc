@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Cluster Discovery
+
+== Coherence Cluster Discovery
+
+A Coherence cluster is made up of one or more JVMs. In order for these JVMs to form a cluster they need to be able to
+discover other cluster members. The default mechanism for discovery is multicast broadcast but this does not work in
+most container environments. Coherence provides an alternative mechanism where the addresses of the hosts where the
+members of the cluster will run is provided in the form of a
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/setting-cluster.html#GUID-E8CC7C9A-5739-4D12-B88E-A3575F20D63B["well known address" (or WKA) list].
+This address list is then used by Coherence when it starts in a JVM to discover other cluster members running on the
+hosts in the WKA list.
+
+When running in containers each container is effectively a host and has its own host name and IP address (or addresses)
+and in Kubernetes it is the `Pod` that is effectively a host. When starting a container it is usually not possible to
+know in advance what the host names of the containers or `Pods` will be so there needs to be another solution to
+providing the WKA list.
+
+When Coherence processes a WKA list it will perform a DNS lookup for each host name in the list. If a host name resolves
+to more than one IP address then _all_ of those IP addresses are used in cluster discovery. This feature of Coherence
+when combined with Kubernetes `Services` allows discovery of cluster members without resorting to a custom discovery
+mechanism.
+
+A Kubernetes `Service` has a DNS name and that name will resolve to all of the IP addresses for the `Pods` that match
+that `Service` selector. This means that a Coherence JVM only needs to be given the DNS name of a `Service` as the
+single host name in its WKA list and it will form a cluster with any other JVM using the same host name for WKA and the
+same cluster name.
+
+When the Coherence Operator creates resolves a `CoherenceDeployment` configuration into a running set of `Pods` if creates
+a headless service specifically for the purposes of WKA for that cluster.
+
+For example, if a `CoherenceDeployment` is created with the following yaml:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-cluster # <1>
+----
+
+<1> A Coherence cluster will be created with a cluster name `test-cluster`
+
+The yaml for the WKA `Service` would look like the following:
+
+[source,yaml]
+.wka-service.yaml
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-wka                                             # <1>
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"   # <2>
+  labels:
+    coherenceCluster: test-cluster
+    component: coherenceWkaService
+spec:
+  clusterIP: None                                                    # <3>
+  ports:
+    - name: coherence                                                # <4>
+      protocol: TCP
+      port: 7
+      targetPort: 7
+  selector:
+    coherenceCluster: test-cluster                                   # <5>
+    component: coherencePod
+----
+
+<1> The `Service` name is made up of the cluster name with the suffix `-wka` so in this case `test-cluster-wka`
+
+<2> The `Service` is configured to allow unready `Pods` so that all `Pods` matching the selector will be resolved as
+members of this service regardless of their ready state. This is important so that Coherence JVMs can discover other
+members before they are fully ready.
+
+<3> The service has a `clusterIP` of `None` so it is headless
+
+<4> A single port is exposed, in this case the echo port (7) even though nothing in the Coherence `Pods` binds to this
+port. Ideally no port would be included but the service has to have at least one port defined.
+
+<5> The selector will match all `Pods` with the labels `coherenceCluster=test-cluster` and `component=coherencePod`
+which are labels that the Coherence Operator will assign to all `Pods` in this cluster
+
+Because this `Service` is created in the same `Namespace` as the rest of the Coherence cluster `Pods` the JVMs can use
+the raw `Service` name as the WKA list, in the example above the WKA list would just be `test-cluster-wka`.
+
+
+=== Exclude a Deployment From WKA
+
+In some situations it may be desirable to exclude the Pods belonging to certain deployments in the cluster from being
+members of the well known address list. For example certain K8s network configurations such as host networking can
+cause issues with WKA if other deployments in the cluster are using host networking.
+
+A role can be excluded from the WKA list by setting the `excludeFromWKA` field of the `coherence` section of the
+deployment's spec to `true`.
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-client
+spec:
+  cluster: `my-cluster`    # <1>
+  coherence:
+    excludeFromWKA: true   # <2>
+----
+
+<1> The `cluster` field is set to the name of the Coherence cluster that this deployment wil be part of (there is no
+point in excluding a deployment from WKA unless it is part of a wider cluster).
+<2> The `excludeFromWKA` field is `true` so that `Pods` in the `test-client` deployment will not form part of the WKA
+list for the Coherence cluster.
+
+WARNING: The operator does not validate the `excludeFromWKA` field for a deployment so it is possible to try to create
+a cluster where all of the deployment have `excludeFromWKA` set to `true` which will cause the cluster fail to start.
+
+WARNING: When excluding a deployment from WKA it is important that at least one deployment that is part of the WKA list
+has been started first otherwise the non-WKA role members cannot start.Eventually the K8s readiness probe for these Pods
+would time-out causing K8s to restart them but this would not be a desirable way to start a cluster.
+The start-up order can be controlled by configuring the deployment's `startQuorum` list, as described in the documentation
+section on <<clusters/035_role_startup_ordering.adoc, deployment start-up ordering>>.
+

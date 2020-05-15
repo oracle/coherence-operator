@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,48 +16,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Overview
-:description: Metrics
-:keywords: oracle coherence, kubernetes, operator, Metrics
+= Introduction
 
-== Metrics
 
-[PILLARS]
-====
-[CARD]
-.Enabling Metrics
-[link=metrics/020_metrics.adoc]
---
-Deploying Coherence clusters with metrics enabled.
---
 
-[CARD]
-.Enabling SSL
-[link=metrics/030_ssl.adoc]
---
-Enabling SSL for metrics capture.
---
-
-[CARD]
-.Using Your Own Prometheus
-[link=metrics/040_scraping.adoc]
---
-Scraping metrics from your own Prometheus instance.
---
-
-[CARD]
-.Importing Dashboards
-[link=metrics/045_importing.adoc]
---
-Importing Grafana Dashboards into your own instance.
---
-
-[CARD]
-.Grafana Dashboards
-[link=metrics/050_dashboards.adoc]
---
-Details on the Grafana Dashboards available.
---
-
-====
-
+== Introduction
