@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Obtain Coherence Images
+
+The Coherence Operator uses the OSS Coherence CE image from Docker Hub as the image to run when no image was specified
+for a `CoherenceDeployment`. Commercial Coherence images are not available from public registries such as Docker Hub
+and must be pulled from the Oracle Container Registry.
+
+== Coherence Images from Oracle Container Registry
+
+Get the Coherence Docker image from the Oracle Container Registry:
+
+* In a web browser, navigate to https://container-registry.oracle.com/[Oracle Container Registry] and click Sign In.
+* Enter your Oracle credentials or create an account if you don't have one.
+* Search for coherence in the Search Oracle Container Registry field.
+* Click coherence in the search result list.
+* On the Oracle Coherence page, select the language from the drop-down list and click Continue.
+* Click Accept on the Oracle Standard Terms and Conditions page.
+
+Once this is done the Oracle Container Registry credentials can be used to create Kubernetes secret to pull the
+Coherence image.
+See <<clusters/200_private_repos.adoc,Using Private Image Registries>>
+
+== Use ImagePullSecrets
+
+Kubernetes supports configuring pods to use `imagePullSecrets` for pulling images. If possible, this is the preferable
+and most portable route.
+See the https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod[kubernetes docs]
+for this.
+
+Once secrets have been created in the namespace that the `CoherenceDeployment` is to be installed in then the secret name
+can be specified in the `CoherenceDeployment` `spec`. It is possible to specify multiple secrets in the case where the different
+images being used are pulled from different registries.
+
+For example to use the commercial Coherence 14.1.1.0.0 image from OCR specify the image and image pull secrets in
+the `CoherenceDeployment` yaml
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-cluster
+spec:
+  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  imagePullSecrets:
+    - name: coherence-secret  # <1>
+----
+
+<1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
+
+Also see <<clusters/200_private_repos.adoc,Using Private Image Registries>>

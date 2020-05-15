@@ -48,12 +48,12 @@
     <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
     <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
     <mockito.version>2.18.3</mockito.version>
-    <version.lib.asciidoctor.diagram>1.5.4.1</version.lib.asciidoctor.diagram>
+    <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
     <version.lib.checkstyle>8.18</version.lib.checkstyle>
     <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
     <version.plugin.jib>2.2.0</version.plugin.jib>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
-    <version.plugin.helidon-build-tools>1.0.10</version.plugin.helidon-build-tools>
+    <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
     <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
 
     <!--  The Coherence jar version (compile time dependency) -->

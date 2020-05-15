@@ -1,0 +1,65 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Accessing Pre-Release Versions
+
+Pre-release version of the Coherence Operator are made available from time to time.
+
+== Accessing Pre-Release Versions
+
+WARNING: We cannot guarantee that pre-release versions of the Coherence Operator are bug free and hence they should
+not be used in production.
+We reserve the right to remove pre-release versions of the Helm chart and Docker images ant any time and without notice.
+We cannot guarantee that APIs and CRD specifications will remain stable or backwards compatible between pre-release versions.
+
+To access pre-release versions of the Helm chart add the unstable chart repository.
+
+[source,bash]
+----
+helm repo add coherence-unstable https://oracle.github.io/coherence-operator/charts-unstable
+
+helm repo update
+----
+
+
+To list all the available Coherence Operator chart versions:
+[source,bash]
+----
+helm search coherence-operator -l
+----
+The `-l` parameter shows all versions as opposed to just the latest versions if it was omitted.
+
+
+A specific pre-release version of the Helm chart can be installed using the `--version` argument,
+for example to use version `3.0.0-2005140315`:
+[source,bash]
+----
+helm install coherence-unstable/coherence-operator \
+    --version 3.0.0-2005140315 \   <1>
+    --namespace <namespace> \      <2>
+    --name coherence-operator
+----
+
+<1> The `--version` argument is used to specify the exact version of the chart
+<2> The optional `--namespace` parameter to specify which namespace to install the operator into, if omitted then
+Helm will install into whichever is currently the default namespace for your Kubernetes configuration.
+
+NOTE: When using pre-release versions of the Helm chart it is always advisable to install a specific version otherwise
+Helm will try to work out the latest version in the pre-release repo and as pre-release version numbers are not strictly
+sem-ver compliant this may be unreliable.
+

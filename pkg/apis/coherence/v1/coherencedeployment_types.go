@@ -27,6 +27,8 @@ func init() {
 
 // CoherenceDeployment is the Schema for the coherencedeployments API
 //
+// +genclient
+// +genclient:method=Scale,verb=update,subresource=scale,input=k8s.io/api/extensions/v1beta1.Scale,result=k8s.io/api/extensions/v1beta1.Scale
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:resource:path=coherencedeployments,scope=Namespaced,shortName=cd,categories=coherence
