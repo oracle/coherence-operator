@@ -2861,8 +2861,8 @@ spec:
                     type: integer
                   management:
                     description: 'Management configures Coherence management over
-                      REST   Note: Coherence management over REST will be available
-                      in 12.2.1.4.'
+                      REST Note: Coherence management over REST will is available
+                      in Coherence version >= 12.2.1.4.'
                     properties:
                       enabled:
                         description: Enable or disable flag.
@@ -2953,8 +2953,9 @@ spec:
                         type: object
                     type: object
                   metrics:
-                    description: 'Metrics configures Coherence metrics publishing   Note:
-                      Coherence metrics publishing will be available in 12.2.1.4.'
+                    description: 'Metrics configures Coherence metrics publishing
+                      Note: Coherence metrics publishing will is available in Coherence
+                      version >= 12.2.1.4.'
                     properties:
                       enabled:
                         description: Enable or disable flag.
@@ -5964,13 +5965,10 @@ spec:
                     type: string
                 type: object
               env:
-                description: "Env is additional environment variable mappings that
-                  will be passed to the Coherence container in the Pod To specify
+                description: Env is additional environment variable mappings that
+                  will be passed to the Coherence container in the Pod. To specify
                   extra variables add them as name value pairs the same as they would
-                  be added to a Pod containers spec, for example these values: \n
-                  env:   - name \"FOO\"     value: \"foo-value\"   - name: \"BAR\"
-                  \    value \"bar-value\" \n will add the environment variable mappings
-                  FOO=\"foo-value\" and BAR=\"bar-value\""
+                  be added to a Pod containers spec.
                 items:
                   description: EnvVar represents an environment variable present in
                     a Container.

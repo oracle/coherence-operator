@@ -247,7 +247,7 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec, for example these values:\n\nenv:\n  - name \"FOO\"\n    value: \"foo-value\"\n  - name: \"BAR\"\n    value \"bar-value\"\n\nwill add the environment variable mappings FOO=\"foo-value\" and BAR=\"bar-value\"",
+							Description: "Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -522,16 +522,9 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "The Coherence specific configuration.",
+				Description: "This section of the CRD configures settings specific to Coherence.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"storageEnabled": {
-						SchemaProps: spec.SchemaProps{
-							Description: "A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
 					"cacheConfig": {
 						SchemaProps: spec.SchemaProps{
 							Description: "CacheConfig is the name of the cache configuration file to use",
@@ -546,11 +539,11 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
-					"logLevel": {
+					"storageEnabled": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The Coherence log level, default being 5 (info level).",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Description: "A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 					"persistence": {
@@ -559,15 +552,22 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Ref:         ref("./pkg/apis/coherence/v1.PersistenceSpec"),
 						},
 					},
+					"logLevel": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Coherence log level, default being 5 (info level).",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"management": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Management configures Coherence management over REST\n  Note: Coherence management over REST will be available in 12.2.1.4.",
+							Description: "Management configures Coherence management over REST Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4.",
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
 					"metrics": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Metrics configures Coherence metrics publishing\n  Note: Coherence metrics publishing will be available in 12.2.1.4.",
+							Description: "Metrics configures Coherence metrics publishing Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4.",
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
