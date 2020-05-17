@@ -166,9 +166,17 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 
 // ----- CoherenceSpec struct -----------------------------------------------
 
-// The Coherence specific configuration.
+// This section of the CRD configures settings specific to Coherence.
+// +coh:doc=coherence_settings/010_overview.adoc,Coherence Configuration
 // +k8s:openapi-gen=true
 type CoherenceSpec struct {
+	// CacheConfig is the name of the cache configuration file to use
+	// +optional
+	CacheConfig *string `json:"cacheConfig,omitempty"`
+	// OverrideConfig is name of the Coherence operational configuration override file,
+	// the default is tangosol-coherence-override.xml
+	// +optional
+	OverrideConfig *string `json:"overrideConfig,omitempty"`
 	// A boolean flag indicating whether members of this deployment are storage enabled.
 	// This value will set the corresponding coherence.distributed.localstorage System property.
 	// If not specified the default value is true.
@@ -177,26 +185,19 @@ type CoherenceSpec struct {
 	// set to false scaling will be parallel.
 	// +optional
 	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-	// CacheConfig is the name of the cache configuration file to use
-	// +optional
-	CacheConfig *string `json:"cacheConfig,omitempty"`
-	// OverrideConfig is name of the Coherence operational configuration override file,
-	// the default is tangosol-coherence-override.xml
-	// +optional
-	OverrideConfig *string `json:"overrideConfig,omitempty"`
-	// The Coherence log level, default being 5 (info level).
-	// +optional
-	LogLevel *int32 `json:"logLevel,omitempty"`
 	// Persistence values configure the on-disc data persistence settings.
 	// The bool Enabled enables or disabled on disc persistence of data.
 	// +optional
 	Persistence *PersistenceSpec `json:"persistence,omitempty"`
+	// The Coherence log level, default being 5 (info level).
+	// +optional
+	LogLevel *int32 `json:"logLevel,omitempty"`
 	// Management configures Coherence management over REST
-	//   Note: Coherence management over REST will be available in 12.2.1.4.
+	// Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4.
 	// +optional
 	Management *PortSpecWithSSL `json:"management,omitempty"`
 	// Metrics configures Coherence metrics publishing
-	//   Note: Coherence metrics publishing will be available in 12.2.1.4.
+	// Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4.
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
 	// Exclude members of this deployment from being part of the cluster's WKA list.
