@@ -64,10 +64,6 @@ jobs:
       run: |
         echo $OCR_DOCKER_PASSWORD | docker login container-registry.oracle.com -u $OCR_DOCKER_USERNAME --password-stdin
 
-    - name: Code Review
-      shell: bash
-      run: make code-review MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
-
     - name: Start KinD Cluster
 #     Start a KinD K8s cluster with single worker node
       shell: bash
@@ -106,6 +102,10 @@ jobs:
         kind load docker-image --name operator jettech/kube-webhook-certgen:v1.2.0
         kind load docker-image --name operator squareup/ghostunnel:v1.5.2
         kind load docker-image --name operator kiwigrid/k8s-sidecar:0.1.99
+
+    - name: Code Review
+      shell: bash
+      run: make code-review MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
 
     - name: Build
       shell: bash
