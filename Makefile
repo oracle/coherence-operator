@@ -715,7 +715,7 @@ endif
 # the pkg/apis directory have been changed.
 # ---------------------------------------------------------------------------
 .PHONY: generate
-generate:
+generate: api-doc-gen
 	@echo "Generating deep copy code"
 	$(OPERATOR_SDK) generate k8s --verbose
 	@echo "Generating v1beta1 CRDs"
@@ -732,6 +732,17 @@ generate:
 		-p ./pkg/apis/coherence/v1 \
 		-h ./hack/boilerplate.go.txt \
 		-r "-"
+
+# ---------------------------------------------------------------------------
+# Generate API docs
+# ---------------------------------------------------------------------------
+.PHONY: api-doc-gen
+api-doc-gen:
+	go run ./cmd/docgen/ \
+		pkg/apis/coherence/v1/coherencedeployment_types.go \
+		pkg/apis/coherence/v1/coherencedeploymentspec_types.go \
+		pkg/apis/coherence/v1/coherence_types.go \
+		> docs/about/04_coherencedepoyment.adoc
 
 # ---------------------------------------------------------------------------
 # Clean-up all of the build artifacts

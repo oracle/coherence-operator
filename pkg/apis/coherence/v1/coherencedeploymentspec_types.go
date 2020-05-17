@@ -83,17 +83,9 @@ type CoherenceDeploymentSpec struct {
 	// +optional
 	Ports []NamedPortSpec `json:"ports,omitempty"`
 	// Env is additional environment variable mappings that will be passed to
-	// the Coherence container in the Pod
+	// the Coherence container in the Pod.
 	// To specify extra variables add them as name value pairs the same as they
-	// would be added to a Pod containers spec, for example these values:
-	//
-	// env:
-	//   - name "FOO"
-	//     value: "foo-value"
-	//   - name: "BAR"
-	//     value "bar-value"
-	//
-	// will add the environment variable mappings FOO="foo-value" and BAR="bar-value"
+	// would be added to a Pod containers spec.
 	// +listType=map
 	// +listMapKey=name
 	// +optional
@@ -213,17 +205,6 @@ type CoherenceDeploymentSpec struct {
 	// +listType=map
 	// +listMapKey=name
 	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
-}
-
-type PersistentVolumeClaim struct {
-	// Name must be unique within a namespace. Is required when creating resources, although
-	// some resources may allow a client to request the generation of an appropriate name
-	// automatically. Name is primarily intended for creation idempotence and configuration
-	// definition.
-	// Cannot be updated.
-	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 }
 
 // Obtain the number of replicas required for a deployment.
