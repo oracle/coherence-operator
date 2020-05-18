@@ -37,7 +37,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("test.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, flags.DefaultSiteLabel, fn, dfn)
+	assertLabel(t, "zone", flags.DefaultSiteLabel, fn, dfn)
 }
 
 // Verify that a CoherenceDeployment deployed by the Operator has the correct rack value
@@ -54,10 +54,10 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, flags.DefaultRackLabel, fn, dfn)
+	assertLabel(t, "rack", flags.DefaultRackLabel, fn, dfn)
 }
 
-func assertLabel(t *testing.T, label string, fn func(management.MemberData) string, dfn func(string) string) {
+func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
@@ -70,6 +70,8 @@ func assertLabel(t *testing.T, label string, fn func(management.MemberData) stri
 	// load the test CoherenceDeployment from a yaml files
 	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "zone-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
+
+	deployment.SetName(name + "-zone-test")
 
 	// deploy to k8s
 	err = f.Client.Create(goctx.TODO(), &deployment, helper.DefaultCleanup(ctx))
