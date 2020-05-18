@@ -1,0 +1,37 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Operational Configuration File
+
+== Set the Operational Configuration File Name
+
+The name of the Coherence operations configuration file (commonly called the overrides file) that the Coherence processes
+in a `CoherenceDeployment` will use can be set with the `spec.coherence.overrideConfig` field.
+By setting this field the `coherence.override` system property will be set in the Coherence JVM.
+
+When the `spec.coherence.overrideConfig` is blank or not specified, Coherence use its default behaviour to find the
+operational configuration file to use. Typically, this is to use the first occurrence of `tangosol-coherence-override.xml`
+that is found on the classpath
+(consult the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5[Coherence documentation]
+for an explanation of the default behaviour).
+
+To set a specific operational configuration file to use set the `spec.coherence.overrideConfig` field, for example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    overrideConfig: test-override.xml # <1>
+----
+
+<1> The `spec.coherence.overrideConfig` field has been set to `test-override.xml` which will effectively pass
+`-Dcoherence.override=test-override.xml` to the JVM command line.
+

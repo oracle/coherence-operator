@@ -6,9 +6,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Coherence Cluster Discovery
+= Well Known Addressing
 
-== Coherence Cluster Discovery
+== Well Known Addressing and Cluster Discovery
 
 A Coherence cluster is made up of one or more JVMs. In order for these JVMs to form a cluster they need to be able to
 discover other cluster members. The default mechanism for discovery is multicast broadcast but this does not work in
@@ -23,18 +23,18 @@ and in Kubernetes it is the `Pod` that is effectively a host. When starting a co
 know in advance what the host names of the containers or `Pods` will be so there needs to be another solution to
 providing the WKA list.
 
-When Coherence processes a WKA list it will perform a DNS lookup for each host name in the list. If a host name resolves
-to more than one IP address then _all_ of those IP addresses are used in cluster discovery. This feature of Coherence
+Coherence processes a WKA list it by performing a DNS lookup for each host name in the list. If a host name resolves
+to more than one IP address then _all_ of those IP addresses will be used in cluster discovery. This feature of Coherence
 when combined with Kubernetes `Services` allows discovery of cluster members without resorting to a custom discovery
 mechanism.
 
-A Kubernetes `Service` has a DNS name and that name will resolve to all of the IP addresses for the `Pods` that match
+A Kubernetes `Service` has a DNS name and that name will resolve to all the IP addresses of the `Pods` that match
 that `Service` selector. This means that a Coherence JVM only needs to be given the DNS name of a `Service` as the
-single host name in its WKA list and it will form a cluster with any other JVM using the same host name for WKA and the
-same cluster name.
+single host name in its WKA list so that it will form a cluster with any other JVM using in a Pod matching the selector.
 
-When the Coherence Operator creates resolves a `CoherenceDeployment` configuration into a running set of `Pods` if creates
-a headless service specifically for the purposes of WKA for that cluster.
+When the Coherence Operator creates reconciles a `CoherenceDeployment` configuration to create a running set of `Pods`
+it creates a headless service specifically for the purposes of WKA for that `CoherenceDeployment` with a selector that
+matches any Pod with the same cluster name.
 
 For example, if a `CoherenceDeployment` is created with the following yaml:
 
@@ -44,10 +44,15 @@ For example, if a `CoherenceDeployment` is created with the following yaml:
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceDeployment
 metadata:
-  name: test-cluster # <1>
+  name: storage
+spec:
+  cluster: test-cluster # <1>
 ----
+<1> In this yaml the `CoherenceDeployment` has a cluster name of `test-cluster`
 
-<1> A Coherence cluster will be created with a cluster name `test-cluster`
+The Operator will create a `Service` for the `CoherenceDeployment` using the same name as the deployment
+with a `-wka` suffix.
+So in the example above the Operator would create a `Service` with the name `storage-wka`.
 
 The yaml for the WKA `Service` would look like the following:
 
@@ -57,14 +62,13 @@ The yaml for the WKA `Service` would look like the following:
 apiVersion: v1
 kind: Service
 metadata:
-  name: test-cluster-wka                                             # <1>
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"   # <2>
+  name: storage-wka                                                  # <1>
   labels:
     coherenceCluster: test-cluster
     component: coherenceWkaService
 spec:
-  clusterIP: None                                                    # <3>
+  clusterIP: None                                                    # <2>
+  publishNotReadyAddresses: true                                     # <3>
   ports:
     - name: coherence                                                # <4>
       protocol: TCP
@@ -75,21 +79,21 @@ spec:
     component: coherencePod
 ----
 
-<1> The `Service` name is made up of the cluster name with the suffix `-wka` so in this case `test-cluster-wka`
+<1> The `Service` name is made up of the cluster name with the suffix `-wka` so in this case `storage-wka`
 
-<2> The `Service` is configured to allow unready `Pods` so that all `Pods` matching the selector will be resolved as
+<2> The service has a `clusterIP` of `None` so it is headless
+
+<3> The `Service` is configured to allow unready `Pods` so that all `Pods` matching the selector will be resolved as
 members of this service regardless of their ready state. This is important so that Coherence JVMs can discover other
 members before they are fully ready.
 
-<3> The service has a `clusterIP` of `None` so it is headless
-
-<4> A single port is exposed, in this case the echo port (7) even though nothing in the Coherence `Pods` binds to this
-port. Ideally no port would be included but the service has to have at least one port defined.
+<4> A single port is exposed, in this case the echo port (7), even though nothing in the Coherence `Pods` binds to this
+port. Ideally no port would be included, but a Kubernetes service has to have at least one port defined.
 
 <5> The selector will match all `Pods` with the labels `coherenceCluster=test-cluster` and `component=coherencePod`
 which are labels that the Coherence Operator will assign to all `Pods` in this cluster
 
-Because this `Service` is created in the same `Namespace` as the rest of the Coherence cluster `Pods` the JVMs can use
+Because this `Service` is created in the same `Namespace` as the deployment's `Pods` the JVMs can use
 the raw `Service` name as the WKA list, in the example above the WKA list would just be `test-cluster-wka`.
 
 
@@ -127,5 +131,5 @@ WARNING: When excluding a deployment from WKA it is important that at least one 
 has been started first otherwise the non-WKA role members cannot start.Eventually the K8s readiness probe for these Pods
 would time-out causing K8s to restart them but this would not be a desirable way to start a cluster.
 The start-up order can be controlled by configuring the deployment's `startQuorum` list, as described in the documentation
-section on <<clusters/035_role_startup_ordering.adoc, deployment start-up ordering>>.
+section on <<ordering/010_overview.adoc,deployment start-up ordering>>.
 

@@ -44,15 +44,48 @@ Deploying Coherence Applications using the Coherence Operator.
 ====
 
 [CARD]
+.Scaling
+[icon=fa-balance-scale,link=scaling/010_overview.adoc]
+--
+Safe scaling of Coherence deployments the Coherence Operator.
+--
+
+[CARD]
+.Configure Coherence
+[icon="fa-cogs",link=coherence_settings/010_overview.adoc]
+--
+Configuring Coherence behaviour.
+--
+
+[CARD]
+.Configure the JVM
+[icon=fa-cog,link=jvm_settings/010_overview.adoc]
+--
+Configure the behaviour of the JVM.
+--
+
+[CARD]
+.Expose Ports & Services
+[icon=control_camera,link=expose_ports_and_services/010_overview.adoc]
+--
+Configure services to expose ports provided by the application.
+--
+
+====
+
+[PILLARS]
+====
+
+[CARD]
 .Metrics
-[icon=av_timer,link=metrics/010_overview.adoc]
+[icon=speed,link=metrics/010_overview.adoc]
 --
 Enabling and working with Metrics in the Coherence Operator.
 --
 
 [CARD]
 .Management and Diagnostics
-[icon="fa-stethoscope",link=management/010_overview.adoc]
+[icon="fa-stethoscope",link=management_and_diagnostics/010_overview.adoc]
 --
 Management and Diagnostics in the Coherence Operator.
 --

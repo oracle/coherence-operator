@@ -6,8 +6,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Configure Persistence
+= Deployment Start Order
 
 
 
-== Configure Persistence
+== Coherence Deployment Dependencies and Start Order
+

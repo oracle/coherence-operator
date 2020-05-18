@@ -1,0 +1,54 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Cluster Name
+
+== Set Coherence Cluster Name
+
+The name of the Coherence cluster that a `CoherenceDeployment` is part of can be set with the `cluster` field
+in the `CoherenceDeployment.Spec`. The cluster name is used to set the `coherence.cluster` system property in the JVM in the Coherence container.
+
+=== Default Cluster Name
+The default Coherence cluster name, used when the `cluster` field is empty, will be the same as the name of the `CoherenceDeployment`, for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test # <1>
+----
+<1> The name of this `CoherenceDeployment` is `test`, which will also be used as the Coherence cluster name, effectively passing `-Dcoherence.cluster=test` to the JVM in the Coherence container.
+
+=== Specify a Cluster Name
+In a use case where multiple `CoherenceDployments` are created to form a single Coherence cluster the `cluster`
+field in all the `CoherenceDeployments` needs to be set to the same value.
+
+
+[source,yaml]
+.cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  cluster: test-cluster
+---
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: front-end
+spec:
+  cluster: test-cluster
+----
+
+The yaml above contains two `CoherenceDeployments`, one named `storage` and one named `front-end`.
+Both of these `CoherenceDeployments` have the same value for the `cluster` field, `test-cluster`,
+so the Pods in both deployments will form a single Coherence cluster named `test`.
+
