@@ -223,13 +223,12 @@ func fmtRawDoc(rawDoc string) string {
 }
 
 func processCoherenceTags(doc string, tags []string) string {
-	if tags == nil || len(tags) == 0 {
+	if len(tags) == 0 {
 		return doc
 	}
 
 	for _, t := range tags {
-		switch {
-		case strings.HasPrefix(t, "+coh:doc="):
+		if strings.HasPrefix(t, "+coh:doc=") {
 			parts := strings.Split(t[9:], ",")
 			var link string
 			var name string
@@ -270,10 +269,6 @@ func escapeTypeName(typeName string) string {
 	return typeName
 }
 
-func wrapInLink(text, link string) string {
-	return fmt.Sprintf("%s[%s]", link, text)
-}
-
 // fieldName returns the name of the field as it should appear in JSON format
 // "-" indicates that this field is not part of the JSON representation
 func fieldName(field *ast.Field) string {
@@ -307,16 +302,15 @@ func fieldRequired(field *ast.Field) bool {
 }
 
 func fieldType(typ ast.Expr) string {
-	switch typ.(type) {
+	switch t := typ.(type) {
 	case *ast.Ident:
-		return toLink(typ.(*ast.Ident).Name)
+		return toLink(t.Name)
 	case *ast.StarExpr:
 		return "&#42;" + toLink(fieldType(typ.(*ast.StarExpr).X))
 	case *ast.SelectorExpr:
 		e := typ.(*ast.SelectorExpr)
 		pkg := e.X.(*ast.Ident)
-		t := e.Sel
-		return toLink(pkg.Name + "." + t.Name)
+		return toLink(pkg.Name + "." + e.Sel.Name)
 	case *ast.ArrayType:
 		return "[]" + toLink(fieldType(typ.(*ast.ArrayType).Elt))
 	case *ast.MapType:
