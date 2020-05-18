@@ -203,7 +203,7 @@ see: <<coherence_settings/010_overview.adoc,Coherence Configuration>>
 | Field | Description | Type | Required
 m| cacheConfig | CacheConfig is the name of the cache configuration file to use m| &#42;string | false
 m| overrideConfig | OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml m| &#42;string | false
-m| storageEnabled | A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel. m| &#42;bool | false
+m| storageEnabled | A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage system property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel. m| &#42;bool | false
 m| persistence | Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data. m| &#42;<<PersistenceSpec,PersistenceSpec>> | false
 m| logLevel | The Coherence log level, default being 5 (info level). m| &#42;int32 | false
 m| management | Management configures Coherence management over REST Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4. m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
@@ -261,7 +261,7 @@ The JVM configuration.
 |===
 | Field | Description | Type | Required
 m| classpath | Classpath specifies additional items to add to the classpath of the JVM. m| []string | false
-m| args | Args specifies the options (System properties, -XX: args etc) to pass to the JVM. m| []string | false
+m| args | Args specifies the options (system properties, -XX: args etc) to pass to the JVM. m| []string | false
 m| debug | The settings for enabling debug mode in the JVM. m| &#42;<<JvmDebugSpec,JvmDebugSpec>> | false
 m| useContainerLimits | If set to true Adds the  -XX:+UseContainerSupport JVM option to ensure that the JVM respects any container resource limits. The default value is true m| &#42;bool | false
 m| flightRecorder | If set to true, enabled continuour flight recorder recordings. This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps m| &#42;bool | false
@@ -431,7 +431,7 @@ The spec for Coherence persistence.
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| mode | The persistence mode to use. Valid choices are \"on-demand\", \"active\", \"active-async\". This field will set the coherence.distributed.persistence-mode System property to \"default-\" + Mode. m| &#42;string | false
+m| mode | The persistence mode to use. Valid choices are \"on-demand\", \"active\", \"active-async\". This field will set the coherence.distributed.persistence-mode system property to \"default-\" + Mode. m| &#42;string | false
 m| snapshots | Snapshot values configure the on-disc persistence data snapshot (backup) settings. These settings enable a different location for persistence snapshot data. If not set then snapshot files will be written to the same volume configured for persistence data in the Persistence section. m| &#42;<<PersistentStorageSpec,PersistentStorageSpec>> | false
 |===
 

@@ -85,14 +85,6 @@ backend:
               items:
                 - includes:
                     - "coherence_settings/*.adoc"
-            - title: "Ports & Services"
-              pathprefix: "/ports"
-              glyph:
-                type: "icon"
-                value: "control_camera"
-              items:
-                - includes:
-                    - "expose_ports_and_services/*.adoc"
             - title: "JVM Settings"
               pathprefix: "/jvm"
               glyph:
@@ -101,6 +93,46 @@ backend:
               items:
                 - includes:
                     - "jvm_settings/*.adoc"
+            - title: "Expose Ports & Services"
+              pathprefix: "/ports"
+              glyph:
+                type: "icon"
+                value: "control_camera"
+              items:
+                - includes:
+                    - "expose_ports_and_services/*.adoc"
+            - title: "Scaling Up & Down"
+              pathprefix: "/scale"
+              glyph:
+                type: "icon"
+                value: "fa-balance-scale"
+              items:
+                - includes:
+                    - "scaling/*.adoc"
+            - title: "Start-up Order"
+              pathprefix: "/order"
+              glyph:
+                type: "icon"
+                value: "line_weight"
+              items:
+                - includes:
+                    - "ordering/*.adoc"
+            - title: "Management Diagnostics"
+              pathprefix: "/management"
+              glyph:
+                type: "icon"
+                value: "fa-stethoscope"
+              items:
+                - includes:
+                    - "management_and_diagnostics/*.adoc"
+            - title: "Metrics"
+              pathprefix: "/metrics"
+              glyph:
+                type: "icon"
+                value: "speed"
+              items:
+                - includes:
+                    - "metrics/*.adoc"
             - title: "Logging"
               pathprefix: "/logging"
               glyph:
@@ -109,22 +141,6 @@ backend:
               items:
                 - includes:
                     - "logging/*.adoc"
-            - title: "Metrics"
-              pathprefix: "/metrics"
-              glyph:
-                type: "icon"
-                value: "av_timer"
-              items:
-                - includes:
-                    - "metrics/*.adoc"
-            - title: "Management & Diagnostics"
-              pathprefix: "/management"
-              glyph:
-                type: "icon"
-                value: "fa-stethoscope"
-              items:
-                - includes:
-                    - "management_and_diagnostics/*.adoc"
             - title: "Other Pod Settings"
               pathprefix: "/misc"
               glyph:

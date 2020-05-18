@@ -1,0 +1,29 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Log Level
+
+== Set the Coherence Log Level
+Logging granularity in Coherence is controlled by a log level, that is a number between one and nine,
+where the higher the number the more debug logging is produced. The `CoherenceDeployment` has a field
+`spec.coherence.logLevel` that allows the log level to be configured by setting the `coherence.log.level`
+system property.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    logLevel: 9  #<1>
+----
+
+<1> The `CoherenceDeployment` sets the log level to 9, effectively passing `-Dcoherence.log.level=9` to the Coherence
+JVM's command line.

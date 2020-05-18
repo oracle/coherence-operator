@@ -1,0 +1,178 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Persistence
+
+Coherence persistence is a set of tools and technologies that manage the persistence and recovery of Coherence
+distributed caches. Cached data is persisted so that it can be quickly recovered after a catastrophic failure
+or after a cluster restart due to planned maintenance. Persistence and federated caching can be used together
+as required.
+
+== Configure Coherence Persistence
+
+The `CoherenceDeployment` CRD allows the default persistence mode, and the storage location of persistence data to be
+configured. Persistence is configured in the `spec.coherence.persistence` section of the CRD.
+See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[Coherence Persistence]
+documentation for more details of how persistence works and its configuration.
+
+== Persistence Mode
+
+There are three default persistence modes available, `active`, `active-async` and `on-demand`; the default mode is `on-demand`.
+The persistence mode is set using the `spec.coherence.persistence,mode` field in the CRD. The value of this field is used
+to set the `coherence.distributed.persistence-mode` system property in the Coherence JVM.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    persistence:
+      mode: active  #<1>
+----
+<1> Th eexample above sets the persistence mode to `active` which will effectively pass
+`-Dcoherence.distributed.persistence-mode=active` to the Coherence JVM's command line.
+
+
+== Persistence Storage
+
+The purpose of persistence in Coherence is to store data on disc so that it is available outside of the lifetime of the
+JVMs that make up the cluster. In a containerised environment like Kubernetes this means storing that data in storage that
+also lives outside of the containers.
+
+When persistence storage is configured a `VolumeMount` will be added to the Coherence container mounted at `/persistence`,
+and the `coherence.distributed.persistence.base.dir` system property will be configured to point to the storage location.
+
+=== Using a PersistentVolumeClaim
+
+The Coherence Operator creates a `StatefulSet` for each `CoherenceDeployment` so the
+logical place to store persistence data is in a `PersistentVolumeClaim`.
+
+The PVC used for persistence can be configured in the `spec.coherence.persistence.persistentVolumeClaim` section
+of the CRD.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    persistence:
+      persistentVolumeClaim:     # <1>
+        storageClassName: "SSD"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+----
+
+<1> The example above configures a 50GB PVC with a storage class name of "SSD"
+(assuming the Kubernetes cluster has a storage class of that name configured).
+
+The configuration under the `spec.coherence.persistence.persistentVolumeClaim` section is exactly the same as
+configuring a PVC for a normal Kubernetes Pod and all of the possible options are beyond the scope of this document.
+For more details on configuring PVC see the Kubernetes
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/[Persistent Volumes] documentation.
+
+=== Using a Normal Volume
+
+An alternative to a PVC is to use a normal Kubernetes Volume to store the persistence data.
+An example of this use-case could be when the Kubernetes Nodes that the Coherence Pods are scheduled onto have locally
+attached fast SSD drives, which is ideal storage for persistence.
+In this case a normal Volume can be configured in the `spec.coherence.persistence.volume` section of the CRD.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    persistence:                                 # <1>
+      volume:
+        hostPath:
+          path: /mnt/ssd/coherence/persistence
+----
+
+<1> In the example above a Volume has been configured for persistence, in this case a `HostPath` volume pointing to
+the `/mnt/ssd/coherence/persistence` directory on the Node.
+
+The configuration under the `spec.coherence.persistence.volume` section is a normal Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core[VolumeSource]
+so any valid `VolumeSource` configuration can be used.
+See the Kubernetes https://kubernetes.io/docs/concepts/storage/volumes/[Volumes] documentation for more details.
+
+
+== Snapshot Storage
+
+Coherence allows on-demand snapshots to be taken of cache data. With the default configuration the snapshot files are
+stored under the same persistence root loaction as active persistence data.
+The `CoherenceDeployment` allows a different location to be specified for storage of snapshot files so that active data
+and snapshot data can be stored in different locations and/or on different storage types in Kubernetes.
+
+The same two options are available for snapshot storage that are available for persistence storage, namely PVCs and
+normal Volumes. The `spec.coherence.persistence.snapshots` section is used to configure snapshot storage.
+When this is used a `VolumeMount` will be added to the Coherence container with a mount path of `/snapshots`,
+and the `coherence.distributed.persistence.snapshot.dir` system property will be set to point to this location.
+
+=== Snapshots Using a PersistentVolumeClaim
+
+A PVC can be configured for persistence snapshot data as shown below.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    persistence:                                 # <1>
+      volume:
+        hostPath:
+          path: /mnt/ssd/coherence/persistence
+      snapshots:
+        persistentVolumeClaim:                   # <2>
+          resources:
+            requests:
+              storage: 50Gi
+----
+<1> Active persistence data is stored on a normal Volume using a HostPath volume source.
+<2> Snapshot data is stored in a 50GB PVC.
+
+=== Snapshots Using a Normal Volumes
+
+A normal volume can be configured for snapshot data as shown below.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  coherence:
+    persistence:                                 # <1>
+      volume:
+        hostPath:
+          path: /mnt/ssd/coherence/persistence
+      snapshots:
+        volume:
+          hostPath:
+            path: /mnt/ssd/coherence/snapshots   # <2>
+----
+<1> Active persistence data is stored on a normal Volume using a HostPath volume source.
+<2> Snapshot data is stored is stored on a normal Volume using a different HostPath volume source.
+
