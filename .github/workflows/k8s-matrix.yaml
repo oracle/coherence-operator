@@ -75,7 +75,7 @@ jobs:
 #     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
-        sh ./hack/kind.sh --image k8s
+        sh ./hack/kind.sh --image ${{ matrix.k8s }}
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
