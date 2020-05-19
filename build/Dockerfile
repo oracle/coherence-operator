@@ -13,9 +13,9 @@ ENV OPERATOR=/usr/local/bin/coherence-operator \
     UTILS_IMAGE=$utils_image \
     VERSION_FULL=$version
 
-COPY deploy/crds/*_crd.yaml                ${HOME}/crds/
-COPY image/scripts                         ${HOME}/operator-scripts
-COPY build/_output/bin/operator            ${OPERATOR}
+COPY deploy/crds                 ${HOME}/crds
+COPY image/scripts               ${HOME}/operator-scripts
+COPY build/_output/bin/operator  ${OPERATOR}
 
 ENTRYPOINT ["/usr/local/bin/coherence-operator"]
 CMD ["run", "--crd-files=/opt/coherence/crds", "--scripts-dir=/opt/coherence/operator-scripts"]
