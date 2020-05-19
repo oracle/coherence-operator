@@ -26,6 +26,9 @@ else
 VERSION_FULL := $(VERSION)-$(VERSION_SUFFIX)
 endif
 
+# The operator version to use to run certification tests against
+CERTIFICATION_VERSION ?= $(VERSION_FULL)
+
 # A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
 # These must be released versions as their released Helm charts will be downloaded prior to
 # running the compatibility tests.
@@ -55,7 +58,8 @@ HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:12.
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 RELEASE_IMAGE_PREFIX ?= "$(USER)/"
-OPERATOR_IMAGE       := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
+OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator
+OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
 TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-jib:$(VERSION_FULL)
 
@@ -617,7 +621,7 @@ helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-helm-test: build-operator reset-namespace create-ssl-secrets install-crds
+helm-test: build-operator reset-namespace create-ssl-secrets
 	@echo "executing Operator Helm Chart end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/helm --operator-namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -647,7 +651,7 @@ compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets install-crds get-previous
+compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets get-previous
 	@echo "executing Operator compatibility tests"
 	$(OPERATOR_SDK) test local ./test/e2e/compatibility --operator-namespace $(TEST_NAMESPACE) \
 		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
@@ -676,6 +680,34 @@ get-previous: $(BUILD_PROPS)
       mkdir $${DIR}; \
       tar -C $${DIR} -xzf $${FILE}; \
     done
+
+# ---------------------------------------------------------------------------
+# Executes the Go end-to-end Operator certification tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ---------------------------------------------------------------------------
+.PHONY: certification-test
+certification-test: export CGO_ENABLED = 0
+certification-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+certification-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+certification-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+certification-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+certification-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+certification-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+certification-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+certification-test: export VERSION_FULL := $(VERSION_FULL)
+certification-test: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
+certification-test: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
+certification-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+certification-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+certification-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+certification-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+certification-test: install-certification
+	$(MAKE) $(MAKEFLAGS) run-certification \
+	; rc=$$? \
+	; $(MAKE) $(MAKEFLAGS) cleanup-certification \
+	; exit $$rc
+
 
 # ---------------------------------------------------------------------------
 # Install the Operator prior to running compatability tests.
