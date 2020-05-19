@@ -580,7 +580,7 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 					},
 					"skipVersionCheck": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the strat script to find coherence.jar, if due to how the image has been built this check is failing setting this flag to true will skip version checking and assume that the lates coherence.jar is being used.",
+							Description: "Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},

@@ -614,7 +614,6 @@ helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export VERSION_FULL := $(VERSION_FULL)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
@@ -644,7 +643,6 @@ compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 compatibility-test: export VERSION_FULL := $(VERSION_FULL)
 compatibility-test: export COMPATIBLE_VERSIONS := $(COMPATIBLE_VERSIONS)
-compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
@@ -678,6 +676,64 @@ get-previous: $(BUILD_PROPS)
       mkdir $${DIR}; \
       tar -C $${DIR} -xzf $${FILE}; \
     done
+
+# ---------------------------------------------------------------------------
+# Install the Operator prior to running compatability tests.
+# ---------------------------------------------------------------------------
+.PHONY: install-certification
+install-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+install-certification: export VERSION := $(VERSION)
+install-certification: export VERSION_FULL := $(VERSION_FULL)
+install-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
+install-certification: build-operator reset-namespace create-ssl-secrets
+ifeq ("$(CERTIFICATION_VERSION)","$(VERSION_FULL)")
+	helm install --namespace $(TEST_NAMESPACE) --wait operator $(CHART_DIR)/coherence-operator
+else
+	helm repo add coherence https://oracle.github.io/coherence-operator/charts || true
+	helm repo update || true
+	helm install --namespace $(TEST_NAMESPACE) --wait --version operator ./helm-charts/coherence-operator
+endif
+
+# ---------------------------------------------------------------------------
+# Executes the Go end-to-end Operator certification tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ---------------------------------------------------------------------------
+.PHONY: run-certification
+run-certification: export CGO_ENABLED = 0
+run-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-certification: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+run-certification: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+run-certification: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+run-certification: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+run-certification: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+run-certification: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+run-certification: export VERSION_FULL := $(VERSION_FULL)
+run-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
+run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
+run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run-certification: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-certification: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-certification: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+run-certification:
+	@echo "Executing Operator certification tests"
+	$(OPERATOR_SDK) test local ./test/certification --operator-namespace $(TEST_NAMESPACE) \
+		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
+		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-certification-test.out
+	go run ./cmd/testreports/ -fail -suite-name-prefix=certification-test/ \
+	    -input $(TEST_LOGS_DIR)/operator-certification-test.out \
+	    -output $(TEST_LOGS_DIR)/operator-certification-test.xml
+
+# ---------------------------------------------------------------------------
+# Clean up after to running compatability tests.
+# ---------------------------------------------------------------------------
+.PHONY: cleanup-certification
+cleanup-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+cleanup-certification:
+	helm delete --namespace $(TEST_NAMESPACE) operator || true
+	$(MAKE) uninstall-crds
+	$(MAKE) delete-namespace
+
 
 # ---------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
