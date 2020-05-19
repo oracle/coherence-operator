@@ -788,12 +788,8 @@ endif
 # ---------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_PROPS)
-	@echo "Removing CRDs $(CRD_VERSION)"
-ifeq ("$(CRD_VERSION)","v1beta1")
-	kubectl delete -f deploy/crds/v1beta1/coherence.oracle.com_coherencedeployments_crd.yaml || true
-else
-	kubectl delete -f deploy/crds/coherence.oracle.com_coherencedeployments_crd.yaml || true
-endif
+	@echo "Removing CRDs"
+	kubectl delete crd coherencedeployments.coherence.oracle.com || true
 
 # ---------------------------------------------------------------------------
 # This step will run the Operator SDK code generators.
@@ -1073,7 +1069,7 @@ run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: build-all-images create-ssl-secrets
+run-debug: 
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \

@@ -1,4 +1,4 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceDeployment
 metadata:
-  name: test-cluster
+  name: certify-minimal
