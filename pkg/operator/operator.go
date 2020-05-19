@@ -15,26 +15,26 @@ import (
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/rest"
+	"github.com/pkg/errors"
 	"io/ioutil"
+	corev1 "k8s.io/api/core/v1"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	v1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
+	v1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/version"
-	"k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery"
 	"os"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
-
-	corev1 "k8s.io/api/core/v1"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	v1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"strings"
 )
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
@@ -74,11 +74,11 @@ func EnsureCRDs(mgr manager.Manager) error {
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, log logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
-	log.Info("Ensuring operator v1 CRDs are present")
+func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
+	logger.Info("Ensuring operator v1 CRDs are present")
 
 	if cohFlags.CrdFiles == "" {
-		log.Info("The CRD files location is blank - cannot ensure that CRDs are present in Kubernetes")
+		logger.Info("The CRD files location is blank - cannot ensure that CRDs are present in Kubernetes")
 		return nil
 	}
 
@@ -87,7 +87,7 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 		return fmt.Errorf("the CRD files location '%s' does not exist", cohFlags.CrdFiles)
 	}
 
-	log.Info("Loading operator CRDs from '" + cohFlags.CrdFiles + "'")
+	logger.Info("Loading operator CRDs from '" + cohFlags.CrdFiles + "'")
 	var files []string
 	err = filepath.Walk(cohFlags.CrdFiles, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, "crd.yaml") && !info.IsDir() {
@@ -134,29 +134,30 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 		if newCRD.APIVersion != crdbeta1.GroupName+"/v1" {
 			continue
 		}
-		log.Info("Loading operator CRD yaml from '" + file + "'")
+		logger.Info("Loading operator CRD yaml from '" + file + "'")
 
 		// Get the existing CRD
 		oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
 		switch {
 		case err == nil:
 			// CRD exists so update it
-			log.Info("Updating operator CRD '" + newCRD.Name + "'")
+			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			_, err = crdClient.Update(&newCRD)
+			err = mgr.GetClient().Update(context.TODO(), &newCRD, &client.UpdateOptions{})
 			if err != nil {
 				return err
 			}
-		case errors.IsNotFound(err):
+		case apierrors.IsNotFound(err):
 			// CRD does not exist so create it
-			log.Info("Creating operator CRD '" + newCRD.Name + "'")
-			_, err = crdClient.Create(&newCRD)
+			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
+			err = mgr.GetClient().Create(context.TODO(), &newCRD, &client.CreateOptions{})
 			if err != nil {
 				return err
 			}
 		default:
 			// An error occurred
-			return err
+			logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
+			return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
 		}
 	}
 
@@ -233,20 +234,21 @@ func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFla
 			// CRD exists so update it
 			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			_, err = crdClient.Update(&newCRD)
+			err = mgr.GetClient().Update(context.TODO(), &newCRD, &client.UpdateOptions{})
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
 			}
-		case errors.IsNotFound(err):
+		case apierrors.IsNotFound(err):
 			// CRD does not exist so create it
 			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-			_, err = crdClient.Create(&newCRD)
+			err = mgr.GetClient().Create(context.TODO(), &newCRD, &client.CreateOptions{})
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 			}
 		default:
 			// An error occurred
-			return err
+			logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
+			return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
 		}
 	}
 
@@ -258,7 +260,7 @@ func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) er
 	log.Info("Ensuring configuration secret")
 
 	err := c.Get(context.TODO(), types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, &corev1.Secret{})
-	if err != nil && !errors.IsNotFound(err) {
+	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
 
@@ -276,7 +278,7 @@ func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) er
 
 	secret.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
 
-	if errors.IsNotFound(err) {
+	if apierrors.IsNotFound(err) {
 		// for some reason we're getting here even if the secret exists so delete it!!
 		_ = c.Delete(context.TODO(), secret)
 		log.Info("Creating secret " + coh.OperatorConfigName + " in namespace " + namespace)
