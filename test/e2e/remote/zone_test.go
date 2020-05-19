@@ -34,7 +34,7 @@ func TestSiteLabel(t *testing.T) {
 	}
 
 	dfn := func(namespace string) string {
-		return fmt.Sprintf("test.%s.svc.cluster.local", namespace)
+		return fmt.Sprintf("zone-zone-test.%s.svc.cluster.local", namespace)
 	}
 
 	assertLabel(t, "zone", flags.DefaultSiteLabel, fn, dfn)

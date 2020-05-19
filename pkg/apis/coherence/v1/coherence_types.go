@@ -171,10 +171,12 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 // +k8s:openapi-gen=true
 type CoherenceSpec struct {
 	// CacheConfig is the name of the cache configuration file to use
+	// +coh:doc=coherence_settings/030_cache_config.adoc,Configure Cache Config File
 	// +optional
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// OverrideConfig is name of the Coherence operational configuration override file,
 	// the default is tangosol-coherence-override.xml
+	// +coh:doc=coherence_settings/040_override_file.adoc,Configure Operational Config File
 	// +optional
 	OverrideConfig *string `json:"overrideConfig,omitempty"`
 	// A boolean flag indicating whether members of this deployment are storage enabled.
@@ -183,29 +185,37 @@ type CoherenceSpec struct {
 	// This flag is also used to configure the ScalingPolicy value if a value is not specified. If the
 	// StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is
 	// set to false scaling will be parallel.
+	// +coh:doc=coherence_settings/050_storage_enabled.adoc,Configure Storage Enabled
 	// +optional
 	StorageEnabled *bool `json:"storageEnabled,omitempty"`
 	// Persistence values configure the on-disc data persistence settings.
 	// The bool Enabled enables or disabled on disc persistence of data.
+	// +coh:doc=coherence_settings/080_persistence.adoc,Configure Persistence
 	// +optional
 	Persistence *PersistenceSpec `json:"persistence,omitempty"`
 	// The Coherence log level, default being 5 (info level).
+	// +coh:doc=coherence_settings/060_log_level.adoc,Configure Coherence log level
 	// +optional
 	LogLevel *int32 `json:"logLevel,omitempty"`
 	// Management configures Coherence management over REST
 	// Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4.
+	// +coh:doc=management_and_diagnostics/010_overview.adoc,Management & Diagnostics
 	// +optional
 	Management *PortSpecWithSSL `json:"management,omitempty"`
 	// Metrics configures Coherence metrics publishing
 	// Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4.
+	// +coh:doc=metrics/010_overview.adoc,Metrics
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
 	// Exclude members of this deployment from being part of the cluster's WKA list.
+	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
+	// +optional
 	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
 	// Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4.
-	// The version check relies on the ability of the strat script to find coherence.jar, if due to how the image
-	// has been built this check is failing setting this flag to true will skip version checking and assume
-	// that the lates coherence.jar is being used.
+	// The version check relies on the ability of the start script to find coherence.jar but if due to how the image
+	// has been built this check is failing then setting this flag to true will skip version checking and assume
+	// that the latest coherence.jar is being used.
+	// +optional
 	SkipVersionCheck *bool `json:"skipVersionCheck,omitempty"`
 }
 

@@ -158,9 +158,6 @@ func ParseDocumentationFrom(srcs []string) []KubeTypes {
 }
 
 func astFrom(filePath string) *doc.Package {
-}
-
-func astFrom(filePath string) *doc.Package {
 	fset := token.NewFileSet()
 	m := make(map[string]*ast.File)
 
