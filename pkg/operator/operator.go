@@ -19,6 +19,7 @@ import (
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	v1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery"
 	"os"
@@ -112,6 +113,17 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 		if err != nil {
 			return err
 		}
+
+		u := unstructured.Unstructured{}
+		err = yaml.Unmarshal(yml, &u)
+		if err != nil {
+			return err
+		}
+
+		if u.GetAPIVersion() != crdbeta1.GroupName+"/v1" {
+			continue
+		}
+
 		newCRD := crdv1.CustomResourceDefinition{}
 		err = yaml.Unmarshal(yml, &newCRD)
 		if err != nil {
@@ -119,7 +131,7 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 		}
 
 		// make sure we're only loading v1 files
-		if newCRD.APIVersion != "apiextensions.k8s.io/v1" {
+		if newCRD.APIVersion != crdbeta1.GroupName+"/v1" {
 			continue
 		}
 		log.Info("Loading operator CRD yaml from '" + file + "'")
@@ -191,6 +203,17 @@ func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFla
 		if err != nil {
 			return err
 		}
+
+		u := unstructured.Unstructured{}
+		err = yaml.Unmarshal(yml, &u)
+		if err != nil {
+			return err
+		}
+
+		if u.GetAPIVersion() != crdbeta1.GroupName+"/v1beta1" {
+			continue
+		}
+
 		newCRD := crdbeta1.CustomResourceDefinition{}
 		err = yaml.Unmarshal(yml, &newCRD)
 		if err != nil {
@@ -198,7 +221,7 @@ func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFla
 		}
 
 		// make sure we're only loading v1beta1 files
-		if newCRD.APIVersion != "apiextensions.k8s.io/v1beta1" {
+		if newCRD.APIVersion != crdbeta1.GroupName+"/v1beta1" {
 			continue
 		}
 		logger.Info("Loading operator CRD yaml from '" + file + "'")

@@ -10,10 +10,8 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/fakes"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
-	"strings"
 )
 
 // This method is used by the Operator build to generate a yaml manifest that
@@ -89,22 +87,6 @@ func main() {
 
 	err = result.ToString(filterGlobal, globalFile)
 	panicIfErr(err)
-
-	crds, err := helper.FindCrdDir()
-	panicIfErr(err)
-	crdFiles, err := ioutil.ReadDir(crds)
-	panicIfErr(err)
-
-	for _, file := range crdFiles {
-		if strings.HasSuffix(file.Name(), "_crd.yaml") {
-			_, err = globalFile.WriteString("\n---\n")
-			panicIfErr(err)
-			data, err := ioutil.ReadFile(crds + string(os.PathSeparator) + file.Name())
-			panicIfErr(err)
-			_, err = globalFile.Write(data)
-			panicIfErr(err)
-		}
-	}
 }
 
 func panicIfErr(err error) {
