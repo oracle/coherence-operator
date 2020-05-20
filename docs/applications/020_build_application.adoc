@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Build Application Images
+
+== Build Custom Application Images
+
+To deploy a Coherence application using the operator the application code must be packaged into an image that the
+Coherence container in the Pods will run. This image can be any image that contains a JVM as well as the application's
+jar files, including obviously `coherence.jar`.
+
+There are many ways to build an image for a Java application, one of the simplest is to use
+https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB].
+The examples in this documentation will use JIB but any image that meets the requirements of having a JVM and `coherence.jar`
+will be supported. Any version of Java which works with the version of `coherence.jar` in the image will be suitable.
+This can be a JRE, it does not need to be a full JDK.
+
+At a bare minimum the directories in an image might look like this example
+(obviously there would be more O/S related files and more JVM files, but they are not relevant for the example):
+[source]
+----
+/
+|-- app
+|    |-- libs                      <1>
+|         |-- application.jar
+|         |-- coherence.jar
+|-- usr
+     |-- bin
+     |    |-- java                 <2>
+     |
+     |-- lib
+          |-- jvm
+               |-- java-11-openjdk <3>
+----
+<1> The `/app/libs` directory contains the application jar files. This will be the classpath used to run the application.
+<2> The `/usr/bin/java` file is the Java executable and on the `PATH` in the image (this would be a link to the actual
+Java executable location, in this example to `/usr/lib/jvm/java-11-openjdk/bin/java`.
+<3> The `/usr/lib/jvm/java-11-openjdk/` is the actual JVM install location.
+
+=== Image `EntryPoint`
+
+The image does not need to have an `EntryPoint` or command specified, it does not need to actually be executable.
+If the image does have an `EntryPoint`, it will just be ignored.
+The Coherence Operator actually injects its own executable into the container which the container runs and which
+in turn builds the Java command line to execute.
+
+=== Optional `JAVA_HOME` Environment Variable
+
+The `JAVA_HOME` environment variable does not have to be set in the image. If it is set the JVM at that location will
+be used to run the application. If it is not set then the `java` executable *must* be on the `PATH` in the image.
+
+=== Optional `COHERENCE_HOME` Environment Variable
+
+The `COHERENCE_HOME` environment variable does not have to be set in an image.
+Typically, all the jar files, including `coherence.jar` would be packaged into a single directory which is then used as
+the classpath.
+It is possible to run official Coherence images published by Oracle, which have `COHERENCE_HOME` set, which is then used
+by the Operator to set the classpath.
+
+If the `COHERENCE_HOME` environment variable is set in an image the following entries will be added to the end of the
+classpath:
+
+* `$COHERENCE_HOME/lib/coherence.jar`
+* `$COHERENCE_HOME/conf`
+

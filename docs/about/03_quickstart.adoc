@@ -59,7 +59,7 @@ Ensure that the Coherence images can be pulled by the Kubernetes cluster,
 see <<installation/04_obtain_coherence_images.adoc,Obtain Coherence Images>>.
 By default, a `CoherenceDeployment` will use the OSS Coherence CE image from Docker Hub.
 If a different image is to be used the image name will need to be specified in the `CoherenceDeployment` yaml,
-see <<deploy_applications/010_overview.adoc,Setting the Application Image>> for documentation on how to
+see <<applications/010_overview.adoc,Setting the Application Image>> for documentation on how to
 specify a different images to use.
 
 

@@ -58,7 +58,8 @@ HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:14.
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 RELEASE_IMAGE_PREFIX ?= "$(USER)/"
-OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator
+#                       docker.pkg.github.com/oracle/coherence-operator/coherence-operator:<tag>
+OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
 TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-jib:$(VERSION_FULL)

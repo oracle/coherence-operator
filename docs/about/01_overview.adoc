@@ -30,7 +30,7 @@ Installing and running the Coherence Operator.
 
 [CARD]
 .Build and Deploy Applications
-[icon=cloud_upload,link=deploy_applications/010_overview.adoc]
+[icon=cloud_upload,link=applications/010_overview.adoc]
 --
 Deploying Coherence Applications using the Coherence Operator.
 --
