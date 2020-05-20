@@ -9,22 +9,22 @@
 = Coherence Persistence
 
 Coherence persistence is a set of tools and technologies that manage the persistence and recovery of Coherence
-distributed caches. Cached data is persisted so that it can be quickly recovered after a catastrophic failure
+distributed caches. Cached data can be persisted so that it can be quickly recovered after a catastrophic failure
 or after a cluster restart due to planned maintenance. Persistence and federated caching can be used together
 as required.
 
 == Configure Coherence Persistence
 
 The `CoherenceDeployment` CRD allows the default persistence mode, and the storage location of persistence data to be
-configured. Persistence is configured in the `spec.coherence.persistence` section of the CRD.
+configured. Persistence can be configured in the `spec.coherence.persistence` section of the CRD.
 See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[Coherence Persistence]
 documentation for more details of how persistence works and its configuration.
 
 == Persistence Mode
 
 There are three default persistence modes available, `active`, `active-async` and `on-demand`; the default mode is `on-demand`.
-The persistence mode is set using the `spec.coherence.persistence,mode` field in the CRD. The value of this field is used
-to set the `coherence.distributed.persistence-mode` system property in the Coherence JVM.
+The persistence mode will be set using the `spec.coherence.persistence,mode` field in the CRD. The value of this field will be
+used to set the `coherence.distributed.persistence-mode` system property in the Coherence JVM.
 
 For example:
 [source,yaml]
@@ -38,7 +38,7 @@ spec:
     persistence:
       mode: active  #<1>
 ----
-<1> Th eexample above sets the persistence mode to `active` which will effectively pass
+<1> The example above sets the persistence mode to `active` which will effectively pass
 `-Dcoherence.distributed.persistence-mode=active` to the Coherence JVM's command line.
 
 
@@ -48,7 +48,7 @@ The purpose of persistence in Coherence is to store data on disc so that it is a
 JVMs that make up the cluster. In a containerised environment like Kubernetes this means storing that data in storage that
 also lives outside of the containers.
 
-When persistence storage is configured a `VolumeMount` will be added to the Coherence container mounted at `/persistence`,
+When persistence storage has been configured a `VolumeMount` will be added to the Coherence container mounted at `/persistence`,
 and the `coherence.distributed.persistence.base.dir` system property will be configured to point to the storage location.
 
 === Using a PersistentVolumeClaim
@@ -81,8 +81,8 @@ spec:
 (assuming the Kubernetes cluster has a storage class of that name configured).
 
 The configuration under the `spec.coherence.persistence.persistentVolumeClaim` section is exactly the same as
-configuring a PVC for a normal Kubernetes Pod and all of the possible options are beyond the scope of this document.
-For more details on configuring PVC see the Kubernetes
+configuring a PVC for a normal Kubernetes Pod and all the possible options are beyond the scope of this document.
+For more details on configuring PVC, see the Kubernetes
 https://kubernetes.io/docs/concepts/storage/persistent-volumes/[Persistent Volumes] documentation.
 
 === Using a Normal Volume
@@ -149,8 +149,8 @@ spec:
             requests:
               storage: 50Gi
 ----
-<1> Active persistence data is stored on a normal Volume using a HostPath volume source.
-<2> Snapshot data is stored in a 50GB PVC.
+<1> Active persistence data will be stored on a normal Volume using a HostPath volume source.
+<2> Snapshot data will be stored in a 50GB PVC.
 
 === Snapshots Using a Normal Volumes
 
@@ -173,6 +173,6 @@ spec:
           hostPath:
             path: /mnt/ssd/coherence/snapshots   # <2>
 ----
-<1> Active persistence data is stored on a normal Volume using a HostPath volume source.
-<2> Snapshot data is stored is stored on a normal Volume using a different HostPath volume source.
+<1> Active persistence data will be stored on a normal Volume using a HostPath volume source.
+<2> Snapshot data will be stored on a normal Volume using a different HostPath volume source.
 

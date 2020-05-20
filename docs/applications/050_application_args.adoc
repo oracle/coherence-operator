@@ -1,0 +1,46 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Set Application Arguments
+
+== Set Application Arguments
+
+When running a custom application there may be a requirement to pass arguments to the application's main class.
+By default, there are no application arguments but any arguments required can be specified in the `application.args` list
+in the `CoherenceDeployment` spec.
+
+The `application.args` is a list of string values, each value in the list is passed as an argument, in the order
+that they are specified in the list.
+
+For example, a deployment uses a custom image `catalogue:1.0.0` that requires a custom main class
+called `com.acme.Catalogue`, and that class takes additional arguments.
+In this example we'll use two fictitious arguments such as a name and a language for the catalogue.
+the `CoherenceDeployment` would look like this:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    main: com.acme.Catalogue # <1>
+    args:                    # <2>
+      - "--name=Books"
+      - "--language=en_GB"
+----
+<1> The `com.acme.Catalogue` will be run as the main class.
+<2> The arguments passed to the `com.acme.Catalogue` class will be `--name=Books` and `--language=en_GB`
+
+The example would be equivalent to the Coherence container running:
+[source,bash]
+----
+$ java com.acme.Catalogue --name=Books --language=en_GB
+----

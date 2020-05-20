@@ -70,13 +70,13 @@ backend:
                 - includes:
                     - "installation/*.adoc"
             - title: "Deploy Applications"
-              pathprefix: "/deploy-apps"
+              pathprefix: "/applications"
               glyph:
                 type: "icon"
                 value: "cloud_upload"
               items:
                 - includes:
-                    - "deploy_applications/*.adoc"
+                    - "applications/*.adoc"
             - title: "Coherence Settings"
               pathprefix: "/coherence"
               glyph:

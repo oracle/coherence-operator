@@ -1,0 +1,40 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Deploy Coherence Applications
+
+== Deploy Coherence Application Images
+
+Once a custom application image has been built (as described in <<applications/020_build_application.adoc,Build Application Images>>)
+a `CoherenceDeployment` can be configured to use that image.
+
+
+=== Specify the Image to Use
+
+To specify the image to use set the `image` field in the `CoherenceDeployment` spec to the name of the image.
+
+For example if there was an application image called `catalogue:1.0.0` it can be specified like this:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0  # <1>
+----
+<1> The `catalogue:1.0.0` will be used in the `coherence` container in the deployment's Pods.
+
+The example above would assume that the `catalogue:1.0.0` has a JVM on the `PATH` and all the required `.jar` files,
+or Java classes, in the default classpath locations used by the Operator.
+When this is not the case additional configuration can be added to specify additional application settings, these include:
+
+* setting the <<jvm_settings/020_classpath.adoc,classpath>>
+* specifying the <<applications/040_application_main.adoc,application main>>
+* specifying <<applications/050_application_args.adoc,application arguments>>
+* specifying the <<applications/060_application_working_dir.adoc,working directory>>

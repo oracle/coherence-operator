@@ -1,0 +1,42 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Set the Working Directory
+
+== Set the Working Directory
+
+When running a custom application there may be a requirement to run in a specific working directory.
+The working directory can be specified in the `application.workingDir` field in the `CoherenceDeployment` spec.
+
+For example, a deployment uses a custom image `catalogue:1.0.0` that requires a custom main class
+called `com.acme.Catalogue`, and that class takes additional arguments.
+In this example we'll use two fictitious arguments such as a name and a language for the catalogue.
+the `CoherenceDeployment` would look like this:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0          # <1>
+  application:
+    workingDir: "/apps/catalogue" # <2>
+    main: "com.acme.Catalogue"    # <3>
+----
+<1> The `catalogue:1.0.0` image will be used.
+<2> The Java command will be executed in the `/apps/catalogue` working directory.
+<3> The Java main class executed will be `com.acme.Catalogue`
+
+The example would be equivalent to the Coherence container running:
+[source,bash]
+----
+$ cd /apps/catalogue
+$ java com.acme.Catalogue
+----
