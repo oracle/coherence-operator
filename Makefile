@@ -827,7 +827,6 @@ api-doc-gen:
 clean:
 	rm -rf build/_output
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
-	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
 # ---------------------------------------------------------------------------
 # Create the k8s yaml manifest that will be used by the Operator SDK to
@@ -933,7 +932,6 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 .PHONY: build-mvn
 build-mvn:
 	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples package -DskipTests
 
 # ---------------------------------------------------------------------------
 # Build and test the Java artifacts
@@ -1312,7 +1310,6 @@ code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: golangci copyright
 	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -P checkstyle
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples package -DskipTests -P checkstyle
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
