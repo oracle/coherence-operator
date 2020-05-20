@@ -19,7 +19,7 @@ env:
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   RELEASE_IMAGE_PREFIX: "localhost:5000/"
   TEST_MANIFEST_VALUES: "deploy/oci-values.yaml"
-  COHERENCE_IMAGE: "container-registry.oracle.com/middleware/coherence:12.2.1.4.0"
+  COHERENCE_IMAGE: "container-registry.oracle.com/middleware/coherence:14.1.1.0.0"
 
 jobs:
   build:

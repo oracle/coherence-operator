@@ -30,7 +30,7 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<CoherenceDeploymentSpec,CoherenceDeploymentSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CoherenceSpec,CoherenceSpec>>
-* <<FluentdSpec,FluentdSpec>>
+* <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
 * <<ImageSpec,ImageSpec>>
 * <<JVMSpec,JVMSpec>>
 * <<JvmDebugSpec,JvmDebugSpec>>
@@ -39,8 +39,6 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<JvmMemorySpec,JvmMemorySpec>>
 * <<JvmOutOfMemorySpec,JvmOutOfMemorySpec>>
 * <<LocalObjectReference,LocalObjectReference>>
-* <<LoggingConfigTemplate,LoggingConfigTemplate>>
-* <<LoggingSpec,LoggingSpec>>
 * <<NamedPortSpec,NamedPortSpec>>
 * <<NetworkSpec,NetworkSpec>>
 * <<PersistenceSpec,PersistenceSpec>>
@@ -55,6 +53,7 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<SSLSpec,SSLSpec>>
 * <<ScalingProbe,ScalingProbe>>
 * <<ScalingSpec,ScalingSpec>>
+* <<SecretVolumeSpec,SecretVolumeSpec>>
 * <<ServiceMonitorSpec,ServiceMonitorSpec>>
 * <<ServiceSpec,ServiceSpec>>
 * <<StartQuorum,StartQuorum>>
@@ -125,7 +124,6 @@ m| replicas | The desired number of cluster members of this deployment. This is 
 m| application | The optional application definition m| &#42;<<ApplicationSpec,ApplicationSpec>> | false
 m| coherence | The optional application definition m| &#42;<<CoherenceSpec,CoherenceSpec>> | false
 m| coherenceUtils | The configuration for the Coherence utils image m| &#42;<<ImageSpec,ImageSpec>> | false
-m| logging | Logging allows configuration of Coherence and java util logging. m| &#42;<<LoggingSpec,LoggingSpec>> | false
 m| jvm | The JVM specific options m| &#42;<<JVMSpec,JVMSpec>> | false
 m| ports | Ports specifies additional port mappings for the Pod and additional Services for those ports m| []<<NamedPortSpec,NamedPortSpec>> | false
 m| env | Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvar-v1-core[corev1.EnvVar] | false
@@ -174,6 +172,10 @@ m| network | Configure various networks and DNS settings for Pods in this rolw. 
 m| startQuorum | The deployments that must be started before this deployment can start. m| []<<StartQuorum,StartQuorum>> | false
 m| additionalInitContainers | List of additional initialization containers to add to the deployment's Pod. Init containers cannot be added or removed. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
 m| additionalContainers | List of additional containers to add to the deployment's Pod. Containers cannot be added or removed. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
+m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
+see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
+m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
+see: <<misc_pod_settings/030_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -222,28 +224,24 @@ m| skipVersionCheck | Certain features rely on a version check prior to starting
 
 <<Table of Contents,Back to TOC>>
 
-=== FluentdSpec
+=== ConfigMapVolumeSpec
 
-FluentdSpec defines the settings for the fluentd image
+Represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
+see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| enabled | Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled. m| &#42;bool | false
-m| configFileInclude | An optional Fluentd configuration file to be added as an @include to the main Fluentd configuration. m| &#42;string | false
-m| configFileOverride | The Fluentd configuration file to use. This file will completely override the default Fluentd configuration normally provided by the Coherence Operator. m| &#42;string | false
-m| tag | This value should be the source.tag from fluentd configFile. m| &#42;string | false
-m| sslVersion | This value should be the to use to set the fluentd ssl_version parameter in the fluentd configFile. m| &#42;string | false
-m| sslMinVersion | This value should be the to use to set the fluentd ssl_min_version parameter in the fluentd configFile. m| &#42;string | false
-m| sslMaxVersion | This value should be the to use to set the fluentd ssl_max_version parameter in the fluentd configFile. m| &#42;string | false
-m| sslVerify | This value should be the to use to set the fluentd ssl_verify parameter in the fluentd configFile. m| &#42;bool | false
-m| esHosts | A comma delimited string of Elasticsearch hosts. These will be used for the hosts variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch m| &#42;string | false
-m| esUser | The Elasticsearch user name. This will be used for the user variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch m| &#42;string | false
-m| esPassword | The Elasticsearch password. This will be used for the user variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch m| &#42;string | false
-m| esSecret | The name of the Secret to use to obtain the Elasticsearch details. m| &#42;string | false
-m| esSecretHostsKey | The key in the secret to use to obtain the Elasticsearch hosts value. If the EsHosts field has a value that will take precedence over the value from the secret. If not specified the default value will be \"hosts\" m| &#42;string | false
-m| esSecretUserKey | The key in the secret to use to obtain the Elasticsearch user name value. If the EsUser field has a value that will take precedence over the value from the secret. If not specified the default value will be \"user\" m| &#42;string | false
-m| esSecretPasswordKey | The key in the secret to use to obtain the Elasticsearch password value. If the EsPassword field has a value that will take precedence over the value from the secret. If not specified the default value will be \"password\" m| &#42;string | false
+m| name | The name of the ConfigMap to mount. This will also be used as the name of the Volume added to the Pod if the VolumeName field is not set. m| string | true
+m| mountPath | Path within the container at which the volume should be mounted.  Must not contain ':'. m| string | true
+m| volumeName | The optional name to use for the Volume added to the Pod. If not set, the ConfigMap name will be used as the VolumeName. m| string | false
+m| readOnly | Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false. m| bool | false
+m| subPath | Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). m| string | false
+m| mountPropagation | mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#mountpropagationmode-v1-core[corev1.MountPropagationMode] | false
+m| subPathExpr | Expanded path within the volume from which the container's volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment. Defaults to \"\" (volume's root). SubPathExpr and SubPath are mutually exclusive. m| string | false
+m| items | If unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the ConfigMap, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#keytopath-v1-core[corev1.KeyToPath] | false
+m| defaultMode | Optional: mode bits to use on created files by default. Must be a value between 0 and 0777. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. m| &#42;int32 | false
+m| optional | Specify whether the ConfigMap or its keys must be defined m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -270,6 +268,7 @@ The JVM configuration.
 | Field | Description | Type | Required
 m| classpath | Classpath specifies additional items to add to the classpath of the JVM. m| []string | false
 m| args | Args specifies the options (System properties, -XX: args etc) to pass to the JVM. m| []string | false
+m| loggingConfig | The name of the Java Util Logging configuration file to use. This value should be the full path to the configuration file. This value is used to directly set the -Djava.util.logging.config.file System property. If not set a default configuration file injected by the Operator will be used. m| &#42;string | false
 m| debug | The settings for enabling debug mode in the JVM. m| &#42;<<JvmDebugSpec,JvmDebugSpec>> | false
 m| useContainerLimits | If set to true Adds the  -XX:+UseContainerSupport JVM option to ensure that the JVM respects any container resource limits. The default value is true m| &#42;bool | false
 m| flightRecorder | If set to true, enabled continuour flight recorder recordings. This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps m| &#42;bool | false
@@ -361,44 +360,7 @@ LocalObjectReference contains enough information to let you locate the reference
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| name | Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names m| string | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== LoggingConfigTemplate
-
-A struct used when converting the fluentd config template to a string using go templating.
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| Cluster | &#160; m| string | false
-m| DeploymentName | &#160; m| string | false
-m| RoleName | &#160; m| string | false
-m| Logging | &#160; m| &#42;<<LoggingSpec,LoggingSpec>> | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== LoggingSpec
-
-LoggingSpec defines the settings for the Coherence Pod logging
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| configFile | ConfigFileInclude allows the location of the Java util logging configuration file to be overridden. +
- If this value is not set the logging.properties file embedded in this chart will be used. + +
- If this value is set the configuration will be located by trying the following locations in order: + +
-   1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging + +
-        properties file will be located as a file location relative to the ConfigMap volume mount point. + +
-   2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the + +
-        configuration files directory in the user artifacts image. + +
-   3. Using this value as an absolute file name. + m| &#42;string | false
-m| configMapName | ConfigMapName allows a config map to be mounted as a volume containing the logging +
- configuration file to use. + m| &#42;string | false
-m| fluentd | Configures whether Fluentd is enabled and the configuration of the Fluentd side-car container m| &#42;<<FluentdSpec,FluentdSpec>> | false
+m| name | Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names m| string | true
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -410,7 +372,7 @@ m| fluentd | Configures whether Fluentd is enabled and the configuration of the 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| name | Name specifies the name of th port. m| string | false
+m| name | Name specifies the name of th port. m| string | true
 m| serviceMonitor | A flag that, when true, indicates that a Prometheus ServiceMonitor resource should be created for the Service being exposed for this port. m| &#42;<<ServiceMonitorSpec,ServiceMonitorSpec>> | false
 |===
 
@@ -624,6 +586,28 @@ m| probe | The probe to use to determine whether a deployment is Phase HA. If no
 
 <<Table of Contents,Back to TOC>>
 
+=== SecretVolumeSpec
+
+Represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
+see: <<misc_pod_settings/030_secret_volumes.adoc,Add Secret Volumes>>
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| name | The name of the Secret to mount. This will also be used as the name of the Volume added to the Pod if the VolumeName field is not set. m| string | true
+m| mountPath | Path within the container at which the volume should be mounted.  Must not contain ':'. m| string | true
+m| volumeName | The optional name to use for the Volume added to the Pod. If not set, the Secret name will be used as the VolumeName. m| string | false
+m| readOnly | Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false. m| bool | false
+m| subPath | Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). m| string | false
+m| mountPropagation | mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#mountpropagationmode-v1-core[corev1.MountPropagationMode] | false
+m| subPathExpr | Expanded path within the volume from which the container's volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment. Defaults to \"\" (volume's root). SubPathExpr and SubPath are mutually exclusive. m| string | false
+m| items | If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the Secret, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#keytopath-v1-core[corev1.KeyToPath] | false
+m| defaultMode | Optional: mode bits to use on created files by default. Must be a value between 0 and 0777. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. m| &#42;int32 | false
+m| optional | Specify whether the Secret or its keys must be defined m| &#42;bool | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
 === ServiceMonitorSpec
 
 The ServiceMonitor spec for a port service.
@@ -678,7 +662,7 @@ StartQuorum defines the order that deployments will be started in a Coherence cl
 |===
 | Field | Description | Type | Required
 m| deployment | The name of deployment that this deployment depends on. m| string | true
-m| namespace | The namespace that the deployment that this deployment depends on is installed into. Default to the same namespace as this deployment m| string | true
+m| namespace | The namespace that the deployment that this deployment depends on is installed into. Default to the same namespace as this deployment m| string | false
 m| podCount | The number of the Pods that should have been started before this deployments will be started, defaults to all Pods for the deployment. m| int32 | false
 |===
 

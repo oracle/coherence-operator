@@ -54,24 +54,6 @@ func TestDeploymentWithLoggingConfigFile(t *testing.T) {
 	assertLogConfigOnMembers(g, namespace, "test", defaultReplicas, 5)
 }
 
-func TestDeploymentWithLoggingConfigMap(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	createLoggingConfigMap(g, namespace)
-
-	AssertDeploymentsWithContext(t, ctx, "deployment-with-log-configmap.yaml")
-
-	assertLogConfigOnMembers(g, namespace, "test", defaultReplicas, 5)
-
-	deleteLoggingConfigMap(namespace)
-}
-
 // ----- helpers ------------------------------------------------------------
 
 // Delete logging-config-map from the given namespace

@@ -38,9 +38,59 @@ func TestCreateStatefulSetWithOneExtraContainer(t *testing.T) {
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
+
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, c)
+
+	// Create expected container
+	conExpected := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+
+	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, conExpected)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithOneExtraContainerWithOverriddenEnvVar(t *testing.T) {
+	c := corev1.Container{
+		Name:  "one",
+		Image: "image-one:1.0",
+		Env: []corev1.EnvVar{
+			{Name: "foo", Value: "bar"},
+			{Name: coh.EnvVarCohRole, Value: "overridden"},
+		},
+	}
+	spec := coh.CoherenceDeploymentSpec{
+		AdditionalContainers: []corev1.Container{c},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+
+	// Create expected container
+	env := append(deployment.Spec.CreateCommonEnv(deployment), corev1.EnvVar{Name: "foo", Value: "bar"})
+	for i, e := range env {
+		if e.Name == coh.EnvVarCohRole {
+			env[i] = corev1.EnvVar{Name: coh.EnvVarCohRole, Value: "overridden"}
+		}
+	}
+
+	conExpected := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          env,
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+
+	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, conExpected)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -63,7 +113,23 @@ func TestCreateStatefulSetWithTwoExtraContainers(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, c1, c2)
+
+	// Create expected container1
+	conExpected1 := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+	// Create expected container2
+	conExpected2 := corev1.Container{
+		Name:         "two",
+		Image:        "image-two:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+
+	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, conExpected1, conExpected2)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -97,7 +163,16 @@ func TestCreateStatefulSetWithOneExtraInitContainer(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.InitContainers = append(stsExpected.Spec.Template.Spec.InitContainers, c)
+
+	// Create expected container
+	conExpected := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+
+	stsExpected.Spec.Template.Spec.InitContainers = append(stsExpected.Spec.Template.Spec.InitContainers, conExpected)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -120,7 +195,23 @@ func TestCreateStatefulSetWithTwoExtraInitContainers(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.InitContainers = append(stsExpected.Spec.Template.Spec.InitContainers, c1, c2)
+
+	// Create expected container1
+	conExpected1 := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+	// Create expected container2
+	conExpected2 := corev1.Container{
+		Name:         "two",
+		Image:        "image-two:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: deployment.Spec.CreateCommonVolumeMounts(),
+	}
+
+	stsExpected.Spec.Template.Spec.InitContainers = append(stsExpected.Spec.Template.Spec.InitContainers, conExpected1, conExpected2)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

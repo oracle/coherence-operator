@@ -58,7 +58,7 @@ func IsPrometheusInstalled() (bool, corev1.Pod, error) {
 	if err != nil {
 		return false, corev1.Pod{}, err
 	}
-	promNamespace := helper.GetPrometheusNamespace()
+	promNamespace := helper.GetTestNamespace()
 	promPods, err := helper.ListPodsWithLabelSelector(cl, promNamespace, "app=prometheus,prometheus=prometheus")
 	if err != nil || len(promPods) == 0 {
 		return false, corev1.Pod{}, err

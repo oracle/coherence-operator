@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: efk-config
+  labels:
+    component: coherence-efk-config
+data:
+  fluentd-coherence.conf: |
+    # Ignore fluentd messages
+    <match fluent.**>
+      @type null
+    </match>
+
+    # Coherence Logs
+    <source>
+      @type tail
+      path /logs/coherence-*.log
+      pos_file /tmp/cohrence.log.pos
+      read_from_head true
+      tag coherence-cluster
+      multiline_flush_interval 20s
+      <parse>
+       @type multiline
+       format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+       format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+      </parse>
+    </source>
+
+    <filter coherence-cluster>
+     @type record_transformer
+     <record>
+       cluster "#{ENV['COH_CLUSTER_NAME']}"
+       role "#{ENV['COH_ROLE']}"
+       host "#{ENV['HOSTNAME']}"
+       pod-uid "#{ENV['COH_POD_UID']}"
+     </record>
+    </filter>
+
+    <match coherence-cluster>
+      @type elasticsearch
+      hosts "http://elasticsearch-master:9200"
+      logstash_format true
+      logstash_prefix coherence-cluster
+    </match>

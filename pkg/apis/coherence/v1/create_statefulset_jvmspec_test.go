@@ -97,6 +97,42 @@ func TestCreateStatefulSetWithJvmSpecWithClasspath(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
+func TestCreateStatefulSetWithJvmSpecWithLoggingConfigEmpty(t *testing.T) {
+
+	spec := coh.CoherenceDeploymentSpec{
+		JVM: &coh.JVMSpec{
+			LoggingConfig: stringPtr(""),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	//	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: coh.DefaultLoggingConfig})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
+
+	spec := coh.CoherenceDeploymentSpec{
+		JVM: &coh.JVMSpec{
+			UseContainerLimits: boolPtr(true),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: coh.DefaultLoggingConfig})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
 func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 
 	spec := coh.CoherenceDeploymentSpec{
@@ -109,7 +145,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_USE_CONTAINER_LIMITS", Value: "true"})
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -127,7 +163,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsFalse(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_USE_CONTAINER_LIMITS", Value: "false"})
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

@@ -196,7 +196,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.CoherenceDeployment) *apps
 				Value: fmt.Sprintf("%d", spec.GetHealthPort()),
 			},
 			{
-				Name:  "COH_LOGGING_CONFIG",
+				Name:  "JVM_LOGGING_CONFIG",
 				Value: coh.ScriptsDir + "/logging.properties",
 			},
 			{
@@ -301,9 +301,19 @@ func createMinimalExpectedStatefulSet(deployment *coh.CoherenceDeployment) *apps
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
-				Name:      coh.VolumeNameUtils,
+				Name:      coh.VolumeNameJVM,
+				MountPath: coh.VolumeMountPathJVM,
 				ReadOnly:  false,
+			},
+			{
+				Name:      coh.VolumeNameLogs,
+				MountPath: coh.VolumeMountPathLogs,
+				ReadOnly:  false,
+			},
+			{
+				Name:      coh.VolumeNameUtils,
 				MountPath: coh.VolumeMountPathUtils,
+				ReadOnly:  false,
 			},
 		},
 	}

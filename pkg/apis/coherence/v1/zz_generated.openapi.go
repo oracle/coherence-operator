@@ -22,7 +22,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.ApplicationSpec":         schema_pkg_apis_coherence_v1_ApplicationSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceDeploymentSpec": schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
-		"./pkg/apis/coherence/v1.FluentdSpec":             schema_pkg_apis_coherence_v1_FluentdSpec(ref),
+		"./pkg/apis/coherence/v1.ConfigMapVolumeSpec":     schema_pkg_apis_coherence_v1_ConfigMapVolumeSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
 		"./pkg/apis/coherence/v1.JvmDebugSpec":            schema_pkg_apis_coherence_v1_JvmDebugSpec(ref),
@@ -30,7 +30,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.JvmJmxmpSpec":            schema_pkg_apis_coherence_v1_JvmJmxmpSpec(ref),
 		"./pkg/apis/coherence/v1.JvmMemorySpec":           schema_pkg_apis_coherence_v1_JvmMemorySpec(ref),
 		"./pkg/apis/coherence/v1.JvmOutOfMemorySpec":      schema_pkg_apis_coherence_v1_JvmOutOfMemorySpec(ref),
-		"./pkg/apis/coherence/v1.LoggingSpec":             schema_pkg_apis_coherence_v1_LoggingSpec(ref),
 		"./pkg/apis/coherence/v1.NamedPortSpec":           schema_pkg_apis_coherence_v1_NamedPortSpec(ref),
 		"./pkg/apis/coherence/v1.NetworkSpec":             schema_pkg_apis_coherence_v1_NetworkSpec(ref),
 		"./pkg/apis/coherence/v1.PersistenceSpec":         schema_pkg_apis_coherence_v1_PersistenceSpec(ref),
@@ -43,6 +42,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.SSLSpec":                 schema_pkg_apis_coherence_v1_SSLSpec(ref),
 		"./pkg/apis/coherence/v1.ScalingProbe":            schema_pkg_apis_coherence_v1_ScalingProbe(ref),
 		"./pkg/apis/coherence/v1.ScalingSpec":             schema_pkg_apis_coherence_v1_ScalingSpec(ref),
+		"./pkg/apis/coherence/v1.SecretVolumeSpec":        schema_pkg_apis_coherence_v1_SecretVolumeSpec(ref),
 		"./pkg/apis/coherence/v1.ServiceMonitorSpec":      schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref),
 		"./pkg/apis/coherence/v1.ServiceSpec":             schema_pkg_apis_coherence_v1_ServiceSpec(ref),
 		"./pkg/apis/coherence/v1.StartQuorum":             schema_pkg_apis_coherence_v1_StartQuorum(ref),
@@ -202,12 +202,6 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 						SchemaProps: spec.SchemaProps{
 							Description: "The configuration for the Coherence utils image",
 							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
-						},
-					},
-					"logging": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Logging allows configuration of Coherence and java util logging.",
-							Ref:         ref("./pkg/apis/coherence/v1.LoggingSpec"),
 						},
 					},
 					"jvm": {
@@ -510,11 +504,53 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 							},
 						},
 					},
+					"configMapVolumes": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("./pkg/apis/coherence/v1.ConfigMapVolumeSpec"),
+									},
+								},
+							},
+						},
+					},
+					"secretVolumes": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("./pkg/apis/coherence/v1.SecretVolumeSpec"),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.LoggingSpec", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.NetworkSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "./pkg/apis/coherence/v1.StartQuorum", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.Container", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.PodSecurityContext", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
+			"./pkg/apis/coherence/v1.ApplicationSpec", "./pkg/apis/coherence/v1.CoherenceSpec", "./pkg/apis/coherence/v1.ConfigMapVolumeSpec", "./pkg/apis/coherence/v1.ImageSpec", "./pkg/apis/coherence/v1.JVMSpec", "./pkg/apis/coherence/v1.LocalObjectReference", "./pkg/apis/coherence/v1.NamedPortSpec", "./pkg/apis/coherence/v1.NetworkSpec", "./pkg/apis/coherence/v1.ReadinessProbeSpec", "./pkg/apis/coherence/v1.ScalingSpec", "./pkg/apis/coherence/v1.SecretVolumeSpec", "./pkg/apis/coherence/v1.StartQuorum", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.Container", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.PersistentVolumeClaim", "k8s.io/api/core/v1.PodSecurityContext", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.Toleration", "k8s.io/api/core/v1.Volume", "k8s.io/api/core/v1.VolumeMount"},
 	}
 }
 
@@ -593,135 +629,103 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 	}
 }
 
-func schema_pkg_apis_coherence_v1_FluentdSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_coherence_v1_ConfigMapVolumeSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "FluentdSpec defines the settings for the fluentd image",
+				Description: "Represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"image": {
+					"name": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
+							Description: "The name of the ConfigMap to mount. This will also be used as the name of the Volume added to the Pod if the VolumeName field is not set.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"imagePullPolicy": {
+					"mountPath": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images",
+							Description: "Path within the container at which the volume should be mounted.  Must not contain ':'.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"enabled": {
+					"volumeName": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.",
+							Description: "The optional name to use for the Volume added to the Pod. If not set, the ConfigMap name will be used as the VolumeName.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"readOnly": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
-					"configFileInclude": {
+					"subPath": {
 						SchemaProps: spec.SchemaProps{
-							Description: "An optional Fluentd configuration file to be added as an @include to the main Fluentd configuration.",
+							Description: "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root).",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"configFileOverride": {
+					"mountPropagation": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The Fluentd configuration file to use. This file will completely override the default Fluentd configuration normally provided by the Coherence Operator.",
+							Description: "mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"tag": {
+					"subPathExpr": {
 						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the source.tag from fluentd configFile.",
+							Description: "Expanded path within the volume from which the container's volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment. Defaults to \"\" (volume's root). SubPathExpr and SubPath are mutually exclusive.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
-					"sslVersion": {
+					"items": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"key",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the to use to set the fluentd ssl_version parameter in the fluentd configFile.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "If unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the ConfigMap, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.KeyToPath"),
+									},
+								},
+							},
 						},
 					},
-					"sslMinVersion": {
+					"defaultMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the to use to set the fluentd ssl_min_version parameter in the fluentd configFile.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Optional: mode bits to use on created files by default. Must be a value between 0 and 0777. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
-					"sslMaxVersion": {
+					"optional": {
 						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the to use to set the fluentd ssl_max_version parameter in the fluentd configFile.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"sslVerify": {
-						SchemaProps: spec.SchemaProps{
-							Description: "This value should be the to use to set the fluentd ssl_verify parameter in the fluentd configFile.",
+							Description: "Specify whether the ConfigMap or its keys must be defined",
 							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"esHosts": {
-						SchemaProps: spec.SchemaProps{
-							Description: "A comma delimited string of Elasticsearch hosts. These will be used for the hosts variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esUser": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The Elasticsearch user name. This will be used for the user variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esPassword": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The Elasticsearch password. This will be used for the user variable in the ES section of the Fluentd configuration as described in https://docs.fluentd.org/output/elasticsearch",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esSecret": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The name of the Secret to use to obtain the Elasticsearch details.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esSecretHostsKey": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The key in the secret to use to obtain the Elasticsearch hosts value. If the EsHosts field has a value that will take precedence over the value from the secret. If not specified the default value will be \"hosts\"",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esSecretUserKey": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The key in the secret to use to obtain the Elasticsearch user name value. If the EsUser field has a value that will take precedence over the value from the secret. If not specified the default value will be \"user\"",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"esSecretPasswordKey": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The key in the secret to use to obtain the Elasticsearch password value. If the EsPassword field has a value that will take precedence over the value from the secret. If not specified the default value will be \"password\"",
-							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 				},
+				Required: []string{"name", "mountPath"},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.KeyToPath"},
 	}
 }
 
@@ -795,6 +799,13 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 									},
 								},
 							},
+						},
+					},
+					"loggingConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the Java Util Logging configuration file to use. This value should be the full path to the configuration file. This value is used to directly set the -Djava.util.logging.config.file System property. If not set a default configuration file injected by the Operator will be used.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"debug": {
@@ -1052,41 +1063,6 @@ func schema_pkg_apis_coherence_v1_JvmOutOfMemorySpec(ref common.ReferenceCallbac
 	}
 }
 
-func schema_pkg_apis_coherence_v1_LoggingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "LoggingSpec defines the settings for the Coherence Pod logging",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"configFile": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ConfigFileInclude allows the location of the Java util logging configuration file to be overridden.\n If this value is not set the logging.properties file embedded in this chart will be used.\n If this value is set the configuration will be located by trying the following locations in order:\n   1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging\n        properties file will be located as a file location relative to the ConfigMap volume mount point.\n   2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the\n        configuration files directory in the user artifacts image.\n   3. Using this value as an absolute file name.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"configMapName": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ConfigMapName allows a config map to be mounted as a volume containing the logging\n configuration file to use.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"fluentd": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Configures whether Fluentd is enabled and the configuration of the Fluentd side-car container",
-							Ref:         ref("./pkg/apis/coherence/v1.FluentdSpec"),
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.FluentdSpec"},
-	}
-}
-
 func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1149,6 +1125,7 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 						},
 					},
 				},
+				Required: []string{"name"},
 			},
 		},
 		Dependencies: []string{
@@ -1731,6 +1708,106 @@ func schema_pkg_apis_coherence_v1_ScalingSpec(ref common.ReferenceCallback) comm
 	}
 }
 
+func schema_pkg_apis_coherence_v1_SecretVolumeSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the Secret to mount. This will also be used as the name of the Volume added to the Pod if the VolumeName field is not set.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"mountPath": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Path within the container at which the volume should be mounted.  Must not contain ':'.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"volumeName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The optional name to use for the Volume added to the Pod. If not set, the Secret name will be used as the VolumeName.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"readOnly": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"subPath": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root).",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"mountPropagation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"subPathExpr": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Expanded path within the volume from which the container's volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment. Defaults to \"\" (volume's root). SubPathExpr and SubPath are mutually exclusive.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"items": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"key",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the Secret, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.KeyToPath"),
+									},
+								},
+							},
+						},
+					},
+					"defaultMode": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Optional: mode bits to use on created files by default. Must be a value between 0 and 0777. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"optional": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specify whether the Secret or its keys must be defined",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"name", "mountPath"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.KeyToPath"},
+	}
+}
+
 func schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2018,6 +2095,7 @@ func schema_pkg_apis_coherence_v1_StartQuorum(ref common.ReferenceCallback) comm
 						},
 					},
 				},
+				Required: []string{"deployment"},
 			},
 		},
 	}

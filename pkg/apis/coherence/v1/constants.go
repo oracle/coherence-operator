@@ -24,13 +24,10 @@ const (
 	LabelComponentCoherenceStatefulSet = "coherence"
 	LabelComponentCoherencePod         = "coherencePod"
 	LabelComponentCoherenceHeadless    = "coherence-headless"
-	LabelComponentEfkConfig            = "coherence-efk-config"
 	LabelComponentPVC                  = "coherence-volume"
 	LabelComponentPortService          = "coherence-service"
 	LabelComponentPortServiceMonitor   = "coherence-service-monitor"
 	LabelComponentWKA                  = "coherenceWkaService"
-
-	EfkConfigMapNameTemplate = "%s-efk-config"
 
 	StatusSelectorTemplate = LabelCoherenceCluster + "=%s," + LabelCoherenceDeployment + "=%s"
 
@@ -43,32 +40,24 @@ const (
 	// Container Names
 	ContainerNameCoherence = "coherence"
 	ContainerNameUtils     = "coherence-k8s-utils"
-	ContainerNameFluentd   = "fluentd"
 
 	// Volume names
-	VolumeNamePersistence     = "persistence-volume"
-	VolumeNameSnapshots       = "snapshot-volume"
-	VolumeNameLogs            = "log-dir"
-	VolumeNameUtils           = "utils-dir"
-	VolumeNameJVM             = "jvm"
-	VolumeNameFluentdConfig   = "fluentd-coherence-conf"
-	VolumeNameFluentdEsConfig = "fluentd-es-config"
-	VolumeNameManagementSSL   = "management-ssl-config"
-	VolumeNameMetricsSSL      = "metrics-ssl-config"
-	VolumeNameLoggingConfig   = "logging-config"
+	VolumeNamePersistence   = "persistence-volume"
+	VolumeNameSnapshots     = "snapshot-volume"
+	VolumeNameLogs          = "logs"
+	VolumeNameUtils         = "coh-utils"
+	VolumeNameJVM           = "jvm"
+	VolumeNameManagementSSL = "management-ssl-config"
+	VolumeNameMetricsSSL    = "metrics-ssl-config"
 
 	// Volume mount paths
-	VolumeMountPathPersistence       = "/persistence"
-	VolumeMountPathSnapshots         = "/snapshot"
-	VolumeMountPathUtils             = UtilsDir
-	VolumeMountPathJVM               = "/jvm"
-	VolumeMountPathLogs              = "/logs"
-	VolumeMountPathManagementCerts   = "/coherence/certs/management"
-	VolumeMountPathMetricsCerts      = "/coherence/certs/metrics"
-	VolumeMountPathLoggingConfig     = "/loggingconfig"
-	VolumeMountPathFluentdConfigBase = "/fluentd/etc/"
-	VolumeMountSubPathFluentdConfig  = "fluentd-coherence.conf"
-	VolumeMountPathFluentdConfig     = VolumeMountPathFluentdConfigBase + VolumeMountSubPathFluentdConfig
+	VolumeMountPathPersistence     = "/persistence"
+	VolumeMountPathSnapshots       = "/snapshot"
+	VolumeMountPathUtils           = UtilsDir
+	VolumeMountPathJVM             = "/jvm"
+	VolumeMountPathLogs            = "/logs"
+	VolumeMountPathManagementCerts = "/coherence/certs/management"
+	VolumeMountPathMetricsCerts    = "/coherence/certs/metrics"
 
 	UtilFilesDir     = "/files"
 	UtilsDir         = "/utils"
@@ -102,8 +91,6 @@ const (
 	DefaultReadinessPath = "/ready"
 	DefaultLivenessPath  = "/healthz"
 
-	DefaultFluentdImage = "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
-
 	EnvVarAppType                     = "APP_TYPE"
 	EnvVarAppMainClass                = "COH_MAIN_CLASS"
 	EnvVarAppMainArgs                 = "COH_MAIN_ARGS"
@@ -131,7 +118,6 @@ const (
 	EnvVarCohPersistenceMode          = "COH_PERSISTENCE_MODE"
 	EnvVarCohPersistenceDir           = "COH_PERSISTENCE_DIR"
 	EnvVarCohSnapshotDir              = "COH_SNAPSHOT_DIR"
-	EnvVarCohLoggingConfig            = "COH_LOGGING_CONFIG"
 	EnvVarCohMgmtPrefix               = "COH_MGMT"
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
@@ -165,6 +151,7 @@ const (
 	EnvVarJvmGcArgs                   = "JVM_GC_ARGS"
 	EnvVarJvmGcCollector              = "JVM_GC_COLLECTOR"
 	EnvVarJvmGcLogging                = "JVM_GC_LOGGING"
+	EnvVarJvmLoggingConfig            = "JVM_LOGGING_CONFIG"
 	EnvVarJvmMemoryHeap               = "JVM_HEAP_SIZE"
 	EnvVarJvmMemoryDirect             = "JVM_DIRECT_MEMORY_SIZE"
 	EnvVarJvmMemoryStack              = "JVM_STACK_SIZE"
@@ -174,98 +161,4 @@ const (
 	EnvVarJvmOomHeapDump              = "JVM_OOM_HEAP_DUMP"
 	EnvVarJvmJmxmpEnabled             = "JVM_JMXMP_ENABLED"
 	EnvVarJvmJmxmpPort                = "JVM_JMXMP_PORT"
-	EnvVarFluentdPodID                = "COHERENCE_POD_ID"
-	EnvVarFluentdConf                 = "FLUENTD_CONF"
-	EnvVarFluentdSedDisable           = "FLUENT_ELASTICSEARCH_SED_DISABLE"
-	EnvVarFluentdEsHosts              = "ELASTICSEARCH_HOSTS"
-	EnvVarFluentdEsUser               = "ELASTICSEARCH_USER"
-	EnvVarFluentdEsCreds              = "ELASTICSEARCH_PASSWORD"
 )
-
-const EfkConfig = `# Coherence fluentd configuration
-{{- if .Logging.Fluentd }}
-{{-   if .Logging.Fluentd.ConfigFileInclude }}
-@include {{ .Logging.Fluentd.ConfigFileInclude }}
-{{-   end }}
-{{- end }}
-
-# Ignore fluentd messages
-<match fluent.**>
-  @type null
-</match>
-
-# Coherence Logs
-<source>
-  @type tail
-  path /logs/coherence-*.log
-  pos_file /tmp/cohrence.log.pos
-  read_from_head true
-  tag coherence-cluster
-  multiline_flush_interval 20s
-  <parse>
-    @type multiline
-    format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
-    format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
-  </parse>
-</source>
-
-<filter coherence-cluster>
-  @type record_transformer
-  <record>
-    cluster "{{ .Cluster }}"
-    deployment "{{ .DeploymentName }}"
-    role "{{ .RoleName }}"
-    host "#{ENV['HOSTNAME']}"
-    pod-uid "#{ENV['COHERENCE_POD_ID']}"
-  </record>
-</filter>
-
-<match coherence-cluster>
-  @type elasticsearch
-  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
-  user "#{ENV['ELASTICSEARCH_USER']}"
-  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
-  logstash_format true
-  logstash_prefix coherence-cluster
-{{- if .Logging.Fluentd }}
-{{-   if .Logging.Fluentd.SSLVerify }}
-  ssl_verify {{ .Logging.Fluentd.SSLVerify }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLVersion }}
-  ssl_version {{ .Logging.Fluentd.SSLVersion }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLMinVersion }}
-  ssl_min_version {{ .Logging.Fluentd.SSLMinVersion }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLMaxVersion }}
-  ssl_max_version {{ .Logging.Fluentd.SSLMaxVersion }}
-{{-   end }}
-{{- end }}
-</match>
-
-{{- if .Logging.Fluentd }}
-{{-   if .Logging.Fluentd.Tag }}
-<match {{ .Logging.Fluentd.Tag }} >
-  @type elasticsearch
-  hosts "#{ENV['ELASTICSEARCH_HOSTS']}"
-  user "#{ENV['ELASTICSEARCH_USER']}"
-  password "#{ENV['ELASTICSEARCH_PASSWORD']}"
-  logstash_format true
-  logstash_prefix {{ .Logging.Fluentd.Tag }}
-{{- if .Logging.Fluentd }}
-{{-   if .Logging.Fluentd.SSLVerify }}
-  ssl_verify {{ .Logging.Fluentd.SSLVerify }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLVersion }}
-  ssl_version {{ .Logging.Fluentd.SSLVersion }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLMinVersion }}
-  ssl_min_version {{ .Logging.Fluentd.SSLMinVersion }}
-{{-   end }}
-{{-   if .Logging.Fluentd.SSLMaxVersion }}
-  ssl_max_version {{ .Logging.Fluentd.SSLMaxVersion }}
-{{-   end }}
-{{- end }}
-</match>
-{{-   end }}
-{{- end }}`

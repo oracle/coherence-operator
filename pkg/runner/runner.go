@@ -262,14 +262,12 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	configureSiteAndRack(details)
 
 	// Set the Coherence logging configuration
-	logCfg := details.Getenv(v1.EnvVarCohLoggingConfig)
-	if logCfg != "" {
-		_, err := os.Stat(logCfg)
-		if err == nil {
-			details.AddArg("-Dcoherence.log=jdk")
-			details.AddArg("-Dcoherence.log.logger=com.oracle.coherence")
-			details.AddArg("-Djava.util.logging.config.file=" + logCfg)
-		}
+	logCfg := details.GetenvOrDefault(v1.EnvVarJvmLoggingConfig, v1.DefaultLoggingConfig)
+	_, err := os.Stat(logCfg)
+	if err == nil {
+		details.AddArg("-Dcoherence.log=jdk")
+		details.AddArg("-Dcoherence.log.logger=com.oracle.coherence")
+		details.AddArg("-Djava.util.logging.config.file=" + logCfg)
 	}
 
 	// Set the Coherence log level
