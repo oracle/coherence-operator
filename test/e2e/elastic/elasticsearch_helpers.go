@@ -38,7 +38,7 @@ func AssertElasticsearchInstalled(t *testing.T) (*corev1.Pod, *corev1.Pod) {
 	cl, err := kubernetes.NewForConfig(cfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	namespace := helper.GetPrometheusNamespace()
+	namespace := helper.GetTestNamespace()
 
 	// Find the Elasticsearch Pods
 	pods, err := helper.ListPodsWithLabelSelector(cl, namespace, "app=elasticsearch-master")

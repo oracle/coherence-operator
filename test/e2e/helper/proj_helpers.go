@@ -303,7 +303,7 @@ func (in *CoherenceDeploymentLoader) loadYamlFromFile(template coh.CoherenceDepl
 		return deployments, nil
 	}
 
-	actualFile, err := in.findActualFile(file)
+	actualFile, err := FindActualFile(file)
 	if err != nil {
 		return deployments, err
 	}
@@ -336,7 +336,27 @@ func (in *CoherenceDeploymentLoader) loadYamlFromFile(template coh.CoherenceDepl
 	return deployments, nil
 }
 
-func (in *CoherenceDeploymentLoader) findActualFile(file string) (string, error) {
+// Load the specified value from the yaml file.
+func LoadFromYamlFile(file string, o interface{}) error {
+	actualFile, err := FindActualFile(file)
+	if err != nil {
+		return err
+	}
+
+	// read the whole file
+	data, err := ioutil.ReadFile(actualFile)
+	if err != nil {
+		return errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
+	}
+
+	// expand any ${env-var} references in the yaml file
+	s := os.ExpandEnv(string(data))
+
+	decoder := yaml.NewYAMLToJSONDecoder(strings.NewReader(s))
+	return decoder.Decode(o)
+}
+
+func FindActualFile(file string) (string, error) {
 	_, err := os.Stat(file)
 	if err == nil {
 		return file, nil

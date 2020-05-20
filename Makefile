@@ -54,7 +54,7 @@ OP_CHMOD     := $(shell chmod +x $(OPERATOR_SDK))
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 # The Coherence image name to inject into the Helm chart
-HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:12.2.1.4.0
+HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:14.1.1.0.0
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 RELEASE_IMAGE_PREFIX ?= "$(USER)/"
@@ -65,9 +65,6 @@ TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-jib:$(VERSIO
 
 RELEASE_DRY_RUN  ?= true
 PRE_RELEASE      ?= true
-
-# The EFK images to use
-FLUENTD_IMAGE       ?= fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3
 
 # Extra arguments to pass to the go test command for the various test steps.
 # For example, when running make e2e-test we can run just a single test such
@@ -86,7 +83,6 @@ TEST_NAMESPACE ?= operator-test
 CREATE_TEST_NAMESPACE ?= true
 
 # Prometheus Operator settings
-PROMETHEUS_HELMCHART_VERSION ?= 5.7.0
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
 PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
 
@@ -201,10 +197,6 @@ $(BUILD_PROPS):
 	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
 	UTILS_IMAGE=$(UTILS_IMAGE)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
-	ELASTICSEARCH_IMAGE=$(ELASTICSEARCH_IMAGE)\n\
-	FLUENTD_IMAGE=$(FLUENTD_IMAGE)\n\
-	KIBANA_IMAGE=$(KIBANA_IMAGE)\n\
-	PROMETHEUS_HELMCHART_VERSION=$(PROMETHEUS_HELMCHART_VERSION)\n\
 	VERSION_FULL=$(VERSION_FULL)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 

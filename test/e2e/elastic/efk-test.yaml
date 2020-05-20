@@ -7,8 +7,22 @@ spec:
   role: storage
   coherence:
     logLevel: 9
-  logging:
-    fluentd:
-      enabled: true
-      esHosts: http://elasticsearch-master:9200
+  configMapVolumes:
+    - name: "efk-config"
+      mountPath: "/fluentd/etc/fluentd-coherence.conf"
+      subPath: "fluentd-coherence.conf"
+  additionalContainers:
+    - name: fluentd
+      image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
+      args:
+        - "-vv"
+        - "-c"
+        - "/etc/fluent.conf"
+      env:
+        - name: "FLUENTD_CONF"
+          value: "fluentd-coherence.conf"
+        - name: "FLUENT_ELASTICSEARCH_SED_DISABLE"
+          value: "true"
+        - name: "ELASTICSEARCH_HOSTS"
+          value: "http://elasticsearch-master:9200"
 

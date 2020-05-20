@@ -7,11 +7,12 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	es "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	. "github.com/onsi/gomega"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/oracle/coherence-operator/test/e2e/local"
 	corev1 "k8s.io/api/core/v1"
@@ -22,6 +23,7 @@ import (
 
 func TestElasticSearch(t *testing.T) {
 	g := NewGomegaWithT(t)
+	f := framework.Global
 
 	// Create the Operator SDK test context
 	ctx := helper.CreateTestContext(t)
@@ -29,6 +31,16 @@ func TestElasticSearch(t *testing.T) {
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	esPod, kPod := AssertElasticsearchInstalled(t)
+
+	// Create the ConfigMap with the Fluentd config
+	cm := &corev1.ConfigMap{}
+	err := helper.LoadFromYamlFile("efk-configmap.yaml", cm)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	cm.SetNamespace(helper.GetTestNamespace())
+
+	err = f.Client.Create(context.TODO(), cm, helper.DefaultCleanup(ctx))
+	g.Expect(err).ToNot(HaveOccurred())
 
 	// Create an Elasticsearch client
 	cl := ESClient{Pod: esPod}
@@ -40,7 +52,7 @@ func TestElasticSearch(t *testing.T) {
 	assertAllHaveFluentdContainers(t, pods)
 
 	// It can take a while for things to start to appear in Elasticsearch so wait...
-	err := cl.WaitForCoherenceIndices(t, time.Second*5, time.Minute*10)
+	err = cl.WaitForCoherenceIndices(t, time.Second*5, time.Minute*5)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	assertHaveLogsFromAllCoherencePods(t, cl, pods)
@@ -67,7 +79,7 @@ func assertAllHaveFluentdContainers(t *testing.T, pods []corev1.Pod) {
 	for _, pod := range pods {
 		found := false
 		for _, c := range pod.Spec.Containers {
-			if c.Name == coh.ContainerNameFluentd {
+			if c.Name == "fluentd" {
 				found = true
 				break
 			}

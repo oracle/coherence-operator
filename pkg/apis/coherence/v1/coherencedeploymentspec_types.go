@@ -71,9 +71,6 @@ type CoherenceDeploymentSpec struct {
 	// The configuration for the Coherence utils image
 	// +optional
 	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
-	// Logging allows configuration of Coherence and java util logging.
-	// +optional
-	Logging *LoggingSpec `json:"logging,omitempty"`
 	// The JVM specific options
 	// +optional
 	JVM *JVMSpec `json:"jvm,omitempty"`
@@ -205,6 +202,20 @@ type CoherenceDeploymentSpec struct {
 	// +listType=map
 	// +listMapKey=name
 	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
+	// A list of ConfigMaps to add as volumes.
+	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
+	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
+	// +listType=map
+	// +listMapKey=name
+	ConfigMapVolumes []ConfigMapVolumeSpec `json:"configMapVolumes,omitempty"`
+	// A list of Secrets to add as volumes.
+	// Each entry in the list will be added as a Secret Volume to the deployment's
+	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
+	// +listType=map
+	// +listMapKey=name
+	SecretVolumes []SecretVolumeSpec `json:"secretVolumes,omitempty"`
 }
 
 // Obtain the number of replicas required for a deployment.
@@ -331,15 +342,6 @@ func (in *CoherenceDeploymentSpec) CreateKubernetesResources(d *CoherenceDeploym
 	if in.GetReplicas() <= 0 {
 		// replicas is zero so nothing to create
 		return Resources{Items: res}, nil
-	}
-
-	// Create the fluentd ConfigMap if required
-	cm, err := in.Logging.CreateFluentdConfigMap(d)
-	if err != nil {
-		return Resources{}, err
-	}
-	if cm != nil {
-		res = append(res, *cm)
 	}
 
 	// Create the headless WKA Service
@@ -553,17 +555,18 @@ func (in *CoherenceDeploymentSpec) CreateStatefulSet(deployment *CoherenceDeploy
 	in.JVM.UpdateStatefulSet(&sts)
 	// Add any Coherence settings
 	in.Coherence.UpdateStatefulSet(deployment, &sts)
-	// Add any logging settings
-	in.Logging.UpdateStatefulSet(&sts)
 
-	// Add any additional init-containers
-	if in.AdditionalInitContainers != nil && len(in.AdditionalInitContainers) > 0 {
-		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, in.AdditionalInitContainers...)
+	// Add any additional init-containers and any additional containers
+	in.ProcessAdditionalContainers(deployment, &sts)
+
+	// Add any ConfigMap Volumes
+	for _, cmv := range in.ConfigMapVolumes {
+		cmv.AddVolumes(&sts)
 	}
 
-	// Add any additional containers
-	if in.AdditionalContainers != nil && len(in.AdditionalContainers) > 0 {
-		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, in.AdditionalContainers...)
+	// Add any Secret Volumes
+	for _, sv := range in.SecretVolumes {
+		sv.AddVolumes(&sts)
 	}
 
 	// append any additional Volumes
@@ -609,6 +612,7 @@ func (in *CoherenceDeploymentSpec) CreateCoherenceContainer(deployment *Coherenc
 	}
 
 	healthPort := in.GetHealthPort()
+	vm := in.CreateCommonVolumeMounts()
 
 	c := corev1.Container{
 		Name:    ContainerNameCoherence,
@@ -627,11 +631,7 @@ func (in *CoherenceDeploymentSpec) CreateCoherenceContainer(deployment *Coherenc
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
-		VolumeMounts: []corev1.VolumeMount{
-			{Name: VolumeNameLogs, MountPath: VolumeMountPathLogs},
-			{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
-			{Name: VolumeNameJVM, MountPath: VolumeMountPathJVM},
-		},
+		VolumeMounts: vm,
 	}
 
 	if in.ImagePullPolicy != nil {
@@ -659,10 +659,18 @@ func (in *CoherenceDeploymentSpec) CreateCoherenceContainer(deployment *Coherenc
 	return c
 }
 
-// Create the default environment variables.
-func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeployment) []corev1.EnvVar {
+// Create the common VolumeMounts added all containers.
+func (in *CoherenceDeploymentSpec) CreateCommonVolumeMounts() []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		{Name: VolumeNameLogs, MountPath: VolumeMountPathLogs},
+		{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
+		{Name: VolumeNameJVM, MountPath: VolumeMountPathJVM},
+	}
+}
+
+// Create the common environment variables added all.
+func (in *CoherenceDeploymentSpec) CreateCommonEnv(deployment *CoherenceDeployment) []corev1.EnvVar {
 	return []corev1.EnvVar{
-		{Name: EnvVarCohWka, Value: deployment.GetWkaServiceName()},
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
@@ -684,7 +692,16 @@ func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeploym
 				},
 			},
 		},
-		{
+		{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
+		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
+	}
+}
+
+// Create the default environment variables for the Coherence container.
+func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeployment) []corev1.EnvVar {
+	return append(in.CreateCommonEnv(deployment),
+		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.GetWkaServiceName()},
+		corev1.EnvVar{
 			Name: EnvVarOperatorHost, ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: OperatorConfigName},
@@ -693,14 +710,12 @@ func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeploym
 				},
 			},
 		},
-		{Name: EnvVarCohSite, Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"},
-		{Name: EnvVarCohRack, Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"},
-		{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
-		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
-		{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
-		{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
-		{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
-	}
+		corev1.EnvVar{Name: EnvVarCohSite, Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"},
+		corev1.EnvVar{Name: EnvVarCohRack, Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"},
+		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
+		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
+		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
+	)
 }
 
 // Create the default Container resources.
@@ -766,6 +781,8 @@ func (in *CoherenceDeploymentSpec) CreateUtilsContainer(deployment *CoherenceDep
 		utilsImage = in.CoherenceUtils.Image
 	}
 
+	vm := in.CreateCommonVolumeMounts()
+
 	c := corev1.Container{
 		Name:    ContainerNameUtils,
 		Image:   *utilsImage,
@@ -774,9 +791,7 @@ func (in *CoherenceDeploymentSpec) CreateUtilsContainer(deployment *CoherenceDep
 			{Name: "COH_UTIL_DIR", Value: VolumeMountPathUtils},
 			{Name: "COH_CLUSTER_NAME", Value: deployment.GetCoherenceClusterName()},
 		},
-		VolumeMounts: []corev1.VolumeMount{
-			{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
-		},
+		VolumeMounts: vm,
 	}
 
 	// set the image pull policy if set for the deployment
@@ -841,4 +856,62 @@ func (in *CoherenceDeploymentSpec) GetManagementPort() int32 {
 		return 0
 	}
 	return in.Coherence.GetManagementPort()
+}
+
+// Add any additional init-containers or additional containers to the StatefulSet.
+// This will add any common environment variables to te container too, unless those variable names
+// have already been specified in the container spec
+func (in *CoherenceDeploymentSpec) ProcessAdditionalContainers(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+	if in == nil {
+		return
+	}
+
+	for _, c := range in.AdditionalInitContainers {
+		in.processAdditionalContainer(deployment, &c)
+		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, c)
+	}
+
+	for _, c := range in.AdditionalContainers {
+		in.processAdditionalContainer(deployment, &c)
+		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, c)
+	}
+}
+
+func (in *CoherenceDeploymentSpec) processAdditionalContainer(deployment *CoherenceDeployment, c *corev1.Container) {
+	in.appendCommonEnvVars(deployment, c)
+	in.appendCommonVolumeMounts(c)
+}
+
+func (in *CoherenceDeploymentSpec) appendCommonEnvVars(deployment *CoherenceDeployment, c *corev1.Container) {
+	envVars := c.Env
+	for _, toAdd := range in.CreateCommonEnv(deployment) {
+		envVars = in.appendEnvVarIfMissing(envVars, toAdd)
+	}
+	c.Env = envVars
+}
+
+func (in *CoherenceDeploymentSpec) appendEnvVarIfMissing(envVars []corev1.EnvVar, toAdd corev1.EnvVar) []corev1.EnvVar {
+	for _, ev := range envVars {
+		if ev.Name == toAdd.Name {
+			return envVars
+		}
+	}
+	return append(envVars, toAdd)
+}
+
+func (in *CoherenceDeploymentSpec) appendCommonVolumeMounts(c *corev1.Container) {
+	mounts := c.VolumeMounts
+	for _, toAdd := range in.CreateCommonVolumeMounts() {
+		mounts = in.appendVolumeMountIfMissing(mounts, toAdd)
+	}
+	c.VolumeMounts = mounts
+}
+
+func (in *CoherenceDeploymentSpec) appendVolumeMountIfMissing(mounts []corev1.VolumeMount, toAdd corev1.VolumeMount) []corev1.VolumeMount {
+	for _, m := range mounts {
+		if m.Name == toAdd.Name {
+			return mounts
+		}
+	}
+	return append(mounts, toAdd)
 }

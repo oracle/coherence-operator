@@ -27,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 )
 
@@ -329,6 +328,13 @@ type JVMSpec struct {
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
+	// The name of the Java Util Logging configuration file to use.
+	// This value should be the full path to the configuration file.
+	// This value is used to directly set the -Djava.util.logging.config.file
+	// System property.
+	// If not set a default configuration file injected by the Operator will be used.
+	// +optional
+	LoggingConfig *string `json:"loggingConfig,omitempty"`
 	// The settings for enabling debug mode in the JVM.
 	// +optional
 	Debug *JvmDebugSpec `json:"debug,omitempty"`
@@ -401,6 +407,13 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 
 	c.Env = append(c.Env, gc.CreateEnvVars()...)
 
+	// Set the Java Util Logging config, if specified.
+	if in != nil && in.LoggingConfig != nil && *in.LoggingConfig != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmLoggingConfig, Value: *in.LoggingConfig})
+	} else {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmLoggingConfig, Value: DefaultLoggingConfig})
+	}
+
 	// Configure the JVM to use container limits (true by default)
 	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits
 	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmUseContainerLimits, Value: strconv.FormatBool(useContainerLimits)})
@@ -451,159 +464,6 @@ func (in *ImageSpec) EnsureImage(image *string) bool {
 		return true
 	}
 	return false
-}
-
-// ----- LoggingSpec struct -------------------------------------------------
-
-// LoggingSpec defines the settings for the Coherence Pod logging
-// +k8s:openapi-gen=true
-type LoggingSpec struct {
-	// ConfigFileInclude allows the location of the Java util logging configuration file to be overridden.
-	//  If this value is not set the logging.properties file embedded in this chart will be used.
-	//  If this value is set the configuration will be located by trying the following locations in order:
-	//    1. If store.logging.configMapName is set then the config map will be mounted as a volume and the logging
-	//         properties file will be located as a file location relative to the ConfigMap volume mount point.
-	//    2. If userArtifacts.imageName is set then using this value as a file name relative to the location of the
-	//         configuration files directory in the user artifacts image.
-	//    3. Using this value as an absolute file name.
-	// +optional
-	ConfigFile *string `json:"configFile,omitempty"`
-	// ConfigMapName allows a config map to be mounted as a volume containing the logging
-	//  configuration file to use.
-	// +optional
-	ConfigMapName *string `json:"configMapName,omitempty"`
-	// Configures whether Fluentd is enabled and the configuration
-	// of the Fluentd side-car container
-	// +optional
-	Fluentd *FluentdSpec `json:"fluentd,omitempty"`
-}
-
-func (in *LoggingSpec) CreateFluentdConfigMap(deployment *CoherenceDeployment) (*Resource, error) {
-	if in == nil || !in.IsFluentdEnabled() {
-		return nil, nil
-	}
-
-	fluentdConfig, err := in.GetFluentdConfig(deployment)
-	if err != nil {
-		return nil, err
-	}
-
-	labels := deployment.CreateCommonLabels()
-	labels[LabelComponent] = LabelComponentEfkConfig
-
-	cm := corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: deployment.GetNamespace(),
-			Name:      fmt.Sprintf(EfkConfigMapNameTemplate, deployment.GetName()),
-			Labels:    labels,
-		},
-		Data: map[string]string{
-			VolumeMountSubPathFluentdConfig: fluentdConfig,
-		},
-	}
-
-	res := Resource{
-		Kind: ResourceTypeConfigMap,
-		Name: cm.ObjectMeta.GetName(),
-		Spec: &cm,
-	}
-
-	return &res, nil
-}
-
-func (in *LoggingSpec) IsFluentdEnabled() bool {
-	return in != nil && in.Fluentd != nil && in.Fluentd.Enabled != nil && *in.Fluentd.Enabled
-}
-
-func (in *LoggingSpec) GetFluentdConfig(deployment *CoherenceDeployment) (string, error) {
-	l := LoggingConfigTemplate{
-		Cluster:        deployment.GetCoherenceClusterName(),
-		DeploymentName: deployment.Name,
-		RoleName:       deployment.GetRoleName(),
-		Logging:        in,
-	}
-
-	cfg, err := l.Parse()
-	if err != nil {
-		return cfg, errors.Wrap(err, "creating Fluentd config")
-	}
-	return cfg, nil
-}
-
-// Apply the logging configuration to the StatefulSet
-func (in *LoggingSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
-	c := EnsureContainer(ContainerNameCoherence, sts)
-	defer ReplaceContainer(sts, c)
-
-	if in == nil {
-		// just set the default logging config
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: DefaultLoggingConfig})
-		return
-	}
-
-	if in.ConfigFile != nil && *in.ConfigFile != "" {
-		switch {
-		case in.ConfigMapName != nil && *in.ConfigMapName != "":
-			// Logging config should come from the ConfigMap
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: VolumeMountPathLoggingConfig + "/" + *in.ConfigFile})
-		default:
-			// Logging config is as set
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: *in.ConfigFile})
-		}
-	} else {
-		// Logging config is the default
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLoggingConfig, Value: DefaultLoggingConfig})
-	}
-
-	if in.ConfigMapName != nil && *in.ConfigMapName != "" {
-		// Append the ConfigMap volume mount
-		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
-			Name:      VolumeNameLoggingConfig,
-			MountPath: VolumeMountPathLoggingConfig,
-		})
-
-		// Append the ConfigMap volume
-		vol := corev1.Volume{
-			Name: VolumeNameLoggingConfig,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: *in.ConfigMapName,
-					},
-					DefaultMode: pointer.Int32Ptr(int32(0777)),
-				},
-			},
-		}
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
-	}
-
-	// Apply any fluentd configuration
-	in.Fluentd.UpdateStatefulSet(sts)
-}
-
-// ----- LoggingConfigTemplate struct ---------------------------------------
-
-// A struct used when converting the fluentd config template to a string using go templating.
-type LoggingConfigTemplate struct {
-	Cluster        string
-	DeploymentName string
-	RoleName       string
-	Logging        *LoggingSpec
-}
-
-// Parse the fluentd configuration.
-func (in LoggingConfigTemplate) Parse() (string, error) {
-	t, err := template.New("efk").Parse(EfkConfig)
-	if err != nil {
-		return "", err
-	}
-
-	buf := new(bytes.Buffer)
-	if err := t.Execute(buf, in); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }
 
 // ----- PersistenceSpec struct ---------------------------------------------
@@ -916,8 +776,7 @@ type PortSpec struct {
 // +k8s:openapi-gen=true
 type NamedPortSpec struct {
 	// Name specifies the name of th port.
-	// +optional
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	// A flag that, when true, indicates that a Prometheus ServiceMonitor
 	// resource should be created for the Service being exposed for this
 	// port.
@@ -1734,217 +1593,6 @@ func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *co
 	}
 }
 
-// ----- FluentdSpec struct -------------------------------------------------
-
-// FluentdSpec defines the settings for the fluentd image
-// +k8s:openapi-gen=true
-type FluentdSpec struct {
-	ImageSpec `json:",inline"`
-	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
-	Enabled *bool `json:"enabled,omitempty"`
-	// An optional Fluentd configuration file to be added as an @include to the main Fluentd configuration.
-	// +optional
-	ConfigFileInclude *string `json:"configFileInclude,omitempty"`
-	// The Fluentd configuration file to use.
-	// This file will completely override the default Fluentd configuration normally
-	// provided by the Coherence Operator.
-	// +optional
-	ConfigFileOverride *string `json:"configFileOverride,omitempty"`
-	// This value should be the source.tag from fluentd configFile.
-	// +optional
-	Tag *string `json:"tag,omitempty"`
-	// This value should be the to use to set the fluentd ssl_version parameter in the fluentd configFile.
-	// +optional
-	SSLVersion *string `json:"sslVersion,omitempty"`
-	// This value should be the to use to set the fluentd ssl_min_version parameter in the fluentd configFile.
-	// +optional
-	SSLMinVersion *string `json:"sslMinVersion,omitempty"`
-	// This value should be the to use to set the fluentd ssl_max_version parameter in the fluentd configFile.
-	// +optional
-	SSLMaxVersion *string `json:"sslMaxVersion,omitempty"`
-	// This value should be the to use to set the fluentd ssl_verify parameter in the fluentd configFile.
-	// +optional
-	SSLVerify *bool `json:"sslVerify,omitempty"`
-	// A comma delimited string of Elasticsearch hosts.
-	// These will be used for the hosts variable in the ES
-	// section of the Fluentd configuration as described in
-	// https://docs.fluentd.org/output/elasticsearch
-	// +optional
-	EsHosts *string `json:"esHosts,omitempty"`
-	// The Elasticsearch user name.
-	// This will be used for the user variable in the ES
-	// section of the Fluentd configuration as described in
-	// https://docs.fluentd.org/output/elasticsearch
-	// +optional
-	EsUser *string `json:"esUser,omitempty"`
-	// The Elasticsearch password.
-	// This will be used for the user variable in the ES
-	// section of the Fluentd configuration as described in
-	// https://docs.fluentd.org/output/elasticsearch
-	// +optional
-	EsPassword *string `json:"esPassword,omitempty"`
-	// The name of the Secret to use to obtain the Elasticsearch details.
-	// +optional
-	EsSecret *string `json:"esSecret,omitempty"`
-	// The key in the secret to use to obtain the Elasticsearch hosts value.
-	// If the EsHosts field has a value that will take precedence over the value from the secret.
-	// If not specified the default value will be "hosts"
-	// +optional
-	EsSecretHostsKey *string `json:"esSecretHostsKey,omitempty"`
-	// The key in the secret to use to obtain the Elasticsearch user name value.
-	// If the EsUser field has a value that will take precedence over the value from the secret.
-	// If not specified the default value will be "user"
-	// +optional
-	EsSecretUserKey *string `json:"esSecretUserKey,omitempty"`
-	// The key in the secret to use to obtain the Elasticsearch password value.
-	// If the EsPassword field has a value that will take precedence over the value from the secret.
-	// If not specified the default value will be "password"
-	// +optional
-	EsSecretPasswordKey *string `json:"esSecretPasswordKey,omitempty"`
-}
-
-func (in *FluentdSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
-	if in == nil || in.Enabled == nil || !*in.Enabled {
-		// either the fluentd spec is nil or disabled
-		return
-	}
-
-	// add the fluentd container
-	sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, in.CreateFluentdContainer())
-
-	// add the fluentd configuration ConfigMap volume
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
-		Name: VolumeNameFluentdConfig,
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(EfkConfigMapNameTemplate, sts.Name)},
-				DefaultMode:          pointer.Int32Ptr(420),
-			},
-		},
-	})
-}
-
-func (in *FluentdSpec) CreateFluentdContainer() corev1.Container {
-	var pullPolicy corev1.PullPolicy
-	if in.ImagePullPolicy == nil {
-		pullPolicy = corev1.PullIfNotPresent
-	} else {
-		pullPolicy = *in.ImagePullPolicy
-	}
-
-	var imageName string
-	if in.Image == nil {
-		imageName = DefaultFluentdImage
-	} else {
-		imageName = *in.Image
-	}
-
-	config := VolumeMountSubPathFluentdConfig
-	if in.ConfigFileOverride != nil {
-		config = *in.ConfigFileOverride
-	}
-
-	env := []corev1.EnvVar{
-		{
-			Name: EnvVarFluentdPodID,
-			ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.uid",
-				},
-			},
-		},
-		{
-			Name:  EnvVarFluentdConf,
-			Value: config,
-		},
-		{
-			Name:  EnvVarFluentdSedDisable,
-			Value: "true",
-		},
-	}
-
-	if in.EsHosts != nil {
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsHosts, Value: *in.EsHosts})
-	} else if in.EsSecret != nil {
-		var key string
-		if in.EsSecretHostsKey == nil {
-			key = "hosts"
-		} else {
-			key = *in.EsSecretHostsKey
-		}
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsHosts, ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: *in.EsSecret,
-				},
-				Key:      key,
-				Optional: pointer.BoolPtr(true),
-			},
-		}})
-	}
-
-	if in.EsUser != nil {
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsUser, Value: *in.EsUser})
-	} else if in.EsSecret != nil {
-		var key string
-		if in.EsSecretUserKey == nil {
-			key = "user"
-		} else {
-			key = *in.EsSecretUserKey
-		}
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsUser, ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: *in.EsSecret,
-				},
-				Key:      key,
-				Optional: pointer.BoolPtr(true),
-			},
-		}})
-	}
-
-	if in.EsPassword != nil {
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsCreds, Value: *in.EsPassword})
-	} else if in.EsSecret != nil {
-		var key string
-		if in.EsSecretUserKey == nil {
-			key = "password"
-		} else {
-			key = *in.EsSecretPasswordKey
-		}
-		env = append(env, corev1.EnvVar{Name: EnvVarFluentdEsCreds, ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: *in.EsSecret,
-				},
-				Key:      key,
-				Optional: pointer.BoolPtr(true),
-			},
-		}})
-	}
-
-	mounts := []corev1.VolumeMount{
-		{
-			Name:      VolumeNameFluentdConfig,
-			MountPath: VolumeMountPathFluentdConfig,
-			SubPath:   VolumeMountSubPathFluentdConfig,
-		},
-		{
-			Name:      VolumeNameLogs,
-			MountPath: VolumeMountPathLogs,
-		},
-	}
-
-	return corev1.Container{
-		Name:            ContainerNameFluentd,
-		Image:           imageName,
-		ImagePullPolicy: pullPolicy,
-		Args:            []string{"-c", "/etc/fluent.conf"},
-		Env:             env,
-		VolumeMounts:    mounts,
-	}
-}
-
 // ----- ScalingPolicy type -------------------------------------------------
 
 // ScalingPolicy describes a policy for scaling a cluster deployment
@@ -1969,8 +1617,7 @@ const (
 type LocalObjectReference struct {
 	// Name of the referent.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 }
 
 // ----- NetworkSpec --------------------------------------------------------
@@ -2078,12 +1725,11 @@ func (in *PodDNSConfig) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 // +k8s:openapi-gen=true
 type StartQuorum struct {
 	// The name of deployment that this deployment depends on.
-	// +optional
 	Deployment string `json:"deployment"`
 	// The namespace that the deployment that this deployment depends on is installed into.
 	// Default to the same namespace as this deployment
 	// +optional
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace,omitempty"`
 	// The number of the Pods that should have been started before this
 	// deployments will be started, defaults to all Pods for the deployment.
 	// +optional
@@ -2098,6 +1744,244 @@ type StartQuorumStatus struct {
 	StartQuorum `json:",inline"`
 	// Whether this quorum's condition has been met
 	Ready bool `json:"ready"`
+}
+
+// ----- ConfigMapVolumeSpec ------------------------------------------------
+
+// Represents a ConfigMap that will be added to the deployment's Pods as an
+// additional Volume and as a VolumeMount in the containers.
+// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
+// +k8s:openapi-gen=true
+type ConfigMapVolumeSpec struct {
+	// The name of the ConfigMap to mount.
+	// This will also be used as the name of the Volume added to the Pod
+	// if the VolumeName field is not set.
+	Name string `json:"name"`
+	// Path within the container at which the volume should be mounted.  Must
+	// not contain ':'.
+	MountPath string `json:"mountPath"`
+	// The optional name to use for the Volume added to the Pod.
+	// If not set, the ConfigMap name will be used as the VolumeName.
+	// +optional
+	VolumeName string `json:"volumeName,omitempty"`
+	// Mounted read-only if true, read-write otherwise (false or unspecified).
+	// Defaults to false.
+	// +optional
+	ReadOnly bool `json:"readOnly,omitempty"`
+	// Path within the volume from which the container's volume should be mounted.
+	// Defaults to "" (volume's root).
+	// +optional
+	SubPath string `json:"subPath,omitempty"`
+	// mountPropagation determines how mounts are propagated from the host
+	// to container and the other way around.
+	// When not set, MountPropagationNone is used.
+	// +optional
+	MountPropagation *corev1.MountPropagationMode `json:"mountPropagation,omitempty"`
+	// Expanded path within the volume from which the container's volume should be mounted.
+	// Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
+	// Defaults to "" (volume's root).
+	// SubPathExpr and SubPath are mutually exclusive.
+	// +optional
+	SubPathExpr string `json:"subPathExpr,omitempty"`
+	// If unspecified, each key-value pair in the Data field of the referenced
+	// ConfigMap will be projected into the volume as a file whose name is the
+	// key and content is the value. If specified, the listed keys will be
+	// projected into the specified paths, and unlisted keys will not be
+	// present. If a key is specified which is not present in the ConfigMap,
+	// the volume setup will error unless it is marked optional. Paths must be
+	// relative and may not contain the '..' path or start with '..'.
+	// +listType=map
+	// +listMapKey=key
+	// +optional
+	Items []corev1.KeyToPath `json:"items,omitempty"`
+	// Optional: mode bits to use on created files by default. Must be a
+	// value between 0 and 0777. Defaults to 0644.
+	// Directories within the path are not affected by this setting.
+	// This might be in conflict with other options that affect the file
+	// mode, like fsGroup, and the result can be other mode bits set.
+	// +optional
+	DefaultMode *int32 `json:"defaultMode,omitempty"`
+	// Specify whether the ConfigMap or its keys must be defined
+	// +optional
+	Optional *bool `json:"optional,omitempty"`
+}
+
+// Add the Volume and VolumeMount for this ConfigMap spec.
+func (in *ConfigMapVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
+	if in == nil {
+		return
+	}
+	// Add the volume mount to the init-containers
+	for i, c := range sts.Spec.Template.Spec.InitContainers {
+		in.AddVolumeMounts(&c)
+		// replace the updated container in the init-container array
+		sts.Spec.Template.Spec.InitContainers[i] = c
+	}
+	// Add the volume mount to the containers
+	for i, c := range sts.Spec.Template.Spec.Containers {
+		in.AddVolumeMounts(&c)
+		// replace the updated container in the container array
+		sts.Spec.Template.Spec.Containers[i] = c
+	}
+	var volName string
+	if in.VolumeName == "" {
+		volName = in.Name
+	} else {
+		volName = in.VolumeName
+	}
+	vol := corev1.Volume{
+		Name: volName,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: in.Name,
+				},
+				Items:       in.Items,
+				DefaultMode: in.DefaultMode,
+				Optional:    in.Optional,
+			},
+		},
+	}
+	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
+}
+
+func (in *ConfigMapVolumeSpec) AddVolumeMounts(c *corev1.Container) {
+	if in == nil {
+		return
+	}
+	var volName string
+	if in.VolumeName == "" {
+		volName = in.Name
+	} else {
+		volName = in.VolumeName
+	}
+	vm := corev1.VolumeMount{
+		Name:             volName,
+		ReadOnly:         in.ReadOnly,
+		MountPath:        in.MountPath,
+		SubPath:          in.SubPath,
+		MountPropagation: in.MountPropagation,
+		SubPathExpr:      in.SubPathExpr,
+	}
+	c.VolumeMounts = append(c.VolumeMounts, vm)
+}
+
+// ----- SecretVolumeSpec ------------------------------------------------
+
+// Represents a Secret that will be added to the deployment's Pods as an
+// additional Volume and as a VolumeMount in the containers.
+// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
+// +k8s:openapi-gen=true
+type SecretVolumeSpec struct {
+	// The name of the Secret to mount.
+	// This will also be used as the name of the Volume added to the Pod
+	// if the VolumeName field is not set.
+	Name string `json:"name"`
+	// Path within the container at which the volume should be mounted.  Must
+	// not contain ':'.
+	MountPath string `json:"mountPath"`
+	// The optional name to use for the Volume added to the Pod.
+	// If not set, the Secret name will be used as the VolumeName.
+	// +optional
+	VolumeName string `json:"volumeName,omitempty"`
+	// Mounted read-only if true, read-write otherwise (false or unspecified).
+	// Defaults to false.
+	// +optional
+	ReadOnly bool `json:"readOnly,omitempty"`
+	// Path within the volume from which the container's volume should be mounted.
+	// Defaults to "" (volume's root).
+	// +optional
+	SubPath string `json:"subPath,omitempty"`
+	// mountPropagation determines how mounts are propagated from the host
+	// to container and the other way around.
+	// When not set, MountPropagationNone is used.
+	// +optional
+	MountPropagation *corev1.MountPropagationMode `json:"mountPropagation,omitempty"`
+	// Expanded path within the volume from which the container's volume should be mounted.
+	// Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
+	// Defaults to "" (volume's root).
+	// SubPathExpr and SubPath are mutually exclusive.
+	// +optional
+	SubPathExpr string `json:"subPathExpr,omitempty"`
+	// If unspecified, each key-value pair in the Data field of the referenced
+	// Secret will be projected into the volume as a file whose name is the
+	// key and content is the value. If specified, the listed keys will be
+	// projected into the specified paths, and unlisted keys will not be
+	// present. If a key is specified which is not present in the Secret,
+	// the volume setup will error unless it is marked optional. Paths must be
+	// relative and may not contain the '..' path or start with '..'.
+	// +listType=map
+	// +listMapKey=key
+	// +optional
+	Items []corev1.KeyToPath `json:"items,omitempty"`
+	// Optional: mode bits to use on created files by default. Must be a
+	// value between 0 and 0777. Defaults to 0644.
+	// Directories within the path are not affected by this setting.
+	// This might be in conflict with other options that affect the file
+	// mode, like fsGroup, and the result can be other mode bits set.
+	// +optional
+	DefaultMode *int32 `json:"defaultMode,omitempty"`
+	// Specify whether the Secret or its keys must be defined
+	// +optional
+	Optional *bool `json:"optional,omitempty"`
+}
+
+// Add the Volume and VolumeMount for this Secret spec.
+func (in *SecretVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
+	if in == nil {
+		return
+	}
+	// Add the volume mount to the init-containers
+	for i, c := range sts.Spec.Template.Spec.InitContainers {
+		in.AddVolumeMounts(&c)
+		// replace the updated container in the init-container array
+		sts.Spec.Template.Spec.InitContainers[i] = c
+	}
+	// Add the volume mount to the containers
+	for i, c := range sts.Spec.Template.Spec.Containers {
+		in.AddVolumeMounts(&c)
+		// replace the updated container in the container array
+		sts.Spec.Template.Spec.Containers[i] = c
+	}
+	var volName string
+	if in.VolumeName == "" {
+		volName = in.Name
+	} else {
+		volName = in.VolumeName
+	}
+	vol := corev1.Volume{
+		Name: volName,
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName:  in.Name,
+				Items:       in.Items,
+				DefaultMode: in.DefaultMode,
+				Optional:    in.Optional,
+			},
+		},
+	}
+	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
+}
+
+func (in *SecretVolumeSpec) AddVolumeMounts(c *corev1.Container) {
+	if in == nil {
+		return
+	}
+	var volName string
+	if in.VolumeName == "" {
+		volName = in.Name
+	} else {
+		volName = in.VolumeName
+	}
+	vm := corev1.VolumeMount{
+		Name:             volName,
+		ReadOnly:         in.ReadOnly,
+		MountPath:        in.MountPath,
+		SubPath:          in.SubPath,
+		MountPropagation: in.MountPropagation,
+		SubPathExpr:      in.SubPathExpr,
+	}
+	c.VolumeMounts = append(c.VolumeMounts, vm)
 }
 
 // ----- ResourceType -------------------------------------------------------
