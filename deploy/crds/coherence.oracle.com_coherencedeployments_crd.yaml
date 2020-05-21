@@ -10112,9 +10112,6 @@ spec:
                   cluster.
                 format: int32
                 type: integer
-              lastReconciled:
-                description: The hash of the StatefulSet state on the last reconcile.
-                type: string
               phase:
                 description: "The phase of a CoherenceDeployment is a simple, high-level
                   summary of where the CoherenceDeployment is in its lifecycle. The

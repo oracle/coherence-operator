@@ -6,20 +6,65 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Introduction
+= Overview
 
-== Introduction
+== Overview
 
 A typical Coherence deployment contains custom application code that runs with Coherence.
 To run custom application code in a `CoherenceDeployment` that code needs to be packaged into an image that the
 deployment will use.
 
-There are a number of steps to deploying a custom application:
+=== Building and Deploying Applications
 
-* <<coherence_settings/020_build_application.adoc,Build an Application Image>>
-* <<coherence_settings/030_deploy_application.adoc,Deploy the Application>>
-* Configure the Application
-** Optionally set a custom <<jvm_settings/020_classpath.adoc,classpath>>
-** Optionally set a <<coherence_settings/040_application_main.adoc,main class>>  to run
-** Optionally add main <<coherence_settings/050_application_args.adoc,arguments>>
-** Optionally set a <<coherence_settings/060_application_working_dir.adoc,working directory>>
+[PILLARS]
+====
+[CARD]
+.Build Application Images
+[link=coherence_settings/020_build_application.adoc]
+--
+Building custom Coherence application images for use with the Coherence Operator.
+--
+
+[CARD]
+.Deploy Custom Application Images
+[link=coherence_settings/030_deploy_application.adoc]
+--
+Deploying custom application images using the Coherence Operator.
+--
+====
+
+=== Configuring Applications
+
+There are many settings in a `CoherenceDeployment` that control the behaviour of Coherence, the JVM and
+the application code. Some of the application specific settings are shown below:
+
+[PILLARS]
+====
+[CARD]
+.Setting the Classpath
+[link=jvm_settings/020_classpath.adoc]
+--
+Setting a custom classpath for the application.
+--
+
+[CARD]
+.Setting a Main Class
+[link=coherence_settings/040_application_main.adoc]
+--
+Setting a custom main class to run.
+--
+
+[CARD]
+.Add Main Arguments
+[link=coherence_settings/050_application_args.adoc]
+--
+Adding arguments to pass to the main class.
+--
+
+[CARD]
+.Working Directory
+[link=coherence_settings/060_application_working_dir.adoc]
+--
+Setting the application's working directory.
+--
+====
