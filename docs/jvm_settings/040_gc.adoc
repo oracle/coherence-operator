@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Additional Container Ports
+= Garbage Collector Settings
 
-== Additional Container Ports
+== Garbage Collector Settings
 
 // ToDo: TBD
