@@ -103,6 +103,7 @@ m| readyReplicas | ReadyReplicas is the number of deployments created by the Sta
 m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
 m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
 m| conditions | The status conditions. m| status.Conditions | false
+m| lastReconciled | The hash of the StatefulSet state on the last reconcile. m| string | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -175,7 +176,7 @@ m| additionalContainers | List of additional containers to add to the deployment
 m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
 see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
 m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/030_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
+see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -589,7 +590,7 @@ m| probe | The probe to use to determine whether a deployment is Phase HA. If no
 === SecretVolumeSpec
 
 Represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/030_secret_volumes.adoc,Add Secret Volumes>>
+see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===

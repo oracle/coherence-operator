@@ -8,6 +8,7 @@ package reconciler
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -161,7 +162,8 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 		err = nil
 	default:
 		updated := deployment.DeepCopy()
-		if updated.Status.Update(deployment, &sts.Status) {
+		hash := in.AsSha256(sts)
+		if updated.Status.Update(deployment, hash, &sts.Status) {
 			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating CoherenceDeployment status patch")
@@ -446,6 +448,14 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 		// the deployment exists
 		return deployment, true, nil
 	}
+}
+
+// Create a SHA-256 hash of a value
+func (in *CommonReconciler) AsSha256(o interface{}) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%v", o)))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 // ----- SecondaryResourceReconciler ----------------------------------------------

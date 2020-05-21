@@ -14,34 +14,22 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
-func TestMinimalServer(t *testing.T) {
+func TestMinimalDeployment(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	args := []string{"server"}
-	env := map[string]string{}
+	d := &coh.CoherenceDeployment{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
-		"java",
-		"-cp",
-		"/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/scripts",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
-		"-Dcoherence.health.port=6676",
-		"-Dcoherence.management.http.port=30000",
-		"-Dcoherence.metrics.http.port=9612",
-		"-Dcoherence.distributed.persistence-mode=on-demand",
-		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
-		"-XX:HeapDumpPath=/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-XX:+UseG1GC",
-		"-Dcoherence.ttl=0",
-		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
-		"com.tangosol.net.DefaultCacheServer",
-	}
+	expectedArgs := GetMinimalExpectedArgs()
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -52,21 +40,56 @@ func TestMinimalServer(t *testing.T) {
 	g.Expect(cmd.Args).To(Equal(expectedArgs))
 }
 
-func TestMinimalDeployment(t *testing.T) {
+func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.CoherenceDeployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceDeploymentSpec{
+			Coherence: &coh.CoherenceSpec{
+				SkipVersionCheck: pointer.BoolPtr(true),
+			},
+		},
 	}
 
-	args := []string{"server"}
+	args := []string{"runner", "server"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
+	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
+		"-Dcoherence.override=k8s-coherence-override.xml")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func GetMinimalExpectedArgsWithoutPrefix(prefix string) []string {
+	return RemoveArgWithPrefix(GetMinimalExpectedArgs(), prefix)
+}
+
+func ReplaceArg(args []string, toReplace, replaceWith string) []string {
+	for i, a := range args {
+		if a == toReplace {
+			args[i] = replaceWith
+		}
+	}
+	return args
+}
+
+func GetMinimalExpectedArgs() []string {
+	return []string{
 		"java",
 		"-cp",
 		"/utils/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/utils/scripts",
+		"-Dcoherence.role=test",
+		"-XshowSettings:all",
+		"-XX:+PrintCommandLineFlags",
+		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka",
 		"-Dcoherence.cluster=test",
 		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
@@ -82,53 +105,28 @@ func TestMinimalDeployment(t *testing.T) {
 		"-XX:+UnlockExperimentalVMOptions",
 		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
 		"-XX:+UseContainerSupport",
+		"com.oracle.coherence.k8s.Main",
 		"com.tangosol.net.DefaultCacheServer",
 	}
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
 }
 
-func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
-	g := NewGomegaWithT(t)
+func RemoveArgWithPrefix(args []string, prefix string) []string {
+	result := args
+	found := true
 
-	args := []string{"server"}
-	env := map[string]string{
-		coh.EnvVarCohSkipVersionCheck: "true",
+	for found {
+		found = false
+		for i, a := range result {
+			if strings.HasPrefix(a, prefix) {
+				result[i] = result[len(result)-1] // Copy last element to index i.
+				result[len(result)-1] = ""        // Erase last element (write zero value).
+				result = result[:len(result)-1]   // Truncate slice.
+				found = true
+				break
+			}
+		}
 	}
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
-		"java",
-		"-cp",
-		"/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/scripts",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
-		"-Dcoherence.health.port=6676",
-		"-Dcoherence.management.http.port=30000",
-		"-Dcoherence.metrics.http.port=9612",
-		"-Dcoherence.distributed.persistence-mode=on-demand",
-		"-Dcoherence.override=k8s-coherence-override.xml",
-		"-XX:HeapDumpPath=/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-XX:+UseG1GC",
-		"-Dcoherence.ttl=0",
-		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
-		"com.tangosol.net.DefaultCacheServer",
-	}
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
+	return result
 }
 
 func GetJavaCommand() string {
