@@ -9,3 +9,94 @@
 = Set the Classpath
 
 == Set the Classpath
+
+The Coherence container in the `Pods` in a `CoherenceDeployments` runs a Java application and as such requires a classpath
+with at a minimum `coherence.jar`. There are certain defaults that the Operator will use to work out the classpath to use
+but additional classpath elements can be provided to the configuration.
+
+=== The `CLASSPATH` Environment Variable
+
+If the image to be run has the `CLASSPATH` environment variable set this will be used as part of the classpath.
+
+=== The `COHERENCE_HOME` Environment Variable
+
+If the image to be run has the `COHERENCE_HOME` environment variable set this will be used to add the following elements
+to the classpath:
+
+* `$COHERENCE_HOME/lib/coherence.jar`
+* `$COHERENCE_HOME/conf`
+
+These will be added to the end of the classpath. For example in an image that has `CLASSPATH=/home/root/lib/*`
+and `COHERENCE_HOME` set to `/oracle/coherence` the effective classpath used will be:
+
+  /home/root/lib/*:/oracle/coherence/lib/coherence.jar:/oracle/coherence/conf
+
+=== JIB Image Classpath
+
+A simple way to build Java images is using https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB].
+When JIB was with its Maven or Gradle plugin to produce an image it packages the application's dependencies, classes
+and resources into a set of well-known locations:
+
+* `/app/libs/` - the jar files that the application depends on
+* `/app/classes` - the application's class files
+* `/app/resources` - the application's other resources
+
+By default, the Operator will add these locations to the classpath. These classpath elements will be added before any
+value set by the `CLASSPATH` or `COHERENCE_HOME` environment variables.
+
+For example in an image that has `CLASSPATH=/home/root/lib/\*`
+and `COHERENCE_HOME` set to `/oracle/coherence` the effective classpath used will be:
+
+  /app/libs/*:/app/classes:/app/resources:/home/root/lib/*:/oracle/coherence/lib/coherence.jar:/oracle/coherence/conf
+
+==== Exclude the JIB Classpath
+
+If the image is not a JIB image there could be occasions when automatically adding `/app/libs/*:/app/classes:/app/resources`
+to the classpath causes issues, for example one or more of those locations exists with files in that should not be on the
+classpath. In this case the `CoherenceDeployment` spec has a field to specify that the JIB classpath should not be used.
+
+The `spec.jvm.useJibClasspath` field can be set to `false` to exclude the JIB directories from the classpath
+(the default value is `true`).
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  jvm:
+    useJibClasspath: false  # <1>
+----
+<1> The `useJibClasspath` is set to `false`. Even if any of the the `/app/resources`, `/app/classes` or `/app/libs/`
+directories exist in the image they will not be added to the classpath.
+
+
+=== Additional Classpath Elements
+
+If an image will be used that has artifacts in locations other than the defaults discussed above then it is possible
+to specify additional elements to be added to the classpath. The `jvm.classpath` field in the `CoherenceDeployment` spec
+allows a list of extra classpath values to be provided. These elements will be added _after_ the JIB classpath
+described above.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: storage
+spec:
+  jvm:
+    classpath:          # <1>
+      - "/data/lib/*"
+      - "/data/config"
+----
+<1> The `classpath` field adds `/data/lib/*` and `/data/config` to the classpath.
+In an image without the `CLASSPATH` or `COHERENCE_HOME` environment variables the effective classpath would be:
+
+  /app/libs/*:/app/classes:/app/resources:/data/lib/*:/data/config
+
+
+
+NOTE: There is no validation of the elements of the classpath. The elements will not be verified to ensure that the locations
+exist. As long as they are valid values to be uased in a JVM classpath they will be accepted.
