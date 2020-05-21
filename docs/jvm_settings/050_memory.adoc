@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Additional Container Ports
+= Heap & Memory Settings
 
-== Additional Container Ports
+== Heap & Memory Settings
 
 // ToDo: TBD

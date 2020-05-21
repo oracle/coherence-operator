@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Additional Container Ports
+= Using JMX
 
-== Additional Container Ports
+== Using JMX
 
 // ToDo: TBD

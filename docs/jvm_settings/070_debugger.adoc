@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Additional Container Ports
+= Java Util Logging
 
-== Additional Container Ports
+== Java Util Logging Configuration
 
 // ToDo: TBD

@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Additional Container Ports
+= Container Resource Limits
 
-== Additional Container Ports
+== Respect Container Resource Limits
 
 // ToDo: TBD
