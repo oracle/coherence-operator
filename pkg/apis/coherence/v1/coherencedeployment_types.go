@@ -175,9 +175,6 @@ type CoherenceDeploymentStatus struct {
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	Conditions status.Conditions `json:"conditions,omitempty"`
-	// The hash of the StatefulSet state on the last reconcile.
-	// +optional
-	LastReconciled string `json:"lastReconciled,omitempty"`
 }
 
 // Update the current Phase

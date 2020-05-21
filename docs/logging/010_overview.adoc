@@ -6,8 +6,29 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Introduction
+= Overview
 
+== Overview
 
+In a `CoherenceDeployment` Coherence writes to log files in the Pod.
+These logs can be shipped to external log capture systems such as Elasticsearch and anaylyzed using Kibana.
+The Coherence Operator included Kibana dashboards that can easily be imported to make log analysis easier.
 
-== Introduction
+=== Logging Guides
+
+[PILLARS]
+====
+[CARD]
+.Enabling Log Capture
+[link=logging/020_logging.adoc]
+--
+Capturing and viewing Coherence cluster Logs in Elasticsearch.
+--
+
+[CARD]
+.Kibana Dashboards
+[link=logging/030_kibana.adoc]
+--
+Importing and using the Kibana Dashboards available.
+--
+====

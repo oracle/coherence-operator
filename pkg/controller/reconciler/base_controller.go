@@ -8,7 +8,6 @@ package reconciler
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -447,14 +446,6 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 		// the deployment exists
 		return deployment, true, nil
 	}
-}
-
-// Create a SHA-256 hash of a value
-func (in *CommonReconciler) AsSha256(o interface{}) string {
-	h := sha256.New()
-	s := fmt.Sprintf("%v", o)
-	_, _ = h.Write([]byte(s))
-	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 // ----- SecondaryResourceReconciler ----------------------------------------------
