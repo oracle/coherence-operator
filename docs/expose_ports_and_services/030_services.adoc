@@ -6,8 +6,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Add Pod Volumes
+= Expose Ports via Services
 
-Additional Volumes and VolumeMappings can easily be added to a `CoherenceDeployment` Pod.
+== Expose Ports via Services
 
-== Add Pod Volumes

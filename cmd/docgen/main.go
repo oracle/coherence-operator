@@ -140,21 +140,33 @@ func ParseDocumentationFrom(srcs []string) []KubeTypes {
 			if structType, ok := kubType.Decl.Specs[0].(*ast.TypeSpec).Type.(*ast.StructType); ok {
 				var ks KubeTypes
 				ks = append(ks, Pair{kubType.Name, fmtRawDoc(kubType.Doc), "", false})
-
-				for _, field := range structType.Fields.List {
-					typeString := fieldType(field.Type)
-					fieldMandatory := fieldRequired(field)
-					if n := fieldName(field); n != "-" {
-						fieldDoc := fmtRawDoc(field.Doc.Text())
-						ks = append(ks, Pair{n, fieldDoc, typeString, fieldMandatory})
-					}
-				}
+				ks = ProcessFields(structType, ks)
 				docForTypes = append(docForTypes, ks)
 			}
 		}
 	}
 
 	return docForTypes
+}
+
+func ProcessFields(structType *ast.StructType, ks KubeTypes) KubeTypes {
+	for _, field := range structType.Fields.List {
+		typeString := fieldType(field.Type)
+		fieldMandatory := fieldRequired(field)
+		if n := fieldName(field); n != "-" {
+			fieldDoc := fmtRawDoc(field.Doc.Text())
+			ks = append(ks, Pair{n, fieldDoc, typeString, fieldMandatory})
+		} else if strings.Contains(field.Tag.Value, "json:\",inline") {
+			if ident, ok := field.Type.(*ast.Ident); ok && ident.Obj != nil {
+				if ts, ok := ident.Obj.Decl.(*ast.TypeSpec); ok {
+					if st, ok := ts.Type.(*ast.StructType); ok {
+						ks = ProcessFields(st, ks)
+					}
+				}
+			}
+		}
+	}
+	return ks
 }
 
 func astFrom(filePath string) *doc.Package {

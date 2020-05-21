@@ -6,8 +6,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Add Pod Volumes
+= Additional Container Ports
 
-Additional Volumes and VolumeMappings can easily be added to a `CoherenceDeployment` Pod.
-
-== Add Pod Volumes
+== Additional Container Ports

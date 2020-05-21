@@ -1,0 +1,18 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Prometheus ServiceMonitors
+
+== Prometheus ServiceMonitors
+
+When a port exposed on a container is to be used to serve metrics to Prometheus this often requires the addition of
+a Prometheus `ServiceMonitor` resource. The Coherence Operator makes it simple to add a `ServiceMonitor` for an exposed
+port. The advantage of specifying the `ServiceMonitor` configuration in the `CoherenceDeployment` spec is that the
+`ServiceMonitor` resource will be created, updated and deleted as part of the lifecycle of the `CoherenceDeployment`
+and does not need to be managed separately.
+

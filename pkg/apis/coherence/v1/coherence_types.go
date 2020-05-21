@@ -446,7 +446,7 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 // ImageSpec defines the settings for a Docker image
 // +k8s:openapi-gen=true
 type ImageSpec struct {
-	// Docker image name.
+	// The image name.
 	// More info: https://kubernetes.io/docs/concepts/containers/images
 	// +optional
 	Image *string `json:"image,omitempty"`
@@ -745,14 +745,10 @@ func (in *SSLSpec) CreateEnvVars(prefix, secretMount string) []corev1.EnvVar {
 // +k8s:openapi-gen=true
 type PortSpec struct {
 	// Port specifies the port used.
-	// +optional
-	Port int32 `json:"port,omitempty"`
+	Port int32 `json:"port"`
 	// Protocol for container port. Must be UDP or TCP. Defaults to "TCP"
 	// +optional
 	Protocol *corev1.Protocol `json:"protocol,omitempty"`
-	// Service specifies the service used to expose the port.
-	// +optional
-	Service *ServiceSpec `json:"service,omitempty"`
 	// The port on each node on which this service is exposed when type=NodePort or LoadBalancer.
 	// Usually assigned by the system. If specified, it will be allocated to the service
 	// if unused or else creation of the service will fail.
@@ -769,20 +765,23 @@ type PortSpec struct {
 	// What host IP to bind the external port to.
 	// +optional
 	HostIP *string `json:"hostIP,omitempty"`
+	// Service configures the Kubernetes Service used to expose the port.
+	// +optional
+	Service *ServiceSpec `json:"service,omitempty"`
 }
 
 // ----- NamedPortSpec struct ----------------------------------------------------
 // NamedPortSpec defines a named port for a Coherence component
 // +k8s:openapi-gen=true
 type NamedPortSpec struct {
-	// Name specifies the name of th port.
-	Name string `json:"name"`
-	// A flag that, when true, indicates that a Prometheus ServiceMonitor
-	// resource should be created for the Service being exposed for this
+	// Name specifies the name of the port.
+	Name     string `json:"name"`
+	PortSpec `json:",inline"`
+	// The specification of a Prometheus ServiceMonitor resource
+	// that will be created for the Service being exposed for this
 	// port.
 	// +optional
 	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty"`
-	PortSpec       `json:",inline"`
 }
 
 // Create the Kubernetes service to expose this port.

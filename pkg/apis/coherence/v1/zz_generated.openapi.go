@@ -111,7 +111,7 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
+							Description: "The name of the image. More info: https://kubernetes.io/docs/concepts/containers/images",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -738,7 +738,7 @@ func schema_pkg_apis_coherence_v1_ImageSpec(ref common.ReferenceCallback) common
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images",
+							Description: "The image name. More info: https://kubernetes.io/docs/concepts/containers/images",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1072,15 +1072,9 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Name specifies the name of th port.",
+							Description: "Name specifies the name of the port.",
 							Type:        []string{"string"},
 							Format:      "",
-						},
-					},
-					"serviceMonitor": {
-						SchemaProps: spec.SchemaProps{
-							Description: "A flag that, when true, indicates that a Prometheus ServiceMonitor resource should be created for the Service being exposed for this port.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceMonitorSpec"),
 						},
 					},
 					"port": {
@@ -1095,12 +1089,6 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
 							Type:        []string{"string"},
 							Format:      "",
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service specifies the service used to expose the port.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
 						},
 					},
 					"nodePort": {
@@ -1124,8 +1112,20 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service configures the Kubernetes Service used to expose the port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
+					"serviceMonitor": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The specification of a Prometheus ServiceMonitor resource that will be created for the Service being exposed for this port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceMonitorSpec"),
+						},
+					},
 				},
-				Required: []string{"name"},
+				Required: []string{"name", "port"},
 			},
 		},
 		Dependencies: []string{
@@ -1358,12 +1358,6 @@ func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.
 							Format:      "",
 						},
 					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service specifies the service used to expose the port.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
-						},
-					},
 					"nodePort": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The port on each node on which this service is exposed when type=NodePort or LoadBalancer. Usually assigned by the system. If specified, it will be allocated to the service if unused or else creation of the service will fail. Default is to auto-allocate a port if the ServiceType of this Service requires one. More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport",
@@ -1385,7 +1379,14 @@ func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.
 							Format:      "",
 						},
 					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service configures the Kubernetes Service used to expose the port.",
+							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
+						},
+					},
 				},
+				Required: []string{"port"},
 			},
 		},
 		Dependencies: []string{

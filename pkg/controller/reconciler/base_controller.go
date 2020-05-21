@@ -162,8 +162,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 		err = nil
 	default:
 		updated := deployment.DeepCopy()
-		hash := in.AsSha256(sts)
-		if updated.Status.Update(deployment, hash, &sts.Status) {
+		if updated.Status.Update(deployment, &sts.Status) {
 			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating CoherenceDeployment status patch")

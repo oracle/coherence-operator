@@ -5850,7 +5850,7 @@ spec:
               description: The configuration for the Coherence utils image
               properties:
                 image:
-                  description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+                  description: 'The image name. More info: https://kubernetes.io/docs/concepts/containers/images'
                   type: string
                 imagePullPolicy:
                   description: 'Image pull policy. One of Always, Never, IfNotPresent.
@@ -6073,7 +6073,7 @@ spec:
               description: 'Use the host''s ipc namespace. Optional: Default to false.'
               type: boolean
             image:
-              description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images'
+              description: 'The name of the image. More info: https://kubernetes.io/docs/concepts/containers/images'
               type: string
             imagePullPolicy:
               description: 'Image pull policy. One of Always, Never, IfNotPresent.
@@ -7671,7 +7671,7 @@ spec:
                     format: int32
                     type: integer
                   name:
-                    description: Name specifies the name of th port.
+                    description: Name specifies the name of the port.
                     type: string
                   nodePort:
                     description: 'The port on each node on which this service is exposed
@@ -7691,8 +7691,8 @@ spec:
                       Defaults to "TCP"
                     type: string
                   service:
-                    description: Service specifies the service used to expose the
-                      port.
+                    description: Service configures the Kubernetes Service used to
+                      expose the port.
                     properties:
                       annotations:
                         additionalProperties:
@@ -7831,9 +7831,9 @@ spec:
                         type: string
                     type: object
                   serviceMonitor:
-                    description: A flag that, when true, indicates that a Prometheus
-                      ServiceMonitor resource should be created for the Service being
-                      exposed for this port.
+                    description: The specification of a Prometheus ServiceMonitor
+                      resource that will be created for the Service being exposed
+                      for this port.
                     properties:
                       enabled:
                         description: Enabled is a flag to enable or disable creation
@@ -7869,6 +7869,7 @@ spec:
                     type: object
                 required:
                 - name
+                - port
                 type: object
               type: array
               x-kubernetes-list-map-keys:
