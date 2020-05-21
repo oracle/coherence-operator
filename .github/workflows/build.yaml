@@ -72,36 +72,8 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
-        docker pull docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-        docker pull docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-        docker pull docker.elastic.co/kibana/kibana:7.6.2
-        docker pull grafana/grafana:6.7.3
-        docker pull quay.io/coreos/kube-state-metrics:v1.9.5
-        docker pull quay.io/coreos/configmap-reload:v0.0.1
-        docker pull quay.io/coreos/prometheus-config-reloader:v0.38.1
-        docker pull quay.io/prometheus/node-exporter:v0.18.1
-        docker pull quay.io/coreos/prometheus-operator:v0.38.1
-        docker pull quay.io/prometheus/prometheus:v2.16.0
-        docker pull quay.io/prometheus/prometheus:v2.17.2
-        docker pull jettech/kube-webhook-certgen:v1.2.0
-        docker pull squareup/ghostunnel:v1.5.2
-        docker pull kiwigrid/k8s-sidecar:0.1.99
         docker pull $COHERENCE_IMAGE
         kind load docker-image --name operator $COHERENCE_IMAGE
-        kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-        kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-        kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2
-        kind load docker-image --name operator grafana/grafana:6.7.3
-        kind load docker-image --name operator quay.io/coreos/kube-state-metrics:v1.9.5
-        kind load docker-image --name operator quay.io/coreos/configmap-reload:v0.0.1
-        kind load docker-image --name operator quay.io/coreos/prometheus-config-reloader:v0.38.1
-        kind load docker-image --name operator quay.io/prometheus/node-exporter:v0.18.1
-        kind load docker-image --name operator quay.io/coreos/prometheus-operator:v0.38.1
-        kind load docker-image --name operator quay.io/prometheus/prometheus:v2.16.0
-        kind load docker-image --name operator quay.io/prometheus/prometheus:v2.17.2
-        kind load docker-image --name operator jettech/kube-webhook-certgen:v1.2.0
-        kind load docker-image --name operator squareup/ghostunnel:v1.5.2
-        kind load docker-image --name operator kiwigrid/k8s-sidecar:0.1.99
 
     - name: Code Review
       shell: bash
@@ -124,7 +96,6 @@ jobs:
       shell: bash
       run: |
         make e2e-local-test
-        make script-test
 
     - name: E2E Remote Tests
       shell: bash

@@ -380,41 +380,6 @@ debug-e2e-local-test:
 
 
 # ---------------------------------------------------------------------------
-# Executes the Go script tests that require a k8s cluster using
-# a LOCAL operator instance (i.e. the operator is not deployed to k8s).
-# These tests will use whichever k8s cluster the local environment
-# is pointing to.
-# ---------------------------------------------------------------------------
-.PHONY: script-test
-script-test: export CGO_ENABLED = 0
-script-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-script-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
-script-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
-script-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-script-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-script-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-script-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-script-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-script-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-script-test: export VERSION_FULL := $(VERSION_FULL)
-script-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-script-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-script-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-script-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
-	@echo "executing end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/script --operator-namespace $(TEST_NAMESPACE) --watch-namespace $(TEST_NAMESPACE) --up-local \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
-		--namespaced-manifest=$(TEST_MANIFEST) \
-		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS_DIR)/operator-script-test.out
-	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -suite-name-prefix=script-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-script-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-script-test.xml
-
-
-# ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a DEPLOYED operator instance (i.e. the operator Docker image is
 # deployed to k8s). These tests will use whichever k8s cluster the
