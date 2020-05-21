@@ -69,7 +69,7 @@ backend:
               items:
                 - includes:
                     - "installation/*.adoc"
-            - title: "Deploy Applications"
+            - title: "Build & Deploy Applications"
               pathprefix: "/applications"
               glyph:
                 type: "icon"

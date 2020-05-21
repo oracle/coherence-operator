@@ -28,31 +28,12 @@ func TestServerWithPersistenceMode(t *testing.T) {
 		},
 	}
 
-	args := []string{"server"}
+	args := []string{"runner", "server"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
-		"java",
-		"-cp",
-		"/utils/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/utils/scripts",
-		"-Dcoherence.wka=test-wka",
-		"-Dcoherence.cluster=test",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
-		"-Dcoherence.health.port=6676",
-		"-Dcoherence.management.http.port=30000",
-		"-Dcoherence.metrics.http.port=9612",
-		"-Dcoherence.distributed.persistence-mode=active",
-		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
-		"-XX:HeapDumpPath=/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-XX:+UseG1GC",
-		"-Dcoherence.ttl=0",
-		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
-		"-XX:+UseContainerSupport",
-		"com.tangosol.net.DefaultCacheServer",
-	}
+	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.persistence-mode="),
+		"-Dcoherence.distributed.persistence-mode=active")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -60,7 +41,7 @@ func TestServerWithPersistenceMode(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestServerWithPersistenceDirectory(t *testing.T) {
@@ -72,25 +53,6 @@ func TestServerWithPersistenceDirectory(t *testing.T) {
 	}
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
-		"java",
-		"-cp",
-		"/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/scripts",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
-		"-Dcoherence.health.port=6676",
-		"-Dcoherence.management.http.port=30000",
-		"-Dcoherence.metrics.http.port=9612",
-		"-Dcoherence.distributed.persistence-mode=on-demand",
-		"-Dcoherence.distributed.persistence.base.dir=/persistence",
-		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
-		"-XX:HeapDumpPath=/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-XX:+UseG1GC",
-		"-Dcoherence.ttl=0",
-		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
-		"com.tangosol.net.DefaultCacheServer",
-	}
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -98,7 +60,7 @@ func TestServerWithPersistenceDirectory(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
+	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=/persistence"))
 }
 
 func TestServerWithSnapshotDirectory(t *testing.T) {
@@ -110,25 +72,6 @@ func TestServerWithSnapshotDirectory(t *testing.T) {
 	}
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := []string{
-		"java",
-		"-cp",
-		"/lib/coherence-utils.jar:/app/libs/*:/app/classes:/app/resources:/scripts",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
-		"-Dcoherence.health.port=6676",
-		"-Dcoherence.management.http.port=30000",
-		"-Dcoherence.metrics.http.port=9612",
-		"-Dcoherence.distributed.persistence-mode=on-demand",
-		"-Dcoherence.distributed.persistence.snapshot.dir=/snapshot",
-		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
-		"-XX:HeapDumpPath=/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-XX:+UseG1GC",
-		"-Dcoherence.ttl=0",
-		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
-		"com.tangosol.net.DefaultCacheServer",
-	}
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -136,5 +79,5 @@ func TestServerWithSnapshotDirectory(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
+	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=/snapshot"))
 }
