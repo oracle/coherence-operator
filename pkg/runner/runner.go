@@ -70,8 +70,8 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 	printHeader(details)
 
 	// add any Classpath items
-	details.AddClasspath(env[v1.EnvVarJavaClasspath])
 	details.AddClasspath(env[v1.EnvVarJvmExtraClasspath])
+	details.AddClasspath(env[v1.EnvVarJavaClasspath])
 
 	if len(details.OsArgs) == 1 {
 		details.Command = CommandServer
@@ -413,7 +413,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		details.AddArg("-XX:+UseContainerSupport")
 	}
 
-	details.AddToFrontOfClasspath(details.Getenv(v1.EnvVarCohExtraClassPath))
 	details.AddArgs(debugArgs)
 	details.AddClasspath(details.UtilsDir + "/scripts")
 

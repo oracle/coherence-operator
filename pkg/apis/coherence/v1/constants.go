@@ -102,7 +102,6 @@ const (
 	EnvVarCohClusterName              = "COH_CLUSTER_NAME"
 	EnvVarCohWka                      = "COH_WKA"
 	EnvVarCohAppDir                   = "COH_APP_DIR"
-	EnvVarCohExtraClassPath           = "COH_EXTRA_CLASSPATH"
 	EnvVarCohMachineName              = "COH_MACHINE_NAME"
 	EnvVarCohMemberName               = "COH_MEMBER_NAME"
 	EnvVarCohPodUID                   = "COH_POD_UID"

@@ -64,6 +64,11 @@ The `runner` will work out the JVM's classpath, args and system properties to ad
 and execute the main class `com.tangosol.net.DefaultCacheServer`.
 All these are configurable in the `CoherenceDeployment` spec.
 
+=== Optional `CLASSPATH` Environment Variable
+
+If the `CLASSPATH` environment variable has been set in an image that classpath will be used when running the Coherence
+container. Other elements may also be added to the classpath depending on the configuration of the `CoherenceDeployment`.
+
 === Setting the Classpath
 
 An application image contains `.jar` files (at least `coherence.jar`), possibly Java class files, also possibly

@@ -70,7 +70,7 @@ func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithApplicationEmptyMainArgs(t *testing.T) {
+func TestCreateStatefulSetWithApplicationMainArgsEmpty(t *testing.T) {
 	// Create a spec with an ApplicationSpec with a main
 	spec := coh.CoherenceDeploymentSpec{
 		Application: &coh.ApplicationSpec{
