@@ -51,13 +51,15 @@ OP_CHMOD     := $(shell chmod +x $(OPERATOR_SDK))
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
 # The Coherence image name to inject into the Helm chart
-HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:12.2.1.4.0
+HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:14.1.1.0.0
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
-RELEASE_IMAGE_PREFIX ?= "iad.ocir.io/odx-stateservice/test/$(USER)/"
-OPERATOR_IMAGE       := $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)
-UTILS_IMAGE          ?= $(RELEASE_IMAGE_PREFIX)oracle/coherence-operator:$(VERSION_FULL)-utils
-TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)oracle/operator-test-image:$(VERSION_FULL)
+# For releases this will be docker.pkg.github.com/oracle/coherence-operator/
+RELEASE_IMAGE_PREFIX ?= "$(USER)/"
+OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)coherence-operator
+OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
+UTILS_IMAGE          ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
+TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)operator-test-image:$(VERSION_FULL)
 
 RELEASE_DRY_RUN  ?= true
 PRE_RELEASE      ?= true
