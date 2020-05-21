@@ -453,8 +453,8 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 // Create a SHA-256 hash of a value
 func (in *CommonReconciler) AsSha256(o interface{}) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%v", o)))
-
+	s := fmt.Sprintf("%v", o)
+	_, _ = h.Write([]byte(s))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
