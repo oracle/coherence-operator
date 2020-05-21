@@ -96,7 +96,7 @@ jobs:
       shell: bash
       run: |
         make e2e-local-test GO_TEST_FLAGS_E2E='-run=^TestMinimalDeployment$$'
-        make e2e-local-test GO_TEST_FLAGS_E2E='-run=^TestManagementOverRest'
+        make e2e-local-test
 
 #    - name: E2E Remote Tests
 #      shell: bash
