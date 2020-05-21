@@ -199,15 +199,9 @@ func (in *CoherenceDeploymentStatus) SetCondition(deployment *CoherenceDeploymen
 }
 
 // Update the status based on the condition of the StatefulSet status.
-func (in *CoherenceDeploymentStatus) Update(deployment *CoherenceDeployment, hash string, sts *appsv1.StatefulSetStatus) bool {
+func (in *CoherenceDeploymentStatus) Update(deployment *CoherenceDeployment, sts *appsv1.StatefulSetStatus) bool {
 	// ensure that there is an Initialized condition
 	updated := in.ensureInitialized(deployment)
-
-	// update the hash if it has changed
-	if in.LastReconciled != hash {
-		in.LastReconciled = hash
-		updated = true
-	}
 
 	if sts != nil {
 		// update CurrentReplicas from StatefulSet if required

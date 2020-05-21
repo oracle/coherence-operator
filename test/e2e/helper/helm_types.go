@@ -49,8 +49,9 @@ type OperatorValues struct {
 
 // OperatorSpec defines the settings for the Operator.
 type OperatorSpec struct {
-	coh.ImageSpec `json:",inline"`
-	SSL           *OperatorSSL `json:"ssl,omitempty"`
+	Image           *string            `json:"image,omitempty"`
+	ImagePullPolicy *coreV1.PullPolicy `json:"imagePullPolicy,omitempty"`
+	SSL             *OperatorSSL       `json:"ssl,omitempty"`
 }
 
 // OperatorSSL defines the SSL settings for the Operator.

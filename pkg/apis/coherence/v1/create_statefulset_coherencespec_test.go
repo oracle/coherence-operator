@@ -30,9 +30,7 @@ func TestCreateStatefulSetWithCoherenceSpecEmpty(t *testing.T) {
 func TestCreateStatefulSetWithImage(t *testing.T) {
 
 	spec := coh.CoherenceDeploymentSpec{
-		ImageSpec: coh.ImageSpec{
-			Image: stringPtr("coherence:1.0"),
-		},
+		Image: stringPtr("coherence:1.0"),
 	}
 
 	// Create the test deployment
@@ -48,9 +46,7 @@ func TestCreateStatefulSetWithImage(t *testing.T) {
 func TestCreateStatefulSetWithImagePullPolicy(t *testing.T) {
 	policy := corev1.PullAlways
 	spec := coh.CoherenceDeploymentSpec{
-		ImageSpec: coh.ImageSpec{
-			ImagePullPolicy: &policy,
-		},
+		ImagePullPolicy: &policy,
 	}
 
 	// Create the test deployment
