@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"os"
 	"runtime"
 	"strings"
@@ -86,6 +87,13 @@ func main() {
 
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()
+	if err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Ensure that the CRDs exist
+	err = operator.EnsureCRDs(cfg)
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)

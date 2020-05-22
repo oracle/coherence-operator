@@ -944,7 +944,7 @@ push-utils-image:
 # ---------------------------------------------------------------------------
 .PHONY: build-jib-image
 build-jib-image: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -X -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_USER_IMAGE)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_USER_IMAGE)
 
 # ---------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -993,7 +993,7 @@ run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: build-all-images create-ssl-secrets
+run: 
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
