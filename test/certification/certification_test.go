@@ -57,7 +57,7 @@ func TestCertifyScaling(t *testing.T) {
 			Namespace: ns,
 			Name:      "certify-scale",
 		},
-		Spec: v1.CoherenceSpec{
+		Spec: v1.CoherenceResourceSpec{
 			Replicas: pointer.Int32Ptr(1),
 			ReadinessProbe: &v1.ReadinessProbeSpec{
 				InitialDelaySeconds: pointer.Int32Ptr(10),
