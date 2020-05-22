@@ -44,7 +44,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1CRDs(&cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -101,7 +101,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1CRDs(&cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -139,7 +139,7 @@ func TestShouldCreateV1beta1CRDs(t *testing.T) {
 
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(&cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
@@ -196,7 +196,7 @@ func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(mgr, &cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(&cohFlags, log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
