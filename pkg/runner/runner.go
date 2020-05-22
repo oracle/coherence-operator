@@ -613,19 +613,6 @@ func checkCoherenceVersion(v string, details *RunDetails) (bool, error) {
 	return false, err
 }
 
-func checkForHotspot(details *RunDetails) (bool, error) {
-	fmt.Println("INFO: Checking for Oracle Hotspot JVM")
-	java := details.GetJava()
-	cmd := exec.Command(java, "-version")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return false, errors.Wrap(err, "checking for hotspot JVM")
-	}
-	isHotspot := strings.Contains(string(out), "Java HotSpot")
-	fmt.Printf("INFO: Checked for Oracle Hotspot JVM - %t\n", isHotspot)
-	return isHotspot, nil
-}
-
 func cohPre12214(details *RunDetails) {
 	details.AddArg("-Dcoherence.override=k8s-coherence-nossl-override.xml")
 	details.AddArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
