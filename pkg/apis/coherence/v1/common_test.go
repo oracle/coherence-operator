@@ -135,7 +135,7 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 }
 
 // Create the expected default StatefulSet for a spec with nothing but the minimal fields set.
-func createMinimalExpectedStatefulSet(deployment *coh.CoherenceDeployment) *appsv1.StatefulSet {
+func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.StatefulSet {
 	spec := deployment.Spec
 	labels := deployment.CreateCommonLabels()
 	labels[coh.LabelComponent] = coh.LabelComponentCoherenceStatefulSet
@@ -478,8 +478,8 @@ func addPortsToContainer(c *corev1.Container, ports ...corev1.ContainerPort) {
 	}
 }
 
-func createTestDeployment(spec coh.CoherenceDeploymentSpec) *coh.CoherenceDeployment {
-	return &coh.CoherenceDeployment{
+func createTestDeployment(spec coh.CoherenceResourceSpec) *coh.Coherence {
+	return &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-deployment",
 		},
@@ -487,7 +487,7 @@ func createTestDeployment(spec coh.CoherenceDeploymentSpec) *coh.CoherenceDeploy
 	}
 }
 
-func assertStatefulSetCreation(t *testing.T, deployment *coh.CoherenceDeployment, stsExpected *appsv1.StatefulSet) {
+func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpected *appsv1.StatefulSet) {
 	opFlags := &flags.CoherenceOperatorFlags{
 		CoherenceImage:      testCoherenceImage,
 		CoherenceUtilsImage: testUtilsImage,

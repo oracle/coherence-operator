@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithApplicationType(t *testing.T) {
 	// Create a spec with an ApplicationSpec with an application type
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Application: &coh.ApplicationSpec{
 			Type: stringPtr("foo"),
 		},
@@ -34,7 +34,7 @@ func TestCreateStatefulSetWithApplicationType(t *testing.T) {
 func TestCreateStatefulSetWithApplicationMain(t *testing.T) {
 	// Create a spec with an ApplicationSpec with a main
 	mainClass := "com.tangosol.net.CacheFactory"
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Application: &coh.ApplicationSpec{
 			Main: stringPtr(mainClass),
 		},
@@ -53,7 +53,7 @@ func TestCreateStatefulSetWithApplicationMain(t *testing.T) {
 
 func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 	// Create a spec with an ApplicationSpec with a main
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Application: &coh.ApplicationSpec{
 			Args: []string{"arg1", "arg2"},
 		},
@@ -72,7 +72,7 @@ func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 
 func TestCreateStatefulSetWithApplicationMainArgsEmpty(t *testing.T) {
 	// Create a spec with an ApplicationSpec with a main
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Application: &coh.ApplicationSpec{
 			Args: []string{},
 		},
@@ -90,7 +90,7 @@ func TestCreateStatefulSetWithApplicationMainArgsEmpty(t *testing.T) {
 func TestCreateStatefulSetWithWorkingDirectory(t *testing.T) {
 	// Create a spec with an ApplicationSpec with an application directory
 	dir := "/home/foo/app"
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Application: &coh.ApplicationSpec{
 			WorkingDir: &dir,
 		},

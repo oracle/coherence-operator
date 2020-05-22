@@ -98,10 +98,10 @@ Viewing and managing log files within using the Coherence Operator.
 --
 
 [CARD]
-.CoherenceDeployment CRD Reference
-[icon=widgets,link=about/04_coherencedepoyment.adoc]
+.Coherence CRD Reference
+[icon=widgets,link=about/04_coherence_spec.adoc]
 --
-CoherenceDeployment CRD reference guide.
+Coherence CRD reference guide.
 --
 
 ====

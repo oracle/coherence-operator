@@ -23,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Verify that a CoherenceDeployment deployed by the Operator has the correct site value
+// Verify that a Coherence resource deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
 func TestSiteLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the site
@@ -40,7 +40,7 @@ func TestSiteLabel(t *testing.T) {
 	assertLabel(t, "zone", flags.DefaultSiteLabel, fn, dfn)
 }
 
-// Verify that a CoherenceDeployment deployed by the Operator has the correct rack value
+// Verify that a Coherence resource deployed by the Operator has the correct rack value
 // set from the Node's failure domain region.
 func TestRackLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the rack
@@ -67,8 +67,8 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// load the test CoherenceDeployment from a yaml files
-	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "zone-test.yaml")
+	// load the test Coherence resource from a yaml files
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "zone-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deployment.SetName(name + "-zone-test")

@@ -11,18 +11,18 @@
 == Deploy Coherence Application Images
 
 Once a custom application image has been built (as described in <<applications/020_build_application.adoc,Build Application Images>>)
-a `CoherenceDeployment` can be configured to use that image.
+a `Coherence` resource can be configured to use that image.
 
 
 === Specify the Image to Use
 
-To specify the image to use set the `image` field in the `CoherenceDeployment` spec to the name of the image.
+To specify the image to use set the `image` field in the `Coherence` spec to the name of the image.
 
 For example if there was an application image called `catalogue:1.0.0` it can be specified like this:
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: test
 spec:

@@ -226,40 +226,40 @@ func FindTestManifestDir() (string, error) {
 	return pd + string(os.PathSeparator) + manifest, nil
 }
 
-// NewCoherenceDeployment creates a new CoherenceDeployment from the default minimal yaml file.
-func NewCoherenceDeployment(namespace string) (coh.CoherenceDeployment, error) {
-	return NewSingleCoherenceDeploymentFromYaml(namespace, "")
+// NewCoherence creates a new Coherence resource from the default minimal yaml file.
+func NewCoherence(namespace string) (coh.Coherence, error) {
+	return NewSingleCoherenceFromYaml(namespace, "")
 }
 
-// NewSingleCoherenceDeploymentFromYaml creates a single new CoherenceDeployment from a yaml file.
-func NewSingleCoherenceDeploymentFromYaml(namespace string, file string) (coh.CoherenceDeployment, error) {
-	deps, err := NewCoherenceDeploymentFromYaml(namespace, file)
+// NewSingleCoherenceFromYaml creates a single new Coherence resource from a yaml file.
+func NewSingleCoherenceFromYaml(namespace string, file string) (coh.Coherence, error) {
+	deps, err := NewCoherenceFromYaml(namespace, file)
 	switch {
 	case err == nil && len(deps) == 0:
-		return coh.CoherenceDeployment{}, fmt.Errorf("no deployments created from yaml %s", file)
+		return coh.Coherence{}, fmt.Errorf("no deployments created from yaml %s", file)
 	case err != nil:
-		return coh.CoherenceDeployment{}, err
+		return coh.Coherence{}, err
 	default:
 		return deps[0], err
 	}
 }
 
-// NewCoherenceDeploymentFromYaml creates a new CoherenceDeployment from a yaml file.
-func NewCoherenceDeploymentFromYaml(namespace string, file string) ([]coh.CoherenceDeployment, error) {
-	return createCoherenceDeploymentFromYaml(namespace, file)
+// NewCoherenceFromYaml creates a new Coherence resource from a yaml file.
+func NewCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, error) {
+	return createCoherenceFromYaml(namespace, file)
 }
 
-// createCoherenceDeploymentFromYaml creates a new CoherenceDeployment from a yaml file.
-func createCoherenceDeploymentFromYaml(namespace string, file string) ([]coh.CoherenceDeployment, error) {
-	l := CoherenceDeploymentLoader{}
+// createCoherenceFromYaml creates a new Coherence resource from a yaml file.
+func createCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, error) {
+	l := CoherenceLoader{}
 	return l.loadYaml(namespace, file)
 }
 
-type CoherenceDeploymentLoader struct {
+type CoherenceLoader struct {
 }
 
-func (in *CoherenceDeploymentLoader) loadYaml(namespace, file string) ([]coh.CoherenceDeployment, error) {
-	var deployments []coh.CoherenceDeployment
+func (in *CoherenceLoader) loadYaml(namespace, file string) ([]coh.Coherence, error) {
+	var deployments []coh.Coherence
 
 	if in == nil {
 		return deployments, nil
@@ -270,7 +270,7 @@ func (in *CoherenceDeploymentLoader) loadYaml(namespace, file string) ([]coh.Coh
 	_, c, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(c)
 	common := dir + string(os.PathSeparator) + "common-coherence-deployment.yaml"
-	templates, err := in.loadYamlFromFile(coh.CoherenceDeployment{}, common)
+	templates, err := in.loadYamlFromFile(coh.Coherence{}, common)
 	if err != nil {
 		return deployments, err
 	}
@@ -297,8 +297,8 @@ func (in *CoherenceDeploymentLoader) loadYaml(namespace, file string) ([]coh.Coh
 	return deployments, err
 }
 
-func (in *CoherenceDeploymentLoader) loadYamlFromFile(template coh.CoherenceDeployment, file string) ([]coh.CoherenceDeployment, error) {
-	var deployments []coh.CoherenceDeployment
+func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string) ([]coh.Coherence, error) {
+	var deployments []coh.Coherence
 	if in == nil || file == "" {
 		return deployments, nil
 	}
@@ -321,7 +321,7 @@ func (in *CoherenceDeploymentLoader) loadYamlFromFile(template coh.CoherenceDepl
 	decoder := yaml.NewYAMLToJSONDecoder(strings.NewReader(s))
 
 	for err == nil {
-		deployment := coh.CoherenceDeployment{}
+		deployment := coh.Coherence{}
 		template.DeepCopyInto(&deployment)
 		err = decoder.Decode(&deployment)
 		if err == nil && deployment.Name != "" {

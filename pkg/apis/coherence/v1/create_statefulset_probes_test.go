@@ -17,7 +17,7 @@ func TestCreateStatefulSetWithEmptyReadinessProbeSpec(t *testing.T) {
 
 	probe := coh.ReadinessProbeSpec{}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ReadinessProbe: &probe,
 	}
 
@@ -44,7 +44,7 @@ func TestCreateStatefulSetWithReadinessProbeSpec(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ReadinessProbe: &probe,
 	}
 
@@ -93,7 +93,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ReadinessProbe: &probe,
 	}
 
@@ -134,7 +134,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithTCPSocket(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ReadinessProbe: &probe,
 	}
 
@@ -174,7 +174,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithExec(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ReadinessProbe: &probe,
 	}
 
@@ -201,7 +201,7 @@ func TestCreateStatefulSetWithEmptyLivenessProbeSpec(t *testing.T) {
 
 	probe := coh.ReadinessProbeSpec{}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		LivenessProbe: &probe,
 	}
 
@@ -228,7 +228,7 @@ func TestCreateStatefulSetWithLivenessProbeSpec(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		LivenessProbe: &probe,
 	}
 
@@ -277,7 +277,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		LivenessProbe: &probe,
 	}
 
@@ -318,7 +318,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithTCPSocket(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		LivenessProbe: &probe,
 	}
 
@@ -358,7 +358,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithExec(t *testing.T) {
 		FailureThreshold:    int32Ptr(50),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		LivenessProbe: &probe,
 	}
 

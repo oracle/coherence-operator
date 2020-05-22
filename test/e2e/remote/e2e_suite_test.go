@@ -33,7 +33,7 @@ func cleanup(t *testing.T, ctx *framework.Context, names ...types.NamespacedName
 
 // deleteDeployment deletes a deployment.
 func deleteDeployment(namespace, name string) {
-	deployment := cohv1.CoherenceDeployment{}
+	deployment := cohv1.Coherence{}
 	f := framework.Global
 
 	err := f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
@@ -44,7 +44,7 @@ func deleteDeployment(namespace, name string) {
 }
 
 // installSimpleDeployment installs a deployment and asserts that the underlying StatefulSet resources reach the correct state.
-func installSimpleDeployment(t *testing.T, ctx *framework.Context, d cohv1.CoherenceDeployment) {
+func installSimpleDeployment(t *testing.T, ctx *framework.Context, d cohv1.Coherence) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 	err := f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
@@ -52,19 +52,19 @@ func installSimpleDeployment(t *testing.T, ctx *framework.Context, d cohv1.Coher
 	assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 }
 
-// assertDeploymentEventuallyInDesiredState asserts that a CoherenceDeployment exists and has the correct spec and that the
+// assertDeploymentEventuallyInDesiredState asserts that a Coherence resource exists and has the correct spec and that the
 // underlying StatefulSet exists with the correct status and ready replicas.
-func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.CoherenceDeployment, replicas int32) {
+func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, replicas int32) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
-	t.Logf("Asserting CoherenceDeployment %s exists with %d replicas\n", d.Name, replicas)
+	t.Logf("Asserting Coherence resource %s exists with %d replicas\n", d.Name, replicas)
 
 	// create a DeploymentStateCondition that checks a deployment's replica count
 	condition := helper.ReplicaCountCondition(replicas)
 
 	// wait for the deployment to match the condition
-	_, err := helper.WaitForCoherenceDeploymentCondition(f, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5, t)
+	_, err := helper.WaitForCoherenceCondition(f, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", d.Name, replicas)

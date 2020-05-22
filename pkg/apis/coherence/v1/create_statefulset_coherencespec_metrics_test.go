@@ -15,7 +15,7 @@ import (
 
 func TestCreateStatefulSetWithCoherenceMetricsEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{},
 		},
@@ -32,7 +32,7 @@ func TestCreateStatefulSetWithCoherenceMetricsEmpty(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceMetricsEnabledFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
 				Enabled: boolPtr(false),
@@ -68,7 +68,7 @@ func TestCreateStatefulSetWithCoherenceMetricsEnabledFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceMetricsEnabledTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
 				Enabled: boolPtr(true),
@@ -89,7 +89,7 @@ func TestCreateStatefulSetWithCoherenceMetricsEnabledTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceMetricsEnabledWithPort(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
 				Enabled: boolPtr(true),
@@ -111,7 +111,7 @@ func TestCreateStatefulSetWithCoherenceMetricsEnabledWithPort(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceMetricsWithSSLEnabledWithoutSecret(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
 				Enabled: boolPtr(true),
@@ -163,7 +163,7 @@ func TestCreateStatefulSetWithCoherenceMetricsWithSSLEnabledWithSecret(t *testin
 
 	secretName := "test-ssl-secret"
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
 				Enabled: boolPtr(true),

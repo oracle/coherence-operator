@@ -20,7 +20,7 @@ import (
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
 		"./pkg/apis/coherence/v1.ApplicationSpec":         schema_pkg_apis_coherence_v1_ApplicationSpec(ref),
-		"./pkg/apis/coherence/v1.CoherenceDeploymentSpec": schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceResourceSpec":   schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
 		"./pkg/apis/coherence/v1.ConfigMapVolumeSpec":     schema_pkg_apis_coherence_v1_ConfigMapVolumeSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
@@ -52,7 +52,7 @@ func schema_pkg_apis_coherence_v1_ApplicationSpec(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "The specification of the application deployed into the CoherenceDeployment.",
+				Description: "The specification of the application deployed into the Coherence.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"type": {
@@ -101,11 +101,11 @@ func schema_pkg_apis_coherence_v1_ApplicationSpec(ref common.ReferenceCallback) 
 	}
 }
 
-func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "CoherenceDeploymentSpec defines a deployment in a Coherence cluster. A deployment is one or more Pods that perform the same functionality, for example storage members.",
+				Description: "CoherenceSpec defines a deployment in a Coherence resource. A Coherence deployment is one or more Pods that perform the same functionality, for example storage members.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"image": {
@@ -166,7 +166,7 @@ func schema_pkg_apis_coherence_v1_CoherenceDeploymentSpec(ref common.ReferenceCa
 					},
 					"cluster": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The optional name of the Coherence cluster that this CoherenceDeployment belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the CoherenceDeployment's name will be used as the cluster name.",
+							Description: "The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the Coherence resource's name will be used as the cluster name.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1587,7 +1587,7 @@ func schema_pkg_apis_coherence_v1_ScalingProbe(ref common.ReferenceCallback) com
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceDeployment. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).",
+				Description: "ScalingProbe is the handler that will be used to determine how to check for StatusHA in a Coherence. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"exec": {

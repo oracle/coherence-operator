@@ -13,12 +13,12 @@
 Almost every application deployed into a Kubernetes cluster needs to communicate with other processes to provide services
 to other processes or consume services to other processes. This is achieved by exposing ports on containers in `Pods` and
 optionally exposing those same ports using `Services` and ingress.
-The `CoherenceDeployment` spec makes it simple to add ports to the Coherence container and configure `Services` to
+The `Coherence` CRD spec makes it simple to add ports to the Coherence container and configure `Services` to
 expose those ports.
 
 Each additional port configured is exposed via its own `Service`.
 
-If the configuration of `Services` for ports provided by the `CoherenceDeployment` spec is not sufficient or cannot
+If the configuration of `Services` for ports provided by the `Coherence` CRD spec is not sufficient or cannot
 provide the required `Service` configuration then it is always possible to just create your own `Services` in Kubernetes.
 
 === Guides to Adding and Exposing Ports

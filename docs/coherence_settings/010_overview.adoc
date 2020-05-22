@@ -8,15 +8,15 @@
 
 = Configuring Coherence
 
-The `CoherenceDeployment` has a number of fields to configure the behaviour of `Coherence`,
+The `Coherence` resource has a number of fields to configure the behaviour of `Coherence`,
 these fields are in the `spec.coherence` section of the CRD.
 
 == Configuring Coherence
 
-The `CoherenceDeployment` has specific fields to configure the most common Coherence settings.
+The `Coherence` CRD has specific fields to configure the most common Coherence settings.
 Any other settings can be configured by adding system properties to the <<jvm_settings010_overview.adoc,JVM Settings>>.
 
-The following Coherence features can be directly specified in the `CoherenceDeployment` spec.
+The following Coherence features can be directly specified in the `Coherence` spec.
 
 * <<coherence_settings/020_cluster_name.adoc,Cluster Name>>
 * <<coherence_settings/030_cache_config.adoc,Cache Configuration File>>
@@ -28,7 +28,7 @@ The following Coherence features can be directly specified in the `CoherenceDepl
 * <<management_and_diagnostics/010_overview.adoc,Management over REST>>
 * <<metrics/010_overview.adoc,Metrics>>
 
-NOTE: The Coherence settings in the `CoherenceDeployment` spec typically set system property values that will
+NOTE: The Coherence settings in the `Coherence` CRD spec typically set system property values that will
 be passed through to the Coherence JVM command line, which in turn configure Coherence.
 This is the same behaviour that would occur when running Coherence outside of containers.
 Whether these system properties actually apply or not depends on the application code. For example,
@@ -37,9 +37,9 @@ application's image in such a way that will cause all the normal Coherence syste
 If that is done then the Coherence settings discussed in this documentation will not apply. +
 For example, adding a `tangosol-coherence-override.xml` file to a jar on the application's classpath that contains
 an overridden `<configurable-cache-factory-config>` section with a hard coded cache configuration file name would
-mean that the `CoherenceDeployment` `spec.coherence.cacheConfig` field, that sets the `coherence.cacheconfig` system
+mean that the `Coherence` CRD `spec.coherence.cacheConfig` field, that sets the `coherence.cacheconfig` system
 property, would be ignored. +
-It is, therefore, entirely at the application developer's discretion whether they use the fields of the `CoherenceDeployment`
+It is, therefore, entirely at the application developer's discretion whether they use the fields of the `Coherence` CRD
 to configure Coherence, or they put those settings into configuration files, either hard coded into jar files or
 picked up at runtime from files mapped from Kubernetes volumes, config maps, secrets, etc.
 

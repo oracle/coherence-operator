@@ -18,7 +18,7 @@ import (
 
 func TestCreateStatefulSetFromMinimalRoleSpec(t *testing.T) {
 	// Create minimal spec spec
-	spec := coh.CoherenceDeploymentSpec{}
+	spec := coh.CoherenceResourceSpec{}
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
@@ -29,7 +29,7 @@ func TestCreateStatefulSetFromMinimalRoleSpec(t *testing.T) {
 
 func TestCreateStatefulSetWithName(t *testing.T) {
 	// create a spec with a name
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Role: "data",
 	}
 
@@ -47,7 +47,7 @@ func TestCreateStatefulSetWithName(t *testing.T) {
 
 func TestCreateStatefulSetWithReplicas(t *testing.T) {
 	// create a spec with a name
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Replicas: pointer.Int32Ptr(50),
 	}
 
@@ -65,7 +65,7 @@ func TestCreateStatefulSetWithEnvVars(t *testing.T) {
 	ev := []corev1.EnvVar{
 		{Name: "FOO", Value: "FOO_VAL"},
 	}
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Env: ev,
 	}
 
@@ -82,7 +82,7 @@ func TestCreateStatefulSetWithEnvVars(t *testing.T) {
 
 func TestCreateStatefulSetWithEmptyEnvVars(t *testing.T) {
 	// create a spec with empty environment variables
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Env: []corev1.EnvVar{},
 	}
 
@@ -97,7 +97,7 @@ func TestCreateStatefulSetWithEmptyEnvVars(t *testing.T) {
 
 func TestCreateStatefulSetWithHealthPort(t *testing.T) {
 	// create a spec with a custom health port
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		HealthPort: int32Ptr(210),
 	}
 
@@ -118,7 +118,7 @@ func TestCreateStatefulSetWithLabels(t *testing.T) {
 	labels["foo"] = "foo-label"
 	labels["bar"] = "bar-label"
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Labels: labels,
 	}
 
@@ -140,7 +140,7 @@ func TestCreateStatefulSetWithAnnotations(t *testing.T) {
 	annotations["foo"] = "foo-annotation"
 	annotations["bar"] = "bar-annotation"
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Annotations: annotations,
 	}
 
@@ -169,7 +169,7 @@ func TestCreateStatefulSetWithResources(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Resources: &res,
 	}
 
@@ -199,7 +199,7 @@ func TestCreateStatefulSetWithAffinity(t *testing.T) {
 	}
 
 	// Create the spec with the affinity spec
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Affinity: &affinity,
 	}
 
@@ -219,7 +219,7 @@ func TestCreateStatefulSetWithNodeSelector(t *testing.T) {
 	selector["bar"] = "bar-label"
 
 	// Create the spec with the node selector
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		NodeSelector: selector,
 	}
 
@@ -242,7 +242,7 @@ func TestCreateStatefulSetWithTolerations(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Tolerations: tolerations,
 	}
 
@@ -262,7 +262,7 @@ func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 		RunAsNonRoot: boolPtr(true),
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		SecurityContext: &ctx,
 	}
 
@@ -277,7 +277,7 @@ func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithShareProcessNamespaceFalse(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ShareProcessNamespace: boolPtr(false),
 	}
 
@@ -292,7 +292,7 @@ func TestCreateStatefulSetWithShareProcessNamespaceFalse(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithShareProcessNamespaceTrue(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ShareProcessNamespace: boolPtr(true),
 	}
 
@@ -307,7 +307,7 @@ func TestCreateStatefulSetWithShareProcessNamespaceTrue(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithHostIPCFalse(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		HostIPC: boolPtr(false),
 	}
 
@@ -322,7 +322,7 @@ func TestCreateStatefulSetWithHostIPCFalse(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithHostIPCNamespaceTrue(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		HostIPC: boolPtr(true),
 	}
 

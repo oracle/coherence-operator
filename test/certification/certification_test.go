@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func TestCertifyMinimalDeployment(t *testing.T) {
+func TestCertifyMinimalSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	f := framework.Global
@@ -30,7 +30,7 @@ func TestCertifyMinimalDeployment(t *testing.T) {
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	ns := helper.GetTestNamespace()
-	d := &v1.CoherenceDeployment{
+	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ns,
 			Name:      "certify-minimal",
@@ -52,12 +52,12 @@ func TestCertifyScaling(t *testing.T) {
 	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
 	ns := helper.GetTestNamespace()
-	d := &v1.CoherenceDeployment{
+	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ns,
 			Name:      "certify-scale",
 		},
-		Spec: v1.CoherenceDeploymentSpec{
+		Spec: v1.CoherenceSpec{
 			Replicas: pointer.Int32Ptr(1),
 			ReadinessProbe: &v1.ReadinessProbeSpec{
 				InitialDelaySeconds: pointer.Int32Ptr(10),
@@ -86,7 +86,7 @@ func TestCertifyScaling(t *testing.T) {
 }
 
 func scale(t *testing.T, namespace, name string, replicas int32) error {
-	cmd := exec.Command("kubectl", "-n", namespace, "scale", fmt.Sprintf("--replicas=%d", replicas), "coherencedeployment/"+name)
+	cmd := exec.Command("kubectl", "-n", namespace, "scale", fmt.Sprintf("--replicas=%d", replicas), "coherence/"+name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	t.Log("Executing Scale Command: " + strings.Join(cmd.Args, " "))

@@ -30,14 +30,14 @@ each CRD passes the Open API validator.
 // The base location for CRD files - this is relative to this test file's location.
 const crdBase = "../../../../deploy/crds/"
 
-func TestCoherenceDeploymentOpenApiSpec(t *testing.T) {
+func TestCoherenceOpenApiSpec(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	v := createValidator(t, crdBase+"coherence.oracle.com_coherencedeployments_crd.yaml")
+	v := createValidator(t, crdBase+"coherence.oracle.com_coherence_crd.yaml")
 
-	// This is the minimal valid spec for a CoherenceDeployment.
+	// This is the minimal valid spec for a Coherence.
 	// This structure should be valid against the CRD spec
-	spec := v1.CoherenceDeployment{
+	spec := v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "test-ns", Name: "test-deployment"},
 	}
 

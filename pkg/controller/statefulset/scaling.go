@@ -64,7 +64,7 @@ func (in *ScalableChecker) TranslatePort(name string, port int) int {
 // The number of Pods matching the StatefulSet selctor must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *ScalableChecker) IsStatusHA(deployment *coh.CoherenceDeployment, sts *appsv1.StatefulSet) bool {
+func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
 	logger := log.WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 	list := corev1.PodList{}
 

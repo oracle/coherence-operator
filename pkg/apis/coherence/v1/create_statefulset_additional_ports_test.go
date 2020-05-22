@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithPortsEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{},
 	}
 
@@ -31,7 +31,7 @@ func TestCreateStatefulSetWithPortsWithOneAdditionalPort(t *testing.T) {
 
 	protocol := corev1.ProtocolUDP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -64,7 +64,7 @@ func TestCreateStatefulSetWithPortsWithTwoAdditionalPorts(t *testing.T) {
 	protocolOne := corev1.ProtocolUDP
 	protocolTwo := corev1.ProtocolSCTP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",

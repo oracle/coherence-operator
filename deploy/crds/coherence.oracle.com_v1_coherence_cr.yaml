@@ -1,6 +1,6 @@
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
-  name: example-coherencedeployment
+  name: example
 spec:
   replicas: 3

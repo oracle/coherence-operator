@@ -16,9 +16,9 @@ import (
 func TestJvmArgsEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				Args: []string{},
 			},
@@ -43,9 +43,9 @@ func TestJvmArgsEmpty(t *testing.T) {
 func TestJvmArgs(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				Args: []string{"Foo", "Bar"},
 			},

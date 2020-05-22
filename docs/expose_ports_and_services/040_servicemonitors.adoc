@@ -12,8 +12,8 @@
 
 When a port exposed on a container is to be used to serve metrics to Prometheus this often requires the addition of
 a Prometheus `ServiceMonitor` resource. The Coherence Operator makes it simple to add a `ServiceMonitor` for an exposed
-port. The advantage of specifying the `ServiceMonitor` configuration in the `CoherenceDeployment` spec is that the
-`ServiceMonitor` resource will be created, updated and deleted as part of the lifecycle of the `CoherenceDeployment`
+port. The advantage of specifying the `ServiceMonitor` configuration in the `Coherence` CRD spec is that the
+`ServiceMonitor` resource will be created, updated and deleted as part of the lifecycle of the `Coherence` resource,
 and does not need to be managed separately.
 
 // ToDo: TBD

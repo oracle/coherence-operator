@@ -11,7 +11,7 @@
 == Overview
 
 The Coherence Operator allows full control over the configuration of the JVM used to run the Coherence application.
-The `jvm` section of the `CoherenceDeployment` spec has a number of fields to easily configure specific aspects of the
+The `jvm` section of the `Coherence` CRD spec has a number of fields to easily configure specific aspects of the
 JVM as well as a catch-all `jvm.args` list that allows any arbitrary argument to be passed to the JVM.
 
 === Guides to JVM Settings

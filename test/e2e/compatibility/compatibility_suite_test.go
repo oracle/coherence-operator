@@ -40,7 +40,7 @@ func DeployCoherenceCluster(t *testing.T, ctx *framework.Context, namespace, yam
 	g := NewGomegaWithT(t)
 	f := framework.Global
 
-	cluster, err := helper.NewCoherenceDeploymentFromYaml(namespace, yamlFile)
+	cluster, err := helper.NewCoherenceFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// deploy the CoherenceCluster

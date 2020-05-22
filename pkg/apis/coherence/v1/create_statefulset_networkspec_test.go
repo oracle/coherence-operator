@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithNetworkSpec(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{},
 	}
 
@@ -29,7 +29,7 @@ func TestCreateStatefulSetWithNetworkSpec(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigNameServers(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Nameservers: []string{"one", "two"},
@@ -51,7 +51,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSConfigNameServers(t *testing.T) 
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigEmptyNameServers(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Nameservers: []string{},
@@ -72,7 +72,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSConfigEmptyNameServers(t *testin
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigSearches(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Searches: []string{"one", "two"},
@@ -94,7 +94,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSConfigSearches(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigEmptySearches(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Searches: []string{},
@@ -114,7 +114,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSConfigEmptySearches(t *testing.T
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigOptions(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Options: []corev1.PodDNSConfigOption{
@@ -146,7 +146,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSConfigOptions(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithDNSConfigEmptyOptions(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSConfig: &coh.PodDNSConfig{
 				Options: []corev1.PodDNSConfigOption{},
@@ -167,7 +167,7 @@ func TestCreateStatefulSetWithNetworkSpecWithDNSPolicy(t *testing.T) {
 
 	policy := corev1.DNSClusterFirst
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			DNSPolicy: &policy,
 		},
@@ -192,7 +192,7 @@ func TestCreateStatefulSetWithNetworkSpecWithHostAliases(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			HostAliases: aliases,
 		},
@@ -210,7 +210,7 @@ func TestCreateStatefulSetWithNetworkSpecWithHostAliases(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithHostNetworkFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			HostNetwork: boolPtr(false),
 		},
@@ -228,7 +228,7 @@ func TestCreateStatefulSetWithNetworkSpecWithHostNetworkFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithHostNetworkTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			HostNetwork: boolPtr(true),
 		},
@@ -246,7 +246,7 @@ func TestCreateStatefulSetWithNetworkSpecWithHostNetworkTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithNetworkSpecWithHostname(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Network: &coh.NetworkSpec{
 			Hostname: stringPtr("foo.com"),
 		},

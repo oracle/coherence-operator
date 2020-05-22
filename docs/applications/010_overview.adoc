@@ -11,7 +11,7 @@
 == Overview
 
 A typical Coherence deployment contains custom application code that runs with Coherence.
-To run custom application code in a `CoherenceDeployment` that code needs to be packaged into an image that the
+To run custom application code in a `Coherence` resource that code needs to be packaged into an image that the
 deployment will use.
 
 === Building and Deploying Applications
@@ -35,7 +35,7 @@ Deploying custom application images using the Coherence Operator.
 
 === Configuring Applications
 
-There are many settings in a `CoherenceDeployment` that control the behaviour of Coherence, the JVM and
+There are many settings in a `Coherence` resource that control the behaviour of Coherence, the JVM and
 the application code. Some of the application specific settings are shown below:
 
 [PILLARS]

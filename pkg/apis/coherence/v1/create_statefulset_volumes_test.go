@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithEmptyVolumes(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Volumes: []corev1.Volume{},
 	}
 
@@ -38,7 +38,7 @@ func TestCreateStatefulSetWithOneVolume(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Volumes: []corev1.Volume{volumeOne},
 	}
 
@@ -72,7 +72,7 @@ func TestCreateStatefulSetWithTwoVolumes(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Volumes: []corev1.Volume{volumeOne, volumeTwo},
 	}
 

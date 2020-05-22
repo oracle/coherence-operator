@@ -38,21 +38,21 @@ const (
 	delete
 )
 
-// Deploy a CoherenceDeployment with persistence enabled (this should enable active persistence).
+// Deploy a Coherence resource with persistence enabled (this should enable active persistence).
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the deployment,
 // re-deploy the deployment and assert that the data is recovered.
 func TestActivePersistence(t *testing.T) {
 	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
 }
 
-// Deploy a CoherenceDeployment with the minimal default configuration. Persistence will be on-demand.
+// Deploy a Coherence resource with the minimal default configuration. Persistence will be on-demand.
 // Put data in a cache, take a snapshot, delete the data, recover the snapshot,
 // assert that the data is recovered.
 func TestOnDemandPersistence(t *testing.T) {
 	assertPersistence("persistence-on-demand.yaml", "", true, true, false, t)
 }
 
-// Deploy a CoherenceDeployment with snapshot enabled. Persistence will be on-demand,
+// Deploy a Coherence resource with snapshot enabled. Persistence will be on-demand,
 // a PVC will be created for the StatefulSet to use for snapshots. Put data in a cache, take a snapshot,
 // delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
 func TestSnapshotPersistence(t *testing.T) {
@@ -144,10 +144,10 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	_ = helper.ClearCanary(ns, deployment.GetName())
 }
 
-func ensurePods(g *GomegaWithT, ctx *framework.Context, yamlFile, ns string, t *testing.T) (v1.CoherenceDeployment, []corev1.Pod) {
+func ensurePods(g *GomegaWithT, ctx *framework.Context, yamlFile, ns string, t *testing.T) (v1.Coherence, []corev1.Pod) {
 	f := framework.Global
 
-	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(ns, yamlFile)
+	deployment, err := helper.NewSingleCoherenceFromYaml(ns, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	d, _ := json.Marshal(deployment)

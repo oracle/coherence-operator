@@ -56,7 +56,7 @@ type ReconcileServiceMonitor struct {
 func (in *ReconcileServiceMonitor) GetReconciler() reconcile.Reconciler { return in }
 
 // Reconcile reads that state of the ServiceMonitors for a deployment and makes changes based on the
-// state read and the desired state based on the parent CoherenceDeployment.
+// state read and the desired state based on the parent Coherence resource.
 func (in *ReconcileServiceMonitor) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -66,7 +66,7 @@ func (in *ReconcileServiceMonitor) Reconcile(request reconcile.Request) (reconci
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Obtain the parent CoherenceDeployment
+	// Obtain the parent Coherence resource
 	deployment, err := in.FindDeployment(request)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -81,7 +81,7 @@ func (in *ReconcileServiceMonitor) Reconcile(request reconcile.Request) (reconci
 }
 
 // ReconcileResources reconciles the state of the desired ServiceMonitors for the reconciler
-func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *coh.CoherenceDeployment, store utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *coh.Coherence, store utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", req.Namespace, "Name", req.Name)
 
 	var err error
@@ -102,7 +102,7 @@ func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileServiceMonitor) ReconcileResource(namespace, name string, deployment *coh.CoherenceDeployment, storage utils.Storage) error {
+func (in *ReconcileServiceMonitor) ReconcileResource(namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
 	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
 
 	// See whether it is even possible to handle Prometheus ServiceMonitor resources

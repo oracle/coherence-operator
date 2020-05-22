@@ -116,7 +116,7 @@ func ReplaceVolume(sts *appsv1.StatefulSet, volNew corev1.Volume) {
 
 // ----- ApplicationSpec struct ---------------------------------------------
 
-// The specification of the application deployed into the CoherenceDeployment.
+// The specification of the application deployed into the Coherence.
 // +k8s:openapi-gen=true
 type ApplicationSpec struct {
 	// The application type to execute.
@@ -231,7 +231,7 @@ func (in *CoherenceSpec) AddPersistenceVolumeMounts(c *corev1.Container) {
 }
 
 // Add the persistence and snapshot persistent volume claims
-func (in *CoherenceSpec) AddPersistencePVCs(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+func (in *CoherenceSpec) AddPersistencePVCs(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Add the persistence PVC if required
 	pvcs := in.Persistence.CreatePersistentVolumeClaims(deployment)
 	sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, pvcs...)
@@ -245,7 +245,7 @@ func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 }
 
 // Apply Coherence settings to the StatefulSet.
-func (in *CoherenceSpec) UpdateStatefulSet(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Get the Coherence container
 	c := EnsureContainer(ContainerNameCoherence, sts)
 	defer ReplaceContainer(sts, c)
@@ -491,7 +491,7 @@ func (in *PersistenceSpec) GetMode() *string {
 	return in.Mode
 }
 
-func (in *PersistenceSpec) CreatePersistentVolumeClaims(deployment *CoherenceDeployment) []corev1.PersistentVolumeClaim {
+func (in *PersistenceSpec) CreatePersistentVolumeClaims(deployment *Coherence) []corev1.PersistentVolumeClaim {
 	var pvcs []corev1.PersistentVolumeClaim
 	if in != nil {
 		// Only create the PVC if there is not a volume definition configured
@@ -573,7 +573,7 @@ type PersistentStorageSpec struct {
 }
 
 // Create a PersistentVolumeClaim if required
-func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *CoherenceDeployment, name string) *corev1.PersistentVolumeClaim {
+func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *Coherence, name string) *corev1.PersistentVolumeClaim {
 	if in == nil || in.Volume != nil || in.PersistentVolumeClaim == nil {
 		// no pv required
 		return nil
@@ -775,7 +775,7 @@ type NamedPortSpec struct {
 }
 
 // Create the Kubernetes service to expose this port.
-func (in *NamedPortSpec) CreateService(deployment *CoherenceDeployment) *corev1.Service {
+func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 	if in == nil || !in.IsEnabled() {
 		return nil
 	}
@@ -834,7 +834,7 @@ func (in *NamedPortSpec) CreateService(deployment *CoherenceDeployment) *corev1.
 }
 
 // Create the Prometheus ServiceMonitor to expose this port if enabled.
-func (in *NamedPortSpec) CreateServiceMonitor(deployment *CoherenceDeployment) *monitoringv1.ServiceMonitor {
+func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoringv1.ServiceMonitor {
 	if in == nil || !in.IsEnabled() {
 		return nil
 	}
@@ -900,7 +900,7 @@ func (in *NamedPortSpec) GetProtocol() corev1.Protocol {
 	return *in.Protocol
 }
 
-func (in *NamedPortSpec) GetPort(d *CoherenceDeployment) int32 {
+func (in *NamedPortSpec) GetPort(d *Coherence) int32 {
 	switch {
 	case in == nil:
 		return 0
@@ -924,7 +924,7 @@ func (in *NamedPortSpec) GetNodePort() int32 {
 	return *in.NodePort
 }
 
-func (in *NamedPortSpec) CreatePort(d *CoherenceDeployment) corev1.ContainerPort {
+func (in *NamedPortSpec) CreatePort(d *Coherence) corev1.ContainerPort {
 	return corev1.ContainerPort{
 		Name:          in.Name,
 		ContainerPort: in.GetPort(d),
@@ -1482,7 +1482,7 @@ type ScalingSpec struct {
 
 // ----- ScalingProbe ----------------------------------------------------
 
-// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceDeployment.
+// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a Coherence.
 // StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA
 // state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting
 // Enabled to false then no check will take place and a deployment will be assumed to be safe).
@@ -1982,7 +1982,7 @@ func (t ResourceType) Name() string {
 }
 
 const (
-	ResourceTypeDeployment     ResourceType = "CoherenceDeployment"
+	ResourceTypeDeployment     ResourceType = "Coherence"
 	ResourceTypeConfigMap      ResourceType = "ConfigMap"
 	ResourceTypeSecret         ResourceType = "Secret"
 	ResourceTypeService        ResourceType = "Service"
@@ -2019,7 +2019,7 @@ func (t ResourceType) toObject() (runtime.Object, error) {
 
 	switch t {
 	case ResourceTypeDeployment:
-		o = &CoherenceDeployment{}
+		o = &Coherence{}
 	case ResourceTypeConfigMap:
 		o = &corev1.ConfigMap{}
 	case ResourceTypeSecret:

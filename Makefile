@@ -734,9 +734,9 @@ cleanup-certification:
 install-crds: uninstall-crds
 	@echo "Installing CRDs $(CRD_VERSION)"
 ifeq ("$(CRD_VERSION)","v1beta1")
-	kubectl --validate=false create -f deploy/crds/v1beta1/coherence.oracle.com_coherencedeployments_crd.yaml || true
+	kubectl --validate=false create -f deploy/crds/v1beta1/coherence.oracle.com_coherence_crd.yaml || true
 else
-	kubectl --validate=false create -f deploy/crds/coherence.oracle.com_coherencedeployments_crd.yaml || true
+	kubectl --validate=false create -f deploy/crds/coherence.oracle.com_coherence_crd.yaml || true
 endif
 
 # ---------------------------------------------------------------------------
@@ -747,7 +747,7 @@ endif
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_PROPS)
 	@echo "Removing CRDs"
-	kubectl delete crd coherencedeployments.coherence.oracle.com || true
+	kubectl delete crd coherence.coherence.oracle.com || true
 
 # ---------------------------------------------------------------------------
 # This step will run the Operator SDK code generators.
@@ -757,12 +757,12 @@ uninstall-crds: $(BUILD_PROPS)
 # the pkg/apis directory have been changed.
 # ---------------------------------------------------------------------------
 .PHONY: generate
-generate: api-doc-gen
+generate:
 	@echo "Generating deep copy code"
 	$(OPERATOR_SDK) generate k8s --verbose
 	@echo "Generating v1beta1 CRDs"
 	$(OPERATOR_SDK) generate crds --verbose --crd-version v1beta1
-	mv deploy/crds/coherence.oracle.com_coherencedeployments_crd.yaml deploy/crds/v1beta1/
+	mv deploy/crds/coherence.oracle.com_coherence_crd.yaml deploy/crds/v1beta1/
 	@echo "Generating v1 CRDs"
 	$(OPERATOR_SDK) generate crds --verbose --crd-version v1
 	@echo "Generating OpenAPI"
@@ -774,6 +774,7 @@ generate: api-doc-gen
 		-p ./pkg/apis/coherence/v1 \
 		-h ./hack/boilerplate.go.txt \
 		-r "-"
+	$(MAKE) api-doc-gen
 
 # ---------------------------------------------------------------------------
 # Generate API docs
@@ -781,10 +782,10 @@ generate: api-doc-gen
 .PHONY: api-doc-gen
 api-doc-gen:
 	go run ./cmd/docgen/ \
-		pkg/apis/coherence/v1/coherencedeployment_types.go \
-		pkg/apis/coherence/v1/coherencedeploymentspec_types.go \
+		pkg/apis/coherence/v1/coherenceresource_types.go \
+		pkg/apis/coherence/v1/coherenceresourcespec_types.go \
 		pkg/apis/coherence/v1/coherence_types.go \
-		> docs/about/04_coherencedepoyment.adoc
+		> docs/about/04_coherence_spec.adoc
 
 # ---------------------------------------------------------------------------
 # Clean-up all of the build artifacts
@@ -1206,7 +1207,7 @@ port-forward-es:
 # ---------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters:
-	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherencedeployment -o name); do \
+	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherence -o name); do \
 		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
 	done
 

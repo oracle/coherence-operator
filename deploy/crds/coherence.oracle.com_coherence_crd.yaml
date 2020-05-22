@@ -1,18 +1,16 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: coherencedeployments.coherence.oracle.com
+  name: coherence.coherence.oracle.com
 spec:
   group: coherence.oracle.com
   names:
-    categories:
-    - coherence
-    kind: CoherenceDeployment
-    listKind: CoherenceDeploymentList
-    plural: coherencedeployments
+    kind: Coherence
+    listKind: CoherenceList
+    plural: coherence
     shortNames:
-    - cd
-    singular: coherencedeployment
+    - coh
+    singular: coherence
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -40,8 +38,7 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: CoherenceDeployment is the Schema for the coherencedeployments
-          API
+        description: Coherence is the Schema for the coherence API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -56,8 +53,8 @@ spec:
           metadata:
             type: object
           spec:
-            description: CoherenceDeploymentSpec defines a deployment in a Coherence
-              cluster. A deployment is one or more Pods that perform the same functionality,
+            description: CoherenceSpec defines a deployment in a Coherence resource.
+              A Coherence deployment is one or more Pods that perform the same functionality,
               for example storage members.
             properties:
               additionalContainers:
@@ -2839,10 +2836,10 @@ spec:
                 type: boolean
               cluster:
                 description: The optional name of the Coherence cluster that this
-                  CoherenceDeployment belongs to. If this value is set this deployment
+                  Coherence resource belongs to. If this value is set this deployment
                   will form a cluster with other deployments with the same cluster
-                  name. If not set the CoherenceDeployment's name will be used as
-                  the cluster name.
+                  name. If not set the Coherence resource's name will be used as the
+                  cluster name.
                 type: string
               coherence:
                 description: The optional application definition
@@ -10060,7 +10057,8 @@ spec:
                 x-kubernetes-list-type: map
             type: object
           status:
-            description: CoherenceDeploymentStatus defines the observed state of CoherenceDeployment
+            description: CoherenceResourceStatus defines the observed state of Coherence
+              resource.
             properties:
               coherenceCluster:
                 description: The name of the Coherence cluster that this deployment
@@ -10112,8 +10110,8 @@ spec:
                 format: int32
                 type: integer
               phase:
-                description: "The phase of a CoherenceDeployment is a simple, high-level
-                  summary of where the CoherenceDeployment is in its lifecycle. The
+                description: "The phase of a Coherence resource is a simple, high-level
+                  summary of where the Coherence resource is in its lifecycle. The
                   conditions array, the reason and message fields, and the individual
                   container status arrays contain more detail about the pod's status.
                   There are eight possible phase values: \n Initialized:    The deployment

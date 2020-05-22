@@ -21,7 +21,7 @@ import (
 func TestMinimalDeployment(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 	}
 
@@ -43,9 +43,9 @@ func TestMinimalDeployment(t *testing.T) {
 func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				SkipVersionCheck: pointer.BoolPtr(true),
 			},
@@ -134,7 +134,7 @@ func GetJavaCommand() string {
 	return cmd.Path
 }
 
-func EnvVarsFromDeployment(d *coh.CoherenceDeployment) map[string]string {
+func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 	envVars := make(map[string]string)
 
 	if d.Spec.JVM == nil {

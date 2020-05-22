@@ -32,7 +32,7 @@ func TestSerializeResources(t *testing.T) {
 		{
 			Kind: v1.ResourceTypeDeployment,
 			Name: "foo",
-			Spec: &v1.CoherenceDeployment{ObjectMeta: om},
+			Spec: &v1.Coherence{ObjectMeta: om},
 		},
 		{
 			Kind: v1.ResourceTypeConfigMap,
@@ -75,7 +75,7 @@ func TestSerializeMultipleResources(t *testing.T) {
 		{
 			Kind: v1.ResourceTypeDeployment,
 			Name: "foo",
-			Spec: &v1.CoherenceDeployment{ObjectMeta: om},
+			Spec: &v1.Coherence{ObjectMeta: om},
 		},
 		{
 			Kind: v1.ResourceTypeConfigMap,

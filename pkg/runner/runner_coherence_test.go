@@ -17,9 +17,9 @@ import (
 func TestCoherenceClusterName(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Cluster: pointer.StringPtr("test-cluster"),
 		},
 	}
@@ -43,9 +43,9 @@ func TestCoherenceClusterName(t *testing.T) {
 func TestCoherenceCacheConfig(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				CacheConfig: pointer.StringPtr("test-config.xml"),
 			},
@@ -71,9 +71,9 @@ func TestCoherenceCacheConfig(t *testing.T) {
 func TestCoherenceOperationalConfig(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				OverrideConfig: pointer.StringPtr("test-override.xml"),
 			},
@@ -99,9 +99,9 @@ func TestCoherenceOperationalConfig(t *testing.T) {
 func TestCoherenceStorageEnabledTrue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				StorageEnabled: pointer.BoolPtr(true),
 			},
@@ -127,9 +127,9 @@ func TestCoherenceStorageEnabledTrue(t *testing.T) {
 func TestCoherenceStorageEnabledFalse(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				StorageEnabled: pointer.BoolPtr(false),
 			},
@@ -155,9 +155,9 @@ func TestCoherenceStorageEnabledFalse(t *testing.T) {
 func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				ExcludeFromWKA: pointer.BoolPtr(true),
 			},
@@ -182,9 +182,9 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 func TestCoherenceLogLevel(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				LogLevel: pointer.Int32Ptr(9),
 			},

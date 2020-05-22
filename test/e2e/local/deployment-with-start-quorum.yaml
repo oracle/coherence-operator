@@ -2,7 +2,7 @@
 # The dependent resource is first in the document just to ensure that any start-up
 # test does not pass due to some weird blocking in the test.
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: test
 spec:
@@ -12,7 +12,7 @@ spec:
     - deployment: data
 ---
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: data
 spec:

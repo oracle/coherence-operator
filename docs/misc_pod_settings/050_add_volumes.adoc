@@ -8,7 +8,7 @@
 
 = Add Pod Volumes
 
-Additional Volumes and VolumeMappings can easily be added to a `CoherenceDeployment` Pod.
+Additional Volumes and VolumeMappings can easily be added to a `Coherence` resource Pod.
 
 == Add Pod Volumes
 

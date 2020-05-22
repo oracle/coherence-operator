@@ -59,7 +59,7 @@ helm install  \
 ----
 
 where `<namespace>` is the namespace that the Coherence Operator will be installed into and the namespace where it will
-manage `CoherenceDeployments`
+manage `Coherence` resources
 
 ==== Uninstall the Coherence Operator Helm chart
 

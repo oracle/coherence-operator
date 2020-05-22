@@ -19,7 +19,7 @@ import (
 
 func TestCreateWKAServiceForMinimalDeployment(t *testing.T) {
 	// Create the test deployment
-	deployment := &coh.CoherenceDeployment{
+	deployment := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test-ns",
 			Name:      "test",
@@ -68,12 +68,12 @@ func TestCreateWKAServiceForMinimalDeployment(t *testing.T) {
 
 func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 	// Create the test deployment
-	deployment := &coh.CoherenceDeployment{
+	deployment := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test-ns",
 			Name:      "test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Cluster: pointer.StringPtr("test-cluster"),
 		},
 	}
@@ -118,7 +118,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 	assertWKAService(t, deployment, expected)
 }
 
-func assertWKAService(t *testing.T, deployment *coh.CoherenceDeployment, expected *corev1.Service) {
+func assertWKAService(t *testing.T, deployment *coh.Coherence, expected *corev1.Service) {
 	g := NewGomegaWithT(t)
 
 	resActual := deployment.Spec.CreateWKAService(deployment)

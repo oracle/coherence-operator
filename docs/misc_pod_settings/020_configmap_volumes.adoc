@@ -8,7 +8,7 @@
 
 = Add ConfigMap Volumes
 
-Additional `Volumes` and `VolumeMounts` from `ConfigMaps` can easily be added to a `CoherenceDeployment`.
+Additional `Volumes` and `VolumeMounts` from `ConfigMaps` can easily be added to a `Coherence` resource.
 
 == Add ConfigMap Volumes
 
