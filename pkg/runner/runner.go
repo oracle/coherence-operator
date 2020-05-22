@@ -395,19 +395,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		details.AddArg("-XX:+ExitOnOutOfMemoryError")
 	}
 
-	// Configure Flight Recorder if this is a Hotspot JVM
-	if details.IsEnvTrue(v1.EnvVarJvmFlightRecorder) {
-		ok, err := checkForHotspot(details)
-		if err != nil {
-			return "", nil, err
-		}
-		if ok {
-			details.AddArg("-XX:+UnlockCommercialFeatures")
-			details.AddArg("-XX:+FlightRecorder")
-			details.AddArg("-XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=" + jvmDir + "/jfr")
-		}
-	}
-
 	// Use JVM container support
 	if details.IsEnvTrue(v1.EnvVarJvmUseContainerLimits) {
 		details.AddArg("-XX:+UseContainerSupport")

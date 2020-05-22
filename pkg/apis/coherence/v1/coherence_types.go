@@ -418,10 +418,6 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits
 	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmUseContainerLimits, Value: strconv.FormatBool(useContainerLimits)})
 
-	// Configure the JVM to use Flight Recorder (true by default)
-	useFlightRecorder := in == nil || in.FlightRecorder == nil || *in.FlightRecorder
-	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmFlightRecorder, Value: strconv.FormatBool(useFlightRecorder)})
-
 	// Configure the JVM to use the JIB classpath if UseJibClasspath is not nil
 	if in != nil && in.UseJibClasspath != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmClasspathJib, Value: strconv.FormatBool(*in.UseJibClasspath)})

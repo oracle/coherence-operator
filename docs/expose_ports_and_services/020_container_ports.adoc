@@ -10,4 +10,160 @@
 
 == Additional Container Ports
 
-// ToDo: TBD
+Except for rare cases most applications deployed into a Kubernetes cluster will need to expose ports that
+they provide services on to other applications.
+This is covered in the Kubernetes documentation,
+https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/[Connect Applications with Services]
+
+The `CoherenceDeployment` CRD makes it simple to expose ports and configure their services.
+The CRD contains a field named `ports`, which is an array of named ports.
+In the most basic configuration the only required values are the name and port to expose, for example:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest  # <1>
+      port: 8080
+----
+<1> This example exposes a single port named `rest` on port `8080`.
+
+When the example above is deployed the Coherence Operator will add configure the ports for the
+Coherence container in the `Pods` to expose that port and will also create a `Service` for the port.
+
+For example, the relevant snippet of the `StatefulSet` configuration would be:
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-cluster
+spec:
+  template:
+    spec:
+      containers:
+      - name: coherence
+        ports:
+          - name: rest           # <1>
+            containerPort: 8080  # <2>
+----
+<1> The Operator has added the `rest` port to the `coherence` containers port list.
+The `name` field in the `CoherenceDeployment` port spec maps to the `name` field in the Container port spec.
+<2> The `port` field in the `CoherenceDeployment` port spec maps to the `containerPort` in the Container port spec.
+
+For each additional port the Operator will create a `Service` of tyep `ClusterIP` with a default configuration.
+The name of the service will be the `CoherenceDeployment` name with the port name appended to it,
+so in this case it will be `test-cluster-rest`. The `Service` might look like this:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-rest                 # <1>
+spec:
+  ports:
+    - name: rest                          # <2>
+      port: 8080                          # <3>
+      targetPort: rest                    # <4>
+  type: ClusterIP                         # <5>
+  selector:
+    coherenceDeployment: test-cluster     # <6>
+    coherenceCluster: test-cluster
+    coherenceRole: storage
+    coherenceComponent: coherencePod
+----
+<1> The `Service` name will be automatically generated (this can be overridden).
+<2> The `ports` section will have just the single port being exposed by this service with the same name as the port.
+<3> The `port` exposed by the `Service` will be the same as the container port value (this can be overridden).
+<4> The target port will be set to the port being exposed from the container.
+<5> The default `Service` type is `ClusterIP` (this can be overridden).
+<6> A selector will be created to match the `Pods` in the `CoherenceDeployment`.
+
+The `CoherenceDeployment` spec allows port and service to be further configured and allows a
+Prometheus `ServiceMonitor` to be created for the port if that port is to expose metrics.
+
+See also:
+
+* <<expose_ports_and_services/030_services.adoc,Configure Services for Ports>>
+* <<expose_ports_and_services/040_servicemonitors.adoc,Prometheus ServiceMonitors>>
+
+
+== Configuring the Port
+
+The only mandatory fields when adding a port to a `CoherenceDeployment` are the name and port number.
+There are a number of optional fields, which when not specified use the Kubernetes default values.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      protocol: TCP
+      hostIP: 10.10.1.19
+      hostPort: 1000
+      nodePort: 5000
+----
+
+The additional fields, `protocol`, `hostIP`, `hostPort` have the same meaning and same defaults in the
+`CoherenceDeployment` port spec that they have in a Kubernetes container port
+(see the Kubernetes https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core[ContainerPort] API reference).
+These fields map directly from the `CoherenceDeployment` port spec to the container port spec.
+
+The example above would create a container port shown below:
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-cluster
+spec:
+  template:
+    spec:
+      containers:
+      - name: coherence
+        ports:
+          - name: rest
+            containerPort: 8080
+            protocol: TCP
+            hostIP: 10.10.1.19
+            hostPort: 1000
+----
+
+
+The `nodePort` field in the `CoherenceDeployment` port spec maps to the `nodePort` field in the `Service` port spec.
+The `nodePort` is described in the Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#serviceport-v1-core[ServicePort] API reference.
+
+The `CoherenceDeployment` example above with `nodePort` set would create a `Service` with the same `nodePort` value:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-cluster-rest
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      targetPort: rest
+      nodePort: 5000
+  type: ClusterIP
+  selector:
+    coherenceDeployment: test-cluster
+    coherenceCluster: test-cluster
+    coherenceRole: storage
+    coherenceComponent: coherencePod
+----
+
