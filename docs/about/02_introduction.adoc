@@ -25,17 +25,17 @@ In each `Pod` is a JVM running a Coherence `DefaultCacheServer`, or a custom app
 
 The operator uses a Kubernetes Custom Resource Definition (CRD) to represent a group of members in a Coherence cluster.
 Typically, a deployment would be used to configure one or more members of a specific role in a cluster.
-Every field in the `CoherenceDeployment` CRD `Spec` is optional, so a simple cluster can be defined in  yaml as:
+Every field in the `Coherence` CRD `Spec` is optional, so a simple cluster can be defined in  yaml as:
 
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: my-cluster # <1>
 ----
 
-<1> In this case the `metadata.name` field in the `CoherenceDeployment` yaml will be used as the Coherence cluster name.
+<1> In this case the `metadata.name` field in the `Coherence` resource yaml will be used as the Coherence cluster name.
 
 The operator will use default values for fields that have not been entered, so the above yaml will create
 a Coherence deployment using a `StatefulSet` with a replica count of three, which means that will be three storage

@@ -54,7 +54,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	expected := map[string]bool{
-		"coherencedeployments.coherence.oracle.com": false,
+		"coherence.coherence.oracle.com": false,
 	}
 
 	for _, crd := range crdList.Items {
@@ -78,7 +78,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	oldCRDs := map[string]*crdv1.CustomResourceDefinition{
-		"coherencedeployments.coherence.oracle.com": nil,
+		"coherence.coherence.oracle.com": nil,
 	}
 
 	for name := range oldCRDs {
@@ -149,7 +149,7 @@ func TestShouldCreateV1beta1CRDs(t *testing.T) {
 	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	expected := map[string]bool{
-		"coherencedeployments.coherence.oracle.com": false,
+		"coherence.coherence.oracle.com": false,
 	}
 
 	for _, crd := range crdList.Items {
@@ -173,7 +173,7 @@ func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	oldCRDs := map[string]*v1beta1.CustomResourceDefinition{
-		"coherencedeployments.coherence.oracle.com": nil,
+		"coherence.coherence.oracle.com": nil,
 	}
 
 	for name := range oldCRDs {

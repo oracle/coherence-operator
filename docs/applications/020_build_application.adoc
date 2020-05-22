@@ -62,12 +62,12 @@ java -cp `/app/resources:/app/classes:/app/libs/*` \
 ----
 The `runner` will work out the JVM's classpath, args and system properties to add to the command line
 and execute the main class `com.tangosol.net.DefaultCacheServer`.
-All these are configurable in the `CoherenceDeployment` spec.
+All these are configurable in the `Coherence` resource spec.
 
 === Optional `CLASSPATH` Environment Variable
 
 If the `CLASSPATH` environment variable has been set in an image that classpath will be used when running the Coherence
-container. Other elements may also be added to the classpath depending on the configuration of the `CoherenceDeployment`.
+container. Other elements may also be added to the classpath depending on the configuration of the `Coherence` resource.
 
 === Setting the Classpath
 
@@ -85,13 +85,13 @@ images without requiring additional configuration.
 If the image is not a JIB image, or is a JIB image without the standard classpath but one or more of the
 `/app/resources`, `/app/classes` or `/app/libs/` directories exist they will still be added to the classpath.
 This may be desired or in some cases it may cause issues. It is possible to disable automatically adding these
-directories in the `CoherenceDeployment` spec by setting the `jvm.useJibClasspath` field to `false` (the default
+directories in the `Coherence` resource spec by setting the `jvm.useJibClasspath` field to `false` (the default
 value of the field is `true`).
 
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -107,7 +107,7 @@ can be configured as described in the <<jvm_settings/020_classpath.adoc,setting 
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -153,5 +153,5 @@ There are three ways to add additional volumes:
 * Volumes - easily add any additional volume and volume mapping see: <<misc_pod_settings/050_add_volumes.adoc,Add Volumes>>
 
 Both of `ConfigMaps` and `Secrets` have been treated as a special case because they are quite commonly used to provide
-configurations to Pods, so the `CoherenceDeployment` spec provides a simpler way to declare them than for ad-hoc `Volumes`.
+configurations to Pods, so the `Coherence` spec provides a simpler way to declare them than for ad-hoc `Volumes`.
 

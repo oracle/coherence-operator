@@ -15,38 +15,38 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// The package init function that will automatically register the CoherenceDeployment types with
+// The package init function that will automatically register the Coherence resource types with
 // the default k8s Scheme.
 func init() {
-	SchemeBuilder.Register(&CoherenceDeployment{}, &CoherenceDeploymentList{})
+	SchemeBuilder.Register(&Coherence{}, &CoherenceList{})
 }
 
-// ----- CoherenceDeployment type ------------------------------------------------------------------
+// ----- Coherence type ------------------------------------------------------------------
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// CoherenceDeployment is the Schema for the coherencedeployments API
+// Coherence is the Schema for the Coherence API.
 //
 // +genclient
 // +genclient:method=Scale,verb=update,subresource=scale,input=k8s.io/api/extensions/v1beta1.Scale,result=k8s.io/api/extensions/v1beta1.Scale
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:resource:path=coherencedeployments,scope=Namespaced,shortName=cd,categories=coherence
+// +kubebuilder:resource:path=coherence,scope=Namespaced,shortName=coh
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".status.coherenceCluster",description="The name of the Coherence cluster that this deployment belongs to"
 // +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".status.role",description="The role of this deployment in a Coherence cluster"
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
-type CoherenceDeployment struct {
+type Coherence struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CoherenceDeploymentSpec   `json:"spec,omitempty"`
-	Status CoherenceDeploymentStatus `json:"status,omitempty"`
+	Spec   CoherenceResourceSpec   `json:"spec,omitempty"`
+	Status CoherenceResourceStatus `json:"status,omitempty"`
 }
 
-// GetCoherenceClusterName obtains the Coherence cluster name for the CoherenceDeployment.
-func (in *CoherenceDeployment) GetCoherenceClusterName() string {
+// GetCoherenceClusterName obtains the Coherence cluster name for the Coherence resource.
+func (in *Coherence) GetCoherenceClusterName() string {
 	if in == nil {
 		return ""
 	}
@@ -58,7 +58,7 @@ func (in *CoherenceDeployment) GetCoherenceClusterName() string {
 }
 
 // Obtain the name of the headless Service used for Coherence WKA.
-func (in *CoherenceDeployment) GetWkaServiceName() string {
+func (in *Coherence) GetWkaServiceName() string {
 	if in == nil {
 		return ""
 	}
@@ -69,7 +69,7 @@ func (in *CoherenceDeployment) GetWkaServiceName() string {
 // The Replicas field is a pointer and may be nil so this method will
 // return either the actual Replicas value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
-func (in *CoherenceDeployment) GetReplicas() int32 {
+func (in *Coherence) GetReplicas() int32 {
 	if in == nil {
 		return 0
 	}
@@ -80,14 +80,14 @@ func (in *CoherenceDeployment) GetReplicas() int32 {
 }
 
 // Set the number of replicas required for a deployment.
-func (in *CoherenceDeployment) SetReplicas(replicas int32) {
+func (in *Coherence) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Spec.Replicas = &replicas
 	}
 }
 
 // Create the deployment's common label set.
-func (in *CoherenceDeployment) CreateCommonLabels() map[string]string {
+func (in *Coherence) CreateCommonLabels() map[string]string {
 	labels := make(map[string]string)
 	labels[LabelCoherenceDeployment] = in.Name
 	labels[LabelCoherenceCluster] = in.GetCoherenceClusterName()
@@ -95,7 +95,7 @@ func (in *CoherenceDeployment) CreateCommonLabels() map[string]string {
 	return labels
 }
 
-func (in *CoherenceDeployment) GetNamespacedName() types.NamespacedName {
+func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Namespace: in.Namespace,
 		Name:      in.Name,
@@ -105,7 +105,7 @@ func (in *CoherenceDeployment) GetNamespacedName() types.NamespacedName {
 // Obtain the role name for a deployment.
 // If the Spec.Role field is set that is used for the role name
 // otherwise the deployment name is used as the role name.
-func (in *CoherenceDeployment) GetRoleName() string {
+func (in *Coherence) GetRoleName() string {
 	switch {
 	case in == nil:
 		return ""
@@ -116,23 +116,23 @@ func (in *CoherenceDeployment) GetRoleName() string {
 	}
 }
 
-// ----- CoherenceDeploymentList type --------------------------------------------------------------
+// ----- CoherenceList type ------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// CoherenceDeploymentList contains a list of CoherenceDeployment
-type CoherenceDeploymentList struct {
+// CoherenceList contains a list of Coherence resources.
+type CoherenceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CoherenceDeployment `json:"items"`
+	Items           []Coherence `json:"items"`
 }
 
-// ----- CoherenceDeploymentStatus type ------------------------------------------------------------
+// ----- CoherenceResourceStatus type --------------------------------------------------------------
 
-// CoherenceDeploymentStatus defines the observed state of CoherenceDeployment
-type CoherenceDeploymentStatus struct {
-	// The phase of a CoherenceDeployment is a simple, high-level summary of where the
-	// CoherenceDeployment is in its lifecycle.
+// CoherenceResourceStatus defines the observed state of Coherence resource.
+type CoherenceResourceStatus struct {
+	// The phase of a Coherence resource is a simple, high-level summary of where the
+	// Coherence resource is in its lifecycle.
 	// The conditions array, the reason and message fields, and the individual container status
 	// arrays contain more detail about the pod's status.
 	// There are eight possible phase values:
@@ -151,12 +151,15 @@ type CoherenceDeploymentStatus struct {
 	// The name of the Coherence cluster that this deployment is part of.
 	// +optional
 	CoherenceCluster string `json:"coherenceCluster,omitempty"`
-	// Replicas is the desired size of the Coherence cluster.
+	// Replicas is the desired number of members in the Coherence deployment
+	// represented by the Coherence resource.
 	// +optional
 	Replicas int32 `json:"replicas,omitempty"`
-	// CurrentReplicas is the current size of the Coherence cluster.
+	// CurrentReplicas is the current number of members in the Coherence deployment
+	// represented by the Coherence resource.
 	CurrentReplicas int32 `json:"currentReplicas,omitempty"`
-	// ReadyReplicas is the number of deployments created by the StatefulSet.
+	// ReadyReplicas is the number of number of members in the Coherence deployment
+	// represented by the Coherence resource that are in the ready state.
 	// +optional
 	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
 	// The effective role name for this deployment.
@@ -178,12 +181,12 @@ type CoherenceDeploymentStatus struct {
 }
 
 // Update the current Phase
-func (in *CoherenceDeploymentStatus) UpdatePhase(deployment *CoherenceDeployment, phase status.ConditionType) bool {
+func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase status.ConditionType) bool {
 	return in.SetCondition(deployment, status.Condition{Type: phase, Status: coreV1.ConditionTrue})
 }
 
 // Set the current Status Condition
-func (in *CoherenceDeploymentStatus) SetCondition(deployment *CoherenceDeployment, c status.Condition) bool {
+func (in *CoherenceResourceStatus) SetCondition(deployment *Coherence, c status.Condition) bool {
 	deployment.Status.DeepCopyInto(in)
 	updated := in.ensureInitialized(deployment)
 	if in.Phase != "" && in.Phase == c.Type {
@@ -196,7 +199,7 @@ func (in *CoherenceDeploymentStatus) SetCondition(deployment *CoherenceDeploymen
 }
 
 // Update the status based on the condition of the StatefulSet status.
-func (in *CoherenceDeploymentStatus) Update(deployment *CoherenceDeployment, sts *appsv1.StatefulSetStatus) bool {
+func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.StatefulSetStatus) bool {
 	// ensure that there is an Initialized condition
 	updated := in.ensureInitialized(deployment)
 
@@ -249,7 +252,7 @@ func (in *CoherenceDeploymentStatus) Update(deployment *CoherenceDeployment, sts
 }
 
 // set a status phase.
-func (in *CoherenceDeploymentStatus) setPhase(phase status.ConditionType) bool {
+func (in *CoherenceResourceStatus) setPhase(phase status.ConditionType) bool {
 	if in.Phase == phase {
 		return false
 	}
@@ -277,7 +280,7 @@ func (in *CoherenceDeploymentStatus) setPhase(phase status.ConditionType) bool {
 }
 
 // ensure that the initial state conditions are present
-func (in *CoherenceDeploymentStatus) ensureInitialized(deployment *CoherenceDeployment) bool {
+func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool {
 	updated := false
 
 	// update Replicas if required
@@ -313,7 +316,7 @@ func (in *CoherenceDeploymentStatus) ensureInitialized(deployment *CoherenceDepl
 	return updated
 }
 
-// CoherenceDeployment Condition Types
+// Coherence resource Condition Types
 // The different eight types of state that a deployment may be in.
 //
 // Transitions are:

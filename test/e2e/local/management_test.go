@@ -28,7 +28,7 @@ import (
 
 // A struct used to define a management test case.
 type ManagementTestCase struct {
-	Deployment    *coh.CoherenceDeployment
+	Deployment    *coh.Coherence
 	Name          string
 	Ctx           *framework.Context
 	KeyFile       string
@@ -38,7 +38,7 @@ type ManagementTestCase struct {
 }
 
 // TestManagement is a go test that uses sub-tests (test cases) to basically run the
-// same test with different parameters. In this case different CoherenceDeployment
+// same test with different parameters. In this case different Coherence
 // configurations with management over rest configured with and without SSL.
 func TestManagementOverRest(t *testing.T) {
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
@@ -62,19 +62,19 @@ func TestManagementOverRest(t *testing.T) {
 	// require 2-way auth
 	ssl.RequireClientCert = pointer.BoolPtr(true)
 
-	// load the test CoherenceDeployment from a yaml files
-	deploymentWithoutSSL, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "management-test.yaml")
+	// load the test Coherence from a yaml files
+	deploymentWithoutSSL, err := helper.NewSingleCoherenceFromYaml(namespace, "management-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// load the test CoherenceDeployment that used a distroless JIB image from a yaml files
-	deploymentJib, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "management-jib-test.yaml")
+	// load the test Coherence resource that used a distroless JIB image from a yaml files
+	deploymentJib, err := helper.NewSingleCoherenceFromYaml(namespace, "management-jib-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	j, _ := json.Marshal(deploymentWithoutSSL)
 	fmt.Printf("Deployment: %s\n", string(j))
 
 	// Copy deploymentWithoutSSL and configure it to use SSL at the Spec level in all deployments
-	deploymentSSL := &coh.CoherenceDeployment{}
+	deploymentSSL := &coh.Coherence{}
 	deploymentWithoutSSL.DeepCopyInto(deploymentSSL)
 
 	// Set the SSL settings
@@ -105,7 +105,7 @@ func TestManagementOverRest(t *testing.T) {
 	}
 }
 
-// This is the actual test method that creates the CoherenceDeployment, waits for it to start
+// This is the actual test method that creates the Coherence resource, waits for it to start
 // and then asserts that management over rest can be retrieved from the endpoints for the
 // Deployment Pods using SSL or not depending on the configuration.
 func testManagementOverRest(t *testing.T, tc ManagementTestCase) {
@@ -115,7 +115,7 @@ func testManagementOverRest(t *testing.T, tc ManagementTestCase) {
 	ns, err := tc.Ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// deploy the CoherenceDeployment
+	// deploy the Coherence resource
 	deployment := tc.Deployment.DeepCopy()
 	err = f.Client.Create(context.TODO(), deployment, helper.DefaultCleanup(tc.Ctx))
 	g.Expect(err).NotTo(HaveOccurred())
@@ -242,7 +242,7 @@ func assertManagementRequest(pod corev1.Pod, client *http.Client, protocol strin
 	return nil
 }
 
-func cleanupManagement(t *testing.T, deployment *coh.CoherenceDeployment, ns string) {
+func cleanupManagement(t *testing.T, deployment *coh.Coherence, ns string) {
 	helper.DumpState(ns, t.Name(), t)
 
 	f := framework.Global

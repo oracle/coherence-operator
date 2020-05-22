@@ -57,21 +57,21 @@ See the <<installation/01_installation.adoc, full install guide>> for more detai
 
 Ensure that the Coherence images can be pulled by the Kubernetes cluster,
 see <<installation/04_obtain_coherence_images.adoc,Obtain Coherence Images>>.
-By default, a `CoherenceDeployment` will use the OSS Coherence CE image from Docker Hub.
-If a different image is to be used the image name will need to be specified in the `CoherenceDeployment` yaml,
+By default, a `Coherence` resource will use the OSS Coherence CE image from Docker Hub.
+If a different image is to be used the image name will need to be specified in the `Coherence` yaml,
 see <<applications/010_overview.adoc,Setting the Application Image>> for documentation on how to
 specify a different images to use.
 
 
-=== 2.1 Install a Coherence deployment using the minimal required configuration.
+=== 2.1 Install a Coherence resource using the minimal required configuration.
 
-The minimal required yaml to create a `CoherenceDeployment` resource is shown below.
+The minimal required yaml to create a `Coherence` resource is shown below.
 
 [source,yaml]
 .my-deployment.yaml
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: my-deployment # <1>
 ----
@@ -90,29 +90,29 @@ e.g. if the namespace is `coherence-test` the command would be
 
 === 2.2 List the Coherence Resources
 
-After installing the `my-deployment.yaml` above here should be a single `CoherenceDeployment` resource  named `my-deployment` in the Coherence Operator namespace.
+After installing the `my-deployment.yaml` above here should be a single `Coherence` resource  named `my-deployment` in the Coherence Operator namespace.
 
 [source,bash]
 ----
-kubectl -n <namespace> get coherencedeployment
+kubectl -n <namespace> get coherence
 ----
-or alternatively using the `CoherenceDeployment` CRD a short name of `cd`
+or alternatively using the `Coherence` CRD a short name of `coh`
 [source,bash]
 ----
-kubectl -n <namespace> get cd
+kubectl -n <namespace> get coh
 ----
 
-e.g. if the namespace is `coherence-test` the command would be `kubectl -n coherence-test get coherencedeployment`
+e.g. if the namespace is `coherence-test` the command would be `kubectl -n coherence-test get coherence`
 
 [source,bash]
 ----
 NAME                                                  AGE
-coherencedeployment.coherence.oracle.com/my-deployment   19s
+coherence.coherence.oracle.com/my-deployment   19s
 ----
 
-=== 2.3 List all of the `Pods` for the CoherenceDeployment.
+=== 2.3 List all of the `Pods` for the Coherence resource.
 
-The Coherence Operator applies a `coherenceDeployment` label to all `Pods` so this label can be used with the `kubectl` command to find `Pods` for a `CoherenceDeployment`.
+The Coherence Operator applies a `coherenceDeployment` label to all `Pods` so this label can be used with the `kubectl` command to find `Pods` for a `CoherenceCoherence` resource.
 
 [source,bash]
 ----
@@ -131,16 +131,17 @@ my-deployment-2   1/1     Running   0          2m58s
 ----
 
 
-=== 2.3 List all of the `Pods` for the Coherence cluster.
+=== 2.3 List all the `Pods` for the Coherence cluster.
 
-The Coherence Operator applies a `coherenceCluster` label to all `Pods` so this label can be used with the `kubectl` command to find `Pods` for a Coherence cluster, which may be made up of multiple `CoherenceDeployments`.
+The Coherence Operator applies a `coherenceCluster` label to all `Pods`, so this label can be used with the `kubectl`
+command to find all `Pods` for a Coherence cluster, which will be made up of multiple `Coherence` resources.
 
 [source,bash]
 ----
 kubectl -n <namespace> get pod -l coherenceCluster=my-cluster
 ----
 
-e.g. If there is a cluster named `my-cluster` made up of two two `CoherenceDeployments` in a namespace
+e.g. If there is a cluster named `my-cluster` made up of two `Coherence` resources in the namespace
 `coherence-test`, one named `storage` and one named `front-end`
 then the `kubectl` command to list all Pods for the cluster would be:
 [source,bash]
@@ -164,12 +165,12 @@ front-end-2   1/1     Running   0          2m58s
 
 === 3.1 Use kubectl to Scale Up
 
-Using the `kubectl scale` command a specific `CoherenceDeployment` can be scaled up or down.
+Using the `kubectl scale` command a specific `Coherence` resource can be scaled up or down.
 
 [source,bash]
 ----
-kubectl -n <namespace> scale coherencedeployment/my-deployment --replicas=6
+kubectl -n <namespace> scale coherence/my-deployment --replicas=6
 ----
 
 e.g. if the namespace is `coherence-test` the command would be:
-`kubectl -n coherence scale coherencedeployment/my-deployment --replicas=6`
+`kubectl -n coherence scale coherence/my-deployment --replicas=6`

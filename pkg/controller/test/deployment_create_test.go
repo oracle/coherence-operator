@@ -28,7 +28,7 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// Create the test deployment (a minimal deployment configuration)
-	deployment := coh.CoherenceDeployment{
+	deployment := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
@@ -44,7 +44,7 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	g.Expect(len(resources)).To(Equal(6))
 
 	// Resource 0 = Deployment
-	c, err := toCoherenceDeployment(mgr, resources[0])
+	c, err := toCoherence(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
 
@@ -80,11 +80,11 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 func TestCreateResourcesForDeploymentWithReplicaCount(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	deployment := coh.CoherenceDeployment{
+	deployment := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Replicas: pointer.Int32Ptr(5),
 		},
 	}
@@ -109,11 +109,11 @@ func TestCreateResourcesForDeploymentWithClusterName(t *testing.T) {
 
 	// Create the test deployment with a clusterName
 	clusterName := "test-cluster"
-	deployment := coh.CoherenceDeployment{
+	deployment := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Cluster: &clusterName,
 		},
 	}
@@ -152,11 +152,11 @@ func TestCreateResourcesForDeploymentWithHealthPort(t *testing.T) {
 
 	// Create the test deployment with a clusterName
 	var health = 19
-	deployment := coh.CoherenceDeployment{
+	deployment := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			HealthPort: pointer.Int32Ptr(int32(health)),
 		},
 	}

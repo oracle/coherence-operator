@@ -1,6 +1,6 @@
 ---
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: one
 spec:
@@ -8,7 +8,7 @@ spec:
   replicas: 1
 ---
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: two
 spec:

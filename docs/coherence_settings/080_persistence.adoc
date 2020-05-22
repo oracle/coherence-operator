@@ -15,7 +15,7 @@ as required.
 
 == Configure Coherence Persistence
 
-The `CoherenceDeployment` CRD allows the default persistence mode, and the storage location of persistence data to be
+The `Coherence` CRD allows the default persistence mode, and the storage location of persistence data to be
 configured. Persistence can be configured in the `spec.coherence.persistence` section of the CRD.
 See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[Coherence Persistence]
 documentation for more details of how persistence works and its configuration.
@@ -30,7 +30,7 @@ For example:
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -53,7 +53,7 @@ and the `coherence.distributed.persistence.base.dir` system property will be con
 
 === Using a PersistentVolumeClaim
 
-The Coherence Operator creates a `StatefulSet` for each `CoherenceDeployment` so the
+The Coherence Operator creates a `StatefulSet` for each `Coherence` resource, so the
 logical place to store persistence data is in a `PersistentVolumeClaim`.
 
 The PVC used for persistence can be configured in the `spec.coherence.persistence.persistentVolumeClaim` section
@@ -62,7 +62,7 @@ of the CRD.
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -95,7 +95,7 @@ In this case a normal Volume can be configured in the `spec.coherence.persistenc
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -117,9 +117,9 @@ See the Kubernetes https://kubernetes.io/docs/concepts/storage/volumes/[Volumes]
 
 == Snapshot Storage
 
-Coherence allows on-demand snapshots to be taken of cache data. With the default configuration the snapshot files are
-stored under the same persistence root loaction as active persistence data.
-The `CoherenceDeployment` allows a different location to be specified for storage of snapshot files so that active data
+Coherence allows on-demand snapshots to be taken of cache data. With the default configuration the snapshot files will
+be stored under the same persistence root location as active persistence data.
+The `Coherence` spec allows a different location to be specified for storage of snapshot files so that active data
 and snapshot data can be stored in different locations and/or on different storage types in Kubernetes.
 
 The same two options are available for snapshot storage that are available for persistence storage, namely PVCs and
@@ -134,7 +134,7 @@ A PVC can be configured for persistence snapshot data as shown below.
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -159,7 +159,7 @@ A normal volume can be configured for snapshot data as shown below.
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:

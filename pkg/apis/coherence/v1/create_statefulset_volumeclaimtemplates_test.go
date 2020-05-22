@@ -15,7 +15,7 @@ import (
 
 func TestCreateStatefulSetWithEmptyVolumeClaimTemplates(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{},
 	}
 
@@ -40,7 +40,7 @@ func TestCreateStatefulSetWithOneVolumeClaimTemplate(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{volumeOne},
 	}
 
@@ -76,7 +76,7 @@ func TestCreateStatefulSetWithTwoVolumeClaimTemplates(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{volumeOne, volumeTwo},
 	}
 

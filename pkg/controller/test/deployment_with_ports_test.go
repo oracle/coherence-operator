@@ -21,11 +21,11 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 
 	tcp := corev1.ProtocolUDP
 
-	deployment := coh.CoherenceDeployment{
+	deployment := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Ports: []coh.NamedPortSpec{
 				{
 					Name:     "extend",
@@ -81,11 +81,11 @@ func TestUpdateDeploymentWithPort(t *testing.T) {
 
 	tcp := corev1.ProtocolUDP
 
-	original := coh.CoherenceDeployment{
+	original := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Ports: []coh.NamedPortSpec{
 				{
 					Name:     "extend",
@@ -99,11 +99,11 @@ func TestUpdateDeploymentWithPort(t *testing.T) {
 		},
 	}
 
-	updated := coh.CoherenceDeployment{
+	updated := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Ports: []coh.NamedPortSpec{
 				{
 					Name:     "extend",
@@ -156,11 +156,11 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 
 	tcp := corev1.ProtocolUDP
 
-	original := coh.CoherenceDeployment{
+	original := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Ports: []coh.NamedPortSpec{
 				{
 					Name:     "management",
@@ -174,11 +174,11 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 		},
 	}
 
-	updated := coh.CoherenceDeployment{
+	updated := coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Ports: []coh.NamedPortSpec{
 				{
 					Name:     coh.PortNameManagement,

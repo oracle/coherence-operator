@@ -39,7 +39,7 @@ type Storage interface {
 	Destroy()
 }
 
-func NewStorageForDeployment(deployment *coh.CoherenceDeployment, mgr manager.Manager) (Storage, error) {
+func NewStorageForDeployment(deployment *coh.Coherence, mgr manager.Manager) (Storage, error) {
 	key, err := client.ObjectKeyFromObject(deployment)
 	if err != nil {
 		return nil, err

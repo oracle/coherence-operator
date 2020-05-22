@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreateStatefulSetWithPersistenceEmpty(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{},
 		},
@@ -31,7 +31,7 @@ func TestCreateStatefulSetWithPersistenceEmpty(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithPersistenceModeOnDemand(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Mode: pointer.StringPtr("on-demand"),
@@ -51,7 +51,7 @@ func TestCreateStatefulSetWithPersistenceModeOnDemand(t *testing.T) {
 
 func TestCreateStatefulSetWithPersistenceModeActive(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Mode: pointer.StringPtr("active"),
@@ -70,7 +70,7 @@ func TestCreateStatefulSetWithPersistenceModeActive(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithPersistenceModeActiveAsync(t *testing.T) {
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Mode: pointer.StringPtr("active-async"),
@@ -93,7 +93,7 @@ func TestCreateStatefulSetWithPersistenceVolume(t *testing.T) {
 		HostPath: &corev1.HostPathVolumeSource{Path: "/data/persistence"},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				PersistentStorageSpec: coh.PersistentStorageSpec{
@@ -144,7 +144,7 @@ func TestCreateStatefulSetWithPersistencePVC(t *testing.T) {
 		VolumeMode:       &mode,
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				PersistentStorageSpec: coh.PersistentStorageSpec{
@@ -206,7 +206,7 @@ func TestCreateStatefulSetWithPersistenceVolumeAndPVC(t *testing.T) {
 		VolumeMode:       &mode,
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				PersistentStorageSpec: coh.PersistentStorageSpec{
@@ -252,7 +252,7 @@ func TestCreateStatefulSetWithPersistenceSnapshotVolume(t *testing.T) {
 		HostPath: &corev1.HostPathVolumeSource{Path: "/data/snapshots"},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Snapshots: &coh.PersistentStorageSpec{
@@ -303,7 +303,7 @@ func TestCreateStatefulSetWithPersistenceSnapshotPVC(t *testing.T) {
 		VolumeMode:       &mode,
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Snapshots: &coh.PersistentStorageSpec{
@@ -365,7 +365,7 @@ func TestCreateStatefulSetWithPersistenceSnapshotVolumeAndPVC(t *testing.T) {
 		VolumeMode:       &mode,
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				Snapshots: &coh.PersistentStorageSpec{
@@ -413,7 +413,7 @@ func TestCreateStatefulSetWithPersistenceAndSnapshotVolume(t *testing.T) {
 		HostPath: &corev1.HostPathVolumeSource{Path: "/data/snapshots"},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				PersistentStorageSpec: coh.PersistentStorageSpec{
@@ -477,7 +477,7 @@ func TestCreateStatefulSetWithPersistenceAndSnapshotPVC(t *testing.T) {
 		VolumeMode:       &mode,
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
 				PersistentStorageSpec: coh.PersistentStorageSpec{

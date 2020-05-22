@@ -51,7 +51,7 @@ type SimpleReconciler struct {
 func (in *SimpleReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 // Reconcile reads that state of the secondary resource for a deployment and makes changes based on the
-// state read and the desired state based on the parent CoherenceDeployment.
+// state read and the desired state based on the parent Coherence resource.
 func (in *SimpleReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -61,7 +61,7 @@ func (in *SimpleReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Obtain the parent CoherenceDeployment
+	// Obtain the parent Coherence resource
 	deployment, err := in.FindDeployment(request)
 	if err != nil {
 		return reconcile.Result{}, err

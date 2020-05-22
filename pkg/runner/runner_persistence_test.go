@@ -17,9 +17,9 @@ import (
 func TestServerWithPersistenceMode(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				Persistence: &coh.PersistenceSpec{
 					Mode: pointer.StringPtr("active"),

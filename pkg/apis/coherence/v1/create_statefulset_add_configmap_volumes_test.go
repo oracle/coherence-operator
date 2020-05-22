@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithConfigMapVolumesEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ConfigMapVolumes: []coh.ConfigMapVolumeSpec{},
 	}
 
@@ -29,7 +29,7 @@ func TestCreateStatefulSetWithConfigMapVolumesEmpty(t *testing.T) {
 
 func TestCreateStatefulSetWithConfigMapVolume(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ConfigMapVolumes: []coh.ConfigMapVolumeSpec{
 			{
 				Name:      "test-config",

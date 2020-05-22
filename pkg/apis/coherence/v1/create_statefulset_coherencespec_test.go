@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithCoherenceSpecEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{},
 	}
 
@@ -29,7 +29,7 @@ func TestCreateStatefulSetWithCoherenceSpecEmpty(t *testing.T) {
 
 func TestCreateStatefulSetWithImage(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Image: stringPtr("coherence:1.0"),
 	}
 
@@ -45,7 +45,7 @@ func TestCreateStatefulSetWithImage(t *testing.T) {
 
 func TestCreateStatefulSetWithImagePullPolicy(t *testing.T) {
 	policy := corev1.PullAlways
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		ImagePullPolicy: &policy,
 	}
 
@@ -61,7 +61,7 @@ func TestCreateStatefulSetWithImagePullPolicy(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			StorageEnabled: boolPtr(true),
 		},
@@ -79,7 +79,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledTrue(t *testing.T) 
 
 func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			StorageEnabled: boolPtr(false),
 		},
@@ -97,7 +97,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledFalse(t *testing.T)
 
 func TestCreateStatefulSetWithCoherenceSpecWithCacheConfig(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			CacheConfig: stringPtr("test-config.xml"),
 		},
@@ -115,7 +115,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithCacheConfig(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceSpecWithOverrideConfig(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			OverrideConfig: stringPtr("test-override.xml"),
 		},
@@ -133,7 +133,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithOverrideConfig(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceSpecWithLogLevel(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			LogLevel: int32Ptr(9),
 		},
@@ -151,7 +151,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithLogLevel(t *testing.T) {
 
 func TestCreateStatefulSetWithCoherenceSpecWithExcludeFromWKATrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			ExcludeFromWKA: boolPtr(true),
 		},
@@ -169,7 +169,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithExcludeFromWKATrue(t *testing.T) 
 
 func TestCreateStatefulSetWithCoherenceSpecWithExcludeFromWKAFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			ExcludeFromWKA: boolPtr(false),
 		},

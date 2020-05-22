@@ -10,7 +10,7 @@
 
 == Overview
 
-In a `CoherenceDeployment` Coherence writes to log files in the Pod.
+In the containers of a `Coherence` resource deployment, Coherence writes to log files in the Pod.
 These logs can be shipped to external log capture systems such as Elasticsearch and anaylyzed using Kibana.
 The Coherence Operator included Kibana dashboards that can easily be imported to make log analysis easier.
 

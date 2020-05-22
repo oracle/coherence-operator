@@ -19,7 +19,7 @@ import (
 )
 
 // Test that a cluster can be created using the specified yaml.
-func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.CoherenceDeployment, []corev1.Pod) {
+func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	// Create the Operator SDK test context (this will deploy the Operator)
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
@@ -29,7 +29,7 @@ func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.CoherenceD
 }
 
 // Test that a cluster can be created using the specified yaml.
-func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile string) (map[string]coh.CoherenceDeployment, []corev1.Pod) {
+func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 	f := framework.Global
@@ -38,7 +38,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	deployments, err := helper.NewCoherenceDeploymentFromYaml(namespace, yamlFile)
+	deployments, err := helper.NewCoherenceFromYaml(namespace, yamlFile)
 
 	g.Expect(err).NotTo(HaveOccurred())
 	// we must have at least one deployment
@@ -65,7 +65,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 
 	for _, d := range deployments {
 		t.Logf("Deploying %s", d.Name)
-		// deploy the CoherenceDeployments
+		// deploy the Coherence resource
 		err = f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
 		g.Expect(err).NotTo(HaveOccurred())
 	}
@@ -98,10 +98,10 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	subset := ep.Subsets[0]
 	g.Expect(len(subset.Addresses)).To(Equal(expectedWkaSize))
 
-	m := make(map[string]coh.CoherenceDeployment)
+	m := make(map[string]coh.Coherence)
 	for _, d := range deployments {
 		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
-		dpl := coh.CoherenceDeployment{}
+		dpl := coh.Coherence{}
 		err = f.Client.Get(context.TODO(), opts, &dpl)
 		g.Expect(err).NotTo(HaveOccurred())
 		m[dpl.Name] = dpl

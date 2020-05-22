@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithEmptyJvmSpec(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{},
 	}
 
@@ -29,7 +29,7 @@ func TestCreateStatefulSetWithEmptyJvmSpec(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithEmptyArgs(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Args: []string{},
 		},
@@ -46,7 +46,7 @@ func TestCreateStatefulSetWithJvmSpecWithEmptyArgs(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithArgs(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Args: []string{"argOne", "argTwo"},
 		},
@@ -64,7 +64,7 @@ func TestCreateStatefulSetWithJvmSpecWithArgs(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithEmptyClasspath(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Classpath: []string{},
 		},
@@ -81,7 +81,7 @@ func TestCreateStatefulSetWithJvmSpecWithEmptyClasspath(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithClasspath(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Classpath: []string{"/foo", "/bar"},
 		},
@@ -99,7 +99,7 @@ func TestCreateStatefulSetWithJvmSpecWithClasspath(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithLoggingConfigEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			LoggingConfig: stringPtr(""),
 		},
@@ -117,7 +117,7 @@ func TestCreateStatefulSetWithJvmSpecWithLoggingConfigEmpty(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			UseContainerLimits: boolPtr(true),
 		},
@@ -135,7 +135,7 @@ func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			UseContainerLimits: boolPtr(true),
 		},
@@ -153,7 +153,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			UseContainerLimits: boolPtr(false),
 		},
@@ -171,7 +171,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithDebugEnabledFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Debug: &coh.JvmDebugSpec{
 				Enabled: boolPtr(false),
@@ -193,7 +193,7 @@ func TestCreateStatefulSetWithJvmSpecWithDebugEnabledFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Debug: &coh.JvmDebugSpec{
 				Enabled: boolPtr(true),
@@ -224,7 +224,7 @@ func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendTrue(t *testing.
 
 func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Debug: &coh.JvmDebugSpec{
 				Enabled: boolPtr(true),
@@ -254,7 +254,7 @@ func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendFalse(t *testing
 
 func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
 				Collector: stringPtr("G1"),
@@ -274,7 +274,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
 				Args:    []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
@@ -295,7 +295,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
 				Logging: boolPtr(false),
@@ -315,7 +315,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingFalse(t *testing
 
 func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
 				Logging: boolPtr(true),
@@ -336,7 +336,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingTrue(t *testing.
 func TestCreateStatefulSetWithJvmSpecWithDiagnosticsVolume(t *testing.T) {
 
 	hostPath := &corev1.HostPathVolumeSource{Path: "/home/root/debug"}
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			DiagnosticsVolume: &corev1.VolumeSource{
 				HostPath: hostPath,
@@ -361,7 +361,7 @@ func TestCreateStatefulSetWithJvmSpecWithDiagnosticsVolume(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithMemorySettings(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Memory: &coh.JvmMemorySpec{
 				HeapSize:             stringPtr("5g"),
@@ -389,7 +389,7 @@ func TestCreateStatefulSetWithJvmSpecWithMemorySettings(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithExitOnOomTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Memory: &coh.JvmMemorySpec{
 				OnOutOfMemory: &coh.JvmOutOfMemorySpec{
@@ -412,7 +412,7 @@ func TestCreateStatefulSetWithJvmSpecWithExitOnOomTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithExitOnOomFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Memory: &coh.JvmMemorySpec{
 				OnOutOfMemory: &coh.JvmOutOfMemorySpec{
@@ -435,7 +435,7 @@ func TestCreateStatefulSetWithJvmSpecWithExitOnOomFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Memory: &coh.JvmMemorySpec{
 				OnOutOfMemory: &coh.JvmOutOfMemorySpec{
@@ -457,7 +457,7 @@ func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Memory: &coh.JvmMemorySpec{
 				OnOutOfMemory: &coh.JvmOutOfMemorySpec{
@@ -479,7 +479,7 @@ func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledTrue(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Jmxmp: &coh.JvmJmxmpSpec{
 				Enabled: boolPtr(true),
@@ -500,7 +500,7 @@ func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledFalse(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Jmxmp: &coh.JvmJmxmpSpec{
 				Enabled: boolPtr(false),
@@ -521,7 +521,7 @@ func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledWithPort(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Jmxmp: &coh.JvmJmxmpSpec{
 				Enabled: boolPtr(true),

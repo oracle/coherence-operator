@@ -29,8 +29,8 @@ const (
 	// The name of this controller. This is used in events, log messages, etc.
 	controllerName = "statefulset.controller"
 
-	CreateMessage        string = "successfully created StatefulSet for CoherenceDeployment '%s'"
-	FailedToScaleMessage string = "failed to scale CoherenceDeployment %s from %d to %d due to error\n%s"
+	CreateMessage        string = "successfully created StatefulSet for Coherence resource '%s'"
+	FailedToScaleMessage string = "failed to scale Coherence resource %s from %d to %d due to error\n%s"
 
 	EventReasonScale string = "Scaling"
 
@@ -77,7 +77,7 @@ type ReconcileStatefulSet struct {
 func (in *ReconcileStatefulSet) GetReconciler() reconcile.Reconciler { return in }
 
 // Reconcile reads that state of the Services for a deployment and makes changes based on the
-// state read and the desired state based on the parent CoherenceDeployment.
+// state read and the desired state based on the parent Coherence resource.
 func (in *ReconcileStatefulSet) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -87,7 +87,7 @@ func (in *ReconcileStatefulSet) Reconcile(request reconcile.Request) (reconcile.
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Obtain the parent CoherenceDeployment
+	// Obtain the parent Coherence resource
 	deployment, err := in.FindDeployment(request)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -101,7 +101,7 @@ func (in *ReconcileStatefulSet) Reconcile(request reconcile.Request) (reconcile.
 	return in.ReconcileResources(request, deployment, storage)
 }
 
-func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, deployment *coh.CoherenceDeployment, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 	logger.Info("Reconciling StatefulSet for deployment")
@@ -143,7 +143,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 	return result, err
 }
 
-func (in *ReconcileStatefulSet) createStatefulSet(deployment *coh.CoherenceDeployment, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) createStatefulSet(deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	ok, reason := in.canCreate(deployment)
 
 	if !ok {
@@ -177,7 +177,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(deployment *coh.CoherenceDeplo
 }
 
 // canCreate determines whether any specified start quorum has been met.
-func (in *ReconcileStatefulSet) canCreate(deployment *coh.CoherenceDeployment) (bool, string) {
+func (in *ReconcileStatefulSet) canCreate(deployment *coh.Coherence) (bool, string) {
 	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
 		// there is not start quorum
 		return true, ""
@@ -227,7 +227,7 @@ func (in *ReconcileStatefulSet) canCreate(deployment *coh.CoherenceDeployment) (
 	return true, ""
 }
 
-func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.CoherenceDeployment, current *appsv1.StatefulSet, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, current *appsv1.StatefulSet, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 
 	var err error
@@ -283,7 +283,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.CoherenceDeplo
 }
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.CoherenceDeployment, current, desired *appsv1.StatefulSet, storage utils.Storage) (bool, error) {
+func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage) (bool, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 	name := current.GetName()
 	original, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, name)
@@ -316,7 +316,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.CoherenceDeploy
 }
 
 // Scale will scale a StatefulSet up or down
-func (in *ReconcileStatefulSet) scale(deployment *coh.CoherenceDeployment, sts *appsv1.StatefulSet, current, desired int32) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) scale(deployment *coh.Coherence, sts *appsv1.StatefulSet, current, desired int32) (reconcile.Result, error) {
 	// if the StatefulSet is not stable we cannot scale (e.g. it might already be in the middle of a rolling upgrade)
 	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
 	logger.Info(fmt.Sprintf("Scaling from %d to %d", current, desired))
@@ -353,7 +353,7 @@ func (in *ReconcileStatefulSet) getReplicas(sts *appsv1.StatefulSet) int32 {
 }
 
 // safeScale will scale a StatefulSet up or down by one and requeue the request.
-func (in *ReconcileStatefulSet) safeScale(deployment *coh.CoherenceDeployment, sts *appsv1.StatefulSet, desired int32, current int32) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) safeScale(deployment *coh.Coherence, sts *appsv1.StatefulSet, desired int32, current int32) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
 	logger.Info(fmt.Sprintf("Safe scaling from %d to %d", current, desired))
 
@@ -395,19 +395,19 @@ func (in *ReconcileStatefulSet) safeScale(deployment *coh.CoherenceDeployment, s
 }
 
 // parallelScale will scale the StatefulSet by the required amount in one request.
-func (in *ReconcileStatefulSet) parallelScale(deployment *coh.CoherenceDeployment, sts *appsv1.StatefulSet, replicas int32) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) parallelScale(deployment *coh.Coherence, sts *appsv1.StatefulSet, replicas int32) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
 	logger.Info(fmt.Sprintf("Parallel scaling to %d", replicas))
 
 	cl := in.GetClient()
 	events := in.GetEventRecorder()
 
-	// Update this CoherenceDeployment's status
+	// Update this Coherence resource's status
 	deployment.Status.Phase = coh.ConditionTypeScaling
 	deployment.Status.Replicas = replicas
 	err := cl.Status().Update(context.TODO(), deployment)
 	if err != nil {
-		// failed to update the CoherenceDeployment's status
+		// failed to update the Coherence resource's status
 		return reconcile.Result{}, errors.Wrap(err, "updating deployment status to Scaling")
 	}
 

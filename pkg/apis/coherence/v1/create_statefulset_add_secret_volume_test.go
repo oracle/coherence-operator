@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithSecretVolumesEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		SecretVolumes: []coh.SecretVolumeSpec{},
 	}
 
@@ -29,7 +29,7 @@ func TestCreateStatefulSetWithSecretVolumesEmpty(t *testing.T) {
 
 func TestCreateStatefulSetWithSecretVolume(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		SecretVolumes: []coh.SecretVolumeSpec{
 			{
 				Name:      "test-config",

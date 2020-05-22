@@ -57,13 +57,13 @@ func TestScalingDownWithKubectl(t *testing.T) {
 	assertScale(t, 20, cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlScaler)
 }
 
-// If a deployment is scaled down to zero it should be deleted and just its parent CoherenceDeployment should remain.
+// If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
 // This test scales down by directly updating the replica count in the deployment to zero.
 func TestScaleDownToZero(t *testing.T) {
 	assertScaleDownToZero(t, 30, deploymentScaler)
 }
 
-// If a deployment is scaled down to zero it should be deleted and just its parent CoherenceDeployment should remain.
+// If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
 // This test scales down using the "kubectl scale --relicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	assertScaleDownToZero(t, 40, kubeCtlScaler)
@@ -72,12 +72,12 @@ func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 // ----- helper methods ------------------------------------------------
 
 // ScaleFunction is a function that can scale a deployment up or down
-type ScaleFunction func(t *testing.T, d *cohv1.CoherenceDeployment, replicas int32) error
+type ScaleFunction func(t *testing.T, d *cohv1.Coherence, replicas int32) error
 
 // A scaler function that scales a deployment by directly updating it to have a set number of replicas
-var deploymentScaler = func(t *testing.T, d *cohv1.CoherenceDeployment, replicas int32) error {
+var deploymentScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error {
 	f := framework.Global
-	current, err := helper.GetCoherenceDeployment(f, d.Namespace, d.Name)
+	current, err := helper.GetCoherence(f, d.Namespace, d.Name)
 	if err != nil {
 		return err
 	}
@@ -87,16 +87,16 @@ var deploymentScaler = func(t *testing.T, d *cohv1.CoherenceDeployment, replicas
 }
 
 // A scaler function that scales a deployment using the kubectl scale command
-var kubeCtlScaler = func(t *testing.T, d *cohv1.CoherenceDeployment, replicas int32) error {
+var kubeCtlScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error {
 	f := framework.Global
-	current, err := helper.GetCoherenceDeployment(f, d.Namespace, d.Name)
+	current, err := helper.GetCoherence(f, d.Namespace, d.Name)
 	if err != nil {
 		return err
 	}
 
 	versionArg := "--resource-version=" + current.ResourceVersion
 	replicasArg := fmt.Sprintf("--replicas=%d", replicas)
-	deploymentArg := "coherencedeployment/" + current.GetName()
+	deploymentArg := "coherence/" + current.GetName()
 	kubectl := integration.KubeCtl{}
 	args := []string{"-n", current.GetNamespace(), "scale", replicasArg, versionArg, deploymentArg}
 
@@ -121,7 +121,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "scaling-test.yaml")
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	//Give the deployment a unique name based on the test name
@@ -173,7 +173,7 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	deployment, err := helper.NewSingleCoherenceDeploymentFromYaml(namespace, "scaling-to-zero-test.yaml")
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	defer cleanup(t, ctx, deployment.GetNamespacedName())
@@ -194,8 +194,8 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	err = helper.WaitForDeletion(f, namespace, deployment.Name, &sts, time.Second*5, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// The CoherenceDeployment should still exist
-	updated := cohv1.CoherenceDeployment{}
+	// The Coherence resource should still exist
+	updated := cohv1.Coherence{}
 	err = f.Client.Get(context.TODO(), deployment.GetNamespacedName(), &updated)
 	g.Expect(err).NotTo(HaveOccurred())
 	// The replica count for the deployment spec in the deployment should be zero
@@ -203,6 +203,6 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 
 	// wait for the deployment to match the condition
 	condition := helper.ReplicaCountCondition(0)
-	_, err = helper.WaitForCoherenceDeploymentCondition(f, namespace, deployment.Name, condition, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second*10, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 }

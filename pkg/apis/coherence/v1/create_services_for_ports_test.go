@@ -21,7 +21,7 @@ import (
 
 func TestCreateServicesWithAdditionalPortsEmpty(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{},
 	}
 
@@ -36,7 +36,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceEnabledFalse(t *
 
 	protocol := corev1.ProtocolUDP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -63,7 +63,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPort(t *testing.T) {
 
 	protocol := corev1.ProtocolUDP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -119,7 +119,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceName(t *testing.
 
 	protocol := corev1.ProtocolUDP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -176,7 +176,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServicePort(t *testing.
 
 	protocol := corev1.ProtocolUDP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -242,7 +242,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 		},
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -320,7 +320,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 
 func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceLabels(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name: "test-port-one",
@@ -372,7 +372,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceLabels(t *testin
 
 func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceAnnotations(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name: "test-port-one",
@@ -426,7 +426,7 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 	protocolOne := corev1.ProtocolUDP
 	protocolTwo := corev1.ProtocolSCTP
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
 				Name:     "test-port-one",
@@ -500,7 +500,7 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 	assertService(t, deployment, &svcExpectedOne, &svcExpectedTwo)
 }
 
-func assertService(t *testing.T, deployment *coh.CoherenceDeployment, servicesExpected ...metav1.Object) {
+func assertService(t *testing.T, deployment *coh.Coherence, servicesExpected ...metav1.Object) {
 	g := NewGomegaWithT(t)
 
 	res := deployment.Spec.CreateServicesForPort(deployment)

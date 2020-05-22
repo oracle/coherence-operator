@@ -20,10 +20,10 @@ import (
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// CoherenceDeploymentSpec defines a deployment in a Coherence cluster. A deployment is one or
-// more Pods that perform the same functionality, for example storage members.
+// CoherenceResourceSpec defines the specification of a Coherence resource. A Coherence resource is
+//typically one or more Pods that perform the same functionality, for example storage members.
 // +k8s:openapi-gen=true
-type CoherenceDeploymentSpec struct {
+type CoherenceResourceSpec struct {
 	// The name of the image.
 	// More info: https://kubernetes.io/docs/concepts/containers/images
 	// +optional
@@ -50,12 +50,13 @@ type CoherenceDeploymentSpec struct {
 	// Whether or not to auto-mount the Kubernetes API credentials for a service account
 	// +optional
 	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
-	// The timeout to apply to rest requests made back to the operator from Coherence Pods.
+	// The timeout to apply to REST requests made back to the Operator from Coherence Pods.
+	// These requests are typically to obtain site and rack information for the Pod.
 	// +optional
 	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
-	// The optional name of the Coherence cluster that this CoherenceDeployment belongs to.
+	// The optional name of the Coherence cluster that this Coherence resource belongs to.
 	// If this value is set this deployment will form a cluster with other deployments with
-	// the same cluster name. If not set the CoherenceDeployment's name will be used as the
+	// the same cluster name. If not set the Coherence resource's name will be used as the
 	// cluster name.
 	// +optional
 	Cluster *string `json:"cluster,omitempty"`
@@ -229,7 +230,7 @@ type CoherenceDeploymentSpec struct {
 // The Replicas field is a pointer and may be nil so this method will
 // return either the actual Replica value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
-func (in *CoherenceDeploymentSpec) GetReplicas() int32 {
+func (in *CoherenceResourceSpec) GetReplicas() int32 {
 	if in == nil {
 		return 0
 	}
@@ -240,13 +241,13 @@ func (in *CoherenceDeploymentSpec) GetReplicas() int32 {
 }
 
 // Set the number of replicas required for a deployment.
-func (in *CoherenceDeploymentSpec) SetReplicas(replicas int32) {
+func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Replicas = &replicas
 	}
 }
 
-func (in *CoherenceDeploymentSpec) GetCoherenceImage() *string {
+func (in *CoherenceResourceSpec) GetCoherenceImage() *string {
 	if in != nil {
 		return in.Image
 	}
@@ -256,7 +257,7 @@ func (in *CoherenceDeploymentSpec) GetCoherenceImage() *string {
 // Ensure that the Coherence image is set for the deployment.
 // This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 // and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func (in *CoherenceDeploymentSpec) EnsureCoherenceImage(coherenceImage *string) bool {
+func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bool {
 	if in.Image == nil {
 		in.Image = coherenceImage
 		return true
@@ -264,7 +265,7 @@ func (in *CoherenceDeploymentSpec) EnsureCoherenceImage(coherenceImage *string) 
 	return false
 }
 
-func (in *CoherenceDeploymentSpec) GetCoherenceUtilsImage() *string {
+func (in *CoherenceResourceSpec) GetCoherenceUtilsImage() *string {
 	if in != nil && in.CoherenceUtils != nil {
 		return in.CoherenceUtils.Image
 	}
@@ -274,7 +275,7 @@ func (in *CoherenceDeploymentSpec) GetCoherenceUtilsImage() *string {
 // Ensure that the Coherence Utils image is set for the deployment.
 // This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 // and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func (in *CoherenceDeploymentSpec) EnsureCoherenceUtilsImage(utilsImage *string) bool {
+func (in *CoherenceResourceSpec) EnsureCoherenceUtilsImage(utilsImage *string) bool {
 	if in.CoherenceUtils == nil {
 		in.CoherenceUtils = &ImageSpec{}
 	}
@@ -282,7 +283,7 @@ func (in *CoherenceDeploymentSpec) EnsureCoherenceUtilsImage(utilsImage *string)
 	return in.CoherenceUtils.EnsureImage(utilsImage)
 }
 
-func (in *CoherenceDeploymentSpec) GetEffectiveScalingPolicy() ScalingPolicy {
+func (in *CoherenceResourceSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	if in == nil {
 		return SafeScaling
 	}
@@ -307,7 +308,7 @@ func (in *CoherenceDeploymentSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 }
 
 // Returns the port that the health check endpoint will bind to.
-func (in *CoherenceDeploymentSpec) GetHealthPort() int32 {
+func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 	if in == nil || in.HealthPort == nil || *in.HealthPort <= 0 {
 		return DefaultHealthPort
 	}
@@ -316,7 +317,7 @@ func (in *CoherenceDeploymentSpec) GetHealthPort() int32 {
 
 // Returns the ScalingProbe to use for checking Phase HA for the deployment.
 // This method will not return nil.
-func (in *CoherenceDeploymentSpec) GetScalingProbe() *ScalingProbe {
+func (in *CoherenceResourceSpec) GetScalingProbe() *ScalingProbe {
 	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
 		return in.GetDefaultScalingProbe()
 	}
@@ -324,7 +325,7 @@ func (in *CoherenceDeploymentSpec) GetScalingProbe() *ScalingProbe {
 }
 
 // Obtain a default ScalingProbe
-func (in *CoherenceDeploymentSpec) GetDefaultScalingProbe() *ScalingProbe {
+func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *ScalingProbe {
 	timeout := 10
 
 	defaultStatusHA := ScalingProbe{
@@ -343,7 +344,7 @@ func (in *CoherenceDeploymentSpec) GetDefaultScalingProbe() *ScalingProbe {
 // Create the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.
-func (in *CoherenceDeploymentSpec) CreateKubernetesResources(d *CoherenceDeployment, flags *flags.CoherenceOperatorFlags) (Resources, error) {
+func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, flags *flags.CoherenceOperatorFlags) (Resources, error) {
 	var res []Resource
 
 	if in.GetReplicas() <= 0 {
@@ -367,7 +368,7 @@ func (in *CoherenceDeploymentSpec) CreateKubernetesResources(d *CoherenceDeploym
 }
 
 // Create the Services for each port (and optionally ServiceMonitors)
-func (in *CoherenceDeploymentSpec) CreateServicesForPort(deployment *CoherenceDeployment) []Resource {
+func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []Resource {
 	var resources []Resource
 
 	if in == nil || in.Ports == nil || len(in.Ports) == 0 {
@@ -398,14 +399,14 @@ func (in *CoherenceDeploymentSpec) CreateServicesForPort(deployment *CoherenceDe
 }
 
 // Create the selector that can be used to match this deployments Pods, for example by Services or StatefulSets.
-func (in *CoherenceDeploymentSpec) CreatePodSelectorLabels(deployment *CoherenceDeployment) map[string]string {
+func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment *Coherence) map[string]string {
 	selector := deployment.CreateCommonLabels()
 	selector[LabelComponent] = LabelComponentCoherencePod
 	return selector
 }
 
 // Create the headless WKA Service
-func (in *CoherenceDeploymentSpec) CreateWKAService(deployment *CoherenceDeployment) Resource {
+func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resource {
 	labels := deployment.CreateCommonLabels()
 	labels[LabelComponent] = LabelComponentWKA
 
@@ -448,7 +449,7 @@ func (in *CoherenceDeploymentSpec) CreateWKAService(deployment *CoherenceDeploym
 }
 
 // Create the headless Service for the deployment's StatefulSet.
-func (in *CoherenceDeploymentSpec) CreateHeadlessService(deployment *CoherenceDeployment) Resource {
+func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Resource {
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentCoherenceHeadless
@@ -486,7 +487,7 @@ func (in *CoherenceDeploymentSpec) CreateHeadlessService(deployment *CoherenceDe
 }
 
 // Create the deployment's StatefulSet.
-func (in *CoherenceDeploymentSpec) CreateStatefulSet(deployment *CoherenceDeployment, flags *flags.CoherenceOperatorFlags) Resource {
+func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags *flags.CoherenceOperatorFlags) Resource {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -588,7 +589,7 @@ func (in *CoherenceDeploymentSpec) CreateStatefulSet(deployment *CoherenceDeploy
 	}
 }
 
-func (in *CoherenceDeploymentSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
+func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
 	var secrets []corev1.LocalObjectReference
 
 	for _, s := range in.ImagePullSecrets {
@@ -601,7 +602,7 @@ func (in *CoherenceDeploymentSpec) GetImagePullSecrets() []corev1.LocalObjectRef
 }
 
 // Get the service account name for the cluster.
-func (in *CoherenceDeploymentSpec) GetServiceAccountName() string {
+func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 	if in != nil && in.ServiceAccountName != DefaultServiceAccount {
 		return in.ServiceAccountName
 	}
@@ -609,7 +610,7 @@ func (in *CoherenceDeploymentSpec) GetServiceAccountName() string {
 }
 
 // Create the Coherence container spec.
-func (in *CoherenceDeploymentSpec) CreateCoherenceContainer(deployment *CoherenceDeployment, flags *flags.CoherenceOperatorFlags) corev1.Container {
+func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence, flags *flags.CoherenceOperatorFlags) corev1.Container {
 	var cohImage *string
 
 	if in.Image == nil {
@@ -667,7 +668,7 @@ func (in *CoherenceDeploymentSpec) CreateCoherenceContainer(deployment *Coherenc
 }
 
 // Create the common VolumeMounts added all containers.
-func (in *CoherenceDeploymentSpec) CreateCommonVolumeMounts() []corev1.VolumeMount {
+func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{Name: VolumeNameLogs, MountPath: VolumeMountPathLogs},
 		{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
@@ -676,7 +677,7 @@ func (in *CoherenceDeploymentSpec) CreateCommonVolumeMounts() []corev1.VolumeMou
 }
 
 // Create the common environment variables added all.
-func (in *CoherenceDeploymentSpec) CreateCommonEnv(deployment *CoherenceDeployment) []corev1.EnvVar {
+func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
@@ -705,7 +706,7 @@ func (in *CoherenceDeploymentSpec) CreateCommonEnv(deployment *CoherenceDeployme
 }
 
 // Create the default environment variables for the Coherence container.
-func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeployment) []corev1.EnvVar {
+func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
 	return append(in.CreateCommonEnv(deployment),
 		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.GetWkaServiceName()},
 		corev1.EnvVar{
@@ -726,7 +727,7 @@ func (in *CoherenceDeploymentSpec) CreateDefaultEnv(deployment *CoherenceDeploym
 }
 
 // Create the default Container resources.
-func (in *CoherenceDeploymentSpec) CreateDefaultResources() corev1.ResourceRequirements {
+func (in *CoherenceResourceSpec) CreateDefaultResources() corev1.ResourceRequirements {
 	return corev1.ResourceRequirements{
 		Limits: map[corev1.ResourceName]resource.Quantity{
 			corev1.ResourceCPU: resource.MustParse("32"),
@@ -738,7 +739,7 @@ func (in *CoherenceDeploymentSpec) CreateDefaultResources() corev1.ResourceRequi
 }
 
 // Create the default readiness probe.
-func (in *CoherenceDeploymentSpec) CreateDefaultReadinessProbe() *corev1.Probe {
+func (in *CoherenceResourceSpec) CreateDefaultReadinessProbe() *corev1.Probe {
 	return &corev1.Probe{
 		InitialDelaySeconds: 30,
 		PeriodSeconds:       60,
@@ -749,7 +750,7 @@ func (in *CoherenceDeploymentSpec) CreateDefaultReadinessProbe() *corev1.Probe {
 }
 
 // Update the probe with the default readiness probe action.
-func (in *CoherenceDeploymentSpec) UpdateDefaultReadinessProbeAction(probe *corev1.Probe) *corev1.Probe {
+func (in *CoherenceResourceSpec) UpdateDefaultReadinessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultReadinessPath,
 		Port:   intstr.FromInt(int(DefaultHealthPort)),
@@ -759,7 +760,7 @@ func (in *CoherenceDeploymentSpec) UpdateDefaultReadinessProbeAction(probe *core
 }
 
 // Create the default liveness probe.
-func (in *CoherenceDeploymentSpec) CreateDefaultLivenessProbe() *corev1.Probe {
+func (in *CoherenceResourceSpec) CreateDefaultLivenessProbe() *corev1.Probe {
 	return &corev1.Probe{
 		InitialDelaySeconds: 60,
 		PeriodSeconds:       60,
@@ -770,7 +771,7 @@ func (in *CoherenceDeploymentSpec) CreateDefaultLivenessProbe() *corev1.Probe {
 }
 
 // Update the probe with the default liveness probe action.
-func (in *CoherenceDeploymentSpec) UpdateDefaultLivenessProbeAction(probe *corev1.Probe) *corev1.Probe {
+func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultLivenessPath,
 		Port:   intstr.FromInt(int(DefaultHealthPort)),
@@ -780,7 +781,7 @@ func (in *CoherenceDeploymentSpec) UpdateDefaultLivenessProbeAction(probe *corev
 }
 
 // Get the Utils init-container spec.
-func (in *CoherenceDeploymentSpec) CreateUtilsContainer(deployment *CoherenceDeployment, flags *flags.CoherenceOperatorFlags) corev1.Container {
+func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence, flags *flags.CoherenceOperatorFlags) corev1.Container {
 	var utilsImage *string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
 		utilsImage = flags.GetCoherenceUtilsImage()
@@ -813,7 +814,7 @@ func (in *CoherenceDeploymentSpec) CreateUtilsContainer(deployment *CoherenceDep
 }
 
 // Get the Pod Affinity either from that configured for the cluster or the default affinity.
-func (in *CoherenceDeploymentSpec) EnsurePodAffinity(deployment *CoherenceDeployment) *corev1.Affinity {
+func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev1.Affinity {
 	if in != nil && in.Affinity != nil {
 		return in.Affinity
 	}
@@ -822,7 +823,7 @@ func (in *CoherenceDeploymentSpec) EnsurePodAffinity(deployment *CoherenceDeploy
 }
 
 // Create the default Pod Affinity to use in a deployment's StatefulSet.
-func (in *CoherenceDeploymentSpec) CreateDefaultPodAffinity(deployment *CoherenceDeployment) *corev1.Affinity {
+func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence) *corev1.Affinity {
 	return &corev1.Affinity{
 		PodAntiAffinity: &corev1.PodAntiAffinity{
 			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
@@ -851,14 +852,14 @@ func (in *CoherenceDeploymentSpec) CreateDefaultPodAffinity(deployment *Coherenc
 	}
 }
 
-func (in *CoherenceDeploymentSpec) GetMetricsPort() int32 {
+func (in *CoherenceResourceSpec) GetMetricsPort() int32 {
 	if in == nil {
 		return 0
 	}
 	return in.Coherence.GetMetricsPort()
 }
 
-func (in *CoherenceDeploymentSpec) GetManagementPort() int32 {
+func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 	if in == nil {
 		return 0
 	}
@@ -868,7 +869,7 @@ func (in *CoherenceDeploymentSpec) GetManagementPort() int32 {
 // Add any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
-func (in *CoherenceDeploymentSpec) ProcessAdditionalContainers(deployment *CoherenceDeployment, sts *appsv1.StatefulSet) {
+func (in *CoherenceResourceSpec) ProcessAdditionalContainers(deployment *Coherence, sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
 	}
@@ -884,12 +885,12 @@ func (in *CoherenceDeploymentSpec) ProcessAdditionalContainers(deployment *Coher
 	}
 }
 
-func (in *CoherenceDeploymentSpec) processAdditionalContainer(deployment *CoherenceDeployment, c *corev1.Container) {
+func (in *CoherenceResourceSpec) processAdditionalContainer(deployment *Coherence, c *corev1.Container) {
 	in.appendCommonEnvVars(deployment, c)
 	in.appendCommonVolumeMounts(c)
 }
 
-func (in *CoherenceDeploymentSpec) appendCommonEnvVars(deployment *CoherenceDeployment, c *corev1.Container) {
+func (in *CoherenceResourceSpec) appendCommonEnvVars(deployment *Coherence, c *corev1.Container) {
 	envVars := c.Env
 	for _, toAdd := range in.CreateCommonEnv(deployment) {
 		envVars = in.appendEnvVarIfMissing(envVars, toAdd)
@@ -897,7 +898,7 @@ func (in *CoherenceDeploymentSpec) appendCommonEnvVars(deployment *CoherenceDepl
 	c.Env = envVars
 }
 
-func (in *CoherenceDeploymentSpec) appendEnvVarIfMissing(envVars []corev1.EnvVar, toAdd corev1.EnvVar) []corev1.EnvVar {
+func (in *CoherenceResourceSpec) appendEnvVarIfMissing(envVars []corev1.EnvVar, toAdd corev1.EnvVar) []corev1.EnvVar {
 	for _, ev := range envVars {
 		if ev.Name == toAdd.Name {
 			return envVars
@@ -906,7 +907,7 @@ func (in *CoherenceDeploymentSpec) appendEnvVarIfMissing(envVars []corev1.EnvVar
 	return append(envVars, toAdd)
 }
 
-func (in *CoherenceDeploymentSpec) appendCommonVolumeMounts(c *corev1.Container) {
+func (in *CoherenceResourceSpec) appendCommonVolumeMounts(c *corev1.Container) {
 	mounts := c.VolumeMounts
 	for _, toAdd := range in.CreateCommonVolumeMounts() {
 		mounts = in.appendVolumeMountIfMissing(mounts, toAdd)
@@ -914,7 +915,7 @@ func (in *CoherenceDeploymentSpec) appendCommonVolumeMounts(c *corev1.Container)
 	c.VolumeMounts = mounts
 }
 
-func (in *CoherenceDeploymentSpec) appendVolumeMountIfMissing(mounts []corev1.VolumeMount, toAdd corev1.VolumeMount) []corev1.VolumeMount {
+func (in *CoherenceResourceSpec) appendVolumeMountIfMissing(mounts []corev1.VolumeMount, toAdd corev1.VolumeMount) []corev1.VolumeMount {
 	for _, m := range mounts {
 		if m.Name == toAdd.Name {
 			return mounts

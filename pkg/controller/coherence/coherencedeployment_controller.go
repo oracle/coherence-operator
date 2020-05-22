@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package coherencedeployment
+package coherence
 
 import (
 	"fmt"
@@ -28,26 +28,26 @@ import (
 )
 
 const (
-	controllerName = "controller_coherencedeployment"
+	controllerName = "controller_coherence"
 
-	reconcileFailedMessage       string = "failed to reconcile CoherenceDeployment '%s' in namespace '%s'\n%s"
-	createResourcesFailedMessage string = "create resources for CoherenceDeployment '%s' in namesapce '%s' failed\n%s"
+	reconcileFailedMessage       string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
+	createResourcesFailedMessage string = "create resources for Coherence resource '%s' in namesapce '%s' failed\n%s"
 )
 
-// Add creates a new CoherenceDeployment Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new Coherence resource Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, NewReconciler(mgr))
 }
 
-// NewReconciler returns a new ReconcileCoherenceDeployment
-func NewReconciler(mgr manager.Manager) *ReconcileCoherenceDeployment {
+// NewReconciler returns a new ReconcileCoherence
+func NewReconciler(mgr manager.Manager) *ReconcileCoherence {
 	return NewReconcilerWithFlags(mgr, flags.GetOperatorFlags())
 }
 
-// NewReconciler creates a new ReconcileCoherenceDeployment
-func NewReconcilerWithFlags(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherenceDeployment {
-	r := &ReconcileCoherenceDeployment{opFlags: opFlags}
+// NewReconciler creates a new ReconcileCoherence
+func NewReconcilerWithFlags(mgr manager.Manager, opFlags *flags.CoherenceOperatorFlags) *ReconcileCoherence {
+	r := &ReconcileCoherence{opFlags: opFlags}
 
 	gv := schema.GroupVersion{
 		Group:   coh.ServiceMonitorGroup,
@@ -73,15 +73,15 @@ func NewReconcilerWithFlags(mgr manager.Manager, opFlags *flags.CoherenceOperato
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r *ReconcileCoherenceDeployment) error {
+func add(mgr manager.Manager, r *ReconcileCoherence) error {
 	// Create a new controller
-	c, err := controller.New("coherencedeployment-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("coherence-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource CoherenceDeployment
-	err = c.Watch(&source.Kind{Type: &coh.CoherenceDeployment{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource Coherence
+	err = c.Watch(&source.Kind{Type: &coh.Coherence{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func watchSecondaryResource(r reconciler.SecondaryResourceReconciler) error {
 	}
 
 	src := &source.Kind{Type: r.GetTemplate()}
-	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.CoherenceDeployment{}}
+	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.Coherence{}}
 	if err := c.Watch(src, h); err != nil {
 		return err
 	}
@@ -118,41 +118,41 @@ func watchSecondaryResource(r reconciler.SecondaryResourceReconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileCoherenceDeployment implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileCoherenceDeployment{}
+// blank assignment to verify that ReconcileCoherence implements reconcile.Reconciler
+var _ reconcile.Reconciler = &ReconcileCoherence{}
 
-// ReconcileCoherenceDeployment reconciles a CoherenceDeployment object
-type ReconcileCoherenceDeployment struct {
+// ReconcileCoherence reconciles a Coherence resource object
+type ReconcileCoherence struct {
 	reconciler.CommonReconciler
 	opFlags     *flags.CoherenceOperatorFlags
 	reconcilers []reconciler.SecondaryResourceReconciler
 }
 
-func (in *ReconcileCoherenceDeployment) SetPatchType(pt types.PatchType) {
+func (in *ReconcileCoherence) SetPatchType(pt types.PatchType) {
 	for _, r := range in.reconcilers {
 		r.SetPatchType(pt)
 	}
 	in.CommonReconciler.SetPatchType(pt)
 }
 
-// Reconcile reads that state of the cluster for a CoherenceDeployment object and makes changes based on the state read
-// and what is in the CoherenceDeployment.Spec
+// Reconcile reads that state of the cluster for a Coherence resource object and makes changes based on the state read
+// and what is in the Coherence.Spec
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (in *ReconcileCoherenceDeployment) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (in *ReconcileCoherence) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling CoherenceDeployment")
+	logger.Info("Reconciling Coherence resource")
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		logger.Info("CoherenceDeployment " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
+		logger.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
 		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Fetch the CoherenceDeployment instance
+	// Fetch the Coherence resource instance
 	deployment, found, err := in.MaybeFindDeployment(request.Namespace, request.Name)
 	if err != nil {
 		// Error reading the current deployment state from k8s.
@@ -160,7 +160,7 @@ func (in *ReconcileCoherenceDeployment) Reconcile(request reconcile.Request) (re
 	}
 
 	if !found || deployment.GetDeletionTimestamp() != nil {
-		logger.Info("CoherenceDeployment deleted")
+		logger.Info("Coherence resource deleted")
 		return reconcile.Result{}, nil
 	}
 
@@ -178,7 +178,7 @@ func (in *ReconcileCoherenceDeployment) Reconcile(request reconcile.Request) (re
 		// No replica count so we patch the deployment to have the default replicas value.
 		// The reason we do this is because the kubectl scale command will fail if the replicas
 		// field is not set to a non-nil value.
-		patch := &coh.CoherenceDeployment{}
+		patch := &coh.Coherence{}
 		deployment.DeepCopyInto(patch)
 		replicas := deployment.GetReplicas()
 		patch.Spec.Replicas = &replicas
@@ -227,7 +227,7 @@ func (in *ReconcileCoherenceDeployment) Reconcile(request reconcile.Request) (re
 	result := reconcile.Result{Requeue: false}
 
 	if isDiff {
-		logger.Info("Reconciling CoherenceDeployment secondary resources")
+		logger.Info("Reconciling Coherence resource secondary resources")
 		// make the deployment the owner of all of the secondary resources about to be reconciled
 		if deployment != nil {
 			if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
@@ -261,8 +261,8 @@ func (in *ReconcileCoherenceDeployment) Reconcile(request reconcile.Request) (re
 		}
 	}
 
-	logger.Info(fmt.Sprintf("Finished reconciling CoherenceDeployment. Result='%v'", result))
+	logger.Info(fmt.Sprintf("Finished reconciling Coherence resource. Result='%v'", result))
 	return result, err
 }
 
-func (in *ReconcileCoherenceDeployment) GetReconciler() reconcile.Reconciler { return in }
+func (in *ReconcileCoherence) GetReconciler() reconcile.Reconciler { return in }

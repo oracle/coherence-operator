@@ -24,7 +24,7 @@ import (
 )
 
 type StatusHATestCase struct {
-	Deployment *coh.CoherenceDeployment
+	Deployment *coh.Coherence
 	Name       string
 }
 
@@ -38,13 +38,13 @@ func TestStatusHA(t *testing.T) {
 	klog.InitFlags(flags)
 	_ = flags.Set("v", "4")
 
-	deploymentDefault, err := helper.NewSingleCoherenceDeploymentFromYaml(ns, "status-ha-default.yaml")
+	deploymentDefault, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-default.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	deploymentExec, err := helper.NewSingleCoherenceDeploymentFromYaml(ns, "status-ha-exec.yaml")
+	deploymentExec, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-exec.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	deploymentHttp, err := helper.NewSingleCoherenceDeploymentFromYaml(ns, "status-ha-http.yaml")
+	deploymentHttp, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-http.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	deploymentTcp, err := helper.NewSingleCoherenceDeploymentFromYaml(ns, "status-ha-tcp.yaml")
+	deploymentTcp, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-tcp.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	testCases := []StatusHATestCase{

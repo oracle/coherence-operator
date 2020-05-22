@@ -31,13 +31,13 @@ For example, to update the OpenShift policy, use:
 oc adm policy add-scc-to-user anyuid -z default
 ----
 
-and to annotate the Coherence containers, update the `CoherenceDeployment` resource to include annotations
+and to annotate the Coherence containers, update the `Coherence` resource to include annotations
 
 For example:
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: test-cluster
 spec:

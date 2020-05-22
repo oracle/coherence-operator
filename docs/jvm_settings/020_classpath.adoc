@@ -10,7 +10,7 @@
 
 == Set the Classpath
 
-The Coherence container in the `Pods` in a `CoherenceDeployments` runs a Java application and as such requires a classpath
+The Coherence container in the `Pods` in a `Coherence` resource deployment runs a Java application and as such requires a classpath
 with at a minimum `coherence.jar`. There are certain defaults that the Operator will use to work out the classpath to use
 but additional classpath elements can be provided to the configuration.
 
@@ -53,7 +53,7 @@ and `COHERENCE_HOME` set to `/oracle/coherence` the effective classpath used wil
 
 If the image is not a JIB image there could be occasions when automatically adding `/app/libs/*:/app/classes:/app/resources`
 to the classpath causes issues, for example one or more of those locations exists with files in that should not be on the
-classpath. In this case the `CoherenceDeployment` spec has a field to specify that the JIB classpath should not be used.
+classpath. In this case the `Coherence` CRD spec has a field to specify that the JIB classpath should not be used.
 
 The `spec.jvm.useJibClasspath` field can be set to `false` to exclude the JIB directories from the classpath
 (the default value is `true`).
@@ -61,7 +61,7 @@ The `spec.jvm.useJibClasspath` field can be set to `false` to exclude the JIB di
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
@@ -75,14 +75,14 @@ directories exist in the image they will not be added to the classpath.
 === Additional Classpath Elements
 
 If an image will be used that has artifacts in locations other than the defaults discussed above then it is possible
-to specify additional elements to be added to the classpath. The `jvm.classpath` field in the `CoherenceDeployment` spec
+to specify additional elements to be added to the classpath. The `jvm.classpath` field in the `Coherence` CRD spec
 allows a list of extra classpath values to be provided. These elements will be added _after_ the JIB classpath
 described above.
 
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:

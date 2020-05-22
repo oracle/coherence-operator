@@ -21,7 +21,7 @@ import (
 
 // ----- tests --------------------------------------------------------------
 
-// Test that a deployment works using the minimal valid yaml for a CoherenceDeployment
+// Test that a deployment works using the minimal valid yaml for a Coherence
 func TestMinimalDeployment(t *testing.T) {
 	AssertDeployments(t, "deployment-minimal.yaml")
 }
@@ -31,7 +31,7 @@ func TestDeploymentWithOneReplica(t *testing.T) {
 	AssertDeployments(t, "deployment-one-replica.yaml")
 }
 
-// Test that a deployment works using the a yaml file containing two CoherenceDeployment
+// Test that a deployment works using the a yaml file containing two Coherence
 // specs that have the same cluster name.
 func TestTwoDeploymentsOneCluster(t *testing.T) {
 	AssertDeployments(t, "deployment-multi.yaml")
@@ -111,18 +111,18 @@ func TestDeploymentWithZeroReplicas(t *testing.T) {
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	deployments, err := helper.NewCoherenceDeploymentFromYaml(namespace, "deployment-with-zero-replicas.yaml")
+	deployments, err := helper.NewCoherenceFromYaml(namespace, "deployment-with-zero-replicas.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(deployments)).To(Equal(1))
 	deployment := deployments[0]
 
-	// deploy the CoherenceDeployment
+	// deploy the Coherence
 	err = f.Client.Create(context.TODO(), &deployment, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The deployment should eventually be in the Stopped phase
 	condition := helper.StatusPhaseCondition(coh.ConditionTypeStopped)
-	_, err = helper.WaitForCoherenceDeploymentCondition(f, namespace, deployment.Name, condition, time.Second, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// There should be no StatefulSet

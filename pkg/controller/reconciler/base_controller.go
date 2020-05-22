@@ -136,7 +136,7 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	}
 }
 
-// Update the CoherenceDeployment's status
+// Update the Coherence resource's status
 func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) error {
 	var err error
 	var sts *appsv1.StatefulSet
@@ -147,7 +147,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 		return err
 	}
 
-	deployment := &coh.CoherenceDeployment{}
+	deployment := &coh.Coherence{}
 	err = in.GetClient().Get(context.TODO(), request.NamespacedName, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
@@ -164,12 +164,12 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 		if updated.Status.Update(deployment, &sts.Status) {
 			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
 			if err != nil {
-				return errors.Wrap(err, "creating CoherenceDeployment status patch")
+				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
 			if patch != nil {
 				err = in.GetClient().Status().Patch(context.TODO(), deployment, patch)
 				if err != nil {
-					return errors.Wrap(err, "updating CoherenceDeployment status")
+					return errors.Wrap(err, "updating Coherence resource status")
 				}
 			}
 		}
@@ -177,15 +177,15 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 	return err
 }
 
-// Update the CoherenceDeployment's status
+// Update the Coherence resource's status
 func (in *CommonReconciler) UpdateDeploymentStatusPhase(key types.NamespacedName, phase status.ConditionType) error {
 	return in.UpdateDeploymentStatusCondition(key, status.Condition{Type: phase, Status: corev1.ConditionTrue})
 }
 
-// Update the CoherenceDeployment's status
+// Update the Coherence resource's status
 func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.NamespacedName, c status.Condition) error {
 	var err error
-	deployment := &coh.CoherenceDeployment{}
+	deployment := &coh.Coherence{}
 	err = in.GetClient().Get(context.TODO(), key, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
@@ -202,12 +202,12 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.Namespaced
 		if updated.Status.SetCondition(deployment, c) {
 			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
 			if err != nil {
-				return errors.Wrap(err, "creating CoherenceDeployment status patch")
+				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
 			if patch != nil {
 				err = in.GetClient().Status().Patch(context.TODO(), deployment, patch)
 				if err != nil {
-					return errors.Wrap(err, "updating CoherenceDeployment status")
+					return errors.Wrap(err, "updating Coherence resource status")
 				}
 			}
 		}
@@ -388,18 +388,18 @@ func (in *CommonReconciler) asVersioned(obj runtime.Object) runtime.Object {
 }
 
 // HandleErrAndRequeue is the common error handler
-func (in *CommonReconciler) HandleErrAndRequeue(err error, deployment *coh.CoherenceDeployment, msg string, logger logr.Logger) (reconcile.Result, error) {
+func (in *CommonReconciler) HandleErrAndRequeue(err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return in.Failed(err, deployment, msg, true, logger)
 }
 
 // handleErrAndFinish is the common error handler
-func (in *CommonReconciler) HandleErrAndFinish(err error, deployment *coh.CoherenceDeployment, msg string, logger logr.Logger) (reconcile.Result, error) {
+func (in *CommonReconciler) HandleErrAndFinish(err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return in.Failed(err, deployment, msg, false, logger)
 }
 
 // failed is the common error handler
 // ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
-func (in *CommonReconciler) Failed(err error, deployment *coh.CoherenceDeployment, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
 	} else {
@@ -424,15 +424,15 @@ func (in *CommonReconciler) Failed(err error, deployment *coh.CoherenceDeploymen
 	return reconcile.Result{Requeue: false}, nil
 }
 
-// Find the CoherenceDeployment for a given request.
-func (in *CommonReconciler) FindDeployment(request reconcile.Request) (*coh.CoherenceDeployment, error) {
+// Find the Coherence resource for a given request.
+func (in *CommonReconciler) FindDeployment(request reconcile.Request) (*coh.Coherence, error) {
 	deployment, _, err := in.MaybeFindDeployment(request.Namespace, request.Name)
 	return deployment, err
 }
 
-// Maybe find a CoherenceDeployment.
-func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.CoherenceDeployment, bool, error) {
-	deployment := &coh.CoherenceDeployment{}
+// Maybe find a Coherence resource.
+func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Coherence, bool, error) {
+	deployment := &coh.Coherence{}
 	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, deployment)
 
 	switch {
@@ -454,13 +454,13 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() runtime.Object
-	ReconcileResources(reconcile.Request, *coh.CoherenceDeployment, utils.Storage) (reconcile.Result, error)
+	ReconcileResources(reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
 
 // ----- ReconcileSecondaryResource ----------------------------------------------
 
-// ReconcileSecondaryResource reconciles a secondary resource for a CoherenceDeployment
+// ReconcileSecondaryResource reconciles a secondary resource for a Coherence resource
 type ReconcileSecondaryResource struct {
 	CommonReconciler
 	Template  runtime.Object
@@ -472,7 +472,7 @@ func (in *ReconcileSecondaryResource) GetTemplate() runtime.Object { return in.T
 func (in *ReconcileSecondaryResource) CanWatch() bool              { return !in.SkipWatch }
 
 // ReconcileResources reconciles the state of the desired resources for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Request, deployment *coh.CoherenceDeployment, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 
 	var err error
@@ -493,7 +493,7 @@ func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Reque
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileSecondaryResource) ReconcileResource(namespace, name string, deployment *coh.CoherenceDeployment, storage utils.Storage) error {
+func (in *ReconcileSecondaryResource) ReconcileResource(namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
 	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
 
 	// Fetch the resource's current state

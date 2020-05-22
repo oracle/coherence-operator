@@ -18,7 +18,7 @@ import (
 
 func TestNamedPortSpec_CreateServiceWithMinimalFields(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c := coh.CoherenceDeployment{}
+	c := coh.Coherence{}
 	c.Name = "test-deployment"
 	c.Spec.Role = "storage"
 
@@ -60,7 +60,7 @@ func TestNamedPortSpec_CreateServiceWithMinimalFields(t *testing.T) {
 
 func TestNamedPortSpec_CreateServiceWithProtocol(t *testing.T) {
 	g := NewGomegaWithT(t)
-	d := coh.CoherenceDeployment{}
+	d := coh.Coherence{}
 	d.Name = "test-deployment"
 	d.Spec.Role = "storage"
 
@@ -79,7 +79,7 @@ func TestNamedPortSpec_CreateServiceWithProtocol(t *testing.T) {
 
 func TestNamedPortSpec_CreateServiceWithNodePort(t *testing.T) {
 	g := NewGomegaWithT(t)
-	d := coh.CoherenceDeployment{}
+	d := coh.Coherence{}
 	d.Name = "test-deployment"
 	d.Spec.Role = "storage"
 
@@ -96,7 +96,7 @@ func TestNamedPortSpec_CreateServiceWithNodePort(t *testing.T) {
 
 func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 	g := NewGomegaWithT(t)
-	d := coh.CoherenceDeployment{}
+	d := coh.Coherence{}
 	d.Name = "test-deployment"
 	d.Spec.Role = "storage"
 

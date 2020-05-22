@@ -32,25 +32,25 @@ A Kubernetes `Service` has a DNS name and that name will resolve to all the IP a
 that `Service` selector. This means that a Coherence JVM only needs to be given the DNS name of a `Service` as the
 single host name in its WKA list so that it will form a cluster with any other JVM using in a Pod matching the selector.
 
-When the Coherence Operator creates reconciles a `CoherenceDeployment` configuration to create a running set of `Pods`
-it creates a headless service specifically for the purposes of WKA for that `CoherenceDeployment` with a selector that
+When the Coherence Operator creates reconciles a `Coherence` CRD configuration to create a running set of `Pods`
+it creates a headless service specifically for the purposes of WKA for that `Coherence` resource with a selector that
 matches any Pod with the same cluster name.
 
-For example, if a `CoherenceDeployment` is created with the following yaml:
+For example, if a `Coherence` resource is created with the following yaml:
 
 [source,yaml]
 .test-cluster.yaml
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: storage
 spec:
   cluster: test-cluster # <1>
 ----
-<1> In this yaml the `CoherenceDeployment` has a cluster name of `test-cluster`
+<1> In this yaml the `Coherence` resource has a cluster name of `test-cluster`
 
-The Operator will create a `Service` for the `CoherenceDeployment` using the same name as the deployment
+The Operator will create a `Service` for the `Coherence` resource using the same name as the deployment
 with a `-wka` suffix.
 So in the example above the Operator would create a `Service` with the name `storage-wka`.
 
@@ -110,7 +110,7 @@ deployment's spec to `true`.
 .test-cluster.yaml
 ----
 apiVersion: coherence.oracle.com/v1
-kind: CoherenceDeployment
+kind: Coherence
 metadata:
   name: test-client
 spec:

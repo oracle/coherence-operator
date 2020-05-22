@@ -73,7 +73,7 @@ func CreateTestContext(t *testing.T) *framework.Context {
 		return nil
 	}
 
-	list := &coh.CoherenceDeploymentList{}
+	list := &coh.CoherenceList{}
 
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, list)
 	if err != nil {
@@ -89,7 +89,7 @@ func DefaultCleanup(ctx *framework.Context) *framework.CleanupOptions {
 }
 
 // WaitForStatefulSetForDeployment waits for a StatefulSet to be created for the specified deployment.
-func WaitForStatefulSetForDeployment(kubeclient kubernetes.Interface, namespace string, deployment *coh.CoherenceDeployment, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSetForDeployment(kubeclient kubernetes.Interface, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
 	return WaitForStatefulSet(kubeclient, namespace, deployment.Name, deployment.Spec.GetReplicas(), retryInterval, timeout, logger)
 }
 
@@ -148,14 +148,14 @@ func WaitForEndpoints(kubeclient kubernetes.Interface, namespace, service string
 
 // A function that takes a deployment and determines whether it meets a condition
 type DeploymentStateCondition interface {
-	Test(*coh.CoherenceDeployment) bool
+	Test(*coh.Coherence) bool
 	String() string
 }
 
 // An always true DeploymentStateCondition
 type alwayCondition struct{}
 
-func (a alwayCondition) Test(*coh.CoherenceDeployment) bool {
+func (a alwayCondition) Test(*coh.Coherence) bool {
 	return true
 }
 
@@ -167,7 +167,7 @@ type replicaCountCondition struct {
 	replicas int32
 }
 
-func (in replicaCountCondition) Test(d *coh.CoherenceDeployment) bool {
+func (in replicaCountCondition) Test(d *coh.Coherence) bool {
 	return d.Status.ReadyReplicas == in.replicas
 }
 
@@ -183,7 +183,7 @@ type phaseCondition struct {
 	phase status.ConditionType
 }
 
-func (in phaseCondition) Test(d *coh.CoherenceDeployment) bool {
+func (in phaseCondition) Test(d *coh.Coherence) bool {
 	return d.Status.Phase == in.phase
 }
 
@@ -195,30 +195,30 @@ func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
 	return phaseCondition{phase: phase}
 }
 
-// WaitForCoherenceDeployment waits for a CoherenceDeployment to be created.
-func WaitForCoherenceDeployment(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.CoherenceDeployment, error) {
-	return WaitForCoherenceDeploymentCondition(f, namespace, name, alwayCondition{}, retryInterval, timeout, logger)
+// WaitForCoherence waits for a Coherence resource to be created.
+func WaitForCoherence(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+	return WaitForCoherenceCondition(f, namespace, name, alwayCondition{}, retryInterval, timeout, logger)
 }
 
-// WaitForCoherenceDeployment waits for a CoherenceDeployment to be created.
-func WaitForCoherenceDeploymentCondition(f *framework.Framework, namespace, name string, conditon DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.CoherenceDeployment, error) {
-	var deployment *coh.CoherenceDeployment
+// WaitForCoherence waits for a Coherence resource to be created.
+func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, conditon DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+	var deployment *coh.Coherence
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		deployment, err = GetCoherenceDeployment(f, namespace, name)
+		deployment, err = GetCoherence(f, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of CoherenceDeployment %s - NotFound\n", name)
+				logger.Logf("Waiting for availability of Coherence resource %s - NotFound\n", name)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of CoherenceDeployment %s - %s\n", name, err.Error())
+			logger.Logf("Waiting for availability of Coherence resource %s - %s\n", name, err.Error())
 			return false, nil
 		}
 		valid := true
 		if conditon != nil {
 			valid = conditon.Test(deployment)
 			if !valid {
-				logger.Logf("Waiting for CoherenceDeployment %s to meet condition '%s'\n", name, conditon.String())
+				logger.Logf("Waiting for Coherence resource %s to meet condition '%s'\n", name, conditon.String())
 			}
 		}
 		return valid, nil
@@ -227,10 +227,10 @@ func WaitForCoherenceDeploymentCondition(f *framework.Framework, namespace, name
 	return deployment, err
 }
 
-// GetCoherenceDeployment gets the specified CoherenceDeployment
-func GetCoherenceDeployment(f *framework.Framework, namespace, name string) (*coh.CoherenceDeployment, error) {
+// GetCoherence gets the specified Coherence resource
+func GetCoherence(f *framework.Framework, namespace, name string) (*coh.Coherence, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -387,32 +387,32 @@ func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInte
 func WaitForCoherenceCleanup(f *framework.Framework, namespace string) error {
 	fmt.Printf("Waiting for clean-up of Coherence resources in namespace %s\n", namespace)
 
-	list := &coh.CoherenceDeploymentList{}
+	list := &coh.CoherenceList{}
 	err := f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
 
-	// Delete all of the CoherenceDeployments
+	// Delete all of the Coherence resources
 	for _, r := range list.Items {
-		fmt.Printf("Deleting CoherenceDeployments %s in namespace %s\n", r.Name, r.Namespace)
+		fmt.Printf("Deleting Coherence resource %s in namespace %s\n", r.Name, r.Namespace)
 		err = f.Client.Delete(goctx.TODO(), &r)
 		if err != nil {
-			fmt.Printf("Error deleting CoherenceDeployments %s - %s\n", r.Name, err.Error())
+			fmt.Printf("Error deleting Coherence resource %s - %s\n", r.Name, err.Error())
 		}
 	}
 
-	// Wait for removal of the CoherenceDeployments
+	// Wait for removal of the Coherence resources
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
 		err = f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(list.Items) > 0 {
-				fmt.Printf("Waiting for deletion of %d CoherenceDeployment resources\n", len(list.Items))
+				fmt.Printf("Waiting for deletion of %d Coherence resources\n", len(list.Items))
 				return false, nil
 			}
 			return true, nil
 		} else {
-			fmt.Printf("Error waiting for deletion of CoherenceDeployment resources: %s\n%v\n", err.Error(), err)
+			fmt.Printf("Error waiting for deletion of Coherence resources: %s\n%v\n", err.Error(), err)
 			return false, nil
 		}
 	})
@@ -635,7 +635,7 @@ func DumpOperatorLogs(t *testing.T, ctx *framework.Context) {
 }
 
 func DumpState(namespace, dir string, logger Logger) {
-	dumpCoherenceDeployments(namespace, dir, logger)
+	dumpCoherences(namespace, dir, logger)
 	dumpStatefulSets(namespace, dir, logger)
 	dumpServices(namespace, dir, logger)
 	dumpPods(namespace, dir, logger)
@@ -644,11 +644,11 @@ func DumpState(namespace, dir string, logger Logger) {
 	dumpServiceAccounts(namespace, dir, logger)
 }
 
-func dumpCoherenceDeployments(namespace, dir string, logger Logger) {
-	const message = "Could not dump CoherenceDeployments for namespace %s due to %s\n"
+func dumpCoherences(namespace, dir string, logger Logger) {
+	const message = "Could not dump Coherence resource for namespace %s due to %s\n"
 
 	f := framework.Global
-	list := coh.CoherenceDeploymentList{}
+	list := coh.CoherenceList{}
 	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	if err != nil {
 		fmt.Printf(message, namespace, err.Error())
@@ -684,7 +684,7 @@ func dumpCoherenceDeployments(namespace, dir string, logger Logger) {
 				return
 			}
 
-			file, err := os.Create(logsDir + string(os.PathSeparator) + "CoherenceDeployment-" + item.GetName() + ".json")
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Coherence-" + item.GetName() + ".json")
 			if err != nil {
 				logger.Logf(message, namespace, err.Error())
 				return
@@ -698,7 +698,7 @@ func dumpCoherenceDeployments(namespace, dir string, logger Logger) {
 			}
 		}
 	} else {
-		_, _ = fmt.Fprint(listFile, "No CoherenceDeployments resources found in namespace "+namespace)
+		_, _ = fmt.Fprint(listFile, "No Coherence resources found in namespace "+namespace)
 	}
 }
 

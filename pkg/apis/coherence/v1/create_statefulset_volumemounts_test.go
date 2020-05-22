@@ -14,7 +14,7 @@ import (
 
 func TestCreateStatefulSetWithEmptyVolumeMounts(t *testing.T) {
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeMounts: []corev1.VolumeMount{},
 	}
 
@@ -35,7 +35,7 @@ func TestCreateStatefulSetWithOneVolumeMount(t *testing.T) {
 		MountPath: "/home/root/one",
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeMounts: []corev1.VolumeMount{mountOne},
 	}
 
@@ -62,7 +62,7 @@ func TestCreateStatefulSetWithTwoVolumeMounts(t *testing.T) {
 		MountPath: "/home/root/two",
 	}
 
-	spec := coh.CoherenceDeploymentSpec{
+	spec := coh.CoherenceResourceSpec{
 		VolumeMounts: []corev1.VolumeMount{mountOne, mountTwo},
 	}
 

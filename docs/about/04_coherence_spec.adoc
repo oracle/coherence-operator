@@ -24,10 +24,10 @@ This is a reference for the Coherence Operator API types.
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.
 
 === Table of Contents
-* <<CoherenceDeployment,CoherenceDeployment>>
-* <<CoherenceDeploymentList,CoherenceDeploymentList>>
-* <<CoherenceDeploymentStatus,CoherenceDeploymentStatus>>
-* <<CoherenceDeploymentSpec,CoherenceDeploymentSpec>>
+* <<Coherence,Coherence>>
+* <<CoherenceList,CoherenceList>>
+* <<CoherenceResourceStatus,CoherenceResourceStatus>>
+* <<CoherenceResourceSpec,CoherenceResourceSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CoherenceSpec,CoherenceSpec>>
 * <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
@@ -58,41 +58,41 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<StartQuorum,StartQuorum>>
 * <<StartQuorumStatus,StartQuorumStatus>>
 
-=== CoherenceDeployment
+=== Coherence
 
-CoherenceDeployment is the Schema for the coherencedeployments API
+Coherence is the Schema for the coherence API
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
 m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#objectmeta-v1-meta[metav1.ObjectMeta] | false
-m| spec | &#160; m| <<CoherenceDeploymentSpec,CoherenceDeploymentSpec>> | false
-m| status | &#160; m| <<CoherenceDeploymentStatus,CoherenceDeploymentStatus>> | false
+m| spec | &#160; m| <<CoherenceResourceSpec,CoherenceResourceSpec>> | false
+m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
 
-=== CoherenceDeploymentList
+=== CoherenceList
 
-CoherenceDeploymentList contains a list of CoherenceDeployment
+CoherenceList contains a list of Coherence resources.
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
 m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#listmeta-v1-meta[metav1.ListMeta] | false
-m| items | &#160; m| []<<CoherenceDeployment,CoherenceDeployment>> | true
+m| items | &#160; m| []<<Coherence,Coherence>> | true
 |===
 
 <<Table of Contents,Back to TOC>>
 
-=== CoherenceDeploymentStatus
+=== CoherenceResourceStatus
 
-CoherenceDeploymentStatus defines the observed state of CoherenceDeployment
+CoherenceResourceStatus defines the observed state of Coherence resource.
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| phase | The phase of a CoherenceDeployment is a simple, high-level summary of where the CoherenceDeployment is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod's status. There are eight possible phase values: +
+m| phase | The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod's status. There are eight possible phase values: +
  +
 Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment's start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources. m| status.ConditionType | false
 m| coherenceCluster | The name of the Coherence cluster that this deployment is part of. m| string | false
@@ -106,9 +106,9 @@ m| conditions | The status conditions. m| status.Conditions | false
 
 <<Table of Contents,Back to TOC>>
 
-=== CoherenceDeploymentSpec
+=== CoherenceResourceSpec
 
-CoherenceDeploymentSpec defines a deployment in a Coherence cluster. A deployment is one or more Pods that perform the same functionality, for example storage members.
+CoherenceSpec defines a deployment in a Coherence resource. A Coherence deployment is one or more Pods that perform the same functionality, for example storage members.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -119,7 +119,7 @@ m| imagePullSecrets | ImagePullSecrets is an optional list of references to secr
 m| serviceAccountName | The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec. m| string | false
 m| automountServiceAccountToken | Whether or not to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to rest requests made back to the operator from Coherence Pods. m| &#42;int32 | false
-m| cluster | The optional name of the Coherence cluster that this CoherenceDeployment belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the CoherenceDeployment's name will be used as the cluster name. m| &#42;string | false
+m| cluster | The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the Coherence resource's name will be used as the cluster name. m| &#42;string | false
 m| role | The name of the role that this deployment represents in a Coherence cluster. This value will be used to set the Coherence role property for all members of this role m| string | false
 m| replicas | The desired number of cluster members of this deployment. This is a pointer to distinguish between explicit zero and not specified. Default value is 3. m| &#42;int32 | false
 m| application | The optional application definition m| &#42;<<ApplicationSpec,ApplicationSpec>> | false
@@ -183,7 +183,7 @@ see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<Sec
 
 === ApplicationSpec
 
-The specification of the application deployed into the CoherenceDeployment.
+The specification of the application deployed into the Coherence.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -558,7 +558,7 @@ m| requireClientCert | RequireClientCert is a boolean flag indicating whether th
 
 === ScalingProbe
 
-ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceDeployment. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).
+ScalingProbe is the handler that will be used to determine how to check for StatusHA in a Coherence. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).
 
 [cols="1,10,1,1"options="header"]
 |===

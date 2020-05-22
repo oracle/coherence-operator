@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	cc "github.com/oracle/coherence-operator/pkg/controller/coherencedeployment"
+	cc "github.com/oracle/coherence-operator/pkg/controller/coherence"
 	"github.com/oracle/coherence-operator/pkg/controller/reconciler"
 	"github.com/oracle/coherence-operator/pkg/controller/statefulset"
 	"github.com/oracle/coherence-operator/pkg/fakes"
@@ -69,8 +69,8 @@ func FindStatefulSetVolume(sts *appsv1.StatefulSet, name string) (corev1.Volume,
 	return corev1.Volume{}, false
 }
 
-func toCoherenceDeployment(mgr *fakes.FakeManager, obj runtime.Object) (*coh.CoherenceDeployment, error) {
-	c := &coh.CoherenceDeployment{}
+func toCoherence(mgr *fakes.FakeManager, obj runtime.Object) (*coh.Coherence, error) {
+	c := &coh.Coherence{}
 	err := mgr.Scheme.Convert(obj, c, context.TODO())
 	return c, err
 }
@@ -94,7 +94,7 @@ func toStatefulSet(mgr *fakes.FakeManager, obj runtime.Object) (*appsv1.Stateful
 }
 
 // Run the specified deployment through a fake reconciler
-func Reconcile(t *testing.T, d coh.CoherenceDeployment) ([]runtime.Object, *fakes.FakeManager) {
+func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeManager) {
 	g := NewGomegaWithT(t)
 
 	chain, err := NewFakeReconcileChain()
@@ -114,7 +114,7 @@ func Reconcile(t *testing.T, d coh.CoherenceDeployment) ([]runtime.Object, *fake
 }
 
 // Run the original deployment through a fake reconciler then reconcile the updated deployment
-func ReconcileAndUpdate(t *testing.T, original, updated coh.CoherenceDeployment) *fakes.FakeManager {
+func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.FakeManager {
 	g := NewGomegaWithT(t)
 
 	// To test update the names must match
@@ -144,8 +144,8 @@ func ReconcileAndUpdate(t *testing.T, original, updated coh.CoherenceDeployment)
 }
 
 type FakeReconcileChain interface {
-	ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.CoherenceDeployment, map[string]reconcile.Result, error)
-	ReconcileDeployments(deployments ...coh.CoherenceDeployment) (map[string]reconcile.Result, error)
+	ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.Coherence, map[string]reconcile.Result, error)
+	ReconcileDeployments(deployments ...coh.Coherence) (map[string]reconcile.Result, error)
 	ReconcileExisting(names ...apitypes.NamespacedName) (map[string]reconcile.Result, error)
 	GetManager() *fakes.FakeManager
 	GetNamespace() string
@@ -181,7 +181,7 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 
 type fakeReconcileChain struct {
 	mgr *fakes.FakeManager
-	r   *cc.ReconcileCoherenceDeployment
+	r   *cc.ReconcileCoherence
 	ns  string
 }
 
@@ -199,8 +199,8 @@ func (in *fakeReconcileChain) GetNamespace() string {
 	return in.ns
 }
 
-func (in *fakeReconcileChain) ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.CoherenceDeployment, map[string]reconcile.Result, error) {
-	deployments, err := helper.NewCoherenceDeploymentFromYaml(in.ns, yamlFile)
+func (in *fakeReconcileChain) ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.Coherence, map[string]reconcile.Result, error) {
+	deployments, err := helper.NewCoherenceFromYaml(in.ns, yamlFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -208,12 +208,12 @@ func (in *fakeReconcileChain) ReconcileDeploymentsFromYaml(yamlFile string) ([]c
 	return deployments, results, err
 }
 
-func (in *fakeReconcileChain) ReconcileDeployments(deployments ...coh.CoherenceDeployment) (map[string]reconcile.Result, error) {
+func (in *fakeReconcileChain) ReconcileDeployments(deployments ...coh.Coherence) (map[string]reconcile.Result, error) {
 	var err error
 	var names []apitypes.NamespacedName
 
 	for _, d := range deployments {
-		err = in.mgr.Client.Get(context.TODO(), d.GetNamespacedName(), &coh.CoherenceDeployment{})
+		err = in.mgr.Client.Get(context.TODO(), d.GetNamespacedName(), &coh.Coherence{})
 		if errors.IsNotFound(err) {
 			if err = in.mgr.Client.Create(context.TODO(), &d); err != nil {
 				return nil, err

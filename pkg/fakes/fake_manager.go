@@ -33,8 +33,8 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 	gv := schema.GroupVersion{Group: "coherence.oracle.com", Version: "v1"}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(gv, &coh.CoherenceDeployment{})
-	s.AddKnownTypes(gv, &coh.CoherenceDeploymentList{})
+	s.AddKnownTypes(gv, &coh.Coherence{})
+	s.AddKnownTypes(gv, &coh.CoherenceList{})
 
 	cfg, _, err := helper.GetKubeconfigAndNamespace("")
 	if err != nil {
@@ -190,25 +190,25 @@ func (f *FakeManager) ServiceExists(namespace, name string) bool {
 	return err == nil
 }
 
-// AssertCoherenceDeployments asserts that the specified number of CoherenceDeployment resources exist in a namespace
-func (f *FakeManager) AssertCoherenceDeployments(namespace string, count int) {
-	list := &coh.CoherenceDeploymentList{}
+// AssertCoherences asserts that the specified number of Coherence resources exist in a namespace
+func (f *FakeManager) AssertCoherences(namespace string, count int) {
+	list := &coh.CoherenceList{}
 
 	err := f.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	Expect(err).To(BeNil())
 	Expect(len(list.Items)).To(Equal(count))
 }
 
-// AssertCoherenceDeploymentExists asserts that the specified CoherenceDeployment exists in the namespace and returns it
-func (f *FakeManager) AssertCoherenceDeploymentExists(namespace, name string) *coh.CoherenceDeployment {
-	role := &coh.CoherenceDeployment{}
+// AssertCoherenceExists asserts that the specified Coherence resource exists in the namespace and returns it
+func (f *FakeManager) AssertCoherenceExists(namespace, name string) *coh.Coherence {
+	role := &coh.Coherence{}
 	err := f.Client.Get(context.TODO(), apitypes.NamespacedName{Namespace: namespace, Name: name}, role)
 	Expect(err).NotTo(HaveOccurred())
 	return role
 }
 
-func (f *FakeManager) GetCoherenceDeployments(namespace string) (coh.CoherenceDeploymentList, error) {
-	list := coh.CoherenceDeploymentList{}
+func (f *FakeManager) GetCoherences(namespace string) (coh.CoherenceList, error) {
+	list := coh.CoherenceList{}
 
 	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	return list, err
@@ -216,14 +216,14 @@ func (f *FakeManager) GetCoherenceDeployments(namespace string) (coh.CoherenceDe
 
 // AssertCoherenceRoles asserts that the specified number of CoherenceRole resources exist in a namespace
 func (f *FakeManager) AssertCoherenceRoles(namespace string, count int) {
-	list, err := f.GetCoherenceDeployments(namespace)
+	list, err := f.GetCoherences(namespace)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(len(list.Items)).To(Equal(count))
 }
 
-// AssertCoherenceDeploymentsForCluster asserts that the specified number of CoherenceDeployment resources exist in a namespace for a cluster name
-func (f *FakeManager) AssertCoherenceDeploymentsForCluster(namespace, clusterName string, count int) {
-	list := &coh.CoherenceDeploymentList{}
+// AssertCoherencesForCluster asserts that the specified number of Coherence resources exist in a namespace for a cluster name
+func (f *FakeManager) AssertCoherencesForCluster(namespace, clusterName string, count int) {
+	list := &coh.CoherenceList{}
 
 	labels := client.MatchingLabels{}
 	labels[coh.LabelCoherenceCluster] = clusterName
@@ -234,7 +234,7 @@ func (f *FakeManager) AssertCoherenceDeploymentsForCluster(namespace, clusterNam
 }
 
 // AssertWkaService asserts that a headless service to use for WKA exists for a given cluster in a namespace.
-func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.CoherenceDeployment) {
+func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coherence) {
 	service, err := f.GetService(namespace, deployment.GetWkaServiceName())
 	Expect(err).NotTo(HaveOccurred())
 	Expect(service).NotTo(BeNil())

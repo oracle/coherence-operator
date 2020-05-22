@@ -18,9 +18,9 @@ import (
 func TestApplicationArgsEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				Args: []string{},
 			},
@@ -45,9 +45,9 @@ func TestApplicationArgsEmpty(t *testing.T) {
 func TestApplicationArgs(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				Args: []string{"Foo", "Bar"},
 			},
@@ -72,9 +72,9 @@ func TestApplicationArgs(t *testing.T) {
 func TestApplicationMain(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				Main: pointer.StringPtr("com.oracle.test.Main"),
 			},
@@ -102,9 +102,9 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 	wd, err := os.Getwd()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	d := &coh.CoherenceDeployment{
+	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceDeploymentSpec{
+		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
 				WorkingDir: &wd,
 			},
