@@ -252,10 +252,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.CoherenceDeployment) *apps
 				Value: deployment.GetWkaServiceName(),
 			},
 			{
-				Name:  "JVM_FLIGHT_RECORDER",
-				Value: "true",
-			},
-			{
 				Name:  "JVM_GC_LOGGING",
 				Value: "false",
 			},
