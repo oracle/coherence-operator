@@ -8,7 +8,6 @@ package controller
 
 import (
 	"github.com/oracle/coherence-operator/pkg/flags"
-	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -20,12 +19,6 @@ var AddToManagerFuncs []func(manager.Manager) error
 // AddToManager adds all Controllers to the Manager
 func AddToManager(m manager.Manager) error {
 	opFlags := flags.GetOperatorFlags()
-
-	// Ensure that the CRDs exist
-	err := operator.EnsureCRDs(m)
-	if err != nil {
-		return errors.Wrap(err, "failed to ensure CRDs")
-	}
 
 	// Create the REST server
 	s, err := rest.EnsureServer(m, opFlags)

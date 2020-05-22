@@ -29,25 +29,25 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
+	rest2 "k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
 )
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
 // CRDs will be created depending on the server version of k8s. For k8s v1.16.0 and above
 // the v1 CRDs will be created and for lower than v1.16.0 the v1beta1 CRDs will be created.
-func EnsureCRDs(mgr manager.Manager) error {
+func EnsureCRDs(cfg *rest2.Config) error {
 	// Create the CRD client
-	c, err := apiextensions.NewForConfig(mgr.GetConfig())
+	c, err := apiextensions.NewForConfig(cfg)
 	if err != nil {
 		return err
 	}
 
-	cl, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	cl, err := discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
 		return err
 	}
@@ -66,15 +66,15 @@ func EnsureCRDs(mgr manager.Manager) error {
 	if v.Major() > 1 || (v.Major() == 1 && v.Minor() >= 16) {
 		// k8s v1.16.0 or above - install v1 CRD
 		crdClient := c.ApiextensionsV1().CustomResourceDefinitions()
-		return EnsureV1CRDs(mgr, cohFlags, logger, crdClient)
+		return EnsureV1CRDs(cohFlags, logger, crdClient)
 	}
 	// k8s lower than v1.16.0 - install v1beta1 CRD
 	crdClient := c.ApiextensionsV1beta1().CustomResourceDefinitions()
-	return EnsureV1Beta1CRDs(mgr, cohFlags, logger, crdClient)
+	return EnsureV1Beta1CRDs(cohFlags, logger, crdClient)
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
+func EnsureV1CRDs(cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
 	logger.Info("Ensuring operator v1 CRDs are present")
 
 	if cohFlags.CrdFiles == "" {
@@ -98,13 +98,6 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 
 	if err != nil {
 		return err
-	}
-
-	if !mgr.GetScheme().IsGroupRegistered(crdv1.GroupName) {
-		err = crdv1.AddToScheme(mgr.GetScheme())
-		if err != nil {
-			return err
-		}
 	}
 
 	for _, file := range files {
@@ -143,16 +136,16 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 			// CRD exists so update it
 			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			err = mgr.GetClient().Update(context.TODO(), &newCRD, &client.UpdateOptions{})
+			_, err = crdClient.Update(&newCRD)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
 			}
 		case apierrors.IsNotFound(err):
 			// CRD does not exist so create it
 			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-			err = mgr.GetClient().Create(context.TODO(), &newCRD, &client.CreateOptions{})
+			_, err = crdClient.Create(&newCRD)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 			}
 		default:
 			// An error occurred
@@ -165,7 +158,7 @@ func EnsureV1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, l
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
+func EnsureV1Beta1CRDs(cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
 	logger.Info("Ensuring operator v1beta1 CRDs are present")
 
 	if cohFlags.CrdFiles == "" {
@@ -189,13 +182,6 @@ func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFla
 
 	if err != nil {
 		return err
-	}
-
-	if !mgr.GetScheme().IsGroupRegistered(crdbeta1.GroupName) {
-		err = crdbeta1.AddToScheme(mgr.GetScheme())
-		if err != nil {
-			return err
-		}
 	}
 
 	for _, file := range files {
@@ -234,14 +220,14 @@ func EnsureV1Beta1CRDs(mgr manager.Manager, cohFlags *flags.CoherenceOperatorFla
 			// CRD exists so update it
 			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			err = mgr.GetClient().Update(context.TODO(), &newCRD, &client.UpdateOptions{})
+			_, err = crdClient.Update(&newCRD)
 			if err != nil {
-				return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
+				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 			}
 		case apierrors.IsNotFound(err):
 			// CRD does not exist so create it
 			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-			err = mgr.GetClient().Create(context.TODO(), &newCRD, &client.CreateOptions{})
+			_, err = crdClient.Create(&newCRD)
 			if err != nil {
 				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 			}
