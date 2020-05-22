@@ -45,17 +45,17 @@ Configuring the garbage collector.
 --
 Configuring the heap size and other memory settings.
 --
+====
 
+[PILLARS]
+====
 [CARD]
 .Logging
 [link=jvm_settings/060_logging.adoc]
 --
 Configuring Java util logging.
 --
-====
 
-[PILLARS]
-====
 [CARD]
 .Debugger
 [link=jvm_settings/070_debugger.adoc]
@@ -64,22 +64,15 @@ Using debugger settings.
 --
 
 [CARD]
-.Flight Recorder
-[link=jvm_settings/080_flight_recorder.adoc]
---
-Using Flight Recorder.
---
-
-[CARD]
 .JMX
-[link=jvm_settings/090_jmx.adoc]
+[link=jvm_settings/080_jmx.adoc]
 --
 Using JMX.
 --
 
 [CARD]
 .Use Container Limits
-[link=jvm_settings/100_container_limits.adoc]
+[link=jvm_settings/090_container_limits.adoc]
 --
 Configuring the JVM to respect container resource limits.
 --

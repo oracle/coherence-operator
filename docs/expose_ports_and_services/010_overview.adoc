@@ -27,7 +27,7 @@ provide the required `Service` configuration then it is always possible to just 
 [PILLARS]
 ====
 [CARD]
-.Addig Ports
+.Adding Ports
 [link=expose_ports_and_services/020_container_ports.adoc]
 --
 Adding additional container ports to the Coherence container.

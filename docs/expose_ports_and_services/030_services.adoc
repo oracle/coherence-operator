@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Expose Ports via Services
+= Configure Services for Ports
 
-== Expose Ports via Services
+== Configure Services for Ports
 
 // ToDo: TBD

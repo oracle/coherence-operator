@@ -142,7 +142,6 @@ const (
 	EnvVarJvmExtraModulepath          = "JVM_EXTRA_MODULEPATH"
 	EnvVarJvmArgs                     = "JVM_ARGS"
 	EnvVarJvmUseContainerLimits       = "JVM_USE_CONTAINER_LIMITS"
-	EnvVarJvmFlightRecorder           = "JVM_FLIGHT_RECORDER"
 	EnvVarJvmDebugEnabled             = "JVM_DEBUG_ENABLED"
 	EnvVarJvmDebugPort                = "JVM_DEBUG_PORT"
 	EnvVarJvmDebugSuspended           = "JVM_DEBUG_SUSPEND"

@@ -141,10 +141,6 @@ func EnvVarsFromDeployment(d *coh.CoherenceDeployment) map[string]string {
 		d.Spec.JVM = &coh.JVMSpec{}
 	}
 
-	if d.Spec.JVM.FlightRecorder == nil {
-		d.Spec.JVM.FlightRecorder = pointer.BoolPtr(false)
-	}
-
 	opFlags := &flags.CoherenceOperatorFlags{}
 	res := d.Spec.CreateStatefulSet(d, opFlags)
 	sts := res.Spec.(*appsv1.StatefulSet)

@@ -169,42 +169,6 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsFalse(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithJvmSpecWithUseFlightRecorderTrue(t *testing.T) {
-
-	spec := coh.CoherenceDeploymentSpec{
-		JVM: &coh.JVMSpec{
-			FlightRecorder: boolPtr(true),
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_FLIGHT_RECORDER", Value: "true"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithUseFlightRecorderFalse(t *testing.T) {
-
-	spec := coh.CoherenceDeploymentSpec{
-		JVM: &coh.JVMSpec{
-			FlightRecorder: boolPtr(false),
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_FLIGHT_RECORDER", Value: "false"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
 func TestCreateStatefulSetWithJvmSpecWithDebugEnabledFalse(t *testing.T) {
 
 	spec := coh.CoherenceDeploymentSpec{
