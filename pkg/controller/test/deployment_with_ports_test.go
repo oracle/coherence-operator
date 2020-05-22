@@ -28,14 +28,12 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 		Spec: coh.CoherenceDeploymentSpec{
 			Ports: []coh.NamedPortSpec{
 				{
-					Name: "extend",
-					PortSpec: coh.PortSpec{
-						Port:     20000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(80),
-						HostPort: pointer.Int32Ptr(8080),
-						HostIP:   pointer.StringPtr("10.10.10.1"),
-					},
+					Name:     "extend",
+					Port:     20000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(80),
+					HostPort: pointer.Int32Ptr(8080),
+					HostIP:   pointer.StringPtr("10.10.10.1"),
 				},
 			},
 		},
@@ -90,14 +88,12 @@ func TestUpdateDeploymentWithPort(t *testing.T) {
 		Spec: coh.CoherenceDeploymentSpec{
 			Ports: []coh.NamedPortSpec{
 				{
-					Name: "extend",
-					PortSpec: coh.PortSpec{
-						Port:     20000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(80),
-						HostPort: pointer.Int32Ptr(8080),
-						HostIP:   pointer.StringPtr("10.10.10.1"),
-					},
+					Name:     "extend",
+					Port:     20000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(80),
+					HostPort: pointer.Int32Ptr(8080),
+					HostIP:   pointer.StringPtr("10.10.10.1"),
 				},
 			},
 		},
@@ -110,14 +106,12 @@ func TestUpdateDeploymentWithPort(t *testing.T) {
 		Spec: coh.CoherenceDeploymentSpec{
 			Ports: []coh.NamedPortSpec{
 				{
-					Name: "extend",
-					PortSpec: coh.PortSpec{
-						Port:     30000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(88),
-						HostPort: pointer.Int32Ptr(8888),
-						HostIP:   pointer.StringPtr("10.10.10.2"),
-					},
+					Name:     "extend",
+					Port:     30000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(88),
+					HostPort: pointer.Int32Ptr(8888),
+					HostIP:   pointer.StringPtr("10.10.10.2"),
 				},
 			},
 		},
@@ -169,14 +163,12 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 		Spec: coh.CoherenceDeploymentSpec{
 			Ports: []coh.NamedPortSpec{
 				{
-					Name: "management",
-					PortSpec: coh.PortSpec{
-						Port:     10000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(80),
-						HostPort: pointer.Int32Ptr(8080),
-						HostIP:   pointer.StringPtr("10.10.10.1"),
-					},
+					Name:     "management",
+					Port:     10000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(80),
+					HostPort: pointer.Int32Ptr(8080),
+					HostIP:   pointer.StringPtr("10.10.10.1"),
 				},
 			},
 		},
@@ -189,24 +181,20 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 		Spec: coh.CoherenceDeploymentSpec{
 			Ports: []coh.NamedPortSpec{
 				{
-					Name: coh.PortNameManagement,
-					PortSpec: coh.PortSpec{
-						Port:     10000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(80),
-						HostPort: pointer.Int32Ptr(8080),
-						HostIP:   pointer.StringPtr("10.10.10.1"),
-					},
+					Name:     coh.PortNameManagement,
+					Port:     10000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(80),
+					HostPort: pointer.Int32Ptr(8080),
+					HostIP:   pointer.StringPtr("10.10.10.1"),
 				},
 				{
-					Name: coh.PortNameMetrics,
-					PortSpec: coh.PortSpec{
-						Port:     20000,
-						Protocol: &tcp,
-						NodePort: pointer.Int32Ptr(88),
-						HostPort: pointer.Int32Ptr(8888),
-						HostIP:   pointer.StringPtr("10.10.10.2"),
-					},
+					Name:     coh.PortNameMetrics,
+					Port:     20000,
+					Protocol: &tcp,
+					NodePort: pointer.Int32Ptr(88),
+					HostPort: pointer.Int32Ptr(8888),
+					HostIP:   pointer.StringPtr("10.10.10.2"),
 				},
 			},
 		},

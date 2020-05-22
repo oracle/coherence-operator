@@ -35,7 +35,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.PersistenceSpec":         schema_pkg_apis_coherence_v1_PersistenceSpec(ref),
 		"./pkg/apis/coherence/v1.PersistentStorageSpec":   schema_pkg_apis_coherence_v1_PersistentStorageSpec(ref),
 		"./pkg/apis/coherence/v1.PodDNSConfig":            schema_pkg_apis_coherence_v1_PodDNSConfig(ref),
-		"./pkg/apis/coherence/v1.PortSpec":                schema_pkg_apis_coherence_v1_PortSpec(ref),
 		"./pkg/apis/coherence/v1.PortSpecWithSSL":         schema_pkg_apis_coherence_v1_PortSpecWithSSL(ref),
 		"./pkg/apis/coherence/v1.ProbeHandler":            schema_pkg_apis_coherence_v1_ProbeHandler(ref),
 		"./pkg/apis/coherence/v1.ReadinessProbeSpec":      schema_pkg_apis_coherence_v1_ReadinessProbeSpec(ref),
@@ -1125,7 +1124,7 @@ func schema_pkg_apis_coherence_v1_NamedPortSpec(ref common.ReferenceCallback) co
 						},
 					},
 				},
-				Required: []string{"name", "port"},
+				Required: []string{"name"},
 			},
 		},
 		Dependencies: []string{
@@ -1334,63 +1333,6 @@ func schema_pkg_apis_coherence_v1_PodDNSConfig(ref common.ReferenceCallback) com
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.PodDNSConfigOption"},
-	}
-}
-
-func schema_pkg_apis_coherence_v1_PortSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "----- PortSpec struct ---------------------------------------------------- PortSpec defines the port settings for a Coherence component",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"port": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Port specifies the port used.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"protocol": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"nodePort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The port on each node on which this service is exposed when type=NodePort or LoadBalancer. Usually assigned by the system. If specified, it will be allocated to the service if unused or else creation of the service will fail. Default is to auto-allocate a port if the ServiceType of this Service requires one. More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"hostPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"hostIP": {
-						SchemaProps: spec.SchemaProps{
-							Description: "What host IP to bind the external port to.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Service configures the Kubernetes Service used to expose the port.",
-							Ref:         ref("./pkg/apis/coherence/v1.ServiceSpec"),
-						},
-					},
-				},
-				Required: []string{"port"},
-			},
-		},
-		Dependencies: []string{
-			"./pkg/apis/coherence/v1.ServiceSpec"},
 	}
 }
 

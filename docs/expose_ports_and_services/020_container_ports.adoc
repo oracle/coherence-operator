@@ -94,6 +94,45 @@ See also:
 * <<expose_ports_and_services/040_servicemonitors.adoc,Prometheus ServiceMonitors>>
 
 
+=== Metrics & Management Ports
+
+Exposing the Coherence metrics port or Coherence Management over REST port are treated as a special case in the
+configuration. Normally both the port's `name` and `port` value are required fields. If the port name is `metrics`
+or `management` the Operator already knows the `port` values (either from the defaults or from the metrics or
+management configuration) so these do not need to be specified again.
+
+For example, if the `CoherenceDeployment` above also exposed Coherence metrics and management it might look like this:
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceDeployment
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    metrics:
+      enabled: true
+      port: 9876
+    management:
+      enabled: true
+      port: 1234
+  ports:
+    - name: rest         # <1>
+      port: 8080
+    - name: metrics      # <2>
+    - name: management   # <3>
+----
+<1> The `rest` port is not a special case and must have a port defined, in this case `8080`.
+<2> The `metrics` port is exposed, but the port is not required as the Operator already knows the port value,
+which is configured in the `coherence.metrics` section to be 9876.
+<3> The `management` port is exposed, but the port is not required as the Operator already knows the port value,
+which is configured in the `coherence.management` section to be 1234.
+
+If the port value is not set in `coherence.metrics.port` or in `coherence.management.port` then the Operator will
+use the defaults for these values, 9612 for metrics and 30000 for management.
+
+
 == Configuring the Port
 
 The only mandatory fields when adding a port to a `CoherenceDeployment` are the name and port number.

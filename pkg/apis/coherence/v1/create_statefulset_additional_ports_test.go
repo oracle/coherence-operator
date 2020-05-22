@@ -34,13 +34,11 @@ func TestCreateStatefulSetWithPortsWithOneAdditionalPort(t *testing.T) {
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-				},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
 			},
 		},
 	}
@@ -69,22 +67,18 @@ func TestCreateStatefulSetWithPortsWithTwoAdditionalPorts(t *testing.T) {
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocolOne,
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-				},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocolOne,
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
 			},
 			{
-				Name: "test-port-two",
-				PortSpec: coh.PortSpec{
-					Port:     5678,
-					Protocol: &protocolTwo,
-					HostPort: int32Ptr(7654),
-					HostIP:   stringPtr("10.10.2.0"),
-				},
+				Name:     "test-port-two",
+				Port:     5678,
+				Protocol: &protocolTwo,
+				HostPort: int32Ptr(7654),
+				HostIP:   stringPtr("10.10.2.0"),
 			},
 		},
 	}

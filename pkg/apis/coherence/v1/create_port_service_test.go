@@ -24,9 +24,7 @@ func TestNamedPortSpec_CreateServiceWithMinimalFields(t *testing.T) {
 
 	np := coh.NamedPortSpec{
 		Name: "foo",
-		PortSpec: coh.PortSpec{
-			Port: 19,
-		},
+		Port: 19,
 	}
 
 	labels := c.CreateCommonLabels()
@@ -69,11 +67,9 @@ func TestNamedPortSpec_CreateServiceWithProtocol(t *testing.T) {
 	udp := corev1.ProtocolUDP
 
 	np := coh.NamedPortSpec{
-		Name: "foo",
-		PortSpec: coh.PortSpec{
-			Port:     19,
-			Protocol: &udp,
-		},
+		Name:     "foo",
+		Port:     19,
+		Protocol: &udp,
 	}
 
 	svc := np.CreateService(&d)
@@ -88,11 +84,9 @@ func TestNamedPortSpec_CreateServiceWithNodePort(t *testing.T) {
 	d.Spec.Role = "storage"
 
 	np := coh.NamedPortSpec{
-		Name: "foo",
-		PortSpec: coh.PortSpec{
-			Port:     19,
-			NodePort: int32Ptr(6676),
-		},
+		Name:     "foo",
+		Port:     19,
+		NodePort: int32Ptr(6676),
 	}
 
 	svc := np.CreateService(&d)
@@ -116,26 +110,24 @@ func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 
 	np := coh.NamedPortSpec{
 		Name: "foo",
-		PortSpec: coh.PortSpec{
-			Port: 19,
-			Service: &coh.ServiceSpec{
-				Name:                     stringPtr("bar"),
-				Port:                     int32Ptr(99),
-				Type:                     &tp,
-				ClusterIP:                stringPtr("10.10.10.99"),
-				ExternalIPs:              []string{"192.164.1.99", "192.164.1.100"},
-				LoadBalancerIP:           stringPtr("10.10.10.10"),
-				Labels:                   nil,
-				Annotations:              nil,
-				SessionAffinity:          &sa,
-				LoadBalancerSourceRanges: []string{"A", "B"},
-				ExternalName:             stringPtr("ext-bar"),
-				ExternalTrafficPolicy:    &etpt,
-				HealthCheckNodePort:      int32Ptr(1234),
-				PublishNotReadyAddresses: boolPtr(true),
-				SessionAffinityConfig:    &sac,
-				IPFamily:                 &ipf,
-			},
+		Port: 19,
+		Service: &coh.ServiceSpec{
+			Name:                     stringPtr("bar"),
+			Port:                     int32Ptr(99),
+			Type:                     &tp,
+			ClusterIP:                stringPtr("10.10.10.99"),
+			ExternalIPs:              []string{"192.164.1.99", "192.164.1.100"},
+			LoadBalancerIP:           stringPtr("10.10.10.10"),
+			Labels:                   nil,
+			Annotations:              nil,
+			SessionAffinity:          &sa,
+			LoadBalancerSourceRanges: []string{"A", "B"},
+			ExternalName:             stringPtr("ext-bar"),
+			ExternalTrafficPolicy:    &etpt,
+			HealthCheckNodePort:      int32Ptr(1234),
+			PublishNotReadyAddresses: boolPtr(true),
+			SessionAffinityConfig:    &sac,
+			IPFamily:                 &ipf,
 		},
 	}
 
