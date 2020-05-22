@@ -736,12 +736,15 @@ func (in *SSLSpec) CreateEnvVars(prefix, secretMount string) []corev1.EnvVar {
 	return envVars
 }
 
-// ----- PortSpec struct ----------------------------------------------------
-// PortSpec defines the port settings for a Coherence component
+// ----- NamedPortSpec struct ----------------------------------------------------
+// NamedPortSpec defines a named port for a Coherence component
 // +k8s:openapi-gen=true
-type PortSpec struct {
+type NamedPortSpec struct {
+	// Name specifies the name of the port.
+	Name string `json:"name"`
 	// Port specifies the port used.
-	Port int32 `json:"port"`
+	// +optional
+	Port int32 `json:"port,omitempty"`
 	// Protocol for container port. Must be UDP or TCP. Defaults to "TCP"
 	// +optional
 	Protocol *corev1.Protocol `json:"protocol,omitempty"`
@@ -764,15 +767,6 @@ type PortSpec struct {
 	// Service configures the Kubernetes Service used to expose the port.
 	// +optional
 	Service *ServiceSpec `json:"service,omitempty"`
-}
-
-// ----- NamedPortSpec struct ----------------------------------------------------
-// NamedPortSpec defines a named port for a Coherence component
-// +k8s:openapi-gen=true
-type NamedPortSpec struct {
-	// Name specifies the name of the port.
-	Name     string `json:"name"`
-	PortSpec `json:",inline"`
 	// The specification of a Prometheus ServiceMonitor resource
 	// that will be created for the Service being exposed for this
 	// port.

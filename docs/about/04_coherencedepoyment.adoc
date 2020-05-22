@@ -44,7 +44,6 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<PersistenceSpec,PersistenceSpec>>
 * <<PersistentStorageSpec,PersistentStorageSpec>>
 * <<PodDNSConfig,PodDNSConfig>>
-* <<PortSpec,PortSpec>>
 * <<PortSpecWithSSL,PortSpecWithSSL>>
 * <<ProbeHandler,ProbeHandler>>
 * <<ReadinessProbeSpec,ReadinessProbeSpec>>
@@ -375,7 +374,7 @@ m| name | Name of the referent. More info: https://kubernetes.io/docs/concepts/o
 |===
 | Field | Description | Type | Required
 m| name | Name specifies the name of the port. m| string | true
-m| port | Port specifies the port used. m| int32 | true
+m| port | Port specifies the port used. m| int32 | false
 m| protocol | Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\" m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#protocol-v1-core[corev1.Protocol] | false
 m| nodePort | The port on each node on which this service is exposed when type=NodePort or LoadBalancer. Usually assigned by the system. If specified, it will be allocated to the service if unused or else creation of the service will fail. Default is to auto-allocate a port if the ServiceType of this Service requires one. More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport m| &#42;int32 | false
 m| hostPort | Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this. m| &#42;int32 | false
@@ -440,23 +439,6 @@ PodDNSConfig defines the DNS parameters of a pod in addition to those generated 
 m| nameservers | A list of DNS name server IP addresses. This will be appended to the base nameservers generated from DNSPolicy. Duplicated nameservers will be removed. m| []string | false
 m| searches | A list of DNS search domains for host-name lookup. This will be appended to the base search paths generated from DNSPolicy. Duplicated search paths will be removed. m| []string | false
 m| options | A list of DNS resolver options. This will be merged with the base options generated from DNSPolicy. Duplicated entries will be removed. Resolution options given in Options will override those that appear in the base DNSPolicy. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#poddnsconfigoption-v1-core[corev1.PodDNSConfigOption] | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== PortSpec
-
-
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| port | Port specifies the port used. m| int32 | true
-m| protocol | Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\" m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#protocol-v1-core[corev1.Protocol] | false
-m| nodePort | The port on each node on which this service is exposed when type=NodePort or LoadBalancer. Usually assigned by the system. If specified, it will be allocated to the service if unused or else creation of the service will fail. Default is to auto-allocate a port if the ServiceType of this Service requires one. More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport m| &#42;int32 | false
-m| hostPort | Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this. m| &#42;int32 | false
-m| hostIP | What host IP to bind the external port to. m| &#42;string | false
-m| service | Service configures the Kubernetes Service used to expose the port. m| &#42;<<ServiceSpec,ServiceSpec>> | false
 |===
 
 <<Table of Contents,Back to TOC>>

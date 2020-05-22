@@ -10,4 +10,8 @@
 
 == Configure Services for Ports
 
+As described in the <<expose_ports_and_services/020_container_ports.adoc,Additional Container Ports>> document,
+it is possible to expose additional ports on the Coherence container in a `CoherenceDeployment`.
+The Coherence Operator will create a `Service` to expose each additional port.
+
 // ToDo: TBD

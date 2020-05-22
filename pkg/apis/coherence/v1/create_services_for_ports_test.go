@@ -39,16 +39,14 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceEnabledFalse(t *
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					NodePort: int32Ptr(2020),
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-					Service: &coh.ServiceSpec{
-						Enabled: boolPtr(false),
-					},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				NodePort: int32Ptr(2020),
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
+				Service: &coh.ServiceSpec{
+					Enabled: boolPtr(false),
 				},
 			},
 		},
@@ -68,16 +66,14 @@ func TestCreateServicesWithPortsWithOneAdditionalPort(t *testing.T) {
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					NodePort: int32Ptr(2020),
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-					Service: &coh.ServiceSpec{
-						Enabled: boolPtr(true),
-					},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				NodePort: int32Ptr(2020),
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
+				Service: &coh.ServiceSpec{
+					Enabled: boolPtr(true),
 				},
 			},
 		},
@@ -126,17 +122,15 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceName(t *testing.
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					NodePort: int32Ptr(2020),
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-					Service: &coh.ServiceSpec{
-						Enabled: boolPtr(true),
-						Name:    stringPtr("test-service"),
-					},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				NodePort: int32Ptr(2020),
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
+				Service: &coh.ServiceSpec{
+					Enabled: boolPtr(true),
+					Name:    stringPtr("test-service"),
 				},
 			},
 		},
@@ -185,17 +179,15 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServicePort(t *testing.
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					NodePort: int32Ptr(2020),
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-					Service: &coh.ServiceSpec{
-						Enabled: boolPtr(true),
-						Port:    int32Ptr(80),
-					},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				NodePort: int32Ptr(2020),
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
+				Service: &coh.ServiceSpec{
+					Enabled: boolPtr(true),
+					Port:    int32Ptr(80),
 				},
 			},
 		},
@@ -253,28 +245,26 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocol,
-					NodePort: int32Ptr(2020),
-					HostPort: int32Ptr(1234),
-					HostIP:   stringPtr("10.10.1.0"),
-					Service: &coh.ServiceSpec{
-						Enabled:                  boolPtr(true),
-						Type:                     &svcType,
-						ClusterIP:                stringPtr("192.168.1.30"),
-						ExternalIPs:              []string{"10.10.10.99", "10.10.10.100"},
-						LoadBalancerIP:           stringPtr("10.99.0.0"),
-						LoadBalancerSourceRanges: []string{"10.10.10.0", "10.10.10.255"},
-						ExternalName:             stringPtr("test-external-name"),
-						HealthCheckNodePort:      int32Ptr(1000),
-						PublishNotReadyAddresses: boolPtr(true),
-						ExternalTrafficPolicy:    &trafficPolicy,
-						SessionAffinity:          &affinity,
-						SessionAffinityConfig:    &cfg,
-						IPFamily:                 &ipFamily,
-					},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocol,
+				NodePort: int32Ptr(2020),
+				HostPort: int32Ptr(1234),
+				HostIP:   stringPtr("10.10.1.0"),
+				Service: &coh.ServiceSpec{
+					Enabled:                  boolPtr(true),
+					Type:                     &svcType,
+					ClusterIP:                stringPtr("192.168.1.30"),
+					ExternalIPs:              []string{"10.10.10.99", "10.10.10.100"},
+					LoadBalancerIP:           stringPtr("10.99.0.0"),
+					LoadBalancerSourceRanges: []string{"10.10.10.0", "10.10.10.255"},
+					ExternalName:             stringPtr("test-external-name"),
+					HealthCheckNodePort:      int32Ptr(1000),
+					PublishNotReadyAddresses: boolPtr(true),
+					ExternalTrafficPolicy:    &trafficPolicy,
+					SessionAffinity:          &affinity,
+					SessionAffinityConfig:    &cfg,
+					IPFamily:                 &ipFamily,
 				},
 			},
 		},
@@ -334,12 +324,10 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceLabels(t *testin
 		Ports: []coh.NamedPortSpec{
 			{
 				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port: 9876,
-					Service: &coh.ServiceSpec{
-						Enabled: boolPtr(true),
-						Labels:  map[string]string{"LabelOne": "One", "LabelTwo": "Two"},
-					},
+				Port: 9876,
+				Service: &coh.ServiceSpec{
+					Enabled: boolPtr(true),
+					Labels:  map[string]string{"LabelOne": "One", "LabelTwo": "Two"},
 				},
 			},
 		},
@@ -388,12 +376,10 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceAnnotations(t *t
 		Ports: []coh.NamedPortSpec{
 			{
 				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port: 9876,
-					Service: &coh.ServiceSpec{
-						Enabled:     boolPtr(true),
-						Annotations: map[string]string{"AnnOne": "One", "AnnTwo": "Two"},
-					},
+				Port: 9876,
+				Service: &coh.ServiceSpec{
+					Enabled:     boolPtr(true),
+					Annotations: map[string]string{"AnnOne": "One", "AnnTwo": "Two"},
 				},
 			},
 		},
@@ -443,18 +429,14 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 	spec := coh.CoherenceDeploymentSpec{
 		Ports: []coh.NamedPortSpec{
 			{
-				Name: "test-port-one",
-				PortSpec: coh.PortSpec{
-					Port:     9876,
-					Protocol: &protocolOne,
-				},
+				Name:     "test-port-one",
+				Port:     9876,
+				Protocol: &protocolOne,
 			},
 			{
-				Name: "test-port-two",
-				PortSpec: coh.PortSpec{
-					Port:     5678,
-					Protocol: &protocolTwo,
-				},
+				Name:     "test-port-two",
+				Port:     5678,
+				Protocol: &protocolTwo,
 			},
 		},
 	}
