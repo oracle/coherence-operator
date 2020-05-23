@@ -42,51 +42,47 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
-	// The name to use for the service account to use when RBAC is enabled
-	// The role bindings must already have been created as this chart does not create them it just
-	// sets the serviceAccountName value in the Pod spec.
+	// The desired number of cluster members of this deployment.
+	// This is a pointer to distinguish between explicit zero and not specified.
+	// If not specified a default value of 3 will be used.
+	// This field cannot be negative.
+	// +kubebuilder:default:=3
+	// +kubebuilder:validation:Minimum:=0
 	// +optional
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-	// Whether or not to auto-mount the Kubernetes API credentials for a service account
-	// +optional
-	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
-	// The timeout to apply to REST requests made back to the Operator from Coherence Pods.
-	// These requests are typically to obtain site and rack information for the Pod.
-	// +optional
-	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 	// The optional name of the Coherence cluster that this Coherence resource belongs to.
-	// If this value is set this deployment will form a cluster with other deployments with
-	// the same cluster name. If not set the Coherence resource's name will be used as the
-	// cluster name.
+	// If this value is set the Pods controlled by this Coherence resource will form a cluster
+	// with other Pods controlled by Coherence resources with the same cluster name.
+	// If not set the Coherence resource's name will be used as the cluster name.
 	// +optional
 	Cluster *string `json:"cluster,omitempty"`
 	// The name of the role that this deployment represents in a Coherence cluster.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
 	Role string `json:"role,omitempty"`
-	// The desired number of cluster members of this deployment.
-	// This is a pointer to distinguish between explicit zero and not specified.
-	// Default value is 3.
-	// +kubebuilder:validation:Minimum:=0
-	// +optional
-	Replicas *int32 `json:"replicas,omitempty"`
-	// The optional application definition
-	// +optional
-	Application *ApplicationSpec `json:"application,omitempty"`
-	// The optional application definition
+	// The optional settings specific to Coherence functionality.
 	// +optional
 	Coherence *CoherenceSpec `json:"coherence,omitempty"`
-	// The configuration for the Coherence utils image
+	// The optional application specific settings.
 	// +optional
-	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+	Application *ApplicationSpec `json:"application,omitempty"`
 	// The JVM specific options
 	// +optional
 	JVM *JVMSpec `json:"jvm,omitempty"`
-	// Ports specifies additional port mappings for the Pod and additional Services for those ports
+	// Ports specifies additional port mappings for the Pod and additional Services for those ports.
 	// +listType=map
 	// +listMapKey=name
 	// +optional
 	Ports []NamedPortSpec `json:"ports,omitempty"`
+	// The configuration to control safe scaling.
+	// +optional
+	Scaling *ScalingSpec `json:"scaling,omitempty"`
+	// StartQuorum controls the start-up order of this Coherence resource
+	// in relation to other Coherence resources.
+	// +listType=map
+	// +listMapKey=deployment
+	// +optional
+	StartQuorum []StartQuorum `json:"startQuorum,omitempty"`
 	// Env is additional environment variable mappings that will be passed to
 	// the Coherence container in the Pod.
 	// To specify extra variables add them as name value pairs the same as they
@@ -95,34 +91,11 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
-	// The port that the health check endpoint will bind to.
+	// The extra labels to add to the all of the Pods in this deployments.
+	// Labels here will add to or override those defined for the cluster.
+	// More info: http://kubernetes.io/docs/user-guide/labels
 	// +optional
-	HealthPort *int32 `json:"healthPort,omitempty"`
-	// The readiness probe config to be used for the Pods in this deployment.
-	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
-	// +optional
-	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
-	// The liveness probe config to be used for the Pods in this deployment.
-	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
-	// +optional
-	LivenessProbe *ReadinessProbeSpec `json:"livenessProbe,omitempty"`
-	// The configuration to control safe scaling.
-	// +optional
-	Scaling *ScalingSpec `json:"scaling,omitempty"`
-	// Resources is the optional resource requests and limits for the containers
-	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
-	//
-	// By default the cpu requests is set to zero and the cpu limit set to 32. This
-	// is because it appears that K8s defaults cpu to one and since Java 10 the JVM
-	// now correctly picks up cgroup cpu limits then the JVM will only see one cpu.
-	// By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that
-	// the JVM will see the either the number of cpus on the host if this is <= 32 or
-	// the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero
-	// so that there is no hard-limit applied.
-	//
-	// No default memory limits are applied.
-	// +optional
-	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
 	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
 	// include annotations for Prometheus it would look like this:
@@ -132,11 +105,31 @@ type CoherenceResourceSpec struct {
 	//   prometheus.io/port: "2408"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
-	// The extra labels to add to the all of the Pods in this deployments.
-	// Labels here will add to or override those defined for the cluster.
-	// More info: http://kubernetes.io/docs/user-guide/labels
-	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
+	// List of additional initialization containers to add to the deployment's Pod.
+	// Init containers cannot be added or removed.
+	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+	// +listType=map
+	// +listMapKey=name
+	AdditionalInitContainers []corev1.Container `json:"additionalInitContainers,omitempty"`
+	// List of additional containers to add to the deployment's Pod.
+	// Containers cannot be added or removed.
+	// +listType=map
+	// +listMapKey=name
+	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
+	// A list of ConfigMaps to add as volumes.
+	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
+	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
+	// +listType=map
+	// +listMapKey=name
+	ConfigMapVolumes []ConfigMapVolumeSpec `json:"configMapVolumes,omitempty"`
+	// A list of Secrets to add as volumes.
+	// Each entry in the list will be added as a Secret Volume to the deployment's
+	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
+	// +listType=map
+	// +listMapKey=name
+	SecretVolumes []SecretVolumeSpec `json:"secretVolumes,omitempty"`
 	// Volumes defines extra volume mappings that will be added to the Coherence Pod.
 	//   The content of this yaml should match the normal k8s volumes section of a Pod definition
 	//   as described in https://kubernetes.io/docs/concepts/storage/volumes/
@@ -156,6 +149,31 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	// The port that the health check endpoint will bind to.
+	// +optional
+	HealthPort *int32 `json:"healthPort,omitempty"`
+	// The readiness probe config to be used for the Pods in this deployment.
+	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+	// +optional
+	ReadinessProbe *ReadinessProbeSpec `json:"readinessProbe,omitempty"`
+	// The liveness probe config to be used for the Pods in this deployment.
+	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+	// +optional
+	LivenessProbe *ReadinessProbeSpec `json:"livenessProbe,omitempty"`
+	// Resources is the optional resource requests and limits for the containers
+	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
+	//
+	// By default the cpu requests is set to zero and the cpu limit set to 32. This
+	// is because it appears that K8s defaults cpu to one and since Java 10 the JVM
+	// now correctly picks up cgroup cpu limits then the JVM will only see one cpu.
+	// By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that
+	// the JVM will see the either the number of cpus on the host if this is <= 32 or
+	// the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero
+	// so that there is no hard-limit applied.
+	//
+	// No default memory limits are applied.
+	// +optional
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Affinity controls Pod scheduling preferences.
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 	// +optional
@@ -194,36 +212,21 @@ type CoherenceResourceSpec struct {
 	// Configure various networks and DNS settings for Pods in this rolw.
 	// +optional
 	Network *NetworkSpec `json:"network,omitempty"`
-	// The deployments that must be started before this deployment can start.
-	// +listType=map
-	// +listMapKey=deployment
+	// The configuration for the Coherence utils image
 	// +optional
-	StartQuorum []StartQuorum `json:"startQuorum,omitempty"`
-	// List of additional initialization containers to add to the deployment's Pod.
-	// Init containers cannot be added or removed.
-	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-	// +listType=map
-	// +listMapKey=name
-	AdditionalInitContainers []corev1.Container `json:"additionalInitContainers,omitempty"`
-	// List of additional containers to add to the deployment's Pod.
-	// Containers cannot be added or removed.
-	// +listType=map
-	// +listMapKey=name
-	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
-	// A list of ConfigMaps to add as volumes.
-	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
-	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
-	// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
-	// +listType=map
-	// +listMapKey=name
-	ConfigMapVolumes []ConfigMapVolumeSpec `json:"configMapVolumes,omitempty"`
-	// A list of Secrets to add as volumes.
-	// Each entry in the list will be added as a Secret Volume to the deployment's
-	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
-	// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
-	// +listType=map
-	// +listMapKey=name
-	SecretVolumes []SecretVolumeSpec `json:"secretVolumes,omitempty"`
+	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+	// The name to use for the service account to use when RBAC is enabled
+	// The role bindings must already have been created as this chart does not create them it just
+	// sets the serviceAccountName value in the Pod spec.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+	// Whether or not to auto-mount the Kubernetes API credentials for a service account
+	// +optional
+	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
+	// The timeout to apply to REST requests made back to the Operator from Coherence Pods.
+	// These requests are typically to obtain site and rack information for the Pod.
+	// +optional
+	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
 }
 
 // Obtain the number of replicas required for a deployment.
