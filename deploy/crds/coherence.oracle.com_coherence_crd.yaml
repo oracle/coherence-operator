@@ -38,7 +38,7 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: Coherence is the Schema for the coherence API
+        description: Coherence is the Schema for the Coherence API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -53,9 +53,9 @@ spec:
           metadata:
             type: object
           spec:
-            description: CoherenceSpec defines a deployment in a Coherence resource.
-              A Coherence deployment is one or more Pods that perform the same functionality,
-              for example storage members.
+            description: CoherenceResourceSpec defines the specification of a Coherence
+              resource. A Coherence resource is typically one or more Pods that perform
+              the same functionality, for example storage members.
             properties:
               additionalContainers:
                 description: List of additional containers to add to the deployment's
@@ -602,6 +602,7 @@ spec:
                               be referred to by services.
                             type: string
                           protocol:
+                            default: TCP
                             description: Protocol for port. Must be UDP, TCP, or SCTP.
                               Defaults to "TCP".
                             type: string
@@ -1673,6 +1674,7 @@ spec:
                               be referred to by services.
                             type: string
                           protocol:
+                            default: TCP
                             description: Protocol for port. Must be UDP, TCP, or SCTP.
                               Defaults to "TCP".
                             type: string
@@ -2800,7 +2802,7 @@ spec:
                   \  prometheus.io/scrape: \"true\"   prometheus.io/port: \"2408\""
                 type: object
               application:
-                description: The optional application definition
+                description: The optional application specific settings.
                 properties:
                   args:
                     description: Args is the optional arguments to pass to the main
@@ -2836,13 +2838,13 @@ spec:
                 type: boolean
               cluster:
                 description: The optional name of the Coherence cluster that this
-                  Coherence resource belongs to. If this value is set this deployment
-                  will form a cluster with other deployments with the same cluster
-                  name. If not set the Coherence resource's name will be used as the
-                  cluster name.
+                  Coherence resource belongs to. If this value is set the Pods controlled
+                  by this Coherence resource will form a cluster with other Pods controlled
+                  by Coherence resources with the same cluster name. If not set the
+                  Coherence resource's name will be used as the cluster name.
                 type: string
               coherence:
-                description: The optional application definition
+                description: The optional settings specific to Coherence functionality.
                 properties:
                   cacheConfig:
                     description: CacheConfig is the name of the cache configuration
@@ -7721,6 +7723,8 @@ spec:
                               type: string
                             value:
                               type: string
+                          required:
+                          - name
                           type: object
                         type: array
                         x-kubernetes-list-map-keys:
@@ -7759,6 +7763,8 @@ spec:
                         ip:
                           description: IP address of the host file entry.
                           type: string
+                      required:
+                      - ip
                       type: object
                     type: array
                     x-kubernetes-list-map-keys:
@@ -7781,13 +7787,14 @@ spec:
                   https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector'
                 type: object
               operatorRequestTimeout:
-                description: The timeout to apply to rest requests made back to the
-                  operator from Coherence Pods.
+                description: The timeout to apply to REST requests made back to the
+                  Operator from Coherence Pods. These requests are typically to obtain
+                  site and rack information for the Pod.
                 format: int32
                 type: integer
               ports:
                 description: Ports specifies additional port mappings for the Pod
-                  and additional Services for those ports
+                  and additional Services for those ports.
                 items:
                   description: '----- NamedPortSpec struct ----------------------------------------------------
                     NamedPortSpec defines a named port for a Coherence component'
@@ -8117,9 +8124,11 @@ spec:
                     type: integer
                 type: object
               replicas:
+                default: 3
                 description: The desired number of cluster members of this deployment.
                   This is a pointer to distinguish between explicit zero and not specified.
-                  Default value is 3.
+                  If not specified a default value of 3 will be used. This field cannot
+                  be negative.
                 format: int32
                 minimum: 0
                 type: integer
@@ -8507,8 +8516,8 @@ spec:
                   Default to false.'
                 type: boolean
               startQuorum:
-                description: The deployments that must be started before this deployment
-                  can start.
+                description: StartQuorum controls the start-up order of this Coherence
+                  resource in relation to other Coherence resources.
                 items:
                   description: StartQuorum defines the order that deployments will
                     be started in a Coherence cluster made up of multiple deployments.
@@ -8576,6 +8585,8 @@ spec:
                         to. If the operator is Exists, the value should be empty,
                         otherwise just a regular string.
                       type: string
+                  required:
+                  - key
                   type: object
                 type: array
                 x-kubernetes-list-map-keys:
@@ -10105,8 +10116,8 @@ spec:
                   type: object
                 type: array
               currentReplicas:
-                description: CurrentReplicas is the current size of the Coherence
-                  cluster.
+                description: CurrentReplicas is the current number of members in the
+                  Coherence deployment represented by the Coherence resource.
                 format: int32
                 type: integer
               phase:
@@ -10127,12 +10138,14 @@ spec:
                   and its secondary resources."
                 type: string
               readyReplicas:
-                description: ReadyReplicas is the number of deployments created by
-                  the StatefulSet.
+                description: ReadyReplicas is the number of number of members in the
+                  Coherence deployment represented by the Coherence resource that
+                  are in the ready state.
                 format: int32
                 type: integer
               replicas:
-                description: Replicas is the desired size of the Coherence cluster.
+                description: Replicas is the desired number of members in the Coherence
+                  deployment represented by the Coherence resource.
                 format: int32
                 type: integer
               role:

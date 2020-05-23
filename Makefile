@@ -757,6 +757,7 @@ uninstall-crds: $(BUILD_PROPS)
 # the pkg/apis directory have been changed.
 # ---------------------------------------------------------------------------
 .PHONY: generate
+generate: export GOPATH := $(GOPATH)
 generate:
 	@echo "Generating deep copy code"
 	$(OPERATOR_SDK) generate k8s --verbose
@@ -774,6 +775,10 @@ generate:
 		-p ./pkg/apis/coherence/v1 \
 		-h ./hack/boilerplate.go.txt \
 		-r "-"
+	@echo "Getting kustomize"
+	go get sigs.k8s.io/kustomize || true
+	@echo "Applying kustomize to v1 CRDs"
+	$(GOPATH)/bin/kustomize build deploy/crds -o deploy/crds/coherence.oracle.com_coherence_crd.yaml
 	$(MAKE) api-doc-gen
 
 # ---------------------------------------------------------------------------

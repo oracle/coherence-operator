@@ -105,7 +105,7 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "CoherenceSpec defines a deployment in a Coherence resource. A Coherence deployment is one or more Pods that perform the same functionality, for example storage members.",
+				Description: "CoherenceResourceSpec defines the specification of a Coherence resource. A Coherence resource is typically one or more Pods that perform the same functionality, for example storage members.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"image": {
@@ -143,30 +143,16 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"serviceAccountName": {
+					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"automountServiceAccountToken": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Whether or not to auto-mount the Kubernetes API credentials for a service account",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"operatorRequestTimeout": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The timeout to apply to rest requests made back to the operator from Coherence Pods.",
+							Description: "The desired number of cluster members of this deployment. This is a pointer to distinguish between explicit zero and not specified. If not specified a default value of 3 will be used. This field cannot be negative.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
 					},
 					"cluster": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set this deployment will form a cluster with other deployments with the same cluster name. If not set the Coherence resource's name will be used as the cluster name.",
+							Description: "The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource's name will be used as the cluster name.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -178,29 +164,16 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							Format:      "",
 						},
 					},
-					"replicas": {
+					"coherence": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The desired number of cluster members of this deployment. This is a pointer to distinguish between explicit zero and not specified. Default value is 3.",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Description: "The optional settings specific to Coherence functionality.",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
 						},
 					},
 					"application": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The optional application definition",
+							Description: "The optional application specific settings.",
 							Ref:         ref("./pkg/apis/coherence/v1.ApplicationSpec"),
-						},
-					},
-					"coherence": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The optional application definition",
-							Ref:         ref("./pkg/apis/coherence/v1.CoherenceSpec"),
-						},
-					},
-					"coherenceUtils": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The configuration for the Coherence utils image",
-							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
 						},
 					},
 					"jvm": {
@@ -219,12 +192,39 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Ports specifies additional port mappings for the Pod and additional Services for those ports",
+							Description: "Ports specifies additional port mappings for the Pod and additional Services for those ports.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("./pkg/apis/coherence/v1.NamedPortSpec"),
+									},
+								},
+							},
+						},
+					},
+					"scaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration to control safe scaling.",
+							Ref:         ref("./pkg/apis/coherence/v1.ScalingSpec"),
+						},
+					},
+					"startQuorum": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"deployment",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("./pkg/apis/coherence/v1.StartQuorum"),
 									},
 								},
 							},
@@ -251,52 +251,6 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"healthPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The port that the health check endpoint will bind to.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"readinessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The readiness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"livenessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The liveness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
-							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
-						},
-					},
-					"scaling": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The configuration to control safe scaling.",
-							Ref:         ref("./pkg/apis/coherence/v1.ScalingSpec"),
-						},
-					},
-					"resources": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
-							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
-						},
-					},
-					"annotations": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
 					"labels": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The extra labels to add to the all of the Pods in this deployments. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels",
@@ -312,75 +266,9 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"volumes": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"name",
-								},
-								"x-kubernetes-list-type": "map",
-							},
-						},
+					"annotations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Volumes defines extra volume mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumes section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/volumes/",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.Volume"),
-									},
-								},
-							},
-						},
-					},
-					"volumeClaimTemplates": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-type": "atomic",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.PersistentVolumeClaim"),
-									},
-								},
-							},
-						},
-					},
-					"volumeMounts": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"name",
-								},
-								"x-kubernetes-list-type": "map",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above\n  in store.volumes and store.volumeClaimTemplates",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
-									},
-								},
-							},
-						},
-					},
-					"affinity": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
-							Ref:         ref("k8s.io/api/core/v1.Affinity"),
-						},
-					},
-					"nodeSelector": {
-						SchemaProps: spec.SchemaProps{
-							Description: "NodeSelector is the Node labels for pod assignment\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector",
+							Description: "Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:\n\nannotations:\n  prometheus.io/scrape: \"true\"\n  prometheus.io/port: \"2408\"",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -388,74 +276,6 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
 										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"tolerations": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"key",
-								},
-								"x-kubernetes-list-type": "map",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.Toleration"),
-									},
-								},
-							},
-						},
-					},
-					"securityContext": {
-						SchemaProps: spec.SchemaProps{
-							Description: "SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
-							Ref:         ref("k8s.io/api/core/v1.PodSecurityContext"),
-						},
-					},
-					"shareProcessNamespace": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"hostIPC": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Use the host's ipc namespace. Optional: Default to false.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"network": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Configure various networks and DNS settings for Pods in this rolw.",
-							Ref:         ref("./pkg/apis/coherence/v1.NetworkSpec"),
-						},
-					},
-					"startQuorum": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"deployment",
-								},
-								"x-kubernetes-list-type": "map",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "The deployments that must be started before this deployment can start.",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("./pkg/apis/coherence/v1.StartQuorum"),
 									},
 								},
 							},
@@ -543,6 +363,186 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 									},
 								},
 							},
+						},
+					},
+					"volumes": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Volumes defines extra volume mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumes section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Volume"),
+									},
+								},
+							},
+						},
+					},
+					"volumeClaimTemplates": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.\n  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition\n  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.PersistentVolumeClaim"),
+									},
+								},
+							},
+						},
+					},
+					"volumeMounts": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above\n  in store.volumes and store.volumeClaimTemplates",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
+					"healthPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The port that the health check endpoint will bind to.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"readinessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The readiness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"livenessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The liveness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/",
+							Ref:         ref("./pkg/apis/coherence/v1.ReadinessProbeSpec"),
+						},
+					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources is the optional resource requests and limits for the containers\n ref: http://kubernetes.io/docs/user-guide/compute-resources/\n\nBy default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied.\n\nNo default memory limits are applied.",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"affinity": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Affinity controls Pod scheduling preferences.\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity",
+							Ref:         ref("k8s.io/api/core/v1.Affinity"),
+						},
+					},
+					"nodeSelector": {
+						SchemaProps: spec.SchemaProps{
+							Description: "NodeSelector is the Node labels for pod assignment\n  ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"tolerations": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": []interface{}{
+									"key",
+								},
+								"x-kubernetes-list-type": "map",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Tolerations is for nodes that have taints on them.\n  Useful if you want to dedicate nodes to just run the coherence container\nFor example:\n  tolerations:\n  - key: \"key\"\n    operator: \"Equal\"\n    value: \"value\"\n    effect: \"NoSchedule\"\n\n  ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Toleration"),
+									},
+								},
+							},
+						},
+					},
+					"securityContext": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+							Ref:         ref("k8s.io/api/core/v1.PodSecurityContext"),
+						},
+					},
+					"shareProcessNamespace": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"hostIPC": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Use the host's ipc namespace. Optional: Default to false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"network": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Configure various networks and DNS settings for Pods in this rolw.",
+							Ref:         ref("./pkg/apis/coherence/v1.NetworkSpec"),
+						},
+					},
+					"coherenceUtils": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The configuration for the Coherence utils image",
+							Ref:         ref("./pkg/apis/coherence/v1.ImageSpec"),
+						},
+					},
+					"serviceAccountName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"automountServiceAccountToken": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to auto-mount the Kubernetes API credentials for a service account",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"operatorRequestTimeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},

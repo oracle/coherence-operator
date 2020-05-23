@@ -131,13 +131,8 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = make([]LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
-	if in.AutomountServiceAccountToken != nil {
-		in, out := &in.AutomountServiceAccountToken, &out.AutomountServiceAccountToken
-		*out = new(bool)
-		**out = **in
-	}
-	if in.OperatorRequestTimeout != nil {
-		in, out := &in.OperatorRequestTimeout, &out.OperatorRequestTimeout
+	if in.Replicas != nil {
+		in, out := &in.Replicas, &out.Replicas
 		*out = new(int32)
 		**out = **in
 	}
@@ -146,24 +141,14 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Replicas != nil {
-		in, out := &in.Replicas, &out.Replicas
-		*out = new(int32)
-		**out = **in
-	}
-	if in.Application != nil {
-		in, out := &in.Application, &out.Application
-		*out = new(ApplicationSpec)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.Coherence != nil {
 		in, out := &in.Coherence, &out.Coherence
 		*out = new(CoherenceSpec)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.CoherenceUtils != nil {
-		in, out := &in.CoherenceUtils, &out.CoherenceUtils
-		*out = new(ImageSpec)
+	if in.Application != nil {
+		in, out := &in.Application, &out.Application
+		*out = new(ApplicationSpec)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.JVM != nil {
@@ -178,6 +163,16 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.Scaling != nil {
+		in, out := &in.Scaling, &out.Scaling
+		*out = new(ScalingSpec)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.StartQuorum != nil {
+		in, out := &in.StartQuorum, &out.StartQuorum
+		*out = make([]StartQuorum, len(*in))
+		copy(*out, *in)
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]corev1.EnvVar, len(*in))
@@ -185,30 +180,12 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.HealthPort != nil {
-		in, out := &in.HealthPort, &out.HealthPort
-		*out = new(int32)
-		**out = **in
-	}
-	if in.ReadinessProbe != nil {
-		in, out := &in.ReadinessProbe, &out.ReadinessProbe
-		*out = new(ReadinessProbeSpec)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.LivenessProbe != nil {
-		in, out := &in.LivenessProbe, &out.LivenessProbe
-		*out = new(ReadinessProbeSpec)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Scaling != nil {
-		in, out := &in.Scaling, &out.Scaling
-		*out = new(ScalingSpec)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(corev1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
+	if in.Labels != nil {
+		in, out := &in.Labels, &out.Labels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.Annotations != nil {
 		in, out := &in.Annotations, &out.Annotations
@@ -217,11 +194,32 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 			(*out)[key] = val
 		}
 	}
-	if in.Labels != nil {
-		in, out := &in.Labels, &out.Labels
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
+	if in.AdditionalInitContainers != nil {
+		in, out := &in.AdditionalInitContainers, &out.AdditionalInitContainers
+		*out = make([]corev1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.AdditionalContainers != nil {
+		in, out := &in.AdditionalContainers, &out.AdditionalContainers
+		*out = make([]corev1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.ConfigMapVolumes != nil {
+		in, out := &in.ConfigMapVolumes, &out.ConfigMapVolumes
+		*out = make([]ConfigMapVolumeSpec, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.SecretVolumes != nil {
+		in, out := &in.SecretVolumes, &out.SecretVolumes
+		*out = make([]SecretVolumeSpec, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Volumes != nil {
@@ -244,6 +242,26 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.HealthPort != nil {
+		in, out := &in.HealthPort, &out.HealthPort
+		*out = new(int32)
+		**out = **in
+	}
+	if in.ReadinessProbe != nil {
+		in, out := &in.ReadinessProbe, &out.ReadinessProbe
+		*out = new(ReadinessProbeSpec)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.LivenessProbe != nil {
+		in, out := &in.LivenessProbe, &out.LivenessProbe
+		*out = new(ReadinessProbeSpec)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.Resources != nil {
+		in, out := &in.Resources, &out.Resources
+		*out = new(corev1.ResourceRequirements)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Affinity != nil {
 		in, out := &in.Affinity, &out.Affinity
@@ -284,38 +302,20 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(NetworkSpec)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.StartQuorum != nil {
-		in, out := &in.StartQuorum, &out.StartQuorum
-		*out = make([]StartQuorum, len(*in))
-		copy(*out, *in)
+	if in.CoherenceUtils != nil {
+		in, out := &in.CoherenceUtils, &out.CoherenceUtils
+		*out = new(ImageSpec)
+		(*in).DeepCopyInto(*out)
 	}
-	if in.AdditionalInitContainers != nil {
-		in, out := &in.AdditionalInitContainers, &out.AdditionalInitContainers
-		*out = make([]corev1.Container, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
+	if in.AutomountServiceAccountToken != nil {
+		in, out := &in.AutomountServiceAccountToken, &out.AutomountServiceAccountToken
+		*out = new(bool)
+		**out = **in
 	}
-	if in.AdditionalContainers != nil {
-		in, out := &in.AdditionalContainers, &out.AdditionalContainers
-		*out = make([]corev1.Container, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ConfigMapVolumes != nil {
-		in, out := &in.ConfigMapVolumes, &out.ConfigMapVolumes
-		*out = make([]ConfigMapVolumeSpec, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.SecretVolumes != nil {
-		in, out := &in.SecretVolumes, &out.SecretVolumes
-		*out = make([]SecretVolumeSpec, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
+	if in.OperatorRequestTimeout != nil {
+		in, out := &in.OperatorRequestTimeout, &out.OperatorRequestTimeout
+		*out = new(int32)
+		**out = **in
 	}
 	return
 }
