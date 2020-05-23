@@ -7979,7 +7979,6 @@ spec:
                   type: integer
               type: object
             replicas:
-              default: 3
               description: The desired number of cluster members of this deployment.
                 This is a pointer to distinguish between explicit zero and not specified.
                 If not specified a default value of 3 will be used. This field cannot

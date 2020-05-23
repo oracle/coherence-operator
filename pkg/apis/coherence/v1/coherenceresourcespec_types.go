@@ -46,7 +46,6 @@ type CoherenceResourceSpec struct {
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// If not specified a default value of 3 will be used.
 	// This field cannot be negative.
-	// +kubebuilder:default:=3
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
