@@ -52,7 +52,6 @@ const (
 	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
 	certs              = outDir + string(os.PathSeparator) + "certs"
 	deploy             = "deploy"
-	crds               = deploy + string(os.PathSeparator) + "crds"
 	manifest           = outDir + string(os.PathSeparator) + "manifest"
 )
 
@@ -171,14 +170,6 @@ func AssumeRunningCompatibilityTests(t *testing.T) {
 	if strings.ToLower(s) == "true" {
 		t.Skipf("Skipping compatibility tests, %s environment variable set to '%s'", SkipCompatibilityEnv, s)
 	}
-}
-
-func FindCrdDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-	return pd + string(os.PathSeparator) + crds, nil
 }
 
 func FindOperatorHelmChartDir() (string, error) {

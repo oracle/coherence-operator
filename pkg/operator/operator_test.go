@@ -10,9 +10,7 @@ import (
 	"context"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/pkg/fakes"
-	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,18 +31,9 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	log := fakes.TestLogger{T: t}
-	cohFlags := flags.CoherenceOperatorFlags{}
-
-	crdDir, err := helper.FindCrdDir()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cohFlags = flags.CoherenceOperatorFlags{
-		CrdFiles: crdDir,
-	}
-
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(&cohFlags, log, crdClient)
+	err = operator.EnsureV1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -90,18 +79,9 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	}
 
 	log := fakes.TestLogger{T: t}
-	cohFlags := flags.CoherenceOperatorFlags{}
-
-	crdDir, err := helper.FindCrdDir()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cohFlags = flags.CoherenceOperatorFlags{
-		CrdFiles: crdDir,
-	}
-
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(&cohFlags, log, crdClient)
+	err = operator.EnsureV1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -128,24 +108,14 @@ func TestShouldCreateV1beta1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	log := fakes.TestLogger{T: t}
-	cohFlags := flags.CoherenceOperatorFlags{}
-
-	crdDir, err := helper.FindCrdDir()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cohFlags = flags.CoherenceOperatorFlags{
-		CrdFiles: crdDir,
-	}
-
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(&cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
 	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
-
 	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	expected := map[string]bool{
@@ -185,18 +155,9 @@ func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 	}
 
 	log := fakes.TestLogger{T: t}
-	cohFlags := flags.CoherenceOperatorFlags{}
-
-	crdDir, err := helper.FindCrdDir()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cohFlags = flags.CoherenceOperatorFlags{
-		CrdFiles: crdDir,
-	}
-
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(&cohFlags, log, crdClient)
+	err = operator.EnsureV1Beta1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}

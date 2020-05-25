@@ -13,10 +13,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -30,8 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
 	rest2 "k8s.io/client-go/rest"
-	"os"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
@@ -61,96 +57,78 @@ func EnsureCRDs(cfg *rest2.Config) error {
 	}
 
 	logger := logf.Log.WithName("operator")
-	cohFlags := flags.GetFlags()
 
 	if v.Major() > 1 || (v.Major() == 1 && v.Minor() >= 16) {
 		// k8s v1.16.0 or above - install v1 CRD
 		crdClient := c.ApiextensionsV1().CustomResourceDefinitions()
-		return EnsureV1CRDs(cohFlags, logger, crdClient)
+		return EnsureV1CRDs(logger, crdClient)
 	}
 	// k8s lower than v1.16.0 - install v1beta1 CRD
 	crdClient := c.ApiextensionsV1beta1().CustomResourceDefinitions()
-	return EnsureV1Beta1CRDs(cohFlags, logger, crdClient)
+	return EnsureV1Beta1CRDs(logger, crdClient)
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1CRDs(cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
+func EnsureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
 	logger.Info("Ensuring operator v1 CRDs are present")
 
-	if cohFlags.CrdFiles == "" {
-		logger.Info("The CRD files location is blank - cannot ensure that CRDs are present in Kubernetes")
-		return nil
-	}
-
-	_, err := os.Stat(cohFlags.CrdFiles)
+	assets, err := AssetDir("deploy/crds")
 	if err != nil {
-		return fmt.Errorf("the CRD files location '%s' does not exist", cohFlags.CrdFiles)
+		return errors.Wrap(err, "finding embedded CRD assets")
 	}
 
-	logger.Info("Loading operator CRDs from '" + cohFlags.CrdFiles + "'")
-	var files []string
-	err = filepath.Walk(cohFlags.CrdFiles, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, "crd.yaml") && !info.IsDir() {
-			files = append(files, path)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		// Load the CRD from the yaml file
-		yml, err := ioutil.ReadFile(file)
-		if err != nil {
-			return err
-		}
-
-		u := unstructured.Unstructured{}
-		err = yaml.Unmarshal(yml, &u)
-		if err != nil {
-			return err
-		}
-
-		if u.GetAPIVersion() != crdbeta1.GroupName+"/v1" {
-			continue
-		}
-
-		newCRD := crdv1.CustomResourceDefinition{}
-		err = yaml.Unmarshal(yml, &newCRD)
-		if err != nil {
-			return err
-		}
-
-		// make sure we're only loading v1 files
-		if newCRD.APIVersion != crdbeta1.GroupName+"/v1" {
-			continue
-		}
-		logger.Info("Loading operator CRD yaml from '" + file + "'")
-
-		// Get the existing CRD
-		oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
-		switch {
-		case err == nil:
-			// CRD exists so update it
-			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			_, err = crdClient.Update(&newCRD)
+	for _, file := range assets {
+		if strings.HasSuffix(file, "_crd.yaml") {
+			yml, err := Asset("deploy/crds/" + file)
 			if err != nil {
-				return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
+				return errors.Wrap(err, "loading embedded CRD asset "+file)
 			}
-		case apierrors.IsNotFound(err):
-			// CRD does not exist so create it
-			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-			_, err = crdClient.Create(&newCRD)
+
+			u := unstructured.Unstructured{}
+			err = yaml.Unmarshal(yml, &u)
 			if err != nil {
-				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				return err
 			}
-		default:
-			// An error occurred
-			logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-			return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
+
+			if u.GetAPIVersion() != crdbeta1.GroupName+"/v1" {
+				continue
+			}
+
+			newCRD := crdv1.CustomResourceDefinition{}
+			err = yaml.Unmarshal(yml, &newCRD)
+			if err != nil {
+				return err
+			}
+
+			// make sure we're only loading v1 files
+			if newCRD.APIVersion != crdbeta1.GroupName+"/v1" {
+				continue
+			}
+			logger.Info("Loading operator CRD yaml from '" + file + "'")
+
+			// Get the existing CRD
+			oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
+			switch {
+			case err == nil:
+				// CRD exists so update it
+				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
+				newCRD.ResourceVersion = oldCRD.ResourceVersion
+				_, err = crdClient.Update(&newCRD)
+				if err != nil {
+					return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
+				}
+			case apierrors.IsNotFound(err):
+				// CRD does not exist so create it
+				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
+				_, err = crdClient.Create(&newCRD)
+				if err != nil {
+					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				}
+			default:
+				// An error occurred
+				logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
+				return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
+			}
 		}
 	}
 
@@ -158,83 +136,66 @@ func EnsureV1CRDs(cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, cr
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1Beta1CRDs(cohFlags *flags.CoherenceOperatorFlags, logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
+func EnsureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
 	logger.Info("Ensuring operator v1beta1 CRDs are present")
 
-	if cohFlags.CrdFiles == "" {
-		logger.Info("The CRD files location is blank - cannot ensure that CRDs are present in Kubernetes")
-		return nil
-	}
-
-	_, err := os.Stat(cohFlags.CrdFiles)
+	assets, err := AssetDir("deploy/crds/v1beta1")
 	if err != nil {
-		return fmt.Errorf("the CRD files location '%s' does not exist", cohFlags.CrdFiles)
+		return errors.Wrap(err, "finding embedded CRD assets")
 	}
 
-	logger.Info("Loading operator CRDs from '" + cohFlags.CrdFiles + "'")
-	var files []string
-	err = filepath.Walk(cohFlags.CrdFiles, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, "crd.yaml") && !info.IsDir() {
-			files = append(files, path)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		// Load the CRD from the yaml file
-		yml, err := ioutil.ReadFile(file)
-		if err != nil {
-			return err
-		}
-
-		u := unstructured.Unstructured{}
-		err = yaml.Unmarshal(yml, &u)
-		if err != nil {
-			return err
-		}
-
-		if u.GetAPIVersion() != crdbeta1.GroupName+"/v1beta1" {
-			continue
-		}
-
-		newCRD := crdbeta1.CustomResourceDefinition{}
-		err = yaml.Unmarshal(yml, &newCRD)
-		if err != nil {
-			return err
-		}
-
-		// make sure we're only loading v1beta1 files
-		if newCRD.APIVersion != crdbeta1.GroupName+"/v1beta1" {
-			continue
-		}
-		logger.Info("Loading operator CRD yaml from '" + file + "'")
-
-		// Get the existing CRD
-		oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
-		switch {
-		case err == nil:
-			// CRD exists so update it
-			logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-			newCRD.ResourceVersion = oldCRD.ResourceVersion
-			_, err = crdClient.Update(&newCRD)
+	for _, file := range assets {
+		if strings.HasSuffix(file, "_crd.yaml") {
+			yml, err := Asset("deploy/crds/v1beta1/" + file)
 			if err != nil {
-				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				return err
 			}
-		case apierrors.IsNotFound(err):
-			// CRD does not exist so create it
-			logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-			_, err = crdClient.Create(&newCRD)
+
+			u := unstructured.Unstructured{}
+			err = yaml.Unmarshal(yml, &u)
 			if err != nil {
-				return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				return err
 			}
-		default:
-			// An error occurred
-			logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-			return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
+
+			if u.GetAPIVersion() != crdbeta1.GroupName+"/v1beta1" {
+				continue
+			}
+
+			newCRD := crdbeta1.CustomResourceDefinition{}
+			err = yaml.Unmarshal(yml, &newCRD)
+			if err != nil {
+				return err
+			}
+
+			// make sure we're only loading v1beta1 files
+			if newCRD.APIVersion != crdbeta1.GroupName+"/v1beta1" {
+				continue
+			}
+			logger.Info("Loading operator CRD yaml from '" + file + "'")
+
+			// Get the existing CRD
+			oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
+			switch {
+			case err == nil:
+				// CRD exists so update it
+				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
+				newCRD.ResourceVersion = oldCRD.ResourceVersion
+				_, err = crdClient.Update(&newCRD)
+				if err != nil {
+					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				}
+			case apierrors.IsNotFound(err):
+				// CRD does not exist so create it
+				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
+				_, err = crdClient.Create(&newCRD)
+				if err != nil {
+					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
+				}
+			default:
+				// An error occurred
+				logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
+				return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
+			}
 		}
 	}
 
