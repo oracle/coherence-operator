@@ -1004,7 +1004,6 @@ run:
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
 	--operator-flags="--crd-files=$(CRD_DIR) \
-	                  --scripts-dir=$(IMAGE_SCRIPTS_DIR) \
 	                  --coherence-image=$(HELM_COHERENCE_IMAGE) \
 	                  --utils-image=$(UTILS_IMAGE)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -1035,7 +1034,7 @@ run-debug:
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
-	--operator-flags="--crd-files=$(CRD_DIR) --scripts-dir=$(IMAGE_SCRIPTS_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+	--operator-flags="--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 

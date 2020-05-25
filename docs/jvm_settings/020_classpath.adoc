@@ -97,6 +97,5 @@ In an image without the `CLASSPATH` or `COHERENCE_HOME` environment variables th
   /app/libs/*:/app/classes:/app/resources:/data/lib/*:/data/config
 
 
-
 NOTE: There is no validation of the elements of the classpath. The elements will not be verified to ensure that the locations
 exist. As long as they are valid values to be uased in a JVM classpath they will be accepted.

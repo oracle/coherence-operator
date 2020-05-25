@@ -26,7 +26,6 @@ Get the Coherence Docker image from the Oracle Container Registry:
 
 Once this is done the Oracle Container Registry credentials can be used to create Kubernetes secret to pull the
 Coherence image.
-See <<clusters/200_private_repos.adoc,Using Private Image Registries>>
 
 == Use ImagePullSecrets
 
@@ -55,4 +54,4 @@ spec:
 
 <1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
 
-Also see <<clusters/200_private_repos.adoc,Using Private Image Registries>>
+Also see <<installation/05_private_repos.adoc,Using Private Image Registries>>

@@ -16,5 +16,63 @@ port. The advantage of specifying the `ServiceMonitor` configuration in the `Coh
 `ServiceMonitor` resource will be created, updated and deleted as part of the lifecycle of the `Coherence` resource,
 and does not need to be managed separately.
 
-// ToDo: TBD
+A `ServiceMonitor` is created for an exposed port by setting the `serviceMonitor.enabled` field to `true`.
+The Operator will create a `ServiceMonitor` with the same name as the `Service`.
+The `ServiceMonitor` created will have a single endpoint for the port being exposed.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      serviceMonitor:
+        enabled: true  # <1>
+----
+<1> With the `serviceMonitor.enabled` field set to `true` a `ServiceMonitor` resource will be created.
+
+The `ServiceMonitor` created from the spec above will look like this:
+For example:
+[source,yaml]
+----
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: test-cluster-rest
+  labels:
+    coherenceCluster: test-cluster
+    coherenceComponent: coherence-service-monitor
+    coherenceDeployment: test-cluster
+    coherenceRole: test-cluster
+spec:
+  endpoints:
+    - port: rest
+      relabelings:
+        - action: labeldrop
+          regex: (endpoint|instance|job|service)
+  selector:
+    matchLabels:
+      coherenceCluster: test-cluster
+      coherenceComponent: coherence-service
+      coherenceDeployment: test-cluster
+      coherencePort: rest
+      coherenceRole: test-cluster
+----
+
+=== Configure the ServiceMonitor
+
+The `Coherence` CRD <<about/04_coherence_spec.adoc#_servicemonitorspec,ServiceMonitorSpec>>
+contains many of the fields from the
+https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec[Prometheus `ServiceMonitorSpec`]
+and https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint[Prometheus Endpoint]
+to allow the `ServiceMonitor` to be configured for most use-cases.
+
+In situations where the `Coherence` CRD does not have the required fields, for example when a different version
+of Prometheus has been installed to that used to build the Coherence Operator, then the solution would be to
+manually create `ServiceMonitors` instead of letting them be created by the Coherence Operator.
 

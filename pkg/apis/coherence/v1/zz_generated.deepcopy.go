@@ -11,6 +11,7 @@
 package v1
 
 import (
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	status "github.com/operator-framework/operator-sdk/pkg/status"
 	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -1238,42 +1239,71 @@ func (in *ServiceMonitorSpec) DeepCopyInto(out *ServiceMonitorSpec) {
 			(*out)[key] = val
 		}
 	}
-	if in.Path != nil {
-		in, out := &in.Path, &out.Path
-		*out = new(string)
-		**out = **in
+	if in.TargetLabels != nil {
+		in, out := &in.TargetLabels, &out.TargetLabels
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
-	if in.Scheme != nil {
-		in, out := &in.Scheme, &out.Scheme
-		*out = new(string)
-		**out = **in
+	if in.PodTargetLabels != nil {
+		in, out := &in.PodTargetLabels, &out.PodTargetLabels
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	if in.Params != nil {
 		in, out := &in.Params, &out.Params
-		*out = new(map[string][]string)
-		if **in != nil {
-			in, out := *in, *out
-			*out = make(map[string][]string, len(*in))
-			for key, val := range *in {
-				var outVal []string
-				if val == nil {
-					(*out)[key] = nil
-				} else {
-					in, out := &val, &outVal
-					*out = make([]string, len(*in))
-					copy(*out, *in)
-				}
-				(*out)[key] = outVal
+		*out = make(map[string][]string, len(*in))
+		for key, val := range *in {
+			var outVal []string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = make([]string, len(*in))
+				copy(*out, *in)
+			}
+			(*out)[key] = outVal
+		}
+	}
+	if in.TLSConfig != nil {
+		in, out := &in.TLSConfig, &out.TLSConfig
+		*out = new(monitoringv1.TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
+	in.BearerTokenSecret.DeepCopyInto(&out.BearerTokenSecret)
+	if in.HonorTimestamps != nil {
+		in, out := &in.HonorTimestamps, &out.HonorTimestamps
+		*out = new(bool)
+		**out = **in
+	}
+	if in.BasicAuth != nil {
+		in, out := &in.BasicAuth, &out.BasicAuth
+		*out = new(monitoringv1.BasicAuth)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.MetricRelabelings != nil {
+		in, out := &in.MetricRelabelings, &out.MetricRelabelings
+		*out = make([]*monitoringv1.RelabelConfig, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(monitoringv1.RelabelConfig)
+				(*in).DeepCopyInto(*out)
 			}
 		}
 	}
-	if in.Interval != nil {
-		in, out := &in.Interval, &out.Interval
-		*out = new(string)
-		**out = **in
+	if in.Relabelings != nil {
+		in, out := &in.Relabelings, &out.Relabelings
+		*out = make([]*monitoringv1.RelabelConfig, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(monitoringv1.RelabelConfig)
+				(*in).DeepCopyInto(*out)
+			}
+		}
 	}
-	if in.ScrapeTimeout != nil {
-		in, out := &in.ScrapeTimeout, &out.ScrapeTimeout
+	if in.ProxyURL != nil {
+		in, out := &in.ProxyURL, &out.ProxyURL
 		*out = new(string)
 		**out = **in
 	}

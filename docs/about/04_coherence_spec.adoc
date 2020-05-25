@@ -612,11 +612,24 @@ The ServiceMonitor spec for a port service.
 | Field | Description | Type | Required
 m| enabled | Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port. If Prometheus ServiceMonitor CR is not installed no ServiceMonitor then even if this flag is true no ServiceMonitor will be created. m| &#42;bool | false
 m| labels | Additional labels to add to the ServiceMonitor. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
-m| path | HTTP path to scrape for metrics. m| &#42;string | false
-m| scheme | HTTP scheme to use for scraping. m| &#42;string | false
-m| params | Optional HTTP URL parameters m| &#42;map[string][]string | false
-m| interval | Interval at which metrics should be scraped m| &#42;string | false
-m| scrapeTimeout | Timeout after which the scrape is ended m| &#42;string | false
+m| jobLabel | The label to use to retrieve the job name from. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec m| string | false
+m| targetLabels | TargetLabels transfers labels on the Kubernetes Service onto the target. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec m| []string | false
+m| podTargetLabels | PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec m| []string | false
+m| sampleLimit | SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec m| uint64 | false
+m| path | HTTP path to scrape for metrics. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
+m| scheme | HTTP scheme to use for scraping. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
+m| params | Optional HTTP URL parameters See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| map[string][]string | false
+m| interval | Interval at which metrics should be scraped See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
+m| scrapeTimeout | Timeout after which the scrape is ended See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
+m| tlsConfig | TLS configuration to use when scraping the endpoint See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;monitoringv1.TLSConfig | false
+m| bearerTokenFile | File to read bearer token for scraping targets. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
+m| bearerTokenSecret | Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#secretkeyselector-v1-core[corev1.SecretKeySelector] | false
+m| honorLabels | HonorLabels chooses the metric's labels on collisions with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| bool | false
+m| honorTimestamps | HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;bool | false
+m| basicAuth | BasicAuth allow an endpoint to authenticate over basic authentication More info: https://prometheus.io/docs/operating/configuration/#endpoints See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;monitoringv1.BasicAuth | false
+m| metricRelabelings | MetricRelabelings to apply to samples before ingestion. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| []&#42;monitoringv1.RelabelConfig | false
+m| relabelings | Relabelings to apply to samples before scraping. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| []&#42;monitoringv1.RelabelConfig | false
+m| proxyURL | ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
