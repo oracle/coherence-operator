@@ -150,7 +150,7 @@ There are three ways to add additional volumes:
 
 * ConfigMaps - easily add a `ConfigMap` volume and volume mapping see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>>
 * Secrets - easily add a `Secret` volume and volume mapping see: <<misc_pod_settings/030_secret_volumes.adoc,Add Secret Volumes>>
-* Volumes - easily add any additional volume and volume mapping see: <<misc_pod_settings/050_add_volumes.adoc,Add Volumes>>
+* Volumes - easily add any additional volume and volume mapping see: <<misc_pod_settings/040_add_volumes.adoc,Add Volumes>>
 
 Both of `ConfigMaps` and `Secrets` have been treated as a special case because they are quite commonly used to provide
 configurations to Pods, so the `Coherence` spec provides a simpler way to declare them than for ad-hoc `Volumes`.

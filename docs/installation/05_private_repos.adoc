@@ -1,0 +1,58 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Using Private Image Registries
+
+== Using Private Image Registries
+
+Sometimes the images used by a Coherence cluster need to be pulled from a private image registry that requires credentials.
+The Coherence Operator supports supplying credentials in the `Coherence` CRD configuration.
+The Kubernetes documentation on https://kubernetes.io/docs/concepts/containers/images/#using-a-private-registry[using a private registries]
+gives a number of options for supplying credentials.
+
+== Use ImagePullSecrets
+
+Kubernetes supports configuring pods to use `imagePullSecrets` for pulling images.
+If possible, this is the preferable, and most portable route.
+See the https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod[kubernetes docs]
+for this.
+Once secrets have been created in the namespace that the `Coherence` resource is to be installed in then the secret name
+can be specified in the `Coherence` `spec`.
+It is possible to specify multiple secrets in the case where the different images being used will be pulled from different registries.
+
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  imagePullSecrets:
+    - name: coherence-secret  # <1>
+----
+<1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
+
+
+The `imagePullSecrets` field is a list of values in the same format that they would be specified in Kubernetes `Pod`
+specs, so multiple secrets can be specified for different authenticated registries in the case where the Coherence
+cluster will use images from different authenticated registries..
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  imagePullSecrets:           # <1>
+    - name: coherence-secret
+    - name: ocr-secret
+----
+
+<1> The `imagePullSecrets` list specifies two secrets to use `coherence-secret` and `ocr-secret`

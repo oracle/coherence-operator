@@ -861,18 +861,17 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoring
 	selector[LabelComponent] = LabelComponentPortService
 	selector[LabelPort] = in.Name
 
-	endpoint := monitoringv1.Endpoint{
-		Port:     in.Name,
-		Interval: "30s",
-		RelabelConfigs: []*monitoringv1.RelabelConfig{
-			{
-				Action: "labeldrop",
-				Regex:  "(endpoint|instance|job|service)",
-			},
-		},
-	}
+	endpoint := in.ServiceMonitor.CreateEndpoint()
+	endpoint.Port = in.Name
+	endpoint.TargetPort = nil
+	endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, &monitoringv1.RelabelConfig{
+		Action: "labeldrop",
+		Regex:  "(endpoint|instance|job|service)",
+	})
 
-	in.ServiceMonitor.UpdateEndpoint(endpoint)
+	spec := in.ServiceMonitor.CreateServiceMonitor()
+	spec.Selector = metav1.LabelSelector{MatchLabels: selector}
+	spec.Endpoints = []monitoringv1.Endpoint{endpoint}
 
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
@@ -880,12 +879,7 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoring
 			Namespace: deployment.GetNamespace(),
 			Labels:    labels,
 		},
-		Spec: monitoringv1.ServiceMonitorSpec{
-			Selector: metav1.LabelSelector{
-				MatchLabels: selector,
-			},
-			Endpoints: []monitoringv1.Endpoint{endpoint},
-		},
+		Spec: spec,
 	}
 }
 
@@ -948,46 +942,121 @@ type ServiceMonitorSpec struct {
 	// More info: http://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+	// The label to use to retrieve the job name from.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec
+	// +optional
+	JobLabel string `json:"jobLabel,omitempty"`
+	// TargetLabels transfers labels on the Kubernetes Service onto the target.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec
+	// +listType=atomic
+	// +optional
+	TargetLabels []string `json:"targetLabels,omitempty"`
+	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec
+	// +listType=atomic
+	// +optional
+	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
+	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec
+	// +optional
+	SampleLimit uint64 `json:"sampleLimit,omitempty"`
 	// HTTP path to scrape for metrics.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Path *string `json:"path,omitempty"`
+	Path string `json:"path,omitempty"`
 	// HTTP scheme to use for scraping.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Scheme *string `json:"scheme,omitempty"`
+	Scheme string `json:"scheme,omitempty"`
 	// Optional HTTP URL parameters
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Params *map[string][]string `json:"params,omitempty"`
+	Params map[string][]string `json:"params,omitempty"`
 	// Interval at which metrics should be scraped
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Interval *string `json:"interval,omitempty"`
+	Interval string `json:"interval,omitempty"`
 	// Timeout after which the scrape is ended
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	ScrapeTimeout *string `json:"scrapeTimeout,omitempty"`
+	ScrapeTimeout string `json:"scrapeTimeout,omitempty"`
+	// TLS configuration to use when scraping the endpoint
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
+	// File to read bearer token for scraping targets.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
+	// Secret to mount to read bearer token for scraping targets. The secret
+	// needs to be in the same namespace as the service monitor and accessible by
+	// the Prometheus Operator.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	BearerTokenSecret corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
+	// HonorLabels chooses the metric's labels on collisions with target labels.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	HonorLabels bool `json:"honorLabels,omitempty"`
+	// HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
+	// BasicAuth allow an endpoint to authenticate over basic authentication
+	// More info: https://prometheus.io/docs/operating/configuration/#endpoints
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	BasicAuth *monitoringv1.BasicAuth `json:"basicAuth,omitempty"`
+	// MetricRelabelings to apply to samples before ingestion.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +listType=atomic
+	// +optional
+	MetricRelabelings []*monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
+	// Relabelings to apply to samples before scraping.
+	// More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +listType=atomic
+	// +optional
+	Relabelings []*monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
+	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
+	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+	// +optional
+	ProxyURL *string `json:"proxyURL,omitempty"`
 }
 
-func (in *ServiceMonitorSpec) UpdateEndpoint(ep monitoringv1.Endpoint) {
+func (in *ServiceMonitorSpec) CreateServiceMonitor() monitoringv1.ServiceMonitorSpec {
 	if in == nil {
-		return
+		return monitoringv1.ServiceMonitorSpec{}
 	}
 
-	if in.Interval != nil {
-		ep.Interval = *in.Interval
+	return monitoringv1.ServiceMonitorSpec{
+		JobLabel:        in.JobLabel,
+		TargetLabels:    in.TargetLabels,
+		PodTargetLabels: in.PodTargetLabels,
+		SampleLimit:     in.SampleLimit,
+	}
+}
+
+func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
+	if in == nil {
+		return monitoringv1.Endpoint{}
 	}
 
-	if in.Path != nil {
-		ep.Path = *in.Path
-	}
-
-	if in.Scheme != nil {
-		ep.Scheme = *in.Scheme
-	}
-
-	if in.Params != nil {
-		ep.Params = *in.Params
-	}
-
-	if in.ScrapeTimeout != nil {
-		ep.ScrapeTimeout = *in.ScrapeTimeout
+	return monitoringv1.Endpoint{
+		Path:                 in.Path,
+		Scheme:               in.Scheme,
+		Params:               in.Params,
+		Interval:             in.Interval,
+		ScrapeTimeout:        in.ScrapeTimeout,
+		TLSConfig:            in.TLSConfig,
+		BearerTokenFile:      in.BearerTokenFile,
+		BearerTokenSecret:    in.BearerTokenSecret,
+		HonorLabels:          in.HonorLabels,
+		HonorTimestamps:      in.HonorTimestamps,
+		BasicAuth:            in.BasicAuth,
+		MetricRelabelConfigs: in.MetricRelabelings,
+		RelabelConfigs:       in.Relabelings,
+		ProxyURL:             in.ProxyURL,
 	}
 }
 

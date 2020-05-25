@@ -10,8 +10,130 @@
 
 == Configure Services for Ports
 
-As described in the <<expose_ports_and_services/020_container_ports.adoc,Additional Container Ports>> document,
-it is possible to expose additional ports on the Coherence container in a `Coherence` resource.
+As described in the <<expose_ports_and_services/020_container_ports.adoc,Additional Container Ports>> documentation,
+it is possible to expose additional ports on the Coherence container in the Pods of a `Coherence` resource.
 The Coherence Operator will create a `Service` to expose each additional port.
+By default, the name of the service is the combination of the `Coherence` resource name and the port name
+(this can default behaviour can be overridden as shown below in the <<Override the Service Name>> section).
+The configuration of the `Service` can be altered using fields in the port spec's `service` section.
 
-// ToDo: TBD
+For example:
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest   # <1>
+      port: 8080
+      service: {}  # <2>
+----
+<1> This example exposes a single port named `rest` on port `8080`.
+<2> The `service` section of the port spec is empty so the Operator will use its default behaviour
+to create a `Service` in the same namespace with the name `test-cluster-rest`.
+
+
+== Override the Service Name
+
+Sometimes it is useful to use a different name than the default for a `Service` for a port,
+for example, when the port is exposing functionality that other applications want to consume on a fixed well know endpoint.
+To override the generated service name with another name the `service.name` field can be set.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      service:
+        name: payments  # <1>
+----
+<1> By setting the `service.name` field the `Service` for this port will be named `payments`.
+
+The service for the above example would look like this:
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments  # <1>
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      targetPort: rest
+  type: ClusterIP
+  selector:
+    coherenceDeployment: test-cluster
+    coherenceCluster: test-cluster
+    coherenceRole: storage
+    coherenceComponent: coherencePod
+----
+<1> The `Service` name is `payments` instead of `test-cluster-rest`
+
+
+== Override the Service Port
+
+It is sometimes useful to be able to expose a service on a different port on the `Service` to that being used by the container.
+One use-case for this would be where the `Coherence` deployment is providing a http service where the container
+exposes the service on port `8080` whereas the `Service` can use port `80`.
+
+For example, using the same example payemnts service above:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      service:
+        name: payments  # <1>
+        port: 80        # <2>
+----
+<1> The `Service` name will be `payments`
+<2> The `Service` port will be `80`
+
+This then allows the payments service to be accessed on a simple url of `http://payments`
+
+
+== Disable Service Creation
+
+Sometimes it may be desirable to expose a port on the Coherence container but not have the Operator automatically
+create a `Service` to expose the port. For example, maybe the port is to be exposed via some other load balancer
+service controlled by another system.
+To disable automatic service creation set the `service.enabled` field to `false`.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  ports:
+    - name: rest
+      port: 8080
+      service:
+        enabled: false  # <1>
+----
+<1> With the `service.enabled` field set to `false` no `Service` will be created.
+
+== Other Service Configuration
+
+The `Coherence` resource CRD allows many other settings to be configured on the `Service`.
+These fields are identical to the corresponding fields in the Kubernetes `Service` spec.
+
+See the `Coherence` CRD <<about/04_coherence_spec.adoc#_servicespec,Service Spec>> documentation
+and the Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#servicespec-v1-core[Service API reference].
+

@@ -35,7 +35,6 @@ const (
 	FlagRackLabel      = "rack-label"
 	FlagCoherenceImage = "coherence-image"
 	FlagUtilsImage     = "utils-image"
-	FlagScriptsDir     = "scripts-dir"
 )
 
 // The default CRD location
@@ -81,8 +80,6 @@ type CoherenceOperatorFlags struct {
 	CoherenceImage string
 	// The default Coherence Utils image to use if one is not specified for a deployment.
 	CoherenceUtilsImage string
-	// The locations of the scripts to add to the Operator Scripts ConfigMap
-	ScriptsDir string
 }
 
 // AddTo - Add the reconcile period and watches file flags to the the flag-set
@@ -122,11 +119,6 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
 		FlagRackLabel,
 		DefaultRackLabel,
 		"The node label to use when obtaining a value for a Pod's Coherence rack.",
-	)
-	flagSet.StringVar(&cohFlags.ScriptsDir,
-		FlagScriptsDir,
-		"",
-		"The location of the scripts to use in the scripts ConfigMap",
 	)
 
 	cohImg := os.Getenv(coherenceImageEnv)

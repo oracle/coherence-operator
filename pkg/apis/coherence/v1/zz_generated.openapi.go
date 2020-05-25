@@ -1780,23 +1780,75 @@ func schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref common.ReferenceCallbac
 							},
 						},
 					},
+					"jobLabel": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The label to use to retrieve the job name from. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"targetLabels": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "TargetLabels transfers labels on the Kubernetes Service onto the target. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"podTargetLabels": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"sampleLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec",
+							Type:        []string{"integer"},
+							Format:      "int64",
+						},
+					},
 					"path": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HTTP path to scrape for metrics.",
+							Description: "HTTP path to scrape for metrics. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"scheme": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HTTP scheme to use for scraping.",
+							Description: "HTTP scheme to use for scraping. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"params": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Optional HTTP URL parameters",
+							Description: "Optional HTTP URL parameters See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -1818,14 +1870,96 @@ func schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref common.ReferenceCallbac
 					},
 					"interval": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Interval at which metrics should be scraped",
+							Description: "Interval at which metrics should be scraped See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"scrapeTimeout": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Timeout after which the scrape is ended",
+							Description: "Timeout after which the scrape is ended See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"tlsConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TLS configuration to use when scraping the endpoint See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Ref:         ref("github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.TLSConfig"),
+						},
+					},
+					"bearerTokenFile": {
+						SchemaProps: spec.SchemaProps{
+							Description: "File to read bearer token for scraping targets. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"bearerTokenSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Ref:         ref("k8s.io/api/core/v1.SecretKeySelector"),
+						},
+					},
+					"honorLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HonorLabels chooses the metric's labels on collisions with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"honorTimestamps": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"basicAuth": {
+						SchemaProps: spec.SchemaProps{
+							Description: "BasicAuth allow an endpoint to authenticate over basic authentication More info: https://prometheus.io/docs/operating/configuration/#endpoints See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Ref:         ref("github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.BasicAuth"),
+						},
+					},
+					"metricRelabelings": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "MetricRelabelings to apply to samples before ingestion. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig"),
+									},
+								},
+							},
+						},
+					},
+					"relabelings": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Relabelings to apply to samples before scraping. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig"),
+									},
+								},
+							},
+						},
+					},
+					"proxyURL": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1833,6 +1967,8 @@ func schema_pkg_apis_coherence_v1_ServiceMonitorSpec(ref common.ReferenceCallbac
 				},
 			},
 		},
+		Dependencies: []string{
+			"github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.BasicAuth", "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig", "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1.TLSConfig", "k8s.io/api/core/v1.SecretKeySelector"},
 	}
 }
 
