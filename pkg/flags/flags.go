@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/utils/pointer"
 	"os"
-	"os/user"
 )
 
 const (
@@ -26,7 +25,6 @@ const (
 	// The environment variable holding the default Coherence Utils image name
 	utilsImageEnv = "UTILS_IMAGE"
 
-	FlagCrdFiles       = "crd-files"
 	FlagRestHost       = "rest-host"
 	FlagRestPort       = "rest-port"
 	FlagServiceName    = "service-name"
@@ -39,8 +37,6 @@ const (
 
 // The default CRD location
 var (
-	defaultCrds string
-
 	flagSet  *pflag.FlagSet
 	cohFlags CoherenceOperatorFlags
 )
@@ -85,11 +81,6 @@ type CoherenceOperatorFlags struct {
 // AddTo - Add the reconcile period and watches file flags to the the flag-set
 // helpTextPrefix will allow you add a prefix to default help text. Joined by a space.
 func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
-	flagSet.StringVar(&cohFlags.CrdFiles,
-		FlagCrdFiles,
-		cohFlags.DefaultCrdFiles(),
-		"The directory where the Operator's CRD file are located",
-	)
 	flagSet.StringVar(&cohFlags.RestHost,
 		FlagRestHost,
 		DefaultRestHost,
@@ -136,27 +127,6 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
 	)
 }
 
-func (f *CoherenceOperatorFlags) DefaultCrdFiles() string {
-	if f == nil {
-		return ""
-	}
-
-	if defaultCrds != "" {
-		return defaultCrds
-	}
-
-	crds := ""
-	u, err := user.Current()
-	if err == nil {
-		s := u.HomeDir + string(os.PathSeparator) + "crds"
-		_, err = os.Stat(s)
-		if err == nil {
-			crds = s
-		}
-	}
-	return crds
-}
-
 func GetDefaultCoherenceImage() *string {
 	img, ok := os.LookupEnv(coherenceImageEnv)
 	if ok {
@@ -185,10 +155,6 @@ func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() *string {
 		return &f.CoherenceUtilsImage
 	}
 	return GetDefaultCoherenceUtilsImage()
-}
-
-func SetDefaultCrdFiles(crds string) {
-	defaultCrds = crds
 }
 
 // GetOperatorFlags returns the Operator command line flags.

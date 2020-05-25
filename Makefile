@@ -329,7 +329,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 	$(OPERATOR_SDK) test local ./test/e2e/local \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
@@ -494,7 +494,7 @@ run-prometheus-test: build-operator create-ssl-secrets operator-manifest
 	$(OPERATOR_SDK) test local ./test/e2e/prometheus \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
@@ -543,7 +543,7 @@ run-elastic-test: build-operator create-ssl-secrets operator-manifest
 	$(OPERATOR_SDK) test local ./test/e2e/elastic \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
@@ -780,6 +780,10 @@ generate:
 	@echo "Applying kustomize to v1 CRDs"
 	$(GOPATH)/bin/kustomize build deploy/crds -o deploy/crds/coherence.oracle.com_coherence_crd.yaml
 	$(MAKE) api-doc-gen
+	@echo "Getting go-bindata"
+	go get -u github.com/shuLhan/go-bindata/... || true
+	@echo "Embedding CRDs"
+	$(GOPATH)/bin/go-bindata -o pkg/operator/zz_generated.assets.go -ignore .DS_Store deploy/crds/...
 
 # ---------------------------------------------------------------------------
 # Generate API docs
@@ -1003,8 +1007,7 @@ run:
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
-	--operator-flags="--crd-files=$(CRD_DIR) \
-	                  --coherence-image=$(HELM_COHERENCE_IMAGE) \
+	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) \
 	                  --utils-image=$(UTILS_IMAGE)" \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -1034,7 +1037,7 @@ run-debug:
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
-	--operator-flags="--crd-files=$(CRD_DIR) --coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
