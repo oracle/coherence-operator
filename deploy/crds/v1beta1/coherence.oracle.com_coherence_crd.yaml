@@ -7337,11 +7337,6 @@ spec:
                       - volumePath
                       type: object
                   type: object
-                flightRecorder:
-                  description: If set to true, enabled continuour flight recorder
-                    recordings. This will add the JVM options -XX:+UnlockCommercialFeatures
-                    -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps
-                  type: boolean
                 gc:
                   description: Set JVM garbage collector options.
                   properties:

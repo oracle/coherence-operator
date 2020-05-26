@@ -55,6 +55,7 @@ func Run(args []string, env map[string]string) error {
 // Build the command to the Coherence process using the specified args and environment variables
 // but do not actually start it.
 func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
+	skipSite := env[v1.EnvVarCohSkipSite]
 	details := &RunDetails{
 		OsArgs:        args,
 		Env:           env,
@@ -64,7 +65,7 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 		AppType:       env[v1.EnvVarAppType],
 		Dir:           env[v1.EnvVarCohAppDir],
 		MainClass:     DCS,
-		GetSite:       true,
+		GetSite:       strings.ToLower(skipSite) != "true",
 	}
 
 	printHeader(details)
@@ -409,7 +410,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	jvmArgs := details.Getenv(v1.EnvVarJvmArgs)
-	if gcArgs != "" {
+	if jvmArgs != "" {
 		details.AddArgs(strings.Split(jvmArgs, " ")...)
 	}
 

@@ -820,13 +820,6 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 							Format:      "",
 						},
 					},
-					"flightRecorder": {
-						SchemaProps: spec.SchemaProps{
-							Description: "If set to true, enabled continuour flight recorder recordings. This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
 					"gc": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Set JVM garbage collector options.",

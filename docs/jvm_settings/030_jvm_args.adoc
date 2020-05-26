@@ -10,5 +10,50 @@
 
 == Adding Arbitrary JVM Arguments
 
-// ToDo: TBD
+The `Coherence` CRD allows any arbitrary JVM arguments to be passed to the JVM in the `coherence` container
+by using the `jvm.args` field of rthe CRD spec.
+Any valid system property or JVM argument can be added to the `jvm.args` list.
 
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    args:
+      - "-Dcoherence.pof.config=storage-pof-config.xml"
+      - "-Dcoherence.tracing.ratio=0.1"
+      - "-agentpath:/yourkit/bin/linux-x86-64/libyjpagent.so"
+----
+
+In this example the `args` list adds two System properties `coherence.pof.config=storage-pof-config.xml`
+and `coherence.tracing.ratio=0.1` and also adds the YourKit profiling agent.
+
+NOTE: When the Operator builds the command line to use when starting Coherence Pods, any arguments added to
+the `jvm.args` field will be added after all the arguments added by the Operator from other configuration fields.
+This means that arguments such as system properties added to `jvm.args` will override any added by the Operator.
+
+For example
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  coherence:
+    cacheConfig: storage-config.xml                   # <1>
+  jvm:
+    args:
+      - "-Dcoherence.cache.config=test-config.xml"    # <2>
+----
+<1> Setting the `coherence.cacheConfig` field will make the operator add
+`-Dcoherence.cache.config=storage-config.xml` to the command line.
+<2> Adding `-Dcoherence.cache.config=test-config.xml` to the `jvm.args` field will make the Operator add
+`-Dcoherence.cache.config=test-config.xml` to the end of the JVM arguments in the command line.
+
+When duplicate system properties are present on a command line the last one wins so in the example above the cache
+configuration used would be  `test-config.xml`.

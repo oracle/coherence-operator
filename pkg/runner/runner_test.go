@@ -151,5 +151,7 @@ func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 		}
 	}
 
+	envVars[coh.EnvVarCohSkipSite] = "true"
+
 	return envVars
 }

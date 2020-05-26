@@ -105,6 +105,7 @@ const (
 	EnvVarCohMachineName              = "COH_MACHINE_NAME"
 	EnvVarCohMemberName               = "COH_MEMBER_NAME"
 	EnvVarCohPodUID                   = "COH_POD_UID"
+	EnvVarCohSkipSite                 = "COH_SKIP_SITE"
 	EnvVarCohSite                     = "COH_SITE_INFO_LOCATION"
 	EnvVarCohRack                     = "COH_RACK_INFO_LOCATION"
 	EnvVarCohRole                     = "COH_ROLE"
