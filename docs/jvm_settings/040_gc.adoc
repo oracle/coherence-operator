@@ -10,4 +10,88 @@
 
 == Garbage Collector Settings
 
-// ToDo: TBD
+The `Coherence` CRD has fields in the `jvm.gc` section to allow certain garbage collection parameters to be set.
+These include GC logging, setting the collector to use and arbitrary GC arguments.
+
+=== Enable GC Logging
+
+To enable GC logging set the `jvm.gc.logging` field to `true`.
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    gc:
+      logging: true
+----
+
+Setting the field to true adds the following JVM arguments to the JVM in the `coherence` container:
+----
+-verbose:gc
+-XX:+PrintGCDetails
+-XX:+PrintGCTimeStamps
+-XX:+PrintHeapAtGC
+-XX:+PrintTenuringDistribution
+-XX:+PrintGCApplicationStoppedTime
+-XX:+PrintGCApplicationConcurrentTime
+----
+
+If different GC logging arguments are required then the relevant JVM arguments can be added to either the
+`jvm.args` field or the `jvm.gc.args` field.
+
+=== Set the Garbage Collector
+
+The garbage collector to use can be set using the `jvm.gc.collector` field.
+This field can be set to either `G1`, `CMS` or `Parallel`
+(the field is case-insensitive, invalid values will be silently ignored).
+The default collector set, if none has been specified, will be `G1`.
+
+|====
+| Parameter  | JVM Argument Set
+| `G1`       | `-XX:+UseG1GC`
+| `CMS`      | `-XX:+UseConcMarkSweepGC`
+| `Parallel` | `-XX:+UseParallelGC`
+|====
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    gc:
+      collector: "G1"
+----
+The example above will add `-XX:+UseG1GC` to the command line.
+
+=== Adding Arbitrary GC Args
+
+Any arbitrary GC argument can be added to the `jvm.gc.args` field.
+These arguments will be passed verbatim to the JVM command line.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    gc:
+      args:
+        - "-XX:MaxGCPauseMillis=200"
+----
+In the example above the `-XX:MaxGCPauseMillis=200` JVM argument will be added to the command line.
+
+NOTE: The `jvm.gc.args` field will add the provided arguments to the end of the command line exactly as they
+are in the args list. This field provides the same functionality as <<jvm_settings/030_jvm_args.adoc,JVM Args>>
+but sometimes it might be useful to be able to separate the two gorups of arguments in the CRD spec.
+

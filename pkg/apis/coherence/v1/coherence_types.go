@@ -343,11 +343,6 @@ type JVMSpec struct {
 	// The default value is true
 	// +optional
 	UseContainerLimits *bool `json:"useContainerLimits,omitempty"`
-	// If set to true, enabled continuour flight recorder recordings.
-	// This will add the JVM options -XX:+UnlockCommercialFeatures -XX:+FlightRecorder
-	// -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=/dumps
-	// +optional
-	FlightRecorder *bool `json:"flightRecorder,omitempty"`
 	// Set JVM garbage collector options.
 	// +optional
 	Gc *JvmGarbageCollectorSpec `json:"gc,omitempty"`

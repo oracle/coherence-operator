@@ -14,6 +14,12 @@ The Coherence Operator allows full control over the configuration of the JVM use
 The `jvm` section of the `Coherence` CRD spec has a number of fields to easily configure specific aspects of the
 JVM as well as a catch-all `jvm.args` list that allows any arbitrary argument to be passed to the JVM.
 
+Whilst every configuration setting could, in theory, be set only by specifying JVM arguments in the `jvm.args`
+field of the `Coherence` CRD, the other configuration fields provide simpler means to set configuration
+without having to remember specific JVM argument names or system property names to set.
+You are, of course, free to use whichever approach best suits your requirements;
+but obviously it is better to choose one approach and be consistent.
+
 === Guides to JVM Settings
 
 [PILLARS]

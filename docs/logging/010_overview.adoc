@@ -10,11 +10,25 @@
 
 == Overview
 
-In the containers of a `Coherence` resource deployment, Coherence writes to log files in the Pod.
-These logs can be shipped to external log capture systems such as Elasticsearch and anaylyzed using Kibana.
-The Coherence Operator included Kibana dashboards that can easily be imported to make log analysis easier.
+In a container environment like Kubernetes, or any cloud, it is often a requirement to centralize log files
+to allow easier analysis and debugging. There are many ways to do this, including collecting container logs,
+parsing and shipping log files with something like Fluentd, or using a specialized log appender specific to
+your logging framework.
+
+The Coherence Operator does not proscribe any particular method of log capture. The `Coherence` CRD is flexible
+enough to allow any method of log capture that an application or specific cloud environment requires.
+This could be as simple as adding JVM arguments to configure the Java logger, or it could be injecting a whole
+side-car container to run something like Fluentd. Different approaches have their own pros and cons that need
+to be weighed up on a case by case basis.
+
 
 === Logging Guides
+
+The use of Elasticsearch, Fluentd and Kibana is a common approach. For this reason the Coherence Operator
+has a set of Kibana dashboards that support the common Coherence logging format.
+The logging guides below show one approach to shipping Coherence logs to Elasticsearch and importing the Coherence
+dashboards into Kibana.
+If this approach does not meet your needs you are obviously free to configure an alternative.
 
 [PILLARS]
 ====
@@ -22,7 +36,7 @@ The Coherence Operator included Kibana dashboards that can easily be imported to
 .Enabling Log Capture
 [link=logging/020_logging.adoc]
 --
-Capturing and viewing Coherence cluster Logs in Elasticsearch.
+Capturing and viewing Coherence cluster Logs in Elasticsearch using a Fluentd side-car.
 --
 
 [CARD]

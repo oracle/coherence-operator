@@ -507,11 +507,6 @@ func (in *JVMSpec) DeepCopyInto(out *JVMSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.FlightRecorder != nil {
-		in, out := &in.FlightRecorder, &out.FlightRecorder
-		*out = new(bool)
-		**out = **in
-	}
 	if in.Gc != nil {
 		in, out := &in.Gc, &out.Gc
 		*out = new(JvmGarbageCollectorSpec)
