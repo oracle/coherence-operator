@@ -1,0 +1,66 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= SSL with Management over REST
+
+== SSL with Management over REST
+
+It is possible to configure Management over REST endpoint to use SSL to secure the communication between server and
+client. The SSL configuration is in the `coherence.metrics.ssl` section of the CRD spec.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    management:
+      enabled: true
+      ssl:
+        enabled: true                            # <1>
+        keyStore: metrics-keys.jks               # <2>
+        keyStoreType: JKS                        # <3>
+        keyStorePasswordFile: store-pass.txt     # <4>
+        keyPasswordFile: key-pass.txt            # <5>
+        keyStoreProvider:                        # <6>
+        keyStoreAlgorithm: SunX509               # <7>
+        trustStore: metrics-trust.jks            # <8>
+        trustStoreType: JKS                      # <9>
+        trustStorePasswordFile: trust-pass.txt   # <10>
+        trustStoreProvider:                      # <11>
+        trustStoreAlgorithm: SunX509             # <12>
+        requireClientCert: true                  # <13>
+        secrets: metrics-secret                  # <14>
+----
+
+<1> The `enabled` field when set to `true` enables SSL for metrics or when set to `false` disables SSL
+<2> The `keyStore` field sets the name of the Java key store file that should be used to obtain the server's key
+<3> The optional `keyStoreType` field sets the type of the key store file, the default value is `JKS`
+<4> The optional `keyStorePasswordFile` sets the name of the text file containing the key store password
+<5> The optional `keyPasswordFile` sets the name of the text file containing the password of the key in the key store
+<6> The optional `keyStoreProvider` sets the provider name for the key store
+<7> The optional `keyStoreAlgorithm` sets the algorithm name for the key store, the default value is `SunX509`
+<8> The `trustStore` field sets the name of the Java trust store file that should be used to obtain the server's key
+<9> The optional `trustStoreType` field sets the type of the trust store file, the default value is `JKS`
+<10> The optional `trustStorePasswordFile` sets the name of the text file containing the trust store password
+<11> The optional `trustStoreProvider` sets the provider name for the trust store
+<12> The optional `trustStoreAlgorithm` sets the algorithm name for the trust store, the default value is `SunX509`
+<13> The optional `requireClientCert` field if set to `true` enables two-way SSL where the client must also provide
+a valid certificate
+<14> The optional `secrets` field sets the name of the Kubernetes `Secret` to use to obtain the key store, truct store
+and password files from.
+
+The various files and keystores referred to in the configuration above can be any location accessible in the image
+used by the `coherence` container in the deployment's `Pods`. Typically, for things such as SSL keys and certs,
+these would be provided by obtained from `Secrets` loaded as additional `Pod` `Volumes`.
+See <<misc_pod_settings/030_secret_volumes.adoc,Add Secrets Volumes>> for the documentation on how to specify
+secrets as additional volumes.

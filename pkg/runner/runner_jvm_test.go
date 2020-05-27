@@ -86,7 +86,7 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseContainerSupport"))
+	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+UseContainerSupport")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
