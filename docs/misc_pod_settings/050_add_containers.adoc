@@ -8,8 +8,8 @@
 
 = Add Pod Containers
 
-Additional containers and init-containers can easily be added to a `Coherence` resource Pod.
-
 == Add Pod Containers
+
+Additional containers and init-containers can easily be added to a `Coherence` resource Pod.
 
 // ToDo: TBD

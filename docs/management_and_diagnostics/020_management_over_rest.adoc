@@ -1,0 +1,231 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Management over REST
+
+Since version 12.2.1.4 Coherence has had functionality to expose a management API over REST.
+
+NOTE: The Management over REST  API is *disabled* by default in Coherence clusters but can be enabled and configured by
+setting the relevant fields in the `Coherence` CRD.
+
+== Management over REST
+
+This example shows how to enable and access Coherence MBeans using Management over REST.
+
+Once the Management port has been exposed, for example via a load balancer or port-forward command, the REST
+endpoint is available at `http://host:port/management/coherence/cluster`.
+The Swagger JSON document for the API is available at `http://host:port/management/coherence/cluster/metadata-catalog`.
+
+See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/[REST API for Managing Oracle Coherence]
+documentation for full details on each of the endpoints.
+
+NOTE: Note: Use of Management over REST is available only when using the operator with clusters running
+Coherence 12.2.1.4 or later version.
+
+=== Deploy Coherence with Management over REST Enabled
+
+To deploy a `Coherence` resource with management over REST enabled and exposed on a port, the simples yaml
+would look like this:
+
+[source,yaml]
+.management-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: management-cluster
+spec:
+  coherence:
+    management:
+      enabled: true     # <1>
+  ports:
+    - name: management  # <2>
+----
+<1> Setting the `coherence.management.enabled` field to `true` will enable Management over REST
+<2> To expose Management over REST via a `Service` it is added to the `ports` list.
+The `management` port is a special case where the `port` number is optional so in this case Management over REST
+will bind to the default port `30000`.
+(see <<expose_ports_and_services/020_container_ports.adoc,Exposing Ports>> for details)
+
+To expose Management over REST on a different port the alternative port value can be set in the `coherence.management`
+section, for example:
+[source,yaml]
+.management-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: management-cluster
+spec:
+  coherence:
+    management:
+      enabled: true
+      port: 8080      # <1>
+  ports:
+    - name: management
+----
+<1> Management over REST will now be exposed on port `8080`
+
+
+=== Port-forward the Management over REST Port
+
+After installing the basic `management-cluster.yaml` from the first example above there would be a three member
+Coherence cluster installed into Kubernetes.
+
+For example, the cluster can be installed with `kubectl`
+[source,bash]
+----
+kubectl -n coherence-test create -f management-cluster.yaml
+
+coherence.coherence.oracle.com/management-cluster created
+----
+
+The `kubectl` CLI can be used to list `Pods` for the cluster:
+[source,bash]
+----
+kubectl -n coherence-test get pod -l coherenceCluster=management-cluster
+
+NAME                   READY   STATUS    RESTARTS   AGE
+management-cluster-0   1/1     Running   0          36s
+management-cluster-1   1/1     Running   0          36s
+management-cluster-2   1/1     Running   0          36s
+----
+
+In a test or development environment the simplest way to reach an exposed port is to use the `kubectl port-forward` command.
+For example to connect to the first `Pod` in the deployment:
+[source,bash]
+----
+kubectl -n coherence-test port-forward management-cluster-0 30000:30000
+
+Forwarding from [::1]:30000 -> 30000
+Forwarding from 127.0.0.1:30000 -> 30000
+----
+
+=== Access the REST Endpoint
+Now that a port is beng forwarded from localhost to a `Pod` in the cluster the Management over REST endpoints can be accessed.
+
+Issue the following `curl` command to access the REST endpoint:
+[source,bash]
+----
+curl http://127.0.0.1:30000/management/coherence/cluster/
+----
+
+Which should result in a response similar to the following:
+[source,json]
+----
+{
+  "links": [
+    {
+      "rel": "parent",
+      "href": "http://127.0.0.1:30000/management/coherence"
+    },
+    {
+      "rel": "self",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/"
+    },
+    {
+      "rel": "canonical",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/"
+    },
+    {
+      "rel": "services",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/services"
+    },
+    {
+      "rel": "caches",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/caches"
+    },
+    {
+      "rel": "members",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/members"
+    },
+    {
+      "rel": "management",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/management"
+    },
+    {
+      "rel": "journal",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/journal"
+    },
+    {
+      "rel": "hotcache",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/hotcache"
+    },
+    {
+      "rel": "reporters",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/reporters"
+    },
+    {
+      "rel": "webApplications",
+      "href": "http://127.0.0.1:30000/management/coherence/cluster/webApplications"
+    }
+  ],
+  "clusterSize": 3,
+  "membersDeparted": [],
+  "memberIds": [
+    1,
+    2,
+    3
+  ],
+  "oldestMemberId": 1,
+  "refreshTime": "2019-10-15T03:55:46.461Z",
+  "licenseMode": "Development",
+  "localMemberId": 1,
+  "version": "14.1.1.0.0",
+  "running": true,
+  "clusterName": "management-cluster",
+  "membersDepartureCount": 0,
+  "members": [
+    "Member(Id=1, Timestamp=2019-10-15 03:46:15.848, Address=10.1.2.184:36531, MachineId=49519, Location=site:coherence.coherence-test.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-1, Role=storage)",
+    "Member(Id=2, Timestamp=2019-10-15 03:46:19.405, Address=10.1.2.183:40341, MachineId=49519, Location=site:coherence.coherence-test.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-2, Role=storage)",
+    "Member(Id=3, Timestamp=2019-10-15 03:46:19.455, Address=10.1.2.185:38719, MachineId=49519, Location=site:coherence.coherence-test.svc.cluster.local,machine:docker-desktop,process:1,member:management-cluster-0, Role=storage)"
+  ],
+  "type": "Cluster"
+}
+----
+
+=== Access the Swagger Endpoint
+
+Issue the following `curl` command to access the Sagger endpoint, which documents all the REST API's available.
+
+[source,bash]
+----
+curl http://127.0.0.1:30000/management/coherence/cluster/metadata-catalog
+----
+
+Which should result in a response like the following:
+[source,json]
+----
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "RESTful Management Interface for Oracle Coherence MBeans",
+    "description": "RESTful Management Interface for Oracle Coherence MBeans",
+    "version": "14.1.1.0.0"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+...
+----
+
+NOTE: The above output has been truncated due to the large size.
+
+=== Other REST Resources
+
+Management over REST can be used for all Coherence management functions, the same as would be available when using
+standard MBean access over JMX.
+
+Please see the
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/[Coherence REST API] for more information on these features.
+
+* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC[Connecting JVisualVM to Management over REST]
+* <<clusters/058_coherence_management.adoc,Enabling SSL>>
+* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html[Produce and extract a Java Flight Recorder (JFR) file]
+* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/api-reporter.html[Access the Reporter]
