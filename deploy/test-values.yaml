@@ -10,9 +10,4 @@ imagePullSecrets:
   - name: ocr-k8s-operator-development-secret
 
 coherenceOperator:
-  imagePullPolicy: Never
-  ssl:
-    secrets: coherence-ssl-secret
-    keyFile: operator.key
-    certFile: operator.crt
-    caFile: operator-ca.crt
+  imagePullPolicy: Always

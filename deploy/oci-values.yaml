@@ -11,8 +11,3 @@ imagePullSecrets:
 
 coherenceOperator:
   imagePullPolicy: Always
-  ssl:
-    secrets: coherence-ssl-secret
-    keyFile: operator.key
-    certFile: operator.crt
-    caFile: operator-ca.crt
