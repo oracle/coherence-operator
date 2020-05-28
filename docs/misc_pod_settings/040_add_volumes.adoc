@@ -8,8 +8,56 @@
 
 = Add Pod Volumes
 
-Additional Volumes and VolumeMappings can easily be added to a `Coherence` resource Pod.
-
 == Add Pod Volumes
 
-// ToDo: TBD
+Volumes and volume mappings can easily be added to a `Coherence` resource Pod to allow application code
+deployed in the Pods to access additional storage.
+
+Volumes are added by adding configuration to the `volumes` list in the `Coherence` CRD spec.
+The configuration of the volume can be any valid yaml that would be used when adding a `Volume` to a `Pod` spec.
+
+Volume mounts are added by adding configuration to the `volumeMounts` list in the `Coherence` CRD spec.
+The configuration of the volume mount can be any valid yaml that would be used when adding a volume mount to a
+container in a `Pod` spec.
+
+NOTE: Additional volumes added in this way will be added to all containers in the `Pod`.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  volumes:
+    - name: data-volume      # <1>
+      nfs:
+        path: /shared/data
+        server: nfs-server
+  volumeMounts:
+    - name: data-volume      # <2>
+      mountPath: /data
+----
+<1> An additional `Volume` named `data-volume` has been added (in this case the volume is an NFS volume).
+<2> An additional volume mount has been added tthat will mount the `data-volume` at the `/data` mount point.
+
+The yaml above would result in a `Pod` spec similar to the following (a lot of the `Pod` spec has been omitted to just
+show the relevant volume information):
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-0
+spec:
+  containers:
+    - name: coherence
+      volumeMounts:
+        - name: data-volume
+          mountPath: /data
+  volumes:
+    - name: data-volume
+      nfs:
+        path: /shared/data
+        server: nfs-server
+----

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: operator-test
+  name: coherence-operator
+  labels:
+    app: coherence-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coherence-operator
+      component: coherence-operator
+  template:
+    metadata:
+      labels:
+        app: coherence-operator
+        component: coherence-operator
+    spec:
+      serviceAccountName: coherence-operator
+      containers:
+        - name: coherence-operator
+          image: docker.pkg.github.com/oracle/coherence-operator/coherence-operator:3.0.0-ci
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: coherence-operator
+          ports:
+            - containerPort: 8000
+              name: rest
+            - containerPort: 8383
+              name: metrics
+            - containerPort: 8686
+              name: oper-metrics

@@ -90,8 +90,8 @@ Prometheus `ServiceMonitor` to be created for the port if that port is to expose
 
 See also:
 
-* <<expose_ports_and_services/030_services.adoc,Configure Services for Ports>>
-* <<expose_ports_and_services/040_servicemonitors.adoc,Prometheus ServiceMonitors>>
+* <<ports/030_services.adoc,Configure Services for Ports>>
+* <<ports/040_servicemonitors.adoc,Prometheus ServiceMonitors>>
 
 
 === Metrics & Management Ports

@@ -10,4 +10,36 @@
 
 == Heap & Memory Settings
 
+The JVM has a number of arguments that set the sizes of different memory regions; the most commonly set is the heap
+size but there are a number of others. The `Coherence` CRD spec has fields that allow some of these to sizes to be
+set.
+
+The `Coherence` CRD also has settings to control the behaviour of the JVM if an out of memory error occurs.
+For example, killing the container, creating a heap dump etc.
+
+=== Heap Size
+
+To set the JVM heap size set the `jvm.memory.heapSize` field.
+The value of the field can be any value that can be used with the JVM `-Xmx` and `-Xms` arguments.
+The value of the `jvm.memory.heapSize` field will be used to set both the `-Xms` and `-Xmx` arguments,
+so the heap will be a fixed size. For example setting `jvm.memory.heapSize` to `5g` wil effectively pass
+`-Xms=5g -Xmx=5g` to the JVM.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      heapSize: 10g  # <1>
+
+----
+<1> This example sets the heap size to `10g`.
+
+
+=== Direct Memory Size (NIO Memory)
+
 // ToDo: TBD

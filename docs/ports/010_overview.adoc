@@ -28,21 +28,21 @@ provide the required `Service` configuration then it is always possible to just 
 ====
 [CARD]
 .Adding Ports
-[link=expose_ports_and_services/020_container_ports.adoc]
+[link=ports/020_container_ports.adoc]
 --
 Adding additional container ports to the Coherence container.
 --
 
 [CARD]
 .Expose Ports via Services
-[link=expose_ports_and_services/030_services.adoc]
+[link=ports/030_services.adoc]
 --
 Configuring Services used to expose ports.
 --
 
 [CARD]
 .Prometheus ServiceMonitors
-[link=expose_ports_and_services/040_servicemonitors.adoc]
+[link=ports/040_servicemonitors.adoc]
 --
 Adding Prometheus ServiceMonitors to expose ports to be scraped for metrics.
 --

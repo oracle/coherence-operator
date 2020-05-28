@@ -100,9 +100,9 @@ backend:
                 value: "control_camera"
               items:
                 - includes:
-                    - "expose_ports_and_services/*.adoc"
+                    - "ports/*.adoc"
             - title: "Scaling Up & Down"
-              pathprefix: "/scale"
+              pathprefix: "/scaling"
               glyph:
                 type: "icon"
                 value: "fa-balance-scale"
@@ -110,7 +110,7 @@ backend:
                 - includes:
                     - "scaling/*.adoc"
             - title: "Start-up Order"
-              pathprefix: "/order"
+              pathprefix: "/ordering"
               glyph:
                 type: "icon"
                 value: "line_weight"
