@@ -160,7 +160,6 @@ TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
 TEST_MANIFEST_FILE        := test-manifest.yaml
 TEST_LOCAL_MANIFEST_FILE  := local-manifest.yaml
 TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
-TEST_MANIFEST_VALUES      ?= deploy/test-values.yaml
 TEST_SSL_SECRET           := coherence-ssl-secret
 
 # ---------------------------------------------------------------------------
@@ -814,7 +813,6 @@ operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
 operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 operator-manifest: export TEST_LOCAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 operator-manifest: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
-operator-manifest: export TEST_MANIFEST_VALUES := $(TEST_MANIFEST_VALUES)
 operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@mkdir -p $(TEST_MANIFEST_DIR)
 	go run ./cmd/manifestutil/

@@ -30,14 +30,8 @@ func main() {
 	chartDir, err := helper.FindOperatorHelmChartDir()
 	panicIfErr(err)
 
-	vf := helper.GetTestManifestValuesFileName()
-	if vf != "" {
-		err = values.LoadFromYaml(vf)
-		panicIfErr(err)
-	} else {
-		err = values.LoadFromYaml(chartDir + string(os.PathSeparator) + "values.yaml")
-		panicIfErr(err)
-	}
+	err = values.LoadFromYaml(chartDir + string(os.PathSeparator) + "values.yaml")
+	panicIfErr(err)
 
 	helm, err := fakes.NewFakeHelm(mgr, nil, nil, namespace)
 	panicIfErr(err)

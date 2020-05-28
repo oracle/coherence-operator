@@ -10,4 +10,126 @@
 
 == Using Kibana Dashboards
 
-// ToDo: TBD
+Kibana is often used to anyalze log files that have been collected into Elasticsearch.
+The Coherence Operator provides a number of Kibana dashboards and queries
+to allow you to view and analyze logs from your Coherence clusters.
+
+=== Importing Kibana Dashboards
+
+The Kibana dashboard files are located in the Coherence operator source in the `dashboards/kibana` directory.
+
+The method of importing the dashboards into Kibana will depend on how Kibana is being run.
+The simplest method is just to import the json file using the Kibana web UI.
+An alternative approach is to load the dashboard into a `ConfigMap` in Kubernetes that is mounted into the Kibana Pod
+and then trigger an import when Kibana starts.
+As there are many ways to do this depending on the specifics of the version of Kibana being used,
+exact instructions are beyond the scope fo this guide.
+
+=== Kibana Dashboards & Searches
+
+=== Table of Contents
+
+. <<dashboards,Dashboards>>
+.. <<all,Coherence Cluster - All Messages>>
+.. <<errors,Coherence Cluster - Errors and Warnings>>
+.. <<persistence,Coherence Cluster - Persistence>>
+.. <<config,Coherence Cluster - Configuration Messages>>
+.. <<network,Coherence Cluster - Network>>
+.. <<partitions,Coherence Cluster - Partitions>>
+.. <<sources,Coherence Cluster - Message Sources>>
+. <<searches, Searches>>
+
+[#dashboards]
+=== Dashboards
+
+Information from all dashboards (and queries) can be filtered using the standard Kibana date/time
+filtering in the top right of the UI, as well as the `Add a filter` button.
+
+image::../images/kibana-filters.png[Filters,width="600",align="center"]
+
+[#all]
+==== 1. Coherence Cluster - All Messages
+
+This dashboard shows all messages captured for the given time period for all clusters.
+
+Users can drill-down by cluster, host, message level and thread.
+
+image::../images/kibana-all-messages.png[All messages,width="900",align="center"]
+
+[#errors]
+==== 2. Coherence Cluster - Errors and Warnings
+
+This dashboard shows errors and warning messages only.
+
+Users can drill-down by cluster, host, message level and thread.
+
+image::../images/kibana-errors-warnings.png[Errors and Warnings,width="900",align="center"]
+
+[#persistence]
+==== 3. Coherence Cluster - Persistence
+
+This dashboard shows Persistence related messages including failed and successful operations.
+
+image::../images/kibana-persistence.png[Persistence,width="900",align="center"]
+
+[#config]
+==== 4. Coherence Cluster - Configuration Messages
+
+This dashboard shows configuration related messages such as loading of operational, cache configuration
+and POF configuration files.
+
+image::../images/kibana-configuration.png[Configuration,900,align="center"]
+
+[#network]
+=== 5. Coherence Cluster - Network
+
+This dashboard hows network related messages, such as communication delays and TCP ring disconnects.
+
+image::../images/kibana-network.png[Network,width="900",align="center"]
+
+[#partitions]
+==== 6. Coherence Cluster - Partitions
+
+Shows partition transfer and partition loss messages.
+
+image::../images/kibana-partitions.png[Partitions,width="900",align="center"]
+
+[#sources]
+==== 7. Coherence Cluster - Message Sources
+
+Shows the source (thread) for messages
+
+Users can drill-down by cluster, host and message level.
+
+image::../images/kibana-message-sources.png[Sources,900,447,align="center"]
+
+[#searches]
+=== Searches
+
+A number of searches are automatically includes which can help assist in
+diagnosis and troubleshooting a Coherence cluster. They can be accessed via the `Discover` `side-bar
+and selecting `Open`.
+
+image::../images/kibana-search.png[Search,width="700",align="center"]
+
+These are grouped into the following general categories:
+
+* Cluster - Cluster join, discovery, heartbeat, member joining and stopping messages
+
+* Cache - Cache restarting, exceptions and index exception messages
+
+* Configuration - Configuration loading and not loading messages
+
+* Persistence - Persistence success and failure messages
+
+* Network - Network communications delays, disconnects, timeouts and terminations
+
+* Partition - Partition loss, ownership and transfer related messages
+
+* Member - Member thread dump, join and leave messages
+
+* Errors - All Error messages only
+
+* Federation - Federation participant, disconnection, connection, errors and other messages
+
+

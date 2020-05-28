@@ -6,8 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Java Util Logging
+= Debugger Configuration
 
-== Java Util Logging Configuration
+== Debugger Configuration
 
 // ToDo: TBD

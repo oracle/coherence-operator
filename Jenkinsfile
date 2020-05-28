@@ -91,7 +91,6 @@ pipeline {
                     docker pull gcr.io/distroless/java
                     make clean
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make build-all
                     '''
                 }
@@ -116,7 +115,6 @@ pipeline {
                 withMaven(jdk: 'JDK 11.0.3', maven: 'Maven3.6.0', mavenSettingsConfig: 'coherence-operator-maven-settings', tempBinDir: '') {
                     sh '''
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make test-all
                     '''
                 }
@@ -206,7 +204,6 @@ pipeline {
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export IMAGE_PULL_POLICY=Always
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make e2e-local-test
                     make script-test
                 '''
@@ -227,7 +224,6 @@ pipeline {
                     export IMAGE_PULL_POLICY=Always
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     make e2e-test
                 '''
             }
@@ -247,7 +243,6 @@ pipeline {
                     export IMAGE_PULL_POLICY=Always
                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-                    export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.38/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.38/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
                     kubectl apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.38/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
@@ -271,7 +266,6 @@ pipeline {
 //                     export IMAGE_PULL_POLICY=Always
 //                     export IMAGE_PULL_SECRETS=coherence-k8s-operator-development-secret,ocr-k8s-operator-development-secret
 //                     export RELEASE_IMAGE_PREFIX=$(eval echo $TEST_IMAGE_PREFIX)
-//                     export TEST_MANIFEST_VALUES=deploy/oci-values.yaml
 //                     make compatibility-test
 //                 '''
 //             }

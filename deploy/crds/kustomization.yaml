@@ -1,5 +1,7 @@
 # A Kustomize file to apply changes to the Coherence CRD
 # that will make it valid for Kubernetes 1.18
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 resources:
   - coherence.oracle.com_coherence_crd.yaml
 patchesJson6902:

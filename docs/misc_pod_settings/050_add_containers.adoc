@@ -6,10 +6,35 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Add Pod Containers
+= Configure Additional Containers
 
-== Add Pod Containers
+== Configure Additional Containers
 
 Additional containers and init-containers can easily be added to a `Coherence` resource Pod.
+There are two types of container that can be added, init-containers and normal containers.
+An example use case for this would be to add something like a Fluentd side-car container to ship logs to Elasticsearch.
+
+=== Add a Container
+
+To add a container to the `Pods` specify the container in the `additionalContainers` list in the `Coherence` CRD spec.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  additionalContainers:
+    - name: fluentd                   # <1>
+      image: "fluent/fluentd:v1.3.3"
+----
+<1> An additional container named `fluentd` has been added to the CRD spec.
+
+The containers will added to the `additionalContainers` will be added to the `Pods` exactly as configured.
+Any configuration that is valid in a Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core[Container Spec]
+may be added to an entry in `additionalContainers`
 
 // ToDo: TBD

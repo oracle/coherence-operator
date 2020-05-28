@@ -10,4 +10,173 @@
 
 == Log Capture with Fluentd
 
-// ToDo: TBD
+There are many ways to capture container logs in Kubernetes, one possibility that this guide will cover is using
+a Fluentd side-car container to ship log files to Elasticsearch.
+This is a common pattern and one the the `Coherence` CRD makes simple by allowing easy injection of additional containers.
+
+NOTE: This guide is going to assume that the default logging related configurations provided by the operator will
+be used. For example, Coherence will be configured to use Java util logging for logs, and the default logging configuration
+file will be used. Whilst these things are not pre-requisites for shipping logs to Elasticsearch they are required
+to make the examples below work.
+
+To be able to send Coherence logs to Elasticsearch there are some steps that must be completed:
+
+* Configure Coherence to log to files
+* Add the Fluentd side-car container
+
+=== Configure Coherence to Log to Files
+
+NOTE: Logging to files is the default setting for Coherence when running in containers started by the operator so in fact
+there is nothing to configure.
+This section covers the settings involved to give a better understanding of how to change those values should a slightly
+different configuration be required.
+
+==== Coherence JDK Logger
+
+The operator will set the `coherence.log` system property to `jdk` (i.e. `-Dcoherence.log=jdk`), this tells Coherence to
+use the JDK logger (i.e. Java util logging).
+See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html#GUID-6116DB0E-91CC-4B4E-82B9-C6FE5E98BFBF[Logging Config]
+documentation for more details on this setting.
+
+==== Default Logging Configuration File
+
+In the `jvm` section of the `Coherence` CRD is a field to set the configuration file used by Java util logging.
+see the <<jvm_settings/060_logging.adoc, JVM Logging>> section of the documentation.
+If the `jvm.loggingConfig` field is not set a default configuration file, injected by the Operator, will be used.
+This file configures Coherence to write log files to the `/logs` directory. The log files will have the name
+`coherence-%g.log`, where `%g` is the log file generation created as logs get rotated.
+
+The default Java util logging configuration will look something liek this:
+[source]
+----
+com.oracle.coherence.handlers=java.util.logging.ConsoleHandler,java.util.logging.FileHandler
+
+com.oracle.coherence.level=FINEST
+
+java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
+java.util.logging.ConsoleHandler.level=FINEST
+
+java.util.logging.FileHandler.pattern=/logs/coherence-%g.log
+java.util.logging.FileHandler.limit=10485760
+java.util.logging.FileHandler.count=50
+java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
+
+java.util.logging.SimpleFormatter.format=%5$s%6$s%n
+----
+
+==== Log Files Volume
+
+The logging configuration above configurs Coherence to write logs to the `/logs` directory.
+The `Pods` created by the Operator have an empty-directory `Volume` named `logs` configured.
+The `coherence` container has a volume mount configured to mount the `logs` `Volume` at the `/logs` mount path.
+
+By using a `Volume`, this means that the `logs` volume is visible to all containers in the `Pod`, which is obviously
+required to be able to access Coherence logs from a side-car container.
+
+=== Add the Fluentd Side-Car
+
+With Coherence configured to write to log files, and those log files visible to other containers in the `Pod` the
+Fluentd side-car container can be added.
+
+The example yaml below shows a `Coherence` resource with the additional Fluentd container added.
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: cluster-one
+spec:
+  coherence:
+    logLevel: 9                                                                        # <1>
+  additionalContainers:
+    - name: fluentd                                                                    # <2>
+      image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
+      args:
+        - "-c"
+        - "/etc/fluent.conf"
+      env:
+        - name: "FLUENTD_CONF"                                                         # <3>
+          value: "fluentd-coherence.conf"
+  configMapVolumes:
+    - name: "efk-config"                                                               # <4>
+      mountPath: "/fluentd/etc/fluentd-coherence.conf"
+      subPath: "fluentd-coherence.conf"
+----
+<1> The Coherence log level has been set to `9` to give more verbose logs.
+<2> The `fluentd` container has been added to the `additionalContainers` list. This will create another container
+in the `Pod` exactly as configured.
+<3> The `FLUENTD_CONF` environment variable has been set to the name of the configuration file that Fluentd should use.
+The standard Fluentd behaviour is to locate this file in the `/fluentd/etc/` directory.
+<4> An additional volume has been added from a `ConfigMap` named `efk-config`, that contains the Fluentd configuration to use.
+This will be mounted to the `fluentd` container at `/fluentd/etc/fluentd-coherence.conf`, which corresponds to the
+name of the file set in the `FLUENTD_CONF` environment variable.
+
+NOTE: There is no need to add a `/logs` volume mount to the `fluentd` container. The operator will mount the `logs`
+`Volume` to *all* containers in the `Pod`.
+
+In the example above the Fluentd configuration has been provided from a `ConfigMap`. It could just as easily have come from a
+`Secret` or some other external `Volume` mount, or it could have been baked into the Fluentd image to be used.
+
+==== The Fluentd Configuration File
+
+The `ConfigMap` used to provide the Fluentd configuration might look something like this:
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: efk-config                              # <1>
+  labels:
+    component: coherence-efk-config
+data:
+  fluentd-coherence.conf: |
+    # Ignore fluentd messages
+    <match fluent.**>
+      @type null
+    </match>
+
+    # Coherence Logs
+    <source>                                    # <2>
+      @type tail
+      path /logs/coherence-*.log
+      pos_file /tmp/cohrence.log.pos
+      read_from_head true
+      tag coherence-cluster
+      multiline_flush_interval 20s
+      <parse>
+       @type multiline
+       format_firstline /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}/
+       format1 /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})\/(?<uptime>[0-9\.]+) (?<product>.+) <(?<level>[^\s]+)> \(thread=(?<thread>.+), member=(?<member>.+)\):[\S\s](?<log>.*)/
+      </parse>
+    </source>
+
+    <filter coherence-cluster>                  # <3>
+     @type record_transformer
+     <record>
+       cluster "#{ENV['COH_CLUSTER_NAME']}"
+       role "#{ENV['COH_ROLE']}"
+       host "#{ENV['HOSTNAME']}"
+       pod-uid "#{ENV['COH_POD_UID']}"
+     </record>
+    </filter>
+
+    <match coherence-cluster>                   # <4>
+      @type elasticsearch
+      hosts "http://elasticsearch-master:9200"
+      logstash_format true
+      logstash_prefix coherence-cluster
+    </match>
+----
+<1> The name of the `ConfigMap` is `efk-config` to match the name specified in the `Coherence` CRD spec.
+<2> The `source` section is configured to match log files with the name `/logs/coherence-*.log`, which is the name that
+Coherence logging has been configured to use. The pattern in the `source` section is a Fluentd pattern that matches the
+standard Coherence log message format.
+<3> A `filter` section will add additional fields to the log message. These come from the environment variables that
+the Operator will inject into all containers in the Pod. In this case the Coherence cluster name, the Coherence role name,
+the Pod host name and Pod UID.
+<4> The final section tells Fluentd how to ship the logs to Elasticsearch, in this case to the endpoint `http://elasticsearch-master:9200`
+
+There are many ways to configure Fluentd, the example above is just one way and is in fact taken from on eof the Operator's functional tests.
+
+With the `efk-config` `ConfigMap` created in the same namespace as the `Coherence` resource the Coherence logs from the
+containers will now be shipped to Elasticsearch.

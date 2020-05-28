@@ -66,7 +66,7 @@ Configure the behaviour of the JVM.
 
 [CARD]
 .Expose Ports & Services
-[icon=control_camera,link=expose_ports_and_services/010_overview.adoc]
+[icon=control_camera,link=ports/010_overview.adoc]
 --
 Configure services to expose ports provided by the application.
 --
