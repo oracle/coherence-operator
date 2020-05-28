@@ -14,9 +14,16 @@ Additional containers and init-containers can easily be added to a `Coherence` r
 There are two types of container that can be added, init-containers and normal containers.
 An example use case for this would be to add something like a Fluentd side-car container to ship logs to Elasticsearch.
 
+NOTE: A note about Volumes: +
+The Operator created a number of volumes and volume mounts by default. These default volume mounts will be added
+to *all* containers in the `Pod` including containers added as described here. +
+Any additional volumes and volume mounts added to the `Coherence` resource spec will also be added *all* containers.
+
 === Add a Container
 
 To add a container to the `Pods` specify the container in the `additionalContainers` list in the `Coherence` CRD spec.
+
+See the <<logging/020_logging.adoc,Logging Documentation>> for a bigger example of adding a side-car container.
 
 For example:
 [source,yaml]
@@ -37,4 +44,27 @@ Any configuration that is valid in a Kubernetes
 https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core[Container Spec]
 may be added to an entry in `additionalContainers`
 
-// ToDo: TBD
+
+=== Add an Init-Container
+
+Just like normal containers above, additional init-containers can also be added to the `Pods`.
+To add an init-container to the `Pods` specify the container in the `additionalInitContainers` list in the `Coherence` CRD spec.
+As with containers, for init-containers any configuration that is valid in a Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core[Container Spec]
+may be added to an entry in `additionalInitContainers`
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  additionalInitContainers:
+    - name: setup                   # <1>
+      image: "app-setup:1.0.0"
+----
+<1> An additional init-container named `setup` has been added to the CRD spec with an image named `app-setup:1.0.0`.
+
+

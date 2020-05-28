@@ -345,16 +345,16 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		details.AddArg("-XX:MaxDirectMemorySize=" + direct)
 	}
 	stack := details.Getenv(v1.EnvVarJvmMemoryStack)
-	if direct != "" {
-		details.AddArg("-Xss=" + stack)
+	if stack != "" {
+		details.AddArg("-Xss" + stack)
 	}
 	meta := details.Getenv(v1.EnvVarJvmMemoryMeta)
-	if heap != "" {
+	if meta != "" {
 		details.AddArg("-XX:MetaspaceSize=" + meta)
 		details.AddArg("-XX:MaxMetaspaceSize=" + meta)
 	}
-	track := details.Getenv(v1.EnvVarJvmMemoryNativeTracking)
-	if heap != "" {
+	track := details.GetenvOrDefault(v1.EnvVarJvmMemoryNativeTracking, "summary")
+	if track != "" {
 		details.AddArg("-XX:NativeMemoryTracking=" + track)
 		details.AddArg("-XX:+PrintNMTStatistics")
 	}
@@ -388,16 +388,16 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArg("-XX:+UnlockExperimentalVMOptions")
 	details.AddArg(fmt.Sprintf("-XX:ErrorFile=%s/hs-err-%s-%s.log", jvmDir, member, podUID))
 
-	if details.IsEnvTrue(v1.EnvVarJvmOomHeapDump) {
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmOomHeapDump) {
 		details.AddArg("-XX:+HeapDumpOnOutOfMemoryError")
 	}
 
-	if details.IsEnvTrue(v1.EnvVarJvmOomExit) {
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmOomExit) {
 		details.AddArg("-XX:+ExitOnOutOfMemoryError")
 	}
 
 	// Use JVM container support
-	if details.IsEnvTrue(v1.EnvVarJvmUseContainerLimits) {
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmUseContainerLimits) {
 		details.AddArg("-XX:+UseContainerSupport")
 	}
 

@@ -40,3 +40,5 @@ metadata:
 The operator will use default values for fields that have not been entered, so the above yaml will create
 a Coherence deployment using a `StatefulSet` with a replica count of three, which means that will be three storage
 enabled Coherence `Pods`.
+
+See the <<about/04_coherence_spec.adoc,Coherence CRD spec>> page for details of all the fields in the CRD.
