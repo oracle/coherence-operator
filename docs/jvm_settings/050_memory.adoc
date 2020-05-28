@@ -22,8 +22,8 @@ For example, killing the container, creating a heap dump etc.
 To set the JVM heap size set the `jvm.memory.heapSize` field.
 The value of the field can be any value that can be used with the JVM `-Xmx` and `-Xms` arguments.
 The value of the `jvm.memory.heapSize` field will be used to set both the `-Xms` and `-Xmx` arguments,
-so the heap will be a fixed size. For example setting `jvm.memory.heapSize` to `5g` wil effectively pass
-`-Xms=5g -Xmx=5g` to the JVM.
+so the heap will be a fixed size. For example setting `jvm.memory.heapSize` to `5g` will effectively pass
+`-Xms5g -Xmx5g` to the JVM.
 
 [source,yaml]
 ----
@@ -42,4 +42,124 @@ spec:
 
 === Direct Memory Size (NIO Memory)
 
-// ToDo: TBD
+Direct memory size is used to limit on memory that can be reserved for all Direct Byte Buffers.
+If a value is set for this option, the sum of all Direct Byte Buffer sizes cannot exceed the limit.
+After the limit is reached, a new Direct Byte Buffer can be allocated only when enough old buffers are freed to provide
+enough space to allocate the new buffer.
+
+By default, the VM limits the amount of heap memory used for Direct Byte Buffers to approximately 85% of the maximum heap size.
+
+To set a value for the direct memory size use the `jvm.memory.directMemorySize` field. This wil set the value of the
+`-XX:MaxDirectMemorySize` JVM option.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      directMemorySize: 10g  # <1>
+----
+<1> The direct memory size is set to `10g` which will pass `-XX:MaxDirectMemorySize=10g` to the JVM.
+
+
+=== Metaspace Size
+
+Metaspace is memory the VM uses to store class metadata.
+Class metadata are the runtime representation of java classes within a JVM process - basically any information the JVM
+needs to work with a Java class. That includes, but is not limited to, runtime representation of data from the JVM
+class file format.
+
+To set the size of the metaspace use the `jvm.memory.metaspaceSize` field in the `Coherence` CRD.
+Setting this field sets both the `-XX:MetaspaceSize` and `-XX:MaxMetaspaceSize` JVM options to this value giving a
+fixed size metaspace.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      metaspaceSize: 100m  # <1>
+----
+<1> Set the metaspace size to `100m` which will pass `-XX:MetaspaceSize=100m -XX:MaxMetaspaceSize=100m`
+to the JVM.
+
+
+=== Stack Size
+
+Thread stacks are memory areas allocated for each Java thread for their internal use.
+This is where the thread stores its local execution state.
+The current default size for a linux JVM is 1MB.
+
+To set the stack size use the `jvm.memory.stackSize` field in the `Coherence` CRD.
+Setting this value sets the `-Xss` JVM option.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      stackSize: 500k  # <1>
+----
+<1> The stack size will be set to `500k`, passing `-Xss500k` to the JVM.
+
+
+=== Out Of Memory Behaviour
+
+The `Coherence` CRD allows two optional behaviours to be specified if the JVM throws an out of memory error.
+
+The `jvm.memory.onOutOfMemory.heapDump` is a bool field that when set to true will pass the
+`-XX:+HeapDumpOnOutOfMemoryError` option to the JVM. The default value of the field when not specified is `true`,
+hence to turn off heap dumps on OOM set the specifically field to be `false`.
+
+The `jvm.memory.onOutOfMemory.exit` is a bool field that when set to true will pass the
+`-XX:+ExitOnOutOfMemoryError` option to the JVM. The default value of the field when not specified is `true`,
+hence to turn off killing the JVM on OOM set the specifically field to be `false`.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      onOutOfMemory:
+        heapDump: true   # <1>
+        exit: true       # <2>
+----
+<1> The JVM will create a heap dump on OOM
+<2> The JVM will exit on OOM
+
+
+=== Native Memory Tracking
+
+The Native Memory Tracking (NMT) is a Java VM feature that tracks internal memory usage for a JVM.
+The `Coherence` CRD allows native memory tracking to be configured using the `jvm.memory.nativeMemoryTracking` field.
+Setting this field sets the `-XX:NativeMemoryTracking` JVM option. There are three valid values, `off`, `summary` or `detail`.
+If not specified the default value used by the operator is `summary`
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      nativeMemoryTracking: detail # <1>
+----
+<1> Native memory tracking is set to `detail` which will pass the `-XX:NativeMemoryTracking=detail` option to the JVM.

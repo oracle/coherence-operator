@@ -37,7 +37,7 @@ func TestMinimalDeployment(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(Equal(expectedArgs))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
@@ -105,6 +105,10 @@ func GetMinimalExpectedArgs() []string {
 		"-XX:+UnlockExperimentalVMOptions",
 		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
 		"-XX:+UseContainerSupport",
+		"-XX:+HeapDumpOnOutOfMemoryError",
+		"-XX:+ExitOnOutOfMemoryError",
+		"-XX:NativeMemoryTracking=summary",
+		"-XX:+PrintNMTStatistics",
 		"com.oracle.coherence.k8s.Main",
 		"com.tangosol.net.DefaultCacheServer",
 	}

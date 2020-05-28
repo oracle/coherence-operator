@@ -10,4 +10,22 @@
 
 == Respect Container Resource Limits
 
-// ToDo: TBD
+The JVM can be configured to respect container limits set, for example cpu and memory limits.
+This can be important if container limits have been set for the container in the `resources` section as a JVM that
+does not respect these limits can cause the `Pod` to be killed.
+This is done by adding the `-XX:+UseContainerSupport` JVM option.
+It is possible to control this using the `jvm.useContainerLimits` field in the `Coherence` CRD spec.
+If the field is not set, the operator adds the `-XX:+UseContainerSupport` option by default.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    useContainerLimits: false   # <1>
+----
+<1> The `useContainerLimits` field is set to false, so the `-XX:+UseContainerSupport` will not be passed to the JVM.
