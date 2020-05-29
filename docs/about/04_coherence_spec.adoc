@@ -20,13 +20,11 @@ A reference guide to the Coherence Operator CRD types.
 
 == Coherence Operator API Docs
 This is a reference for the Coherence Operator API types.
+These are all the types and fields that are used in the Coherence CRD. 
 
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.
 
 === Table of Contents
-* <<Coherence,Coherence>>
-* <<CoherenceList,CoherenceList>>
-* <<CoherenceResourceStatus,CoherenceResourceStatus>>
 * <<CoherenceResourceSpec,CoherenceResourceSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CoherenceSpec,CoherenceSpec>>
@@ -58,54 +56,9 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<ServiceSpec,ServiceSpec>>
 * <<StartQuorum,StartQuorum>>
 * <<StartQuorumStatus,StartQuorumStatus>>
-
-=== Coherence
-
-Coherence is the Schema for the Coherence API.
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#objectmeta-v1-meta[metav1.ObjectMeta] | false
-m| spec | &#160; m| <<CoherenceResourceSpec,CoherenceResourceSpec>> | false
-m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== CoherenceList
-
-CoherenceList contains a list of Coherence resources.
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#listmeta-v1-meta[metav1.ListMeta] | false
-m| items | &#160; m| []<<Coherence,Coherence>> | true
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== CoherenceResourceStatus
-
-CoherenceResourceStatus defines the observed state of Coherence resource.
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| phase | The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod's status. There are eight possible phase values: +
- +
-Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment's start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources. m| status.ConditionType | false
-m| coherenceCluster | The name of the Coherence cluster that this deployment is part of. m| string | false
-m| replicas | Replicas is the desired number of members in the Coherence deployment represented by the Coherence resource. m| int32 | false
-m| currentReplicas | CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource. m| int32 | false
-m| readyReplicas | ReadyReplicas is the number of number of members in the Coherence deployment represented by the Coherence resource that are in the ready state. m| int32 | false
-m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
-m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
-m| conditions | The status conditions. m| status.Conditions | false
-|===
-
-<<Table of Contents,Back to TOC>>
+* <<Coherence,Coherence>>
+* <<CoherenceList,CoherenceList>>
+* <<CoherenceResourceStatus,CoherenceResourceStatus>>
 
 === CoherenceResourceSpec
 
@@ -136,7 +89,7 @@ annotations: +
 m| initContainers | List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
 m| sideCars | List of additional side-car containers to add to the deployment's Pod. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
 m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
+see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
 m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
 see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 m| volumes | Volumes defines extra volume mappings that will be added to the Coherence Pod. +
@@ -240,7 +193,9 @@ A value of 0 indicates that tracing spans should only be collected if they are a
  +
 A value of -1 disables tracing completely. +
  +
-The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. Values entered less than zero will be treated as -1, values entered greater than 1 will be treated as 1. m| &#42;resource.Quantity | false
+The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. Values entered less than zero will be treated as -1, values entered greater than 1 will be treated as 1. +
+ +
+Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example: A value of 0.5 is represented in json as a Quantity of \"500m\" for 500 millis. A value of 0.0005 is represented in json as a Quantity of \"500u\" for 500 micros. m| &#42;resource.Quantity | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -248,7 +203,7 @@ The Coherence default is -1 if not overridden. For values other than -1, numbers
 === ConfigMapVolumeSpec
 
 Represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes>>
+see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -706,6 +661,54 @@ m| deployment | The name of deployment that this deployment depends on. m| strin
 m| namespace | The namespace that the deployment that this deployment depends on is installed into. Default to the same namespace as this deployment m| string | false
 m| podCount | The number of the Pods that should have been started before this deployments will be started, defaults to all Pods for the deployment. m| int32 | false
 m| ready | Whether this quorum's condition has been met m| bool | true
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== Coherence
+
+Coherence is the Schema for the Coherence API.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#objectmeta-v1-meta[metav1.ObjectMeta] | false
+m| spec | &#160; m| <<CoherenceResourceSpec,CoherenceResourceSpec>> | false
+m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CoherenceList
+
+CoherenceList contains a list of Coherence resources.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| metadata | &#160; m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#listmeta-v1-meta[metav1.ListMeta] | false
+m| items | &#160; m| []<<Coherence,Coherence>> | true
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CoherenceResourceStatus
+
+CoherenceResourceStatus defines the observed state of Coherence resource.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| phase | The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod's status. There are eight possible phase values: +
+ +
+Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment's start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources. m| status.ConditionType | false
+m| coherenceCluster | The name of the Coherence cluster that this deployment is part of. m| string | false
+m| replicas | Replicas is the desired number of members in the Coherence deployment represented by the Coherence resource. m| int32 | false
+m| currentReplicas | CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource. m| int32 | false
+m| readyReplicas | ReadyReplicas is the number of number of members in the Coherence deployment represented by the Coherence resource that are in the ready state. m| int32 | false
+m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
+m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
+m| conditions | The status conditions. m| status.Conditions | false
 |===
 
 <<Table of Contents,Back to TOC>>

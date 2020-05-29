@@ -790,9 +790,9 @@ generate:
 .PHONY: api-doc-gen
 api-doc-gen:
 	go run ./cmd/docgen/ \
-		pkg/apis/coherence/v1/coherenceresource_types.go \
 		pkg/apis/coherence/v1/coherenceresourcespec_types.go \
 		pkg/apis/coherence/v1/coherence_types.go \
+		pkg/apis/coherence/v1/coherenceresource_types.go \
 		> docs/about/04_coherence_spec.adoc
 
 # ---------------------------------------------------------------------------

@@ -35,7 +35,7 @@ Default classpath settings and options for setting a custom classpath.
 .JVM Arguments
 [link=jvm_settings/030_jvm_args.adoc]
 --
-Adding arbitrary JVM arguments.
+Adding arbitrary JVM arguments and system properties.
 --
 
 [CARD]

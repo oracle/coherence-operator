@@ -13,15 +13,39 @@
 There are a number of miscellaneous configuration settings that can be added to containers and `Pods`
 controlled by the Coherence Operator.
 
+[PILLARS]
+====
+[CARD]
+.Environment Variables
+[link=misc_pod_settings/020_environment.adoc]
+--
+Adding environment variables to the Coherence container.
+--
+
+[CARD]
+.Labels
+[link=misc_pod_settings/030_labels.adoc.adoc]
+--
+Adding Pod labels.
+--
+
+[CARD]
+.Annotations
+[link=misc_pod_settings/040_annotations.adoc]
+--
+Adding Pod annotations.
+--
+====
+
 === Containers
 
 [PILLARS]
 ====
 [CARD]
 .Add Containers
-[link=misc_pod_settings/050_add_containers.adoc]
+[link=misc_pod_settings/080_add_containers.adoc]
 --
-Adding additional containers and init-containers to Pods.
+Adding side-car containers and init-containers.
 --
 ====
 
@@ -31,42 +55,42 @@ Adding additional containers and init-containers to Pods.
 ====
 [CARD]
 .Add Volumes
-[link=misc_pod_settings/040_add_volumes.adoc]
+[link=misc_pod_settings/070_add_volumes.adoc]
 --
-Adding additional Volumes and volume mounts.
+Adding Volumes and volume mounts.
 --
 
 [CARD]
 .Add ConfigMap Volumes
-[link=misc_pod_settings/020_configmap_volumes.adoc]
+[link=misc_pod_settings/050_configmap_volumes.adoc]
 --
-Adding additional Volumes and volume mounts using ConfigMaps.
+Adding Volumes and volume mounts using ConfigMaps.
 --
 
 [CARD]
 .Add Secret Volumes
-[link=misc_pod_settings/030_secret_volumes.adoc]
+[link=misc_pod_settings/060_secret_volumes.adoc]
 --
-Adding additional Volumes and volume mounts using Secrets.
+Adding Volumes and volume mounts using Secrets.
 --
 ====
 
-=== Scheduling
+=== Pod Scheduling
 
 [PILLARS]
 ====
 [CARD]
 .Pod Scheduling
-[link=misc_pod_settings/060_pod_scheduling.adoc]
+[link=misc_pod_settings/090_pod_scheduling.adoc]
 --
 Taints, Tolerations and node selectors.
 --
 
 [CARD]
 .Resources
-[link=misc_pod_settings/070_resources.adoc]
+[link=misc_pod_settings/100_resources.adoc]
 --
-Configuring resource constraints.
+Configuring Coherence container resource constraints.
 --
 ====
 

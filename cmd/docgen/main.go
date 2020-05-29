@@ -42,6 +42,7 @@ A reference guide to the Coherence Operator CRD types.
 
 == Coherence Operator API Docs
 This is a reference for the Coherence Operator API types.
+These are all the types and fields that are used in the Coherence CRD. 
 
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.`
 
