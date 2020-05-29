@@ -11,7 +11,7 @@
 == Adding Arbitrary JVM Arguments
 
 The `Coherence` CRD allows any arbitrary JVM arguments to be passed to the JVM in the `coherence` container
-by using the `jvm.args` field of rthe CRD spec.
+by using the `jvm.args` field of the CRD spec.
 Any valid system property or JVM argument can be added to the `jvm.args` list.
 
 For example:
@@ -57,3 +57,37 @@ spec:
 
 When duplicate system properties are present on a command line the last one wins so in the example above the cache
 configuration used would be  `test-config.xml`.
+
+
+=== Default Arguments
+
+The Coherence Operator will add the following JVM arguments by default:
+
+[source]
+----
+-Dcoherence.cluster=<cluster-name>
+-Dcoherence.role=<role>
+-Dcoherence.wka=<deployment-name>-wka
+-Dcoherence.cacheconfig=coherence-cache-config.xml
+-Dcoherence.health.port=6676
+-Dcoherence.management.http.port=30000
+-Dcoherence.metrics.http.port=9612
+-Dcoherence.distributed.persistence-mode=on-demand
+-Dcoherence.override=k8s-coherence-override.xml
+-Dcoherence.ttl=0
+
+-XX:+UseG1GC
+-XX:+PrintCommandLineFlags
+-XX:+PrintFlagsFinal
+-XshowSettings:all
+-XX:+UseContainerSupport
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+ExitOnOutOfMemoryError
+-XX:HeapDumpPath=/jvm/<member>/<pod-uid>/heap-dumps/<member>-<pod-uid>.hprof
+-XX:ErrorFile=/jvm/<member>/<pod-uid>/hs-err-<member>-<pod-uid>.log
+-XX:+UnlockDiagnosticVMOptions
+-XX:NativeMemoryTracking=summary
+-XX:+PrintNMTStatistics
+----
+
+Some of the arguments and system properties above can be overridden or changed by setting values in the `Coherence` CDR spec.

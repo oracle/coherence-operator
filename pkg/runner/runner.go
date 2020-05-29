@@ -11,6 +11,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
 	"os"
 	"os/exec"
@@ -124,6 +125,18 @@ func server(details *RunDetails) {
 	// Configure whether this member is storage enabled
 	details.AddArgFromEnvVar(v1.EnvVarCohStorage, "-Dcoherence.distributed.localstorage")
 
+	// Configure Coherence Tracing
+	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
+	if ratio != "" {
+		q, err := resource.ParseQuantity(ratio)
+		if err == nil {
+			d := q.AsDec()
+			details.AddArg("-Dcoherence.tracing.ratio=" + d.String())
+		} else {
+			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
+		}
+	}
+
 	// Configure whether Coherence management is enabled
 	hasMgmt := details.IsEnvTrue(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
 	fmt.Printf("INFO: Coherence Management over REST (%s%s=%t)\n", v1.EnvVarCohMgmtPrefix, v1.EnvVarCohEnabledSuffix, hasMgmt)
@@ -233,6 +246,8 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
+
+	details.AddArg("-XX:+UnlockDiagnosticVMOptions")
 
 	// Add the Operator Utils jar to the classpath
 	details.AddClasspath(details.UtilsDir + "/lib/coherence-utils.jar")
@@ -384,8 +399,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	details.AddArg("-Dcoherence.ttl=0")
 
-	details.AddArg("-XX:+UnlockDiagnosticVMOptions")
-	details.AddArg("-XX:+UnlockExperimentalVMOptions")
 	details.AddArg(fmt.Sprintf("-XX:ErrorFile=%s/hs-err-%s-%s.log", jvmDir, member, podUID))
 
 	if details.IsEnvTrueOrBlank(v1.EnvVarJvmOomHeapDump) {

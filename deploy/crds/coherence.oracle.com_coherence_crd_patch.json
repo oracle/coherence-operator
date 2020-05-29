@@ -22,12 +22,12 @@
     },
     {
         "op": "add",
-        "path": "/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/additionalInitContainers/items/properties/ports/items/properties/protocol/default",
+        "path": "/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/initContainers/items/properties/ports/items/properties/protocol/default",
         "value": "TCP"
     },
     {
         "op": "add",
-        "path": "/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/additionalContainers/items/properties/ports/items/properties/protocol/default",
+        "path": "/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/sideCars/items/properties/ports/items/properties/protocol/default",
         "value": "TCP"
     }
 ]

@@ -22,6 +22,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.ApplicationSpec":         schema_pkg_apis_coherence_v1_ApplicationSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceResourceSpec":   schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceTracingSpec":    schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref),
 		"./pkg/apis/coherence/v1.ConfigMapVolumeSpec":     schema_pkg_apis_coherence_v1_ConfigMapVolumeSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
@@ -281,7 +282,7 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"additionalInitContainers": {
+					"initContainers": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
 								"x-kubernetes-list-map-keys": []interface{}{
@@ -291,7 +292,7 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "List of additional initialization containers to add to the deployment's Pod. Init containers cannot be added or removed. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
+							Description: "List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -302,7 +303,7 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"additionalContainers": {
+					"sideCars": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
 								"x-kubernetes-list-map-keys": []interface{}{
@@ -312,7 +313,7 @@ func schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref common.ReferenceCall
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "List of additional containers to add to the deployment's Pod. Containers cannot be added or removed.",
+							Description: "List of additional side-car containers to add to the deployment's Pod.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -606,6 +607,12 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Ref:         ref("./pkg/apis/coherence/v1.PortSpecWithSSL"),
 						},
 					},
+					"tracing": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tracing is used to configure Coherence distributed tracing functionality.",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceTracingSpec"),
+						},
+					},
 					"excludeFromWKA": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Exclude members of this deployment from being part of the cluster's WKA list.",
@@ -624,7 +631,28 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.PersistenceSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
+			"./pkg/apis/coherence/v1.CoherenceTracingSpec", "./pkg/apis/coherence/v1.PersistenceSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "CoherenceTracingSpec configures Coherence tracing.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ratio": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected. For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 tracing spans being collected.\n\nA value of 0 indicates that tracing spans should only be collected if they are already in the context of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own, and it is up to the application to start an outer tracing span, from which Coherence will then collect inner tracing spans.\n\nA value of -1 disables tracing completely.\n\nThe Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. Values entered less than zero will be treated as -1, values entered greater than 1 will be treated as 1.",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

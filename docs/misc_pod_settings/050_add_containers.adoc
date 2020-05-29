@@ -21,7 +21,7 @@ Any additional volumes and volume mounts added to the `Coherence` resource spec 
 
 === Add a Container
 
-To add a container to the `Pods` specify the container in the `additionalContainers` list in the `Coherence` CRD spec.
+To add a container to the `Pods` specify the container in the `sideCars` list in the `Coherence` CRD spec.
 
 See the <<logging/020_logging.adoc,Logging Documentation>> for a bigger example of adding a side-car container.
 
@@ -33,25 +33,25 @@ kind: Coherence
 metadata:
   name: storage
 spec:
-  additionalContainers:
+  sideCars:
     - name: fluentd                   # <1>
       image: "fluent/fluentd:v1.3.3"
 ----
 <1> An additional container named `fluentd` has been added to the CRD spec.
 
-The containers will added to the `additionalContainers` will be added to the `Pods` exactly as configured.
+The containers will added to the `sideCars` will be added to the `Pods` exactly as configured.
 Any configuration that is valid in a Kubernetes
 https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core[Container Spec]
-may be added to an entry in `additionalContainers`
+may be added to an entry in `sideCars`
 
 
 === Add an Init-Container
 
 Just like normal containers above, additional init-containers can also be added to the `Pods`.
-To add an init-container to the `Pods` specify the container in the `additionalInitContainers` list in the `Coherence` CRD spec.
+To add an init-container to the `Pods` specify the container in the `initContainers` list in the `Coherence` CRD spec.
 As with containers, for init-containers any configuration that is valid in a Kubernetes
 https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core[Container Spec]
-may be added to an entry in `additionalInitContainers`
+may be added to an entry in `initContainers`
 
 For example:
 [source,yaml]
@@ -61,7 +61,7 @@ kind: Coherence
 metadata:
   name: storage
 spec:
-  additionalInitContainers:
+  initContainers:
     - name: setup                   # <1>
       image: "app-setup:1.0.0"
 ----

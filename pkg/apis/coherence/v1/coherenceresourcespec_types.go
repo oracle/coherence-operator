@@ -105,16 +105,14 @@ type CoherenceResourceSpec struct {
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// List of additional initialization containers to add to the deployment's Pod.
-	// Init containers cannot be added or removed.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 	// +listType=map
 	// +listMapKey=name
-	AdditionalInitContainers []corev1.Container `json:"additionalInitContainers,omitempty"`
-	// List of additional containers to add to the deployment's Pod.
-	// Containers cannot be added or removed.
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+	// List of additional side-car containers to add to the deployment's Pod.
 	// +listType=map
 	// +listMapKey=name
-	AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
+	SideCars []corev1.Container `json:"sideCars,omitempty"`
 	// A list of ConfigMaps to add as volumes.
 	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
 	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
@@ -567,7 +565,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 	in.Coherence.UpdateStatefulSet(deployment, &sts)
 
 	// Add any additional init-containers and any additional containers
-	in.ProcessAdditionalContainers(deployment, &sts)
+	in.ProcesssideCars(deployment, &sts)
 
 	// Add any ConfigMap Volumes
 	for _, cmv := range in.ConfigMapVolumes {
@@ -871,17 +869,17 @@ func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 // Add any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
-func (in *CoherenceResourceSpec) ProcessAdditionalContainers(deployment *Coherence, sts *appsv1.StatefulSet) {
+func (in *CoherenceResourceSpec) ProcesssideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
 	}
 
-	for _, c := range in.AdditionalInitContainers {
+	for _, c := range in.InitContainers {
 		in.processAdditionalContainer(deployment, &c)
 		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, c)
 	}
 
-	for _, c := range in.AdditionalContainers {
+	for _, c := range in.SideCars {
 		in.processAdditionalContainer(deployment, &c)
 		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, c)
 	}

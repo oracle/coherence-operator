@@ -88,7 +88,7 @@ metadata:
 spec:
   coherence:
     logLevel: 9                                                                        # <1>
-  additionalContainers:
+  sideCars:
     - name: fluentd                                                                    # <2>
       image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
       args:
@@ -103,7 +103,7 @@ spec:
       subPath: "fluentd-coherence.conf"
 ----
 <1> The Coherence log level has been set to `9` to give more verbose logs.
-<2> The `fluentd` container has been added to the `additionalContainers` list. This will create another container
+<2> The `fluentd` container has been added to the `sideCars` list. This will create another container
 in the `Pod` exactly as configured.
 <3> The `FLUENTD_CONF` environment variable has been set to the name of the configuration file that Fluentd should use.
 The standard Fluentd behaviour is to locate this file in the `/fluentd/etc/` directory.
