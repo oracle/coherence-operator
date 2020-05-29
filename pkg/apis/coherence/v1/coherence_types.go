@@ -230,9 +230,11 @@ type CoherenceSpec struct {
 
 // IsWKAMember returns true if this deployment is a WKA list member.
 func (in *CoherenceSpec) IsWKAMember() bool {
-	if in != nil && in.ExcludeFromWKA != nil && *in.ExcludeFromWKA {
-		return false
-	}
+	return in == nil || in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA
+}
+
+// RequiresWKAService returns true if this deployment requires a WKA Service.
+func (in *CoherenceSpec) RequiresWKAService() bool {
 	if in != nil && in.WKA != nil && in.WKA.Deployment != "" {
 		return false
 	}

@@ -77,6 +77,118 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
 }
 
+func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	deployment := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "operator-test",
+		},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				ExcludeFromWKA: pointer.BoolPtr(true),
+			},
+		},
+	}
+
+	resources, mgr := Reconcile(t, deployment)
+
+	// Verify the expected k8s events
+	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
+	AssertNoRemainingEvents(t, mgr)
+
+	// Should have created the correct number of resources
+	g.Expect(len(resources)).To(Equal(6))
+
+	// Resource 0 = Deployment
+	c, err := toCoherence(mgr, resources[0])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
+
+	// Resource 1 = Operator config Secret
+	opCfg, err := toSecret(mgr, resources[1])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(opCfg.GetName()).To(Equal(coh.OperatorConfigName))
+
+	// Resource 2 = deployment storage Secret
+	store, err := toSecret(mgr, resources[2])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(store.GetName()).To(Equal(deployment.Name))
+
+	// Resource 3 = WKA Service
+	wka, err := toService(mgr, resources[3])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(wka.GetName()).To(Equal(deployment.GetWkaServiceName()))
+
+	// Resource 4 = Service for StatefulSet
+	ss, err := toService(mgr, resources[4])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(ss.GetName()).To(Equal(deployment.Name))
+
+	// Resource 5 = StatefulSet
+	sts, err := toStatefulSet(mgr, resources[5])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(sts.GetName()).To(Equal(deployment.Name))
+	// StatefulSet should have default replica count
+	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
+	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+}
+
+func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	deployment := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "operator-test",
+		},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				WKA: &coh.CoherenceWKASpec{
+					Deployment: "foo",
+					Namespace:  "",
+				},
+			},
+		},
+	}
+
+	resources, mgr := Reconcile(t, deployment)
+
+	// Verify the expected k8s events
+	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
+	AssertNoRemainingEvents(t, mgr)
+
+	// Should have created the correct number of resources
+	g.Expect(len(resources)).To(Equal(5))
+
+	// Resource 0 = Deployment
+	c, err := toCoherence(mgr, resources[0])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
+
+	// Resource 1 = Operator config Secret
+	opCfg, err := toSecret(mgr, resources[1])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(opCfg.GetName()).To(Equal(coh.OperatorConfigName))
+
+	// Resource 2 = deployment storage Secret
+	store, err := toSecret(mgr, resources[2])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(store.GetName()).To(Equal(deployment.Name))
+
+	// Resource 3 = Service for StatefulSet
+	ss, err := toService(mgr, resources[3])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(ss.GetName()).To(Equal(deployment.Name))
+
+	// Resource 4 = StatefulSet
+	sts, err := toStatefulSet(mgr, resources[4])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(sts.GetName()).To(Equal(deployment.Name))
+	// StatefulSet should have default replica count
+	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
+	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+}
+
 func TestCreateResourcesForDeploymentWithReplicaCount(t *testing.T) {
 	g := NewGomegaWithT(t)
 
