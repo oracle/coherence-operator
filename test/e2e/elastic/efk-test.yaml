@@ -11,7 +11,7 @@ spec:
     - name: "efk-config"
       mountPath: "/fluentd/etc/fluentd-coherence.conf"
       subPath: "fluentd-coherence.conf"
-  additionalContainers:
+  sideCars:
     - name: fluentd
       image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
       args:

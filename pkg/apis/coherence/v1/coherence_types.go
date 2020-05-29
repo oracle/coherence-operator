@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -206,6 +207,9 @@ type CoherenceSpec struct {
 	// +coh:doc=metrics/010_overview.adoc,Metrics
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
+	// Tracing is used to configure Coherence distributed tracing functionality.
+	// +optional
+	Tracing *CoherenceTracingSpec `json:"tracing,omitempty"`
 	// Exclude members of this deployment from being part of the cluster's WKA list.
 	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
 	// +optional
@@ -277,6 +281,10 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSkipVersionCheck, Value: BoolPtrToString(in.SkipVersionCheck)})
 	}
 
+	if in.Tracing != nil && in.Tracing.Ratio != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: in.Tracing.Ratio.String()})
+	}
+
 	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
 	c.Env = append(c.Env, in.Management.CreateEnvVars(EnvVarCohMgmtPrefix, VolumeMountPathManagementCerts, DefaultManagementPort)...)
 
@@ -313,6 +321,35 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	default:
 		return *in.Management.Port
 	}
+}
+
+// ----- CoherenceTracingSpec struct ----------------------------------------
+
+// CoherenceTracingSpec configures Coherence tracing.
+// +k8s:openapi-gen=true
+type CoherenceTracingSpec struct {
+	// Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected.
+	// For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1
+	// will result in roughly 1 out of every 10 tracing spans being collected.
+	//
+	// A value of 0 indicates that tracing spans should only be collected if they are already in the context
+	// of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own,
+	// and it is up to the application to start an outer tracing span, from which Coherence will then collect
+	// inner tracing spans.
+	//
+	// A value of -1 disables tracing completely.
+	//
+	// The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are
+	// acceptable. Values entered less than zero will be treated as -1, values entered greater than 1 will
+	// be treated as 1.
+	//
+	// Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and
+	// may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example:
+	// A value of 0.5 is represented in json as a Quantity of "500m" for 500 millis.
+	// A value of 0.0005 is represented in json as a Quantity of "500u" for 500 micros.
+	//
+	// +optional
+	Ratio *resource.Quantity `json:"ratio,omitempty"`
 }
 
 // ----- JVMSpec struct -----------------------------------------------------

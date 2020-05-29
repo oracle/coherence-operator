@@ -102,7 +102,6 @@ func GetMinimalExpectedArgs() []string {
 		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",
 		"-XX:+UnlockDiagnosticVMOptions",
-		"-XX:+UnlockExperimentalVMOptions",
 		"-XX:ErrorFile=/jvm/unknown/unknown/hs-err-unknown-unknown.log",
 		"-XX:+UseContainerSupport",
 		"-XX:+HeapDumpOnOutOfMemoryError",

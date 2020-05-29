@@ -15,7 +15,7 @@ import (
 func TestCreateStatefulSetWithContainersEmpty(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
-		AdditionalContainers: []corev1.Container{},
+		SideCars: []corev1.Container{},
 	}
 
 	// Create the test deployment
@@ -33,7 +33,7 @@ func TestCreateStatefulSetWithOneExtraContainer(t *testing.T) {
 		Image: "image-one:1.0",
 	}
 	spec := coh.CoherenceResourceSpec{
-		AdditionalContainers: []corev1.Container{c},
+		SideCars: []corev1.Container{c},
 	}
 
 	// Create the test deployment
@@ -66,7 +66,7 @@ func TestCreateStatefulSetWithOneExtraContainerWithOverriddenEnvVar(t *testing.T
 		},
 	}
 	spec := coh.CoherenceResourceSpec{
-		AdditionalContainers: []corev1.Container{c},
+		SideCars: []corev1.Container{c},
 	}
 
 	// Create the test deployment
@@ -106,7 +106,7 @@ func TestCreateStatefulSetWithTwoExtraContainers(t *testing.T) {
 		Image: "image-two:1.0",
 	}
 	spec := coh.CoherenceResourceSpec{
-		AdditionalContainers: []corev1.Container{c1, c2},
+		SideCars: []corev1.Container{c1, c2},
 	}
 
 	// Create the test deployment
@@ -138,7 +138,7 @@ func TestCreateStatefulSetWithTwoExtraContainers(t *testing.T) {
 func TestCreateStatefulSetWithInitContainersEmpty(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
-		AdditionalInitContainers: []corev1.Container{},
+		InitContainers: []corev1.Container{},
 	}
 
 	// Create the test deployment
@@ -156,7 +156,7 @@ func TestCreateStatefulSetWithOneExtraInitContainer(t *testing.T) {
 		Image: "image-one:1.0",
 	}
 	spec := coh.CoherenceResourceSpec{
-		AdditionalInitContainers: []corev1.Container{c},
+		InitContainers: []corev1.Container{c},
 	}
 
 	// Create the test deployment
@@ -188,7 +188,7 @@ func TestCreateStatefulSetWithTwoExtraInitContainers(t *testing.T) {
 		Image: "image-two:1.0",
 	}
 	spec := coh.CoherenceResourceSpec{
-		AdditionalInitContainers: []corev1.Container{c1, c2},
+		InitContainers: []corev1.Container{c1, c2},
 	}
 
 	// Create the test deployment

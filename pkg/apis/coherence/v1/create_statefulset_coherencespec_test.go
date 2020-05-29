@@ -9,6 +9,7 @@ package v1_test
 import (
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
 )
 
@@ -180,6 +181,27 @@ func TestCreateStatefulSetWithCoherenceSpecWithExcludeFromWKAFalse(t *testing.T)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "true"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithTracingRatio(t *testing.T) {
+
+	ratio := resource.MustParse("0.0005")
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			Tracing: &coh.CoherenceTracingSpec{
+				Ratio: &ratio,
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

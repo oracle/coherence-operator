@@ -9,6 +9,7 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"testing"
@@ -197,6 +198,34 @@ func TestCoherenceLogLevel(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.log.level="),
 		"-Dcoherence.log.level=9")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceTracingRatio(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ratio := resource.MustParse("0.01234")
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Tracing: &coh.CoherenceTracingSpec{Ratio: &ratio},
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.tracing.ratio=0.012340")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
