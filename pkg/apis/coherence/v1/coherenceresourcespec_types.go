@@ -353,7 +353,7 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, flags *
 	}
 
 	// Create the headless WKA Service if this deployment is a WKA member
-	if in.Coherence.IsWKAMember() {
+	if in.Coherence.RequiresWKAService() {
 		res = append(res, in.CreateWKAService(d))
 	}
 

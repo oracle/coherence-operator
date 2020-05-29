@@ -10,6 +10,23 @@
 
 == Scale Coherence Deployments
 
+The Coherence Operator provides the ability to safely scale up and down a `Coherence` deployment.
+A `Coherence` deployment is backed by a `StatefulSet`, which can easily be scaled using existing Kubernetes features.
+The problem with directly scaling down the `StatefulSet` is that Kubernetes will immediately kill the required number
+of `Pods`. This is obviously very bad for Coherence as killing multiple storage enabled members would almost certainly
+cause data loss.
+
+The Coherence Operator supports scaling by applying the scaling update directly to `Coherence` deployment rather than
+to the underlying `StatefulSet`. There are two methods to scale a `Coherence` deployment:
+
+* Update the `replicas` field in the `Coherence` CRD spec.
+* Use the `kubectl scale` command 
+
+When either of these methods is used the Operator will detect that a change to the size of the deployment is required
+and ensure that the change will be applied safely.
+
+
+
 // ToDo: TBD
 
 
