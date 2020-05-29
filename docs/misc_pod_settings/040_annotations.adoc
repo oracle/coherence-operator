@@ -1,0 +1,32 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Pod Annotations
+
+== Pod Annotations
+
+Additional annotations can be added to the `Pods` managed by the Operator.
+Annotations should be added to the `annotations` map in the `Coherence` CRD spec.
+The entries in the `annotations` map should confirm to the recommendations and rules in the Kubernetes
+https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Annotations] documentation.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  annotations:                        # <1>
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9612"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+----
+<1> A number of Prometheus annotations will be added to this `Coherence` deployment's `Pods`
+

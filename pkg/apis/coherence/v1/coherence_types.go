@@ -1840,7 +1840,7 @@ type StartQuorumStatus struct {
 
 // Represents a ConfigMap that will be added to the deployment's Pods as an
 // additional Volume and as a VolumeMount in the containers.
-// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
+// +coh:doc=misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
 // +k8s:openapi-gen=true
 type ConfigMapVolumeSpec struct {
 	// The name of the ConfigMap to mount.

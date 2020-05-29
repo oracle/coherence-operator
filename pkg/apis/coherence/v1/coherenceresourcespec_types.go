@@ -116,7 +116,7 @@ type CoherenceResourceSpec struct {
 	// A list of ConfigMaps to add as volumes.
 	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
 	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
-	// +coh:doc=misc_pod_settings/020_configmap_volumes.adoc,Add ConfigMap Volumes
+	// +coh:doc=misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
 	// +listType=map
 	// +listMapKey=name
 	ConfigMapVolumes []ConfigMapVolumeSpec `json:"configMapVolumes,omitempty"`

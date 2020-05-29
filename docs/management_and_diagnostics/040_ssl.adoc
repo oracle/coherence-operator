@@ -62,5 +62,5 @@ and password files from.
 The various files and keystores referred to in the configuration above can be any location accessible in the image
 used by the `coherence` container in the deployment's `Pods`. Typically, for things such as SSL keys and certs,
 these would be provided by obtained from `Secrets` loaded as additional `Pod` `Volumes`.
-See <<misc_pod_settings/030_secret_volumes.adoc,Add Secrets Volumes>> for the documentation on how to specify
+See <<misc_pod_settings/060_secret_volumes.adoc,Add Secrets Volumes>> for the documentation on how to specify
 secrets as additional volumes.

@@ -3830,7 +3830,13 @@ spec:
                           \n The Coherence default is -1 if not overridden. For values
                           other than -1, numbers between 0 and 1 are acceptable. Values
                           entered less than zero will be treated as -1, values entered
-                          greater than 1 will be treated as 1."
+                          greater than 1 will be treated as 1. \n Due to decimal values
+                          not being allowed in a CRD field the ratio value is held
+                          as a resource Quantity type and may be entered in yaml or
+                          json as a valid Quantity string as well as a decimal string.
+                          For example: A value of 0.5 is represented in json as a
+                          Quantity of \"500m\" for 500 millis. A value of 0.0005 is
+                          represented in json as a Quantity of \"500u\" for 500 micros."
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                     type: object

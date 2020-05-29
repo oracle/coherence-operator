@@ -1,0 +1,36 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Environment Variables
+
+== Environment Variables
+
+Environment variables can be added to the Coherence container in the `Pods` managed by the Operator.
+Additional variables should be added to the `env` list in the `Coherence` CRD spec.
+The entries in the `env` list are Kubernetes
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core[EnvVar]
+values, exactly the same as when adding environment variables to a container spec.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  env:
+    - name: VAR_ONE            # <1>
+      value: VALUE_ONE
+    - name: VAR_TWO            # <2>
+      valueFrom:
+        secretKeyRef:
+          name: test-secret
+          key: secret-key
+----
+<1> The `VAR_ONE` environment variable is a simple variable with a value of `VALUE_ONE`
+<2> The `VAR_TWO` environment variable is variable that is loaded from a secret.
