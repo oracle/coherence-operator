@@ -14,6 +14,7 @@ require (
 	github.com/operator-framework/operator-sdk v0.17.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/shuLhan/go-bindata v3.4.0+incompatible // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/go2xunit v1.4.10
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b

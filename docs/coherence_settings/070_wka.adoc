@@ -97,7 +97,7 @@ Because this `Service` is created in the same `Namespace` as the deployment's `P
 the raw `Service` name as the WKA list, in the example above the WKA list would just be `test-cluster-wka`.
 
 
-=== Exclude a Deployment From WKA
+== Exclude a Deployment From WKA
 
 In some situations it may be desirable to exclude the Pods belonging to certain deployments in the cluster from being
 members of the well known address list. For example certain K8s network configurations such as host networking can
@@ -133,3 +133,60 @@ would time-out causing K8s to restart them but this would not be a desirable way
 The start-up order can be controlled by configuring the deployment's `startQuorum` list, as described in the documentation
 section on <<ordering/010_overview.adoc,deployment start-up ordering>>.
 
+
+== Multi-Namespace Clusters
+
+It is possible to configure a Coherence cluster made up of multiple `Coherence` deployments that are deployed into
+different namespaces in the same Kubernetes cluster (with some caveats).
+
+The `coherence.wka` section of the Coherence CRD spec can be used to override the default WKA behaviour.
+
+For example, suppose that there is a `Coherence` deployment named `data` that is the storage enabled cluster members
+holding data for an online store. This `data` deployment will be deployed into the `back-end` namespace in a Kubernetes
+cluster. +
+Another `Coherence` deployment of storage disabled members will provide the front end REST API for the online store.
+This will be named `web-store` and deployed in the `front-end` namespace. +
+Although both the `data` and `web-store` deployments are in different namespaces they need to form a single Coherence
+cluster.
+
+[source,yaml]
+.data-deployment.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: data
+  namespace: back-end      # <1>
+spec:
+  cluster: `shop`          # <2>
+----
+<1> The `data` deployment is deployed into the `back-end` namespace
+<2> The Coherence cluster name is set to `shop`
+
+[source,yaml]
+.web-store-deployment.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web-store
+  namespace: front-end     # <1>
+spec:
+  cluster: `shop`          # <2>
+  coherence:
+    wka:                   # <3>
+      deployment: data
+      namespace: back-end
+----
+<1> The `web-store` deployment is deployed into the `front-end` namespace.
+<2> The Coherence cluster name is set to `shop` to match the `data` deployment
+<3> The `coherence.wka` section specifies the name of the `Coherence` deployment to use for WKA so in this
+case the `data` deployment in the `back-end` namespace.
+
+As described already above the `data` deployment will have a headless `Service` created for `WKA` named `data-wka`,
+which will be in the `back-end` namespace.
+The full name of this `Service` in Kubernetes will be `data-wka.back-end.svc.cluster.local` and this will be the
+name that the members of the `web-store` deployment will be configured to use for WKA.
+
+WARNING: When using WKA in this way the `Coherence` deployment that is providing the WKA `Service` should be running before
+any deployment that depends on it is deployed.

@@ -3839,6 +3839,23 @@ spec:
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                     type: object
+                  wka:
+                    description: Specify an existing Coherence deployment to be used
+                      for WKA. If an existing deployment is to be used for WKA the
+                      ExcludeFromWKA is implicitly set to true.
+                    properties:
+                      deployment:
+                        description: The name of the existing Coherence deployment
+                          to use for WKA.
+                        type: string
+                      namespace:
+                        description: The optional namespace of the existing Coherence
+                          deployment to use for WKA if different from this deployment's
+                          namespace.
+                        type: string
+                    required:
+                    - deployment
+                    type: object
                 type: object
               coherenceUtils:
                 description: The configuration for the Coherence utils image

@@ -29,6 +29,7 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CoherenceSpec,CoherenceSpec>>
 * <<CoherenceTracingSpec,CoherenceTracingSpec>>
+* <<CoherenceWKASpec,CoherenceWKASpec>>
 * <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
 * <<ImageSpec,ImageSpec>>
 * <<JVMSpec,JVMSpec>>
@@ -175,6 +176,8 @@ see: <<metrics/010_overview.adoc,Metrics>> m| &#42;<<PortSpecWithSSL,PortSpecWit
 m| tracing | Tracing is used to configure Coherence distributed tracing functionality. m| &#42;<<CoherenceTracingSpec,CoherenceTracingSpec>> | false
 m| excludeFromWKA | Exclude members of this deployment from being part of the cluster's WKA list. +
 see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;bool | false
+m| wka | Specify an existing Coherence deployment to be used for WKA. If an existing deployment is to be used for WKA the ExcludeFromWKA is implicitly set to true. +
+see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;<<CoherenceWKASpec,CoherenceWKASpec>> | false
 m| skipVersionCheck | Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used. m| &#42;bool | false
 |===
 
@@ -196,6 +199,19 @@ A value of -1 disables tracing completely. +
 The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. +
  +
 Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example: A value of 0.5 is represented in json as a Quantity of \"500m\" for 500 millis. A value of 0.0005 is represented in json as a Quantity of \"500u\" for 500 micros. m| &#42;resource.Quantity | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CoherenceWKASpec
+
+
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| deployment | The name of the existing Coherence deployment to use for WKA. m| string | true
+m| namespace | The optional namespace of the existing Coherence deployment to use for WKA if different from this deployment's namespace. m| string | false
 |===
 
 <<Table of Contents,Back to TOC>>

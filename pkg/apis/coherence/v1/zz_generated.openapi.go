@@ -23,6 +23,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"./pkg/apis/coherence/v1.CoherenceResourceSpec":   schema_pkg_apis_coherence_v1_CoherenceResourceSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceSpec":           schema_pkg_apis_coherence_v1_CoherenceSpec(ref),
 		"./pkg/apis/coherence/v1.CoherenceTracingSpec":    schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref),
+		"./pkg/apis/coherence/v1.CoherenceWKASpec":        schema_pkg_apis_coherence_v1_CoherenceWKASpec(ref),
 		"./pkg/apis/coherence/v1.ConfigMapVolumeSpec":     schema_pkg_apis_coherence_v1_ConfigMapVolumeSpec(ref),
 		"./pkg/apis/coherence/v1.ImageSpec":               schema_pkg_apis_coherence_v1_ImageSpec(ref),
 		"./pkg/apis/coherence/v1.JVMSpec":                 schema_pkg_apis_coherence_v1_JVMSpec(ref),
@@ -620,6 +621,12 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
+					"wka": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specify an existing Coherence deployment to be used for WKA. If an existing deployment is to be used for WKA the ExcludeFromWKA is implicitly set to true.",
+							Ref:         ref("./pkg/apis/coherence/v1.CoherenceWKASpec"),
+						},
+					},
 					"skipVersionCheck": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used.",
@@ -631,7 +638,7 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.CoherenceTracingSpec", "./pkg/apis/coherence/v1.PersistenceSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
+			"./pkg/apis/coherence/v1.CoherenceTracingSpec", "./pkg/apis/coherence/v1.CoherenceWKASpec", "./pkg/apis/coherence/v1.PersistenceSpec", "./pkg/apis/coherence/v1.PortSpecWithSSL"},
 	}
 }
 
@@ -653,6 +660,34 @@ func schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref common.ReferenceCallb
 		},
 		Dependencies: []string{
 			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
+	}
+}
+
+func schema_pkg_apis_coherence_v1_CoherenceWKASpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "----- CoherenceWKASpec struct -------------------------------------------- CoherenceWKASpec configures Coherence well-known-addressing to use an existing Coherence deployment for WKA.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"deployment": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the existing Coherence deployment to use for WKA.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"namespace": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The optional namespace of the existing Coherence deployment to use for WKA if different from this deployment's namespace.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"deployment"},
+			},
+		},
 	}
 }
 

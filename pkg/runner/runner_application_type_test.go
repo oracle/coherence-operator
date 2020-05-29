@@ -9,158 +9,19 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"testing"
 )
 
-func TestCoherenceClusterName(t *testing.T) {
+func TestApplicationTypeNone(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
-			Cluster: pointer.StringPtr("test-cluster"),
-		},
-	}
-
-	args := []string{"runner", "server"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.cluster="),
-		"-Dcoherence.cluster=test-cluster")
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestCoherenceCacheConfig(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				CacheConfig: pointer.StringPtr("test-config.xml"),
-			},
-		},
-	}
-
-	args := []string{"runner", "server"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.cacheconfig="),
-		"-Dcoherence.cacheconfig=test-config.xml")
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestCoherenceOperationalConfig(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				OverrideConfig: pointer.StringPtr("test-override.xml"),
-			},
-		},
-	}
-
-	args := []string{"runner", "server"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.k8s.override="),
-		"-Dcoherence.k8s.override=test-override.xml")
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestCoherenceStorageEnabledTrue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				StorageEnabled: pointer.BoolPtr(true),
-			},
-		},
-	}
-
-	args := []string{"runner", "server"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.localstorage="),
-		"-Dcoherence.distributed.localstorage=true")
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestCoherenceStorageEnabledFalse(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				StorageEnabled: pointer.BoolPtr(false),
-			},
-		},
-	}
-
-	args := []string{"runner", "server"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.localstorage="),
-		"-Dcoherence.distributed.localstorage=false")
-
-	_, cmd, err := DryRun(args, env)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
-
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestCoherenceExcludeFromWKATrue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				ExcludeFromWKA: pointer.BoolPtr(true),
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeNone),
 			},
 		},
 	}
@@ -180,14 +41,15 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
-func TestCoherenceLogLevel(t *testing.T) {
+func TestApplicationTypeNoneWithMain(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				LogLevel: pointer.Int32Ptr(9),
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeNone),
+				Main: pointer.StringPtr("com.foo.Bar"),
 			},
 		},
 	}
@@ -196,8 +58,7 @@ func TestCoherenceLogLevel(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.log.level="),
-		"-Dcoherence.log.level=9")
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -208,15 +69,14 @@ func TestCoherenceLogLevel(t *testing.T) {
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
-func TestCoherenceTracingRatio(t *testing.T) {
+func TestApplicationTypeCoherence(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ratio := resource.MustParse("0.01234")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Tracing: &coh.CoherenceTracingSpec{Ratio: &ratio},
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeCoherence),
 			},
 		},
 	}
@@ -225,7 +85,7 @@ func TestCoherenceTracingRatio(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.tracing.ratio=0.012340")
+	expectedArgs := GetMinimalExpectedArgs()
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -236,17 +96,15 @@ func TestCoherenceTracingRatio(t *testing.T) {
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
-func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
+func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "data",
-					Namespace:  "",
-				},
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeCoherence),
+				Main: pointer.StringPtr("com.foo.Bar"),
 			},
 		},
 	}
@@ -255,8 +113,7 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
-	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix)
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -267,17 +124,14 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
-func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
+func TestApplicationTypeJava(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "data",
-					Namespace:  "back-end",
-				},
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeJava),
 			},
 		},
 	}
@@ -286,8 +140,90 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
-	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".back-end.svc.cluster.local")
+	expectedArgs := GetMinimalExpectedArgs()
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestApplicationTypeJavaWithMain(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeJava),
+				Main: pointer.StringPtr("com.foo.Bar"),
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestApplicationTypeHelidon(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeHelidon),
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, HelidonMain)
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestApplicationTypeHelidonWithMain(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Application: &coh.ApplicationSpec{
+				Type: pointer.StringPtr(AppTypeHelidon),
+				Main: pointer.StringPtr("com.foo.Bar"),
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())

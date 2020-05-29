@@ -214,6 +214,12 @@ type CoherenceSpec struct {
 	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
 	// +optional
 	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
+	// Specify an existing Coherence deployment to be used for WKA.
+	// If an existing deployment is to be used for WKA the ExcludeFromWKA is
+	// implicitly set to true.
+	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
+	// +optional
+	WKA *CoherenceWKASpec `json:"wka,omitempty"`
 	// Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4.
 	// The version check relies on the ability of the start script to find coherence.jar but if due to how the image
 	// has been built this check is failing then setting this flag to true will skip version checking and assume
@@ -224,7 +230,29 @@ type CoherenceSpec struct {
 
 // IsWKAMember returns true if this deployment is a WKA list member.
 func (in *CoherenceSpec) IsWKAMember() bool {
-	return in == nil || in.ExcludeFromWKA == nil || !*in.ExcludeFromWKA
+	if in != nil && in.ExcludeFromWKA != nil && *in.ExcludeFromWKA {
+		return false
+	}
+	if in != nil && in.WKA != nil && in.WKA.Deployment != "" {
+		return false
+	}
+	return true
+}
+
+// GetWKA returns the host name Coherence should for WKA.
+func (in *CoherenceSpec) GetWKA(deployment string) string {
+	if in == nil || in.WKA == nil || in.WKA.Deployment == "" {
+		// there is no WKA override so return the deployment name
+		return deployment + WKAServiceNameSuffix
+	}
+
+	if in.WKA.Namespace != "" {
+		// A WKA override is specified with a namespace
+		return fmt.Sprintf("%s%s.%s.svc.cluster.local", in.WKA.Deployment, WKAServiceNameSuffix, in.WKA.Namespace)
+	}
+
+	// A WKA override is specified without a namespace
+	return in.WKA.Deployment + WKAServiceNameSuffix
 }
 
 // Add the persistence and snapshot volume mounts to the specified container
@@ -321,6 +349,19 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	default:
 		return *in.Management.Port
 	}
+}
+
+// ----- CoherenceWKASpec struct --------------------------------------------
+// CoherenceWKASpec configures Coherence well-known-addressing to use an
+// existing Coherence deployment for WKA.
+// +k8s:openapi-gen=true
+type CoherenceWKASpec struct {
+	// The name of the existing Coherence deployment to use for WKA.
+	Deployment string `json:"deployment"`
+	// The optional namespace of the existing Coherence deployment to use for WKA
+	// if different from this deployment's namespace.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // ----- CoherenceTracingSpec struct ----------------------------------------
