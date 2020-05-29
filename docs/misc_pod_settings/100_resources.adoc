@@ -6,8 +6,38 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Resource Constraints
+= Container Resource Limits
 
-== Resource Constraints
+== Container Resource Limits
 
-// ToDo: TBD
+When creating a `Coherence` resource you can optionally specify how much CPU and memory (RAM) each Coherence Container
+is allowed to consume. The container resources are specified in the `resources` section of the `Coherence` spec;
+the format is exactly the same as documented in the Kubernetes documentation
+https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/[Managing Compute Resources for Containers].
+
+WARNING: When setting resource limits, in particular memory limits, for a container it is important to ensure that the
+Coherence JVM is properly configured so that it does not consume more memory than the limits. If the JVM attempts to
+consume more memory than the resource limits allow the `Pod` can be killed by Kubernetes.
+See <<jvm_settings/050_memory.adoc,Configuring the JVM Memory>> for details on the different memory settings.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  resources:               # <1>
+    requests:
+      memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+----
+<1> The `coherence` container in the `Pods` has a request of 0.25 cpu and 64MiB of memory.
+The `coherence` container has a limit of 0.5 cpu and 128MiB of memory.
+
+
