@@ -340,8 +340,7 @@ type CoherenceTracingSpec struct {
 	// A value of -1 disables tracing completely.
 	//
 	// The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are
-	// acceptable. Values entered less than zero will be treated as -1, values entered greater than 1 will
-	// be treated as 1.
+	// acceptable.
 	//
 	// Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and
 	// may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example:

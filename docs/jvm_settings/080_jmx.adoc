@@ -10,4 +10,36 @@
 
 == Using JMX
 
-// ToDo: TBD
+The Java Management Extensions (JMX) are a common way to connect to a JVM and retrieve information from MBeans
+attributes or trigger operations by calling MBean methods. By default, the JVM uses RMI as the transport layer for
+JMX but RMI can be notoriously tricky to make work in a container environment due to the address and port NAT'ing
+that is typical with containers or clouds. For this reason the Operator supports an alternative transport called JMXMP.
+The difference is that JMXMP only requires a single port for communications and this port is simple to configure.
+
+JMXMP is configured using the fields in the `jvm.jmxmp` section of the `Coherence` CRD spec.
+Enabling JMXMP support adds the `opendmk_jmxremote_optional_jar.jar` JMXMP library to the classpath and sets the
+the Coherence MBean server factory to produce a JMXMP MBean server. By default, the JMXMP server will bind
+to port 9099 in the container but this can be configured to bind to a different port.
+
+NOTE: Using a custom transport for JMX, such as JMXMP, requires any JMX client that will connect to the JMX server to
+also have a JMXMP library on its classpath.
+
+See the <<management_and_diagnostics/030_visualvm.adoc,VisualVM Example>> for a detailed example of how to configure
+JMX and connect to a server in a `Coherence` resource.
+
+Example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    jmxmp:
+      enabled: true  # <1>
+      port: 9099     # <2>
+----
+<1> JMXMP is enabled so that a JMXMP server will be started in the Coherence container's JVM
+<2> The port that the JMX server will bind to in the container is 9099
+

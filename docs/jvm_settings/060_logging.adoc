@@ -17,7 +17,7 @@ the Coherence logger to log to rolling log files in a `/logs` directory.
 The Java util logging configuration file can be overridden using the `jvm.loggingConfig` field in the CRD.
 The value should point to a file either in the image being run or loaded from a volume such as a `ConfigMap`.
 
-For example
+For example:
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1

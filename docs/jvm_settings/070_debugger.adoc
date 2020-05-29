@@ -10,4 +10,71 @@
 
 == Debugger Configuration
 
-// ToDo: TBD
+Occasionally it is useful to be able to connect a debugger to a JVM, and the `Coherence` CRD spec has fields to
+configure the Coherence container's JVM to work with a debugger. The fields in the CRD will ultimately result in
+arguments being passed to the JVM and could have been added as plain JVM arguments, but having specific fields in the
+CRD makes it simpler to configure and the intention more obvious.
+
+The fields to control debug settings of the JVM are in the `jvm.debug` section of the CRD spec.
+
+=== Listening for a Debugger Connection
+
+One scenario for debugging is for the Coherence JVM to open a port and listen for a debugger connection request.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    debug:
+      enabled: true   # <1>
+      port: 5005      # <2>
+      suspend: false  # <3>
+----
+<1> The `jvm.debug.enabled` flag is set to `true` to enable debug mode.
+<2> The `jvm.debug.port` field specifies the port the JVM will listen on for a debugger connection.
+<3> The `jvm.debug.suspend` flag is set to `false` so that the JVM will start without waiting for a debugger to connect.
+
+The example above results in the following arguments being passed to the JVM:
+[source]
+----
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+----
+
+* The `address=*:5005` value comes from the `jvm.debug.port` field
+* The `suspend=n` value comes from the `jvm.debug.suspend` field
+
+NOTE: If the `jvm.debug.port` is not specified the default value used by the Operator will be `5005`.
+
+
+=== Attaching to a Debugger Connection
+
+Another scenario for debugging is for the Coherence JVM to connect out to a listening debugger.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    debug:
+      enabled: true               # <1>
+      attach:  "10.10.100.2:5000" # <2>
+      suspend: false              # <3>
+----
+<1> The `jvm.debug.enabled` flag is set to `true` to enable debug mode.
+<2> The `jvm.debug.attach` field specifies the address of the debugger that the JVM will connect to.
+<3> The `jvm.debug.suspend` flag is set to `false` so that the JVM will start without waiting for a debugger to connect.
+
+The example above results in the following arguments being passed to the JVM:
+[source]
+----
+-agentlib:jdwp=transport=dt_socket,server=n,address=10.10.100.2:5000,suspend=n,timeout=10000
+----

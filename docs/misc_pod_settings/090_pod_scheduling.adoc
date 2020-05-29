@@ -6,8 +6,74 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Pod Scheduling
+= Configure Pod Scheduling
 
-== Pod Scheduling
+== Configure Pod Scheduling
 
-// ToDo: TBD
+In Kubernetes `Pods` can be configured to control how, and onto which nodes, Kubernetes will schedule those `Pods`; the
+Coherence Operator allows the same control for `Pods` owned by a `Coherence` resource.
+
+The following settings can be configured:
+
+[cols=2*,options=header]
+|===
+|Field
+|Description
+
+|`nodeSelector`
+|`nodeSelector` is the simplest recommended form of node selection constraint.
+`nodeSelector` is a field of role spec, it specifies a map of key-value pairs.
+For the `Pod` to be eligible to run on a node, the node must have each of the indicated key-value pairs as labels
+(it can have additional labels as well).
+See https://kubernetes.io/docs/concepts/configuration/assign-pod-node/[Assigning Pods to Nodes] in the
+Kubernetes documentation
+
+|`affinity`
+|The affinity/anti-affinity feature, greatly expands the types of constraints you can express over just using labels
+in a `nodeSelector`.
+See https://kubernetes.io/docs/concepts/configuration/assign-pod-node/[Assigning Pods to Nodes] in the
+Kubernetes documentation
+
+|`tolerations`
+| `nodeSelector` and `affinity` are properties of `Pods` that attracts them to a set of nodes (either as a preference or
+a hard requirement). Taints are the opposite – they allow a node to repel a set of `Pods`.
+Taints and tolerations work together to ensure that `Pods` are not scheduled onto inappropriate nodes.
+One or more taints are applied to a node; this marks that the node should not accept any `Pods` that do not tolerate
+the taints. Tolerations are applied to `Pods`, and allow (but do not require) the `Pods` to schedule onto nodes with
+matching taints.
+See https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[Taints and Tolerations] in the Kubernetes
+documentation.
+|===
+
+The `nodeSelector`, `affinity` and `tolerations` fields are all part of the `Coherence` CRD spec.
+The format of the fields is that same as documented in the Kubernetes documentation
+https://kubernetes.io/docs/concepts/configuration/assign-pod-node/[Assigning Pods to Nodes] and
+https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[Taints and Tolerations]
+
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  tolerations:
+    - key: "example-key"
+      operator: "Exists"
+      effect: "NoSchedule"
+  nodeSelector:
+    - disktype: ssd
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+             - key: kubernetes.io/e2e-az-name
+               operator: In
+               values:
+                 - e2e-az1
+                 - e2e-az2
+----
