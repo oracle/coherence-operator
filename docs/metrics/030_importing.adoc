@@ -6,12 +6,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Importing Dashboards
+= Importing Grafana Dashboards
 
 
-== Importing Grafana dashboards into your own instance.
+== Importing Grafana Dashboards.
 
-If required, you can import the Grafana dashboards into your own Grafana instance.
+The Operator has a set of Grafana dashboards that can be imported into a Grafana instance.
 
 NOTE: Note: Use of metrics is available only when using the operator with clusters running
 Coherence 12.2.1.4 or later version.
@@ -25,7 +25,7 @@ If this datasource is already used and you cannot add another datasource as the 
 then please go to <<different,Importing with a different datasource>>.
 
 [#importing]
-=== 1. Importing using the defaults
+=== Importing Using the Defaults
 
 In your Grafana environment, ensure you either:
 
@@ -49,7 +49,7 @@ following to upload to Grafana:
 ** Leave all the default values and click on `Import`
 
 [#different]
-=== 2. Importing with a different datasource
+=== Importing With a Different Datasource
 
 If your Grafana environment has a default datasource that you cannot change or already has a
 datasource named `Prometheus`, follow these steps to import the dashboards:

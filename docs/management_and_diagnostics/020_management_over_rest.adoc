@@ -8,14 +8,14 @@
 
 = Management over REST
 
+== Management over REST
+
 Since version 12.2.1.4 Coherence has had functionality to expose a management API over REST.
 
 NOTE: The Management over REST  API is *disabled* by default in Coherence clusters but can be enabled and configured by
 setting the relevant fields in the `Coherence` CRD.
 
-== Management over REST
-
-This example shows how to enable and access Coherence MBeans using Management over REST.
+The example below shows how to enable and access Coherence MBeans using Management over REST.
 
 Once the Management port has been exposed, for example via a load balancer or port-forward command, the REST
 endpoint is available at `http://host:port/management/coherence/cluster`.
@@ -29,7 +29,7 @@ Coherence 12.2.1.4 or later version.
 
 === Deploy Coherence with Management over REST Enabled
 
-To deploy a `Coherence` resource with management over REST enabled and exposed on a port, the simples yaml
+To deploy a `Coherence` resource with management over REST enabled and exposed on a port, the simplest yaml
 would look like this:
 
 [source,yaml]
@@ -107,7 +107,7 @@ Forwarding from 127.0.0.1:30000 -> 30000
 ----
 
 === Access the REST Endpoint
-Now that a port is beng forwarded from localhost to a `Pod` in the cluster the Management over REST endpoints can be accessed.
+Now that a port is being forwarded from localhost to a `Pod` in the cluster the Management over REST endpoints can be accessed.
 
 Issue the following `curl` command to access the REST endpoint:
 [source,bash]

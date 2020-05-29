@@ -206,3 +206,48 @@ func TestCreateStatefulSetWithCoherenceSpecWithTracingRatio(t *testing.T) {
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulSetWithCoherenceSpecWithWkaSameNamespace(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			WKA: &coh.CoherenceWKASpec{
+				Deployment: "storage",
+				Namespace:  "",
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: "storage" + coh.WKAServiceNameSuffix})
+	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithWkaDifferentNamespace(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			WKA: &coh.CoherenceWKASpec{
+				Deployment: "storage",
+				Namespace:  "data",
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	expectedWka := "storage" + coh.WKAServiceNameSuffix + ".data.svc.cluster.local"
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}

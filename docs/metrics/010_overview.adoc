@@ -10,13 +10,39 @@
 
 == Overview
 
-Since version 12.2.1.4 Coherence has had the ability to expose a http endpoint that can be used to scrape metrics.
-This would typically be used to expose metrics to something like Prometheus.
+Coherence metrics can be used in a cluster deployed in Kubernetes.
 
-NOTE: The metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
-setting the relevant fields in the `Coherence` CRD.
+[PILLARS]
+====
+[CARD]
+.Management Over REST
+[link=metrics/020_metrics.adoc]
+--
+Enabling the Coherence metrics feature.
+--
+
+[CARD]
+.Importing Grafana Dashboards
+[link=metrics/030_importing.adoc]
+--
+Importing the Coherence Grafana Dashboards.
+--
+
+[CARD]
+.Using Grafana Dashboards
+[link=metrics/040_dashboards.adoc]
+--
+Using the Coherence Grafana Dashboards.
+--
+
+[CARD]
+.SSL
+[link=metrics/050_ssl.adoc]
+--
+Enable SSL on the metrics endpoint.
+--
+====
 
 
-// ToDo: TBD
 
 

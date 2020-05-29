@@ -352,8 +352,10 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, flags *
 		return Resources{Items: res}, nil
 	}
 
-	// Create the headless WKA Service
-	res = append(res, in.CreateWKAService(d))
+	// Create the headless WKA Service if this deployment is a WKA member
+	if in.Coherence.IsWKAMember() {
+		res = append(res, in.CreateWKAService(d))
+	}
 
 	// Create the headless Service
 	res = append(res, in.CreateHeadlessService(d))
@@ -419,7 +421,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resourc
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.Namespace,
-			Name:      deployment.GetWkaServiceName(),
+			Name:      deployment.Name + WKAServiceNameSuffix,
 			Labels:    labels,
 			Annotations: map[string]string{
 				"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true",
@@ -708,7 +710,7 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1
 // Create the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
 	return append(in.CreateCommonEnv(deployment),
-		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.GetWkaServiceName()},
+		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.Spec.Coherence.GetWKA(deployment.Name)},
 		corev1.EnvVar{
 			Name: EnvVarOperatorHost, ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{

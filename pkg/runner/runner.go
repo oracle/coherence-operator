@@ -24,8 +24,9 @@ import (
 // The code that actually starts the process in the Coherence container.
 
 const (
-	DCS        = "com.tangosol.net.DefaultCacheServer"
-	ServerMain = "com.oracle.coherence.k8s.Main"
+	DCS         = "com.tangosol.net.DefaultCacheServer"
+	HelidonMain = "io.helidon.microprofile.server.Main"
+	ServerMain  = "com.oracle.coherence.k8s.Main"
 
 	CommandServer      = "server"
 	CommandConsole     = "console"
@@ -37,6 +38,12 @@ const (
 	EnvVarVersion   = "OPERATOR_VERSION"
 	EnvVarGitCommit = "OPERATOR_GIT_COMMIT"
 	EnvVarBuildDate = "OPERATOR_BUILD_DATE"
+
+	AppTypeNone      = ""
+	AppTypeJava      = "java"
+	AppTypeCoherence = "coherence"
+	AppTypeHelidon   = "helidon"
+	AppTypeTest      = "op-test"
 )
 
 // Run the Coherence process using the specified args and environment variables.
@@ -63,7 +70,7 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 		CoherenceHome: env[v1.EnvVarCoherenceHome],
 		UtilsDir:      env[v1.EnvVarCohUtilDir],
 		JavaHome:      env[v1.EnvVarJavaHome],
-		AppType:       env[v1.EnvVarAppType],
+		AppType:       strings.ToLower(env[v1.EnvVarAppType]),
 		Dir:           env[v1.EnvVarCohAppDir],
 		MainClass:     DCS,
 		GetSite:       strings.ToLower(skipSite) != "true",
@@ -106,9 +113,14 @@ func server(details *RunDetails) {
 	// If the main class environment variable is set then use that
 	// otherwise run Coherence DCS.
 	mc, found := details.LookupEnv(v1.EnvVarAppMainClass)
-	if found {
+	switch {
+	case found:
 		details.MainArgs = []string{mc}
-	} else {
+	case !found && details.AppType == AppTypeCoherence:
+		details.MainArgs = []string{DCS}
+	case !found && details.AppType == AppTypeHelidon:
+		details.MainArgs = []string{HelidonMain}
+	default:
 		details.MainArgs = []string{DCS}
 	}
 
@@ -196,7 +208,7 @@ func server(details *RunDetails) {
 // Configure the runner to run a Coherence CacheFactory console
 func console(details *RunDetails) {
 	details.Command = CommandConsole
-	details.AppType = "java"
+	details.AppType = AppTypeJava
 	details.MainClass = "com.tangosol.net.CacheFactory"
 	details.AddArg("-Dcoherence.distributed.localstorage=false")
 	details.Setenv(v1.EnvVarCohRole, "console")
@@ -206,7 +218,7 @@ func console(details *RunDetails) {
 // Configure the runner to run a Coherence Query Plus console
 func queryPlus(details *RunDetails) {
 	details.Command = CommandQueryPlus
-	details.AppType = "java"
+	details.AppType = AppTypeJava
 	details.MainClass = "com.tangosol.coherence.dslquery.QueryPlus"
 	if len(details.OsArgs) > 2 {
 		details.MainArgs = details.OsArgs[2:]
@@ -222,7 +234,7 @@ func queryPlus(details *RunDetails) {
 // Configure the runner to run a JMXMP MBean server
 func mbeanServer(details *RunDetails) {
 	details.Command = CommandMBeanServer
-	details.AppType = "java"
+	details.AppType = AppTypeJava
 	details.AddClasspath(details.UtilsDir + "/lib/*")
 	details.MainClass = "com.oracle.coherence.k8s.JmxmpServer"
 	details.MainArgs = []string{}
@@ -430,10 +442,16 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	var cmd *exec.Cmd
 	var app string
 	switch {
-	case details.AppType == "" || details.AppType == "java":
+	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
 		app = "Java"
 		cmd, err = createJavaCommand(details.GetJava(), details)
-	case details.AppType == "op-test":
+	case details.AppType == AppTypeHelidon:
+		app = "Java"
+		cmd, err = createJavaCommand(details.GetJava(), details)
+	case details.AppType == AppTypeCoherence:
+		app = "Java"
+		cmd, err = createJavaCommand(details.GetJava(), details)
+	case details.AppType == AppTypeTest:
 		app = "Java"
 		cmd, err = createJavaCommand("/utils/op-test", details)
 	default:
