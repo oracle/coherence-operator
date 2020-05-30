@@ -60,7 +60,7 @@ func TestServerWithPersistenceDirectory(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=/persistence"))
+	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=" + coh.VolumeMountPathPersistence))
 }
 
 func TestServerWithSnapshotDirectory(t *testing.T) {
@@ -79,5 +79,5 @@ func TestServerWithSnapshotDirectory(t *testing.T) {
 
 	g.Expect(cmd.Dir).To(Equal(""))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=/snapshot"))
+	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=" + coh.VolumeMountPathSnapshots))
 }

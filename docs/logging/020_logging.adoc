@@ -22,31 +22,38 @@ to make the examples below work.
 To be able to send Coherence logs to Elasticsearch there are some steps that must be completed:
 
 * Configure Coherence to log to files
+* Add a `Volume` and `VolumeMount` to be used for log files
 * Add the Fluentd side-car container
 
 === Configure Coherence to Log to Files
 
-NOTE: Logging to files is the default setting for Coherence when running in containers started by the operator so in fact
-there is nothing to configure.
-This section covers the settings involved to give a better understanding of how to change those values should a slightly
-different configuration be required.
-
-==== Coherence JDK Logger
-
-The operator will set the `coherence.log` system property to `jdk` (i.e. `-Dcoherence.log=jdk`), this tells Coherence to
-use the JDK logger (i.e. Java util logging).
-See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html#GUID-6116DB0E-91CC-4B4E-82B9-C6FE5E98BFBF[Logging Config]
-documentation for more details on this setting.
-
-==== Default Logging Configuration File
+Coherence will log to the console by default so to be able to ship logs to Elasticsearch it needs to be configured
+to write to log files. One way to do this is to add a Java Util Logging configuration file and then to configure
+Coherence to use the JDK logger.
 
 In the `jvm` section of the `Coherence` CRD is a field to set the configuration file used by Java util logging.
 see the <<jvm_settings/060_logging.adoc, JVM Logging>> section of the documentation.
-If the `jvm.loggingConfig` field is not set a default configuration file, injected by the Operator, will be used.
-This file configures Coherence to write log files to the `/logs` directory. The log files will have the name
-`coherence-%g.log`, where `%g` is the log file generation created as logs get rotated.
+If the `jvm.loggingConfig` field is set the value is used to set the `java.util.logging.config.file`
+system property.
+If `jvm.loggingConfig` is set the operator will also set the `coherence.log` system property to `jdk`
+(i.e. `-Dcoherence.log=jdk`), this tells Coherence to use the JDK logger (i.e. Java util logging).
+See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html[Logging Config]
+documentation for more details on this setting.
 
-The default Java util logging configuration will look something liek this:
+There are alternative ways to configure the Java util logger besides using a configuration file, just as there are
+alternative logging frameworks that Coherence can be configured to use to produce log files.
+This example is going to use Java util logging as that is the simplest to demonstrate without requiring any additional
+logging libraries.
+
+==== Default Logging Configuration File
+
+Whilst any valid Java util logging configuration file may be used, the Coherence Operator injects a default logging
+configuration file into the `coherence` container that can be used to configure the logger to write
+logs to files under the `/logs` directory. The log files will have the name `coherence-%g.log`, where `%g` is the
+log file generation created as logs get rotated.
+
+This file will be injected into the container at `/coherence-operator/utils/logging/logging.properties`
+and will look something like this:
 [source]
 ----
 com.oracle.coherence.handlers=java.util.logging.ConsoleHandler,java.util.logging.FileHandler
@@ -64,14 +71,51 @@ java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
 java.util.logging.SimpleFormatter.format=%5$s%6$s%n
 ----
 
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: cluster-one
+spec:
+  jvm:
+    loggingConfig: /coherence-operator/utils/logging/logging.properties
+----
+The `jvm.loggingConfig` field has been set to use the config file provided by the operator.
+
+
+
 ==== Log Files Volume
 
-The logging configuration above configurs Coherence to write logs to the `/logs` directory.
-The `Pods` created by the Operator have an empty-directory `Volume` named `logs` configured.
-The `coherence` container has a volume mount configured to mount the `logs` `Volume` at the `/logs` mount path.
+The logging configuration above configures Coherence to write logs to the `/logs` directory.
+For this location to be accessible to both the `coherence` container and to the `fluentd` container it needs to be
+created as a `Volume` in the `Pod` and mounted to both containers.
+As this `Volume` can be ephemeral and is typically not required to live longer than the `Pod` the simplest type of
+`Volume` to use is an `emptyDir` volume source.
 
-By using a `Volume`, this means that the `logs` volume is visible to all containers in the `Pod`, which is obviously
-required to be able to access Coherence logs from a side-car container.
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: cluster-one
+spec:
+  jvm:
+    loggingConfig: /coherence-operator/utils/logging/logging.properties
+  volumes:
+    - name: logs           # <1>
+      emptyDir: {}
+  volumeMounts:
+    - name: logs           # <2>
+      mountPath: /logs
+----
+<1> An additional empty-dir `Volume` named `logs` has been added to the `Coherence` spec.
+<2> The `logs` volume will be mounted at `/logs` in all containers in the `Pod`.
+
+
 
 === Add the Fluentd Side-Car
 
@@ -86,28 +130,33 @@ kind: Coherence
 metadata:
   name: cluster-one
 spec:
-  coherence:
-    logLevel: 9                                                                        # <1>
+  jvm:
+    loggingConfig: /coherence-operator/utils/logging/logging.properties
+  volumes:
+    - name: logs           # <1>
+      emptyDir: {}
+  volumeMounts:
+    - name: logs           # <2>
+      mountPath: /logs
   sideCars:
-    - name: fluentd                                                                    # <2>
+    - name: fluentd                                                                    # <1>
       image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
       args:
         - "-c"
         - "/etc/fluent.conf"
       env:
-        - name: "FLUENTD_CONF"                                                         # <3>
+        - name: "FLUENTD_CONF"                                                         # <2>
           value: "fluentd-coherence.conf"
   configMapVolumes:
-    - name: "efk-config"                                                               # <4>
+    - name: "efk-config"                                                               # <3>
       mountPath: "/fluentd/etc/fluentd-coherence.conf"
       subPath: "fluentd-coherence.conf"
 ----
-<1> The Coherence log level has been set to `9` to give more verbose logs.
-<2> The `fluentd` container has been added to the `sideCars` list. This will create another container
+<1> The `fluentd` container has been added to the `sideCars` list. This will create another container
 in the `Pod` exactly as configured.
-<3> The `FLUENTD_CONF` environment variable has been set to the name of the configuration file that Fluentd should use.
+<2> The `FLUENTD_CONF` environment variable has been set to the name of the configuration file that Fluentd should use.
 The standard Fluentd behaviour is to locate this file in the `/fluentd/etc/` directory.
-<4> An additional volume has been added from a `ConfigMap` named `efk-config`, that contains the Fluentd configuration to use.
+<3> An additional volume has been added from a `ConfigMap` named `efk-config`, that contains the Fluentd configuration to use.
 This will be mounted to the `fluentd` container at `/fluentd/etc/fluentd-coherence.conf`, which corresponds to the
 name of the file set in the `FLUENTD_CONF` environment variable.
 

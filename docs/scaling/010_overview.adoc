@@ -23,9 +23,31 @@ to the underlying `StatefulSet`. There are two methods to scale a `Coherence` de
 * Use the `kubectl scale` command 
 
 When either of these methods is used the Operator will detect that a change to the size of the deployment is required
-and ensure that the change will be applied safely.
+and ensure that the change will be applied safely. The logical steps the Operator will perform are:
+
+1. Detect desired replicas is different to current replicas
+2. Check the cluster is StatusHA - i.e. no cache services are endangered. If any service is not StatusHA requeue the
+scale request  (go back to step one).
+3. If scaling up, add the required number of members.
+4. If scaling down, scale down by one member and requeue the request (go back to step one).
+
+What these steps ensure is that the deployment will not be resized unless the cluster is in a safe state.
+When scaling down only a single member will be removed at a time, ensuring that the cluster is in a safe state before
+removing the next member.
+
+NOTE: The Operator will only apply safe scaling functionality to deployments that are storage enabled.
+If a deployment is storage disabled then it can be scaled up or down by the required number of members
+in one step as there is no fear of data loss in a storage disabled member.
+
+== Controlling Safe Scaling
+
+The `Coherence` CRD has a number of fields that control the behaviour of scaling.
+
+=== Scaling Mode
 
 
+
+=== Scaling Status HA Probe
 
 // ToDo: TBD
 

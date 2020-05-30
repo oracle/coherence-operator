@@ -490,8 +490,6 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	// Set the Java Util Logging config, if specified.
 	if in != nil && in.LoggingConfig != nil && *in.LoggingConfig != "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmLoggingConfig, Value: *in.LoggingConfig})
-	} else {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmLoggingConfig, Value: DefaultLoggingConfig})
 	}
 
 	// Configure the JVM to use container limits (true by default)

@@ -109,7 +109,6 @@ func TestCreateStatefulSetWithJvmSpecWithLoggingConfigEmpty(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	//	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: coh.DefaultLoggingConfig})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -119,7 +118,7 @@ func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
-			UseContainerLimits: boolPtr(true),
+			LoggingConfig: stringPtr("/foo/logging.properties"),
 		},
 	}
 
@@ -127,7 +126,7 @@ func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: coh.DefaultLoggingConfig})
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: "/foo/logging.properties"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

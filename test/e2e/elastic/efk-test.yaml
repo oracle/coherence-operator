@@ -7,6 +7,14 @@ spec:
   role: storage
   coherence:
     logLevel: 9
+  jvm:
+    loggingConfig: /coherence-operator/utils/logging/logging.properties
+  volumeMounts:
+    - name: logs
+      mountPath: /logs
+  volumes:
+    - name: logs
+      emptyDir: {}
   configMapVolumes:
     - name: "efk-config"
       mountPath: "/fluentd/etc/fluentd-coherence.conf"

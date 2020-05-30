@@ -261,16 +261,18 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	details.AddArg("-XX:+UnlockDiagnosticVMOptions")
 
-	// Add the Operator Utils jar to the classpath
-	details.AddClasspath(details.UtilsDir + "/lib/coherence-utils.jar")
-
 	// Configure the classpath to support images created with the JIB Maven plugin
 	// This is enabled by default.
 	if details.IsEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
-		details.AddClasspath("/app/libs/*")
-		details.AddClasspath("/app/classes")
 		details.AddClasspath("/app/resources")
+		details.AddClasspath("/app/classes")
+		details.AddClasspath("/app/classpath/*")
+		details.AddClasspath("/app/libs/*")
 	}
+
+	// Add the Operator Utils jar to the classpath
+	details.AddClasspath(details.UtilsDir + "/lib/coherence-utils.jar")
+	details.AddClasspath(details.UtilsDir + "/config")
 
 	// Configure Coherence persistence
 	mode := details.GetenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
@@ -290,12 +292,14 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	configureSiteAndRack(details)
 
 	// Set the Coherence logging configuration
-	logCfg := details.GetenvOrDefault(v1.EnvVarJvmLoggingConfig, v1.DefaultLoggingConfig)
-	_, err := os.Stat(logCfg)
-	if err == nil {
-		details.AddArg("-Dcoherence.log=jdk")
-		details.AddArg("-Dcoherence.log.logger=com.oracle.coherence")
-		details.AddArg("-Djava.util.logging.config.file=" + logCfg)
+	logCfg := details.Getenv(v1.EnvVarJvmLoggingConfig)
+	if logCfg != "" {
+		_, err := os.Stat(logCfg)
+		if err == nil {
+			details.AddArg("-Dcoherence.log=jdk")
+			details.AddArg("-Dcoherence.log.logger=com.oracle.coherence")
+			details.AddArg("-Djava.util.logging.config.file=" + logCfg)
+		}
 	}
 
 	// Set the Coherence log level
@@ -427,7 +431,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	details.AddArgs(debugArgs)
-	details.AddClasspath(details.UtilsDir + "/scripts")
 
 	gcArgs := details.Getenv(v1.EnvVarJvmGcArgs)
 	if gcArgs != "" {
@@ -453,7 +456,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		cmd, err = createJavaCommand(details.GetJava(), details)
 	case details.AppType == AppTypeTest:
 		app = "Java"
-		cmd, err = createJavaCommand("/utils/op-test", details)
+		cmd, err = createJavaCommand(v1.TestCommand, details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = runGraal(details)
@@ -894,8 +897,8 @@ func (in *RunDetails) GetClasspath() string {
 	cp := in.Classpath
 	// if ${COHERENCE_HOME} exists add coherence.jar to the classpath
 	if in.CoherenceHome != "" {
-		cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
 		cp = cp + ":" + in.CoherenceHome + "/conf"
+		cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
 	}
 	return cp
 }
