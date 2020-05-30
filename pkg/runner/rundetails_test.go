@@ -115,7 +115,7 @@ func TestRunDetailsGetClasspathWithCoherenceHome(t *testing.T) {
 		CoherenceHome: "/u01/oracle/coherence",
 	}
 	r.AddClasspath("foo")
-	g.Expect(r.GetClasspath()).To(Equal("foo:/u01/oracle/coherence/lib/coherence.jar:/u01/oracle/coherence/conf"))
+	g.Expect(r.GetClasspath()).To(Equal("foo:/u01/oracle/coherence/conf:/u01/oracle/coherence/lib/coherence.jar"))
 }
 
 func TestRunDetailsGetJavaEmpty(t *testing.T) {

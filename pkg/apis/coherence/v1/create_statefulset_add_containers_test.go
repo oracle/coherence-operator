@@ -216,3 +216,46 @@ func TestCreateStatefulSetWithTwoExtraInitContainers(t *testing.T) {
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulSetWithExtraContainerAndVolume(t *testing.T) {
+	c := corev1.Container{
+		Name:  "one",
+		Image: "image-one:1.0",
+	}
+	mount := corev1.VolumeMount{
+		Name:      "logs",
+		MountPath: "/logs",
+	}
+	vol := corev1.Volume{
+		Name: "logs",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
+	}
+	spec := coh.CoherenceResourceSpec{
+		SideCars:     []corev1.Container{c},
+		VolumeMounts: []corev1.VolumeMount{mount},
+		Volumes:      []corev1.Volume{vol},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Volumes = append(stsExpected.Spec.Template.Spec.Volumes, vol)
+	stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts, mount)
+
+	// Create expected container
+	conExpected := corev1.Container{
+		Name:         "one",
+		Image:        "image-one:1.0",
+		Env:          deployment.Spec.CreateCommonEnv(deployment),
+		VolumeMounts: append(deployment.Spec.CreateCommonVolumeMounts(), mount),
+	}
+
+	stsExpected.Spec.Template.Spec.Containers = append(stsExpected.Spec.Template.Spec.Containers, conExpected)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}

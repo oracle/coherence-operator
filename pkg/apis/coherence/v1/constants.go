@@ -51,18 +51,20 @@ const (
 	VolumeNameMetricsSSL    = "metrics-ssl-config"
 
 	// Volume mount paths
-	VolumeMountPathPersistence     = "/persistence"
-	VolumeMountPathSnapshots       = "/snapshot"
-	VolumeMountPathUtils           = UtilsDir
-	VolumeMountPathJVM             = "/jvm"
-	VolumeMountPathLogs            = "/logs"
-	VolumeMountPathManagementCerts = "/coherence/certs/management"
-	VolumeMountPathMetricsCerts    = "/coherence/certs/metrics"
+	VolumeMountRoot                = "/coherence-operator"
+	VolumeMountPathPersistence     = VolumeMountRoot + "/persistence"
+	VolumeMountPathSnapshots       = VolumeMountRoot + "/snapshot"
+	VolumeMountPathUtils           = VolumeMountRoot + "/utils"
+	VolumeMountPathJVM             = VolumeMountRoot + "/jvm"
+	VolumeMountPathManagementCerts = VolumeMountRoot + "/coherence/certs/management"
+	VolumeMountPathMetricsCerts    = VolumeMountRoot + "/coherence/certs/metrics"
 
-	UtilFilesDir     = "/files"
-	UtilsDir         = "/utils"
-	ScriptsDir       = UtilsDir + "/scripts"
-	UtilsInitCommand = UtilFilesDir + "/utils-init"
+	// Start command for the runner
+	RunnerCommand = VolumeMountPathUtils + "/runner"
+	// Start command for the test executable
+	TestCommand = VolumeMountPathUtils + "/op-test"
+	// Start command for the utils init container
+	UtilsInitCommand = "/files/utils-init"
 
 	ServiceMonitorKind         = "ServiceMonitor"
 	ServiceMonitorGroup        = "monitoring.coreos.com"
@@ -75,8 +77,6 @@ const (
 	PortNameHealth     = "health"
 	PortNameManagement = "management"
 	PortNameMetrics    = "metrics"
-
-	DefaultLoggingConfig = ScriptsDir + "/logging.properties"
 
 	DefaultDebugPort      int32 = 5005
 	DefaultManagementPort int32 = 30000

@@ -146,7 +146,6 @@ override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR         := $(BUILD_OUTPUT)/helm-charts
 override PREV_CHART_DIR    := $(BUILD_OUTPUT)/previous-charts
 override CRD_DIR           := deploy/crds
-override IMAGE_SCRIPTS_DIR := image/scripts
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
 
 GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
@@ -936,7 +935,8 @@ build-utils-image: build-mvn build-runner-artifacts build-utils-init build-op-te
 	cp $(BUILD_OUTPUT)/bin/op-test    java/coherence-utils/target/docker/op-test
 	cp $(BUILD_OUTPUT)/bin/utils-init java/coherence-utils/target/docker/utils-init
 	cp $(BUILD_OUTPUT)/bin/runner     java/coherence-utils/target/docker/runner
-	cp -r $(IMAGE_SCRIPTS_DIR)        java/coherence-utils/target/docker/scripts
+	cp -r image/config                java/coherence-utils/target/docker/config
+	cp -r image/logging               java/coherence-utils/target/docker/logging
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
 # ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"os"
 )
@@ -16,10 +17,13 @@ const (
 	pathSep                 = string(os.PathSeparator)
 	utilsDirEnv             = "UTIL_DIR"
 	clusterEnv              = "COH_CLUSTER_NAME"
-	utilsDirDefault         = pathSep + "utils"
 	filesDir                = pathSep + "files"
-	snapshotDir             = pathSep + "snapshot"
-	persistenceDir          = pathSep + "persistence"
+	configSrc               = filesDir + pathSep + "config"
+	loggingSrc              = filesDir + pathSep + "logging"
+	libSrc                  = filesDir + pathSep + "lib"
+	utilsDirDefault         = v1.VolumeMountPathUtils
+	snapshotDir             = v1.VolumeMountPathSnapshots
+	persistenceDir          = v1.VolumeMountPathPersistence
 	persistenceActiveDir    = persistenceDir + pathSep + "active"
 	persistenceTrashDir     = persistenceDir + pathSep + "trash"
 	persistenceSnapshotsDir = persistenceDir + pathSep + "snapshots"
@@ -35,17 +39,17 @@ func main() {
 		utilDir = utilsDirDefault
 	}
 
-	scriptsDir := utilDir + pathSep + "scripts"
-	confDir := utilDir + pathSep + "conf"
+	configDir := utilDir + pathSep + "config"
+	loggingDir := utilDir + pathSep + "logging"
 	libDir := utilDir + pathSep + "lib"
 
 	fmt.Printf("Creating target directories under %s\n", utilDir)
-	err = os.MkdirAll(scriptsDir, os.ModePerm)
+	err = os.MkdirAll(configDir, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
 
-	err = os.MkdirAll(confDir, os.ModePerm)
+	err = os.MkdirAll(loggingDir, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -56,15 +60,18 @@ func main() {
 	}
 
 	fmt.Printf("Copying files to %s\n", utilDir)
-
-	scriptSrc := filesDir + pathSep + "scripts"
-	fmt.Printf("Copying %s to %s\n", scriptSrc, scriptsDir)
-	err = utils.CopyDir(scriptSrc, scriptsDir, func(f string) bool { return true })
+	fmt.Printf("Copying %s to %s\n", configSrc, configDir)
+	err = utils.CopyDir(configSrc, configDir, func(f string) bool { return true })
 	if err != nil {
 		panic(err)
 	}
 
-	libSrc := filesDir + pathSep + "lib"
+	fmt.Printf("Copying %s to %s\n", loggingSrc, loggingDir)
+	err = utils.CopyDir(loggingSrc, loggingDir, func(f string) bool { return true })
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Printf("Copying %s to %s\n", libSrc, libDir)
 	err = utils.CopyDir(libSrc, libDir, func(f string) bool { return true })
 	if err != nil {

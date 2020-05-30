@@ -552,7 +552,6 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 				},
 				Containers: []corev1.Container{cohContainer},
 				Volumes: []corev1.Volume{
-					{Name: VolumeNameLogs, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 					{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 				},
 			},
@@ -567,7 +566,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 	in.Coherence.UpdateStatefulSet(deployment, &sts)
 
 	// Add any additional init-containers and any additional containers
-	in.ProcesssideCars(deployment, &sts)
+	in.ProcessSideCars(deployment, &sts)
 
 	// Add any ConfigMap Volumes
 	for _, cmv := range in.ConfigMapVolumes {
@@ -627,7 +626,7 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence,
 	c := corev1.Container{
 		Name:    ContainerNameCoherence,
 		Image:   *cohImage,
-		Command: []string{"/utils/runner", "server"},
+		Command: []string{RunnerCommand, "server"},
 		Env:     in.Env,
 		Ports: []corev1.ContainerPort{
 			{
@@ -672,7 +671,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence,
 // Create the common VolumeMounts added all containers.
 func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
-		{Name: VolumeNameLogs, MountPath: VolumeMountPathLogs},
 		{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
 		{Name: VolumeNameJVM, MountPath: VolumeMountPathJVM},
 	}
@@ -871,7 +869,7 @@ func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 // Add any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
-func (in *CoherenceResourceSpec) ProcesssideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
+func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
 	}
@@ -890,6 +888,8 @@ func (in *CoherenceResourceSpec) ProcesssideCars(deployment *Coherence, sts *app
 func (in *CoherenceResourceSpec) processAdditionalContainer(deployment *Coherence, c *corev1.Container) {
 	in.appendCommonEnvVars(deployment, c)
 	in.appendCommonVolumeMounts(c)
+	// add any additional volume mounts
+	c.VolumeMounts = append(c.VolumeMounts, in.VolumeMounts...)
 }
 
 func (in *CoherenceResourceSpec) appendCommonEnvVars(deployment *Coherence, c *corev1.Container) {

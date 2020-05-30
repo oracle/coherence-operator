@@ -153,7 +153,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 	cohContainer := corev1.Container{
 		Name:    coh.ContainerNameCoherence,
 		Image:   testCoherenceImage,
-		Command: []string{"/utils/runner", "server"},
+		Command: []string{coh.RunnerCommand, "server"},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "coherence",
@@ -176,11 +176,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				ReadOnly:  false,
 			},
 			{
-				Name:      coh.VolumeNameLogs,
-				MountPath: coh.VolumeMountPathLogs,
-				ReadOnly:  false,
-			},
-			{
 				Name:      coh.VolumeNameUtils,
 				MountPath: coh.VolumeMountPathUtils,
 				ReadOnly:  false,
@@ -194,10 +189,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			{
 				Name:  "COH_HEALTH_PORT",
 				Value: fmt.Sprintf("%d", spec.GetHealthPort()),
-			},
-			{
-				Name:  "JVM_LOGGING_CONFIG",
-				Value: coh.ScriptsDir + "/logging.properties",
 			},
 			{
 				Name: "COH_MACHINE_NAME",
@@ -302,11 +293,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				ReadOnly:  false,
 			},
 			{
-				Name:      coh.VolumeNameLogs,
-				MountPath: coh.VolumeMountPathLogs,
-				ReadOnly:  false,
-			},
-			{
 				Name:      coh.VolumeNameUtils,
 				MountPath: coh.VolumeMountPathUtils,
 				ReadOnly:  false,
@@ -343,10 +329,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 					Volumes: []corev1.Volume{
 						{
 							Name:         coh.VolumeNameJVM,
-							VolumeSource: emptyVolume,
-						},
-						{
-							Name:         coh.VolumeNameLogs,
 							VolumeSource: emptyVolume,
 						},
 						{
