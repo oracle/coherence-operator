@@ -6366,13 +6366,6 @@ spec:
                       format: int32
                       type: integer
                   type: object
-                loggingConfig:
-                  description: The name of the Java Util Logging configuration file
-                    to use. This value should be the full path to the configuration
-                    file. This value is used to directly set the -Djava.util.logging.config.file
-                    System property. If not set a default configuration file injected
-                    by the Operator will be used.
-                  type: string
                 memory:
                   description: Configure the JVM memory options.
                   properties:

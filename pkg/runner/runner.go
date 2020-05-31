@@ -254,7 +254,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
 	details.AddArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
 	details.AddArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig", "coherence-cache-config.xml")
+	details.AddArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
@@ -290,17 +290,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	// Set the Coherence site and rack values
 	configureSiteAndRack(details)
-
-	// Set the Coherence logging configuration
-	logCfg := details.Getenv(v1.EnvVarJvmLoggingConfig)
-	if logCfg != "" {
-		_, err := os.Stat(logCfg)
-		if err == nil {
-			details.AddArg("-Dcoherence.log=jdk")
-			details.AddArg("-Dcoherence.log.logger=com.oracle.coherence")
-			details.AddArg("-Djava.util.logging.config.file=" + logCfg)
-		}
-	}
 
 	// Set the Coherence log level
 	details.AddArgFromEnvVar(v1.EnvVarCohLogLevel, "-Dcoherence.log.level")

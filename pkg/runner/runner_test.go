@@ -92,7 +92,6 @@ func GetMinimalExpectedArgs() []string {
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka",
 		"-Dcoherence.cluster=test",
-		"-Dcoherence.cacheconfig=coherence-cache-config.xml",
 		"-Dcoherence.health.port=6676",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",

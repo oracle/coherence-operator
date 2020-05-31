@@ -151,7 +151,6 @@ const (
 	EnvVarJvmGcArgs                   = "JVM_GC_ARGS"
 	EnvVarJvmGcCollector              = "JVM_GC_COLLECTOR"
 	EnvVarJvmGcLogging                = "JVM_GC_LOGGING"
-	EnvVarJvmLoggingConfig            = "JVM_LOGGING_CONFIG"
 	EnvVarJvmMemoryHeap               = "JVM_HEAP_SIZE"
 	EnvVarJvmMemoryDirect             = "JVM_DIRECT_MEMORY_SIZE"
 	EnvVarJvmMemoryStack              = "JVM_STACK_SIZE"

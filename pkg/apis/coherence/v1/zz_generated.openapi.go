@@ -863,13 +863,6 @@ func schema_pkg_apis_coherence_v1_JVMSpec(ref common.ReferenceCallback) common.O
 							},
 						},
 					},
-					"loggingConfig": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The name of the Java Util Logging configuration file to use. This value should be the full path to the configuration file. This value is used to directly set the -Djava.util.logging.config.file System property. If not set a default configuration file injected by the Operator will be used.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"debug": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The settings for enabling debug mode in the JVM.",

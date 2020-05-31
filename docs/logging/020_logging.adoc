@@ -31,21 +31,16 @@ Coherence will log to the console by default so to be able to ship logs to Elast
 to write to log files. One way to do this is to add a Java Util Logging configuration file and then to configure
 Coherence to use the JDK logger.
 
-In the `jvm` section of the `Coherence` CRD is a field to set the configuration file used by Java util logging.
-see the <<jvm_settings/060_logging.adoc, JVM Logging>> section of the documentation.
-If the `jvm.loggingConfig` field is set the value is used to set the `java.util.logging.config.file`
-system property.
-If `jvm.loggingConfig` is set the operator will also set the `coherence.log` system property to `jdk`
-(i.e. `-Dcoherence.log=jdk`), this tells Coherence to use the JDK logger (i.e. Java util logging).
+In the `jvm.args` section of the `Coherence` CRD the system properties should be added to set the configuration file used by Java util logging and to configure Coherence logging.
 See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html[Logging Config]
-documentation for more details on this setting.
+documentation for more details.
 
 There are alternative ways to configure the Java util logger besides using a configuration file, just as there are
 alternative logging frameworks that Coherence can be configured to use to produce log files.
 This example is going to use Java util logging as that is the simplest to demonstrate without requiring any additional
 logging libraries.
 
-==== Default Logging Configuration File
+==== Operator Provided Logging Configuration File
 
 Whilst any valid Java util logging configuration file may be used, the Coherence Operator injects a default logging
 configuration file into the `coherence` container that can be used to configure the logger to write
@@ -71,6 +66,8 @@ java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
 java.util.logging.SimpleFormatter.format=%5$s%6$s%n
 ----
 
+To configure Cohrence and the logger some system properties need to be added to the `jvm.args` field
+of the `Coherence` CRD spec:
 
 For example:
 [source,yaml]
@@ -81,10 +78,14 @@ metadata:
   name: cluster-one
 spec:
   jvm:
-    loggingConfig: /coherence-operator/utils/logging/logging.properties
+    args:
+      - "-Dcoherence.log=jdk"                                                                   # <1>
+ 	  - "-Dcoherence.log.logger=com.oracle.coherence"                                           # <2>
+ 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"  # <3>
 ----
-The `jvm.loggingConfig` field has been set to use the config file provided by the operator.
-
+<1> Coherence has been configured to use the Java util logging.
+<2> The Coherence logger name has been set to `com.oracle.coherence`, which matches the logging configuration file.
+<3> The Java util logging configuration file is set to the file injected by the Operator.
 
 
 ==== Log Files Volume
@@ -104,7 +105,10 @@ metadata:
   name: cluster-one
 spec:
   jvm:
-    loggingConfig: /coherence-operator/utils/logging/logging.properties
+    args:
+      - "-Dcoherence.log=jdk"
+ 	  - "-Dcoherence.log.logger=com.oracle.coherence"
+ 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumes:
     - name: logs           # <1>
       emptyDir: {}
@@ -131,7 +135,10 @@ metadata:
   name: cluster-one
 spec:
   jvm:
-    loggingConfig: /coherence-operator/utils/logging/logging.properties
+    args:
+      - "-Dcoherence.log=jdk"
+ 	  - "-Dcoherence.log.logger=com.oracle.coherence"
+ 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumes:
     - name: logs           # <1>
       emptyDir: {}
