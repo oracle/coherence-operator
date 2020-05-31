@@ -10,8 +10,8 @@ spec:
   jvm:
     args:
       - "-Dcoherence.log=jdk"
- 	  - "-Dcoherence.log.logger=com.oracle.coherence"
- 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
+      - "-Dcoherence.log.logger=com.oracle.coherence"
+      - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumeMounts:
     - name: logs
       mountPath: /logs
