@@ -260,7 +260,6 @@ The JVM configuration.
 | Field | Description | Type | Required
 m| classpath | Classpath specifies additional items to add to the classpath of the JVM. m| []string | false
 m| args | Args specifies the options (System properties, -XX: args etc) to pass to the JVM. m| []string | false
-m| loggingConfig | The name of the Java Util Logging configuration file to use. This value should be the full path to the configuration file. This value is used to directly set the -Djava.util.logging.config.file System property. If not set a default configuration file injected by the Operator will be used. m| &#42;string | false
 m| debug | The settings for enabling debug mode in the JVM. m| &#42;<<JvmDebugSpec,JvmDebugSpec>> | false
 m| useContainerLimits | If set to true Adds the  -XX:+UseContainerSupport JVM option to ensure that the JVM respects any container resource limits. The default value is true m| &#42;bool | false
 m| gc | Set JVM garbage collector options. m| &#42;<<JvmGarbageCollectorSpec,JvmGarbageCollectorSpec>> | false

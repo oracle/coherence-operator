@@ -56,13 +56,6 @@ Configuring the heap size and other memory settings.
 [PILLARS]
 ====
 [CARD]
-.Logging
-[link=jvm_settings/060_logging.adoc]
---
-Configuring Java util logging.
---
-
-[CARD]
 .Debugger
 [link=jvm_settings/070_debugger.adoc]
 --

@@ -413,13 +413,6 @@ type JVMSpec struct {
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
-	// The name of the Java Util Logging configuration file to use.
-	// This value should be the full path to the configuration file.
-	// This value is used to directly set the -Djava.util.logging.config.file
-	// System property.
-	// If not set a default configuration file injected by the Operator will be used.
-	// +optional
-	LoggingConfig *string `json:"loggingConfig,omitempty"`
 	// The settings for enabling debug mode in the JVM.
 	// +optional
 	Debug *JvmDebugSpec `json:"debug,omitempty"`
@@ -486,11 +479,6 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	}
 
 	c.Env = append(c.Env, gc.CreateEnvVars()...)
-
-	// Set the Java Util Logging config, if specified.
-	if in != nil && in.LoggingConfig != nil && *in.LoggingConfig != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmLoggingConfig, Value: *in.LoggingConfig})
-	}
 
 	// Configure the JVM to use container limits (true by default)
 	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits

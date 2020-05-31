@@ -539,11 +539,6 @@ func (in *JVMSpec) DeepCopyInto(out *JVMSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.LoggingConfig != nil {
-		in, out := &in.LoggingConfig, &out.LoggingConfig
-		*out = new(string)
-		**out = **in
-	}
 	if in.Debug != nil {
 		in, out := &in.Debug, &out.Debug
 		*out = new(JvmDebugSpec)

@@ -97,41 +97,6 @@ func TestCreateStatefulSetWithJvmSpecWithClasspath(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithJvmSpecWithLoggingConfigEmpty(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			LoggingConfig: stringPtr(""),
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithLoggingConfig(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			LoggingConfig: stringPtr("/foo/logging.properties"),
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmLoggingConfig, Value: "/foo/logging.properties"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
 func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
