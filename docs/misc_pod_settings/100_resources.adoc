@@ -29,13 +29,13 @@ kind: Coherence
 metadata:
   name: test-cluster
 spec:
-  resources:               # <1>
+  resources:           # <1>
     requests:
       memory: "64Mi"
-        cpu: "250m"
-      limits:
-        memory: "128Mi"
-        cpu: "500m"
+      cpu: "250m"
+    limits:
+      memory: "128Mi"
+      cpu: "500m"
 ----
 <1> The `coherence` container in the `Pods` has a request of 0.25 cpu and 64MiB of memory.
 The `coherence` container has a limit of 0.5 cpu and 128MiB of memory.

@@ -10,4 +10,150 @@
 
 == Coherence Deployment Dependencies and Start Order
 
-// ToDo: TBD
+The default behaviour of the operator is to create the `StatefulSet` for a `Coherence` deployment immediately.
+Sometimes this behaviour is not suitable if, for example, when application code running in one deployment depends on the
+availability of another deployment.
+Typically, this might be storage disabled members having functionality that relies on the storage members being ready first.
+The `Coherence` CRD allows can be configured with a `startQuorum` that defines a deployment's dependency on other
+deployments in the cluster.
+
+NOTE: The `startQuorum` only applies when a cluster is initially being started by the operator, it does not apply in other
+functions such as upgrades, scaling, shut down etc.
+
+An individual deployment can depend on one or more other deployment. The dependency can be such that the deployment will
+not be created until all of the `Pods` of the dependent deployment are ready, or it can be configured so that just a
+single `Pod` of the dependent deployment must be ready.
+
+For example:
+In the yaml snippet below there are two `Coherence` deployments, `data` and `proxy`
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: data
+spec:
+  replicas: 3           # <1>
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: proxy
+spec:
+  startQuorum:          # <2>
+    - deployment: data
+      podCount: 1
+----
+<1> The `data` deployment does not specify a `startQuorum` so this role will be created immediately by the operator.
+
+<2> The `proxy` deployment has a start quorum that means that the `proxy` deployment depends on the `data` deployment.
+The `podCount` field has been set to `1` meaning the `proxy` deployment's `StatefulSet` will not be created until at
+least `1` of the `data` deployment's `Pods` is in the `Ready` state.
+
+Omitting the `podCount` from the quorum means that the role will not start until all the configured replicas of the
+dependent deployment are ready; for example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: data
+spec:
+  replicas: 3
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: proxy
+spec:
+  startQuorum:          # <1>
+    - deployment: data
+----
+
+<1> The `proxy` deployment's `startQuorum` just specifies a dependency on the `data` deployment with no `podCount` so
+all `3` of the `data` deployment's `Pods` must be `Ready` before the `proxy` deployment's `StatefulSet` is created by
+the operator.
+
+NOTE: Setting a `podCount` less than or equal to zero is the same as not specifying a count.
+
+=== Multiple Dependencies
+
+The `startQuorum` can specify a dependency on more than on deployment; for example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: data      # <1>
+spec:
+  replicas: 5
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: proxy        # <1>
+spec:
+  replicas: 3
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web
+spec:
+  startQuorum:          # <2>
+    - deployment: data
+    - deployment: proxy
+      podCount: 1
+----
+
+<1> The `data` and `proxy` deployments do not specify a `startQuorum`, so the `StatefulSets` for these deployments will
+be created immediately by the operator.
+<2> The `web` deployment has a `startQuorum` the defines a dependency on both the `data` deployment and the `proxy`
+deployment. The `proxy` dependency also specifies a `podCount` of `1`.
+This means that the operator wil not create the `web` role's `StatefulSet` until all `5` replicas of the `data`
+deployment are `Ready` and at least `1` of the `proxy` deployment's `Pods` is `Ready`.
+
+
+=== Chained Dependencies
+
+It is also possible to chain dependencies, for example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: data            # <1>
+spec:
+  replicas: 5
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: proxy
+spec:
+  replicas: 3
+  startQuorum:          # <2>
+    - deployment: data
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web
+spec:
+  startQuorum:          # <3>
+    - deployment: proxy
+      podCount: 1
+----
+
+<1> The `data` deployment does not specify a `startQuorum` so this deployment's `StatefulSet` will be created immediately
+by the operator.
+
+<2> The `proxy` deployment defines a dependency on the `data` deployment without a `podCount` so all five `Pods` of the
+`data` role must be in a `Ready` state before the operator will create the `proxy` deployment's `StatefulSet`.
+
+<3> The `web` deployment depends on the `proxy` deployment with a `podCount` of one, so the operator will not create the
+`web` deployment's `StatefulSet` until at least one `proxy` deployment `Pod` is in a `Ready` state.
+
+WARNING: The operator does not validate that a `startQuorum` makes sense. It is possible to declare a quorum with circular
+dependencies, in which case the roles will never start. It would also be possible to create a quorum with a `podCount` greater
+than the `replicas` value of the dependent deployment, in which case the quorum would never be met, and the role would not start.
