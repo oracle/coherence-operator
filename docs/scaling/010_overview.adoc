@@ -43,12 +43,127 @@ in one step as there is no fear of data loss in a storage disabled member.
 
 The `Coherence` CRD has a number of fields that control the behaviour of scaling.
 
-=== Scaling Mode
+=== Scaling Policy
 
+The `Coherence` CRD spec has a field `scaling.policy` that can be used to override the default scaling
+behaviour. The scaling policy has three possible values:
 
+[cols=2*,options=header]
+|===
+|Value
+|Description
 
-=== Scaling Status HA Probe
+|`ParallelUpSafeDown`
+|This is the default scaling policy.
+With this policy when scaling up `Pods` are added in parallel (the same as using the `Parallel` `podManagementPolicy`
+in a https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#statefulsetspec-v1-apps[StatefulSet]) and
+when scaling down `Pods` are removed one at a time (the same as the `OrderedReady` `podManagementPolicy` for a
+StatefulSet). When scaling down a check is done to ensure that the members of the cluster have a safe StatusHA value
+before a `Pod` is removed (i.e. none of the Coherence cache services have an endangered status).
+This policy offers faster scaling up and start-up because pods are added in parallel as data should not be lost when
+adding members, but offers safe, albeit slower,  scaling down as `Pods` are removed one by one.
 
-// ToDo: TBD
+|`Parallel`
+|With this policy when scaling up `Pods` are added in parallel (the same as using the `Parallel` `podManagementPolicy`
+in a https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#statefulsetspec-v1-apps[StatefulSet]).
+With this policy no StatusHA check is performed either when scaling up or when scaling down.
+This policy allows faster start and scaling times but at the cost of no data safety; it is ideal for deployments that are
+storage disabled.
 
+|`Safe`
+|With this policy when scaling up and down `Pods` are removed one at a time (the same as the `OrderedReady`
+`podManagementPolicy` for a StatefulSet). When scaling down a check is done to ensure that the members of the deployment
+have a safe StatusHA value before a `Pod` is removed (i.e. none of the Coherence cache services have an endangered status).
+This policy is slower to start, scale up and scale down.
+|===
+
+Both the `ParallelUpSafeDown` and `Safe` policies will ensure no data loss when scaling a deployment.
+
+The policy can be set as shown below:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  scaling:
+    policy: Safe # <1>
+----
+<1> This deployment will scale both up and down with StatusHA checks.
+
+=== Scaling StatusHA Probe
+
+The StatusHA check performed by the Operator uses a http endpoint that the Operator runs on a well-known port in the
+Coherence JVM. This endpoint does performs a simple check to verify that none of the partitioned cache services known
+about by Coherence have an endangered status. If an application has a different concept of what "safe" means it can
+implement a different method to check the status during scaling.
+
+The operator supports different types of safety check probes, these are exactly the same as those supported by
+Kubernetes for readiness and liveness probes. The `scaling.probe` section of the `Coherence` CRD allows different
+types of probe to be configured.
+
+==== Using a HTTP Get Probe
+
+A HTTP get probe works the same way as a
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-http-request[Kubernetes liveness http request]
+
+The probe can be configured as follows
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  scaling:
+    probe:
+      httpGet:             # <1>
+        port: 8080
+        path: /statusha
+----
+<1> This deployment will check the status of the services by performing a http GET on `http://<pod-ip>:8080/statusha`.
+If the response is `200` the check will pass, any other response the check is assumed to be false.
+
+==== Using a TCP Probe
+
+A TCP probe works the same way as a
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-tcp-liveness-probe[Kubernetes TCP liveness probe]
+
+The probe can be configured as follows
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  scaling:
+    probe:
+      tcpSocket:    # <1>
+        port: 7000
+----
+<1> This deployment will check the status of the services by connecting to the socket on port `7000`.
+
+==== Using an Exec Command Probe
+
+A TCP probe works the same way as a
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command[Kubernetes Exec liveness probe]
+
+The probe can be configured as follows
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  scaling:
+    probe:
+      exec:
+        command:      # <1>
+          - /bin/ah
+          - safe.sh
+----
+<1> This deployment will check the status of the services by running the `sh safe.sh` command in the `Pod`.
 
