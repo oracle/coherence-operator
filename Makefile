@@ -46,10 +46,11 @@ UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
 
 # Set the location of the Operator SDK executable
-UNAME_S      = $(shell uname -s)
-UNAME_M      = $(shell uname -m)
-OPERATOR_SDK = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
-OP_CHMOD     := $(shell chmod +x $(OPERATOR_SDK))
+UNAME_S               = $(shell uname -s)
+UNAME_M               = $(shell uname -m)
+OPERATOR_SDK_VERSION := v0.17.1
+OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
+OP_CHMOD             := $(shell chmod +x $(OPERATOR_SDK))
 
 # The image prefix to use for Coherence images
 COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
@@ -215,13 +216,20 @@ $(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
 $(BUILD_OUTPUT)/bin/operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 $(BUILD_OUTPUT)/bin/operator: export UTILS_IMAGE := $(UTILS_IMAGE)
 $(BUILD_OUTPUT)/bin/operator: export VERSION_FULL := $(VERSION_FULL)
-$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
+$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz ensure-sdk
 	@echo "Building: $(OPERATOR_IMAGE)"
 	@echo "Running Operator SDK build"
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
 	$(OPERATOR_SDK) build $(OPERATOR_IMAGE) --verbose \
 	    --image-build-args "--build-arg version=$(VERSION_FULL) --build-arg coherence_image=$(HELM_COHERENCE_IMAGE) --build-arg utils_image=$(UTILS_IMAGE)" \
 	    --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
+
+# ---------------------------------------------------------------------------
+# Ensure Operator SDK is at the correct version
+# ---------------------------------------------------------------------------
+.PHONY: ensure-sdk
+ensure-sdk:
+	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION)
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator runner artifacts utility
