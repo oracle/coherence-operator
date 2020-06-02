@@ -114,3 +114,27 @@ Issue the following `curl` command to access the REST endpoint:
 curl http://127.0.0.1:9612/metrics
 ----
 
+== Prometheus Service Monitor
+
+The operator can create a Prometheus `ServiceMonitor` for the metrics port so that Prometheus will automatically
+scrape metrics from the `Pods` in a `Coherence` deployment.
+
+[source,yaml]
+.metrics-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: metrics-cluster
+spec:
+  coherence:
+    metrics:
+      enabled: true
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true  # <1>
+----
+<1> The `serviceMonitor.enabled` field is set to `true` for the `metrics` port.
+
+See <<ports/040_servicemonitors.adoc,Exposing ports and Services - Service Monitors>> documentation for more details.
