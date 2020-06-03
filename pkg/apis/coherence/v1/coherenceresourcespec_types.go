@@ -463,7 +463,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
-			Name:      deployment.GetName(),
+			Name:      deployment.GetHeadlessServiceName(),
 			Labels:    svcLabels,
 		},
 		Spec: corev1.ServiceSpec{
@@ -528,7 +528,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 			Type: appsv1.RollingUpdateStatefulSetStrategyType,
 		},
 		RevisionHistoryLimit: pointer.Int32Ptr(5),
-		ServiceName:          deployment.GetName(),
+		ServiceName:          deployment.GetHeadlessServiceName(),
 		Selector: &metav1.LabelSelector{
 			MatchLabels: in.CreatePodSelectorLabels(deployment),
 		},

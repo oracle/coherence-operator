@@ -9,8 +9,10 @@ package v1
 const (
 	// The default number of replicas that will be created for a deployment if no value is specified in the spec
 	DefaultReplicas int32 = 3
-	// The suffix appended to a cluster name to give the WKA service name
+	// The suffix appended to a deployment name to give the WKA service name
 	WKAServiceNameSuffix = "-wka"
+	// The suffix appended to a deployment name to give the StatefulSet headless-service name
+	HeadlessServiceNameSuffix = "-sts"
 
 	// Label keys used to label k8s resources
 	LabelCoherenceDeployment = "coherenceDeployment"
