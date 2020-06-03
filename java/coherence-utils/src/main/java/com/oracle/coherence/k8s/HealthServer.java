@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
@@ -65,7 +66,7 @@ public class HealthServer {
     /**
      * Service MBean Attributes required to compute HAStatus.
      *
-     * @see #isServiceStatusHA(java.util.Map, boolean)
+     * @see #isServiceStatusHA(java.util.Map)
      */
     public static final String[] SERVICE_STATUS_HA_ATTRIBUTES =
             {
@@ -122,14 +123,17 @@ public class HealthServer {
      */
     private final Supplier<Cluster> clusterSupplier;
 
+    private final Runnable waitForServiceStart;
+
     // ----- constructors ---------------------------------------------------
 
     HealthServer() {
-        this(CacheFactory::getCluster);
+        this(CacheFactory::getCluster, HealthServer::waitForDCS);
     }
 
-    HealthServer(Supplier<Cluster> supplier) {
-        clusterSupplier = supplier;
+    HealthServer(Supplier<Cluster> supplier, Runnable waitForServiceStart) {
+        this.clusterSupplier = supplier;
+        this.waitForServiceStart = waitForServiceStart;
     }
 
     // ----- HealthServer methods ------------------------------------------------
@@ -205,7 +209,7 @@ public class HealthServer {
      */
     void ready(HttpExchange exchange) {
         try {
-            int response = hasClusterMembers() && isStatusHA(false) ? 200 : 400;
+            int response = hasClusterMembers() && isStatusHA() ? 200 : 400;
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -236,7 +240,7 @@ public class HealthServer {
     void statusHA(HttpExchange exchange) {
         try {
             CacheFactory.log("HealthServer: StatusHA check request", CacheFactory.LOG_INFO);
-            int response = isStatusHA(true) ? 200 : 400;
+            int response = isStatusHA() ? 200 : 400;
             CacheFactory.log("HealthServer: StatusHA check response " + response, CacheFactory.LOG_INFO);
             send(exchange, response);
         }
@@ -287,25 +291,30 @@ public class HealthServer {
      *
      * @return {@code true} if the JVM is StatusHA
      */
-    private boolean isStatusHA(boolean log) {
+    private boolean isStatusHA() {
+        try {
+            waitForServiceStart.run();
+        }
+        catch (IllegalStateException e) {
+            // there is probably no DCS
+            CacheFactory.log("HealthServer: StatusHA check failed, " + e.getMessage(), CacheFactory.LOG_ERR);
+            return false;
+        }
+
         Cluster cluster = clusterSupplier.get();
         if (cluster != null && cluster.isRunning()) {
             for (String mBean : getPartitionAssignmentMBeans()) {
-                if (log) {
-                    CacheFactory.log("HealthServer: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
-                }
+                CacheFactory.log("HealthServer: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
-                if (!isServiceStatusHA(attributes, log)) {
-                    if (log) {
-                        CacheFactory.log("HealthServer: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
-                    }
+                if (!isServiceStatusHA(attributes)) {
+                    CacheFactory.log("HealthServer: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
                     return false;
                 }
             }
             return true;
         }
         else {
-            CacheFactory.log("HealthServer: StatusHA check failed - cluster is null", CacheFactory.LOG_DEBUG);
+            CacheFactory.log("HealthServer: StatusHA check failed - cluster is null", CacheFactory.LOG_ERR);
             return false;
         }
     }
@@ -338,6 +347,12 @@ public class HealthServer {
         return status;
     }
 
+    private static void waitForDCS() {
+        DefaultCacheServer dcs = DefaultCacheServer.getInstance();
+        // Wait for service start to ensure that we will get back any partition cache MBeans
+        dcs.waitForServiceStart();
+    }
+
     /**
      * Determine whether the Status HA state of the specified service is endangered.
      * <p>
@@ -345,10 +360,9 @@ public class HealthServer {
      * this method will return {@code false}.
      *
      * @param attributes    the MBean attributes to use to determine whether the service is HA
-     * @param log           whether to log the progess of the check
      * @return {@code true} if the service is endangered
      */
-    private boolean isServiceStatusHA(Map<String, Object> attributes, boolean log) {
+    private boolean isServiceStatusHA(Map<String, Object> attributes) {
         boolean statusHA = true;
 
         // convert the attribute case as MBeanProxy or REST return them with different cases
@@ -363,12 +377,6 @@ public class HealthServer {
         if (nodeCount != null && nodeCount.intValue() > 1 && backupCount != null && backupCount.intValue() > 0) {
             statusHA = !Objects.equals(STATUS_ENDANGERED, status);
         }
-
-        if (log) {
-            CacheFactory.log(String.format("HealthServer: StatusHA=%s Nodes=%s Backups=%s Status=%s",
-                                           statusHA, nodeCount, backupCount, status), CacheFactory.LOG_DEBUG);
-        }
-
         return statusHA;
     }
 
