@@ -91,7 +91,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 
 	// Verify that the WKA service has the same number of endpoints as the cluster size.
 	serviceName := deployments[0].GetWkaServiceName()
-	ep, err := f.KubeClient.CoreV1().Endpoints(namespace).Get(serviceName, metav1.GetOptions{})
+	ep, err := f.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(ep.Subsets)).NotTo(BeZero())
 
@@ -122,7 +122,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	// Verify that the WKA service endpoints list for each deployment has all of the required the Pod IP addresses.
 	for _, d := range deployments {
 		serviceName := d.GetWkaServiceName()
-		ep, err = f.KubeClient.CoreV1().Endpoints(namespace).Get(serviceName, metav1.GetOptions{})
+		ep, err = f.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(len(ep.Subsets)).NotTo(BeZero())
 

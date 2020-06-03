@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"golang.org/x/net/context"
 	"net/http"
 	"testing"
 	"time"
@@ -105,7 +106,7 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	for _, member := range members.Items {
 		g.Expect(member.MachineName).NotTo(BeEmpty())
 		// The member's machine name is the k8s Node name
-		node, err := f.KubeClient.CoreV1().Nodes().Get(member.MachineName, metav1.GetOptions{})
+		node, err := f.KubeClient.CoreV1().Nodes().Get(context.TODO(), member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		zone := node.GetLabels()[label]
 

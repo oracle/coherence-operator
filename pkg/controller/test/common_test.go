@@ -8,7 +8,9 @@ package controller_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/pkg/apis"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
@@ -131,7 +133,21 @@ func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.Fa
 	// result should not be re-queued
 	g.Expect(result.Requeue).To(BeFalse(), "Result for original deployment "+original.Name+" was re-queued")
 
-	results, err = chain.ReconcileDeployments(updated)
+	created := coh.Coherence{}
+	err = chain.GetManager().Client.Get(context.TODO(), original.GetNamespacedName(), &created)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	copy := created.DeepCopy()
+	ts := created.GetCreationTimestamp()
+	j, err := json.Marshal(updated)
+	g.Expect(err).NotTo(HaveOccurred())
+	err = json.Unmarshal(j, &created)
+	g.Expect(err).NotTo(HaveOccurred())
+	created.SetCreationTimestamp(ts)
+
+	fmt.Println(deep.Equal(copy, &created))
+
+	results, err = chain.ReconcileDeployments(created)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	result, found = results[original.Name]

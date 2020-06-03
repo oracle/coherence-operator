@@ -98,7 +98,7 @@ func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName stri
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(stsName, metav1.GetOptions{})
+		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(context.TODO(), stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Logf("Waiting for availability of StatefulSet %s - NotFound\n", stsName)
@@ -127,7 +127,7 @@ func WaitForEndpoints(kubeclient kubernetes.Interface, namespace, service string
 	var ep *corev1.Endpoints
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		ep, err = kubeclient.CoreV1().Endpoints(namespace).Get(service, metav1.GetOptions{})
+		ep, err = kubeclient.CoreV1().Endpoints(namespace).Get(context.TODO(), service, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Logf("Waiting for availability of Endpoints %s - NotFound\n", service)
@@ -153,13 +153,13 @@ type DeploymentStateCondition interface {
 }
 
 // An always true DeploymentStateCondition
-type alwayCondition struct{}
+type alwaysCondition struct{}
 
-func (a alwayCondition) Test(*coh.Coherence) bool {
+func (a alwaysCondition) Test(*coh.Coherence) bool {
 	return true
 }
 
-func (a alwayCondition) String() string {
+func (a alwaysCondition) String() string {
 	return "true"
 }
 
@@ -197,11 +197,11 @@ func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
 
 // WaitForCoherence waits for a Coherence resource to be created.
 func WaitForCoherence(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
-	return WaitForCoherenceCondition(f, namespace, name, alwayCondition{}, retryInterval, timeout, logger)
+	return WaitForCoherenceCondition(f, namespace, name, alwaysCondition{}, retryInterval, timeout, logger)
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
-func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, conditon DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -215,10 +215,10 @@ func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, c
 			return false, nil
 		}
 		valid := true
-		if conditon != nil {
-			valid = conditon.Test(deployment)
+		if condition != nil {
+			valid = condition.Test(deployment)
 			if !valid {
-				logger.Logf("Waiting for Coherence resource %s to meet condition '%s'\n", name, conditon.String())
+				logger.Logf("Waiting for Coherence resource %s to meet condition '%s'\n", name, condition.String())
 			}
 		}
 		return valid, nil
@@ -351,7 +351,7 @@ func ListCoherencePodsForDeployment(client kubernetes.Interface, namespace, depl
 func ListPodsWithLabelSelector(k8s kubernetes.Interface, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
 
-	list, err := k8s.CoreV1().Pods(namespace).List(opts)
+	list, err := k8s.CoreV1().Pods(namespace).List(context.TODO(), opts)
 	if err != nil {
 		return []corev1.Pod{}, err
 	}
@@ -362,7 +362,7 @@ func ListPodsWithLabelSelector(k8s kubernetes.Interface, namespace, selector str
 // WaitForPodReady waits for a Pods to be ready.
 func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		p, err := k8s.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
+		p, err := k8s.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
@@ -448,7 +448,7 @@ func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, l
 
 // Dump the Operator Pod log to a file.
 func DumpOperatorLog(kubeClient kubernetes.Interface, namespace, directory string, logger Logger) {
-	list, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=coherence-operator"})
+	list, err := kubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=coherence-operator"})
 	if err == nil {
 		if len(list.Items) > 0 {
 			pod := list.Items[0]
@@ -477,7 +477,7 @@ func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory stri
 	for _, container := range pod.Spec.Containers {
 		var err error
 		res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
-		s, err := res.Stream()
+		s, err := res.Stream(context.TODO())
 		if err == nil {
 			name := logs + pathSep + directory
 			err = os.MkdirAll(name, os.ModePerm)
@@ -594,7 +594,7 @@ func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*
 
 	// We do not want to overwrite the existing test secret
 	if kubeClient != nil && name != GetTestSSLSecretName() {
-		_, err = kubeClient.CoreV1().Secrets(namespace).Create(secret)
+		_, err = kubeClient.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
 	}
 
 	return &opSSL, &cohSSL, err
@@ -706,7 +706,7 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 	const message = "Could not dump StatefulSets for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.AppsV1().StatefulSets(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return
@@ -763,7 +763,7 @@ func dumpServices(namespace, dir string, logger Logger) {
 	const message = "Could not dump Services for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return
@@ -820,7 +820,7 @@ func dumpRbacRoles(namespace, dir string, logger Logger) {
 	const message = "Could not dump RBAC Roles for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.RbacV1().Roles(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.RbacV1().Roles(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return
@@ -877,7 +877,7 @@ func dumpRbacRoleBindings(namespace, dir string, logger Logger) {
 	const message = "Could not dump RBAC RoleBindings for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.RbacV1().RoleBindings(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return
@@ -934,7 +934,7 @@ func dumpServiceAccounts(namespace, dir string, logger Logger) {
 	const message = "Could not dump ServiceAccounts for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.CoreV1().ServiceAccounts(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return
@@ -1001,7 +1001,7 @@ func dumpPods(namespace, dir string, logger Logger) {
 	const message = "Could not dump Pods for namespace %s due to %s\n"
 
 	f := framework.Global
-	list, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	list, err := f.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Logf(message, namespace, err.Error())
 		return

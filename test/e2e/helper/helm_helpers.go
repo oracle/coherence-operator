@@ -75,12 +75,12 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 	}
 
 	// Ensure that the namespace exists
-	_, err = kubeclient.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	_, err = kubeclient.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			_, err = kubeclient.CoreV1().Namespaces().Create(&corev1.Namespace{
+			_, err = kubeclient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: namespace},
-			})
+			}, metav1.CreateOptions{})
 			if err != nil {
 				return nil, fmt.Errorf("error (5): %v", err)
 			}

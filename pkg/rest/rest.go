@@ -8,6 +8,7 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	onet "github.com/oracle/coherence-operator/pkg/net"
@@ -165,7 +166,7 @@ func (s server) getLabelForNode(label string, w http.ResponseWriter, r *http.Req
 
 	log.Info(fmt.Sprintf("Querying for node name='%s' URL: %s", name, r.URL.Path))
 
-	node, err := s.client.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+	node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
 
 	if err == nil {
 		value = node.Labels[label]
