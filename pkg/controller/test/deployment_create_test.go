@@ -66,7 +66,7 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	// Resource 4 = Service for StatefulSet
 	ss, err := toService(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.Name))
+	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
 
 	// Resource 5 = StatefulSet
 	sts, err := toStatefulSet(mgr, resources[5])
@@ -123,7 +123,7 @@ func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
 	// Resource 4 = Service for StatefulSet
 	ss, err := toService(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.Name))
+	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
 
 	// Resource 5 = StatefulSet
 	sts, err := toStatefulSet(mgr, resources[5])
@@ -178,7 +178,7 @@ func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
 	// Resource 3 = Service for StatefulSet
 	ss, err := toService(mgr, resources[3])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.Name))
+	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
 
 	// Resource 4 = StatefulSet
 	sts, err := toStatefulSet(mgr, resources[4])

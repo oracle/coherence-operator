@@ -65,6 +65,14 @@ func (in *Coherence) GetWkaServiceName() string {
 	return in.Name + WKAServiceNameSuffix
 }
 
+// Obtain the name of the headless Service used for the StatefulSet.
+func (in *Coherence) GetHeadlessServiceName() string {
+	if in == nil {
+		return ""
+	}
+	return in.Name + HeadlessServiceNameSuffix
+}
+
 // Obtain the number of replicas required for a deployment.
 // The Replicas field is a pointer and may be nil so this method will
 // return either the actual Replicas value or the default (DefaultReplicas const)

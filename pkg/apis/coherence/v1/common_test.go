@@ -315,7 +315,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			Selector: &metav1.LabelSelector{
 				MatchLabels: selector,
 			},
-			ServiceName:          deployment.Name,
+			ServiceName:          deployment.GetHeadlessServiceName(),
 			RevisionHistoryLimit: pointer.Int32Ptr(5),
 			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
 			PodManagementPolicy:  appsv1.ParallelPodManagement,
