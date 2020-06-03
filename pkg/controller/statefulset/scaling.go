@@ -61,7 +61,7 @@ func (in *ScalableChecker) TranslatePort(name string, port int) int {
 }
 
 // IsStatusHA will return true if the deployment represented by the deployment is StatusHA.
-// The number of Pods matching the StatefulSet selctor must match the StatefulSet replica count
+// The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
 func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {

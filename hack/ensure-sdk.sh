@@ -22,7 +22,7 @@ else
   OK=$?
 fi
 
-if [[ ${OK} != 0 ]]; then
+if [ ${OK} != 0 ]; then
   echo "Operator SDK not found or not correct version"
 
   if [[ "${UNAME_S}" == "Darwin" ]]; then
