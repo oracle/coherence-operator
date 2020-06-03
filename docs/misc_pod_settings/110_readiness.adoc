@@ -1,0 +1,73 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Readiness & Liveness Probes
+
+== Readiness & Liveness Probes
+
+The Coherence Operator injects a Readiness/Liveness endpoint into the Coherence container that is used as the default
+readiness and liveness check for the `Pods` deployed by the operator.
+This endpoint is suitable for most use-cases, but it is possible to configure a different readiness and liveness probe,
+or just change the timings of the probes if required.
+
+=== Configure Readiness
+
+The `Coherence` CRD `spec.readinessProbe` field is identical to configuring a readiness probe for a `Pod`
+in Kubernetes; see https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness & Readiness]
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  readinessProbe:
+    httpGet:
+      port: 8080
+      path: "/ready"
+    timeoutSeconds: 60
+    initialDelaySeconds: 300
+    periodSeconds: 120
+    failureThreshold: 10
+    successThreshold: 1
+----
+
+The example above configures a http probe for readiness and sets different timings for the probe.
+The `Coherence` CRD supports the other types of readiness probe too, `exec` and `tcpSocket`.
+
+=== Configure Liveness
+
+The `Coherence` CRD `spec.livenessProbe` field is identical to configuring a liveness probe for a `Pod`
+in Kubernetes; see https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness & Readiness]
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  livenessProbe:
+    httpGet:
+      port: 8080
+      path: "/live"
+    timeoutSeconds: 60
+    initialDelaySeconds: 300
+    periodSeconds: 120
+    failureThreshold: 10
+    successThreshold: 1
+----
+
+The example above configures a http probe for liveness and sets different timings for the probe.
+The `Coherence` CRD supports the other types of readiness probe too, `exec` and `tcpSocket`.
+
