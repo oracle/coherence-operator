@@ -7,6 +7,7 @@
 package helper
 
 import (
+	"context"
 	"fmt"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"io/ioutil"
@@ -36,7 +37,7 @@ func canary(namespace, deploymentName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-0", deploymentName)
 	f := framework.Global
 
-	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
+	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}

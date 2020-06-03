@@ -39,14 +39,9 @@ func assertCompatibilityForVersion(t *testing.T, prevVersion string) {
 
 	g := NewGomegaWithT(t)
 	f := framework.Global
-	namespace := f.Namespace
+	namespace := f.OperatorNamespace
 
-	values := helper.OperatorValues{
-		InstallEFK: false,
-		Prometheusoperator: &helper.PrometheusOperatorSpec{
-			Enabled: pointer.BoolPtr(false),
-		},
-	}
+	values := helper.OperatorValues{}
 
 	chart, err := helper.FindPreviousOperatorHelmChartDir(prevVersion)
 	g.Expect(err).NotTo(HaveOccurred())

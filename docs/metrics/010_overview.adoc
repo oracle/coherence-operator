@@ -15,7 +15,7 @@ Coherence metrics can be used in a cluster deployed in Kubernetes.
 [PILLARS]
 ====
 [CARD]
-.Management Over REST
+.Metrics
 [link=metrics/020_metrics.adoc]
 --
 Enabling the Coherence metrics feature.

@@ -48,7 +48,7 @@ GOPROXY         ?= https://proxy.golang.org
 # Set the location of the Operator SDK executable
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v0.17.1
+OPERATOR_SDK_VERSION := v0.18.0
 OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 OP_CHMOD             := $(shell chmod +x $(OPERATOR_SDK))
 

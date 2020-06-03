@@ -9,6 +9,7 @@ package com.oracle.coherence.k8s;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -51,6 +52,11 @@ public class HealthServer {
     public static final String PATH_HA = "/ha";
 
     /**
+     * The path to the status endpoint.
+     */
+    public static final String PATH_STATUS = "/status";
+
+    /**
      * The MBean name of the PartitionAssignment MBean.
      */
     public static final String MBEAN_PARTITION_ASSIGNMENT = Registry.PARTITION_ASSIGNMENT_TYPE
@@ -64,6 +70,7 @@ public class HealthServer {
     public static final String[] SERVICE_STATUS_HA_ATTRIBUTES =
             {
                     "HAStatus",
+                    "HAStatusCode",
                     "BackupCount",
                     "ServiceNodeCount"
             };
@@ -79,6 +86,11 @@ public class HealthServer {
     public static final String ATTRIB_HASTATUS = "hastatus";
 
     /**
+     * The name of the HA status code MBean attribute.
+     */
+    public static final String ATTRIB_HASTATUS_CODE = "hastatuscode";
+
+    /**
      * The name of the backup count MBean attribute.
      */
     public static final String ATTRIB_BACKUPS = "backupcount";
@@ -92,6 +104,11 @@ public class HealthServer {
      * The error message in an exception due to there being no management member in the cluster.
      */
     public static final String NO_MANAGED_NODES = "None of the nodes are managed";
+
+    /**
+     * An empty response body.
+     */
+    private static final byte[] EMPTY_BODY = new byte[0];
 
     // ----- data members ---------------------------------------------------
 
@@ -130,6 +147,7 @@ public class HealthServer {
             server.createContext(PATH_READY, this::ready);
             server.createContext(PATH_HEALTH, this::health);
             server.createContext(PATH_HA, this::statusHA);
+            server.createContext(PATH_STATUS, this::status);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -152,7 +170,27 @@ public class HealthServer {
         try {
             t.sendResponseHeaders(status, 0);
             OutputStream os = t.getResponseBody();
-            os.write(new byte[0]);
+            os.write(EMPTY_BODY);
+            os.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Send a http response.
+     *
+     * @param t      the {@link HttpExchange} to send the response to
+     * @param status the response status
+     * @param body   the response body
+     */
+    private static void send(HttpExchange t, int status, String body) {
+        try {
+            byte[] bytes = body == null ? EMPTY_BODY : body.getBytes(StandardCharsets.UTF_8);
+            t.sendResponseHeaders(status, bytes.length);
+            OutputStream os = t.getResponseBody();
+            os.write(bytes);
             os.close();
         }
         catch (IOException e) {
@@ -207,6 +245,21 @@ public class HealthServer {
         }
     }
 
+    /**
+     * Process a status request.
+     *
+     * @param exchange the {@link HttpExchange} to send the response to
+     */
+    void status(HttpExchange exchange) {
+        try {
+            String status = getStatusName();
+            send(exchange, 200, status.toLowerCase());
+        }
+        catch (Throwable thrown) {
+            handleError(exchange, thrown, "Status check");
+        }
+    }
+
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
         CacheFactory.log(action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
@@ -258,20 +311,48 @@ public class HealthServer {
     }
 
     /**
+     * Returns {@code true} if the JVM is StatusHA.
+     *
+     * @return {@code true} if the JVM is StatusHA
+     */
+    private String getStatusName() {
+        Cluster cluster = clusterSupplier.get();
+        int lowestStatus = Integer.MAX_VALUE;
+        String status = "n/a";
+
+        if (cluster != null && cluster.isRunning()) {
+            for (String mBean : getPartitionAssignmentMBeans()) {
+                Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
+                // convert the attribute case as MBeanProxy or REST return them with different cases
+                Map<String, Object> map = attributes.entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
+
+                Integer code = (Integer) map.get(ATTRIB_HASTATUS_CODE);
+                if (code != null && code < lowestStatus) {
+                    status = (String) map.get(ATTRIB_HASTATUS);
+                }
+            }
+        }
+
+        return status;
+    }
+
+    /**
      * Determine whether the Status HA state of the specified service is endangered.
      * <p>
      * If the service only has a single member then it will always be endangered but
      * this method will return {@code false}.
      *
-     * @param mapAttributes the MBean attributes to use to determine whether the service is HA
+     * @param attributes    the MBean attributes to use to determine whether the service is HA
      * @param log           whether to log the progess of the check
      * @return {@code true} if the service is endangered
      */
-    private boolean isServiceStatusHA(Map<String, Object> mapAttributes, boolean log) {
+    private boolean isServiceStatusHA(Map<String, Object> attributes, boolean log) {
         boolean statusHA = true;
 
         // convert the attribute case as MBeanProxy or REST return them with different cases
-        Map<String, Object> map = mapAttributes.entrySet()
+        Map<String, Object> map = attributes.entrySet()
                 .stream()
                 .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
 

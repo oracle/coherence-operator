@@ -107,20 +107,20 @@ func EnsureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitio
 			logger.Info("Loading operator CRD yaml from '" + file + "'")
 
 			// Get the existing CRD
-			oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
+			oldCRD, err := crdClient.Get(context.TODO(), newCRD.Name, metav1.GetOptions{})
 			switch {
 			case err == nil:
 				// CRD exists so update it
 				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 				newCRD.ResourceVersion = oldCRD.ResourceVersion
-				_, err = crdClient.Update(&newCRD)
+				_, err = crdClient.Update(context.TODO(), &newCRD, metav1.UpdateOptions{})
 				if err != nil {
 					return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
 				}
 			case apierrors.IsNotFound(err):
 				// CRD does not exist so create it
 				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-				_, err = crdClient.Create(&newCRD)
+				_, err = crdClient.Create(context.TODO(), &newCRD, metav1.CreateOptions{})
 				if err != nil {
 					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 				}
@@ -174,20 +174,20 @@ func EnsureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourc
 			logger.Info("Loading operator CRD yaml from '" + file + "'")
 
 			// Get the existing CRD
-			oldCRD, err := crdClient.Get(newCRD.Name, metav1.GetOptions{})
+			oldCRD, err := crdClient.Get(context.TODO(), newCRD.Name, metav1.GetOptions{})
 			switch {
 			case err == nil:
 				// CRD exists so update it
 				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
 				newCRD.ResourceVersion = oldCRD.ResourceVersion
-				_, err = crdClient.Update(&newCRD)
+				_, err = crdClient.Update(context.TODO(), &newCRD, metav1.UpdateOptions{})
 				if err != nil {
 					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 				}
 			case apierrors.IsNotFound(err):
 				// CRD does not exist so create it
 				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-				_, err = crdClient.Create(&newCRD)
+				_, err = crdClient.Create(context.TODO(), &newCRD, metav1.CreateOptions{})
 				if err != nil {
 					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
 				}
@@ -206,7 +206,9 @@ func EnsureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourc
 func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) error {
 	log.Info("Ensuring configuration secret")
 
-	err := c.Get(context.TODO(), types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, &corev1.Secret{})
+	secret := &corev1.Secret{}
+
+	err := c.Get(context.TODO(), types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, secret)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
@@ -215,7 +217,6 @@ func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) er
 
 	log.Info(fmt.Sprintf("Operator Configuration: '%s' value set to %s", coh.OperatorConfigKeyHost, restHostAndPort))
 
-	secret := &corev1.Secret{}
 	secret.SetNamespace(namespace)
 	secret.SetName(coh.OperatorConfigName)
 

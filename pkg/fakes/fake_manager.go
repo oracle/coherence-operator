@@ -20,6 +20,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -75,6 +76,14 @@ type FakeManager struct {
 	Events *FakeEventRecorder
 	Mapper meta.RESTMapper
 	Config *rest.Config
+}
+
+func (f *FakeManager) Elected() <-chan struct{} {
+	panic("implement me")
+}
+
+func (f *FakeManager) AddMetricsExtraHandler(path string, handler http.Handler) error {
+	panic("implement me")
 }
 
 func (f *FakeManager) GetEventRecorderFor(name string) record.EventRecorder {
