@@ -20,6 +20,7 @@ import com.sun.net.httpserver.HttpExchange;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,8 @@ public class HealthServerTest {
     private Cluster cluster;
     private Supplier<Cluster> clusterSupplier;
     private HttpExchange exchange;
+
+    private Runnable waitForDCS = () -> {};
 
     @Before
     public void setup() {
@@ -48,7 +51,7 @@ public class HealthServerTest {
     public void shouldHandleReadyCheckError() throws IOException {
         when(cluster.getManagement()).thenThrow(new RuntimeException("Computer says No!"));
 
-        HealthServer server = new HealthServer(clusterSupplier);
+        HealthServer server = new HealthServer(clusterSupplier, waitForDCS);
 
         server.ready(exchange);
 
@@ -59,7 +62,7 @@ public class HealthServerTest {
     public void shouldHandleReadyCheckWhenNoManagedNodes() throws IOException {
         when(cluster.getManagement()).thenThrow(new RuntimeException(HealthServer.NO_MANAGED_NODES));
 
-        HealthServer server = new HealthServer(clusterSupplier);
+        HealthServer server = new HealthServer(clusterSupplier, waitForDCS);
 
         server.ready(exchange);
 
@@ -70,7 +73,7 @@ public class HealthServerTest {
     public void shouldHandleStatusCheckError() throws IOException {
         when(cluster.getManagement()).thenThrow(new RuntimeException("Computer says No!"));
 
-        HealthServer server = new HealthServer(clusterSupplier);
+        HealthServer server = new HealthServer(clusterSupplier, waitForDCS);
 
         server.statusHA(exchange);
 
@@ -81,10 +84,38 @@ public class HealthServerTest {
     public void shouldHandleStatusCheckWhenNoManagedNodes() throws IOException {
         when(cluster.getManagement()).thenThrow(new RuntimeException(HealthServer.NO_MANAGED_NODES));
 
-        HealthServer server = new HealthServer(clusterSupplier);
+        HealthServer server = new HealthServer(clusterSupplier, waitForDCS);
 
         server.statusHA(exchange);
 
         verify(exchange).sendResponseHeaders(400, 0);
+    }
+
+    @Test
+    public void shouldHandleStatusCheckAndWaitForDCS() throws IOException {
+        Runnable dcs = mock(Runnable.class);
+
+        when(cluster.getManagement()).thenThrow(new RuntimeException(HealthServer.NO_MANAGED_NODES));
+
+        HealthServer server = new HealthServer(clusterSupplier, dcs);
+
+        server.statusHA(exchange);
+
+        verify(exchange).sendResponseHeaders(400, 0);
+        verify(dcs).run();
+    }
+
+    @Test
+    public void shouldHandleStatusCheckAndWaitForDCSFailure() throws IOException {
+        Runnable dcs = mock(Runnable.class);
+
+        doThrow(new IllegalStateException("Oops!")).when(dcs).run();
+
+        HealthServer server = new HealthServer(clusterSupplier, dcs);
+
+        server.statusHA(exchange);
+
+        verify(exchange).sendResponseHeaders(400, 0);
+        verify(dcs).run();
     }
 }
