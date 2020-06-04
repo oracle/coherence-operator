@@ -87,6 +87,7 @@ CREATE_TEST_NAMESPACE ?= true
 # Prometheus Operator settings
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
 PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
+GRAFANA_DASHBOARDS           ?= dashboards/grafana-legacy/
 
 # Elasticsearch & Kibana settings
 ELASTIC_VERSION ?= 7.6.2
@@ -1123,7 +1124,7 @@ install-prometheus:
 	kubectl create -f etc/prometheus-rbac.yaml
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	@echo "Create Grafana Dashboards ConfigMap:"
-	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy/
+	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
 	kubectl -n $(TEST_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
 	@echo "Getting Helm Version:"
 	helm version
@@ -1153,8 +1154,8 @@ uninstall-prometheus:
 port-forward-grafana: export GRAFANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app.kubernetes.io/name=grafana -o name)
 port-forward-grafana:
 	@echo "Reach Grafana on http://127.0.0.1:3000"
+	@echo "User: admin Password: prom-operator"
 	kubectl -n $(TEST_NAMESPACE) port-forward $(GRAFANA_POD) 3000:3000
-
 
 # ---------------------------------------------------------------------------
 # Install Elasticsearch & Kibana
