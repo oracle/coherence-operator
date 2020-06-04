@@ -1123,7 +1123,7 @@ install-prometheus:
 	kubectl create -f etc/prometheus-rbac.yaml
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	@echo "Create Grafana Dashboards ConfigMap:"
-	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=dashboards/grafana/
+	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy/
 	kubectl -n $(TEST_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
 	@echo "Getting Helm Version:"
 	helm version

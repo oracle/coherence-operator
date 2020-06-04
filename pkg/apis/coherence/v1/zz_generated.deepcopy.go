@@ -397,6 +397,11 @@ func (in *CoherenceSpec) DeepCopyInto(out *CoherenceSpec) {
 		*out = new(CoherenceTracingSpec)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.AllowEndangeredForStatusHA != nil {
+		in, out := &in.AllowEndangeredForStatusHA, &out.AllowEndangeredForStatusHA
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.ExcludeFromWKA != nil {
 		in, out := &in.ExcludeFromWKA, &out.ExcludeFromWKA
 		*out = new(bool)

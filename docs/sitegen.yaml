@@ -22,7 +22,7 @@ assets:
       - "images/**/*"
 header:
   favicon:
-    path: "images/favicon.png"
+    path: "images/logo.png"
     type: "png"
   stylesheets:
     - path: "css/styles.css"
@@ -39,7 +39,7 @@ backend:
       title: "Coherence Operator"
       glyph:
         type: "image"
-        value: "images/oracle-coherence.svg"
+        value: "images/logo.png"
       items:
         - title: "Core documentation"
           items:

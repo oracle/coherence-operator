@@ -614,6 +614,20 @@ func schema_pkg_apis_coherence_v1_CoherenceSpec(ref common.ReferenceCallback) co
 							Ref:         ref("./pkg/apis/coherence/v1.CoherenceTracingSpec"),
 						},
 					},
+					"allowEndangeredForStatusHA": {
+						SchemaProps: spec.SchemaProps{
+							Description: "AllowEndangeredForStatusHA is a list of Coherence partitioned cache service names that are allowed to be in an endangered state when testing for StatusHA. Instances where a StatusHA check is performed include the readiness probe and when scaling a deployment. This field would not typically be used except in cases where a cache service is configured with a backup count greater than zero but it does not matter if caches in those services loose data due to member departure. Normally, such cache services would have a backup count of zero, which would automatically excluded them from the StatusHA check.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"excludeFromWKA": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Exclude members of this deployment from being part of the cluster's WKA list.",

@@ -16,18 +16,8 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 5,
-  "iteration": 1564641610050,
+  "iteration": 1564039591199,
   "links": [
-    {
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "title": "Back to Proxy Servers Summary",
-      "tooltip": "",
-      "type": "link",
-      "url": "/d/coh-proxy-services-summary"
-    },
     {
       "icon": "dashboard",
       "includeVars": true,
@@ -51,7 +41,7 @@
   ],
   "panels": [
     {
-      "content": "<center><h3>Proxy Servers Details - $ServiceName</h3></center>",
+      "content": "<center><h3>Proxy Servers Summary - $ClusterName</h3></center>",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -90,7 +80,7 @@
           "type": "hidden"
         },
         {
-          "alias": "Total Bytes Sent",
+          "alias": "Member Count",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -103,7 +93,7 @@
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "decbytes"
+          "unit": "none"
         },
         {
           "alias": "Service",
@@ -116,12 +106,31 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "",
+          "linkTooltip": "Drill down to service details for ${__cell}",
           "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
           "type": "string",
+          "unit": "short"
+        },
+        {
+          "alias": "Total Current Connections",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "link": true,
+          "linkTooltip": "Drill down to Proxy Server Details for ${__cell_1}",
+          "linkUrl": "/d/coh-proxy-server-detail?var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName",
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
           "unit": "short"
         },
         {
@@ -135,32 +144,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "Value #B",
+          "pattern": "Value #C",
           "thresholds": [],
           "type": "number",
           "unit": "decbytes"
         },
         {
-          "alias": "Outgoing Byte Backlog",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "50"
-          ],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Current Connections",
+          "alias": "Total Bytes Sent",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -173,58 +163,26 @@
           "pattern": "Value #D",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "decbytes"
         },
         {
-          "alias": "Member",
-          "colorMode": null,
+          "alias": "Total Outgoing Backlog",
+          "colorMode": "value",
           "colors": [
-            "rgba(245, 54, 54, 0.9)",
+            "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-MemberName=${__cell}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Host URL",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "host_url",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Total Messages Sent",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
+            "rgba(245, 54, 54, 0.9)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #E",
-          "thresholds": [],
+          "thresholds": [
+            "1",
+            "100"
+          ],
           "type": "number",
-          "unit": "none"
+          "unit": "decbytes"
         },
         {
           "alias": "Total Messages Received",
@@ -243,6 +201,22 @@
           "unit": "none"
         },
         {
+          "alias": "Total Messages Sent",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #G",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
+        },
+        {
           "alias": "Unauthorized Connection Attempts",
           "colorMode": "value",
           "colors": [
@@ -253,7 +227,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "Value #G",
+          "pattern": "Value #H",
           "thresholds": [
             "1",
             "2"
@@ -278,15 +252,23 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_ConnectionCount{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host_url)",
+          "expr": "count(vendor:coherence_connection_manager_connection_count{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "D"
+          "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_TotalMessagesReceived{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(vendor:coherence_connection_manager_total_messages_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -294,31 +276,15 @@
           "refId": "F"
         },
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_TotalMessagesSent{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host_url)",
+          "expr": "sum(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "E"
+          "refId": "G"
         },
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_TotalMessagesReceived {cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host_url)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(vendor_Coherence_ConnectionManager_TotalBytesSent{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(vendor_Coherence_ConnectionManager_OutgoingByteBacklog{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host)",
+          "expr": "sum(vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -326,139 +292,31 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_UnauthorizedConnectionAttempts{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (member, host_url)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "G"
-        }
-      ],
-      "title": "Proxy Server Members for $ServiceName",
-      "transform": "table",
-      "type": "table"
-    },
-    {
-      "columns": [],
-      "description": "",
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 6,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 42,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Member Connected To",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-MemberName=${__cell}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Remote Client Address",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "remote_address",
-          "preserveFormat": false,
-          "sanitize": false,
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Remote Client Port",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "remote_port",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Connection Time",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Node Id",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "node_id",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "expr": "avg(vendor_Coherence_ConnectionManager_ConnectionTimeMillis{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (remote_address, remote_port, member, node_id)",
+          "expr": "sum(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
+        },
+        {
+          "expr": "sum(vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(vendor:coherence_connection_manager_unauthorized_connection_attempts{cluster=~\"$ClusterName\"}) by (name) ",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "H"
         }
       ],
-      "title": "Current Proxy Server Connections for $ServiceName",
+      "title": "Proxy Service List - Coherence*Extend",
       "transform": "table",
       "type": "table"
     },
@@ -467,188 +325,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "decimals": 0,
+      "description": "Total bytes sent (bytes/sec) of all Proxy Server members.",
       "fill": 1,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 14
-      },
-      "id": 44,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "vendor_Coherence_ConnectionManager_OutgoingByteBacklog{cluster=~\"$ClusterName\", name=~'$ServiceName', protocol=~\"tcp\"} > 0",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "{{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Outgoing Byte Backlog",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "decbytes",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "decimals": 0,
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 14
-      },
-      "id": 45,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "vendor_Coherence_ConnectionManager_OutgoingMessageBacklog{cluster=~\"$ClusterName\", name=~'$ServiceName'} > 0",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "{{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Outgoing Message Backlog",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "decimals": 0,
-      "description": "Total bytes sent (bytes/sec) of all Proxy Server members for $ServiceName.",
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 23
+        "y": 8
       },
       "id": 40,
-      "interval": "",
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -661,10 +347,10 @@
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -675,12 +361,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_TotalBytesSent{cluster=~\"$ClusterName\",protocol=~\"tcp\", name=~'$ServiceName'}[1m])) by (member)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\"}[1m])) by (name)",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}} Sent",
+          "legendFormat": "{{name}} Sent",
           "refId": "A"
         }
       ],
@@ -688,7 +374,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total Bytes Sent/ sec - $ServiceName",
+      "title": "Total Bytes Sent/ sec per Service",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -728,17 +414,17 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
       "decimals": 0,
-      "description": "Total bytes received (bytes/sec) of all Proxy Server members for $ServiceName.",
+      "description": "Total bytes received (bytes/sec) of all Proxy Server members.",
       "fill": 1,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 8
       },
       "id": 41,
       "legend": {
@@ -746,17 +432,17 @@
         "avg": false,
         "current": true,
         "hideZero": true,
-        "max": true,
+        "max": false,
         "min": false,
         "rightSide": false,
         "show": true,
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -767,12 +453,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_TotalMessagesReceived{cluster=~\"$ClusterName\",protocol=~\"tcp\"}[1m])) by (member)",
+          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}[1m])) by (name)",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}} Received",
+          "legendFormat": "{{name}} Received",
           "refId": "B"
         }
       ],
@@ -780,7 +466,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total Bytes Received/ sec - $ServiceName",
+      "title": "Total Bytes Received/ sec per Service",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -798,6 +484,367 @@
         {
           "decimals": 0,
           "format": "Bps",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "decimals": 0,
+      "description": "Total Proxy Connections Across All Services",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 39,
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) ",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Total Connections",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Proxy Connections",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "decimals": 0,
+      "description": "Total Proxy connections per service",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "id": 42,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=~\"$ClusterName\",protocol=~\"tcp\"}) by (name)",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Proxy Connections Per Service",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "decimals": 0,
+      "description": "Total Outgoing Byte Backlog per Service",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "id": 43,
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\",protocol=~\"tcp\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Outgoing Byte Backlog",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "decimals": 0,
+      "description": "Total Outgoing Message Backlog per Service",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 44,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor:coherence_connection_manager_outgoing_message_backlog{cluster=~\"$ClusterName\",protocol=~\"tcp\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{name}} ",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Outgoing Message Backlog",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -839,7 +886,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -862,33 +909,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "allValue": null,
-        "current": {
-          "selected": true,
-          "text": "Proxy",
-          "value": "Proxy"
-        },
-        "datasource": "Prometheus",
-        "definition": "label_values(vendor_Coherence_ConnectionManager_TotalMessagesSent{cluster=~\"$ClusterName\"}, name)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Service Name",
-        "multi": false,
-        "name": "ServiceName",
-        "options": [],
-        "query": "label_values(vendor_Coherence_ConnectionManager_TotalMessagesSent{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -931,7 +952,7 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence Proxy Server Detail Dashboard",
-  "uid": "coh-proxy-server-detail",
+  "title": "Coherence Proxy Servers Summary Dashboard",
+  "uid": "coh-proxy-services-summary",
   "version": 1
 }

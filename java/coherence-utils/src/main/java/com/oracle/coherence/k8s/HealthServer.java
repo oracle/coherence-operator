@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -110,6 +111,11 @@ public class HealthServer {
      * An empty response body.
      */
     private static final byte[] EMPTY_BODY = new byte[0];
+
+    /**
+     * System property to specify service names to be skipped in the StatusHA test.
+     */
+    public static final String PROP_ALLOW_ENDANGERED = "coherence.operator.statusha.allowendangered";
 
     // ----- data members ---------------------------------------------------
 
@@ -291,7 +297,12 @@ public class HealthServer {
      *
      * @return {@code true} if the JVM is StatusHA
      */
-    private boolean isStatusHA() {
+    boolean isStatusHA() {
+        String exclusions = System.getProperty(PROP_ALLOW_ENDANGERED);
+        return isStatusHA(exclusions);
+    }
+
+    boolean isStatusHA(String exclusions) {
         try {
             waitForServiceStart.run();
         }
@@ -301,9 +312,20 @@ public class HealthServer {
             return false;
         }
 
+        Set<String> allowEndangered = null;
+        if (exclusions != null) {
+            allowEndangered = Arrays.stream(exclusions.split(","))
+                .map(s -> ",service=" + s + ",")
+                .collect(Collectors.toSet());
+        }
+
         Cluster cluster = clusterSupplier.get();
         if (cluster != null && cluster.isRunning()) {
             for (String mBean : getPartitionAssignmentMBeans()) {
+                if (allowEndangered != null && allowEndangered.stream().anyMatch(mBean::contains)) {
+                    // this service is allowed to be endangered so skip it.
+                    continue;
+                }
                 CacheFactory.log("HealthServer: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
                 if (!isServiceStatusHA(attributes)) {

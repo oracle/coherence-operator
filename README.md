@@ -7,7 +7,7 @@ http://oss.oracle.com/licenses/upl.
 -->
 
 -----
-<img src=https://coherence.java.net/assets/img/logo-community.png><img>
+![logo](docs/images/logo-with-name.png)
 
 ![Operator CI](https://github.com/oracle/coherence-operator/workflows/Operator%20CI/badge.svg?branch=master)
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
