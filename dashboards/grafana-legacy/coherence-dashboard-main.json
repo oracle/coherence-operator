@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
+        "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -29,7 +29,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor_Coherence_Service_OwnedPartitionsPrimary{cluster=~\"$ClusterName\"}[60s])",
+        "expr": "changes(vendor:coherence_service_owned_partitions_primary{cluster=~\"$ClusterName\"}[60s])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -228,7 +228,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"})  ",
+          "expr": "count(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"})  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -312,7 +312,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "avg(delta(vendor_Coherence_Cluster_MembersDepartureCount{cluster=~\"$ClusterName\"}[5m])) >= 0",
+          "expr": "avg(delta(vendor:coherence_cluster_members_departure_count{cluster=~\"$ClusterName\"}[5m])) >= 0",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -406,7 +406,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "count(vendor_Coherence_PartitionAssignment_HAStatusCode{cluster=~\"$ClusterName\"} <= 1)",
+          "expr": "count(vendor:coherence_partition_assignment_ha_status_code{cluster=~\"$ClusterName\"} <= 1)",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -491,7 +491,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -573,7 +573,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -655,7 +655,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) * 100  ",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) * 100  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -715,7 +715,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -723,7 +723,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -820,7 +820,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(vendor_Coherence_OS_SystemLoadAverage{cluster=~\"$ClusterName\"}) by (machine)",
+          "expr": "avg(vendor:coherence_os_system_load_average{cluster=~\"$ClusterName\"}) by (machine)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -997,7 +997,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "count(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1005,7 +1005,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1013,7 +1013,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1021,7 +1021,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1074,7 +1074,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1205,7 +1205,7 @@
       ],
       "targets": [
         {
-          "expr": "bottomk($TopLimit, avg(vendor_Coherence_OS_FreePhysicalMemorySize{cluster=~\"$ClusterName\"}/ vendor_Coherence_OS_TotalPhysicalMemorySize{cluster=~\"$ClusterName\"}) by (machine))",
+          "expr": "bottomk($TopLimit, avg(vendor:coherence_os_free_physical_memory_size{cluster=~\"$ClusterName\"}/ vendor:coherence_os_total_physical_memory_size{cluster=~\"$ClusterName\"}) by (machine))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1315,7 +1315,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(avg_over_time(vendor_Coherence_OS_ProcessCpuLoad{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
+          "expr": "topk($TopLimit, sum(avg_over_time(vendor:coherence_os_process_cpu_load{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1425,7 +1425,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, avg(avg_over_time(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}[$__range]) / avg_over_time(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}[$__range])) by (member))",
+          "expr": "topk($TopLimit, avg(avg_over_time(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}[$__range]) / avg_over_time(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}[$__range])) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1532,7 +1532,7 @@
       ],
       "targets": [
         {
-          "expr": " topk($TopLimit,sum(delta(vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}[$__range])) by (member)) > 0",
+          "expr": " topk($TopLimit,sum(delta(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}[$__range])) by (member)) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1638,7 +1638,7 @@
       ],
       "targets": [
         {
-          "expr": " topk($TopLimit,sum(delta(vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"}[$__range])) by (member)) > 0",
+          "expr": " topk($TopLimit,sum(delta(vendor:coherence_service_task_count{cluster=~\"$ClusterName\"}[$__range])) by (member)) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1744,7 +1744,7 @@
       ],
       "targets": [
         {
-          "expr": " topk($TopLimit,sum(delta(vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"}[$__range])) by (name)) > 0",
+          "expr": " topk($TopLimit,sum(delta(vendor:coherence_service_task_count{cluster=~\"$ClusterName\"}[$__range])) by (name)) > 0",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1805,7 +1805,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Service_TaskBacklog{cluster=~\"$ClusterName\"}) by (member) > 0",
+          "expr": "sum(vendor:coherence_service_task_backlog{cluster=~\"$ClusterName\"}) by (member) > 0",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1904,7 +1904,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Service_TaskBacklog{cluster=~\"$ClusterName\"}) by (name)",
+          "expr": "sum(vendor:coherence_service_task_backlog{cluster=~\"$ClusterName\"}) by (name)",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -2003,7 +2003,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_ConnectionManager_OutgoingByteBacklog{cluster=~\"$ClusterName\"}) by (name)",
+          "expr": "sum(vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=~\"$ClusterName\"}) by (name)",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -2136,7 +2136,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(vendor_Coherence_Service_PartitionsUnbalanced{cluster=~\"$ClusterName\", type=~\"DistributedCache|FederatedCache\"}) by(name) > 0",
+          "expr": "avg(vendor:coherence_service_partitions_unbalanced{cluster=~\"$ClusterName\", type=~\"DistributedCache|FederatedCache\"}) by(name) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2242,7 +2242,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(vendor_Coherence_Node_PacketsSent{cluster=~\"$ClusterName\"} + vendor_Coherence_Node_PacketsReceived{cluster=~\"$ClusterName\"}  - vendor_Coherence_Node_PacketsSent{cluster=~\"$ClusterName\"} offset $__range -   vendor_Coherence_Node_PacketsReceived{cluster=~\"$ClusterName\"} offset $__range) by (member))",
+          "expr": "topk($TopLimit, sum(vendor:coherence_node_packets_sent{cluster=~\"$ClusterName\"} + vendor:coherence_node_packets_received{cluster=~\"$ClusterName\"}  - vendor:coherence_node_packets_sent{cluster=~\"$ClusterName\"} offset $__range -   vendor:coherence_node_packets_received{cluster=~\"$ClusterName\"} offset $__range) by (member))",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2371,7 +2371,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(vendor_Coherence_StorageManager_MaxQueryDurationMilis{cluster=~\"$ClusterName\"}) by (member, service, cache)) > 0",
+          "expr": "topk($TopLimit, sum(vendor:coherence_storage_max_query_duration_milis{cluster=~\"$ClusterName\"}) by (member, service, cache)) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2499,7 +2499,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(vendor_Coherence_StorageManager_NonOptimizedQueryCount{cluster=~\"$ClusterName\"}) by (member, service, cache))> 0",
+          "expr": "topk($TopLimit, sum(vendor:coherence_storage_non_optimized_query_count{cluster=~\"$ClusterName\"}) by (member, service, cache))> 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2548,7 +2548,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
+          "expr": "sum(idelta(vendor:coherence_node_guard_recover_count{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2635,7 +2635,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
+          "expr": "sum(idelta(vendor:coherence_node_guard_terminate_count{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2704,7 +2704,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2727,7 +2727,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2753,7 +2753,7 @@
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(vendor_Coherence_Service_RequestMaxDuration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2779,7 +2779,7 @@
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cache_Size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

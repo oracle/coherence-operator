@@ -15,6 +15,37 @@ readiness and liveness check for the `Pods` deployed by the operator.
 This endpoint is suitable for most use-cases, but it is possible to configure a different readiness and liveness probe,
 or just change the timings of the probes if required.
 
+=== Coherence Readiness
+
+The default endpoint used by the Operator for readiness checks that the `Pod` is a member of the Coherence cluster and
+that none of the partitioned cache services have a StatusHA value of `endangered`.
+If the `Pod` is the only cluster member at the time of the ready check the StatusHA check will be skipped.
+If a partitioned service has a backup count of zero the StatusHA check will be skipped for that service.
+
+There are scenarios where the StatusHA check can fail but should be ignored because the application does not care
+about data loss for caches on that particular cache service. Normally in this case the backup count for the cache
+service would be zero, and the service would automatically be skipped in the StatusHA test.
+
+The ready check used by the Operator can be configured to skip the StatusHA test for certain services.
+In the `Coherence` CRD the `coherence.allowEndangeredForStatusHA` is a list of string values that can be
+set to the names of partitioned cache services that should not be included in the StatusHA check.
+For a service to be skipped its name must exactly match one of the names in the `allowEndangeredForStatusHA` list.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  coherence:
+    allowEndangeredForStatusHA:   # <1>
+      - TempService
+----
+<1> The `allowEndangeredForStatusHA` field is a list of string values. In this case the `TempService` will not
+be checked for StatusHA in the ready check.
+
+
 === Configure Readiness
 
 The `Coherence` CRD `spec.readinessProbe` field is identical to configuring a readiness probe for a `Pod`

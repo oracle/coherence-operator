@@ -316,6 +316,11 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		member = "unknown"
 	}
 
+	allowEndangered := details.Getenv(v1.EnvVarCohAllowEndangered)
+	if allowEndangered != "" {
+		details.AddArg("-Dcoherence.operator.statusha.allowendangered=" + allowEndangered)
+	}
+
 	// Get the K8s Pod UID
 	podUID := details.Getenv(v1.EnvVarCohPodUID)
 	if podUID == "" {

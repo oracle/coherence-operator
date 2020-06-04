@@ -34,7 +34,7 @@
     <maven.compiler.target>8</maven.compiler.target>
 
     <!-- library dependency versions -->
-    <bedrock.version>5.0.11</bedrock.version>
+    <bedrock.version>5.0.16</bedrock.version>
     <commonjava.directory.version>0.3.1</commonjava.directory.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
     <glassfish.copyright.version>2.1</glassfish.copyright.version>

@@ -6,13 +6,18 @@
 
 package com.oracle.coherence.k8s;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
+import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
+import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Capture;
 import org.junit.Test;
@@ -28,8 +33,11 @@ public class HealthIT {
 
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
-            Eventually.assertThat(invoking(this).httpRequest(httpPort, HealthServer.PATH_READY), is(200));
+
+            Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_READY), is(200));
         }
     }
 
@@ -41,12 +49,14 @@ public class HealthIT {
 
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
-                Eventually.assertThat(invoking(this).httpRequest(httpPort1, HealthServer.PATH_READY), is(200));
-                Eventually.assertThat(invoking(this).httpRequest(httpPort2, HealthServer.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_READY), is(200));
             }
         }
     }
@@ -58,8 +68,9 @@ public class HealthIT {
 
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
-            Eventually.assertThat(invoking(this).httpRequest(httpPort, HealthServer.PATH_HEALTH), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HEALTH), is(200));
         }
     }
 
@@ -75,8 +86,8 @@ public class HealthIT {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
-                Eventually.assertThat(invoking(this).httpRequest(httpPort1, HealthServer.PATH_HEALTH), is(200));
-                Eventually.assertThat(invoking(this).httpRequest(httpPort2, HealthServer.PATH_HEALTH), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HEALTH), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HEALTH), is(200));
             }
         }
     }
@@ -89,7 +100,7 @@ public class HealthIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
-            Eventually.assertThat(invoking(this).httpRequest(httpPort, HealthServer.PATH_HA), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HA), is(200));
         }
     }
 
@@ -105,8 +116,64 @@ public class HealthIT {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
-                Eventually.assertThat(invoking(this).httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
-                Eventually.assertThat(invoking(this).httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
+            }
+        }
+    }
+
+    @Test
+    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwo() throws Exception {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app1 = platform.launch(JavaApplication.class,
+                                                    ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
+                                                    SystemProperty.of("coherence.distributed.backupcount", 2),
+                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+            try (JavaApplication app2 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config.xml"),
+                                                        SystemProperty.of("coherence.distributed.backupcount", 2),
+                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+
+
+                Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
+
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(400));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(400));
+            }
+        }
+    }
+
+    @Test
+    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwoIgnoringService() throws Exception {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app1 = platform.launch(JavaApplication.class,
+                                                    ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
+                                                    SystemProperty.of("coherence.distributed.backupcount", 2),
+                                                    SystemProperty.of(HealthServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
+                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+            try (JavaApplication app2 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config.xml"),
+                                                        SystemProperty.of(HealthServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
+                                                        SystemProperty.of("coherence.distributed.backupcount", 2),
+                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+
+
+                Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
+
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
             }
         }
     }
@@ -114,11 +181,25 @@ public class HealthIT {
     // ----- helper methods -------------------------------------------------
 
     // Must be public - used in Eventually.assertThat
-    public int httpRequest(Capture<Integer> httpPort, String path) throws Exception {
-        URI uri = URI.create("http://127.0.0.1:" + httpPort.get() + path);
-        HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-        connection.setRequestMethod("GET");
-        connection.connect();
-        return connection.getResponseCode();
+    public int httpRequest(Capture<Integer> httpPort, String path) {
+        try {
+            URI uri = URI.create("http://127.0.0.1:" + httpPort.get() + path);
+            HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            return connection.getResponseCode();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isServiceRunning(JavaApplication app) {
+        try {
+            return app.submit(new IsServiceRunning("PartitionedCache")).get();
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

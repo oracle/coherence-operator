@@ -210,6 +210,17 @@ type CoherenceSpec struct {
 	// Tracing is used to configure Coherence distributed tracing functionality.
 	// +optional
 	Tracing *CoherenceTracingSpec `json:"tracing,omitempty"`
+	// AllowEndangeredForStatusHA is a list of Coherence partitioned cache service names
+	// that are allowed to be in an endangered state when testing for StatusHA.
+	// Instances where a StatusHA check is performed include the readiness probe and when
+	// scaling a deployment.
+	// This field would not typically be used except in cases where a cache service is
+	// configured with a backup count greater than zero but it does not matter if caches in
+	// those services loose data due to member departure. Normally, such cache services would
+	// have a backup count of zero, which would automatically excluded them from the StatusHA
+	// check.
+	// +optional
+	AllowEndangeredForStatusHA []string `json:"allowEndangeredForStatusHA,omitempty"`
 	// Exclude members of this deployment from being part of the cluster's WKA list.
 	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
 	// +optional
@@ -319,6 +330,10 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 
 	if in.Tracing != nil && in.Tracing.Ratio != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: in.Tracing.Ratio.String()})
+	}
+
+	if len(in.AllowEndangeredForStatusHA) != 0 {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAllowEndangered, Value: strings.Join(in.AllowEndangeredForStatusHA, ",")})
 	}
 
 	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)

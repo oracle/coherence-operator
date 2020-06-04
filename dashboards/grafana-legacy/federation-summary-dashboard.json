@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
+        "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -27,7 +27,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor_Coherence_Service_OwnedPartitionsPrimary{cluster=~\"$ClusterName\"}[60s])",
+        "expr": "changes(vendor:coherence_service_owned_partitions_primary{cluster=~\"$ClusterName\"}[60s])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -210,7 +210,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Federation_DestinationTotalMsgSent {cluster=~\"$ClusterName\"})by (coherence_service, name, participant_type)",
+          "expr": "count(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"})by (coherence_service, name, participant_type)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -218,7 +218,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor_Coherence_Federation_DestinationStatus {cluster=~\"$ClusterName\"}) by (coherence_service, name, participant_type)",
+          "expr": "avg(vendor:coherence_federation_destination_status {cluster=~\"$ClusterName\"}) by (coherence_service, name, participant_type)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -355,7 +355,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Federation_OriginTotalMsgReceived {cluster=~\"$ClusterName\"}) by (coherence_service, name)",
+          "expr": "count(vendor:coherence_federation_origin_total_msg_received {cluster=~\"$ClusterName\"}) by (coherence_service, name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -427,7 +427,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_DestinationTotalEntriesSent {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -507,7 +507,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_DestinationTotalRecordsSent {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -587,7 +587,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_DestinationTotalMsgSent {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -667,7 +667,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_OriginTotalEntriesReceived {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_origin_total_entries_received {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -747,7 +747,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_OriginTotalRecordsReceived {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_origin_total_records_received {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -827,7 +827,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Federation_OriginTotalMsgReceived {cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_federation_origin_total_msg_received {cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -883,7 +883,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_DestinationTotalBytesSent {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -970,7 +970,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_OriginTotalBytesReceived {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_origin_total_bytes_received {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1055,7 +1055,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_DestinationTotalMsgSent {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1140,7 +1140,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_OriginTotalMsgReceived {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_origin_total_msg_received {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1225,7 +1225,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_DestinationTotalRecordsSent {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1310,7 +1310,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_OriginTotalRecordsReceived {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_origin_total_records_received {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1395,7 +1395,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_DestinationTotalEntriesSent {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1480,7 +1480,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Federation_OriginTotalEntriesReceived {cluster=~\"$ClusterName\"}[1m])) by (name)",
+          "expr": "sum(idelta(vendor:coherence_federation_origin_total_entries_received {cluster=~\"$ClusterName\"}[1m])) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1550,7 +1550,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1573,7 +1573,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

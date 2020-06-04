@@ -121,6 +121,7 @@ const (
 	EnvVarCohPersistenceDir           = "COH_PERSISTENCE_DIR"
 	EnvVarCohSnapshotDir              = "COH_SNAPSHOT_DIR"
 	EnvVarCohTracingRatio             = "COH_TRACING_RATIO"
+	EnvVarCohAllowEndangered          = "COH_ALLOW_ENDANGERED"
 	EnvVarCohMgmtPrefix               = "COH_MGMT"
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
