@@ -41,6 +41,9 @@ metadata:
   name: prometheus
 spec:
   serviceAccountName: prometheus
+  logLevel: debug
+  evaluationInterval: 5s
+  scrapeInterval: 5s
   serviceMonitorSelector:
     matchLabels:
       coherenceComponent: coherence-service-monitor
