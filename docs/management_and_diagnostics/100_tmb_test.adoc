@@ -1,0 +1,157 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence Network Testing
+
+== Coherence Network Testing
+
+Coherence provides utilities that can be used to test network performance, which obviously has a big impact on
+a distributed system such as Coherence. The documentation for these utilities can be found in the official
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+
+Whilst generally these tests would be run on server hardware, with more and more Coherence deployments moving into the
+cloud and into Kubernetes these tests can also be performed in `Pods` to measure inter-Pod network performance.
+This test can be used to see the impact of running `Pods` across different zones, or on different types of Kubernetes
+networks, with different `Pod` resource settings, etc.
+
+== Run the Message Bus Test in Pods
+
+The message bus test can easily be run using `Pods` in Kubernetes.
+Using the example from the Coherence documentation there will need to be two `Pods`, a listener and a sender.
+This example will create a `Service` for the listener so that the sender `Pod` can use the `Service` name
+to resolve the listener `Pod` address.
+
+=== Run the Listener Pod
+
+Create a `yaml` file that will create the `Service` and `Pod` for the listener:
+[source,yaml]
+.message-bus-listener.yaml
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-bus-listener
+spec:
+  selector:
+    app: message-bus-listener
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: mbus
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: message-bus-listener
+  labels:
+    app: message-bus-listener
+spec:
+  restartPolicy: Never
+  containers:
+    - name: coherence
+      image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0  # <1>
+      ports:
+        - name: mbus
+          containerPort: 8000
+          protocol: TCP
+      command:
+        - java                                                   # <2>
+        - -cp
+        - /u01/oracle/oracle_home/coherence/lib/coherence.jar
+        - com.oracle.common.net.exabus.util.MessageBusTest
+        - -bind
+        - tmb://0.0.0.0:8000
+----
+<1> This example uses the Coherence image from Oracle container registry, but any image with `coherence.jar` in it
+could be used.
+<2> The command line that the container will execute is exactly the same as that for the listener process in the
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+
+Start the listener `Pod`:
+[source,bash]
+----
+kubectl create -f message-bus-listener.yaml
+----
+
+Retrieving the logs for the listener `Pod` the messages should show that the `Pod` has started:
+
+[source,bash]
+----
+kubectl logs pod/message-bus-listener
+OPEN event for tmb://message-bus-listener:8000
+----
+
+
+=== Run the Sender Pod
+
+[source,yaml]
+.message-bus-sender.yaml
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: message-bus-sender
+  labels:
+    app: message-bus-sender
+spec:
+  restartPolicy: Never
+  containers:
+    - name: coherence
+      image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+      command:
+        - java                         # <1>
+        - -cp
+        - /u01/oracle/oracle_home/coherence/lib/coherence.jar
+        - com.oracle.common.net.exabus.util.MessageBusTest
+        - -bind
+        - tmb://0.0.0.0:8000
+        - -peer
+        - tmb://message-bus-listener:8000  # <2>
+----
+<1> Again, the command line is the same as that for the sender process in the
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+<2> The `peer` address uses the `Service` name `message-bus-listener` from the sender `yaml`.
+
+Start the sender `Pod`:
+[source,bash]
+----
+kubectl create -f message-bus-sender.yaml
+----
+
+Retrieving the logs for the sender `Pod` the messages should show that the `Pod` has started and show the test results:
+
+[source,bash]
+----
+kubectl logs pod/message-bus-sender
+OPEN event for tmb://message-bus-sender:8000
+CONNECT event for tmb://message-bus-listener:8000 on tmb://message-bus-sender:8000
+now:  throughput(out 34805msg/s 1.14gb/s, in 348msg/s 11.3mb/s), latency(response(avg 25.31ms, effective 110.03ms, min 374.70us, max 158.10ms), receipt 25.47ms), backlog(out 77% 83/s 308KB, in 0% 0/s 0B), connections 1, errors 0
+now:  throughput(out 34805msg/s 1.14gb/s, in 348msg/s 11.3mb/s), latency(response(avg 25.31ms, effective 110.03ms, min 374.70us, max 158.10ms), receipt 25.47ms), backlog(out 77% 83/s 308KB, in 0% 0/s 0B), connections 1, errors 0
+----
+
+[NOTE]
+====
+Don't forget to stop the `Pods` after obtaining the results:
+[source,bash]
+----
+kubectl delete -f message-bus-sender.yaml
+kubectl delete -f message-bus-listener.yaml
+----
+====
+
+
+=== Run Pods on Specific Nodes
+
+In the example above the `Pods` will be scheduled wherever Kubernetes decides to put them. This could have a big impact
+on the test result for different test runs. For example in a Kubernetes cluster that spans zones and data centres, if
+the two `Pods` get scheduled in different data centres this will have worse results than if the two `Pods` get scheduled
+onto the same node.
+
+To get consistent results add node selectors, taints, tolerations etc, as covered in the Kubernetes
+https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/[assign Pods to Nodes] documentation.
+
