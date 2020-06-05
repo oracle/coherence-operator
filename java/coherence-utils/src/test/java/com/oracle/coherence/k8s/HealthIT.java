@@ -37,6 +37,7 @@ public class HealthIT {
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
+            Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
             Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_READY), is(200));
         }
     }
@@ -55,6 +56,8 @@ public class HealthIT {
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_READY), is(200));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_READY), is(200));
             }
@@ -70,6 +73,7 @@ public class HealthIT {
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
+            Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
             Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HEALTH), is(200));
         }
     }
@@ -82,10 +86,14 @@ public class HealthIT {
 
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HEALTH), is(200));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HEALTH), is(200));
             }
@@ -99,7 +107,9 @@ public class HealthIT {
 
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
+            Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
             Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HA), is(200));
         }
     }
@@ -112,10 +122,14 @@ public class HealthIT {
 
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
             }
@@ -138,11 +152,8 @@ public class HealthIT {
                                                         CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
-
-
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(400));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(400));
             }
@@ -167,11 +178,8 @@ public class HealthIT {
                                                         SystemProperty.of(HealthServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
                                                         SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
-
-
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
             }
@@ -190,7 +198,8 @@ public class HealthIT {
             return connection.getResponseCode();
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("ERROR: HTTP Request failed: " + e.getMessage());
+            return -1;
         }
     }
 
@@ -199,7 +208,8 @@ public class HealthIT {
             return app.submit(new IsServiceRunning("PartitionedCache")).get();
         }
         catch (Exception e) {
-            throw new RuntimeException(e);
+            System.err.println("ERROR: isServiceRunning failed: " + e.getMessage());
+            return false;
         }
     }
 }
