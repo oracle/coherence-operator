@@ -893,7 +893,7 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 			Name:       in.Name,
 			Protocol:   in.GetProtocol(),
 			Port:       in.GetPort(deployment),
-			TargetPort: intstr.FromString(in.Name),
+			TargetPort: intstr.FromInt(int(in.Port)),
 			NodePort:   in.GetNodePort(),
 		},
 	}

@@ -1012,7 +1012,7 @@ run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: 
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) run local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
 	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) \
 	                  --utils-image=$(UTILS_IMAGE)" \
@@ -1042,7 +1042,7 @@ run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: 
 	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	$(OPERATOR_SDK) run --local --watch-namespace=$(TEST_NAMESPACE) \
+	$(OPERATOR_SDK) run local --watch-namespace=$(TEST_NAMESPACE) \
 	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
 	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
@@ -1327,6 +1327,15 @@ release-ghpages: helm-chart docs
 	git stash drop || true
 	git checkout gh-pages
 	git pull
+	mkdir -p dashboards/$(VERSION_FULL) || true
+	tar -czvf dashboards/$(VERSION_FULL)/coherence-dashboards.tar.gz  dashboards/
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
+		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-grafana-dashboards.yaml
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy \
+		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-grafana-legacy-dashboards.yaml
+	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
+		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-kibana-dashboards.yaml
+	git add dashboards/$(VERSION_FULL)/*
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	rm -rf docs-unstable/$(VERSION_FULL)/ || true

@@ -54,7 +54,7 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 		Name:       "extend",
 		Protocol:   tcp,
 		Port:       20000,
-		TargetPort: intstr.FromString("extend"),
+		TargetPort: intstr.FromInt(20000),
 		NodePort:   80,
 	}))
 
@@ -129,7 +129,7 @@ func TestUpdateDeploymentWithPort(t *testing.T) {
 		Name:       "extend",
 		Protocol:   tcp,
 		Port:       30000,
-		TargetPort: intstr.FromString("extend"),
+		TargetPort: intstr.FromInt(30000),
 		NodePort:   88,
 	}))
 
@@ -212,7 +212,7 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 		Name:       "management",
 		Protocol:   tcp,
 		Port:       10000,
-		TargetPort: intstr.FromString("management"),
+		TargetPort: intstr.FromInt(10000),
 		NodePort:   80,
 	}))
 
@@ -225,7 +225,7 @@ func TestUpdateDeploymentWithAdditionalPort(t *testing.T) {
 		Name:       coh.PortNameMetrics,
 		Protocol:   tcp,
 		Port:       20000,
-		TargetPort: intstr.FromString(coh.PortNameMetrics),
+		TargetPort: intstr.FromInt(20000),
 		NodePort:   88,
 	}))
 
