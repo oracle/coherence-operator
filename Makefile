@@ -1322,19 +1322,20 @@ serve-docs:
 .PHONY: release-ghpages
 release-ghpages: helm-chart docs
 	@echo "Releasing Helm chart $(VERSION_FULL)"
+	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/coherence-dashboards.tar.gz  dashboards/
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
+		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/coherence-grafana-dashboards.yaml
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy \
+		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/coherence-grafana-legacy-dashboards.yaml
+	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
+		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/coherence-kibana-dashboards.yaml
 	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout gh-pages
 	git pull
 	mkdir -p dashboards/$(VERSION_FULL) || true
-	tar -czvf dashboards/$(VERSION_FULL)/coherence-dashboards.tar.gz  dashboards/
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
-		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-grafana-dashboards.yaml
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy \
-		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-grafana-legacy-dashboards.yaml
-	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
-		--dry-run -o yaml > dashboards/$(VERSION_FULL)/coherence-kibana-dashboards.yaml
+	mv $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/ dashboards/$(VERSION_FULL)/
 	git add dashboards/$(VERSION_FULL)/*
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
