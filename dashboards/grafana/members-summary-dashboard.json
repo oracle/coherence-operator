@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 21,
-  "iteration": 1564115298551,
+  "id": 46,
+  "iteration": 1591583582569,
   "links": [
     {
       "icon": "dashboard",
@@ -57,6 +57,7 @@
   "panels": [
     {
       "content": "<center><h3>Members Summary - $ClusterName</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -71,6 +72,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -90,12 +92,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -112,6 +116,7 @@
         },
         {
           "alias": "Site",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -128,6 +133,7 @@
         },
         {
           "alias": "Member Name",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -147,6 +153,7 @@
         },
         {
           "alias": "Node Id",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -163,6 +170,7 @@
         },
         {
           "alias": "Instance",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -179,6 +187,7 @@
         },
         {
           "alias": "Machine",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -198,6 +207,7 @@
         },
         {
           "alias": "Heap Usage",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -214,6 +224,7 @@
         },
         {
           "alias": "Heap Max",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -230,6 +241,7 @@
         },
         {
           "alias": "Heap Used %",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -249,6 +261,7 @@
         },
         {
           "alias": "Role",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -265,6 +278,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -310,6 +324,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest Total GC Time over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -330,12 +345,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Total Collection Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -350,6 +367,7 @@
         },
         {
           "alias": "Member Name",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -387,6 +405,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest Total GC Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -407,12 +426,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Total Collection Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -427,6 +448,7 @@
         },
         {
           "alias": "Member Name",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -467,13 +489,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 14
       },
+      "hiddenSeries": false,
       "id": 65,
       "legend": {
         "alignAsTable": true,
@@ -489,6 +514,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -554,13 +582,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 14
       },
+      "hiddenSeries": false,
       "id": 66,
       "legend": {
         "alignAsTable": true,
@@ -576,6 +607,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -641,15 +675,18 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 22
       },
+      "hiddenSeries": false,
       "id": 68,
       "interval": "",
       "legend": {
@@ -670,6 +707,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -680,7 +720,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"}[1m])) by(member) > 0",
+          "expr": "vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"} - vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"} offset $__interval ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -736,14 +776,17 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 22
       },
+      "hiddenSeries": false,
       "id": 69,
       "interval": "",
       "legend": {
@@ -764,6 +807,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -774,7 +820,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
+          "expr": "vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"} - vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}  offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -829,13 +875,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 30
       },
+      "hiddenSeries": false,
       "id": 23,
       "legend": {
         "alignAsTable": true,
@@ -851,6 +900,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -917,13 +969,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 30
       },
+      "hiddenSeries": false,
       "id": 24,
       "legend": {
         "alignAsTable": true,
@@ -939,6 +994,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -999,10 +1057,111 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "hiddenSeries": false,
+      "id": 98,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"}) - sum(vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) ",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total gRCP Requests by Member",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 18,
+  "refresh": "10s",
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1012,14 +1171,12 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "PrimaryCluster",
-          "value": "PrimaryCluster"
         },
         "datasource": "Prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -1043,6 +1200,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
+        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
@@ -1061,7 +1219,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1069,6 +1227,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": true,
+        "index": -1,
         "label": "Services",
         "multi": false,
         "name": "Services",
@@ -1087,14 +1246,16 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "All",
-          "value": "$__all"
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": "Prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
+        "index": -1,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
