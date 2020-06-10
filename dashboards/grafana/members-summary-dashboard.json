@@ -30,7 +30,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 46,
-  "iteration": 1591583582569,
+  "iteration": 1591587442722,
   "links": [
     {
       "icon": "dashboard",
@@ -1065,13 +1065,114 @@
       "dashes": false,
       "datasource": null,
       "decimals": 0,
+      "description": "HTTP Requests for Microprofile based HTTP servers",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "hiddenSeries": false,
+      "id": 99,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\"} - vendor_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) by(member)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member: {{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "HTTP Requests",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
       "description": "",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
+        "w": 12,
+        "x": 12,
         "y": 39
       },
       "hiddenSeries": false,
@@ -1108,7 +1209,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"}) - sum(vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) ",
+          "expr": "svendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} - vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1121,7 +1222,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total gRCP Requests by Member",
+      "title": "Total gRPC Requests by Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1160,7 +1261,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
