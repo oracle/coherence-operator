@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 46,
-  "iteration": 1591587442722,
+  "id": 10,
+  "iteration": 1591750792784,
   "links": [
     {
       "icon": "dashboard",
@@ -163,7 +163,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "nodeId",
+          "pattern": "node_id",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -206,7 +206,7 @@
           "unit": "short"
         },
         {
-          "alias": "Heap Usage",
+          "alias": "Heap Usage After GC",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -294,25 +294,28 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "B"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "C"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
@@ -490,6 +493,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "description": "",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -527,7 +531,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) / vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"} * 100",
+          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by(member) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -539,7 +543,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Memory Usage %",
+      "title": "Memory Usage % After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -620,7 +624,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -632,7 +636,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap Memory Usage",
+      "title": "Heap Memory Usage After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1320,7 +1324,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -1444,5 +1448,8 @@
   "timezone": "",
   "title": "Coherence Members Summary Dashboard",
   "uid": "coh-members-summary",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }

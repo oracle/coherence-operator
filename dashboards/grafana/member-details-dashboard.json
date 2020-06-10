@@ -30,8 +30,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 47,
-  "iteration": 1591587850380,
+  "id": 32,
+  "iteration": 1591751378206,
   "links": [
     {
       "icon": "dashboard",
@@ -154,16 +154,17 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\",member=~\"$MemberName\"})",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
       "thresholds": "",
-      "title": "Used Heap",
+      "title": "Used Heap After GC",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -318,9 +319,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"} / vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\",member=~\"$MemberName\"})  ",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -919,19 +921,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Max",
+          "legendFormat": "Max Heap",
           "refId": "A"
         },
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\", member=~\"$MemberName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Used",
+          "legendFormat": "Used  Heap After GC",
           "refId": "B"
         }
       ],
@@ -939,7 +941,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap Memory",
+      "title": "Heap Memory After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1937,5 +1939,8 @@
   "timezone": "",
   "title": "Coherence Member Details Dashboard",
   "uid": "coh-member-details",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }
