@@ -19,6 +19,7 @@ env:
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   RELEASE_IMAGE_PREFIX: "localhost:5000/"
   COHERENCE_IMAGE: "container-registry.oracle.com/middleware/coherence:14.1.1.0.0"
+  LOAD_KIND: true
 
 jobs:
   build:

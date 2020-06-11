@@ -1104,6 +1104,7 @@ kind-18-start:
 kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
+	kind load docker-image --name operator $(TEST_USER_IMAGE)|| true
 
 # ---------------------------------------------------------------------------
 # Install the Operator Helm chart.
