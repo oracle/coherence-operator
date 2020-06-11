@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 10,
-  "iteration": 1591750792784,
+  "id": 8,
+  "iteration": 1591858417253,
   "links": [
     {
       "icon": "dashboard",
@@ -531,7 +531,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by(member) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member) * 100",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by(member) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
