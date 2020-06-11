@@ -30,8 +30,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
-  "iteration": 1564390427885,
+  "id": 1,
+  "iteration": 1591836400257,
   "links": [
     {
       "icon": "dashboard",
@@ -66,6 +66,7 @@
   "panels": [
     {
       "content": "<center><h3>Member Details - $MemberName</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -80,6 +81,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -100,6 +102,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -151,16 +154,17 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\",member=~\"$MemberName\"})",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
       "thresholds": "",
-      "title": "Used Heap",
+      "title": "Used Heap After GC",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -181,6 +185,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -262,6 +267,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -313,9 +319,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\",member=~\"$MemberName\"} / vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\",member=~\"$MemberName\"}  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\",member=~\"$MemberName\"}) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\",member=~\"$MemberName\"})  ",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -343,6 +350,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
+      "datasource": null,
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -424,6 +432,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
+      "datasource": null,
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -498,6 +507,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 8,
@@ -517,12 +527,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -542,6 +554,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -558,6 +571,7 @@
         },
         {
           "alias": "Current Thread Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -574,6 +588,7 @@
         },
         {
           "alias": "Idle Thread Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -590,6 +605,7 @@
         },
         {
           "alias": "Thread Utilization",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -609,6 +625,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -662,6 +679,7 @@
     },
     {
       "content": "<center><h3>Memory and Garbage Collection</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -676,191 +694,19 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "decimals": 0,
-      "description": "",
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 18
-      },
-      "id": 48,
-      "legend": {
-        "avg": true,
-        "current": true,
-        "hideZero": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "idelta(vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m]) > 0",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Garbage Collection Count",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 18
-      },
-      "id": 47,
-      "legend": {
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "idelta(vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m]) > 0",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Garbage Collection Time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "ms",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 18
       },
+      "hiddenSeries": false,
       "id": 46,
       "legend": {
         "avg": false,
@@ -875,6 +721,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -885,19 +734,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\", member=~\"$MemberName\"}) by (name) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Max",
+          "legendFormat": "Max Heap: {{name}}",
           "refId": "A"
         },
         {
-          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\", member=~\"$MemberName\"}) by (name) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Used",
+          "legendFormat": "Used  Heap After GC: {{name}}",
           "refId": "B"
         }
       ],
@@ -905,7 +754,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap Memory",
+      "title": "Heap Memory After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -947,13 +796,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 18
       },
+      "hiddenSeries": false,
       "id": 49,
       "legend": {
         "avg": false,
@@ -968,6 +820,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1036,7 +891,195 @@
       }
     },
     {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "hiddenSeries": false,
+      "id": 48,
+      "legend": {
+        "avg": true,
+        "current": true,
+        "hideZero": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Garbage Collection Count",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "hiddenSeries": false,
+      "id": 47,
+      "legend": {
+        "avg": true,
+        "current": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Garbage Collection Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "content": "<center><h3>Member Network Details</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1054,14 +1097,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "The rate at which packets are being sent from this member.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 0,
         "y": 38
       },
+      "hiddenSeries": false,
       "id": 35,
       "legend": {
         "avg": false,
@@ -1076,6 +1122,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1141,14 +1190,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "The rate at which packets are being received by this member.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 12,
         "y": 38
       },
+      "hiddenSeries": false,
       "id": 36,
       "legend": {
         "avg": false,
@@ -1163,6 +1215,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1228,13 +1283,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 45
       },
+      "hiddenSeries": false,
       "id": 43,
       "legend": {
         "avg": false,
@@ -1249,6 +1307,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1313,13 +1374,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 45
       },
+      "hiddenSeries": false,
       "id": 44,
       "legend": {
         "avg": false,
@@ -1334,6 +1398,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1398,14 +1465,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "The Guardian Recovery and Terminations over the current time range.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 0,
         "y": 53
       },
+      "hiddenSeries": false,
       "id": 53,
       "legend": {
         "avg": false,
@@ -1421,6 +1491,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1431,7 +1504,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m])  ",
+          "expr": "vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1439,7 +1512,7 @@
           "refId": "A"
         },
         {
-          "expr": "idelta(vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"}[1m])",
+          "expr": "vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1494,13 +1567,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 12,
         "y": 53
       },
+      "hiddenSeries": false,
       "id": 60,
       "legend": {
         "avg": false,
@@ -1515,6 +1591,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1575,10 +1654,201 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "HTTP Requests for Microprofile based HTTP servers",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 60
+      },
+      "hiddenSeries": false,
+      "id": 61,
+      "interval": "",
+      "legend": {
+        "avg": true,
+        "current": true,
+        "hideZero": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_requests_count_total{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval) by (member)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Microprofile HTTP Requests",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 60
+      },
+      "hiddenSeries": false,
+      "id": 63,
+      "legend": {
+        "avg": true,
+        "current": true,
+        "hideZero": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "vendor_grpc_requests_count_total{cluster=~\"$ClusterName\", member=~\"$MemberName\"} - vendor_grpc_requests_count_totalionCount{cluster=~\"$ClusterName\", member=~\"$MemberName\"} offset $__interval",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{member}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "gRPC Requests",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1593,6 +1863,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -1616,6 +1887,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Member Name",
         "multi": false,
         "name": "MemberName",
@@ -1667,5 +1939,8 @@
   "timezone": "",
   "title": "Coherence Member Details Dashboard",
   "uid": "coh-member-details",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }

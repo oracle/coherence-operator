@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 18,
-  "iteration": 1564043592561,
+  "id": 4,
+  "iteration": 1591749269958,
   "links": [
     {
       "icon": "dashboard",
@@ -73,6 +73,7 @@
   "panels": [
     {
       "content": "<center><h3>Cluster Overview - $CoherenceVersion</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -87,6 +88,7 @@
     },
     {
       "collapsed": true,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -147,6 +149,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -167,6 +170,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "description": "Shows the number of cluster members.",
       "format": "none",
       "gauge": {
@@ -186,12 +190,8 @@
       "interval": null,
       "links": [
         {
-          "dashboard": "Members Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Members Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-members-summary/members-summary-dashboard"
+          "url": "/d/coh-members-summary/members-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "mappingType": 1,
@@ -259,6 +259,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "decimals": 0,
       "description": "Recent member departures.",
       "format": "none",
@@ -344,6 +345,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "decimals": 0,
       "description": "The number of services with endangered partitions.",
       "format": "none",
@@ -364,12 +366,8 @@
       "interval": null,
       "links": [
         {
-          "dashboard": "Services Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Services Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-services-summary/services-summary-dashboard"
+          "url": "/d/coh-services-summary/services-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "mappingType": 1,
@@ -439,7 +437,8 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "description": "Total used cluster heap across all members.",
+      "datasource": null,
+      "description": "Total used cluster heap across all members after GC.",
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -491,9 +490,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -521,6 +521,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "description": "Total available cluster heap across all members.",
       "format": "decbytes",
       "gauge": {
@@ -573,10 +574,12 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -602,6 +605,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": null,
       "decimals": 1,
       "description": "Percentage of heap memory used across all members.",
       "format": "percent",
@@ -655,9 +659,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) * 100  ",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) * 100  ",
           "format": "time_series",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -682,14 +687,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "Total and used cluster memory across all members (storage enabled and disabled). Please see tables and graphs directly below for breakdown by Role.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 9
       },
+      "hiddenSeries": false,
       "id": 14,
       "legend": {
         "alignAsTable": true,
@@ -705,6 +713,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -777,14 +788,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "Show the current load average across all machines.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 9
       },
+      "hiddenSeries": false,
       "id": 15,
       "legend": {
         "alignAsTable": false,
@@ -801,15 +815,14 @@
       "linewidth": 1,
       "links": [
         {
-          "dashboard": "Machines Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Machines Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-machines-summary/machines-summary-dashboard"
+          "url": "/d/coh-machines-summary/machines-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -873,6 +886,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "Total heap usage summarized by role.",
       "fontSize": "100%",
       "gridPos": {
@@ -893,12 +907,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
-          "alias": "Total Heap Used",
+          "alias": "Total Heap Used After GC",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -915,6 +931,7 @@
         },
         {
           "alias": "Total Heap Max",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -931,6 +948,7 @@
         },
         {
           "alias": "Role",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -947,6 +965,7 @@
         },
         {
           "alias": "Member Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -962,7 +981,8 @@
           "unit": "short"
         },
         {
-          "alias": "Total Heap Used %",
+          "alias": "Total Heap Used After GC  %",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -982,6 +1002,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -997,33 +1018,37 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "count(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "C"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "B"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
@@ -1040,14 +1065,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
+      "decimals": 2,
       "description": "Memory usage percentage by member role.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 12,
         "y": 17
       },
+      "hiddenSeries": false,
       "id": 120,
       "interval": "",
       "legend": {
@@ -1064,6 +1093,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1074,7 +1106,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (role) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1104,7 +1136,7 @@
         {
           "decimals": null,
           "format": "percentunit",
-          "label": null,
+          "label": "",
           "logBase": 1,
           "max": "1",
           "min": "0",
@@ -1126,6 +1158,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the lowest physical memory % available.",
       "fontSize": "100%",
       "gridPos": {
@@ -1146,12 +1179,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Free Physical Memory",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1171,6 +1206,7 @@
         },
         {
           "alias": "Machine",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1190,6 +1226,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1220,6 +1257,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest CPU Load % over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1240,12 +1278,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1265,6 +1305,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1281,6 +1322,7 @@
         },
         {
           "alias": "Process CPU Load",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1300,6 +1342,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1330,6 +1373,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the highest heap memory % used over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1350,12 +1394,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1375,6 +1421,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1390,7 +1437,8 @@
           "unit": "short"
         },
         {
-          "alias": "% Memory Used",
+          "alias": "% Memory",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1410,6 +1458,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1440,6 +1489,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the greatest  Total GC Time over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1460,12 +1510,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member Name",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1485,6 +1537,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1501,6 +1554,7 @@
         },
         {
           "alias": "Total GC Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1517,6 +1571,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1546,6 +1601,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1566,12 +1622,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1591,6 +1649,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1607,6 +1666,7 @@
         },
         {
           "alias": "Task Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1623,6 +1683,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1652,6 +1713,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Services  that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1672,12 +1734,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1694,6 +1758,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1713,6 +1778,7 @@
         },
         {
           "alias": "Task Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1729,6 +1795,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1762,15 +1829,18 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "Total task backlog per member.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
         "y": 36
       },
+      "hiddenSeries": false,
       "id": 114,
       "legend": {
         "avg": false,
@@ -1786,15 +1856,14 @@
       "linewidth": 1,
       "links": [
         {
-          "dashboard": "Members Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Members Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-members-summary/members-summary-dashboard"
+          "url": "/d/coh-members-summary/members-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1861,15 +1930,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "Total task backlog by service.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
         "y": 36
       },
+      "hiddenSeries": false,
       "id": 113,
       "legend": {
         "avg": false,
@@ -1885,15 +1957,14 @@
       "linewidth": 1,
       "links": [
         {
-          "dashboard": "Services Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Services Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-services-summary/services-summary-dashboard"
+          "url": "/d/coh-services-summary/services-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1960,15 +2031,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "Total Proxy Outgoing Byte Backlog by Service",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
         "y": 36
       },
+      "hiddenSeries": false,
       "id": 118,
       "legend": {
         "avg": false,
@@ -1984,15 +2058,14 @@
       "linewidth": 1,
       "links": [
         {
-          "dashboard": "Proxy Servers Summary Dashboard",
-          "includeVars": true,
-          "keepTime": true,
           "title": "Proxy Servers Summary Dashboard",
-          "type": "dashboard",
-          "url": "/d/coh-proxy-services-summary/proxy-servers-summary-dashboard"
+          "url": "/d/coh-proxy-services-summary/proxy-servers-summary-dashboard?$__url_time_range&$__all_variables"
         }
       ],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2056,6 +2129,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "Services that  have unbalanced partitions.",
       "fontSize": "100%",
       "gridPos": {
@@ -2076,12 +2150,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Unbalanced Partitions",
+          "align": "auto",
           "colorMode": "cell",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -2101,6 +2177,7 @@
         },
         {
           "alias": "Service Name",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2121,6 +2198,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2150,6 +2228,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The top  $TopLimit Members that have the greatest change in sent and received messages over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -2170,12 +2249,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2195,6 +2276,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2211,6 +2293,7 @@
         },
         {
           "alias": "Network Messages",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2227,6 +2310,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2256,6 +2340,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The current top $TopLimit caches, services and member with the highest Max Query Time.",
       "fontSize": "100%",
       "gridPos": {
@@ -2276,12 +2361,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Max Query Duration",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2298,6 +2385,7 @@
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2318,6 +2406,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2337,6 +2426,7 @@
         },
         {
           "alias": "Cache",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2356,6 +2446,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2385,6 +2476,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "The current top $TopLimit nodes with the highest number of Non-Optimized Queries.",
       "fontSize": "100%",
       "gridPos": {
@@ -2405,12 +2497,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Max Query Duration",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2427,6 +2521,7 @@
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2447,6 +2542,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2465,6 +2561,7 @@
         },
         {
           "alias": "Cache",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2484,6 +2581,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -2516,13 +2614,16 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 56
       },
+      "hiddenSeries": false,
       "id": 116,
       "legend": {
         "avg": false,
@@ -2537,7 +2638,10 @@
       "lines": false,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2548,7 +2652,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
+          "expr": "vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2603,13 +2707,16 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 56
       },
+      "hiddenSeries": false,
       "id": 117,
       "legend": {
         "avg": false,
@@ -2625,6 +2732,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2635,7 +2745,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"}[1m])) by (member) > 0",
+          "expr": "vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"}  offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2686,8 +2796,8 @@
       }
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 18,
+  "refresh": "10s",
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -2700,6 +2810,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -2723,6 +2834,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
+        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
@@ -2741,7 +2853,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -2749,6 +2861,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": true,
+        "index": -1,
         "label": "Services",
         "multi": false,
         "name": "Services",
@@ -2767,7 +2880,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -2775,6 +2888,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": true,
+        "index": -1,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
@@ -2867,5 +2981,8 @@
   "timezone": "",
   "title": "Coherence Dashboard Main",
   "uid": "coh-main",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }
