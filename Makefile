@@ -1077,24 +1077,33 @@ kind:
 # Start a Kind 1.12 cluster
 # ---------------------------------------------------------------------------
 .PHONY: kind-12
-kind-12:
+kind-12: kind-12-start kind-load
+
+.PHONY: kind-12-start
+kind-12-start:
 	./hack/kind.sh --image "kindest/node:v1.12.10@sha256:faeb82453af2f9373447bb63f50bae02b8020968e0889c7fa308e19b348916cb"
 	docker pull $(HELM_COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(HELM_COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
-	kind load docker-image --name operator $(UTILS_IMAGE)|| true
 
 # ---------------------------------------------------------------------------
 # Start a Kind 1.18 cluster
 # ---------------------------------------------------------------------------
 .PHONY: kind-18
-kind-18:
+kind-18: kind-18-start kind-load
+
+.PHONY: kind-18-start
+kind-18-start:
 	./hack/kind.sh --image "kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f"
 	docker pull $(HELM_COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(HELM_COHERENCE_IMAGE) || true
+
+# ---------------------------------------------------------------------------
+# Load images into Kind
+# ---------------------------------------------------------------------------
+.PHONY: kind-load
+kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
-
 
 # ---------------------------------------------------------------------------
 # Install the Operator Helm chart.
