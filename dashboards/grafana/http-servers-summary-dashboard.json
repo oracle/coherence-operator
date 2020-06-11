@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 25,
-  "iteration": 1563506053128,
+  "id": 48,
+  "iteration": 1591588639895,
   "links": [
     {
       "icon": "dashboard",
@@ -42,6 +42,7 @@
   "panels": [
     {
       "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -56,6 +57,8 @@
     },
     {
       "columns": [],
+      "datasource": null,
+      "description": "Coherence based HTTP servers",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -75,12 +78,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -97,6 +102,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -116,6 +122,7 @@
         },
         {
           "alias": "Total Requests",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -132,6 +139,7 @@
         },
         {
           "alias": "Error Count",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -151,6 +159,7 @@
         },
         {
           "alias": "Avg Request Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -167,6 +176,7 @@
         },
         {
           "alias": "Unauth Connection Attemps",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -186,6 +196,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -204,6 +215,7 @@
           "expr": "count(vendor_Coherence_ConnectionManager_TotalRequestCount{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
@@ -242,14 +254,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
+      "description": "HTTP Requests for Coherence based HTTP servers",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 37,
       "legend": {
         "avg": false,
@@ -264,6 +280,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -274,7 +293,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_TotalRequestCount{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_TotalRequestCount{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor_Coherence_ConnectionManager_TotalRequestCount{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -286,7 +305,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Requests/ sec",
+      "title": "HTTP Requests",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -329,14 +348,18 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
+      "description": "HTTP Response Codes for Coherence based HTTP servers",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 39,
       "legend": {
         "avg": false,
@@ -352,6 +375,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -362,7 +388,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}  - vendor_Coherence_ConnectionManager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -370,7 +396,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}  - vendor_Coherence_ConnectionManager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -378,7 +404,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}  - vendor_Coherence_ConnectionManager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -386,7 +412,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}  - vendor_Coherence_ConnectionManager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -394,7 +420,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(idelta(vendor_Coherence_ConnectionManager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor_Coherence_ConnectionManager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}  - vendor_Coherence_ConnectionManager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -443,10 +469,260 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "content": "<center><h3>Microprofile HTTP Servers Summary - $ClusterName</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 40,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "columns": [],
+      "datasource": null,
+      "description": "HTTP Servers for Microprofile based HTTP servers",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 41,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 1,
+        "desc": false
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "Total Requests",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Request Rate / Second",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "reqps"
+        },
+        {
+          "alias": "Member",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "mappingType": 1,
+          "pattern": "member",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        },
+        {
+          "alias": "Namespace",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "namespace",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        },
+        {
+          "alias": "Role",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "role",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\"}) by(member, role, namespace)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(vendor_requests_meter_rate_per_second{cluster=~\"$ClusterName\"}) by(member, role, namespace)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "HTTP Servers List",
+      "transform": "table",
+      "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "HTTP Requests for Microprofile based HTTP servers",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "hiddenSeries": false,
+      "id": 42,
+      "legend": {
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\"} - vendor_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) by(role)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Role: {{role}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "HTTP Requests",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 18,
+  "refresh": "10s",
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -461,6 +737,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -484,6 +761,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
+        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
@@ -533,5 +811,8 @@
   "timezone": "",
   "title": "Coherence HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
-  "version": 2
+  "variables": {
+    "list": []
+  },
+  "version": 4
 }
