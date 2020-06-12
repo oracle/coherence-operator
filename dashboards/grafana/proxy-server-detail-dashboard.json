@@ -463,7 +463,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "node_id",
+          "pattern": "nodeId",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -471,7 +471,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(vendor_Coherence_ConnectionManager_ConnectionTimeMillis{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (remote_address, remote_port, member, node_id)",
+          "expr": "avg(vendor_Coherence_ConnectionManager_ConnectionTimeMillis{cluster=~\"$ClusterName\",name=~'$ServiceName'}) by (remote_address, remote_port, member, nodeId)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
