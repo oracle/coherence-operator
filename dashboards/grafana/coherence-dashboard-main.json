@@ -45,8 +45,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1591749269958,
+  "id": 38,
+  "iteration": 1591929703387,
   "links": [
     {
       "icon": "dashboard",
@@ -688,7 +688,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
-      "description": "Total and used cluster memory across all members (storage enabled and disabled). Please see tables and graphs directly below for breakdown by Role.",
+      "description": "Total and used cluster memory (after GC) across all members (storage enabled and disabled). Please see tables and graphs directly below for breakdown by Role.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -726,7 +726,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -734,7 +734,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -901,7 +901,7 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 0,
+        "col": 3,
         "desc": true
       },
       "styles": [
