@@ -69,6 +69,7 @@ func NewReconcilerWithFlags(mgr manager.Manager, opFlags *flags.CoherenceOperato
 	r.reconcilers = reconcilers
 
 	r.SetCommonReconciler(controllerName, mgr)
+	r.SetPatchType(types.MergePatchType)
 	return r
 }
 
