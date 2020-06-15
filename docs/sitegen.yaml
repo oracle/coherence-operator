@@ -68,7 +68,7 @@ backend:
                 - includes:
                     - "applications/*.adoc"
             - title: "Coherence Settings"
-              pathprefix: "/coherence"
+              pathprefix: "/coherence_settings"
               glyph:
                 type: "icon"
                 value: "fa-cogs"
@@ -76,7 +76,7 @@ backend:
                 - includes:
                     - "coherence_settings/*.adoc"
             - title: "JVM Settings"
-              pathprefix: "/jvm"
+              pathprefix: "/jvm_settings"
               glyph:
                 type: "icon"
                 value: "fa-cog"
@@ -132,7 +132,7 @@ backend:
                 - includes:
                     - "logging/*.adoc"
             - title: "Other Pod Settings"
-              pathprefix: "/misc"
+              pathprefix: "/misc_pod_settings"
               glyph:
                 type: "icon"
                 value: "widgets"

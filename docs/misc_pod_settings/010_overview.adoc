@@ -23,14 +23,14 @@ Adding environment variables to the Coherence container.
 --
 
 [CARD]
-.Labels
-[link=misc_pod_settings/030_labels.adoc.adoc]
+.Pod Labels
+[link=misc_pod_settings/030_labels.adoc]
 --
 Adding Pod labels.
 --
 
 [CARD]
-.Annotations
+.Pod Annotations
 [link=misc_pod_settings/040_annotations.adoc]
 --
 Adding Pod annotations.

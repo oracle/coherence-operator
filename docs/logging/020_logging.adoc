@@ -80,8 +80,8 @@ spec:
   jvm:
     args:
       - "-Dcoherence.log=jdk"                                                                   # <1>
- 	  - "-Dcoherence.log.logger=com.oracle.coherence"                                           # <2>
- 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"  # <3>
+      - "-Dcoherence.log.logger=com.oracle.coherence"                                           # <2>
+      - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"  # <3>
 ----
 <1> Coherence has been configured to use the Java util logging.
 <2> The Coherence logger name has been set to `com.oracle.coherence`, which matches the logging configuration file.
@@ -107,8 +107,8 @@ spec:
   jvm:
     args:
       - "-Dcoherence.log=jdk"
- 	  - "-Dcoherence.log.logger=com.oracle.coherence"
- 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
+      - "-Dcoherence.log.logger=com.oracle.coherence"
+      - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumes:
     - name: logs           # <1>
       emptyDir: {}
@@ -137,8 +137,8 @@ spec:
   jvm:
     args:
       - "-Dcoherence.log=jdk"
- 	  - "-Dcoherence.log.logger=com.oracle.coherence"
- 	  - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
+      - "-Dcoherence.log.logger=com.oracle.coherence"
+      - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumes:
     - name: logs           # <1>
       emptyDir: {}
@@ -154,8 +154,10 @@ spec:
       env:
         - name: "FLUENTD_CONF"                                                         # <2>
           value: "fluentd-coherence.conf"
+        - name: "FLUENT_ELASTICSEARCH_SED_DISABLE"                                     # <3>
+          value: "true"
   configMapVolumes:
-    - name: "efk-config"                                                               # <3>
+    - name: "efk-config"                                                               # <4>
       mountPath: "/fluentd/etc/fluentd-coherence.conf"
       subPath: "fluentd-coherence.conf"
 ----
@@ -163,7 +165,8 @@ spec:
 in the `Pod` exactly as configured.
 <2> The `FLUENTD_CONF` environment variable has been set to the name of the configuration file that Fluentd should use.
 The standard Fluentd behaviour is to locate this file in the `/fluentd/etc/` directory.
-<3> An additional volume has been added from a `ConfigMap` named `efk-config`, that contains the Fluentd configuration to use.
+<3> The `FLUENT_ELASTICSEARCH_SED_DISABLE` environment variable has been set to work around a known issue https://github.com/fluent/fluentd-kubernetes-daemonset#disable-sed-execution-on-elasticsearch-image[here].
+<4> An additional volume has been added from a `ConfigMap` named `efk-config`, that contains the Fluentd configuration to use.
 This will be mounted to the `fluentd` container at `/fluentd/etc/fluentd-coherence.conf`, which corresponds to the
 name of the file set in the `FLUENTD_CONF` environment variable.
 
@@ -232,7 +235,7 @@ the Operator will inject into all containers in the Pod. In this case the Cohere
 the Pod host name and Pod UID.
 <4> The final section tells Fluentd how to ship the logs to Elasticsearch, in this case to the endpoint `http://elasticsearch-master:9200`
 
-There are many ways to configure Fluentd, the example above is just one way and is in fact taken from on eof the Operator's functional tests.
+There are many ways to configure Fluentd, the example above is just one way and is in fact taken from one of the Operator's functional tests.
 
 With the `efk-config` `ConfigMap` created in the same namespace as the `Coherence` resource the Coherence logs from the
 containers will now be shipped to Elasticsearch.

@@ -46,7 +46,7 @@ Configuring the garbage collector.
 --
 
 [CARD]
-.Memory Settings
+.Heap & Memory Settings
 [link=jvm_settings/050_memory.adoc]
 --
 Configuring the heap size and other memory settings.

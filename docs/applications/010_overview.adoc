@@ -19,15 +19,15 @@ deployment will use.
 [PILLARS]
 ====
 [CARD]
-.Build Application Images
-[link=coherence_settings/020_build_application.adoc]
+.Build Custom Application Images
+[link=applications/020_build_application.adoc]
 --
 Building custom Coherence application images for use with the Coherence Operator.
 --
 
 [CARD]
 .Deploy Custom Application Images
-[link=coherence_settings/030_deploy_application.adoc]
+[link=applications/030_deploy_application.adoc]
 --
 Deploying custom application images using the Coherence Operator.
 --
@@ -49,21 +49,21 @@ Setting a custom classpath for the application.
 
 [CARD]
 .Setting a Main Class
-[link=coherence_settings/040_application_main.adoc]
+[link=applications/040_application_main.adoc]
 --
 Setting a custom main class to run.
 --
 
 [CARD]
-.Add Main Arguments
-[link=coherence_settings/050_application_args.adoc]
+.Setting Application Arguments
+[link=applications/050_application_args.adoc]
 --
-Adding arguments to pass to the main class.
+Setting arguments to pass to the main class.
 --
 
 [CARD]
 .Working Directory
-[link=coherence_settings/060_application_working_dir.adoc]
+[link=applications/060_application_working_dir.adoc]
 --
 Setting the application's working directory.
 --
