@@ -25,12 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strings"
 	"sync"
 )
 
@@ -93,13 +91,7 @@ func (in *CommonReconciler) SetCommonReconciler(name string, mgr manager.Manager
 	in.mgr = mgr
 	in.mutex = commonMutex
 	in.logger = logf.Log.WithName(name)
-
-	patchEnv := os.Getenv("USE_STRATEGIC_PATCH")
-	if strings.ToLower(patchEnv) == "true" {
-		in.patchType = types.StrategicMergePatchType
-	} else {
-		in.patchType = types.MergePatchType
-	}
+	in.patchType = types.StrategicMergePatchType
 }
 
 // Attempt to lock the requested resource.
@@ -162,7 +154,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 	default:
 		updated := deployment.DeepCopy()
 		if updated.Status.Update(deployment, &sts.Status) {
-			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
@@ -200,7 +192,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.Namespaced
 	default:
 		updated := deployment.DeepCopy()
 		if updated.Status.SetCondition(deployment, c) {
-			patch, err := in.CreateTwoWayPatch(deployment.Name, updated, deployment)
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
@@ -230,29 +222,34 @@ func (in *CommonReconciler) MaybeFindStatefulSet(namespace, name string) (*appsv
 }
 
 // Perform a two-way merge patch on the resource.
-func (in *CommonReconciler) TwoWayPatch(name string, current, desired runtime.Object) error {
+func (in *CommonReconciler) TwoWayPatch(name string, current, desired runtime.Object) (bool, error) {
 	patch, err := in.CreateTwoWayPatch(name, desired, current, patchIgnore)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
-		return errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
+		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
 	}
 
 	if patch == nil {
 		// nothing to patch so just return
-		return nil
+		return false, nil
 	}
 
 	err = in.GetManager().GetClient().Patch(context.TODO(), current, patch)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
-		return errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
+		return false, errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
 	}
 
-	return nil
+	return true, nil
 }
 
 // Create a two-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatch(name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
+	return in.CreateTwoWayPatchOfType(in.patchType, name, desired, current, ignore...)
+}
+
+// Create a two-way patch between the original state, the current state and the desired state of a k8s resource.
+func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
 	currentData, err := json.Marshal(current)
 	if err != nil {
 		return nil, errors.Wrap(err, "serializing current configuration")
@@ -291,7 +288,7 @@ func (in *CommonReconciler) CreateTwoWayPatch(name string, desired, current runt
 		in.GetLog().V(2).Info(fmt.Sprintf("Created patch for %s/%s\n%s", kind, name, string(data)))
 	}
 
-	return client.RawPatch(in.patchType, data), nil
+	return client.RawPatch(patchType, data), nil
 }
 
 // Perform a three-way merge patch on the resource returning true if a patch was required otherwise false.
