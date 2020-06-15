@@ -5,6 +5,8 @@ metadata:
 spec:
   group: coherence.oracle.com
   names:
+    categories:
+    - coherence
     kind: Coherence
     listKind: CoherenceList
     plural: coherence
