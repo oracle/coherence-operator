@@ -1,0 +1,11 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: rolling-cluster
+spec:
+  labels:
+    version: one
+  jvm:
+    memory:
+      heapSize: 256m
+      
