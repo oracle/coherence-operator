@@ -129,13 +129,6 @@ type ReconcileCoherence struct {
 	reconcilers []reconciler.SecondaryResourceReconciler
 }
 
-func (in *ReconcileCoherence) SetPatchType(pt types.PatchType) {
-	for _, r := range in.reconcilers {
-		r.SetPatchType(pt)
-	}
-	in.CommonReconciler.SetPatchType(pt)
-}
-
 // Reconcile reads that state of the cluster for a Coherence resource object and makes changes based on the state read
 // and what is in the Coherence.Spec
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
