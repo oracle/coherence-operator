@@ -24,7 +24,7 @@ alternative to RMI that does work well in containers and only requires a single 
 
 This example shows how to connect to a cluster via JMX over JMXMP.
 
-As an alternative to JMX see <<management_and_diagnostics/020_management_over_rest.adoc,Management over REST>>
+As an alternative to JMX see <<management/020_management_over_rest.adoc,Management over REST>>
 for how to connect to a cluster via the VisualVM plugin using REST.
 
 NOTE: See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/introduction-oracle-coherence-management.html[Coherence Management Documentation]

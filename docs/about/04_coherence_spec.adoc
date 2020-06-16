@@ -90,9 +90,9 @@ annotations: +
 m| initContainers | List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
 m| sideCars | List of additional side-car containers to add to the deployment's Pod. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core[corev1.Container] | false
 m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
+see: <<other/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
 m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
+see: <<other/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 m| volumes | Volumes defines extra volume mappings that will be added to the Coherence Pod. +
   The content of this yaml should match the normal k8s volumes section of a Pod definition + +
   as described in https://kubernetes.io/docs/concepts/storage/volumes/ + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volume-v1-core[corev1.Volume] | false
@@ -170,7 +170,7 @@ see: <<coherence_settings/080_persistence.adoc,Configure Persistence>> m| &#42;<
 m| logLevel | The Coherence log level, default being 5 (info level). +
 see: <<coherence_settings/060_log_level.adoc,Configure Coherence log level>> m| &#42;int32 | false
 m| management | Management configures Coherence management over REST Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4. +
-see: <<management_and_diagnostics/010_overview.adoc,Management & Diagnostics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
+see: <<management/010_overview.adoc,Management & Diagnostics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
 m| metrics | Metrics configures Coherence metrics publishing Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4. +
 see: <<metrics/010_overview.adoc,Metrics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
 m| tracing | Tracing is used to configure Coherence distributed tracing functionality. m| &#42;<<CoherenceTracingSpec,CoherenceTracingSpec>> | false
@@ -220,7 +220,7 @@ m| namespace | The optional namespace of the existing Coherence deployment to us
 === ConfigMapVolumeSpec
 
 Represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
+see: <<other/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -574,7 +574,7 @@ m| probe | The probe to use to determine whether a deployment is Phase HA. If no
 === SecretVolumeSpec
 
 Represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>>
+see: <<other/020_secret_volumes.adoc,Add Secret Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===

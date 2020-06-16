@@ -17,21 +17,21 @@ controlled by the Coherence Operator.
 ====
 [CARD]
 .Environment Variables
-[link=misc_pod_settings/020_environment.adoc]
+[link=other/020_environment.adoc]
 --
 Adding environment variables to the Coherence container.
 --
 
 [CARD]
-.Labels
-[link=misc_pod_settings/030_labels.adoc.adoc]
+.Pod Labels
+[link=other/030_labels.adoc]
 --
 Adding Pod labels.
 --
 
 [CARD]
-.Annotations
-[link=misc_pod_settings/040_annotations.adoc]
+.Pod Annotations
+[link=other/040_annotations.adoc]
 --
 Adding Pod annotations.
 --
@@ -43,7 +43,7 @@ Adding Pod annotations.
 ====
 [CARD]
 .Add Containers
-[link=misc_pod_settings/080_add_containers.adoc]
+[link=other/080_add_containers.adoc]
 --
 Adding side-car containers and init-containers.
 --
@@ -55,21 +55,21 @@ Adding side-car containers and init-containers.
 ====
 [CARD]
 .Add Volumes
-[link=misc_pod_settings/070_add_volumes.adoc]
+[link=other/070_add_volumes.adoc]
 --
 Adding Volumes and volume mounts.
 --
 
 [CARD]
 .Add ConfigMap Volumes
-[link=misc_pod_settings/050_configmap_volumes.adoc]
+[link=other/050_configmap_volumes.adoc]
 --
 Adding Volumes and volume mounts using ConfigMaps.
 --
 
 [CARD]
 .Add Secret Volumes
-[link=misc_pod_settings/060_secret_volumes.adoc]
+[link=other/060_secret_volumes.adoc]
 --
 Adding Volumes and volume mounts using Secrets.
 --
@@ -81,14 +81,14 @@ Adding Volumes and volume mounts using Secrets.
 ====
 [CARD]
 .Pod Scheduling
-[link=misc_pod_settings/090_pod_scheduling.adoc]
+[link=other/090_pod_scheduling.adoc]
 --
 Taints, Tolerations and node selectors.
 --
 
 [CARD]
 .Resources
-[link=misc_pod_settings/100_resources.adoc]
+[link=other/100_resources.adoc]
 --
 Configuring Coherence container resource constraints.
 --
