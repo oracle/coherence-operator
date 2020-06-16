@@ -30,5 +30,5 @@ spec:
 ----
 <1> The `useContainerLimits` field is set to false, so the `-XX:+UseContainerSupport` will not be passed to the JVM.
 
-See the <<misc_pod_settings/100_resources.adoc,Resource Limits>> documentation on how to specify resource limits
+See the <<other/100_resources.adoc,Resource Limits>> documentation on how to specify resource limits
 for the Coherence container.

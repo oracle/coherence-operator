@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
-  "iteration": 1591580251772,
+  "id": 6,
+  "iteration": 1591945309700,
   "links": [
     {
       "icon": "dashboard",
@@ -388,11 +388,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Service_TaskCount{cluster=~\"$ClusterName\"} offset $__interval) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{name}} ",
           "refId": "A"
         }
       ],
@@ -400,7 +400,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Service Task Count",
+      "title": "Total Service Task Count - All Members",
       "tooltip": {
         "shared": true,
         "sort": 0,

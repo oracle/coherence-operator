@@ -13,7 +13,7 @@ to install a simple Coherence cluster.
 
 == Prerequisites
 
-Ensure that the <<install/01_installation.adoc,Coherence Operator prerequisites>> are available.
+Ensure that the <<installation/01_installation.adoc,Coherence Operator prerequisites>> are available.
 
 == 1. Install the Coherence Operator
 

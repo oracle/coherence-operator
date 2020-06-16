@@ -74,7 +74,7 @@ backend:
                 value: "fa-cogs"
               items:
                 - includes:
-                    - "coherence_settings/*.adoc"
+                    - "coherence/*.adoc"
             - title: "JVM Settings"
               pathprefix: "/jvm"
               glyph:
@@ -82,7 +82,7 @@ backend:
                 value: "fa-cog"
               items:
                 - includes:
-                    - "jvm_settings/*.adoc"
+                    - "jvm/*.adoc"
             - title: "Expose Ports & Services"
               pathprefix: "/ports"
               glyph:
@@ -114,7 +114,7 @@ backend:
                 value: "fa-stethoscope"
               items:
                 - includes:
-                    - "management_and_diagnostics/*.adoc"
+                    - "management/*.adoc"
             - title: "Metrics"
               pathprefix: "/metrics"
               glyph:
@@ -132,13 +132,13 @@ backend:
                 - includes:
                     - "logging/*.adoc"
             - title: "Other Pod Settings"
-              pathprefix: "/misc"
+              pathprefix: "/other"
               glyph:
                 type: "icon"
                 value: "widgets"
               items:
                 - includes:
-                    - "misc_pod_settings/*.adoc"
+                    - "other/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Slack"

@@ -17,21 +17,21 @@ in a cluster deployed in Kubernetes.
 ====
 [CARD]
 .Management Over REST
-[link=management_and_diagnostics/020_management_over_rest.adoc]
+[link=management/020_management_over_rest.adoc]
 --
 Coherence Management over REST feature
 --
 
 [CARD]
 .VisualVM
-[link=management_and_diagnostics/030_visualvm.adoc]
+[link=management/030_visualvm.adoc]
 --
 Coherence VisualVM plugin.
 --
 
 [CARD]
 .SSL
-[link=management_and_diagnostics/040_ssl.adoc]
+[link=management/040_ssl.adoc]
 --
 Enable SSL on the Management over REST endpoint.
 --

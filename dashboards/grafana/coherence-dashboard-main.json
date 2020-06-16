@@ -2652,7 +2652,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardRecoverCount{cluster=~\"$ClusterName\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2745,7 +2745,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"}  offset $__interval ",
+          "expr": "vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"} - vendor_Coherence_Node_GuardTerminateCount{cluster=~\"$ClusterName\"}  offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

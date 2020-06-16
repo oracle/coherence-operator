@@ -6,7 +6,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Configuring Coherence
+= Overview
 
 The `Coherence` resource has a number of fields to configure the behaviour of `Coherence`,
 these fields are in the `spec.coherence` section of the CRD.
@@ -14,18 +14,18 @@ these fields are in the `spec.coherence` section of the CRD.
 == Configuring Coherence
 
 The `Coherence` CRD has specific fields to configure the most common Coherence settings.
-Any other settings can be configured by adding system properties to the <<jvm_settings010_overview.adoc,JVM Settings>>.
+Any other settings can be configured by adding system properties to the <<jvm/010_overview.adoc,JVM Settings>>.
 
 The following Coherence features can be directly specified in the `Coherence` spec.
 
-* <<coherence_settings/020_cluster_name.adoc,Cluster Name>>
-* <<coherence_settings/030_cache_config.adoc,Cache Configuration File>>
-* <<coherence_settings/040_override_file.adoc,Operational Configuration File>> (aka, the override file)
-* <<coherence_settings/050_storage_enabled.adoc,Storage Enabled>> or disabled deployments
-* <<coherence_settings/060_log_level,Log Level>>
-* <<coherence_settings/070_wka.adoc,Well Known Addressing>> and cluster discovery
-* <<coherence_settings/080_persistence.adoc,Persistence>>
-* <<management_and_diagnostics/010_overview.adoc,Management over REST>>
+* <<coherence/020_cluster_name.adoc,Cluster Name>>
+* <<coherence/030_cache_config.adoc,Cache Configuration File>>
+* <<coherence/040_override_file.adoc,Operational Configuration File>> (aka, the override file)
+* <<coherence/050_storage_enabled.adoc,Storage Enabled>> or disabled deployments
+* <<coherence/060_log_level.adoc,Log Level>>
+* <<coherence/070_wka.adoc,Well Known Addressing>> and cluster discovery
+* <<coherence/080_persistence.adoc,Persistence>>
+* <<management/010_overview.adoc,Management over REST>>
 * <<metrics/010_overview.adoc,Metrics>>
 
 NOTE: The Coherence settings in the `Coherence` CRD spec typically set system property values that will

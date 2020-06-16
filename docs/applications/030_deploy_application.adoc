@@ -10,7 +10,7 @@
 
 == Deploy Coherence Application Images
 
-Once a custom application image has been built (as described in <<applications/020_build_application.adoc,Build Application Images>>)
+Once a custom application image has been built (as described in <<applications/020_build_application.adoc,Build Custom Application Images>>)
 a `Coherence` resource can be configured to use that image.
 
 
@@ -34,7 +34,7 @@ The example above would assume that the `catalogue:1.0.0` has a JVM on the `PATH
 or Java classes, in the default classpath locations used by the Operator.
 When this is not the case additional configuration can be added to specify additional application settings, these include:
 
-* setting the <<jvm_settings/020_classpath.adoc,classpath>>
+* setting the <<jvm/020_classpath.adoc,classpath>>
 * specifying the <<applications/040_application_main.adoc,application main>>
 * specifying <<applications/050_application_args.adoc,application arguments>>
 * specifying the <<applications/060_application_working_dir.adoc,working directory>>
