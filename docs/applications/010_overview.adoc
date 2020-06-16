@@ -42,7 +42,7 @@ the application code. Some of the application specific settings are shown below:
 ====
 [CARD]
 .Setting the Classpath
-[link=jvm_settings/020_classpath.adoc]
+[link=jvm/020_classpath.adoc]
 --
 Setting a custom classpath for the application.
 --

@@ -152,12 +152,12 @@ spec:
         - "-c"
         - "/etc/fluent.conf"
       env:
-        - name: "FLUENTD_CONF"                                                         # <2>
+        - name: "FLUENTD_CONF"                          # <2>
           value: "fluentd-coherence.conf"
-        - name: "FLUENT_ELASTICSEARCH_SED_DISABLE"                                     # <3>
+        - name: "FLUENT_ELASTICSEARCH_SED_DISABLE"      # <3>
           value: "true"
   configMapVolumes:
-    - name: "efk-config"                                                               # <4>
+    - name: "efk-config"                                # <4>
       mountPath: "/fluentd/etc/fluentd-coherence.conf"
       subPath: "fluentd-coherence.conf"
 ----
