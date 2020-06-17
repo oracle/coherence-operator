@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
-  "iteration": 1564641610050,
+  "id": 39,
+  "iteration": 1592184583557,
   "links": [
     {
       "icon": "dashboard",
@@ -52,6 +52,7 @@
   "panels": [
     {
       "content": "<center><h3>Proxy Servers Details - $ServiceName</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -66,6 +67,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -85,12 +87,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Total Bytes Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -107,6 +111,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -126,6 +131,7 @@
         },
         {
           "alias": "Total Bytes Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -142,6 +148,7 @@
         },
         {
           "alias": "Outgoing Byte Backlog",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -161,6 +168,7 @@
         },
         {
           "alias": "Current Connections",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -177,6 +185,7 @@
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -196,6 +205,7 @@
         },
         {
           "alias": "Host URL",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -212,6 +222,7 @@
         },
         {
           "alias": "Total Messages Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -228,6 +239,7 @@
         },
         {
           "alias": "Total Messages Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -244,6 +256,7 @@
         },
         {
           "alias": "Unauthorized Connection Attempts",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -263,6 +276,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -340,6 +354,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "description": "",
       "fontSize": "100%",
       "gridPos": {
@@ -360,12 +375,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member Connected To",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -385,6 +402,7 @@
         },
         {
           "alias": "Remote Client Address",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -403,6 +421,7 @@
         },
         {
           "alias": "Remote Client Port",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -419,6 +438,7 @@
         },
         {
           "alias": "Connection Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -433,6 +453,7 @@
         },
         {
           "alias": "Node Id",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -467,13 +488,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 14
       },
+      "hiddenSeries": false,
       "id": 44,
       "legend": {
         "avg": false,
@@ -488,6 +512,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -552,14 +579,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 14
       },
+      "hiddenSeries": false,
       "id": 45,
       "legend": {
         "avg": false,
@@ -574,6 +604,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -638,15 +671,18 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "Total bytes sent (bytes/sec) of all Proxy Server members for $ServiceName.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 23
       },
+      "hiddenSeries": false,
       "id": 40,
       "interval": "",
       "legend": {
@@ -665,6 +701,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -675,7 +714,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\", name=~'$ServiceName'}[1m])) by (member)",
+          "expr": "vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\", name=~'$ServiceName'} - vendor:coherence_connection_manager_total_bytes_sent{cluster=~\"$ClusterName\",protocol=~\"tcp\", name=~'$ServiceName'} offset $__interval ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -731,15 +770,18 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "description": "Total bytes received (bytes/sec) of all Proxy Server members for $ServiceName.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 23
       },
+      "hiddenSeries": false,
       "id": 41,
       "legend": {
         "alignAsTable": false,
@@ -757,6 +799,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -767,7 +812,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}[1m])) by (member)",
+          "expr": "vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"}  - vendor:coherence_connection_manager_total_bytes_received{cluster=~\"$ClusterName\",protocol=~\"tcp\"} offset $__interval ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -820,7 +865,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -835,6 +880,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -858,6 +904,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
+        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
@@ -876,14 +923,16 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "Proxy",
-          "value": "Proxy"
+          "isNone": true,
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
         "datasource": "Prometheus",
         "definition": "label_values(vendor:coherence_connection_manager_total_messages_sent{cluster=~\"$ClusterName\"}, name)",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Service Name",
         "multi": false,
         "name": "ServiceName",
@@ -933,5 +982,8 @@
   "timezone": "",
   "title": "Coherence Proxy Server Detail Dashboard",
   "uid": "coh-proxy-server-detail",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }
