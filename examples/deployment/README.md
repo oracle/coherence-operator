@@ -49,8 +49,8 @@ Ensure you have the following software installed:
 * [Java 8+ JDK](http://jdk.java.net/)
 * [Maven](https://maven.apache.org) version 3.5+
 * [Docker](https://docs.docker.com/install/) version 17.03+.
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.11.3+.
-* Access to a Kubernetes v1.11.3+ cluster.
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
+* Access to a Kubernetes v1.12.0+ cluster.
 
 > Note: You can use a later version of Java, for example, JDK11, as the
 >`maven.compiler.source` and `target` are set to JDK 8 in the example `pom.xml` files.
