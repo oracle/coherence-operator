@@ -295,8 +295,8 @@ public class HealthServer {
         }
 
         if (!statusHA) {
-            CacheFactory.log("HealthServer: StatusHA check failed, nodeCount=" +
-                             nodeCount + " backupCount=" + backupCount + " statusHA=" + map.get(ATTRIB_HASTATUS),
+            CacheFactory.log("HealthServer: StatusHA check failed, nodeCount="
+                            + nodeCount + " backupCount=" + backupCount + " statusHA=" + map.get(ATTRIB_HASTATUS),
                              CacheFactory.LOG_ERR);
         }
 
