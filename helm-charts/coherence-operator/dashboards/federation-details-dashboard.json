@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 24,
-  "iteration": 1564639837859,
+  "id": 31,
+  "iteration": 1592184043796,
   "links": [
     {
       "icon": "dashboard",
@@ -53,6 +53,7 @@
   "panels": [
     {
       "content": "<center><h3>Federation Details - $ServiceName, Destiniation - $Destination</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -67,6 +68,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -86,12 +88,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Destination",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -108,6 +112,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -127,6 +132,7 @@
         },
         {
           "alias": "Current Data Rate",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -143,6 +149,7 @@
         },
         {
           "alias": "Type",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -159,6 +166,7 @@
         },
         {
           "alias": "Bytes Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -175,6 +183,7 @@
         },
         {
           "alias": "Entries Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -191,6 +200,7 @@
         },
         {
           "alias": "Records Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -207,6 +217,7 @@
         },
         {
           "alias": "Messages Sent",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -223,6 +234,7 @@
         },
         {
           "alias": "Last Replicate All Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -239,6 +251,7 @@
         },
         {
           "alias": "Status",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -269,6 +282,7 @@
         },
         {
           "alias": "Node Id",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -338,17 +352,20 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "description": "",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 7,
       "interval": "",
       "legend": {
@@ -360,10 +377,13 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -374,7 +394,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}[1m])) by (node_id)",
+          "expr": "vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}  - vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -426,16 +446,19 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 16,
       "interval": "",
       "legend": {
@@ -447,10 +470,13 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -461,7 +487,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}[1m])) by (node_id)",
+          "expr": "vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} - vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -512,16 +538,19 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 16
       },
+      "hiddenSeries": false,
       "id": 17,
       "interval": "",
       "legend": {
@@ -533,10 +562,13 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -547,7 +579,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}[1m])) by (node_id)",
+          "expr": "vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}  - vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} offset $__interval",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -601,14 +633,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 16
       },
+      "hiddenSeries": false,
       "id": 12,
       "interval": "",
       "legend": {
@@ -625,6 +660,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -635,7 +673,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_federation_destination_total_error_responses{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'}[1m])) by (node_id)",
+          "expr": "vendor:coherence_federation_destination_total_error_responses{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} -vendor:coherence_federation_destination_total_error_responses{cluster=~\"$ClusterName\",name=~\"$Destination\",coherence_service=~'$ServiceName'} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -696,6 +734,7 @@
     },
     {
       "content": "<center><h3>Federation Details - $ServiceName, Origin - $Destination</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -710,6 +749,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -729,12 +769,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Origin Cluster",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -751,6 +793,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -767,6 +810,7 @@
         },
         {
           "alias": "Description",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -783,6 +827,7 @@
         },
         {
           "alias": "Participant Type",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -799,6 +844,7 @@
         },
         {
           "alias": "Bytes Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -815,6 +861,7 @@
         },
         {
           "alias": "Entries Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -831,6 +878,7 @@
         },
         {
           "alias": "Records Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -847,6 +895,7 @@
         },
         {
           "alias": "Messages Recevied",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -863,6 +912,7 @@
         },
         {
           "alias": "Origin Processing Delay",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -882,6 +932,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -935,6 +986,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -954,12 +1006,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Origin Cluster",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -976,6 +1030,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -995,6 +1050,7 @@
         },
         {
           "alias": "Description",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1011,6 +1067,7 @@
         },
         {
           "alias": "Participant Type",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1027,6 +1084,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1043,6 +1101,7 @@
         },
         {
           "alias": "Node Id",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1057,6 +1116,7 @@
         },
         {
           "alias": "Total Bytes Received",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1073,6 +1133,7 @@
         },
         {
           "alias": "Total Un-Acked Messages",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1089,6 +1150,7 @@
         },
         {
           "alias": "Member",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1134,13 +1196,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
         "y": 38
       },
+      "hiddenSeries": false,
       "id": 14,
       "legend": {
         "avg": false,
@@ -1156,6 +1221,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1219,7 +1287,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1237,6 +1305,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -1263,6 +1332,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Destination",
         "multi": false,
         "name": "Destination",
@@ -1289,6 +1359,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Service Name",
         "multi": false,
         "name": "ServiceName",
@@ -1307,7 +1378,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1338,5 +1409,8 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }
