@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 43,
-  "iteration": 1591923945934,
+  "id": 41,
+  "iteration": 1592366180043,
   "links": [
     {
       "icon": "dashboard",
@@ -939,7 +939,8 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "decimals": null,
+          "format": "decbytes",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -1659,7 +1660,7 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
+          "selected": true,
           "text": "3",
           "value": "3"
         },
