@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 25,
-  "iteration": 1563506053128,
+  "id": 33,
+  "iteration": 1592182512663,
   "links": [
     {
       "icon": "dashboard",
@@ -42,6 +42,7 @@
   "panels": [
     {
       "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
+      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -56,6 +57,7 @@
     },
     {
       "columns": [],
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -75,12 +77,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Member Count",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -97,6 +101,7 @@
         },
         {
           "alias": "Service",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -116,6 +121,7 @@
         },
         {
           "alias": "Total Requests",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -132,6 +138,7 @@
         },
         {
           "alias": "Error Count",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -151,6 +158,7 @@
         },
         {
           "alias": "Avg Request Time",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -167,6 +175,7 @@
         },
         {
           "alias": "Unauth Connection Attemps",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -186,6 +195,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -239,17 +249,20 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 37,
       "legend": {
         "avg": false,
@@ -260,10 +273,13 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -274,7 +290,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -326,17 +342,20 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 39,
       "legend": {
         "avg": false,
@@ -348,10 +367,13 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -362,7 +384,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -370,7 +392,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -378,7 +400,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -386,7 +408,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -394,7 +416,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(idelta(vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"}[1m])) by (name)",
+          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -446,7 +468,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -461,6 +483,7 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
+        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
@@ -484,6 +507,7 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
+        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
@@ -533,5 +557,8 @@
   "timezone": "",
   "title": "Coherence HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
+  "variables": {
+    "list": []
+  },
   "version": 2
 }
