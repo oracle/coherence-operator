@@ -911,7 +911,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Destination_TotalBytesSent {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Destination_TotalBytesSent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Destination_TotalBytesSent {cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Destination_TotalBytesSent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1004,7 +1004,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": " vendor_Coherence_Federation_Origin_TotalBytesReceived{cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Origin_TotalBytesReceived {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Origin_TotalBytesReceived{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Origin_TotalBytesReceived {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1095,7 +1095,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Destination_TotalMsgSent {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Destination_TotalMsgSent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Destination_TotalMsgSent {cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Destination_TotalMsgSent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1186,7 +1186,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Origin_TotalMsgReceived {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Origin_TotalMsgReceived {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Origin_TotalMsgReceived {cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Origin_TotalMsgReceived {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1277,7 +1277,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Destination_TotalRecordsSent {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Destination_TotalRecordsSent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Destination_TotalRecordsSent{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Destination_TotalRecordsSent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1368,7 +1368,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Origin_TotalRecordsReceived {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Origin_TotalRecordsReceived {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Origin_TotalRecordsReceived{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Origin_TotalRecordsReceived {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1459,7 +1459,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Destination_TotalEntriesSent {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Destination_TotalEntriesSent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Destination_TotalEntriesSent {cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Destination_TotalEntriesSent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1550,7 +1550,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Federation_Origin_TotalEntriesReceived {cluster=~\"$ClusterName\"} - vendor_Coherence_Federation_Origin_TotalEntriesReceived {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor_Coherence_Federation_Origin_TotalEntriesReceived {cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Federation_Origin_TotalEntriesReceived {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
