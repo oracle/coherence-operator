@@ -44,8 +44,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 32,
-  "iteration": 1592183355146,
+  "id": 21,
+  "iteration": 1592359194125,
   "links": [
     {
       "icon": "dashboard",
@@ -71,7 +71,6 @@
   "panels": [
     {
       "content": "<center><h3>Federation Summary - $ClusterName</h3></center>",
-      "datasource": null,
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -86,7 +85,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -240,7 +238,6 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -392,7 +389,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -473,7 +469,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -554,7 +549,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -635,7 +629,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -716,7 +709,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -797,7 +789,6 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -874,7 +865,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -911,7 +901,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\"} - vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_destination_total_bytes_sent{cluster=~\"$ClusterName\"}) - sum(vendor:coherence_federation_destination_total_bytes_sent {cluster=~\"$ClusterName\"} offset $__interval) ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -939,7 +929,8 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "decimals": null,
+          "format": "decbytes",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -966,7 +957,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1058,7 +1048,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1095,7 +1084,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"} - vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"}) - sum(vendor:coherence_federation_destination_total_msg_sent {cluster=~\"$ClusterName\"} offset $__interval) ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1149,7 +1138,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1240,7 +1228,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1277,7 +1264,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"} - vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"}) - sum(vendor:coherence_federation_destination_total_records_sent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1331,7 +1318,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1422,7 +1408,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1459,7 +1444,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"} - vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"}) - sum(vendor:coherence_federation_destination_total_entries_sent {cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1513,7 +1498,6 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1601,7 +1585,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 22,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1659,7 +1643,7 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
+          "selected": true,
           "text": "3",
           "value": "3"
         },
@@ -1733,8 +1717,5 @@
   "timezone": "",
   "title": "Coherence Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "variables": {
-    "list": []
-  },
   "version": 1
 }
