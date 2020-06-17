@@ -92,9 +92,11 @@ jobs:
       run: make all
 
     - name: Push Images
-#     Push the images just built to the local Docker registry localhost:5000 started with KinD cluster
+      #     Push the images just built to the local Docker registry localhost:5000 started with KinD cluster
       shell: bash
-      run: make push-all-images
+      run: |
+        make push-all-images
+        make kind-load
 
     - name: Unit Tests
       shell: bash

@@ -138,7 +138,7 @@ public class HealthServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            System.out.println("ReST server is UP! http://localhost:" + server.getAddress().getPort());
+            System.out.println("Coherence HealthServer is UP! http://localhost:" + server.getAddress().getPort());
 
             httpServer = server;
         }
@@ -292,6 +292,12 @@ public class HealthServer {
 
         if (nodeCount != null && nodeCount.intValue() > 1 && backupCount != null && backupCount.intValue() > 0) {
             statusHA = !Objects.equals(STATUS_ENDANGERED, map.get(ATTRIB_HASTATUS));
+        }
+
+        if (!statusHA) {
+            CacheFactory.log("HealthServer: StatusHA check failed, nodeCount=" +
+                             nodeCount + " backupCount=" + backupCount + " statusHA=" + map.get(ATTRIB_HASTATUS),
+                             CacheFactory.LOG_ERR);
         }
 
         return statusHA;

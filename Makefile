@@ -891,6 +891,14 @@ run-debug: reset-namespace $(CHART_DIR)/coherence create-ssl-secrets
 stop:
 	./hack/kill-local.sh
 
+# ---------------------------------------------------------------------------
+# Load images into Kind
+# ---------------------------------------------------------------------------
+.PHONY: kind-load
+kind-load:
+	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
+	kind load docker-image --name operator $(UTILS_IMAGE)|| true
+	kind load docker-image --name operator $(TEST_USER_IMAGE)|| true
 
 # ---------------------------------------------------------------------------
 # Install the Operator Helm chart.
