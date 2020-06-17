@@ -929,7 +929,8 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "decimals": null,
+          "format": "decbytes",
           "label": "",
           "logBase": 1,
           "max": null,
