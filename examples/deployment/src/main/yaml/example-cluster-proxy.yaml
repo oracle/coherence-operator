@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -25,7 +25,7 @@ spec:
     cacheConfig: storage-cache-config.xml
     metrics:
       enabled: true
-  image: tmiddlet/deployment-example:3.0.0
+  image: deployment-example:3.0.0
   imagePullPolicy: Always
   replicas: 3
 ---
@@ -52,6 +52,6 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: tmiddlet/deployment-example:3.0.0
+  image: deployment-example:3.0.0
   imagePullPolicy: Always
   replicas: 1
