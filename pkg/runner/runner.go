@@ -213,6 +213,9 @@ func console(details *RunDetails) {
 	details.AddArg("-Dcoherence.distributed.localstorage=false")
 	details.Setenv(v1.EnvVarCohRole, "console")
 	details.Unsetenv(v1.EnvVarJvmMemoryHeap)
+	if len(details.OsArgs) > 2 {
+		details.MainArgs = details.OsArgs[2:]
+	}
 }
 
 // Configure the runner to run a Coherence Query Plus console
@@ -224,9 +227,6 @@ func queryPlus(details *RunDetails) {
 		details.MainArgs = details.OsArgs[2:]
 	}
 	details.AddArg("-Dcoherence.distributed.localstorage=false")
-	if details.CoherenceHome != "" {
-		details.AddClasspath(details.CoherenceHome + "/lib/jline.jar")
-	}
 	details.Setenv(v1.EnvVarCohRole, "queryPlus")
 	details.Unsetenv(v1.EnvVarJvmMemoryHeap)
 }
