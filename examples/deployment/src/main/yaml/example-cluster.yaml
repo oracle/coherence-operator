@@ -14,6 +14,8 @@ spec:
   jvm:
     memory:
       heapSize: 512m
+    args:
+      - "-Dcoherence.metrics.legacy.names=false"
   ports:
     - name: metrics
       port: 9612

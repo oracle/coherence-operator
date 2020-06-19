@@ -9,6 +9,7 @@ The following scenarios are covered:
 1. Deploying a Proxy tier
 1. Deploying an storage-disabled application 
 1. Enabling Active Persistence
+1. Viewing Metrics via Grafana
 
 After the initial install of the Coherence cluster, the following examples 
 build on the previous ones by issuing a `kubectl apply` to modify
@@ -21,13 +22,10 @@ You can use `kubectl create` for any of the examples to install that one directl
 * [Prerequisites](#prerequisites)
   * [Coherence Operator Quick Start](#coherence-operator-quick-start) 
   * [JDK and Maven Versions](#jdk-and-maven-versions) 
-  * [Install Coherence into local Maven repository](#install-coherence-into-local-maven-repository)
   * [Create the example namespace](#create-the-example-namespace)
-  * [Get Coherence Docker image](#get-coherence-docker-image)
-  * [Create a secret](#create-a-secret)
   * [Clone the GitHub repository](#clone-the-github-repository)
   * [Install the Coherence Operator](#install-the-coherence-operator)
-  * [Port Forward Grafana and Kibana ports](#port-forward-grafana-and-kibana-ports)
+  * [Port Forward and Access Grafana](#port-forward-and-access-grafana)
 * [Run the Examples](#run-the-examples)
   * [Example 1 - Coherence cluster only](#example-1---coherence-cluster-only)
   * [Example 2 - Adding a Proxy role ](#example-2---adding-a-proxy-role) 
@@ -47,14 +45,11 @@ prerequisites and have been able to successfully install the Coherence Operator 
 
 Ensure you have the following software installed:
 
-* [Java 8+ JDK](http://jdk.java.net/)
+* [Java 11+ JDK](http://jdk.java.net/)
 * [Maven](https://maven.apache.org) version 3.6.0+
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
 * Access to a Kubernetes v1.12.0+ cluster.
-
-> Note: You can use a later version of Java, for example, JDK11, as the
->`maven.compiler.source` and `target` are set to JDK 8 in the example `pom.xml` files.
 
 > Note: Ensure that your local Kubernetes is enabled. If you are running Docker using Docker Desktop, select Enable Kubernetes in the Settings menu.
 
@@ -74,7 +69,7 @@ namespace/coherence-example created
 
 ## Clone the GitHub repository
 
-The examples exist in a directory `examples` in the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
+The examples exist in the `examples` directory in the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
 
 Clone the repository:
 
@@ -84,7 +79,7 @@ git clone https://github.com/oracle/coherence-operator
 cd coherence-operator/examples
 ```
 
-In the `examples` root directory, check the pom.xm) and verify that the value of the `coherence.version` property 
+In the `examples` root directory, check the POM (`pom.xml`) and verify that the value of the `coherence.version` property 
 matches the version of Coherence that you are actually using. For example, the  default value is
 Coherence Community Edition (CE) version `20.06` and if you wish to change this then set the value of `coherence.version` 
 use the `-Dcoherence.version=` argument for all invocations of `mvn`.
@@ -105,7 +100,7 @@ deployment-example:3.0.0
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
 > push the Docker image to your repository accessible to that cluster. 
-> You also need to prefix the image name in your `kubectl` commands below.
+> You also need to prefix the image name in the `yaml` files below.
 
 ## Install the Coherence Operator
 
@@ -113,11 +108,6 @@ Issue the following command to install the Coherence Operator:
 
 ```bash
 helm install coherence/coherence-operator --version 3.0.0 --namespace coherence-example --name coherence-operator
-
-```         
-
-```bash
-helm install coherence-unstable/coherence-operator --version 3.0.0-2006161209 --namespace coherence-example --name coherence-operator
 ```
 
 Confirm the operator is running:
