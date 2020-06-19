@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Example 1
+# Initial cluster with one role of 'storage`
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: example-cluster-storage
+spec:
+  cluster: example-cluster
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      port: 9612
+      serviceMonitor:
+        enabled: true
+  coherence:
+    cacheConfig: storage-cache-config.xml
+    metrics:
+      enabled: true
+  image: tmiddlet/deployment-example:3.0.0
+  imagePullPolicy: Always
+  replicas: 3

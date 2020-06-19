@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>examples-parent</artifactId>
+    <version>3.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>deployment-example</artifactId>
+  <name>Coherence Operator Deployment Example</name>
+  <version>3.0.0</version>
+
+  <properties>
+    <docker.version>${project.version}</docker.version>
+  </properties>
+
+  <dependencies>
+    <!-- module dependencies -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-management</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-metrics</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.helidon.bundles</groupId>
+      <artifactId>helidon-bundles-webserver</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <!-- Use the assembly plugin to pull together the files to use to build the
+         docker image under the target/docker folder -->
+    <plugins>
+      <!-- maven-enforcer-plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven.enforcer.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[${maven.version},)</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <release>8</release>
+        </configuration>
+      </plugin>
+     
+      <!-- run com.tangosol.coherence.dslquery.QueryPlus via mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${maven.exec.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
+          <systemProperties>
+            <systemProperty>
+              <key>coherence.distributed.localstorage</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cacheconfig</key>
+              <value>client-cache-config.xml</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.pof.config</key>
+              <value>storage-pof-config.xml</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.tcmpenabled</key>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.cluster</key>
+              <value>sidecar-cluster</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>docker</name>
+        </property>
+      </activation>
+       <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>${jib.version}</version>
+            <configuration>
+              <from>
+                <image>gcr.io/distroless/java@sha256:f59b26c5ecc735514a38afbf845214383c4e2ba1fdd15a76225339b8ab7da8ef</image>
+              </from>
+              <to>
+                <image>${project.artifactId}</image>
+                <tags>
+                  <tag>${docker.version}</tag>
+                </tags>
+              </to>
+              <container>
+                <!-- good defaults intended for containers -->
+                <jvmFlags>
+                  <jmxFlag>-server</jmxFlag>
+                  <jmxFlag>-Djava.awt.headless=true</jmxFlag>
+                  <jmxFlag>-XX:+UnlockExperimentalVMOptions</jmxFlag>
+                  <jmxFlag>-XX:+UseCGroupMemoryLimitForHeap</jmxFlag>
+                  <jmxFlag>-XX:InitialRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:MinRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:MaxRAMFraction=2</jmxFlag>
+                  <jmxFlag>-XX:+UseG1GC</jmxFlag>
+                </jvmFlags>
+                <mainClass>com.tangosol.net.DefaultCacheServer</mainClass>
+                <ports>
+                  <port>8080</port>
+                </ports>
+                <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+              </container>
+              <containerizingMode>packaged</containerizingMode>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>${jib.goal}</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
