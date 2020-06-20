@@ -2941,7 +2941,7 @@ func bindataDeployCrdsCoherenceoraclecomcoherencecrdyaml() (*asset, error) {
 		size:        658369,
 		md5checksum: "",
 		mode:        os.FileMode(420),
-		modTime:     time.Unix(1592231431, 0),
+		modTime:     time.Unix(1592650444, 0),
 	}
 
 	a := &asset{bytes: bytes, info: info}
@@ -5865,7 +5865,7 @@ func bindataDeployCrdsV1beta1Coherenceoraclecomcoherencecrdyaml() (*asset, error
 		size:        631340,
 		md5checksum: "",
 		mode:        os.FileMode(420),
-		modTime:     time.Unix(1592231302, 0),
+		modTime:     time.Unix(1592649920, 0),
 	}
 
 	a := &asset{bytes: bytes, info: info}

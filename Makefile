@@ -53,13 +53,13 @@ OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 OP_CHMOD             := $(shell chmod +x $(OPERATOR_SDK))
 
 # The image prefix to use for Coherence images
-COHERENCE_IMAGE_PREFIX ?= container-registry.oracle.com/middleware/
+COHERENCE_IMAGE_PREFIX ?= oraclecoherence/
 # The Coherence image name to inject into the Helm chart
-HELM_COHERENCE_IMAGE   ?= container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+HELM_COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 # For releases this will be docker.pkg.github.com/oracle/coherence-operator/
-RELEASE_IMAGE_PREFIX ?= "docker.pkg.github.com/oracle/coherence-operator/"
+RELEASE_IMAGE_PREFIX ?= "oraclecoherence/"
 OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE          ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
@@ -810,6 +810,7 @@ api-doc-gen:
 clean:
 	rm -rf build/_output
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
+	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
 # ---------------------------------------------------------------------------
 # Create the k8s yaml manifest that will be used by the Operator SDK to
@@ -923,10 +924,24 @@ test-mvn: build-mvn
 	mvn $(USE_MAVEN_SETTINGS) -B -f java verify
 
 # ---------------------------------------------------------------------------
+# Build the examples
+# ---------------------------------------------------------------------------
+.PHONY: build-examples
+build-examples:
+	mvn $(USE_MAVEN_SETTINGS) -B -f examples package -DskipTests
+
+# ---------------------------------------------------------------------------
+# Build and test the examples
+# ---------------------------------------------------------------------------
+.PHONY: test-examples
+test-examples: build-examples
+	mvn $(USE_MAVEN_SETTINGS) -B -f examples verify
+
+# ---------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
 # ---------------------------------------------------------------------------
 .PHONY: test-all
-test-all: test-mvn test-operator
+test-all: test-mvn test-operator test-examples
 
 # ---------------------------------------------------------------------------
 # Push the Operator Docker image

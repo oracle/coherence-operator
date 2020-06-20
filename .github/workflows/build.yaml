@@ -18,10 +18,7 @@ on:
 env:
   OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
   OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
-  MAVEN_USER: ${{ secrets.MAVEN_USER }}
-  MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   RELEASE_IMAGE_PREFIX: "localhost:5000/"
-  COHERENCE_IMAGE: "container-registry.oracle.com/middleware/coherence:14.1.1.0.0"
 
 jobs:
   build:
@@ -71,16 +68,14 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
-        docker pull $COHERENCE_IMAGE
-        kind load docker-image --name operator $COHERENCE_IMAGE
 
     - name: Code Review
       shell: bash
-      run: make code-review MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
+      run: make code-review
 
     - name: Build
       shell: bash
-      run: make all MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
+      run: make all
 
     - name: Push Images
 #     Push the images just built to the local Docker registry localhost:5000 started with the KinD cluster
@@ -91,7 +86,7 @@ jobs:
 
     - name: Unit Tests
       shell: bash
-      run: make test-all MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
+      run: make test-all
 
     - name: E2E Local Tests
       shell: bash

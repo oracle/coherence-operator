@@ -57,7 +57,7 @@
     <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
 
     <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>14.1.2-0-0-SNAPSHOT</coherence.version>
+    <coherence.version>14.1.1-0-1</coherence.version>
   </properties>
 
   <dependencyManagement>
