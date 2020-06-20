@@ -81,7 +81,7 @@ cd coherence-operator/examples
 
 In the `examples` root directory, check the POM (`pom.xml`) and verify that the value of the `coherence.version` property 
 matches the version of Coherence that you are actually using. For example, the  default value is
-Coherence Community Edition (CE) version `20.06` and if you wish to change this then set the value of `coherence.version` 
+Coherence Community Edition (CE) version `14.1.1-0-1` and if you wish to change this then set the value of `coherence.version` 
 use the `-Dcoherence.version=` argument for all invocations of `mvn`.
 
 Ensure you have Docker running and your Maven and JDK11 build environment set and use the 
