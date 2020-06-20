@@ -23,7 +23,7 @@
 # --------------------------------------------------------------------------------
 
 echo "Building Operator"
-make all MAVEN_SETTINGS=.github/maven/synoki.xml MAVEN_USER=$MAVEN_USER MAVEN_PASSWORD=$MAVEN_PASSWORD
+make all
 if [[ $? != 0 ]]; then
   exit 1
 fi
