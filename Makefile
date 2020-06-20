@@ -941,7 +941,7 @@ test-examples: build-examples
 # Run all unit tests (both Go and Java)
 # ---------------------------------------------------------------------------
 .PHONY: test-all
-test-all: test-mvn test-operator test-examples
+test-all: test-mvn test-operator
 
 # ---------------------------------------------------------------------------
 # Push the Operator Docker image
@@ -1315,7 +1315,8 @@ copyright:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: golangci copyright
-	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -P checkstyle
+	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
+	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
