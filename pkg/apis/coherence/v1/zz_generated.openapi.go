@@ -665,15 +665,14 @@ func schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"ratio": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected. For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 tracing spans being collected.\n\nA value of 0 indicates that tracing spans should only be collected if they are already in the context of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own, and it is up to the application to start an outer tracing span, from which Coherence will then collect inner tracing spans.\n\nA value of -1 disables tracing completely.\n\nThe Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable.\n\nDue to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example: A value of 0.5 is represented in json as a Quantity of \"500m\" for 500 millis. A value of 0.0005 is represented in json as a Quantity of \"500u\" for 500 micros.",
-							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+							Description: "Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected. For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 tracing spans being collected.\n\nA value of 0 indicates that tracing spans should only be collected if they are already in the context of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own, and it is up to the application to start an outer tracing span, from which Coherence will then collect inner tracing spans.\n\nA value of -1 disables tracing completely.\n\nThe Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable.\n\nDue to decimal values not being allowed in a CRD field the ratio value is held as a string. Consequently there is no validation that the value entered is valid and the JVM may fail to start properly in an invalid non-numeric value is entered.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 
@@ -1052,6 +1051,34 @@ func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) co
 					"heapSize": {
 						SchemaProps: spec.SchemaProps{
 							Description: "HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxRAM": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Sets the JVM option `-XX:MaxRAM=N` which sets the maximum amount of memory used by the JVM to `n`, where `n` is expressed in terms of megabytes (for example, `100m`) or gigabytes (for example `2g`).",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"initialRAMPercentage": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set initial heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxRAMPercentage": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set maximum heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"minRAMPercentage": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set the minimal JVM Heap size as a percentage of the total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:MinRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
 							Type:        []string{"string"},
 							Format:      "",
 						},

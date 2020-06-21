@@ -17,7 +17,6 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -329,7 +328,7 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 	}
 
 	if in.Tracing != nil && in.Tracing.Ratio != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: in.Tracing.Ratio.String()})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: *in.Tracing.Ratio})
 	}
 
 	if len(in.AllowEndangeredForStatusHA) != 0 {
@@ -406,13 +405,12 @@ type CoherenceTracingSpec struct {
 	// The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are
 	// acceptable.
 	//
-	// Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and
-	// may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example:
-	// A value of 0.5 is represented in json as a Quantity of "500m" for 500 millis.
-	// A value of 0.0005 is represented in json as a Quantity of "500u" for 500 micros.
+	// Due to decimal values not being allowed in a CRD field the ratio value is held as a string.
+	// Consequently there is no validation that the value entered is valid and the JVM may fail
+	// to start properly in an invalid non-numeric value is entered.
 	//
 	// +optional
-	Ratio *resource.Quantity `json:"ratio,omitempty"`
+	Ratio *string `json:"ratio,omitempty"`
 }
 
 // ----- JVMSpec struct -----------------------------------------------------
@@ -1264,6 +1262,53 @@ type JvmMemorySpec struct {
 	// If not set the JVM defaults are used.
 	// +optional
 	HeapSize *string `json:"heapSize,omitempty"`
+	// Sets the JVM option `-XX:MaxRAM=N` which sets the maximum amount of memory used by
+	// the JVM to `n`, where `n` is expressed in terms of megabytes (for example, `100m`)
+	// or gigabytes (for example `2g`).
+	// +optional
+	MaxRAM *string `json:"maxRAM,omitempty"`
+	// Set initial heap size as a percentage of total memory.
+	//
+	// This option will be ignored if HeapSize is set.
+	//
+	// Valid values are decimal numbers between 0 and 100.
+	//
+	// This field is a string value as CRDs do not support decimal numbers.
+	// Consequently, there is no validation on the value entered so the
+	// JVM may fail to start if an invalid value is entered.
+	//
+	// This field maps the the -XX:InitialRAMPercentage JVM option and will
+	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
+	// +optional
+	InitialRAMPercentage *string `json:"initialRAMPercentage,omitempty"`
+	// Set maximum heap size as a percentage of total memory.
+	//
+	// This option will be ignored if HeapSize is set.
+	//
+	// Valid values are decimal numbers between 0 and 100.
+	//
+	// This field is a string value as CRDs do not support decimal numbers.
+	// Consequently, there is no validation on the value entered so the
+	// JVM may fail to start if an invalid value is entered.
+	//
+	// This field maps the the -XX:MaxRAMPercentage JVM option and will
+	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
+	// +optional
+	MaxRAMPercentage *string `json:"maxRAMPercentage,omitempty"`
+	// Set the minimal JVM Heap size as a percentage of the total memory.
+	//
+	// This option will be ignored if HeapSize is set.
+	//
+	// Valid values are decimal numbers between 0 and 100.
+	//
+	// This field is a string value as CRDs do not support decimal numbers.
+	// Consequently, there is no validation on the value entered so the
+	// JVM may fail to start if an invalid value is entered.
+	//
+	// This field maps the the -XX:MinRAMPercentage JVM option and will
+	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
+	// +optional
+	MinRAMPercentage *string `json:"minRAMPercentage,omitempty"`
 	// StackSize is the stack size value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xss JVM option.
 	// If not set the JVM defaults are used.
@@ -1299,6 +1344,22 @@ func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 
 	if in.HeapSize != nil && *in.HeapSize != "" {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryHeap, Value: *in.HeapSize})
+	}
+
+	if in.MaxRAM != nil && *in.MaxRAM != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAM, Value: *in.MaxRAM})
+	}
+
+	if in.InitialRAMPercentage != nil && *in.InitialRAMPercentage != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmInitialRAMPercentage, Value: *in.InitialRAMPercentage})
+	}
+
+	if in.MaxRAMPercentage != nil && *in.MaxRAMPercentage != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAMPercentage, Value: *in.MaxRAMPercentage})
+	}
+
+	if in.MinRAMPercentage != nil && *in.MinRAMPercentage != "" {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMinRAMPercentage, Value: *in.MinRAMPercentage})
 	}
 
 	if in.DirectMemorySize != nil && *in.DirectMemorySize != "" {

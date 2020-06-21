@@ -199,7 +199,7 @@ A value of -1 disables tracing completely. +
  +
 The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. +
  +
-Due to decimal values not being allowed in a CRD field the ratio value is held as a resource Quantity type and may be entered in yaml or json as a valid Quantity string as well as a decimal string. For example: A value of 0.5 is represented in json as a Quantity of \"500m\" for 500 millis. A value of 0.0005 is represented in json as a Quantity of \"500u\" for 500 micros. m| &#42;resource.Quantity | false
+Due to decimal values not being allowed in a CRD field the ratio value is held as a string. Consequently there is no validation that the value entered is valid and the JVM may fail to start properly in an invalid non-numeric value is entered. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -322,6 +322,34 @@ Options for managing the JVM memory.
 |===
 | Field | Description | Type | Required
 m| heapSize | HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used. m| &#42;string | false
+m| maxRAM | Sets the JVM option `-XX:MaxRAM=N` which sets the maximum amount of memory used by the JVM to `n`, where `n` is expressed in terms of megabytes (for example, `100m`) or gigabytes (for example `2g`). m| &#42;string | false
+m| initialRAMPercentage | Set initial heap size as a percentage of total memory. +
+ +
+This option will be ignored if HeapSize is set. +
+ +
+Valid values are decimal numbers between 0 and 100. +
+ +
+This field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered. +
+ +
+This field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;string | false
+m| maxRAMPercentage | Set maximum heap size as a percentage of total memory. +
+ +
+This option will be ignored if HeapSize is set. +
+ +
+Valid values are decimal numbers between 0 and 100. +
+ +
+This field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered. +
+ +
+This field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;string | false
+m| minRAMPercentage | Set the minimal JVM Heap size as a percentage of the total memory. +
+ +
+This option will be ignored if HeapSize is set. +
+ +
+Valid values are decimal numbers between 0 and 100. +
+ +
+This field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered. +
+ +
+This field maps the the -XX:MinRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;string | false
 m| stackSize | StackSize is the stack size value to pass to the JVM. The format should be the same as that used for Java's -Xss JVM option. If not set the JVM defaults are used. m| &#42;string | false
 m| metaspaceSize | MetaspaceSize is the min/max metaspace size to pass to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size JVM options. If not set the JVM defaults are used. m| &#42;string | false
 m| directMemorySize | DirectMemorySize sets the maximum total size (in bytes) of the New I/O (the java.nio package) direct-buffer allocations. This value sets the -XX:MaxDirectMemorySize JVM option. If not set the JVM defaults are used. m| &#42;string | false
