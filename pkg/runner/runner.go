@@ -11,7 +11,6 @@ import (
 	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
 	"os"
 	"os/exec"
@@ -140,13 +139,7 @@ func server(details *RunDetails) {
 	// Configure Coherence Tracing
 	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
 	if ratio != "" {
-		q, err := resource.ParseQuantity(ratio)
-		if err == nil {
-			d := q.AsDec()
-			details.AddArg("-Dcoherence.tracing.ratio=" + d.String())
-		} else {
-			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
-		}
+		details.AddArg("-Dcoherence.tracing.ratio=" + ratio)
 	}
 
 	// Configure whether Coherence management is enabled
@@ -360,11 +353,32 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		details.AddArg("-XX:+UseParallelGC")
 	}
 
+	maxRAM := details.Getenv(v1.EnvVarJvmMaxRAM)
+	if maxRAM != "" {
+		details.AddArg("-XX:MaxRAM=" + maxRAM)
+	}
+
 	heap := details.Getenv(v1.EnvVarJvmMemoryHeap)
 	if heap != "" {
 		details.AddArg("-Xms" + heap)
 		details.AddArg("-Xmx" + heap)
 	}
+
+	initial := details.Getenv(v1.EnvVarJvmInitialRAMPercentage)
+	if initial != "" {
+		details.AddArg("-XX:InitialRAMPercentage=" + initial)
+	}
+
+	max := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
+	if max != "" {
+		details.AddArg("-XX:MaxRAMPercentage=" + max)
+	}
+
+	min := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
+	if min != "" {
+		details.AddArg("-XX:MinRAMPercentage=" + min)
+	}
+
 	direct := details.Getenv(v1.EnvVarJvmMemoryDirect)
 	if direct != "" {
 		details.AddArg("-XX:MaxDirectMemorySize=" + direct)

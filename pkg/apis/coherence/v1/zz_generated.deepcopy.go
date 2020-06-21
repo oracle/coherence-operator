@@ -435,8 +435,8 @@ func (in *CoherenceTracingSpec) DeepCopyInto(out *CoherenceTracingSpec) {
 	*out = *in
 	if in.Ratio != nil {
 		in, out := &in.Ratio, &out.Ratio
-		x := (*in).DeepCopy()
-		*out = &x
+		*out = new(string)
+		**out = **in
 	}
 	return
 }
@@ -690,6 +690,26 @@ func (in *JvmMemorySpec) DeepCopyInto(out *JvmMemorySpec) {
 	*out = *in
 	if in.HeapSize != nil {
 		in, out := &in.HeapSize, &out.HeapSize
+		*out = new(string)
+		**out = **in
+	}
+	if in.MaxRAM != nil {
+		in, out := &in.MaxRAM, &out.MaxRAM
+		*out = new(string)
+		**out = **in
+	}
+	if in.InitialRAMPercentage != nil {
+		in, out := &in.InitialRAMPercentage, &out.InitialRAMPercentage
+		*out = new(string)
+		**out = **in
+	}
+	if in.MaxRAMPercentage != nil {
+		in, out := &in.MaxRAMPercentage, &out.MaxRAMPercentage
+		*out = new(string)
+		**out = **in
+	}
+	if in.MinRAMPercentage != nil {
+		in, out := &in.MinRAMPercentage, &out.MinRAMPercentage
 		*out = new(string)
 		**out = **in
 	}

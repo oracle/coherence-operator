@@ -17,6 +17,85 @@ set.
 The `Coherence` CRD also has settings to control the behaviour of the JVM if an out of memory error occurs.
 For example, killing the container, creating a heap dump etc.
 
+=== Max RAM
+
+The JVM has an option `-XX:MaxRAM=N` the maximum amount of memory used by the JVM to `n`, where `n` is expressed in
+terms of megabytes (for example, `100m`) or gigabytes (for example `2g`).
+
+When using resource limited containers it is useful to set the max RAM option to avoid the JVM exceeding the
+container limits.
+
+The `Coherence` CRD allows the max RAM option to be set using the `jvm.memory.maxRAM` field, for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      maxRAM: 10g
+----
+
+=== Heap Size as a Percentage of Container Memory
+
+There are three JVM options that can be used to control the JVM heap as a percentage of the available memory.
+These options can be useful when controlling memory as a percentage of container memory in combination
+with rescource limits on containers.
+
+|===
+|JVM Option |Description
+
+|`-XX:InitialRAMPercentage=N`
+|Sets the initial amount of memory that the JVM will use for the Java heap before applying ergonomics heuristics as a
+percentage of the maximum amount determined as described in the -XX:MaxRAM option. The default value is 1.5625 percent.
+
+|'-XX:MaxRAMPercentage=N'
+|Sets the maximum amount of memory that the JVM may use for the Java heap before applying ergonomics heuristics as a
+percentage of the maximum amount determined as described in the `-XX:MaxRAM` option.
+The default value is 25 percent.
+
+Specifying this option disables automatic use of compressed oops if the combined result of this and other options
+influencing the maximum amount of memory is larger than the range of memory addressable by compressed oops.
+
+
+|'-XX:MinRAMPercentage=N'
+|Sets the maximum amount of memory that the JVM may use for the Java heap before applying ergonomics heuristics as a
+percentage of the maximum amount determined as described in the -XX:MaxRAM option for small heaps. A small heap is a heap of approximately 125 MB.
+The default value is 50 percent.
+|===
+
+Where `N` is a decimal value between 0 and 100. For example, 12.3456.
+
+When running in a container, and the `-XX:+UseContainerSupport` is set (which it is by default for the Coherence
+container), both the default heap size for containers, the `-XX:InitialRAMPercentage` option, the `-XX:MaxRAMPercentage`
+option, and the `-XX:MaxRAMPercentage` option, will be based on the available container memory.
+
+NOTE: Some JVMs may not support these options.
+
+The `Coherence` CRD allows these options to be set with the `jvm.memory.initialRAMPercentage`, `jvm.memory.minRAMPercentage`,
+and `jvm.memory.maxRAMPercentage` fields.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      initialRAMPercentage: "10"
+      minRAMPercentage: "5.75"
+      maxRAMPercentage: "75"
+----
+
+NOTE: Setting the `jvm.memory.heapSize` field will cause these fields to be ignored.
+
+NOTE: Due to CRDs not supporting decimal numbers these fields are string values.
+
 === Heap Size
 
 To set the JVM heap size set the `jvm.memory.heapSize` field.
@@ -35,10 +114,8 @@ spec:
   jvm:
     memory:
       heapSize: 10g  # <1>
-
 ----
 <1> This example sets the heap size to `10g`.
-
 
 === Direct Memory Size (NIO Memory)
 

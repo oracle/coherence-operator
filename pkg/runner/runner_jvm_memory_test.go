@@ -43,6 +43,122 @@ func TestJvmHeapSize(t *testing.T) {
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
 
+func TestJvmMaxRam(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			JVM: &coh.JVMSpec{
+				Memory: &coh.JvmMemorySpec{
+					MaxRAM: pointer.StringPtr("10g"),
+				},
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAM=10g")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestJvmInitialRamPercent(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			JVM: &coh.JVMSpec{
+				Memory: &coh.JvmMemorySpec{
+					InitialRAMPercentage: pointer.StringPtr("5.5"),
+				},
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.5")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestJvmMaxRamPercent(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			JVM: &coh.JVMSpec{
+				Memory: &coh.JvmMemorySpec{
+					MaxRAMPercentage: pointer.StringPtr("5.5"),
+				},
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAMPercentage=5.5")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestJvmMinRamPercent(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			JVM: &coh.JVMSpec{
+				Memory: &coh.JvmMemorySpec{
+					MinRAMPercentage: pointer.StringPtr("5.5"),
+				},
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MinRAMPercentage=5.5")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
 func TestJvmStackSize(t *testing.T) {
 	g := NewGomegaWithT(t)
 
