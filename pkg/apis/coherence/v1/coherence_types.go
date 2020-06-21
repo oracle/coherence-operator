@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -328,7 +329,7 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 	}
 
 	if in.Tracing != nil && in.Tracing.Ratio != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: *in.Tracing.Ratio})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohTracingRatio, Value: in.Tracing.Ratio.String()})
 	}
 
 	if len(in.AllowEndangeredForStatusHA) != 0 {
@@ -405,12 +406,12 @@ type CoherenceTracingSpec struct {
 	// The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are
 	// acceptable.
 	//
-	// Due to decimal values not being allowed in a CRD field the ratio value is held as a string.
-	// Consequently there is no validation that the value entered is valid and the JVM may fail
-	// to start properly in an invalid non-numeric value is entered.
+	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
+	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
+	// formats of number that may be entered.
 	//
 	// +optional
-	Ratio *string `json:"ratio,omitempty"`
+	Ratio *resource.Quantity `json:"ratio,omitempty"`
 }
 
 // ----- JVMSpec struct -----------------------------------------------------
@@ -1273,42 +1274,42 @@ type JvmMemorySpec struct {
 	//
 	// Valid values are decimal numbers between 0 and 100.
 	//
-	// This field is a string value as CRDs do not support decimal numbers.
-	// Consequently, there is no validation on the value entered so the
-	// JVM may fail to start if an invalid value is entered.
+	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
+	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
+	// formats of number that may be entered.
 	//
-	// This field maps the the -XX:InitialRAMPercentage JVM option and will
+	// NOTE: This field maps the the -XX:InitialRAMPercentage JVM option and will
 	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
 	// +optional
-	InitialRAMPercentage *string `json:"initialRAMPercentage,omitempty"`
+	InitialRAMPercentage *resource.Quantity `json:"initialRAMPercentage,omitempty"`
 	// Set maximum heap size as a percentage of total memory.
 	//
 	// This option will be ignored if HeapSize is set.
 	//
 	// Valid values are decimal numbers between 0 and 100.
 	//
-	// This field is a string value as CRDs do not support decimal numbers.
-	// Consequently, there is no validation on the value entered so the
-	// JVM may fail to start if an invalid value is entered.
+	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
+	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
+	// formats of number that may be entered.
 	//
-	// This field maps the the -XX:MaxRAMPercentage JVM option and will
+	// NOTE: This field maps the the -XX:MaxRAMPercentage JVM option and will
 	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
 	// +optional
-	MaxRAMPercentage *string `json:"maxRAMPercentage,omitempty"`
+	MaxRAMPercentage *resource.Quantity `json:"maxRAMPercentage,omitempty"`
 	// Set the minimal JVM Heap size as a percentage of the total memory.
 	//
 	// This option will be ignored if HeapSize is set.
 	//
 	// Valid values are decimal numbers between 0 and 100.
 	//
-	// This field is a string value as CRDs do not support decimal numbers.
-	// Consequently, there is no validation on the value entered so the
-	// JVM may fail to start if an invalid value is entered.
+	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
+	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
+	// formats of number that may be entered.
 	//
-	// This field maps the the -XX:MinRAMPercentage JVM option and will
+	// NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will
 	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
 	// +optional
-	MinRAMPercentage *string `json:"minRAMPercentage,omitempty"`
+	MinRAMPercentage *resource.Quantity `json:"minRAMPercentage,omitempty"`
 	// StackSize is the stack size value to pass to the JVM.
 	// The format should be the same as that used for Java's -Xss JVM option.
 	// If not set the JVM defaults are used.
@@ -1350,16 +1351,16 @@ func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAM, Value: *in.MaxRAM})
 	}
 
-	if in.InitialRAMPercentage != nil && *in.InitialRAMPercentage != "" {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmInitialRAMPercentage, Value: *in.InitialRAMPercentage})
+	if in.InitialRAMPercentage != nil {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmInitialRAMPercentage, Value: in.InitialRAMPercentage.String()})
 	}
 
-	if in.MaxRAMPercentage != nil && *in.MaxRAMPercentage != "" {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAMPercentage, Value: *in.MaxRAMPercentage})
+	if in.MaxRAMPercentage != nil {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAMPercentage, Value: in.MaxRAMPercentage.String()})
 	}
 
-	if in.MinRAMPercentage != nil && *in.MinRAMPercentage != "" {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMinRAMPercentage, Value: *in.MinRAMPercentage})
+	if in.MinRAMPercentage != nil {
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMinRAMPercentage, Value: in.MinRAMPercentage.String()})
 	}
 
 	if in.DirectMemorySize != nil && *in.DirectMemorySize != "" {

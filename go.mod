@@ -15,6 +15,7 @@ require (
 	github.com/operator-framework/operator-sdk v0.18.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24
 	github.com/shuLhan/go-bindata v3.4.0+incompatible // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/go2xunit v1.4.10
