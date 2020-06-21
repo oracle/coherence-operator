@@ -665,14 +665,15 @@ func schema_pkg_apis_coherence_v1_CoherenceTracingSpec(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"ratio": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected. For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 tracing spans being collected.\n\nA value of 0 indicates that tracing spans should only be collected if they are already in the context of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own, and it is up to the application to start an outer tracing span, from which Coherence will then collect inner tracing spans.\n\nA value of -1 disables tracing completely.\n\nThe Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable.\n\nDue to decimal values not being allowed in a CRD field the ratio value is held as a string. Consequently there is no validation that the value entered is valid and the JVM may fail to start properly in an invalid non-numeric value is entered.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Ratio is the tracing sampling-ratio, which controls the likelihood of a tracing span being collected. For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 tracing spans being collected.\n\nA value of 0 indicates that tracing spans should only be collected if they are already in the context of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own, and it is up to the application to start an outer tracing span, from which Coherence will then collect inner tracing spans.\n\nA value of -1 disables tracing completely.\n\nThe Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
 				},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 
@@ -1064,23 +1065,20 @@ func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) co
 					},
 					"initialRAMPercentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set initial heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Set initial heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
 					"maxRAMPercentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set maximum heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Set maximum heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
 					"minRAMPercentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set the minimal JVM Heap size as a percentage of the total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nThis field is a string value as CRDs do not support decimal numbers. Consequently, there is no validation on the value entered so the JVM may fail to start if an invalid value is entered.\n\nThis field maps the the -XX:MinRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Set the minimal JVM Heap size as a percentage of the total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
 					"stackSize": {
@@ -1121,7 +1119,7 @@ func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/coherence/v1.JvmOutOfMemorySpec"},
+			"./pkg/apis/coherence/v1.JvmOutOfMemorySpec", "k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

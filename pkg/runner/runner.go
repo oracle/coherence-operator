@@ -11,6 +11,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
 	"os"
 	"os/exec"
@@ -139,7 +140,14 @@ func server(details *RunDetails) {
 	// Configure Coherence Tracing
 	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
 	if ratio != "" {
-		details.AddArg("-Dcoherence.tracing.ratio=" + ratio)
+		q, err := resource.ParseQuantity(ratio)
+		if err == nil {
+			d := q.AsDec()
+			details.AddArg("-Dcoherence.tracing.ratio=" + d.String())
+		} else {
+			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	// Configure whether Coherence management is enabled
@@ -366,17 +374,38 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	initial := details.Getenv(v1.EnvVarJvmInitialRAMPercentage)
 	if initial != "" {
-		details.AddArg("-XX:InitialRAMPercentage=" + initial)
+		q, err := resource.ParseQuantity(initial)
+		if err == nil {
+			d := q.AsDec()
+			details.AddArg("-XX:InitialRAMPercentage=" + d.String())
+		} else {
+			fmt.Printf("ERROR: InitialRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", initial, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	max := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
 	if max != "" {
-		details.AddArg("-XX:MaxRAMPercentage=" + max)
+		q, err := resource.ParseQuantity(max)
+		if err == nil {
+			d := q.AsDec()
+			details.AddArg("-XX:MaxRAMPercentage=" + d.String())
+		} else {
+			fmt.Printf("ERROR: MaxRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", max, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	min := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
 	if min != "" {
-		details.AddArg("-XX:MinRAMPercentage=" + min)
+		q, err := resource.ParseQuantity(min)
+		if err == nil {
+			d := q.AsDec()
+			details.AddArg("-XX:MinRAMPercentage=" + d.String())
+		} else {
+			fmt.Printf("ERROR: MinRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", min, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	direct := details.Getenv(v1.EnvVarJvmMemoryDirect)

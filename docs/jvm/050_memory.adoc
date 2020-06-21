@@ -87,14 +87,16 @@ metadata:
 spec:
   jvm:
     memory:
-      initialRAMPercentage: "10"
-      minRAMPercentage: "5.75"
-      maxRAMPercentage: "75"
+      initialRAMPercentage: 10
+      minRAMPercentage: 5.75
+      maxRAMPercentage: 75
 ----
 
-NOTE: Setting the `jvm.memory.heapSize` field will cause these fields to be ignored.
+NOTE: Setting the `jvm.memory.heapSize` field will cause RAM percentage fields to be ignored.
 
-NOTE: Due to CRDs not supporting decimal numbers these fields are string values.
+NOTE: Due to CRDs not supporting decimal fields the RAM percentage fields are of type resource.Quantity,
+see the Kubernetes https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity[Quantity] API docs for details
+of the different number formats allowed.
 
 === Heap Size
 

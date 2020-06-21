@@ -3764,6 +3764,9 @@ spec:
                     tracing functionality.
                   properties:
                     ratio:
+                      anyOf:
+                      - type: integer
+                      - type: string
                       description: "Ratio is the tracing sampling-ratio, which controls
                         the likelihood of a tracing span being collected. For instance,
                         a value of 1.0 will result in all tracing spans being collected,
@@ -3776,12 +3779,12 @@ spec:
                         which Coherence will then collect inner tracing spans. \n
                         A value of -1 disables tracing completely. \n The Coherence
                         default is -1 if not overridden. For values other than -1,
-                        numbers between 0 and 1 are acceptable. \n Due to decimal
-                        values not being allowed in a CRD field the ratio value is
-                        held as a string. Consequently there is no validation that
-                        the value entered is valid and the JVM may fail to start properly
-                        in an invalid non-numeric value is entered."
-                      type: string
+                        numbers between 0 and 1 are acceptable. \n NOTE: This field
+                        is a k8s resource.Quantity value as CRDs do not support decimal
+                        numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity
+                        for the different formats of number that may be entered."
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
                   type: object
                 wka:
                   description: Specify an existing Coherence deployment to be used
@@ -6396,16 +6399,20 @@ spec:
                         used.
                       type: string
                     initialRAMPercentage:
+                      anyOf:
+                      - type: integer
+                      - type: string
                       description: "Set initial heap size as a percentage of total
                         memory. \n This option will be ignored if HeapSize is set.
                         \n Valid values are decimal numbers between 0 and 100. \n
-                        This field is a string value as CRDs do not support decimal
-                        numbers. Consequently, there is no validation on the value
-                        entered so the JVM may fail to start if an invalid value is
-                        entered. \n This field maps the the -XX:InitialRAMPercentage
-                        JVM option and will be incompatible with some JVMs that do
-                        not have this option (e.g. Java 8)."
-                      type: string
+                        NOTE: This field is a k8s resource.Quantity value as CRDs
+                        do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity
+                        for the different formats of number that may be entered. \n
+                        NOTE: This field maps the the -XX:InitialRAMPercentage JVM
+                        option and will be incompatible with some JVMs that do not
+                        have this option (e.g. Java 8)."
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
                     maxRAM:
                       description: Sets the JVM option `-XX:MaxRAM=N` which sets the
                         maximum amount of memory used by the JVM to `n`, where `n`
@@ -6413,32 +6420,40 @@ spec:
                         gigabytes (for example `2g`).
                       type: string
                     maxRAMPercentage:
+                      anyOf:
+                      - type: integer
+                      - type: string
                       description: "Set maximum heap size as a percentage of total
                         memory. \n This option will be ignored if HeapSize is set.
                         \n Valid values are decimal numbers between 0 and 100. \n
-                        This field is a string value as CRDs do not support decimal
-                        numbers. Consequently, there is no validation on the value
-                        entered so the JVM may fail to start if an invalid value is
-                        entered. \n This field maps the the -XX:MaxRAMPercentage JVM
-                        option and will be incompatible with some JVMs that do not
-                        have this option (e.g. Java 8)."
-                      type: string
+                        NOTE: This field is a k8s resource.Quantity value as CRDs
+                        do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity
+                        for the different formats of number that may be entered. \n
+                        NOTE: This field maps the the -XX:MaxRAMPercentage JVM option
+                        and will be incompatible with some JVMs that do not have this
+                        option (e.g. Java 8)."
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
                     metaspaceSize:
                       description: MetaspaceSize is the min/max metaspace size to
                         pass to the JVM. This sets the -XX:MetaspaceSize and -XX:MaxMetaspaceSize=size
                         JVM options. If not set the JVM defaults are used.
                       type: string
                     minRAMPercentage:
+                      anyOf:
+                      - type: integer
+                      - type: string
                       description: "Set the minimal JVM Heap size as a percentage
                         of the total memory. \n This option will be ignored if HeapSize
                         is set. \n Valid values are decimal numbers between 0 and
-                        100. \n This field is a string value as CRDs do not support
-                        decimal numbers. Consequently, there is no validation on the
-                        value entered so the JVM may fail to start if an invalid value
-                        is entered. \n This field maps the the -XX:MinRAMPercentage
-                        JVM option and will be incompatible with some JVMs that do
-                        not have this option (e.g. Java 8)."
-                      type: string
+                        100. \n NOTE: This field is a k8s resource.Quantity value
+                        as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity
+                        for the different formats of number that may be entered. \n
+                        NOTE: This field maps the the -XX:MinRAMPercentage JVM option
+                        and will be incompatible with some JVMs that do not have this
+                        option (e.g. Java 8)."
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
                     nativeMemoryTracking:
                       description: Adds the -XX:NativeMemoryTracking=mode  JVM options
                         where mode is on of "off", "summary" or "detail", the default

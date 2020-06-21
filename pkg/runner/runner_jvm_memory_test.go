@@ -9,6 +9,7 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"testing"
@@ -75,12 +76,13 @@ func TestJvmMaxRam(t *testing.T) {
 func TestJvmInitialRamPercent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
+	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Memory: &coh.JvmMemorySpec{
-					InitialRAMPercentage: pointer.StringPtr("5.5"),
+					InitialRAMPercentage: &pct,
 				},
 			},
 		},
@@ -90,7 +92,7 @@ func TestJvmInitialRamPercent(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.5")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.500")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -104,12 +106,13 @@ func TestJvmInitialRamPercent(t *testing.T) {
 func TestJvmMaxRamPercent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
+	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Memory: &coh.JvmMemorySpec{
-					MaxRAMPercentage: pointer.StringPtr("5.5"),
+					MaxRAMPercentage: &pct,
 				},
 			},
 		},
@@ -119,7 +122,7 @@ func TestJvmMaxRamPercent(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAMPercentage=5.5")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAMPercentage=5.500")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -133,12 +136,13 @@ func TestJvmMaxRamPercent(t *testing.T) {
 func TestJvmMinRamPercent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
+	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Memory: &coh.JvmMemorySpec{
-					MinRAMPercentage: pointer.StringPtr("5.5"),
+					MinRAMPercentage: &pct,
 				},
 			},
 		},
@@ -148,7 +152,7 @@ func TestJvmMinRamPercent(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MinRAMPercentage=5.5")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MinRAMPercentage=5.500")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
