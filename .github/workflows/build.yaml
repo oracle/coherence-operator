@@ -16,8 +16,6 @@ on:
       - master
 
 env:
-  OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
-  OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
   RELEASE_IMAGE_PREFIX: "localhost:5000/"
 
 jobs:
@@ -55,10 +53,6 @@ jobs:
       uses: actions/setup-go@v2-beta
       with:
         go-version: 1.13.x
-
-    - name: Docker Login OCR
-      run: |
-        echo $OCR_DOCKER_PASSWORD | docker login container-registry.oracle.com -u $OCR_DOCKER_USERNAME --password-stdin
 
     - name: Start KinD Cluster
 #     Start a KinD K8s cluster with single worker node
