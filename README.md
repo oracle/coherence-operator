@@ -17,7 +17,7 @@ http://oss.oracle.com/licenses/upl.
 # Coherence Operator
 
 Oracle enables organizations using 
-https://oracle.github.io/coherence[Coherence] 
+[Coherence](https://oracle.github.io/coherence) 
 to move their clusters into the cloud, by supporting industry standards, 
 such as Docker and Kubernetes, Oracle facilitates running Coherence on cloud-neutral infrastructure. 
 In addition, Oracle provides an open-source Coherence Operator, which implements features to assist with 
