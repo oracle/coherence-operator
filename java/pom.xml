@@ -16,7 +16,7 @@
   <groupId>com.oracle.coherence.kubernetes</groupId>
   <artifactId>operator-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 
   <description>Oracle Coherence Kubernetes Operator Project</description>
   <name>coherence-operator parent</name>
@@ -54,7 +54,7 @@
     <version.plugin.jib>2.2.0</version.plugin.jib>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
     <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
-    <version.plugin.project-info-reports>3.0.0</version.plugin.project-info-reports>
+    <version.plugin.project-info-reports>3.0.1</version.plugin.project-info-reports>
 
     <!--  The Coherence jar version (compile time dependency) -->
     <coherence.version>14.1.1-0-1</coherence.version>
