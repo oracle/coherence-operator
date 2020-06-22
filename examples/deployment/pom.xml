@@ -12,13 +12,13 @@
   <parent>
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>examples-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>deployment-example</artifactId>
   <name>Coherence Operator Deployment Example</name>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 
   <properties>
     <docker.version>${project.version}</docker.version>

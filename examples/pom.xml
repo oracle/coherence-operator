@@ -12,7 +12,7 @@
   <groupId>com.oracle.coherence.kubernetes</groupId>
   <artifactId>examples-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 
   <description>Oracle Coherence Operator Examples Project</description>
   <name>Oracle Coherence Operator Examples Parent</name>
