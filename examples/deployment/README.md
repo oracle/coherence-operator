@@ -638,7 +638,7 @@ The additional yaml added to the storage role below shows:
   
 # View Cluster Metrics via Grafana
 
-If you with to view metrics via Grafana, you must carry out the following steps before you
+If you wish to view metrics via Grafana, you must carry out the following steps before you
 install any of the examples above.
 
 ## Install Prometheus Operator
