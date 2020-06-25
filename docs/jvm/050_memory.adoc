@@ -43,7 +43,7 @@ spec:
 
 There are three JVM options that can be used to control the JVM heap as a percentage of the available memory.
 These options can be useful when controlling memory as a percentage of container memory in combination
-with rescource limits on containers.
+with resource limits on containers.
 
 |===
 |JVM Option |Description
@@ -63,7 +63,8 @@ influencing the maximum amount of memory is larger than the range of memory addr
 
 |'-XX:MinRAMPercentage=N'
 |Sets the maximum amount of memory that the JVM may use for the Java heap before applying ergonomics heuristics as a
-percentage of the maximum amount determined as described in the -XX:MaxRAM option for small heaps. A small heap is a heap of approximately 125 MB.
+percentage of the maximum amount determined as described in the -XX:MaxRAM option for small heaps.
+A small heap is a heap of approximately 125 MB.
 The default value is 50 percent.
 |===
 
@@ -92,20 +93,88 @@ spec:
       maxRAMPercentage: 75
 ----
 
-NOTE: Setting the `jvm.memory.heapSize` field will cause RAM percentage fields to be ignored.
+==== Set Heap Percentages From a Single Value
+
+Typically, with Coherence storage members the initial and maximum heap values will be set to the same value so that the
+JVM runs with a fixed size heap. The `Coherence` CRD provides the `jvm.memory.percentage` field for this use-case.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      percentage: 10  # <1>
+----
+<1> In this case the `percentage` field has been set to `10`, so the options passed to the JVM will be
+`-XX:InitialRAMPercentage=10 -XX:MinRAMPercentage=10 -XX:MaxRAMPercentage=10` meaning the heap size
+will be fixed at 10% of max RAM.
+
+NOTE: Setting the `jvm.memory.percentage` field will cause individual RAM percentage fields to be ignored.
+
+NOTE: The JVM documentation states that _"If you set a value for `-Xms`, the `-XX:InitialRAMPercentage`,
+`-XX:MinRAMPercentage` and `-XX:MaxRAMPercentage` options will be ignored"_. So if the `Coherence` CRD fields
+detailed below for explictly setting the heap size as a bytes value are used then we can assume that the RAM
+percentage fields detailed here will be ignored by the JVM. The Coherence Operator will pass both the percentage
+and explicit values to the JVM.
 
 NOTE: Due to CRDs not supporting decimal fields the RAM percentage fields are of type resource.Quantity,
 see the Kubernetes https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity[Quantity] API docs for details
 of the different number formats allowed.
 
-=== Heap Size
+=== Set Heap Size Explicitly
 
-To set the JVM heap size set the `jvm.memory.heapSize` field.
-The value of the field can be any value that can be used with the JVM `-Xmx` and `-Xms` arguments.
-The value of the `jvm.memory.heapSize` field will be used to set both the `-Xms` and `-Xmx` arguments,
-so the heap will be a fixed size. For example setting `jvm.memory.heapSize` to `5g` will effectively pass
-`-Xms5g -Xmx5g` to the JVM.
+There are two JVM options that can be used to control the JVM heap as an explicit size in bytes value.
+These options can be useful when controlling memory of container memory in combination with resource limits on containers.
 
+|===
+|JVM Option |Description
+
+| `-XX:InitialHeapSize=<size>`
+| Set initial heap size
+
+| `-XX:MaxHeapSize=<size>`
+| Set maximum heap size
+
+|===
+
+The `<size>` parameter is a numeric integer followed by a suffix to the size value: "k" or "K" to indicate kilobytes,
+"m" or "M" to indicate megabytes, "g" or "G" to indicate gigabytes, or, "t" or "T" to indicate terabytes.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    memory:
+      initialHeapSize: 5g  # <1>
+      maxHeapSize: 10g     # <2>
+----
+<1> The initial heap size to `5g`, passing the `-XX:InitialHeapSize=5g` option to the JVM.
+<2> The max heap size to `10g`, passing the `-XX:MaxHeapSize=10g` option to the JVM.
+
+NOTE: Setting the `jvm.memory.heapSize` field will cause individual `jvm.memory.initialHeapSize` and
+`jvm.memory.maxHeapSize` fields to be ignored.
+
+==== Set Initial and Max Heap Size With a Single Value
+
+Typically, with Coherence storage members the initial and maximum heap values will be set to the same value so that the
+JVM runs with a fixed size heap. The `Coherence` CRD provides the `jvm.memory.heapSize` field for this use-case.
+
+To set the JVM both the initial amd max heap sizes to the same value, set the `jvm.memory.heapSize` field.
+The value of the field can be any value that can be used with the JVM `-XX:InitialHeapSize` and `-XX:MaxHeapSize`
+(or `-Xmx` and `-Xms`) arguments.
+The value of the `jvm.memory.heapSize` field will be used to set both the `-XX:InitialHeapSize`, and the
+`-XX:MaxHeapSize` arguments to the same value, so the heap will be a fixed size.
+
+For example:
 [source,yaml]
 ----
 apiVersion: coherence.oracle.com/v1
@@ -117,7 +186,8 @@ spec:
     memory:
       heapSize: 10g  # <1>
 ----
-<1> This example sets the heap size to `10g`.
+<1> Setting `jvm.memory.heapSize` to `10g` will effectively pass `-XX:InitialHeapSize=10g -XX:MaxHeapSize=10g` to the JVM.
+
 
 === Direct Memory Size (NIO Memory)
 

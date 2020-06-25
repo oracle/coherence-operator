@@ -1051,7 +1051,21 @@ func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) co
 				Properties: map[string]spec.Schema{
 					"heapSize": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used.",
+							Description: "HeapSize sets both the initial and max heap size values for the JVM. This will set both the -XX:InitialHeapSize and -XX:MaxHeapSize JVM options to the same value (the equivalent of setting -Xms and -Xmx to the same value).\n\nThe format should be the same as that used when specifying these JVM options.\n\nIf not set the JVM defaults are used.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"initialHeapSize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InitialHeapSize sets the initial heap size value for the JVM. This will set the -XX:InitialHeapSize JVM option (the equivalent of setting -Xms).\n\nThe format should be the same as that used when specifying this JVM options.\n\nNOTE: If the HeapSize field is set it will override this field.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"maxHeapSize": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxHeapSize sets the maximum heap size value for the JVM. This will set the -XX:MaxHeapSize JVM option (the equivalent of setting -Xmx).\n\nThe format should be the same as that used when specifying this JVM options.\n\nNOTE: If the HeapSize field is set it will override this field.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1063,15 +1077,21 @@ func schema_pkg_apis_coherence_v1_JvmMemorySpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
+					"percentage": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Percentage sets the initial and maximum and minimum heap percentage sizes to the same value, This will set the -XX:InitialRAMPercentage -XX:MinRAMPercentage and -XX:MaxRAMPercentage JVM options to the same value.\n\nThe JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps to the -XX:InitialRAMPercentage -XX:MinRAMPercentage and -XX:MaxRAMPercentage JVM options and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
 					"initialRAMPercentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set initial heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Description: "Set initial heap size as a percentage of total memory.\n\nThe JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: If the Percentage field is set it will override this field.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps to the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
 							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
 					"maxRAMPercentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set maximum heap size as a percentage of total memory.\n\nThis option will be ignored if HeapSize is set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
+							Description: "Set maximum heap size as a percentage of total memory.\n\nThe JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set.\n\nValid values are decimal numbers between 0 and 100.\n\nNOTE: If the Percentage field is set it will override this field.\n\nNOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered.\n\nNOTE: This field maps to the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8).",
 							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},
 					},
