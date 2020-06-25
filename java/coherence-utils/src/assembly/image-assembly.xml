@@ -29,6 +29,7 @@
           <dependencySet>
             <excludes>
               <exclude>com.oracle.coherence:coherence</exclude>
+              <exclude>com.oracle.coherence.ce:coherence</exclude>
             </excludes>
             <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
           </dependencySet>
