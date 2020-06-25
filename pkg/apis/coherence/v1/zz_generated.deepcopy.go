@@ -693,10 +693,25 @@ func (in *JvmMemorySpec) DeepCopyInto(out *JvmMemorySpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.InitialHeapSize != nil {
+		in, out := &in.InitialHeapSize, &out.InitialHeapSize
+		*out = new(string)
+		**out = **in
+	}
+	if in.MaxHeapSize != nil {
+		in, out := &in.MaxHeapSize, &out.MaxHeapSize
+		*out = new(string)
+		**out = **in
+	}
 	if in.MaxRAM != nil {
 		in, out := &in.MaxRAM, &out.MaxRAM
 		*out = new(string)
 		**out = **in
+	}
+	if in.Percentage != nil {
+		in, out := &in.Percentage, &out.Percentage
+		x := (*in).DeepCopy()
+		*out = &x
 	}
 	if in.InitialRAMPercentage != nil {
 		in, out := &in.InitialRAMPercentage, &out.InitialRAMPercentage

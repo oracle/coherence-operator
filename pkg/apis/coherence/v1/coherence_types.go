@@ -1258,19 +1258,44 @@ func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 // Options for managing the JVM memory.
 // +k8s:openapi-gen=true
 type JvmMemorySpec struct {
-	// HeapSize is the min/max heap value to pass to the JVM.
-	// The format should be the same as that used for Java's -Xms and -Xmx JVM options.
+	// HeapSize sets both the initial and max heap size values for the JVM.
+	// This will set both the -XX:InitialHeapSize and -XX:MaxHeapSize JVM options
+	// to the same value (the equivalent of setting -Xms and -Xmx to the same value).
+	//
+	// The format should be the same as that used when specifying these JVM options.
+	//
 	// If not set the JVM defaults are used.
 	// +optional
 	HeapSize *string `json:"heapSize,omitempty"`
+	// InitialHeapSize sets the initial heap size value for the JVM.
+	// This will set the -XX:InitialHeapSize JVM option
+	// (the equivalent of setting -Xms).
+	//
+	// The format should be the same as that used when specifying this JVM options.
+	//
+	// NOTE: If the HeapSize field is set it will override this field.
+	// +optional
+	InitialHeapSize *string `json:"initialHeapSize,omitempty"`
+	// MaxHeapSize sets the maximum heap size value for the JVM.
+	// This will set the -XX:MaxHeapSize JVM option
+	// (the equivalent of setting -Xmx).
+	//
+	// The format should be the same as that used when specifying this JVM options.
+	//
+	// NOTE: If the HeapSize field is set it will override this field.
+	// +optional
+	MaxHeapSize *string `json:"maxHeapSize,omitempty"`
 	// Sets the JVM option `-XX:MaxRAM=N` which sets the maximum amount of memory used by
 	// the JVM to `n`, where `n` is expressed in terms of megabytes (for example, `100m`)
 	// or gigabytes (for example `2g`).
 	// +optional
 	MaxRAM *string `json:"maxRAM,omitempty"`
-	// Set initial heap size as a percentage of total memory.
+	// Percentage sets the initial and maximum and minimum heap percentage sizes to the same value,
+	// This will set the -XX:InitialRAMPercentage -XX:MinRAMPercentage and -XX:MaxRAMPercentage
+	// JVM options to the same value.
 	//
-	// This option will be ignored if HeapSize is set.
+	// The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize
+	// options have been set.
 	//
 	// Valid values are decimal numbers between 0 and 100.
 	//
@@ -1278,21 +1303,42 @@ type JvmMemorySpec struct {
 	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
 	// formats of number that may be entered.
 	//
-	// NOTE: This field maps the the -XX:InitialRAMPercentage JVM option and will
+	// NOTE: This field maps to the -XX:InitialRAMPercentage -XX:MinRAMPercentage and
+	// -XX:MaxRAMPercentage JVM options and will be incompatible with some JVMs that
+	// do not have this option (e.g. Java 8).
+	// +optional
+	Percentage *resource.Quantity `json:"percentage,omitempty"`
+	// Set initial heap size as a percentage of total memory.
+	//
+	// The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize
+	// options have been set.
+	//
+	// Valid values are decimal numbers between 0 and 100.
+	//
+	// NOTE: If the Percentage field is set it will override this field.
+	//
+	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
+	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
+	// formats of number that may be entered.
+	//
+	// NOTE: This field maps to the -XX:InitialRAMPercentage JVM option and will
 	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
 	// +optional
 	InitialRAMPercentage *resource.Quantity `json:"initialRAMPercentage,omitempty"`
 	// Set maximum heap size as a percentage of total memory.
 	//
-	// This option will be ignored if HeapSize is set.
+	// The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize
+	// options have been set.
 	//
 	// Valid values are decimal numbers between 0 and 100.
+	//
+	// NOTE: If the Percentage field is set it will override this field.
 	//
 	// NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers.
 	// See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different
 	// formats of number that may be entered.
 	//
-	// NOTE: This field maps the the -XX:MaxRAMPercentage JVM option and will
+	// NOTE: This field maps to the -XX:MaxRAMPercentage JVM option and will
 	// be incompatible with some JVMs that do not have this option (e.g. Java 8).
 	// +optional
 	MaxRAMPercentage *resource.Quantity `json:"maxRAMPercentage,omitempty"`
@@ -1344,23 +1390,38 @@ func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 	}
 
 	if in.HeapSize != nil && *in.HeapSize != "" {
+		// if heap size is set use it - it overrides individual heap values
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryHeap, Value: *in.HeapSize})
+	} else {
+		// if heap size is not set - use individual heap values
+		if in.InitialHeapSize != nil && *in.InitialHeapSize != "" {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryInitialHeap, Value: *in.InitialHeapSize})
+		}
+		if in.MaxHeapSize != nil && *in.MaxHeapSize != "" {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMemoryMaxHeap, Value: *in.MaxHeapSize})
+		}
 	}
 
 	if in.MaxRAM != nil && *in.MaxRAM != "" {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAM, Value: *in.MaxRAM})
 	}
 
-	if in.InitialRAMPercentage != nil {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmInitialRAMPercentage, Value: in.InitialRAMPercentage.String()})
-	}
+	if in.Percentage != nil {
+		// if percentage is set use it - it overrides any other RAM percent value
+		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmRAMPercentage, Value: in.Percentage.String()})
+	} else {
+		// if percentage is not set - use individual RAM percent values
+		if in.InitialRAMPercentage != nil {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmInitialRAMPercentage, Value: in.InitialRAMPercentage.String()})
+		}
 
-	if in.MaxRAMPercentage != nil {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAMPercentage, Value: in.MaxRAMPercentage.String()})
-	}
+		if in.MaxRAMPercentage != nil {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMaxRAMPercentage, Value: in.MaxRAMPercentage.String()})
+		}
 
-	if in.MinRAMPercentage != nil {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMinRAMPercentage, Value: in.MinRAMPercentage.String()})
+		if in.MinRAMPercentage != nil {
+			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmMinRAMPercentage, Value: in.MinRAMPercentage.String()})
+		}
 	}
 
 	if in.DirectMemorySize != nil && *in.DirectMemorySize != "" {

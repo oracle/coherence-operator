@@ -321,26 +321,53 @@ Options for managing the JVM memory.
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| heapSize | HeapSize is the min/max heap value to pass to the JVM. The format should be the same as that used for Java's -Xms and -Xmx JVM options. If not set the JVM defaults are used. m| &#42;string | false
+m| heapSize | HeapSize sets both the initial and max heap size values for the JVM. This will set both the -XX:InitialHeapSize and -XX:MaxHeapSize JVM options to the same value (the equivalent of setting -Xms and -Xmx to the same value). +
+ +
+The format should be the same as that used when specifying these JVM options. +
+ +
+If not set the JVM defaults are used. m| &#42;string | false
+m| initialHeapSize | InitialHeapSize sets the initial heap size value for the JVM. This will set the -XX:InitialHeapSize JVM option (the equivalent of setting -Xms). +
+ +
+The format should be the same as that used when specifying this JVM options. +
+ +
+NOTE: If the HeapSize field is set it will override this field. m| &#42;string | false
+m| maxHeapSize | MaxHeapSize sets the maximum heap size value for the JVM. This will set the -XX:MaxHeapSize JVM option (the equivalent of setting -Xmx). +
+ +
+The format should be the same as that used when specifying this JVM options. +
+ +
+NOTE: If the HeapSize field is set it will override this field. m| &#42;string | false
 m| maxRAM | Sets the JVM option `-XX:MaxRAM=N` which sets the maximum amount of memory used by the JVM to `n`, where `n` is expressed in terms of megabytes (for example, `100m`) or gigabytes (for example `2g`). m| &#42;string | false
+m| percentage | Percentage sets the initial and maximum and minimum heap percentage sizes to the same value, This will set the -XX:InitialRAMPercentage -XX:MinRAMPercentage and -XX:MaxRAMPercentage JVM options to the same value. +
+ +
+The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set. +
+ +
+Valid values are decimal numbers between 0 and 100. +
+ +
+NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered. +
+ +
+NOTE: This field maps to the -XX:InitialRAMPercentage -XX:MinRAMPercentage and -XX:MaxRAMPercentage JVM options and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;resource.Quantity | false
 m| initialRAMPercentage | Set initial heap size as a percentage of total memory. +
  +
-This option will be ignored if HeapSize is set. +
+The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set. +
  +
 Valid values are decimal numbers between 0 and 100. +
  +
+NOTE: If the Percentage field is set it will override this field. +
+ +
 NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered. +
  +
-NOTE: This field maps the the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;resource.Quantity | false
+NOTE: This field maps to the -XX:InitialRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;resource.Quantity | false
 m| maxRAMPercentage | Set maximum heap size as a percentage of total memory. +
  +
-This option will be ignored if HeapSize is set. +
+The JVM will ignore this option if any of the HeapSize, InitialHeapSize or MaxHeapSize options have been set. +
  +
 Valid values are decimal numbers between 0 and 100. +
  +
+NOTE: If the Percentage field is set it will override this field. +
+ +
 NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered. +
  +
-NOTE: This field maps the the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;resource.Quantity | false
+NOTE: This field maps to the -XX:MaxRAMPercentage JVM option and will be incompatible with some JVMs that do not have this option (e.g. Java 8). m| &#42;resource.Quantity | false
 m| minRAMPercentage | Set the minimal JVM Heap size as a percentage of the total memory. +
  +
 This option will be ignored if HeapSize is set. +

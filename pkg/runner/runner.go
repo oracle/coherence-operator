@@ -368,43 +368,70 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	heap := details.Getenv(v1.EnvVarJvmMemoryHeap)
 	if heap != "" {
-		details.AddArg("-Xms" + heap)
-		details.AddArg("-Xmx" + heap)
+		// if heap is set use it
+		details.AddArg("-XX:InitialHeapSize=" + heap)
+		details.AddArg("-XX:MaxHeapSize=" + heap)
+	} else {
+		// if heap is not set check whether the individual heap values are set
+		initialHeap := details.Getenv(v1.EnvVarJvmMemoryInitialHeap)
+		if initialHeap != "" {
+			details.AddArg("-XX:InitialHeapSize=" + initialHeap)
+		}
+		maxHeap := details.Getenv(v1.EnvVarJvmMemoryMaxHeap)
+		if maxHeap != "" {
+			details.AddArg("-XX:MaxHeapSize=" + maxHeap)
+		}
 	}
 
-	initial := details.Getenv(v1.EnvVarJvmInitialRAMPercentage)
-	if initial != "" {
-		q, err := resource.ParseQuantity(initial)
+	percentageHeap := details.Getenv(v1.EnvVarJvmRAMPercentage)
+	if percentageHeap != "" {
+		// the heap percentage is set so use it
+		q, err := resource.ParseQuantity(percentageHeap)
 		if err == nil {
 			d := q.AsDec()
 			details.AddArg("-XX:InitialRAMPercentage=" + d.String())
-		} else {
-			fmt.Printf("ERROR: InitialRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", initial, err.Error())
-			os.Exit(1)
-		}
-	}
-
-	max := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
-	if max != "" {
-		q, err := resource.ParseQuantity(max)
-		if err == nil {
-			d := q.AsDec()
+			details.AddArg("-XX:MinRAMPercentage=" + d.String())
 			details.AddArg("-XX:MaxRAMPercentage=" + d.String())
 		} else {
-			fmt.Printf("ERROR: MaxRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", max, err.Error())
+			fmt.Printf("ERROR: Heap Percentage \"%s\" not a valid resource.Quantity - %s\n", percentageHeap, err.Error())
 			os.Exit(1)
 		}
-	}
+	} else {
+		// if heap is not set check whether the individual heap percentage values are set
+		initial := details.Getenv(v1.EnvVarJvmInitialRAMPercentage)
+		if initial != "" {
+			q, err := resource.ParseQuantity(initial)
+			if err == nil {
+				d := q.AsDec()
+				details.AddArg("-XX:InitialRAMPercentage=" + d.String())
+			} else {
+				fmt.Printf("ERROR: InitialRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", initial, err.Error())
+				os.Exit(1)
+			}
+		}
 
-	min := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
-	if min != "" {
-		q, err := resource.ParseQuantity(min)
-		if err == nil {
-			d := q.AsDec()
-			details.AddArg("-XX:MinRAMPercentage=" + d.String())
-		} else {
-			fmt.Printf("ERROR: MinRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", min, err.Error())
-			os.Exit(1)
+		max := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
+		if max != "" {
+			q, err := resource.ParseQuantity(max)
+			if err == nil {
+				d := q.AsDec()
+				details.AddArg("-XX:MaxRAMPercentage=" + d.String())
+			} else {
+				fmt.Printf("ERROR: MaxRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", max, err.Error())
+				os.Exit(1)
+			}
+		}
+
+		min := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
+		if min != "" {
+			q, err := resource.ParseQuantity(min)
+			if err == nil {
+				d := q.AsDec()
+				details.AddArg("-XX:MinRAMPercentage=" + d.String())
+			} else {
+				fmt.Printf("ERROR: MinRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", min, err.Error())
+				os.Exit(1)
+			}
 		}
 	}
 
