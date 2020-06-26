@@ -247,6 +247,21 @@ $(BUILD_OUTPUT)/bin/runner: $(GOS) $(DEPLOYS)
 	go build -ldflags -X=main.BuildInfo=$${BUILD_INFO} -o $(BUILD_OUTPUT)/bin/runner ./cmd/runner
 
 # ---------------------------------------------------------------------------
+# Internal make step that builds the Operator legacy converter
+# ---------------------------------------------------------------------------
+.PHONY: converter
+converter: export CGO_ENABLED = 0
+converter: export GOARCH = $(ARCH)
+converter: export GOOS = $(OS)
+converter: export GO111MODULE = on
+converter: $(GOS) $(DEPLOYS)
+converter:
+	go build -o $(BUILD_OUTPUT)/bin/converter ./cmd/converter
+	GOOS=linux GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-linux-amd64 ./cmd/converter
+	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-darwin-amd64 ./cmd/converter
+	GOOS=windows GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-windows-amd64 ./cmd/converter
+
+# ---------------------------------------------------------------------------
 # Internal make step that builds the Operator test utility
 # ---------------------------------------------------------------------------
 .PHONY: build-op-test
