@@ -1018,7 +1018,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "avg(count(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (role, name)) by (role)",
           "format": "table",
           "instant": true,
           "interval": "",
