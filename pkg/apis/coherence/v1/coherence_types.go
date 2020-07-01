@@ -368,7 +368,7 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	case in == nil:
 		return 0
 	case in.Management == nil || in.Management.Port == nil:
-		return DefaultMetricsPort
+		return DefaultManagementPort
 	default:
 		return *in.Management.Port
 	}
