@@ -21,7 +21,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 * [Prerequisites](#prerequisites)
   * [Coherence Operator Quick Start](#coherence-operator-quick-start) 
-  * [JDK and Maven Versions](#jdk-and-maven-versions) 
+  * [Software Versions](#software-versions) 
   * [Create the example namespace](#create-the-example-namespace)
   * [Clone the GitHub repository](#clone-the-github-repository)
   * [Install the Coherence Operator](#install-the-coherence-operator)
@@ -41,7 +41,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
-## JDK and Maven versions
+## Software Versions
 
 Ensure you have the following software installed:
 
@@ -50,6 +50,7 @@ Ensure you have the following software installed:
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
 * Access to a Kubernetes v1.12.0+ cluster.
+* [Helm](https://helm.sh/docs/intro/install/) version 2.14.3+ or 3.2.4+
 
 > Note: Ensure that your local Kubernetes is enabled. If you are running Docker using Docker Desktop, select Enable Kubernetes in the Settings menu.
 
@@ -104,10 +105,16 @@ deployment-example:3.0.0
 
 ## Install the Coherence Operator
 
-Issue the following command to install the Coherence Operator:
+Issue the following command to install the Coherence Operator using Helm version 3:
 
 ```bash
 helm install coherence/coherence-operator --version 3.0.0 --namespace coherence-example --name coherence-operator
+```
+
+> Note: for helm version 2, use the following:
+
+```bash
+helm install --namespace coherence-example coherence-operator coherence/coherence-operator
 ```
 
 Confirm the operator is running:
@@ -262,7 +269,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: tmiddlet/deployment-example:3.0.0
+  image: deployment-example:3.0.0
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -374,7 +381,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: tmiddlet/deployment-example:3.0.0
+  image: deployment-example:3.0.0
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
