@@ -50,7 +50,7 @@ Ensure you have the following software installed:
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
 * Access to a Kubernetes v1.12.0+ cluster.
-* [Helm](https://helm.sh/docs/intro/install/) version 2.14.3+ or 3.2.4+
+* [Helm](https://helm.sh/docs/intro/install/) version 3.2.4+ (2.14.3+ supported, see notes) 
 
 > Note: Ensure that your local Kubernetes is enabled. If you are running Docker using Docker Desktop, select Enable Kubernetes in the Settings menu.
 
@@ -105,13 +105,13 @@ deployment-example:3.0.1
 
 ## Install the Coherence Operator
 
-Issue the following command to install the Coherence Operator using Helm version 3:
+Issue the following command to install the Coherence Operator:
 
 ```bash 
 helm install --namespace coherence-example coherence-operator coherence/coherence-operator
 ```
 
-> Note: for helm version 2, use the following:
+> Note: for Helm version 2, use the following:
 
 ```bash
 helm install coherence/coherence-operator --namespace coherence-example --name coherence-operator
@@ -681,7 +681,7 @@ install any of the examples above.
     > Note: If you have already installed Prometheus Operator before on this Kubernetes Cluster
     > then set `--set prometheusOperator.createCustomResource=false`.
 
-    Issue the following command to install the Prometheus Operator using Helm version 3:
+    Issue the following command to install the Prometheus Operator using Helm:
     
     ```bash
     helm install --namespace coherence-example --version 8.13.9 \
@@ -690,7 +690,7 @@ install any of the examples above.
         --values src/main/yaml/prometheus-values.yaml prometheus stable/prometheus-operator  
     ```        
    
-    > Note: for helm version 2, use the following:
+    > Note: for Helm version 2, use the following:
     
     ```bash
     helm install --namespace coherence-example --version 8.13.9 \
@@ -766,7 +766,7 @@ in the `examples/bin/` directory.
     helm delete coherence-operator --namespace coherence-example
     ```                                                         
     
-    > Fom helm version 2 use the following:
+    > For Helm version 2 use the following:
                                                                                                                                                                                           
     ```bash
     helm delete coherence-operator --purge
@@ -784,7 +784,7 @@ in the `examples/bin/` directory.
    kubectl delete -f src/main/yaml/prometheus-rbac.yaml      
    ```    
    
-   > For helm version 2 use the following:
+   > For Helm version 2 use the following:
    
    ```bash
    helm delete prometheus --purge
