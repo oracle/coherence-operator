@@ -96,7 +96,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.0.0
+deployment-example:3.0.1
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
@@ -107,14 +107,14 @@ deployment-example:3.0.0
 
 Issue the following command to install the Coherence Operator using Helm version 3:
 
-```bash
-helm install coherence/coherence-operator --version 3.0.0 --namespace coherence-example --name coherence-operator
+```bash 
+helm install --namespace coherence-example coherence-operator coherence/coherence-operator
 ```
 
 > Note: for helm version 2, use the following:
 
 ```bash
-helm install --namespace coherence-example coherence-operator coherence/coherence-operator
+helm install coherence/coherence-operator --namespace coherence-example --name coherence-operator
 ```
 
 Confirm the operator is running:
@@ -269,7 +269,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.0
+  image: deployment-example:3.0.1
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -381,7 +381,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.0
+  image: deployment-example:3.0.1
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
@@ -650,6 +650,14 @@ install any of the examples above.
 
 ## Install Prometheus Operator
 
+1. Add the `stable` helm repository
+
+    ```bash
+   helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+   
+   helm repo update 
+   ```
+
 1. Create Prometheus pre-requisites
 
     ```bash
@@ -673,6 +681,17 @@ install any of the examples above.
     > Note: If you have already installed Prometheus Operator before on this Kubernetes Cluster
     > then set `--set prometheusOperator.createCustomResource=false`.
 
+    Issue the following command to install the Prometheus Operator using Helm version 3:
+    
+    ```bash
+    helm install --namespace coherence-example --version 8.13.9 \
+        --set grafana.enabled=true \
+        --set prometheusOperator.createCustomResource=true \
+        --values src/main/yaml/prometheus-values.yaml prometheus stable/prometheus-operator  
+    ```        
+   
+    > Note: for helm version 2, use the following:
+    
     ```bash
     helm install --namespace coherence-example --version 8.13.9 \
         --set grafana.enabled=true --name prometheus \
@@ -744,20 +763,32 @@ in the `examples/bin/` directory.
 1.  Remove the Coherence Operator
 
     ```bash
+    helm delete coherence-operator --namespace coherence-example
+    ```                                                         
+    
+    > Fom helm version 2 use the following:
+                                                                                                                                                                                          
+    ```bash
     helm delete coherence-operator --purge
     ```     
     
 1. Delete Prometheus Operator
 
    ```bash
-   helm delete prometheus --purge
+   helm delete prometheus --namespace coherence-example
    
    kubectl -n coherence-example delete -f src/main/yaml/grafana-datasource-config.yaml
    
    kubectl -n coherence-example delete configmap coherence-grafana-dashboards
    
    kubectl delete -f src/main/yaml/prometheus-rbac.yaml      
-   ```     
+   ```    
+   
+   > For helm version 2 use the following:
+   
+   ```bash
+   helm delete prometheus --purge
+   ```                                                                                                                                                                                                                                                                                                                                                                 
    
    > Note: You can optionally delete the Prometheus Operator Custom Resource Definitions
    > (CRD's) if you are not going to install Prometheus Operator again. 

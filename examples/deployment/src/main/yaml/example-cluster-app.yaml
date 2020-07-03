@@ -52,7 +52,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.0
+  image: deployment-example:3.0.1
   imagePullPolicy: Always
   replicas: 1
 ---
