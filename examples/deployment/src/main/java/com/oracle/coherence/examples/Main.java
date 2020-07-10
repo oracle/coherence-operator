@@ -23,6 +23,7 @@ import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.WebServer;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.util.QueryHelper;
 
 /**
@@ -64,6 +65,7 @@ public class Main {
                 .start()
                 .thenAccept(s -> {
                     System.out.println("HTTP server is UP! http://localhost:" + s.port());
+                    DefaultCacheServer.startServerDaemon().waitForServiceStart();
                     s.whenShutdown().thenRun(() -> System.out.println("HTTP server is DOWN. Good bye!"));
                 })
                 .exceptionally(t -> {
