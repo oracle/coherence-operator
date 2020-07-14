@@ -90,7 +90,16 @@ following command to build the projects and associated Docker images:
 
 ```bash
 mvn clean install -P docker
-```
+```            
+
+> Note: If you are running behind a corporate proxy and receive the following message building the 
+> Docker image:
+> `Connect to gcr.io:443 [gcr.io/172.217.212.82] failed: connect timed out` you must modify the build command 
+> to add the proxy hosts and ports to be used by the `jib-maven-plugin` as shown below:
+>
+> ```bash
+> mvn clean install -P docker -Dhttps.proxyHost=host -Dhttps.proxyPort=80 -Dhttp.proxyHost=host -Dhttp.proxyPort=80
+> ```
 
 This will result in the following Docker image being created which contains the configuration and server-side 
 artifacts to be use by all deployments.
