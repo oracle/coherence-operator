@@ -115,7 +115,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 
 	if stsExists && stsCurrent.GetDeletionTimestamp() != nil {
 		// The StatefulSet exists but is being deleted
-		stsExists = false
+		return result, nil
 	}
 
 	switch {
