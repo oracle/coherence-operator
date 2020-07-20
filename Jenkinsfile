@@ -136,6 +136,9 @@ pipeline {
             }
         }
         stage('push-images') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Docker Push'
                 script {
@@ -157,6 +160,9 @@ pipeline {
             }
         }
         stage('create-secrets') {
+            when {
+                expression { env.SKIP_TESTS != 'true' }
+            }
             steps {
                 echo 'Create K8s secrets'
                 script {
