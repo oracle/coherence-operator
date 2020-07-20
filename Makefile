@@ -59,11 +59,15 @@ HELM_COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 # For releases this will be docker.pkg.github.com/oracle/coherence-operator/
-RELEASE_IMAGE_PREFIX ?= "oraclecoherence/"
-OPERATOR_IMAGE_REPO  := $(RELEASE_IMAGE_PREFIX)coherence-operator
-OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
-UTILS_IMAGE          ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
-TEST_USER_IMAGE      := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION_FULL)
+RELEASE_IMAGE_PREFIX   ?= "oraclecoherence/"
+OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
+OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
+UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
+TEST_USER_IMAGE        := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION_FULL)
+# The Operator images to push
+OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
+OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)
+UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)-utils
 
 RELEASE_DRY_RUN  ?= true
 PRE_RELEASE      ?= true
@@ -963,8 +967,15 @@ test-all: test-mvn test-operator
 # ---------------------------------------------------------------------------
 .PHONY: push-operator-image
 push-operator-image: build-operator
+ifeq ($(OPERATOR_RELEASE_IMAGE), $(OPERATOR_IMAGE))
 	@echo "Pushing $(OPERATOR_IMAGE)"
 	docker push $(OPERATOR_IMAGE)
+else
+	@echo "Tagging $(OPERATOR_IMAGE) as $(OPERATOR_RELEASE_IMAGE)"
+	docker tag $(OPERATOR_IMAGE) $(OPERATOR_RELEASE_IMAGE)
+	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)"
+	docker push $(OPERATOR_RELEASE_IMAGE)
+endif
 
 # ---------------------------------------------------------------------------
 # Build the Operator Utils Docker image
@@ -983,8 +994,15 @@ build-utils-image: build-mvn build-runner-artifacts build-utils-init build-op-te
 # ---------------------------------------------------------------------------
 .PHONY: push-utils-image
 push-utils-image:
+ifeq ($(UTILS_RELEASE_IMAGE), $(UTILS_IMAGE))
 	@echo "Pushing $(UTILS_IMAGE)"
 	docker push $(UTILS_IMAGE)
+else
+	@echo "Tagging $(UTILS_IMAGE) as $(UTILS_RELEASE_IMAGE)"
+	docker tag $(UTILS_IMAGE) $(UTILS_RELEASE_IMAGE)
+	@echo "Pushing $(UTILS_RELEASE_IMAGE)"
+	docker push $(UTILS_RELEASE_IMAGE)
+endif
 
 # ---------------------------------------------------------------------------
 # Build the Operator JIB Test image
