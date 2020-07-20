@@ -1413,6 +1413,7 @@ release-ghpages: helm-chart docs
 	git checkout gh-pages
 	git pull
 	mkdir -p dashboards || true
+	rm -rf dashboards/$(VERSION_FULL) || true
 	mv $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/ dashboards/
 	git add dashboards/$(VERSION_FULL)/*
 	@echo "Releasing Helm chart $(VERSION_FULL)"
