@@ -105,7 +105,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.0.1
+deployment-example:3.0.2
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
@@ -278,7 +278,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.1
+  image: deployment-example:3.0.2
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -390,7 +390,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.1
+  image: deployment-example:3.0.2
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
