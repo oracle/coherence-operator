@@ -94,6 +94,140 @@ func scale(t *testing.T, namespace, name string, replicas int32) error {
 	t.Log("Executing Scale Command: " + strings.Join(cmd.Args, " "))
 	return cmd.Run()
 }
+
+func TestCertifyManagementDefaultPort(t *testing.T) {
+	g := NewGomegaWithT(t)
+	f := framework.Global
+
+	ctx := helper.CreateTestContext(t)
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	ns := helper.GetTestNamespace()
+
+	d := &v1.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      "management-default",
+		},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Management: &coh.PortSpecWithSSL{
+					Enabled: pointer.BoolPtr(true),
+				},
+			},
+			Ports: []v1.NamedPortSpec{
+				{Name: coh.PortNameManagement},
+			},
+		},
+	}
+
+	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Get the deployment Pods
+	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "management-default")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// the default number of replicas is 3 so the first pod should be able to be used
+	// Get only the first pod and add port forwarding
+	var pod = pods[1]
+	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	defer pf.Close()
+
+	fmt.Println("Available ports:")
+	for key, value := range ports {
+		fmt.Println(key, value)
+	}
+
+	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[coh.PortNameManagement])
+
+	var resp *http.Response
+	client := &http.Client{}
+
+	println("Connecting with: ", url)
+	// try a max of 5 times
+	for i := 0; i < 5; i++ {
+		resp, err = client.Get(url)
+		if err == nil || !true {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+}
+func TestCertifyManagementNonStandardPort(t *testing.T) {
+	g := NewGomegaWithT(t)
+	f := framework.Global
+
+	ctx := helper.CreateTestContext(t)
+	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+
+	ns := helper.GetTestNamespace()
+
+	d := &v1.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      "management-nondefault",
+		},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Management: &coh.PortSpecWithSSL{
+					Enabled: pointer.BoolPtr(true),
+					Port:    pointer.Int32Ptr(30009),
+				},
+			},
+			Ports: []v1.NamedPortSpec{
+				{Name: coh.PortNameManagement,
+					Port: 30009},
+			},
+		},
+	}
+
+	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Get the deployment Pods
+	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "management-nondefault")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// the default number of replicas is 3 so the first pod should be able to be used
+	// Get only the first pod and add port forwarding
+	var pod = pods[1]
+	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	defer pf.Close()
+
+	fmt.Println("Available ports:")
+	for key, value := range ports {
+		fmt.Println(key, value)
+	}
+	//url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[coh.PortNameManagement])
+
+	var resp *http.Response
+	client := &http.Client{}
+
+	println("Connecting with: ", url)
+	// try a max of 5 times
+	for i := 0; i < 5; i++ {
+		resp, err = client.Get(url)
+		if err == nil || !true {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+}
+
 func TestCertifyMetricsDefaultPort(t *testing.T) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
@@ -159,6 +293,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 }
+
 func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
@@ -226,3 +361,4 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 }
+
