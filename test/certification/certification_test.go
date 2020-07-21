@@ -137,7 +137,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
 	defer pf.Close()
 
-	fmt.Println("Available ports:")
+	println("Available ports:")
 	for key, value := range ports {
 		fmt.Println(key, value)
 	}
@@ -204,7 +204,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
 	defer pf.Close()
 
-	fmt.Println("Available ports:")
+	println("Available ports:")
 	for key, value := range ports {
 		fmt.Println(key, value)
 	}
