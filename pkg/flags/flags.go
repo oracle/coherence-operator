@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,7 +8,6 @@ package flags
 
 import (
 	"github.com/spf13/pflag"
-	"k8s.io/utils/pointer"
 	"os"
 )
 
@@ -21,7 +20,7 @@ const (
 	DefaultRestPort  int32 = 8000
 
 	// The environment variable holding the default Coherence image name
-	coherenceImageEnv = "HELM_COHERENCE_IMAGE"
+	coherenceImageEnv = "COHERENCE_IMAGE"
 	// The environment variable holding the default Coherence Utils image name
 	utilsImageEnv = "UTILS_IMAGE"
 
@@ -127,32 +126,32 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
 	)
 }
 
-func GetDefaultCoherenceImage() *string {
+func GetDefaultCoherenceImage() string {
 	img, ok := os.LookupEnv(coherenceImageEnv)
 	if ok {
-		return &img
+		return img
 	}
-	return pointer.StringPtr("")
+	return ""
 }
 
-func (f *CoherenceOperatorFlags) GetCoherenceImage() *string {
+func (f *CoherenceOperatorFlags) GetCoherenceImage() string {
 	if f.CoherenceImage != "" {
-		return &f.CoherenceImage
+		return f.CoherenceImage
 	}
 	return GetDefaultCoherenceImage()
 }
 
-func GetDefaultCoherenceUtilsImage() *string {
+func GetDefaultCoherenceUtilsImage() string {
 	img, ok := os.LookupEnv(utilsImageEnv)
 	if ok {
-		return &img
+		return img
 	}
-	return pointer.StringPtr("")
+	return ""
 }
 
-func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() *string {
+func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() string {
 	if f.CoherenceUtilsImage != "" {
-		return &f.CoherenceUtilsImage
+		return f.CoherenceUtilsImage
 	}
 	return GetDefaultCoherenceUtilsImage()
 }

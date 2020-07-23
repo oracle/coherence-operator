@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -8,7 +8,7 @@
 # ---------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.0.3
+VERSION ?= 3.1.0
 
 # VERSION_SUFFIX is ann optional version suffix. For a full release this should be
 # set to blank, for an interim release it should be set to a value to identify that
@@ -32,11 +32,13 @@ CERTIFICATION_VERSION ?= $(VERSION_FULL)
 # A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
 # These must be released versions as their released Helm charts will be downloaded prior to
 # running the compatibility tests.
-COMPATIBLE_VERSIONS = 2.1.0
+COMPATIBLE_VERSIONS = 3.0.0
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
 GITREPO         := https://github.com/oracle/coherence-operator.git
+BUILD_DATE      := $(shell date -u | tr ' ' '.')
+BUILD_INFO      := "$(VERSION_FULL)|$(GITCOMMIT)|$(BUILD_DATE)"
 
 CURRDIR         := $(shell pwd)
 
@@ -48,25 +50,45 @@ GOPROXY         ?= https://proxy.golang.org
 # Set the location of the Operator SDK executable
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v0.18.0
+OPERATOR_SDK_VERSION := v0.19.0
 OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
-OP_CHMOD             := $(shell chmod +x $(OPERATOR_SDK))
 
-# The Coherence image name to inject into the Helm chart
-HELM_COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
+# The Coherence image to use for deployments that do not specify an image
+COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
+# This is the Coherence image that will be used in tests.
+# Changing this variable will allow test builds to be run against different Coherence versions
+# without altering the default image name.
+TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 
-# One may need to define RELEASE_IMAGE_PREFIX in the environment.
-# For releases this will be docker.pkg.github.com/oracle/coherence-operator/
+# Operator image names
 RELEASE_IMAGE_PREFIX   ?= oraclecoherence/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
-TEST_USER_IMAGE        := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION_FULL)
 # The Operator images to push
 OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)-utils
 
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+# We produce two version v1 for k8s 1.16+ and v1beta1 for eariler k8s versions
+CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions={v1,v1beta1}"
+
+# The test application image used in integration tests
+TEST_APPLICATION_IMAGE := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION_FULL)
+
+# Default bundle image tag
+BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-bundle
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+# Release build options
 RELEASE_DRY_RUN  ?= true
 PRE_RELEASE      ?= true
 
@@ -77,21 +99,17 @@ PRE_RELEASE      ?= true
 GO_TEST_FLAGS     ?= -timeout=20m
 GO_TEST_FLAGS_E2E := -timeout=100m
 
-# This is the Coherence image that will be used in the Go tests.
-# Changing this variable will allow test builds to be run against different Coherence versions
-TEST_COHERENCE_IMAGE ?= $(HELM_COHERENCE_IMAGE)
-
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
-
+# flag indicating whether the test namespace should be reset (deleted and recreated) before tests
 CREATE_TEST_NAMESPACE ?= true
 
-# Prometheus Operator settings
+# Prometheus Operator settings (used in integration tests)
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
 PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
 GRAFANA_DASHBOARDS           ?= dashboards/grafana-legacy/
 
-# Elasticsearch & Kibana settings
+# Elasticsearch & Kibana settings (used in integration tests)
 ELASTIC_VERSION ?= 7.6.2
 KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 
@@ -146,15 +164,23 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
 override BUILD_OUTPUT      := ./build/_output
+override BUILD_BIN         := ./bin
+override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR         := $(BUILD_OUTPUT)/helm-charts
 override PREV_CHART_DIR    := $(BUILD_OUTPUT)/previous-charts
 override CRD_DIR           := deploy/crds
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
 
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
 GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
-UTILGOS      = $(shell find cmd/utilsinit -type f -name "*.go" ! -name "*_test.go")
 COP_CHARTS   = $(shell find helm-charts/coherence-operator -type f)
 DEPLOYS      = $(shell find deploy -type f -name "*.yaml")
 CRD_VERSION  ?= "v1"
@@ -192,12 +218,14 @@ $(BUILD_PROPS):
 	# Ensures that build output directories exist
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
+	@mkdir -p $(BUILD_BIN)
+	@mkdir -p $(BUILD_ASSETS)
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(CHART_DIR)
 	@mkdir -p $(PREV_CHART_DIR)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
-	printf "HELM_COHERENCE_IMAGE=$(HELM_COHERENCE_IMAGE)\n\
+	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
 	UTILS_IMAGE=$(UTILS_IMAGE)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION_FULL=$(VERSION_FULL)\n\
@@ -206,47 +234,48 @@ $(BUILD_PROPS):
 # ---------------------------------------------------------------------------
 # Builds the project, helm charts and Docker image
 # ---------------------------------------------------------------------------
-.PHONY: build-operator
-build-operator: build-runner-artifacts $(BUILD_OUTPUT)/bin/operator
+build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
+	@echo "Building Operator image"
+	docker build --build-arg version=$(VERSION_FULL) \
+		--build-arg coherence_image=$(COHERENCE_IMAGE) \
+		--build-arg utils_image=$(UTILS_IMAGE) \
+		. -t $(OPERATOR_IMAGE)
 
 # ---------------------------------------------------------------------------
-# Internal make step that builds the Operator Docker image and Helm charts
+# Build the operator linux binary
 # ---------------------------------------------------------------------------
-$(BUILD_OUTPUT)/bin/operator: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/operator: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/operator: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/operator: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-$(BUILD_OUTPUT)/bin/operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-$(BUILD_OUTPUT)/bin/operator: export VERSION_FULL := $(VERSION_FULL)
-$(BUILD_OUTPUT)/bin/operator: $(GOS) $(DEPLOYS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz ensure-sdk
-	@echo "Building: $(OPERATOR_IMAGE)"
-	@echo "Running Operator SDK build"
-	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	$(OPERATOR_SDK) build $(OPERATOR_IMAGE) --verbose \
-	    --image-build-args "--build-arg version=$(VERSION_FULL) --build-arg coherence_image=$(HELM_COHERENCE_IMAGE) --build-arg utils_image=$(UTILS_IMAGE)" \
-	    --go-build-args "-o $(BUILD_OUTPUT)/bin/operator -ldflags -X=main.BuildInfo=$${BUILD_INFO}"
+$(BUILD_OUTPUT)/manager: generate manifests
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$BuildInfo -a -o $(BUILD_OUTPUT)/manager main.go
+
+
+# ---------------------------------------------------------------------------
+# Build the operator binary
+# ---------------------------------------------------------------------------
+manager: generate manifests
+	@echo "Building the Operator"
+	go build -o bin/manager -ldflags -X=main.BuildInfo=$(BUILD_INFO) main.go
 
 # ---------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
 # ---------------------------------------------------------------------------
 .PHONY: ensure-sdk
 ensure-sdk:
+	@echo "Ensuring Operator SDK is present"
 	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION)
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator runner artifacts utility
 # ---------------------------------------------------------------------------
 .PHONY: build-runner-artifacts
-build-runner-artifacts: $(BUILD_OUTPUT)/bin/runner
+build-runner-artifacts: $(BUILD_BIN)/runner
 
-$(BUILD_OUTPUT)/bin/runner: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/runner: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/runner: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/runner: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/runner: $(GOS) $(DEPLOYS)
-	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	go build -ldflags -X=main.BuildInfo=$${BUILD_INFO} -o $(BUILD_OUTPUT)/bin/runner ./cmd/runner
+$(BUILD_BIN)/runner: export CGO_ENABLED = 0
+$(BUILD_BIN)/runner: export GOARCH = $(ARCH)
+$(BUILD_BIN)/runner: export GOOS = $(OS)
+$(BUILD_BIN)/runner: export GO111MODULE = on
+$(BUILD_BIN)/runner: $(GOS) $(DEPLOYS)
+	@echo "Building Operator Runner"
+	go build -ldflags -X=main.BuildInfo=$(BUILD_INFO) -o $(BUILD_BIN)/runner ./cmd/runner
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator legacy converter
@@ -258,36 +287,24 @@ converter: export GOOS = $(OS)
 converter: export GO111MODULE = on
 converter: $(GOS) $(DEPLOYS)
 converter:
-	go build -o $(BUILD_OUTPUT)/bin/converter ./cmd/converter
-	GOOS=linux GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-linux-amd64 ./cmd/converter
-	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-darwin-amd64 ./cmd/converter
-	GOOS=windows GOARCH=amd64 go build -o $(BUILD_OUTPUT)/bin/converter-windows-amd64 ./cmd/converter
+	@echo "Building v2 -> v3 Converter"
+	go build -o $(BUILD_BIN)/converter ./cmd/converter
+	GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./cmd/converter
+	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./cmd/converter
+	GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./cmd/converter
 
 # ---------------------------------------------------------------------------
 # Internal make step that builds the Operator test utility
 # ---------------------------------------------------------------------------
 .PHONY: build-op-test
-build-op-test: $(BUILD_OUTPUT)/bin/op-test
+build-op-test: $(BUILD_BIN)/op-test
 
-$(BUILD_OUTPUT)/bin/op-test: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/op-test: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/op-test: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/op-test: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/op-test: $(GOS) $(DEPLOYS) $(OPTESTGOS)
-	go build -o $(BUILD_OUTPUT)/bin/op-test ./cmd/optest
-
-# ---------------------------------------------------------------------------
-# Internal make step that builds the Operator utils init utility
-# ---------------------------------------------------------------------------
-.PHONY: build-utils-init
-build-utils-init: $(BUILD_OUTPUT)/bin/utils-init
-
-$(BUILD_OUTPUT)/bin/utils-init: export CGO_ENABLED = 0
-$(BUILD_OUTPUT)/bin/utils-init: export GOARCH = $(ARCH)
-$(BUILD_OUTPUT)/bin/utils-init: export GOOS = $(OS)
-$(BUILD_OUTPUT)/bin/utils-init: export GO111MODULE = on
-$(BUILD_OUTPUT)/bin/utils-init: $(GOS) $(DEPLOYS) $(UTILGOS)
-	go build -o $(BUILD_OUTPUT)/bin/utils-init ./cmd/utilsinit
+$(BUILD_BIN)/op-test: export CGO_ENABLED = 0
+$(BUILD_BIN)/op-test: export GOARCH = $(ARCH)
+$(BUILD_BIN)/op-test: export GOOS = $(OS)
+$(BUILD_BIN)/op-test: export GO111MODULE = on
+$(BUILD_BIN)/op-test: $(GOS) $(DEPLOYS) $(OPTESTGOS)
+	go build -o $(BUILD_BIN)/op-test ./cmd/optest
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
@@ -296,9 +313,7 @@ $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS
 	# Copy the Helm charts from their source location to the distribution folder
 	@echo "Copying Operator chart to $(CHART_DIR)/coherence-operator"
 	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
-
 	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
-
 	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
 	helm lint $(CHART_DIR)/coherence-operator
@@ -316,7 +331,7 @@ helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSI
 # ---------------------------------------------------------------------------
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
-test-operator: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
 test-operator: build-operator
 	@echo "Running operator tests"
@@ -334,7 +349,7 @@ test-operator: build-operator
 # ---------------------------------------------------------------------------
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -346,14 +361,14 @@ e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-local-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/local \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
@@ -385,7 +400,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manif
 #
 # ---------------------------------------------------------------------------
 .PHONY: debug-e2e-local-test
-debug-e2e-local-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+debug-e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -394,7 +409,7 @@ debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 debug-e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-debug-e2e-local-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 debug-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-local-test:
 	$(OPERATOR_SDK) test local ./test/e2e/local \
@@ -411,8 +426,8 @@ debug-e2e-local-test:
 # ---------------------------------------------------------------------------
 .PHONY: e2e-test
 e2e-test: export CGO_ENABLED = 0
-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
 e2e-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -424,7 +439,7 @@ e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 e2e-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
@@ -468,8 +483,8 @@ e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest un
 #
 # ---------------------------------------------------------------------------
 .PHONY: debug-e2e-test
-debug-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
-debug-e2e-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+debug-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+debug-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 debug-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -479,7 +494,7 @@ debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 debug-e2e-test: export VERSION_FULL := $(VERSION_FULL)
 debug-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-debug-e2e-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+debug-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 debug-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 debug-e2e-test:
 	$(OPERATOR_SDK) test local ./test/e2e/remote --operator-namespace $(TEST_NAMESPACE) \
@@ -499,7 +514,7 @@ debug-e2e-test:
 # ---------------------------------------------------------------------------
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
-run-prometheus-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-prometheus-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 run-prometheus-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -511,14 +526,14 @@ run-prometheus-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 run-prometheus-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 run-prometheus-test: export VERSION_FULL := $(VERSION_FULL)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-prometheus-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-prometheus-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-prometheus-test: build-operator create-ssl-secrets operator-manifest
 	@echo "executing Prometheus end-to-end tests"
 	$(OPERATOR_SDK) test local ./test/e2e/prometheus \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
@@ -547,7 +562,7 @@ e2e-prometheus-test: reset-namespace install-prometheus
 # ---------------------------------------------------------------------------
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
-run-elastic-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-elastic-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
 run-elastic-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -559,7 +574,7 @@ run-elastic-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 run-elastic-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 run-elastic-test: export VERSION_FULL := $(VERSION_FULL)
 run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-elastic-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-elastic-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
 run-elastic-test: build-operator create-ssl-secrets operator-manifest
@@ -567,7 +582,7 @@ run-elastic-test: build-operator create-ssl-secrets operator-manifest
 	$(OPERATOR_SDK) test local ./test/e2e/elastic \
 		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
 		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 		--namespaced-manifest=$(TEST_MANIFEST) \
 		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
 		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
@@ -592,7 +607,7 @@ e2e-elastic-test: reset-namespace install-elastic
 .PHONY: helm-test
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-helm-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+helm-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 helm-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -600,7 +615,7 @@ helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 helm-test: export VERSION_FULL := $(VERSION_FULL)
 helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-helm-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 helm-test: build-operator reset-namespace create-ssl-secrets
@@ -621,7 +636,7 @@ helm-test: build-operator reset-namespace create-ssl-secrets
 .PHONY: helm-test
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-compatibility-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -630,7 +645,7 @@ compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 compatibility-test: export VERSION_FULL := $(VERSION_FULL)
 compatibility-test: export COMPATIBLE_VERSIONS := $(COMPATIBLE_VERSIONS)
 compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-compatibility-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets get-previous
@@ -671,7 +686,7 @@ get-previous: $(BUILD_PROPS)
 .PHONY: certification-test
 certification-test: export CGO_ENABLED = 0
 certification-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-certification-test: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+certification-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 certification-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 certification-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 certification-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -681,7 +696,7 @@ certification-test: export VERSION_FULL := $(VERSION_FULL)
 certification-test: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
 certification-test: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
 certification-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-certification-test: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+certification-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 certification-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 certification-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 certification-test: install-certification
@@ -716,7 +731,7 @@ endif
 .PHONY: run-certification
 run-certification: export CGO_ENABLED = 0
 run-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-run-certification: export TEST_USER_IMAGE := $(TEST_USER_IMAGE)
+run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-certification: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-certification: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -726,7 +741,7 @@ run-certification: export VERSION_FULL := $(VERSION_FULL)
 run-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
 run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
 run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-certification: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-certification: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-certification: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 run-certification:
@@ -755,12 +770,12 @@ cleanup-certification:
 # configured to use.
 # ---------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: uninstall-crds
+install-crds: uninstall-crds manifests kustomize
 	@echo "Installing CRDs $(CRD_VERSION)"
 ifeq ("$(CRD_VERSION)","v1beta1")
-	kubectl --validate=false create -f deploy/crds/v1beta1/coherence.oracle.com_coherence_crd.yaml || true
+	kubectl --validate=false create -f config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml || true
 else
-	kubectl --validate=false create -f deploy/crds/coherence.oracle.com_coherence_crd.yaml || true
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 endif
 
 # ---------------------------------------------------------------------------
@@ -769,9 +784,22 @@ endif
 # configured to use.
 # ---------------------------------------------------------------------------
 .PHONY: uninstall-crds
-uninstall-crds: $(BUILD_PROPS)
-	@echo "Removing CRDs"
-	kubectl delete crd coherence.coherence.oracle.com || true
+uninstall-crds: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# ---------------------------------------------------------------------------
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+# ---------------------------------------------------------------------------
+deploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+# ---------------------------------------------------------------------------
+# Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
+# ---------------------------------------------------------------------------
+undeploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${OPERATOR_IMAGE}
+	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 # ---------------------------------------------------------------------------
 # This step will run the Operator SDK code generators.
@@ -780,34 +808,100 @@ uninstall-crds: $(BUILD_PROPS)
 # This step would require running if any of the structs in the files under
 # the pkg/apis directory have been changed.
 # ---------------------------------------------------------------------------
-.PHONY: generate
-generate: export GOPATH := $(GOPATH)
-generate:
-	@echo "Generating deep copy code"
-	$(OPERATOR_SDK) generate k8s --verbose
-	@echo "Generating v1beta1 CRDs"
-	$(OPERATOR_SDK) generate crds --verbose --crd-version v1beta1
-	mv deploy/crds/coherence.oracle.com_coherence_crd.yaml deploy/crds/v1beta1/
-	@echo "Generating v1 CRDs"
-	$(OPERATOR_SDK) generate crds --verbose --crd-version v1
-	@echo "Generating OpenAPI"
-	@which $(BUILD_OUTPUT)/bin/openapi-gen > /dev/null || go build -o $(BUILD_OUTPUT)/bin/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen
-	$(BUILD_OUTPUT)/bin/openapi-gen --logtostderr=true \
-		-i ./pkg/apis/coherence/v1 \
-		-o "" \
-		-O zz_generated.openapi \
-		-p ./pkg/apis/coherence/v1 \
-		-h ./hack/boilerplate.go.txt \
-		-r "-"
-	@echo "Getting kustomize"
-	go get sigs.k8s.io/kustomize || true
-	@echo "Applying kustomize to v1 CRDs"
-	$(GOPATH)/bin/kustomize build deploy/crds -o deploy/crds/coherence.oracle.com_coherence_crd.yaml
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: $(BUILD_PROPS) controller-gen
+	@echo "Generating CRD"
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" output:crd:artifacts:config=config/crd/bases
+#	@echo "Generating CRD Doc"
 	$(MAKE) api-doc-gen
-	@echo "Getting go-bindata"
-	go get -u github.com/shuLhan/go-bindata/... || true
+
+generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
+	@echo "Generating deep copy code"
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 	@echo "Embedding CRDs"
-	$(GOPATH)/bin/go-bindata -o pkg/operator/zz_generated.assets.go -ignore .DS_Store deploy/crds/...
+	cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml
+	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
+	go get -u github.com/shurcooL/vfsgen
+	go run ./pkg/generate/assets_generate.go
+
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+# find or download openapi-gen
+# download openapi-gen if necessary
+openapi-gen:
+ifeq (, $(shell which openapi-gen))
+	@{ \
+	set -e ;\
+	OPENAPI_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPENAPI_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get k8s.io/kube-openapi/cmd/openapi-gen ;\
+	rm -rf $$OPENAPI_GEN_TMP_DIR ;\
+	}
+OPENAPI_GEN=$(GOBIN)/openapi-gen
+else
+OPENAPI_GEN=$(shell which openapi-gen)
+endif
+
+# find or download kustomize
+# download kustomize if necessary
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
+# find or download go-bindata
+# download go-bindata if necessary
+gobindata:
+	@{ \
+	set -e ;\
+	GOBINDATA_TMP_DIR=$$(mktemp -d) ;\
+	cd $$GOBINDATA_TMP_DIR ;\
+	go mod init tmp ;\
+	go get -u github.com/shuLhan/go-bindata/... ;\
+	rm -rf $$GOBINDATA_TMP_DIR ;\
+	}
+GOBINDATA=$(GOBIN)/go-bindata
+
+# ---------------------------------------------------------------------------
+# Generate bundle manifests and metadata, then validate generated files.
+# ---------------------------------------------------------------------------
+bundle: manifests
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(OPERATOR_SDK) bundle validate ./bundle
+
+# ---------------------------------------------------------------------------
+# Build the bundle image.
+# ---------------------------------------------------------------------------
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 # ---------------------------------------------------------------------------
 # Generate API docs
@@ -815,9 +909,9 @@ generate:
 .PHONY: api-doc-gen
 api-doc-gen:
 	go run ./cmd/docgen/ \
-		pkg/apis/coherence/v1/coherenceresourcespec_types.go \
-		pkg/apis/coherence/v1/coherence_types.go \
-		pkg/apis/coherence/v1/coherenceresource_types.go \
+		api/v1/coherenceresourcespec_types.go \
+		api/v1/coherence_types.go \
+		api/v1/coherenceresource_types.go \
 		> docs/about/04_coherence_spec.adoc
 
 # ---------------------------------------------------------------------------
@@ -826,6 +920,7 @@ api-doc-gen:
 .PHONY: clean
 clean:
 	rm -rf build/_output
+	rm -f bin/*
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
@@ -979,12 +1074,11 @@ endif
 # Build the Operator Utils Docker image
 # ---------------------------------------------------------------------------
 .PHONY: build-utils-image
-build-utils-image: build-mvn build-runner-artifacts build-utils-init build-op-test
-	cp $(BUILD_OUTPUT)/bin/op-test    java/coherence-utils/target/docker/op-test
-	cp $(BUILD_OUTPUT)/bin/utils-init java/coherence-utils/target/docker/utils-init
-	cp $(BUILD_OUTPUT)/bin/runner     java/coherence-utils/target/docker/runner
-	cp -r image/config                java/coherence-utils/target/docker/config
-	cp -r image/logging               java/coherence-utils/target/docker/logging
+build-utils-image: build-mvn build-runner-artifacts build-op-test
+	cp $(BUILD_BIN)/op-test java/coherence-utils/target/docker/op-test
+	cp $(BUILD_BIN)/runner  java/coherence-utils/target/docker/runner
+	cp -r image/config      java/coherence-utils/target/docker/config
+	cp -r image/logging     java/coherence-utils/target/docker/logging
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
 # ---------------------------------------------------------------------------
@@ -1007,15 +1101,15 @@ endif
 # ---------------------------------------------------------------------------
 .PHONY: build-jib-image
 build-jib-image: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_USER_IMAGE)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE)
 
 # ---------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ---------------------------------------------------------------------------
 .PHONY: push-jib-image
 push-jib-image:
-	@echo "Pushing $(TEST_USER_IMAGE)"
-	docker push $(TEST_USER_IMAGE)
+	@echo "Pushing $(TEST_APPLICATION_IMAGE)"
+	docker push $(TEST_APPLICATION_IMAGE)
 
 # ---------------------------------------------------------------------------
 # Build all of the Docker images
@@ -1041,7 +1135,6 @@ push-release-images: push-operator-image push-utils-image
 .PHONY: build-all
 build-all: build-mvn build-operator
 
-
 # ---------------------------------------------------------------------------
 # Run the Operator locally.
 #
@@ -1049,20 +1142,11 @@ build-all: build-mvn build-operator
 # sometimes this leaves orphaned processes on the local machine so
 # ensure these are killed run "make debug-stop"
 # ---------------------------------------------------------------------------
-.PHONY: run
-run: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: export VERSION_FULL := $(VERSION_FULL)
-run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
-run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: 
-	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
-	$(OPERATOR_SDK) run local --watch-namespace=$(TEST_NAMESPACE) \
-	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
-	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) \
-	                  --utils-image=$(UTILS_IMAGE)" \
-	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+run:
+	go run -ldflags='-X=main.BuildInfo=$(BUILD_INFO)' ./main.go \
+	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ---------------------------------------------------------------------------
 # Run the Operator locally after deleting and recreating the test namespace.
@@ -1081,16 +1165,15 @@ run-clean: reset-namespace run
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
-run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: 
-	BUILD_INFO="$(VERSION_FULL)|$(GITCOMMIT)|$$(date -u | tr ' ' '.')"; \
+run-debug:
 	$(OPERATOR_SDK) run local --watch-namespace=$(TEST_NAMESPACE) \
-	--go-ldflags="-X=main.BuildInfo=$${BUILD_INFO}" \
-	--operator-flags="--coherence-image=$(HELM_COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
+	--go-ldflags="-X=main.BuildInfo=$(BUILD_INFO)" \
+	--operator-flags="--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -1113,11 +1196,11 @@ stop:
 # Start a Kind cluster
 # ---------------------------------------------------------------------------
 .PHONY: kind
-kind: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
+kind: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 kind:
 	./hack/kind.sh
-	docker pull $(HELM_COHERENCE_IMAGE)
-	kind load docker-image --name operator $(HELM_COHERENCE_IMAGE)
+	docker pull $(COHERENCE_IMAGE)
+	kind load docker-image --name operator $(COHERENCE_IMAGE)
 
 # ---------------------------------------------------------------------------
 # Start a Kind 1.12 cluster
@@ -1128,8 +1211,8 @@ kind-12: kind-12-start kind-load
 .PHONY: kind-12-start
 kind-12-start:
 	./hack/kind.sh --image "kindest/node:v1.12.10@sha256:faeb82453af2f9373447bb63f50bae02b8020968e0889c7fa308e19b348916cb"
-	docker pull $(HELM_COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(HELM_COHERENCE_IMAGE) || true
+	docker pull $(COHERENCE_IMAGE) || true
+	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
 # ---------------------------------------------------------------------------
 # Start a Kind 1.18 cluster
@@ -1140,8 +1223,8 @@ kind-18: kind-18-start kind-load
 .PHONY: kind-18-start
 kind-18-start:
 	./hack/kind.sh --image "kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f"
-	docker pull $(HELM_COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(HELM_COHERENCE_IMAGE) || true
+	docker pull $(COHERENCE_IMAGE) || true
+	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
 # ---------------------------------------------------------------------------
 # Load images into Kind
@@ -1150,7 +1233,7 @@ kind-18-start:
 kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
-	kind load docker-image --name operator $(TEST_USER_IMAGE)|| true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
 
 # ---------------------------------------------------------------------------
 # Install the Operator Helm chart.
@@ -1284,16 +1367,16 @@ delete-coherence-clusters:
 # ---------------------------------------------------------------------------
 # Obtain the golangci-lint binary
 # ---------------------------------------------------------------------------
-$(BUILD_OUTPUT)/bin/golangci-lint:
-	@mkdir -p $(BUILD_OUTPUT)/bin
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_OUTPUT)/bin v1.21.0
+$(BUILD_BIN)/golangci-lint:
+	@mkdir -p $(BUILD_BIN)
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.21.0
 
 # ---------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
 # ---------------------------------------------------------------------------
 .PHONY: golangci
-golangci: $(BUILD_OUTPUT)/bin/golangci-lint
-	$(BUILD_OUTPUT)/bin/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*  ./pkg/... ./cmd/...
+golangci: $(BUILD_BIN)/golangci-lint
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*  ./pkg/... ./cmd/...
 
 
 # ---------------------------------------------------------------------------
@@ -1348,6 +1431,14 @@ code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: golangci copyright
 	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
+
+# ---------------------------------------------------------------------------
+# Runs the manifests and code generation targets and ensure that there are
+# no code changes afterwards. If there are someone has changed and pushed
+# code without running the manifests or generate targets before committing.
+# ---------------------------------------------------------------------------
+verify-no-changes: manifests generate
+	if ! git diff-index --quiet HEAD --; then echo "There are code changes caused by generated code"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

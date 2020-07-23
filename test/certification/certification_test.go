@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,8 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
@@ -129,14 +128,14 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "management-default",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Management: &coh.PortSpecWithSSL{
+		Spec: v1.CoherenceResourceSpec{
+			Coherence: &v1.CoherenceSpec{
+				Management: &v1.PortSpecWithSSL{
 					Enabled: pointer.BoolPtr(true),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
-				{Name: coh.PortNameManagement},
+				{Name: v1.PortNameManagement},
 			},
 		},
 	}
@@ -162,7 +161,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[coh.PortNameManagement])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[v1.PortNameManagement])
 
 	var resp *http.Response
 	client := &http.Client{}
@@ -194,15 +193,15 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "management-nondefault",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Management: &coh.PortSpecWithSSL{
+		Spec: v1.CoherenceResourceSpec{
+			Coherence: &v1.CoherenceSpec{
+				Management: &v1.PortSpecWithSSL{
 					Enabled: pointer.BoolPtr(true),
 					Port:    pointer.Int32Ptr(30009),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
-				{Name: coh.PortNameManagement,
+				{Name: v1.PortNameManagement,
 					Port: 30009},
 			},
 		},
@@ -229,7 +228,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 	//url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
-	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[coh.PortNameManagement])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[v1.PortNameManagement])
 
 	var resp *http.Response
 	client := &http.Client{}
@@ -262,14 +261,14 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "metric-default",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Metrics: &coh.PortSpecWithSSL{
+		Spec: v1.CoherenceResourceSpec{
+			Coherence: &v1.CoherenceSpec{
+				Metrics: &v1.PortSpecWithSSL{
 					Enabled: pointer.BoolPtr(true),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
-				{Name: coh.PortNameMetrics},
+				{Name: v1.PortNameMetrics},
 			},
 		},
 	}
@@ -295,7 +294,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[v1.PortNameMetrics])
 
 	var resp *http.Response
 	client := &http.Client{}
@@ -328,15 +327,15 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "metric-nondefault",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Metrics: &coh.PortSpecWithSSL{
+		Spec: v1.CoherenceResourceSpec{
+			Coherence: &v1.CoherenceSpec{
+				Metrics: &v1.PortSpecWithSSL{
 					Enabled: pointer.BoolPtr(true),
 					Port:    pointer.Int32Ptr(9619),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
-				{Name: coh.PortNameMetrics,
+				{Name: v1.PortNameMetrics,
 					Port: 9619},
 			},
 		},
@@ -363,7 +362,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 	//url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
+	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[v1.PortNameMetrics])
 
 	var resp *http.Response
 	client := &http.Client{}

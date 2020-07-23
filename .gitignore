@@ -14,6 +14,7 @@ target/
 
 # Operator-SDK build output
 _output/
+bin
 
 # Binaries for programs and plugins
 *.exe

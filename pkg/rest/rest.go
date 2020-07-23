@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,10 +15,10 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"net"
 	"net/http"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
 	"sync"
 )
@@ -60,11 +60,11 @@ func GetServerHostAndPort() string {
 	return svr.GetHostAndPort()
 }
 
-func EnsureServer(m manager.Manager, cf *flags.CoherenceOperatorFlags) (Server, error) {
+func EnsureServer(cfg *rest.Config, cf *flags.CoherenceOperatorFlags) (Server, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if svr == nil {
-		client, err := k8s.NewForConfig(m.GetConfig())
+		client, err := k8s.NewForConfig(cfg)
 		if err != nil {
 			return nil, err
 		}

@@ -1,0 +1,7 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: coherence-sample
+spec:
+  # Add fields here
+  foo: bar

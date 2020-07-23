@@ -67,7 +67,7 @@ spec:
 #         environment variables
 # ---------------------------------------------------------------------------
           env:
-            - name: HELM_COHERENCE_IMAGE
+            - name: COHERENCE_IMAGE
               value: {{ .Values.coherenceOperator.defaultCoherenceImage | quote }}
             - name: UTILS_IMAGE
               value: {{ .Values.coherenceOperator.defaultCoherenceUtilsImage | quote }}

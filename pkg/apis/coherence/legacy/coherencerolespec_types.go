@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,7 +16,6 @@ import (
 
 // CoherenceRoleSpec defines a role in a Coherence cluster. A role is one or
 // more Pods that perform the same functionality, for example storage members.
-// +k8s:openapi-gen=true
 type CoherenceRoleSpec struct {
 	// The name of this role.
 	// This value will be used to set the Coherence role property for all members of this role

@@ -72,7 +72,9 @@ jobs:
 
     - name: Code Review
       shell: bash
-      run: make code-review
+      run: |
+        make code-review
+        make verify-no-changes
 
     - name: Build
       shell: bash

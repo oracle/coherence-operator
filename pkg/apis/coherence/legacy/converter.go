@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,7 +8,7 @@ package legacy
 
 import (
 	"fmt"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"

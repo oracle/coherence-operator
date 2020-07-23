@@ -4,7 +4,7 @@ metadata:
   name: on-demand-cluster
 spec:
   role: one
-  image: ${TEST_USER_IMAGE}
+  image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   coherence:
     cacheConfig: test-cache-config.xml

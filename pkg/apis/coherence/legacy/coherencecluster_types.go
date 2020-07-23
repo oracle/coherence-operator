@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,7 +15,6 @@ import (
 // NOTE: json tags are required. Any new fields you add must have json tags for the fields to be serialized.
 
 // CoherenceClusterSpec defines the desired state of CoherenceCluster
-// +k8s:openapi-gen=true
 type CoherenceClusterSpec struct {
 	// ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any
 	// of the images used by this PodSpec.
@@ -48,14 +47,11 @@ type CoherenceClusterSpec struct {
 	Roles []CoherenceRoleSpec `json:"roles,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // CoherenceCluster is the Schema for the coherenceclusters API
-// +k8s:openapi-gen=true
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=cc,categories=coherence
-// +kubebuilder:printcolumn:name="Roles",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster"
-// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.roles",description="The number of roles in this Coherence cluster in a Ready state"
+//
+//
+//
+//
 type CoherenceCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -63,8 +59,6 @@ type CoherenceCluster struct {
 	Spec   CoherenceClusterSpec   `json:"spec,omitempty"`
 	Status CoherenceClusterStatus `json:"status,omitempty"`
 }
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CoherenceClusterList contains a list of CoherenceCluster
 type CoherenceClusterList struct {
@@ -74,7 +68,6 @@ type CoherenceClusterList struct {
 }
 
 // CoherenceClusterStatus defines the observed state of CoherenceCluster
-// +k8s:openapi-gen=true
 type CoherenceClusterStatus struct {
 	// The number of roles in this cluster
 	Roles int32 `json:"roles,omitempty"`
@@ -119,7 +112,6 @@ func (in *CoherenceClusterStatus) SetRoleStatus(roleName string, ready bool, pod
 }
 
 // ClusterRoleStatus defines the observed state of role within the cluster
-// +k8s:openapi-gen=true
 type ClusterRoleStatus struct {
 	// The role name
 	Role string `json:"role,omitempty"`
@@ -175,7 +167,6 @@ func (in *ClusterRoleStatus) GetCondition(status RoleStatus) ClusterRoleStatusCo
 }
 
 // ClusterRoleStatusCondition defines a specific role status condition
-// +k8s:openapi-gen=true
 type ClusterRoleStatusCondition struct {
 	// The status description
 	Status RoleStatus `json:"status,omitempty"`
