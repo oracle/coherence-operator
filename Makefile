@@ -1405,6 +1405,7 @@ copyright:
 	  -X helm-charts/coherence-operator/charts/prometheus-operator/ \
 	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
+	  -X java/src/copyright/EXCLUDE.txt \
 	  -X Jenkinsfile \
 	  -X .jar \
 	  -X .jks \
@@ -1412,6 +1413,7 @@ copyright:
 	  -X LICENSE.txt \
 	  -X Makefile \
 	  -X .md \
+	  -X PROJECT \
 	  -X .sh \
 	  -X temp/ \
 	  -X temp/olm/ \
@@ -1420,6 +1422,8 @@ copyright:
 	  -X tools.go \
 	  -X .tpl \
 	  -X .yaml \
+	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
+	  -X pkg/data/zz_generated_assets.go \
 	  -X zz_generated.
 
 # ---------------------------------------------------------------------------
