@@ -100,7 +100,7 @@ func printAPIDocs(paths []string) {
 			fmt.Println("[cols=\"1,10,1,1\"options=\"header\"]")
 			fmt.Println("|===")
 			fmt.Println("| Field | Description | Type | Required")
-			fields := t[1:(len(t))]
+			fields := t[1:]
 
 			for _, f := range fields {
 				var d string

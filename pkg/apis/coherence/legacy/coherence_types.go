@@ -818,7 +818,8 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 	var mr []NamedPortSpec
 	mr = append(mr, primary...)
 
-	for _, p := range secondary {
+	for i := range secondary {
+		p := secondary[i]
 		found := false
 		for i, pp := range primary {
 			if pp.Name == p.Name {

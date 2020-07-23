@@ -9,8 +9,7 @@ package v1_test
 import (
 	"encoding/json"
 	"github.com/go-test/deep"
-	v1 "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/apis"
+	"github.com/oracle/coherence-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +25,7 @@ func TestSerializeResources(t *testing.T) {
 		Name:      "foo",
 	}
 
-	_ = apis.AddToScheme(scheme.Scheme)
+	_ = v1.AddToScheme(scheme.Scheme)
 
 	resources := []v1.Resource{
 		{
@@ -69,7 +68,7 @@ func TestSerializeMultipleResources(t *testing.T) {
 		Name:      "foo",
 	}
 
-	_ = apis.AddToScheme(scheme.Scheme)
+	_ = v1.AddToScheme(scheme.Scheme)
 
 	resources := []v1.Resource{
 		{

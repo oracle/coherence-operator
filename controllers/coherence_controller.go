@@ -3,6 +3,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
+
 package controllers
 
 import (
@@ -186,7 +187,12 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	in.opFlags = flags.GetOperatorFlags()
+	f := flags.GetOperatorFlags()
+	return in.SetupWithManagerAndFlags(mgr, f)
+}
+
+func (in *CoherenceReconciler) SetupWithManagerAndFlags(mgr ctrl.Manager, f *flags.CoherenceOperatorFlags) error {
+	in.opFlags = f
 
 	gv := schema.GroupVersion{
 		Group:   coh.ServiceMonitorGroup,

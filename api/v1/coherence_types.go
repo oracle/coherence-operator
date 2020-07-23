@@ -1185,9 +1185,16 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 		return envVars
 	}
 
+	var p string
+	if in.Port == nil {
+		p = Int32ToString(DefaultDebugPort)
+	} else {
+		p = Int32ToString(*in.Port)
+	}
+
 	envVars = append(envVars,
 		corev1.EnvVar{Name: EnvVarJvmDebugEnabled, Value: "true"},
-		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: Int32PtrToStringWithDefault(in.Port, DefaultDebugPort)},
+		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: p},
 	)
 
 	if in != nil && in.Suspend != nil && *in.Suspend {
@@ -2075,16 +2082,18 @@ func (in *ConfigMapVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 		return
 	}
 	// Add the volume mount to the init-containers
-	for i, c := range sts.Spec.Template.Spec.InitContainers {
-		in.AddVolumeMounts(&c)
+	for i := range sts.Spec.Template.Spec.InitContainers {
+		cc := sts.Spec.Template.Spec.InitContainers[i]
+		in.AddVolumeMounts(&cc)
 		// replace the updated container in the init-container array
-		sts.Spec.Template.Spec.InitContainers[i] = c
+		sts.Spec.Template.Spec.InitContainers[i] = cc
 	}
 	// Add the volume mount to the containers
-	for i, c := range sts.Spec.Template.Spec.Containers {
-		in.AddVolumeMounts(&c)
+	for i := range sts.Spec.Template.Spec.Containers {
+		cc := sts.Spec.Template.Spec.Containers[i]
+		in.AddVolumeMounts(&cc)
 		// replace the updated container in the container array
-		sts.Spec.Template.Spec.Containers[i] = c
+		sts.Spec.Template.Spec.Containers[i] = cc
 	}
 	var volName string
 	if in.VolumeName == "" {
@@ -2195,16 +2204,18 @@ func (in *SecretVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 		return
 	}
 	// Add the volume mount to the init-containers
-	for i, c := range sts.Spec.Template.Spec.InitContainers {
-		in.AddVolumeMounts(&c)
+	for i := range sts.Spec.Template.Spec.InitContainers {
+		cc := sts.Spec.Template.Spec.InitContainers[i]
+		in.AddVolumeMounts(&cc)
 		// replace the updated container in the init-container array
-		sts.Spec.Template.Spec.InitContainers[i] = c
+		sts.Spec.Template.Spec.InitContainers[i] = cc
 	}
 	// Add the volume mount to the containers
-	for i, c := range sts.Spec.Template.Spec.Containers {
-		in.AddVolumeMounts(&c)
+	for i := range sts.Spec.Template.Spec.Containers {
+		cc := sts.Spec.Template.Spec.Containers[i]
+		in.AddVolumeMounts(&cc)
 		// replace the updated container in the container array
-		sts.Spec.Template.Spec.Containers[i] = c
+		sts.Spec.Template.Spec.Containers[i] = cc
 	}
 	var volName string
 	if in.VolumeName == "" {
@@ -2410,7 +2421,7 @@ func (in *Resources) UnmarshalJSON(b []byte) error {
 	if err := l.UnmarshalJSON(b); err != nil {
 		return err
 	}
-	v, err := strconv.Atoi(l.GetAPIVersion())
+	v, err := strconv.ParseInt(l.GetAPIVersion(), 10, 64)
 	if err != nil {
 		return err
 	}

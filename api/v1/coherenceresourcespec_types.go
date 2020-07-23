@@ -874,12 +874,14 @@ func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *app
 		return
 	}
 
-	for _, c := range in.InitContainers {
+	for i := range in.InitContainers {
+		c := in.InitContainers[i]
 		in.processAdditionalContainer(deployment, &c)
 		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, c)
 	}
 
-	for _, c := range in.SideCars {
+	for i := range in.SideCars {
+		c := in.SideCars[i]
 		in.processAdditionalContainer(deployment, &c)
 		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, c)
 	}

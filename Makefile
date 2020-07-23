@@ -1369,14 +1369,14 @@ delete-coherence-clusters:
 # ---------------------------------------------------------------------------
 $(BUILD_BIN)/golangci-lint:
 	@mkdir -p $(BUILD_BIN)
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.21.0
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.29.0
 
 # ---------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
 # ---------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*  ./pkg/... ./cmd/...
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./cmd/...
 
 
 # ---------------------------------------------------------------------------

@@ -41,8 +41,8 @@ func Convert(fileName string, out io.Writer) error {
 
 	roles := cc.GetRoles()
 	sep := false
-	for _, role := range roles {
-
+	for i := range roles {
+		role := roles[i]
 		if sep {
 			_, err = fmt.Fprintln(out, "---")
 			if err != nil {

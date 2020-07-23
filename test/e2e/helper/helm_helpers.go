@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/operator-framework/operator-sdk/pkg/helm/release"
-	"github.com/oracle/coherence-operator/pkg/apis"
+	"github.com/oracle/coherence-operator/api/v1"
 	"github.com/pborman/uuid"
 	rel "helm.sh/helm/v3/pkg/release"
 	corev1 "k8s.io/api/core/v1"
@@ -62,7 +62,7 @@ func NewHelmHelper(chartDir string) (*HelmHelper, error) {
 		return nil, fmt.Errorf("error (2): %v", err)
 	}
 
-	err = apis.AddToScheme(mgr.GetScheme())
+	err = v1.AddToScheme(mgr.GetScheme())
 	if err != nil {
 		return nil, fmt.Errorf("error (3): %v", err)
 	}

@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/status"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/oracle/coherence-operator/api/v1"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/apis"
 	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
@@ -75,7 +75,7 @@ func CreateTestContext(t *testing.T) *framework.Context {
 
 	list := &coh.CoherenceList{}
 
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, list)
+	err = framework.AddToFrameworkScheme(v1.AddToScheme, list)
 	if err != nil {
 		t.Fatal(err)
 		return nil

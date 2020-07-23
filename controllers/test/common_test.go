@@ -13,7 +13,6 @@ import (
 	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/apis"
 	cc "github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
@@ -25,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
@@ -44,14 +42,14 @@ func FindContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool
 	return corev1.Container{}, false
 }
 
-func FindInitContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool) {
-	for _, c := range sts.Spec.Template.Spec.InitContainers {
-		if c.Name == name {
-			return c, true
-		}
-	}
-	return corev1.Container{}, false
-}
+//func FindInitContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool) {
+//	for _, c := range sts.Spec.Template.Spec.InitContainers {
+//		if c.Name == name {
+//			return c, true
+//		}
+//	}
+//	return corev1.Container{}, false
+//}
 
 func FindContainerPort(container corev1.Container, name string) (corev1.ContainerPort, bool) {
 	for _, port := range container.Ports {
@@ -62,14 +60,14 @@ func FindContainerPort(container corev1.Container, name string) (corev1.Containe
 	return corev1.ContainerPort{}, false
 }
 
-func FindStatefulSetVolume(sts *appsv1.StatefulSet, name string) (corev1.Volume, bool) {
-	for _, vol := range sts.Spec.Template.Spec.Volumes {
-		if vol.Name == name {
-			return vol, true
-		}
-	}
-	return corev1.Volume{}, false
-}
+//func FindStatefulSetVolume(sts *appsv1.StatefulSet, name string) (corev1.Volume, bool) {
+//	for _, vol := range sts.Spec.Template.Spec.Volumes {
+//		if vol.Name == name {
+//			return vol, true
+//		}
+//	}
+//	return corev1.Volume{}, false
+//}
 
 func toCoherence(mgr *fakes.FakeManager, obj runtime.Object) (*coh.Coherence, error) {
 	c := &coh.Coherence{}
@@ -181,7 +179,10 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 		CoherenceUtilsImage: testUtilsImage,
 	}
 
-	r := cc.NewReconcilerWithFlags(mgr, opFlags)
+	r := &cc.CoherenceReconciler{}
+	if err = r.SetupWithManagerAndFlags(mgr, opFlags); err != nil {
+		return nil, err
+	}
 	r.SetPatchType(apitypes.StrategicMergePatchType)
 
 	fh := &fakeReconcileChain{
@@ -195,7 +196,7 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 
 type fakeReconcileChain struct {
 	mgr *fakes.FakeManager
-	r   *cc.ReconcileCoherence
+	r   *cc.CoherenceReconciler
 	ns  string
 }
 
