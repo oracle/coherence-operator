@@ -148,7 +148,7 @@ func FindProjectRootDir() (string, error) {
 	}
 
 	for wd != "/" && wd != "." {
-		_, err := os.Stat(wd + "/build/Dockerfile")
+		_, err := os.Stat(wd + "/go.mod")
 		if err == nil {
 			return wd, nil
 		} else if !os.IsNotExist(err) {

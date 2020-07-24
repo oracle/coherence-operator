@@ -720,7 +720,7 @@ ifeq ("$(CERTIFICATION_VERSION)","$(VERSION_FULL)")
 else
 	helm repo add coherence https://oracle.github.io/coherence-operator/charts || true
 	helm repo update || true
-	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version operator ./helm-charts/coherence-operator
+	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version $(CERTIFICATION_VERSION) operator ./helm-charts/coherence-operator
 endif
 
 # ---------------------------------------------------------------------------
