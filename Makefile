@@ -819,11 +819,15 @@ manifests: $(BUILD_PROPS) controller-gen
 generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
-	@echo "Embedding CRDs"
-	cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml
-	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
-	go get -u github.com/shurcooL/vfsgen
-	go run ./pkg/generate/assets_generate.go
+#   We only regenerate the embedded data if there are local changes to the generated CRD files
+	git update-index -q --refresh
+	@if ! git diff-index --quiet HEAD -- ./config; then \
+	  echo "Embedding CRDs" ; \
+	  cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml ; \
+	  $(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml ; \
+  	  go get -u github.com/shurcooL/vfsgen ; \
+	  go run ./pkg/generate/assets_generate.go ; \
+	fi
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -1442,7 +1446,7 @@ code-review: golangci copyright
 # code without running the manifests or generate targets before committing.
 # ---------------------------------------------------------------------------
 verify-no-changes: manifests generate
-	if ! git diff-index --quiet HEAD --; then echo "There are code changes caused by generated code"; exit 1; fi
+	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
