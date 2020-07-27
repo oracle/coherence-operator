@@ -823,16 +823,16 @@ generate-config:  $(BUILD_PROPS)
 	@printf "{\n\
 	  \"CoherenceImage\": \"$(COHERENCE_IMAGE)\",\n\
 	  \"UtilsImage\": \"$(UTILS_IMAGE)\"\n\
-	}" > pkg/data/data.json
+	}" > config/operator/data.json
 
 generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 #   We only regenerate the embedded data if there are local changes to the generated CRD or config files
 	git update-index -q --refresh
-	@if ! git diff-index --quiet HEAD -- ./config ./pkg/data; then \
+	@if ! git diff-index --quiet HEAD -- ./config ./config/operator/data.json; then \
 	  echo "Embedding configuration and CRD files" ; \
-	  cp pkg/data/data.json $(BUILD_ASSETS)/data.json ; \
+	  cp config/operator/data.json $(BUILD_ASSETS)/data.json ; \
 	  cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml ; \
 	  $(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml ; \
   	  go get -u github.com/shurcooL/vfsgen ; \
