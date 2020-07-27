@@ -116,7 +116,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 
 	t.Log("assertScale() - Starting...")
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())

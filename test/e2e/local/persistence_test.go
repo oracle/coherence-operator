@@ -70,7 +70,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 	f := framework.Global
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())

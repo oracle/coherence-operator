@@ -18,7 +18,7 @@ import (
 
 func TestRollingUpgrade(t *testing.T) {
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	g := NewGomegaWithT(t)
 	f := framework.Global
@@ -28,7 +28,7 @@ func TestRollingUpgrade(t *testing.T) {
 
 	t.Log("Deploying initial version of Coherence cluster")
 	// Do the initial deployment
-	deployments, _ := AssertDeploymentsWithContext(t, ctx, "rolling-upgrade.yaml")
+	deployments, _ := AssertDeploymentsWithContext(t, "rolling-upgrade.yaml")
 	// Get the expected single deployment from the returned map
 	deployment, ok := deployments["rolling-cluster"]
 	g.Expect(ok).To(BeTrue())

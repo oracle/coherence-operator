@@ -65,7 +65,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	g := NewGomegaWithT(t)
 	f := framework.Global
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())

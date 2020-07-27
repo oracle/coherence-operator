@@ -9,7 +9,7 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -143,8 +143,8 @@ func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 		d.Spec.JVM = &coh.JVMSpec{}
 	}
 
-	opFlags := &flags.CoherenceOperatorFlags{}
-	res := d.Spec.CreateStatefulSet(d, opFlags)
+	cfg := operator.Config{}
+	res := d.Spec.CreateStatefulSet(d, cfg)
 	sts := res.Spec.(*appsv1.StatefulSet)
 	c := coh.FindContainer(coh.ContainerNameCoherence, sts)
 	for _, ev := range c.Env {

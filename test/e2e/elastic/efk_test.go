@@ -28,7 +28,7 @@ func TestElasticSearch(t *testing.T) {
 	// Create the Operator SDK test context
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	esPod, kPod := AssertElasticsearchInstalled(t)
 

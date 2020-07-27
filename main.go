@@ -101,7 +101,7 @@ func initialiseOperator() {
 	}
 
 	// Ensure that the CRDs exist
-	err = operator.EnsureCRDs(cfg)
+	err = coh.EnsureCRDs(cfg)
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
@@ -124,14 +124,17 @@ func initialiseOperator() {
 }
 
 func printVersion() {
-	f := flags.GetOperatorFlags()
+	cfg, err := operator.GetOperatorConfig()
+	if err != nil {
+		panic(err)
+	}
 
 	log := ctrl.Log.WithName("operator")
 	log.Info(fmt.Sprintf("Operator Version: %s", Version))
 	log.Info(fmt.Sprintf("Operator Build Date: %s", Date))
 	log.Info(fmt.Sprintf("Operator Git Commit: %s", Commit))
-	log.Info(fmt.Sprintf("Operator Coherence Image: %s", f.GetCoherenceImage()))
-	log.Info(fmt.Sprintf("Operator Utils Image: %s", f.GetCoherenceUtilsImage()))
+	log.Info(fmt.Sprintf("Operator Coherence Image: %s", cfg.GetDefaultCoherenceImage()))
+	log.Info(fmt.Sprintf("Operator Utils Image: %s", cfg.GetDefaultUtilsImage()))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))

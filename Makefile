@@ -333,9 +333,10 @@ helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSI
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-test-operator: build-operator
+#test-operator: build-operator
+test-operator:
 	@echo "Running operator tests"
-	go test $(GO_TEST_FLAGS) -v ./cmd/... ./pkg/... \
+	go test $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/... \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-test.out
 	go run ./cmd/testreports/ -fail -suite-name-prefix=operator-test/ \
 	    -input $(TEST_LOGS_DIR)/operator-test.out \
@@ -816,13 +817,22 @@ manifests: $(BUILD_PROPS) controller-gen
 #	@echo "Generating CRD Doc"
 	$(MAKE) api-doc-gen
 
-generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
+# Generate the data.json file used by the Operator for default configuration values
+generate-config:  $(BUILD_PROPS)
+	@echo "Generating Operator config"
+	@printf "{\n\
+	  \"CoherenceImage\": \"$(COHERENCE_IMAGE)\",\n\
+	  \"UtilsImage\": \"$(UTILS_IMAGE)\"\n\
+	}" > pkg/data/data.json
+
+generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
-#   We only regenerate the embedded data if there are local changes to the generated CRD files
+#   We only regenerate the embedded data if there are local changes to the generated CRD or config files
 	git update-index -q --refresh
-	@if ! git diff-index --quiet HEAD -- ./config; then \
-	  echo "Embedding CRDs" ; \
+	@if ! git diff-index --quiet HEAD -- ./config ./pkg/data; then \
+	  echo "Embedding configuration and CRD files" ; \
+	  cp pkg/data/data.json $(BUILD_ASSETS)/data.json ; \
 	  cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml ; \
 	  $(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml ; \
   	  go get -u github.com/shurcooL/vfsgen ; \

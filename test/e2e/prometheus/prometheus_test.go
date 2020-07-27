@@ -37,7 +37,7 @@ func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod) {
 	// Create the Operator SDK test context (this will deploy the Operator)
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	// Deploy the Coherence cluster
 	_, cohPods := local.AssertDeploymentsWithContext(t, ctx, yamlFile)

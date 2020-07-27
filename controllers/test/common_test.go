@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
@@ -179,7 +180,9 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 		CoherenceUtilsImage: testUtilsImage,
 	}
 
-	r := &cc.CoherenceReconciler{}
+	r := &cc.CoherenceReconciler{
+		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
+	}
 	if err = r.SetupWithManagerAndFlags(mgr, opFlags); err != nil {
 		return nil, err
 	}

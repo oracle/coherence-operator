@@ -8,7 +8,6 @@ package flags
 
 import (
 	"github.com/spf13/pflag"
-	"os"
 )
 
 const (
@@ -19,19 +18,12 @@ const (
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
 
-	// The environment variable holding the default Coherence image name
-	coherenceImageEnv = "COHERENCE_IMAGE"
-	// The environment variable holding the default Coherence Utils image name
-	utilsImageEnv = "UTILS_IMAGE"
-
 	FlagRestHost       = "rest-host"
 	FlagRestPort       = "rest-port"
 	FlagServiceName    = "service-name"
 	FlagServicePort    = "service-port"
 	FlagSiteLabel      = "site-label"
 	FlagRackLabel      = "rack-label"
-	FlagCoherenceImage = "coherence-image"
-	FlagUtilsImage     = "utils-image"
 )
 
 // The default CRD location
@@ -110,50 +102,6 @@ func (f *CoherenceOperatorFlags) AddTo(flagSet *pflag.FlagSet) {
 		DefaultRackLabel,
 		"The node label to use when obtaining a value for a Pod's Coherence rack.",
 	)
-
-	cohImg := os.Getenv(coherenceImageEnv)
-	flagSet.StringVar(&cohFlags.CoherenceImage,
-		FlagCoherenceImage,
-		cohImg,
-		"The Coherence image to use if one is not specified for a deployment.",
-	)
-
-	utilsImg := os.Getenv(utilsImageEnv)
-	flagSet.StringVar(&cohFlags.CoherenceUtilsImage,
-		FlagUtilsImage,
-		utilsImg,
-		"The Coherence Utils image to use if one is not specified for a deployment.",
-	)
-}
-
-func GetDefaultCoherenceImage() string {
-	img, ok := os.LookupEnv(coherenceImageEnv)
-	if ok {
-		return img
-	}
-	return ""
-}
-
-func (f *CoherenceOperatorFlags) GetCoherenceImage() string {
-	if f.CoherenceImage != "" {
-		return f.CoherenceImage
-	}
-	return GetDefaultCoherenceImage()
-}
-
-func GetDefaultCoherenceUtilsImage() string {
-	img, ok := os.LookupEnv(utilsImageEnv)
-	if ok {
-		return img
-	}
-	return ""
-}
-
-func (f *CoherenceOperatorFlags) GetCoherenceUtilsImage() string {
-	if f.CoherenceUtilsImage != "" {
-		return f.CoherenceUtilsImage
-	}
-	return GetDefaultCoherenceUtilsImage()
 }
 
 // GetOperatorFlags returns the Operator command line flags.

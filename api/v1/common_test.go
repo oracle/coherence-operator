@@ -12,7 +12,7 @@ import (
 	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
@@ -275,7 +275,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 	utilsContainer := corev1.Container{
 		Name:    coh.ContainerNameUtils,
 		Image:   testUtilsImage,
-		Command: []string{coh.UtilsInitCommand},
+		Command: []string{coh.UtilsInitCommand, coh.RunnerInit},
 		Env: []corev1.EnvVar{
 			{
 				Name:  "COH_CLUSTER_NAME",
@@ -470,11 +470,11 @@ func createTestDeployment(spec coh.CoherenceResourceSpec) *coh.Coherence {
 }
 
 func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpected *appsv1.StatefulSet) {
-	opFlags := &flags.CoherenceOperatorFlags{
-		CoherenceImage:      testCoherenceImage,
-		CoherenceUtilsImage: testUtilsImage,
+	cfg := operator.Config{
+		CoherenceImage: testCoherenceImage,
+		UtilsImage:     testUtilsImage,
 	}
 
-	res := deployment.Spec.CreateStatefulSet(deployment, opFlags)
+	res := deployment.Spec.CreateStatefulSet(deployment, cfg)
 	assertStatefulSet(t, res, stsExpected)
 }

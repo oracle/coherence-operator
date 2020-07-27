@@ -5,10 +5,10 @@
  */
 package local
 
+
 import (
 	"context"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
@@ -21,22 +21,20 @@ import (
 // Test that a cluster can be created using the specified yaml.
 func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
+	//ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
-	return AssertDeploymentsWithContext(t, ctx, yamlFile)
+	return AssertDeploymentsWithContext(t, yamlFile)
 }
 
 // Test that a cluster can be created using the specified yaml.
-func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
+func AssertDeploymentsWithContext(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
-	f := framework.Global
 
 	// Get the test namespace
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	deployments, err := helper.NewCoherenceFromYaml(namespace, yamlFile)
 
@@ -66,7 +64,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	for _, d := range deployments {
 		t.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
-		err = f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
+		err = k8sClient.Create(context.TODO(), &d)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -74,7 +72,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	for _, d := range deployments {
 		t.Logf("Waiting for StatefulSet for deployment %s", d.Name)
 		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
-		sts, err := helper.WaitForStatefulSet(f.KubeClient, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5, t)
+		sts, err := helper.WaitForStatefulSet(kubeClient, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5, t)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
 		t.Logf("Have StatefulSet for deployment %s", d.Name)
@@ -82,7 +80,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 
 	// Get all of the Pods in the cluster
 	t.Logf("Getting all Pods for cluster '%s'", clusterName)
-	pods, err := helper.ListCoherencePodsForCluster(f.KubeClient, namespace, clusterName)
+	pods, err := helper.ListCoherencePodsForCluster(kubeClient, namespace, clusterName)
 	g.Expect(err).NotTo(HaveOccurred())
 	t.Logf("Found %d Pods for cluster '%s'", len(pods), clusterName)
 
@@ -91,7 +89,8 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 
 	// Verify that the WKA service has the same number of endpoints as the cluster size.
 	serviceName := deployments[0].GetWkaServiceName()
-	ep, err := f.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
+	
+	ep, err := kubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(ep.Subsets)).NotTo(BeZero())
 
@@ -102,7 +101,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	for _, d := range deployments {
 		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
 		dpl := coh.Coherence{}
-		err = f.Client.Get(context.TODO(), opts, &dpl)
+		err = k8sClient.Get(context.TODO(), opts, &dpl)
 		g.Expect(err).NotTo(HaveOccurred())
 		m[dpl.Name] = dpl
 	}
@@ -111,7 +110,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	var wkaPods []string
 	for _, d := range deployments {
 		if d.Spec.Coherence.IsWKAMember() {
-			pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, d.Namespace, d.Name)
+			pods, err := helper.ListCoherencePodsForDeployment(kubeClient, d.Namespace, d.Name)
 			g.Expect(err).NotTo(HaveOccurred())
 			for _, pod := range pods {
 				wkaPods = append(wkaPods, pod.Status.PodIP)
@@ -122,7 +121,7 @@ func AssertDeploymentsWithContext(t *testing.T, ctx *framework.Context, yamlFile
 	// Verify that the WKA service endpoints list for each deployment has all of the required the Pod IP addresses.
 	for _, d := range deployments {
 		serviceName := d.GetWkaServiceName()
-		ep, err = f.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
+		ep, err = kubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(len(ep.Subsets)).NotTo(BeZero())
 

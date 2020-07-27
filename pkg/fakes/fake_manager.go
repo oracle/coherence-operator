@@ -110,19 +110,19 @@ func (f *FakeManager) Reset(initObjs ...runtime.Object) {
 }
 
 func (f *FakeManager) AddHealthzCheck(name string, check healthz.Checker) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) AddReadyzCheck(name string, check healthz.Checker) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) Add(manager.Runnable) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) SetFields(interface{}) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) Start(<-chan struct{}) error {
@@ -146,7 +146,7 @@ func (f *FakeManager) GetFieldIndexer() client.FieldIndexer {
 }
 
 func (f *FakeManager) GetCache() cache.Cache {
-	panic("fake method not implemented")
+	return fakeCache{}
 }
 
 func (f *FakeManager) GetRESTMapper() meta.RESTMapper {
@@ -248,4 +248,36 @@ func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coheren
 	Expect(err).NotTo(HaveOccurred())
 	Expect(service).NotTo(BeNil())
 	Expect(service.Spec.Selector[coh.LabelCoherenceCluster]).To(Equal(deployment.Name))
+}
+
+type fakeCache struct {
+
+}
+
+func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+	panic("implement me")
+}
+
+func (f fakeCache) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+	panic("implement me")
+}
+
+func (f fakeCache) GetInformer(ctx context.Context, obj runtime.Object) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) GetInformerForKind(ctx context.Context, gvk schema.GroupVersionKind) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) Start(stopCh <-chan struct{}) error {
+	panic("implement me")
+}
+
+func (f fakeCache) WaitForCacheSync(stop <-chan struct{}) bool {
+	panic("implement me")
+}
+
+func (f fakeCache) IndexField(ctx context.Context, obj runtime.Object, field string, extractValue client.IndexerFunc) error {
+	panic("implement me")
 }

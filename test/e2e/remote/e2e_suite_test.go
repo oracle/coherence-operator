@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 }
 
 func cleanup(t *testing.T, ctx *framework.Context, names ...types.NamespacedName) {
-	helper.DumpOperatorLogs(t, ctx)
+	helper.DumpOperatorLogs(t)
 	for _, name := range names {
 		deleteDeployment(name.Namespace, name.Name)
 	}

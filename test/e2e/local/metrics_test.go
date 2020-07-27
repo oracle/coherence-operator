@@ -48,7 +48,7 @@ func TestMetrics(t *testing.T) {
 	// Create the Operator SDK test context (this will deploy the Operator)
 	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	// Get the test namespace
 	namespace, err := ctx.GetWatchNamespace()

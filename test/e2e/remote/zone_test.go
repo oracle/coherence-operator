@@ -63,7 +63,7 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	namespace, err := ctx.GetWatchNamespace()
 	g.Expect(err).NotTo(HaveOccurred())

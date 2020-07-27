@@ -28,6 +28,7 @@ import (
 
 const (
 	TestNamespaceEnv       = "TEST_NAMESPACE"
+	TestOpNamespaceEnv     = "TEST_OPERATOR_NAMESPACE"
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
 	TestManifestEnv        = "TEST_MANIFEST"
 	TestLocalManifestEnv   = "TEST_LOCAL_MANIFEST"
@@ -58,6 +59,14 @@ func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)
 	if ns == "" {
 		ns = defaultNamespace
+	}
+	return ns
+}
+
+func GetOperatorTestNamespace() string {
+	ns := os.Getenv(TestOpNamespaceEnv)
+	if ns == "" {
+		ns = GetTestNamespace()
 	}
 	return ns
 }
@@ -104,10 +113,6 @@ func GetTestGlobalManifestFileName() (string, error) {
 		man = dir + string(os.PathSeparator) + "global-manifest.yaml"
 	}
 	return man, nil
-}
-
-func GetOperatorImage() string {
-	return os.Getenv(OperatorImageEnv)
 }
 
 func GetOperatorVersion() string {

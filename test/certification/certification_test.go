@@ -48,7 +48,7 @@ func TestCertifyMinimalSpec(t *testing.T) {
 
 	f := framework.Global
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 	d := &v1.Coherence{
@@ -70,7 +70,7 @@ func TestCertifyScaling(t *testing.T) {
 
 	f := framework.Global
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 	d := &v1.Coherence{
@@ -119,7 +119,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -184,7 +184,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -252,7 +252,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -318,7 +318,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	f := framework.Global
 
 	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 

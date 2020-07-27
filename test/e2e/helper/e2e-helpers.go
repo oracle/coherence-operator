@@ -614,24 +614,12 @@ func readCertFile(name string) ([]byte, error) {
 	return ioutil.ReadAll(f)
 }
 
-// Dump the operator logs and clean-up the test context
-func DumpOperatorLogsAndCleanup(t *testing.T, ctx *framework.Context) {
-	DumpOperatorLogs(t, ctx)
-	ctx.Cleanup()
-}
-
-// Dump the operator logs and clean-up the test context
-func DumpOperatorLogs(t *testing.T, ctx *framework.Context) {
-	opNamespace, err := ctx.GetOperatorNamespace()
-	watchNamespace, err := ctx.GetWatchNamespace()
-	if err == nil {
-		DumpOperatorLog(framework.Global.KubeClient, opNamespace, t.Name(), t)
-		DumpState(watchNamespace, t.Name(), t)
-	} else {
-		t.Logf("Could not dump logs and state\n")
-		t.Log(err)
-	}
-	ctx.Cleanup()
+// Dump the operator logs
+func DumpOperatorLogs(t *testing.T) {
+	opNamespace := GetOperatorTestNamespace()
+	DumpOperatorLog(framework.Global.KubeClient, opNamespace, t.Name(), t)
+	watchNamespace := GetTestNamespace()
+	DumpState(watchNamespace, t.Name(), t)
 }
 
 func DumpState(namespace, dir string, logger Logger) {

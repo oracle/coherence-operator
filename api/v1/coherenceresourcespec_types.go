@@ -7,7 +7,7 @@
 package v1
 
 import (
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -344,7 +344,7 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *ScalingProbe {
 // Create the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.
-func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, flags *flags.CoherenceOperatorFlags) (Resources, error) {
+func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, cfg operator.Config) (Resources, error) {
 	var res []Resource
 
 	if in.GetReplicas() <= 0 {
@@ -361,7 +361,7 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, flags *
 	res = append(res, in.CreateHeadlessService(d))
 
 	// Create the StatefulSet
-	res = append(res, in.CreateStatefulSet(d, flags))
+	res = append(res, in.CreateStatefulSet(d, cfg))
 
 	// Create the Services for each port (and optionally ServiceMonitors)
 	res = append(res, in.CreateServicesForPort(d)...)
@@ -489,7 +489,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 }
 
 // Create the deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags *flags.CoherenceOperatorFlags) Resource {
+func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, cfg operator.Config) Resource {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -508,8 +508,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 	}
 
 	replicas := in.GetReplicas()
-
-	cohContainer := in.CreateCoherenceContainer(deployment, flags)
+	cohContainer := in.CreateCoherenceContainer(deployment, cfg)
 
 	// Add additional ports
 	for _, p := range in.Ports {
@@ -548,7 +547,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, flags 
 				Affinity:                     in.EnsurePodAffinity(deployment),
 				NodeSelector:                 in.NodeSelector,
 				InitContainers: []corev1.Container{
-					in.CreateUtilsContainer(deployment, flags),
+					in.CreateUtilsContainer(deployment, cfg),
 				},
 				Containers: []corev1.Container{cohContainer},
 				Volumes: []corev1.Volume{
@@ -611,11 +610,11 @@ func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 }
 
 // Create the Coherence container spec.
-func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence, flags *flags.CoherenceOperatorFlags) corev1.Container {
+func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence, cfg operator.Config) corev1.Container {
 	var cohImage string
 
 	if in.Image == nil {
-		cohImage = flags.GetCoherenceImage()
+		cohImage = cfg.GetDefaultCoherenceImage()
 	} else {
 		cohImage = *in.Image
 	}
@@ -781,10 +780,10 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 }
 
 // Get the Utils init-container spec.
-func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence, flags *flags.CoherenceOperatorFlags) corev1.Container {
+func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence, cfg operator.Config) corev1.Container {
 	var utilsImage string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
-		utilsImage = flags.GetCoherenceUtilsImage()
+		utilsImage = cfg.GetDefaultUtilsImage()
 	} else {
 		utilsImage = *in.CoherenceUtils.Image
 	}

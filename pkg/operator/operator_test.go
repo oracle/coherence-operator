@@ -9,8 +9,8 @@ package operator_test
 import (
 	"context"
 	. "github.com/onsi/gomega"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/fakes"
-	"github.com/oracle/coherence-operator/pkg/operator"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	v1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
@@ -35,7 +35,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	log := fakes.TestLogger{T: t}
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(log, crdClient)
+	err = v1.EnsureV1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -83,7 +83,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	log := fakes.TestLogger{T: t}
 	crdClient := FakeV1Client{Mgr: mgr}
 
-	err = operator.EnsureV1CRDs(log, crdClient)
+	err = v1.EnsureV1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -112,7 +112,7 @@ func TestShouldCreateV1beta1CRDs(t *testing.T) {
 	log := fakes.TestLogger{T: t}
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(log, crdClient)
+	err = v1.EnsureV1Beta1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
@@ -159,7 +159,7 @@ func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 	log := fakes.TestLogger{T: t}
 	crdClient := FakeV1beta1Client{Mgr: mgr}
 
-	err = operator.EnsureV1Beta1CRDs(log, crdClient)
+	err = v1.EnsureV1Beta1CRDs(log, crdClient)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}

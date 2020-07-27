@@ -110,7 +110,7 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = operator.EnsureOperatorSecret(request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = coh.EnsureOperatorSecret(request.Namespace, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
 		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -122,10 +122,16 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
+	cfg, err := operator.GetOperatorConfig()
+	if err != nil {
+		err = errors.Wrap(err, "obtaining Operator config")
+		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
+	}
+
 	// obtain the original resources from the state store
 	originalResources := storage.GetLatest()
 	// Create the desired resources the deployment
-	desiredResources, err := deployment.Spec.CreateKubernetesResources(deployment, flags.GetOperatorFlags())
+	desiredResources, err := deployment.Spec.CreateKubernetesResources(deployment, cfg)
 	if err != nil {
 		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
