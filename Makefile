@@ -66,7 +66,7 @@ OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
 # The Operator images to push
-OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
+OPERATOR_RELEASE_REPO  ?= container-registry-admin.oraclecorp.com/middleware/coherence-operator
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)-utils
 
@@ -822,7 +822,7 @@ generate-config:  $(BUILD_PROPS)
 	@echo "Generating Operator config"
 	@printf "{\n\
 	  \"CoherenceImage\": \"$(COHERENCE_IMAGE)\",\n\
-	  \"UtilsImage\": \"$(UTILS_IMAGE)\"\n\
+	  \"UtilsImage\": \"$(UTILS_RELEASE_IMAGE)\"\n\
 	}" > config/operator/new-data.json
 # If the new file is different to the old file replace the old with the new
 # This ensures that Git only thinks there is a file update if ghe contents have actually changed
