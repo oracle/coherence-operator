@@ -829,8 +829,8 @@ generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 #   We only regenerate the embedded data if there are local changes to the generated CRD or config files
-	git update-index -q --refresh
-	@if ! git diff-index --quiet HEAD -- ./config ./config/operator/data.json; then \
+	@git update-index -q --refresh
+	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg; then \
 	  echo "Embedding configuration and CRD files" ; \
 	  cp config/operator/data.json $(BUILD_ASSETS)/data.json ; \
 	  cp config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml $(BUILD_ASSETS)/crd_v1beta1.yaml ; \
@@ -838,6 +838,17 @@ generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
   	  go get -u github.com/shurcooL/vfsgen ; \
 	  go run ./pkg/generate/assets_generate.go ; \
 	fi
+
+# ---------------------------------------------------------------------------
+# Runs the manifests and code generation targets and ensure that there are
+# no code changes afterwards. If there are someone has changed and pushed
+# code without running the manifests or generate targets before committing.
+# ---------------------------------------------------------------------------
+verify-no-changes: manifests generate
+	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
+	git diff-index HEAD -- ./api ./config ./pkg
+	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
+	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -1449,17 +1460,6 @@ code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: golangci copyright
 	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
-
-# ---------------------------------------------------------------------------
-# Runs the manifests and code generation targets and ensure that there are
-# no code changes afterwards. If there are someone has changed and pushed
-# code without running the manifests or generate targets before committing.
-# ---------------------------------------------------------------------------
-verify-no-changes: manifests generate
-	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	git diff-index HEAD -- ./api ./config ./pkg
-	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
