@@ -61,12 +61,12 @@ COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
 TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 
 # Operator image names
-RELEASE_IMAGE_PREFIX   ?= oraclecoherence/
+RELEASE_IMAGE_PREFIX   ?= container-registry.oracle.com/middleware/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
 # The Operator images to push
-OPERATOR_RELEASE_REPO  ?= container-registry-admin.oraclecorp.com/middleware/coherence-operator
+OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)-utils
 
@@ -831,7 +831,7 @@ generate-config:  $(BUILD_PROPS)
 	fi
 	rm config/operator/new-data.json \
 
-generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
+generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 #   We only regenerate the embedded data if there are local changes to the generated CRD or config files
