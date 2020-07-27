@@ -1456,6 +1456,9 @@ code-review: golangci copyright
 # code without running the manifests or generate targets before committing.
 # ---------------------------------------------------------------------------
 verify-no-changes: manifests generate
+	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
+	git diff-index HEAD -- ./api ./config ./pkg
+	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
 
 # ---------------------------------------------------------------------------
