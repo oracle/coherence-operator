@@ -823,7 +823,13 @@ generate-config:  $(BUILD_PROPS)
 	@printf "{\n\
 	  \"CoherenceImage\": \"$(COHERENCE_IMAGE)\",\n\
 	  \"UtilsImage\": \"$(UTILS_IMAGE)\"\n\
-	}" > config/operator/data.json
+	}" > config/operator/new-data.json
+# If the new file is different to the old file replace the old with the new
+# This ensures that Git only thinks there is a file update if ghe contents have actually changed
+	@if ! diff config/operator/new-data.json config/operator/data.json; then \
+	  cp config/operator/new-data.json config/operator/data.json ; \
+	fi
+	rm config/operator/new-data.json \
 
 generate: $(BUILD_PROPS) generate-config controller-gen kustomize openapi-gen
 	@echo "Generating deep copy code"
