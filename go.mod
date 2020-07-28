@@ -3,6 +3,7 @@ module github.com/oracle/coherence-operator
 go 1.13
 
 require (
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
 	github.com/elastic/go-elasticsearch/v7 v7.6.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32

@@ -11,10 +11,10 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/status"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	"github.com/oracle/coherence-operator/api/v1"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/controllers"
 	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
@@ -23,8 +23,14 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/deprecated/scheme"
+	"k8s.io/client-go/rest"
 	"os"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strings"
 	"testing"
 
@@ -42,98 +48,161 @@ const operatorPodSelector = "name=coherence-operator"
 var (
 	RetryInterval        = time.Second * 5
 	Timeout              = time.Minute * 3
-	CleanupRetryInterval = time.Second * 1
-	CleanupTimeout       = time.Second * 5
 )
+
+// A context for end-to-end tests
+type TestContext struct {
+	Config     *rest.Config
+	Client     client.Client
+	KubeClient kubernetes.Interface
+	TestEnv    *envtest.Environment
+	Manager    ctrl.Manager
+	Logger     logr.Logger
+}
+
+func (in TestContext) Logf(format string, a ...interface{}) {
+	in.Logger.Info(fmt.Sprintf(format, a...))
+}
+
+func (in TestContext) Close() {
+	in.Logger.Info("tearing down the test environment")
+
+	ns := GetTestNamespace()
+	err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns))
+	if err != nil {
+		in.Logger.Info("error tearing down the test environment: " + err.Error())
+	}
+
+	err = in.TestEnv.Stop()
+	if err != nil {
+		in.Logger.Info("error stopping test environment: " + err.Error())
+	}
+}
+
+func NewContext() (TestContext, error) {
+	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
+
+	logf.SetLogger(testLogger)
+
+	// We need a real cluster for these tests
+	useCluster := true
+
+	testLogger.WithName("test").Info("bootstrapping test environment")
+	testEnv := &envtest.Environment{
+		UseExistingCluster:       &useCluster,
+		AttachControlPlaneOutput: true,
+	}
+
+	var err error
+	k8sCfg, err := testEnv.Start()
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	err = corev1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return TestContext{}, err
+	}
+	err = coh.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	testEnv.CRDs = []runtime.Object{}
+
+	k8sManager, err := ctrl.NewManager(k8sCfg, ctrl.Options{Scheme: scheme.Scheme})
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	// Create the Coherence controller
+	err = (&controllers.CoherenceReconciler{
+		Client:    k8sManager.GetClient(),
+		Log:       ctrl.Log.WithName("controllers").WithName("Coherence"),
+	}).SetupWithManager(k8sManager)
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	// Ensure CRDs exist
+	err = coh.EnsureCRDs(k8sCfg)
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	// Start the manager, which will start the controller
+	go func() {
+		err = k8sManager.Start(ctrl.SetupSignalHandler())
+	}()
+
+	k8sClient := k8sManager.GetClient()
+	kubeClient, err := kubernetes.NewForConfig(k8sCfg)
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	return TestContext{
+		Config:     k8sCfg,
+		Client:     k8sClient,
+		KubeClient: kubeClient,
+		TestEnv:    testEnv,
+		Manager:    k8sManager,
+		Logger:     testLogger.WithName("test"),
+	}, nil
+}
+
 
 type Logger interface {
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 }
 
-func CreateTestContext(t *testing.T) *framework.Context {
-	f := framework.Global
-	testCtx := framework.NewContext(t)
-
-	namespace, err := testCtx.GetWatchNamespace()
-	if err != nil {
-		t.Fatal(err)
-		return nil
-	}
-
-	testCtx.AddCleanupFn(func() error {
-		return WaitForCoherenceCleanup(f, namespace)
-	})
-
-	cleanup := framework.CleanupOptions{TestContext: testCtx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval}
-
-	err = testCtx.InitializeClusterResources(&cleanup)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		t.Fatal(err)
-		return nil
-	}
-
-	list := &coh.CoherenceList{}
-
-	err = framework.AddToFrameworkScheme(v1.AddToScheme, list)
-	if err != nil {
-		t.Fatal(err)
-		return nil
-	}
-
-	return testCtx
-}
-
-func DefaultCleanup(ctx *framework.Context) *framework.CleanupOptions {
-	return &framework.CleanupOptions{TestContext: ctx, Timeout: Timeout, RetryInterval: RetryInterval}
-}
-
 // WaitForStatefulSetForDeployment waits for a StatefulSet to be created for the specified deployment.
-func WaitForStatefulSetForDeployment(kubeclient kubernetes.Interface, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
-	return WaitForStatefulSet(kubeclient, namespace, deployment.Name, deployment.Spec.GetReplicas(), retryInterval, timeout, logger)
+func WaitForStatefulSetForDeployment(ctx TestContext, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
+	return WaitForStatefulSet(ctx, namespace, deployment.Name, deployment.Spec.GetReplicas(), retryInterval, timeout)
 }
 
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
-func WaitForStatefulSet(kubeclient kubernetes.Interface, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration, logger Logger) (*appsv1.StatefulSet, error) {
+func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = kubeclient.AppsV1().StatefulSets(namespace).Get(context.TODO(), stsName, metav1.GetOptions{})
+		sts, err = ctx.KubeClient.AppsV1().StatefulSets(namespace).Get(context.TODO(), stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of StatefulSet %s - NotFound\n", stsName)
+				ctx.Logf("Waiting for availability of StatefulSet %s - NotFound", stsName)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of %s StatefulSet - %s\n", stsName, err.Error())
+			ctx.Logf("Waiting for availability of %s StatefulSet - %s", stsName, err.Error())
 			return false, err
 		}
 
 		if sts.Status.ReadyReplicas == replicas {
 			return true, nil
 		}
-		logger.Logf("Waiting for full availability of %s StatefulSet (%d/%d)\n", stsName, sts.Status.ReadyReplicas, replicas)
+		ctx.Logf("Waiting for full availability of %s StatefulSet (%d/%d)", stsName, sts.Status.ReadyReplicas, replicas)
 		return false, nil
 	})
 
 	if err != nil && sts != nil {
 		d, _ := json.MarshalIndent(sts, "", "    ")
-		logger.Logf("Error waiting for StatefulSet\n%s", string(d))
+		ctx.Logf("Error waiting for StatefulSet%s", string(d))
 	}
 	return sts, err
 }
 
 // WaitForEndpoints waits for Enpoints for a Service to be created.
-func WaitForEndpoints(kubeclient kubernetes.Interface, namespace, service string, retryInterval, timeout time.Duration, logger Logger) (*corev1.Endpoints, error) {
+func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval, timeout time.Duration) (*corev1.Endpoints, error) {
 	var ep *corev1.Endpoints
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		ep, err = kubeclient.CoreV1().Endpoints(namespace).Get(context.TODO(), service, metav1.GetOptions{})
+		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), service, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of Endpoints %s - NotFound\n", service)
+				ctx.Logf("Waiting for availability of Endpoints %s - NotFound", service)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of %s Endpoints - %s\n", service, err.Error())
+			ctx.Logf("Waiting for availability of %s Endpoints - %s", service, err.Error())
 			return false, err
 		}
 		return true, nil
@@ -141,7 +210,7 @@ func WaitForEndpoints(kubeclient kubernetes.Interface, namespace, service string
 
 	if err != nil && ep != nil {
 		d, _ := json.MarshalIndent(ep, "", "    ")
-		logger.Logf("Error waiting for Endpoints\n%s", string(d))
+		ctx.Logf("Error waiting for Endpoints%s", string(d))
 	}
 	return ep, err
 }
@@ -196,29 +265,29 @@ func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
-func WaitForCoherence(f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
-	return WaitForCoherenceCondition(f, namespace, name, alwaysCondition{}, retryInterval, timeout, logger)
+func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+	return WaitForCoherenceCondition(ctx, namespace, name, alwaysCondition{}, retryInterval, timeout, logger)
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
-func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		deployment, err = GetCoherence(f, namespace, name)
+		deployment, err = GetCoherence(ctx, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				logger.Logf("Waiting for availability of Coherence resource %s - NotFound\n", name)
+				ctx.Logf("Waiting for availability of Coherence resource %s - NotFound", name)
 				return false, nil
 			}
-			logger.Logf("Waiting for availability of Coherence resource %s - %s\n", name, err.Error())
+			ctx.Logf("Waiting for availability of Coherence resource %s - %s", name, err.Error())
 			return false, nil
 		}
 		valid := true
 		if condition != nil {
 			valid = condition.Test(deployment)
 			if !valid {
-				logger.Logf("Waiting for Coherence resource %s to meet condition '%s'\n", name, condition.String())
+				ctx.Logf("Waiting for Coherence resource %s to meet condition '%s'", name, condition.String())
 			}
 		}
 		return valid, nil
@@ -228,7 +297,7 @@ func WaitForCoherenceCondition(f *framework.Framework, namespace, name string, c
 }
 
 // GetCoherence gets the specified Coherence resource
-func GetCoherence(f *framework.Framework, namespace, name string) (*coh.Coherence, error) {
+func GetCoherence(ctx TestContext, namespace, name string) (*coh.Coherence, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
@@ -237,22 +306,22 @@ func GetCoherence(f *framework.Framework, namespace, name string) (*coh.Coherenc
 		},
 	}
 
-	err := f.Client.Get(goctx.TODO(), opts, d)
+	err := ctx.Client.Get(goctx.TODO(), opts, d)
 
 	return d, err
 }
 
 // WaitForOperatorPods waits for a Coherence Operator Pods to be created.
-func WaitForOperatorPods(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
-	return WaitForPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout)
+func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	return WaitForPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
 }
 
 // WaitForOperatorPods waits for a Coherence Operator Pods to be created.
-func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
 			return false, err
 		}
@@ -262,78 +331,78 @@ func WaitForPodsWithSelector(k8s kubernetes.Interface, namespace, selector strin
 }
 
 // WaitForOperatorDeletion waits for deletion of the Operator Pods.
-func WaitForOperatorDeletion(k8s kubernetes.Interface, namespace string, retryInterval, timeout time.Duration, logger Logger) error {
-	return WaitForDeleteOfPodsWithSelector(k8s, namespace, operatorPodSelector, retryInterval, timeout, logger)
+func WaitForOperatorDeletion(ctx TestContext, namespace string, retryInterval, timeout time.Duration) error {
+	return WaitForDeleteOfPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
 }
 
 // WaitForDeleteOfPodsWithSelector waits for Pods to be deleted.
-func WaitForDeleteOfPodsWithSelector(k8s kubernetes.Interface, namespace, selector string, retryInterval, timeout time.Duration, logger Logger) error {
-	logger.Logf("Waiting for Pods in namespace %s with selector '%s' to be deleted", namespace, selector)
+func WaitForDeleteOfPodsWithSelector(ctx TestContext, namespace, selector string, retryInterval, timeout time.Duration) error {
+	ctx.Logf("Waiting for Pods in namespace %s with selector '%s' to be deleted", namespace, selector)
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		logger.Logf("List Pods in namespace %s with selector '%s'", namespace, selector)
-		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		ctx.Logf("List Pods in namespace %s with selector '%s'", namespace, selector)
+		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
-			logger.Logf("Error listing Pods in namespace %s with selector '%s' - %s", namespace, selector, err.Error())
+			ctx.Logf("Error listing Pods in namespace %s with selector '%s' - %s", namespace, selector, err.Error())
 			return false, err
 		}
-		logger.Logf("Found %d Pods in namespace %s with selector '%s'", len(pods), namespace, selector)
+		ctx.Logf("Found %d Pods in namespace %s with selector '%s'", len(pods), namespace, selector)
 		return len(pods) == 0, nil
 	})
 
-	logger.Logf("Finished waiting for Pods in namespace %s with selector '%s' to be deleted. Error=%s", namespace, selector, err)
+	ctx.Logf("Finished waiting for Pods in namespace %s with selector '%s' to be deleted. Error=%s", namespace, selector, err)
 	return err
 }
 
 // WaitForDeletion waits for deletion of the specified resource.
-func WaitForDeletion(f *framework.Framework, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration, logger Logger) error {
-	gvk, _ := apiutil.GVKForObject(resource, f.Scheme)
-	logger.Logf("Waiting for deletion of %v %s/%s", gvk, namespace, name)
+func WaitForDeletion(ctx TestContext, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration, logger Logger) error {
+	gvk, _ := apiutil.GVKForObject(resource, ctx.Manager.GetScheme())
+	ctx.Logf("Waiting for deletion of %v %s/%s", gvk, namespace, name)
 
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		err = f.Client.Get(context.TODO(), key, resource)
+		err = ctx.Client.Get(context.TODO(), key, resource)
 		switch {
 		case err != nil && errors.IsNotFound(err):
 			return true, nil
 		case err != nil && !errors.IsNotFound(err):
-			logger.Logf("Waiting for deletion of %v %s/%s - Error=%s", gvk, namespace, name, err)
+			ctx.Logf("Waiting for deletion of %v %s/%s - Error=%s", gvk, namespace, name, err)
 			return false, err
 		default:
-			logger.Logf("Still waiting for deletion of %v %s/%s", gvk, namespace, name)
+			ctx.Logf("Still waiting for deletion of %v %s/%s", gvk, namespace, name)
 			return false, nil
 		}
 	})
 
-	logger.Logf("Finished waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
+	ctx.Logf("Finished waiting for deletion of %s %s/%s - Error=%s", gvk, namespace, name, err)
 	return err
 }
 
 // List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
-func ListOperatorPods(client kubernetes.Interface, namespace string) ([]corev1.Pod, error) {
-	return ListPodsWithLabelSelector(client, namespace, operatorPodSelector)
+func ListOperatorPods(ctx TestContext, namespace string) ([]corev1.Pod, error) {
+	return ListPodsWithLabelSelector(ctx, namespace, operatorPodSelector)
 }
 
 // List the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
-func ListCoherencePodsForCluster(client kubernetes.Interface, namespace, cluster string) ([]corev1.Pod, error) {
-	return ListPodsWithLabelSelector(client, namespace, fmt.Sprintf("%s=%s", coh.LabelCoherenceCluster, cluster))
+func ListCoherencePodsForCluster(ctx TestContext, namespace, cluster string) ([]corev1.Pod, error) {
+	return ListPodsWithLabelSelector(ctx, namespace, fmt.Sprintf("%s=%s", coh.LabelCoherenceCluster, cluster))
 }
 
 // WaitForPodsWithLabel waits for at least the required number of Pods matching the specified labels selector to be created.
-func WaitForPodsWithLabel(k8s kubernetes.Interface, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pods, err = ListPodsWithLabelSelector(k8s, namespace, selector)
+		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
-			fmt.Printf("Waiting for at least %d Pods with label selector '%s' - failed due to %s\n", count, selector, err.Error())
+			ctx.Logf("Waiting for at least %d Pods with label selector '%s' - failed due to %s", count, selector, err.Error())
 			return false, err
 		}
 		found := len(pods) >= count
 		if !found {
-			fmt.Printf("Waiting for at least %d Pods with label selector '%s' - found %d\n", count, selector, len(pods))
+			ctx.Logf("Waiting for at least %d Pods with label selector '%s' - found %d", count, selector, len(pods))
 		}
 		return found, nil
 	})
@@ -342,16 +411,16 @@ func WaitForPodsWithLabel(k8s kubernetes.Interface, namespace, selector string, 
 }
 
 // List the Pods that exist for a deployment - this is Pods with the label "coherenceDeployment=<deployment>"
-func ListCoherencePodsForDeployment(client kubernetes.Interface, namespace, deployment string) ([]corev1.Pod, error) {
+func ListCoherencePodsForDeployment(ctx TestContext, namespace, deployment string) ([]corev1.Pod, error) {
 	selector := fmt.Sprintf("%s=%s", coh.LabelCoherenceDeployment, deployment)
-	return ListPodsWithLabelSelector(client, namespace, selector)
+	return ListPodsWithLabelSelector(ctx, namespace, selector)
 }
 
 // List the Coherence Cluster Pods that exist for a given label selector.
-func ListPodsWithLabelSelector(k8s kubernetes.Interface, namespace, selector string) ([]corev1.Pod, error) {
+func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
 
-	list, err := k8s.CoreV1().Pods(namespace).List(context.TODO(), opts)
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), opts)
 	if err != nil {
 		return []corev1.Pod{}, err
 	}
@@ -384,35 +453,35 @@ func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInte
 
 // WaitForCoherenceCleanup waits until there are no Coherence resources left in the test namespace.
 // The default clean-up hooks only wait for deletion of resources directly created via the test client
-func WaitForCoherenceCleanup(f *framework.Framework, namespace string) error {
-	fmt.Printf("Waiting for clean-up of Coherence resources in namespace %s\n", namespace)
+func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
+	ctx.Logf("Waiting for clean-up of Coherence resources in namespace %s", namespace)
 
 	list := &coh.CoherenceList{}
-	err := f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
 
 	// Delete all of the Coherence resources
 	for _, r := range list.Items {
-		fmt.Printf("Deleting Coherence resource %s in namespace %s\n", r.Name, r.Namespace)
-		err = f.Client.Delete(goctx.TODO(), &r)
+		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &r)
 		if err != nil {
-			fmt.Printf("Error deleting Coherence resource %s - %s\n", r.Name, err.Error())
+			ctx.Logf("Error deleting Coherence resource %s - %s", r.Name, err.Error())
 		}
 	}
 
 	// Wait for removal of the Coherence resources
 	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		err = f.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(list.Items) > 0 {
-				fmt.Printf("Waiting for deletion of %d Coherence resources\n", len(list.Items))
+				ctx.Logf("Waiting for deletion of %d Coherence resources", len(list.Items))
 				return false, nil
 			}
 			return true, nil
 		} else {
-			fmt.Printf("Error waiting for deletion of Coherence resources: %s\n%v\n", err.Error(), err)
+			ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%v", err.Error(), err)
 			return false, nil
 		}
 	})
@@ -425,58 +494,58 @@ func isNoResources(err error) bool {
 }
 
 // WaitForOperatorCleanup waits until there are no Operator Pods in the test namespace.
-func WaitForOperatorCleanup(kubeClient kubernetes.Interface, namespace string, logger Logger) error {
-	logger.Logf("Waiting for deletion of Coherence Operator Pods\n")
+func WaitForOperatorCleanup(ctx TestContext, namespace string) error {
+	ctx.Logf("Waiting for deletion of Coherence Operator Pods")
 	// wait for all Operator Pods to be deleted
 	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		list, err := ListOperatorPods(kubeClient, namespace)
+		list, err := ListOperatorPods(ctx, namespace)
 		if err == nil {
 			if len(list) > 0 {
-				logger.Logf("Waiting for deletion of %d Coherence Operator Pods\n", len(list))
+				ctx.Logf("Waiting for deletion of %d Coherence Operator Pods", len(list))
 				return false, nil
 			}
 			return true, nil
 		} else {
-			logger.Logf("Error waiting for deletion of Coherence Operator Pods: %s\n", err.Error())
+			ctx.Logf("Error waiting for deletion of Coherence Operator Pods: %s", err.Error())
 			return false, nil
 		}
 	})
 
-	logger.Logf("Coherence Operator Pods deleted\n")
+	ctx.Logger.Info("Coherence Operator Pods deleted")
 	return err
 }
 
 // Dump the Operator Pod log to a file.
-func DumpOperatorLog(kubeClient kubernetes.Interface, namespace, directory string, logger Logger) {
-	list, err := kubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=coherence-operator"})
+func DumpOperatorLog(ctx TestContext, namespace, directory string) {
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=coherence-operator"})
 	if err == nil {
 		if len(list.Items) > 0 {
 			pod := list.Items[0]
-			DumpPodLog(kubeClient, &pod, directory, logger)
+			DumpPodLog(ctx, &pod, directory)
 		} else {
-			logger.Log("Could not capture Operator Pod log. No Pods found.")
+			ctx.Logger.Info("Could not capture Operator Pod log. No Pods found.")
 		}
 	}
 
 	if err != nil {
-		logger.Logf("Could not capture Operator Pod log due to error: %s\n", err.Error())
+		ctx.Logf("Could not capture Operator Pod log due to error: %s", err.Error())
 	}
 }
 
 // Dump the Pod log to a file.
-func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory string, logger Logger) {
+func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	logs, err := FindTestLogsDir()
 	if err != nil {
-		logger.Log("cannot capture logs due to " + err.Error())
+		ctx.Logger.Info("cannot capture logs due to " + err.Error())
 		return
 	}
 
-	logger.Log("Capturing Pod logs for " + pod.Name)
+	ctx.Logger.Info("Capturing Pod logs for " + pod.Name)
 	pathSep := string(os.PathSeparator)
 
 	for _, container := range pod.Spec.Containers {
 		var err error
-		res := kubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
+		res := ctx.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
 		s, err := res.Stream(context.TODO())
 		if err == nil {
 			name := logs + pathSep + directory
@@ -494,13 +563,13 @@ func DumpPodLog(kubeClient kubernetes.Interface, pod *corev1.Pod, directory stri
 				if err == nil {
 					_, err = io.Copy(out, s)
 				} else {
-					logger.Log("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
+					ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 				}
 			} else {
-				logger.Log("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
+				ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 			}
 		} else {
-			logger.Log("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
+			ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 		}
 	}
 }
@@ -615,43 +684,42 @@ func readCertFile(name string) ([]byte, error) {
 }
 
 // Dump the operator logs
-func DumpOperatorLogs(t *testing.T) {
+func DumpOperatorLogs(t *testing.T, ctx TestContext) {
 	opNamespace := GetOperatorTestNamespace()
-	DumpOperatorLog(framework.Global.KubeClient, opNamespace, t.Name(), t)
+	DumpOperatorLog(ctx, opNamespace, t.Name())
 	watchNamespace := GetTestNamespace()
-	DumpState(watchNamespace, t.Name(), t)
+	DumpState(ctx, watchNamespace, t.Name())
 }
 
-func DumpState(namespace, dir string, logger Logger) {
-	dumpCoherences(namespace, dir, logger)
-	dumpStatefulSets(namespace, dir, logger)
-	dumpServices(namespace, dir, logger)
-	dumpPods(namespace, dir, logger)
-	dumpRbacRoles(namespace, dir, logger)
-	dumpRbacRoleBindings(namespace, dir, logger)
-	dumpServiceAccounts(namespace, dir, logger)
+func DumpState(ctx TestContext, namespace, dir string) {
+	dumpCoherences(namespace, dir, ctx)
+	dumpStatefulSets(namespace, dir, ctx)
+	dumpServices(namespace, dir, ctx)
+	dumpPods(namespace, dir, ctx)
+	dumpRbacRoles(namespace, dir, ctx)
+	dumpRbacRoleBindings(namespace, dir, ctx)
+	dumpServiceAccounts(namespace, dir, ctx)
 }
 
-func dumpCoherences(namespace, dir string, logger Logger) {
-	const message = "Could not dump Coherence resource for namespace %s due to %s\n"
+func dumpCoherences(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump Coherence resource for namespace %s due to %s"
 
-	f := framework.Global
 	list := coh.CoherenceList{}
-	err := f.Client.List(context.TODO(), &list, client.InNamespace(namespace))
+	err := ctx.Client.List(context.TODO(), &list, client.InNamespace(namespace))
 	if err != nil {
-		fmt.Printf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		fmt.Printf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "deployments-list.txt")
 	if err != nil {
-		fmt.Printf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -662,26 +730,26 @@ func dumpCoherences(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "Coherence-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -690,25 +758,24 @@ func dumpCoherences(namespace, dir string, logger Logger) {
 	}
 }
 
-func dumpStatefulSets(namespace, dir string, logger Logger) {
-	const message = "Could not dump StatefulSets for namespace %s due to %s\n"
+func dumpStatefulSets(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump StatefulSets for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "sts-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -719,26 +786,26 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "StatefulSet-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -747,25 +814,24 @@ func dumpStatefulSets(namespace, dir string, logger Logger) {
 	}
 }
 
-func dumpServices(namespace, dir string, logger Logger) {
-	const message = "Could not dump Services for namespace %s due to %s\n"
+func dumpServices(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump Services for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "svc-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -776,26 +842,26 @@ func dumpServices(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "Service-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -804,25 +870,24 @@ func dumpServices(namespace, dir string, logger Logger) {
 	}
 }
 
-func dumpRbacRoles(namespace, dir string, logger Logger) {
-	const message = "Could not dump RBAC Roles for namespace %s due to %s\n"
+func dumpRbacRoles(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump RBAC Roles for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.RbacV1().Roles(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.RbacV1().Roles(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "rbac-role-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -833,26 +898,26 @@ func dumpRbacRoles(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "RBAC-Role-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -861,25 +926,24 @@ func dumpRbacRoles(namespace, dir string, logger Logger) {
 	}
 }
 
-func dumpRbacRoleBindings(namespace, dir string, logger Logger) {
-	const message = "Could not dump RBAC RoleBindings for namespace %s due to %s\n"
+func dumpRbacRoleBindings(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump RBAC RoleBindings for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "rbac-role-binding-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -890,26 +954,26 @@ func dumpRbacRoleBindings(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "RBAC-RoleBinding-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -918,25 +982,24 @@ func dumpRbacRoleBindings(namespace, dir string, logger Logger) {
 	}
 }
 
-func dumpServiceAccounts(namespace, dir string, logger Logger) {
-	const message = "Could not dump ServiceAccounts for namespace %s due to %s\n"
+func dumpServiceAccounts(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump ServiceAccounts for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "service-accounts-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -947,26 +1010,26 @@ func dumpServiceAccounts(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "ServiceAccount-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 		}
@@ -975,35 +1038,29 @@ func dumpServiceAccounts(namespace, dir string, logger Logger) {
 	}
 }
 
-func DumpPodsForTest(t *testing.T, ctx *framework.Context) {
-	namespace, err := ctx.GetWatchNamespace()
-	if err == nil {
-		dumpPods(namespace, t.Name(), t)
-	} else {
-		t.Logf("Could not dump Pod logs and state\n")
-		t.Log(err)
-	}
+func DumpPodsForTest(ctx TestContext, t *testing.T) {
+	namespace := GetOperatorTestNamespace()
+	dumpPods(namespace, t.Name(), ctx)
 }
 
-func dumpPods(namespace, dir string, logger Logger) {
-	const message = "Could not dump Pods for namespace %s due to %s\n"
+func dumpPods(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump Pods for namespace %s due to %s"
 
-	f := framework.Global
-	list, err := f.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	logsDir, err := EnsureLogsDir(dir)
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
 	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "pod-list.txt")
 	if err != nil {
-		logger.Logf(message, namespace, err.Error())
+		ctx.Logf(message, namespace, err.Error())
 		return
 	}
 
@@ -1014,30 +1071,30 @@ func dumpPods(namespace, dir string, logger Logger) {
 		for _, item := range list.Items {
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			d, err := json.MarshalIndent(item, "", "    ")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			file, err := os.Create(logsDir + string(os.PathSeparator) + "Pod-" + item.GetName() + ".json")
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
 			_, err = fmt.Fprint(file, string(d))
 			_ = file.Close()
 			if err != nil {
-				logger.Logf(message, namespace, err.Error())
+				ctx.Logf(message, namespace, err.Error())
 				return
 			}
 
-			DumpPodLog(f.KubeClient, &item, dir, logger)
+			DumpPodLog(ctx, &item, dir)
 		}
 	} else {
 		_, _ = fmt.Fprint(listFile, "No Pod resources found in namespace "+namespace)

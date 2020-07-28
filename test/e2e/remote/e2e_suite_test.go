@@ -70,7 +70,7 @@ func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, r
 	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", d.Name, replicas)
 
 	// wait for the StatefulSet to have the required ready replicas
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSet(f.KubeClient, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 

@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -39,7 +38,7 @@ func TestTwoDeploymentsOneCluster(t *testing.T) {
 
 // Test that two deployments with dependencies start in the correct order
 func TestStartQuorumRequireAllPodsReady(t *testing.T) {
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	// Start the two deployments
 	deployments, pods := AssertDeployments(t, "deployment-with-start-quorum.yaml")
@@ -66,7 +65,7 @@ func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 
 // Test that two deployments with dependency on single Pod ready start in the correct order
 func TestStartQuorumRequireOnePodReady(t *testing.T) {
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	// Start the two deployments
 	deployments, pods := AssertDeployments(t, "deployment-with-start-quorum-one-pod.yaml")
@@ -99,17 +98,13 @@ func TestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
 // Test that a cluster can be created with zero replicas.
 func TestDeploymentWithZeroReplicas(t *testing.T) {
 	// initialise Gomega so we can use matchers
-	g := NewGomegaWithT(t)
-	f := framework.Global
+	g := NewWithT(t)
 
-	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
 	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t)
+	defer helper.DumpOperatorLogs(t, testContext)
 
 	// Get the test namespace
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	deployments, err := helper.NewCoherenceFromYaml(namespace, "deployment-with-zero-replicas.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -117,17 +112,17 @@ func TestDeploymentWithZeroReplicas(t *testing.T) {
 	deployment := deployments[0]
 
 	// deploy the Coherence
-	err = f.Client.Create(context.TODO(), &deployment, helper.DefaultCleanup(ctx))
+	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The deployment should eventually be in the Stopped phase
 	condition := helper.StatusPhaseCondition(coh.ConditionTypeStopped)
-	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(testContext, namespace, deployment.Name, condition, time.Second, time.Minute*5, t)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// There should be no StatefulSet
 	sts := &appsv1.StatefulSet{}
-	err = f.Client.Get(context.TODO(), deployment.GetNamespacedName(), sts)
+	err = testContext.Client.Get(context.TODO(), deployment.GetNamespacedName(), sts)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
 }

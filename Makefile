@@ -366,13 +366,7 @@ e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
 	@echo "executing end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/local \
-		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
-		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
-		--namespaced-manifest=$(TEST_MANIFEST) \
-		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
+	go test $(GO_TEST_FLAGS_E2E) ./test/e2e/local/... 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
 	$(MAKE) delete-namespace
 	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-local-test/ \
 	    -input $(TEST_LOGS_DIR)/operator-e2e-local-test.out \
@@ -786,7 +780,7 @@ endif
 # ---------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: manifests kustomize
-	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+	$(KUSTOMIZE) build config/crd | kubectl delete -f - || true
 
 # ---------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config

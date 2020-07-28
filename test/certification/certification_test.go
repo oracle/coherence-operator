@@ -61,7 +61,7 @@ func TestCertifyMinimalSpec(t *testing.T) {
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -90,19 +90,19 @@ func TestCertifyScaling(t *testing.T) {
 	// Start with one replica
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Up to three
 	err = scale(t, ns, d.Name, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 3, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale down to one
 	err = scale(t, ns, d.Name, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 1, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 1, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -143,7 +143,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
@@ -210,7 +210,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
@@ -276,7 +276,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
@@ -344,7 +344,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods

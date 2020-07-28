@@ -9,7 +9,6 @@ package local
 import (
 	"context"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"testing"
@@ -17,14 +16,9 @@ import (
 )
 
 func TestRollingUpgrade(t *testing.T) {
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
-
 	g := NewGomegaWithT(t)
-	f := framework.Global
 
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	t.Log("Deploying initial version of Coherence cluster")
 	// Do the initial deployment
@@ -35,7 +29,7 @@ func TestRollingUpgrade(t *testing.T) {
 
 	// Get the latest state for the deployment
 	upgrade := coh.Coherence{}
-	err = f.Client.Get(context.TODO(), deployment.GetNamespacedName(), &upgrade)
+	err := testContext.Client.Get(context.TODO(), deployment.GetNamespacedName(), &upgrade)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Upgrade the version label and JVM Heap
@@ -43,12 +37,12 @@ func TestRollingUpgrade(t *testing.T) {
 	t.Log("Deploying updated version of Coherence cluster")
 	upgrade.Spec.Labels["version"] = "two"
 	upgrade.Spec.JVM.Memory.HeapSize = &updatedHeap
-	err = f.Client.Update(context.TODO(), &upgrade)
+	err = testContext.Client.Update(context.TODO(), &upgrade)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// wait for the expected updated Pods
 	t.Log("Waiting for all Pods to be updated")
-	pods, err := helper.WaitForPodsWithLabel(f.KubeClient, namespace, "version=two", 3, time.Second*10, time.Minute*5)
+	pods, err := helper.WaitForPodsWithLabel(testContext, namespace, "version=two", 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	for _, pod := range pods {

@@ -81,7 +81,7 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	replicas := deployment.GetReplicas()
 
 	// Wait for the StatefulSet for the deployment to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &deployment, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &deployment, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
