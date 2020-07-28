@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: system
+  name: $(OPERATOR_NAMESPACE)
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,6 +25,19 @@ spec:
       containers:
       - command:
         - /manager
+        env:
+          - name: COHERENCE_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: coherenceImage
+                name: coherence-operator-env
+                optional: true
+          - name: UTILS_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: utilsImage
+                name: coherence-operator-env
+                optional: true
         args:
         - --enable-leader-election
         image: controller:latest

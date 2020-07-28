@@ -21,15 +21,6 @@ of the Coherence images will not work out of the box.
 See the <<installation/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
 
-=== Image Pull Secrets
-
-In order for the Coherence Operator to be able to install Coherence clusters it needs to be able to pull Coherence
-Docker images. These images are not available in public Docker repositories and will typically Kubernetes will need
-authentication to be able to pull them. This is achived by creating pull secrets.
-Pull secrets are not global and hence secrets will be required in the namespace(s) that Coherence
-clusters will be installed into.
-see <<installation/04_obtain_coherence_images.adoc,Obtain Coherence Images>>
-
 == Installing With Helm
 
 The simplest way to install the Coherence Operator is to use the Helm chart.

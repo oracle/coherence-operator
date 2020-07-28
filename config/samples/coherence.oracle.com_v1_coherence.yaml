@@ -3,5 +3,4 @@ kind: Coherence
 metadata:
   name: coherence-sample
 spec:
-  # Add fields here
-  foo: bar
+  replicas: 1

@@ -165,6 +165,7 @@ TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
 override BUILD_OUTPUT      := ./build/_output
 override BUILD_BIN         := ./bin
+override BUILD_CONFIG      := $(BUILD_OUTPUT)/config
 override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR         := $(BUILD_OUTPUT)/helm-charts
@@ -786,29 +787,27 @@ uninstall-crds: manifests kustomize
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ---------------------------------------------------------------------------
 deploy: manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	cp -R config/ $(BUILD_CONFIG)
+	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
+	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
 
 # ---------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ---------------------------------------------------------------------------
 undeploy: manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${OPERATOR_IMAGE}
-	$(KUSTOMIZE) build config/default | kubectl delete -f -
-
-# ---------------------------------------------------------------------------
-# This step will run the Operator SDK code generators.
-# These commands will generate the CRD files from the API structs and will
-# also generate the Go DeepCopy code for the API structs.
-# This step would require running if any of the structs in the files under
-# the pkg/apis directory have been changed.
-# ---------------------------------------------------------------------------
+	cp -R config/ $(BUILD_CONFIG)
+	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
+	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl delete -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: $(BUILD_PROPS) controller-gen
 	@echo "Generating CRD"
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" output:crd:artifacts:config=config/crd/bases
-#	@echo "Generating CRD Doc"
+	@echo "Generating CRD Doc"
 	$(MAKE) api-doc-gen
 
 # Generate the data.json file used by the Operator for default configuration values
