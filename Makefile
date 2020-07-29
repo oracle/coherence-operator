@@ -30,8 +30,6 @@ endif
 CERTIFICATION_VERSION ?= $(VERSION_FULL)
 
 # A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
-# These must be released versions as their released Helm charts will be downloaded prior to
-# running the compatibility tests.
 COMPATIBLE_VERSIONS = 3.0.0
 
 # Capture the Git commit to add to the build information
@@ -168,8 +166,6 @@ override BUILD_BIN         := ./bin
 override BUILD_CONFIG      := $(BUILD_OUTPUT)/config
 override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
-override CHART_DIR         := $(BUILD_OUTPUT)/helm-charts
-override PREV_CHART_DIR    := $(BUILD_OUTPUT)/previous-charts
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -181,31 +177,9 @@ endif
 
 GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
-COP_CHARTS   = $(shell find helm-charts/coherence-operator -type f)
 CRD_VERSION  ?= "v1"
 
-TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
-TEST_MANIFEST_FILE        := test-manifest.yaml
-TEST_LOCAL_MANIFEST_FILE  := local-manifest.yaml
-TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
-TEST_SSL_SECRET           := coherence-ssl-secret
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Do a search and replace of properties in selected files in the Helm charts
-# This is done because the Helm charts can be large and processing every file
-# makes the build slower
-# ----------------------------------------------------------------------------------------------------------------------
-define replaceprop
-	for i in $(1); do \
-		filename="$(CHART_DIR)/$${i}"; \
-		echo "Replacing properties in file $${filename}"; \
-		if [ -f $${filename} ]; then \
-			temp_file=$(BUILD_OUTPUT)/temp.out; \
-			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
-			mv $${temp_file} $${filename}; \
-		fi \
-	done
-endef
+TEST_SSL_SECRET := coherence-ssl-secret
 
 .PHONY: all
 all: build-all-images
@@ -220,8 +194,6 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_BIN)
 	@mkdir -p $(BUILD_ASSETS)
 	@mkdir -p $(TEST_LOGS_DIR)
-	@mkdir -p $(CHART_DIR)
-	@mkdir -p $(PREV_CHART_DIR)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -231,7 +203,7 @@ $(BUILD_PROPS):
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Builds the project, helm charts and Docker image
+# Builds the Operator
 # ----------------------------------------------------------------------------------------------------------------------
 build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
 	@echo "Building Operator image"
@@ -306,25 +278,6 @@ $(BUILD_BIN)/op-test: $(GOS) $(OPTESTGOS)
 	go build -o $(BUILD_BIN)/op-test ./cmd/optest
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Build the Coherence operator Helm chart and package it into a tar.gz
-# ----------------------------------------------------------------------------------------------------------------------
-$(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
-	# Copy the Helm charts from their source location to the distribution folder
-	@echo "Copying Operator chart to $(CHART_DIR)/coherence-operator"
-	cp -R ./helm-charts/coherence-operator $(CHART_DIR)
-	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
-	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	echo "Creating Helm chart package $(CHART_DIR)/coherence-operator"
-	helm lint $(CHART_DIR)/coherence-operator
-	tar -C $(CHART_DIR)/coherence-operator -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz .
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Helm chart and package it into a tar.gz
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: helm-chart
-helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-operator
@@ -366,24 +319,26 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds
 # deployed to k8s). These tests will use whichever k8s cluster the
 # local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: e2e-test
-e2e-test: export CGO_ENABLED = 0
-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-e2e-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
-e2e-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-e2e-test: export VERSION_FULL := $(VERSION_FULL)
-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotestsum
+e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds deploy
+	$(MAKE) $(MAKEFLAGS) run-e2e-test \
+	; rc=$$? \
+	; $(MAKE) $(MAKEFLAGS) undeploy \
+	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; exit $$rc
+
+run-e2e-test: export CGO_ENABLED = 0
+run-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+run-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+run-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+run-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+run-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+run-e2e-test: export VERSION_FULL := $(VERSION_FULL)
+run-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-e2e-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
@@ -401,8 +356,6 @@ e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotes
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-run-prometheus-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
-run-prometheus-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-prometheus-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-prometheus-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -414,7 +367,7 @@ run-prometheus-test: export VERSION_FULL := $(VERSION_FULL)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-prometheus-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-prometheus-test: build-operator create-ssl-secrets operator-manifest gotestsum
+run-prometheus-test: build-operator create-ssl-secrets gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
@@ -441,8 +394,6 @@ e2e-prometheus-test: reset-namespace install-prometheus
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-run-elastic-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
-run-elastic-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-elastic-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -455,7 +406,7 @@ run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-elastic-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
-run-elastic-test: build-operator create-ssl-secrets operator-manifest gotestsum
+run-elastic-test: build-operator create-ssl-secrets gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
@@ -468,36 +419,10 @@ e2e-elastic-test: reset-namespace install-elastic
 	; $(MAKE) $(MAKEFLAGS) delete-namespace \
 	; exit $$rc
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end Operator Helm chart tests.
-# These tests will use whichever k8s cluster the local environment is pointing to.
-# Note that the namespace will be created if it does not exist.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: helm-test
-helm-test: export CGO_ENABLED = 0
-helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-helm-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-helm-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-helm-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-helm-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-helm-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-helm-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-helm-test: export VERSION_FULL := $(VERSION_FULL)
-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-helm-test: build-operator reset-namespace create-ssl-secrets gotestsum
-	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-helm-test.out
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Compatibility tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: helm-test
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -517,24 +442,6 @@ compatibility-test: build-operator clean-namespace reset-namespace create-ssl-se
 	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.out
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Obtain the previous versions of the Operator Helm chart that will be used
-# torun compatibiity tests.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: get-previous
-get-previous: $(BUILD_PROPS)
-	for i in $(COMPATIBLE_VERSIONS); do \
-      FILE=$(PREV_CHART_DIR)/coherence-operator-$${i}.tgz; \
-      DIR=$(PREV_CHART_DIR)/coherence-operator-$${i}; \
-      if [ ! -f "$${FILE}" ]; then \
-	    echo "Downloading Operator Helm chart version $${i} to file $${FILE}"; \
-	    curl -X GET https://oracle.github.io/coherence-operator/charts/coherence-operator-$${i}.tgz -o $${FILE}; \
-      fi; \
-	  echo "Unpacking Operator Helm chart version $${i} to $${DIR}"; \
-      rm -rf $${DIR}; \
-      mkdir $${DIR}; \
-      tar -C $${DIR} -xzf $${FILE}; \
-    done
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -574,11 +481,11 @@ install-certification: export VERSION_FULL := $(VERSION_FULL)
 install-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
 install-certification: build-operator reset-namespace create-ssl-secrets
 ifeq ("$(CERTIFICATION_VERSION)","$(VERSION_FULL)")
-	helm install --atomic --namespace $(TEST_NAMESPACE) --wait operator $(CHART_DIR)/coherence-operator
-else
-	helm repo add coherence https://oracle.github.io/coherence-operator/charts || true
-	helm repo update || true
-	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version $(CERTIFICATION_VERSION) operator ./helm-charts/coherence-operator
+	$(MAKE) deploy
+#else
+#	helm repo add coherence https://oracle.github.io/coherence-operator/charts || true
+#	helm repo update || true
+#	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version $(CERTIFICATION_VERSION) operator ./helm-charts/coherence-operator
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -613,7 +520,7 @@ run-certification: gotestsum
 .PHONY: cleanup-certification
 cleanup-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 cleanup-certification:
-	helm delete --namespace $(TEST_NAMESPACE) operator || true
+	$(MAKE) deploy
 	$(MAKE) uninstall-crds
 	$(MAKE) delete-namespace
 
@@ -803,20 +710,6 @@ clean:
 	rm -f bin/*
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Create the k8s yaml manifest that will be used by the Operator SDK to
-# install the Operator when running e2e tests.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: operator-manifest
-operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
-operator-manifest: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_MANIFEST_FILE)
-operator-manifest: export TEST_LOCAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
-operator-manifest: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
-operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
-	@mkdir -p $(TEST_MANIFEST_DIR)
-	go run ./cmd/manifestutil/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
@@ -1119,25 +1012,6 @@ kind-load:
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Install the Operator Helm chart.
-# This step will use whatever Kubeconfig the current environment is
-# configured to use.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: operator-helm-install
-operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets
-	helm install --name operator --namespace $(TEST_NAMESPACE) $(CHART_DIR)/coherence-operator
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Uninstall the Operator Helm chart.
-# This step will use whatever Kubeconfig the current environment is
-# configured to use.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: operator-helm-delete
-operator-helm-delete:
-	helm delete --purge operator || true
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-prometheus
@@ -1285,8 +1159,6 @@ copyright:
 	  -X go.mod \
 	  -X go.sum \
 	  -X HEADER.txt \
-	  -X helm-charts/coherence-operator/charts/prometheus-operator/ \
-	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
 	  -X java/src/copyright/EXCLUDE.txt \
 	  -X Jenkinsfile \
@@ -1343,8 +1215,7 @@ serve-docs:
 	python -m SimpleHTTPServer 8080
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator documentation and Helm chart to the
-# gh-pages branch.
+# Release the Coherence Operator dashboards
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-dashboards
 release-dashboards:
@@ -1361,11 +1232,10 @@ release-dashboards:
 	mv $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/ dashboards/
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator documentation and Helm chart to the
-# gh-pages branch.
+# Release the Coherence Operator to the gh-pages branch.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
-release-ghpages: helm-chart docs
+release-ghpages:  docs
 	@echo "Releasing Dashboards $(VERSION_FULL)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/coherence-dashboards.tar.gz  dashboards/
@@ -1384,7 +1254,6 @@ release-ghpages: helm-chart docs
 	rm -rf dashboards/$(VERSION_FULL) || true
 	mv $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/ dashboards/
 	git add dashboards/$(VERSION_FULL)/*
-	@echo "Releasing Helm chart $(VERSION_FULL)"
 ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	rm -rf docs-unstable/$(VERSION_FULL)/ || true
@@ -1392,35 +1261,23 @@ ifeq (true, $(PRE_RELEASE))
 	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
-	mkdir -p charts-unstable || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts-unstable/
-	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
-	ls -ls charts-unstable
-
 	git status
 	git add docs-unstable/*
-	git add charts-unstable/*
 else
 	mkdir docs/$(VERSION_FULL) || true
 	rm -rf docs/$(VERSION_FULL)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION_FULL)/
 	ls -ls docs
 
-	mkdir -p charts || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz charts/
-	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
-	ls -ls charts
-
 	git status
 	git add docs/*
-	git add charts/*
 endif
 	git clean -d -f
 	git status
-	git commit -m "adding Coherence Operator docs and helm chart version: $(VERSION_FULL)"
+	git commit -m "adding Coherence Operator docs version: $(VERSION_FULL)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed docs and Helm chart $(VERSION_FULL) to gh-pages"
+	@echo "release dry-run - would have pushed docs $(VERSION_FULL) to gh-pages"
 else
 	git push origin gh-pages
 endif

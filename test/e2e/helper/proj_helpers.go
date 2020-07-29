@@ -30,9 +30,6 @@ const (
 	TestNamespaceEnv       = "TEST_NAMESPACE"
 	TestOpNamespaceEnv     = "TEST_OPERATOR_NAMESPACE"
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
-	TestManifestEnv        = "TEST_MANIFEST"
-	TestLocalManifestEnv   = "TEST_LOCAL_MANIFEST"
-	TestGlobalManifestEnv  = "TEST_GLOBAL_MANIFEST"
 	TestSslSecretEnv       = "TEST_SSL_SECRET"
 	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv    = "COHERENCE_VERSION"
@@ -77,42 +74,6 @@ func GetPrometheusNamespace() string {
 		ns = GetTestNamespace()
 	}
 	return ns
-}
-
-func GetTestManifestFileName() (string, error) {
-	man := os.Getenv(TestManifestEnv)
-	if man == "" {
-		dir, err := FindTestManifestDir()
-		if err != nil {
-			return "", err
-		}
-		man = dir + string(os.PathSeparator) + "test-manifest.yaml"
-	}
-	return man, nil
-}
-
-func GetTestLocalManifestFileName() (string, error) {
-	man := os.Getenv(TestLocalManifestEnv)
-	if man == "" {
-		dir, err := FindTestManifestDir()
-		if err != nil {
-			return "", err
-		}
-		man = dir + string(os.PathSeparator) + "local-manifest.yaml"
-	}
-	return man, nil
-}
-
-func GetTestGlobalManifestFileName() (string, error) {
-	man := os.Getenv(TestGlobalManifestEnv)
-	if man == "" {
-		dir, err := FindTestManifestDir()
-		if err != nil {
-			return "", err
-		}
-		man = dir + string(os.PathSeparator) + "global-manifest.yaml"
-	}
-	return man, nil
 }
 
 func GetOperatorVersion() string {

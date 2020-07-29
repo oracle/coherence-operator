@@ -13,7 +13,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubectl/pkg/scheme"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -25,7 +25,10 @@ func TestSerializeResources(t *testing.T) {
 		Name:      "foo",
 	}
 
-	_ = v1.AddToScheme(scheme.Scheme)
+	scheme := apiruntime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+	_ = appsv1.AddToScheme(scheme)
+	_ = v1.AddToScheme(scheme)
 
 	resources := []v1.Resource{
 		{
@@ -57,7 +60,7 @@ func TestSerializeResources(t *testing.T) {
 
 	for _, resource := range resources {
 		t.Run(resource.Kind.Name(), func(t *testing.T) {
-			AssertResourcesRoundTrip(t, v1.Resources{Version: 1, Items: []v1.Resource{resource}})
+			AssertResourcesRoundTrip(t, scheme, v1.Resources{Version: 1, Items: []v1.Resource{resource}})
 		})
 	}
 }
@@ -68,7 +71,10 @@ func TestSerializeMultipleResources(t *testing.T) {
 		Name:      "foo",
 	}
 
-	_ = v1.AddToScheme(scheme.Scheme)
+	scheme := apiruntime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+	_ = appsv1.AddToScheme(scheme)
+	_ = v1.AddToScheme(scheme)
 
 	resources := []v1.Resource{
 		{
@@ -98,14 +104,14 @@ func TestSerializeMultipleResources(t *testing.T) {
 		},
 	}
 
-	AssertResourcesRoundTrip(t, v1.Resources{Version: 1, Items: resources})
+	AssertResourcesRoundTrip(t, nil, v1.Resources{Version: 1, Items: resources})
 }
 
-func AssertResourcesRoundTrip(t *testing.T, in v1.Resources) {
+func AssertResourcesRoundTrip(t *testing.T, scheme *apiruntime.Scheme, in v1.Resources) {
 	g := NewGomegaWithT(t)
 	result := v1.Resources{}
 
-	in.EnsureGVK(scheme.Scheme)
+	in.EnsureGVK(scheme)
 
 	b, err := json.Marshal(in)
 	g.Expect(err).NotTo(HaveOccurred())

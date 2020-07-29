@@ -22,21 +22,6 @@ spec:
           - configMapRef:
               name: env-vars
               optional: true
-#        env:
-#          - name: COHERENCE_IMAGE
-#            valueFrom:
-#              configMapKeyRef:
-#                key: coherenceImage
-#                name: env-vars
-#                optional: true
-#          - name: UTILS_IMAGE
-#            valueFrom:
-#              configMapKeyRef:
-#                key: utilsImage
-#                name: env-vars
-#                optional: true
-#          - name: WATCH_NAMESPACE
-#            value: "$(WATCH_NAMESPACE)"
         args:
         - --enable-leader-election
         image: controller:latest
