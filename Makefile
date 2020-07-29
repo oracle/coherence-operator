@@ -437,7 +437,7 @@ compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets get-previous gotestsum
+compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.out
@@ -1302,7 +1302,6 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
 release:
-
 ifeq (true, $(RELEASE_DRY_RUN))
 release: build-all-images release-tag release-ghpages
 	@echo "release dry-run: would have pushed images"

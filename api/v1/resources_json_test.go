@@ -104,11 +104,14 @@ func TestSerializeMultipleResources(t *testing.T) {
 		},
 	}
 
-	AssertResourcesRoundTrip(t, nil, v1.Resources{Version: 1, Items: resources})
+	AssertResourcesRoundTrip(t, scheme, v1.Resources{Version: 1, Items: resources})
 }
 
 func AssertResourcesRoundTrip(t *testing.T, scheme *apiruntime.Scheme, in v1.Resources) {
 	g := NewGomegaWithT(t)
+
+	g.Expect(scheme).NotTo(BeNil())
+
 	result := v1.Resources{}
 
 	in.EnsureGVK(scheme)
