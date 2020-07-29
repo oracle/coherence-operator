@@ -20,11 +20,6 @@ import (
 
 // Test that a cluster can be created using the specified yaml.
 func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
-	return AssertDeploymentsWithContext(t, yamlFile)
-}
-
-// Test that a cluster can be created using the specified yaml.
-func AssertDeploymentsWithContext(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
 

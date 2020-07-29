@@ -7,6 +7,7 @@
 package local
 
 import (
+	"fmt"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"os"
 	"testing"
@@ -19,8 +20,10 @@ func TestMain(m *testing.M) {
 	var err error
 	
 	if testContext, err = helper.NewContext(true); err != nil {
-		panic(err)
+		fmt.Printf("Error: %+v", err)
+		os.Exit(1)
 	}
+
 	exitCode := m.Run()
 	testContext.Logf("Tests completed with return code %d", exitCode)
 	testContext.Close()

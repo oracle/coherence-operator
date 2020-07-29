@@ -28,7 +28,7 @@ func TestMinimalDeployment(t *testing.T) {
 }
 
 // Test that a deployment works with a replica count of 1
-func TestDeploymentWithOneReplica(t *testing.T) {
+func ZZTestDeploymentWithOneReplica(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-one-replica.yaml")
@@ -36,7 +36,7 @@ func TestDeploymentWithOneReplica(t *testing.T) {
 
 // Test that a deployment works using the a yaml file containing two Coherence
 // specs that have the same cluster name.
-func TestTwoDeploymentsOneCluster(t *testing.T) {
+func ZZTestTwoDeploymentsOneCluster(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-multi.yaml")

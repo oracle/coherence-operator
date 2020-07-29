@@ -58,6 +58,7 @@ type TestContext struct {
 	Manager    ctrl.Manager
 	Logger     logr.Logger
 	testEnv    *envtest.Environment
+	stop       chan struct{}
 }
 
 func (in TestContext) Logf(format string, a ...interface{}) {
@@ -65,28 +66,30 @@ func (in TestContext) Logf(format string, a ...interface{}) {
 }
 
 func (in TestContext) CleanupAfterTest(t *testing.T) {
-	fn := func() {
+	t.Cleanup(func() {
 		DumpOperatorLogs(t, in)
 		in.Cleanup()
-	}
-	t.Cleanup(fn)
+	})
 }
 
 func (in TestContext) Cleanup() {
 	in.Logger.Info("tearing down the test environment")
 	ns := GetTestNamespace()
 	if err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns)); err != nil {
-		in.Logger.Info("error tearing down the test environment: " + err.Error())
+		in.Logf("error tearing down the test environment: %+v", err)
 	}
 	if err := WaitForCoherenceCleanup(in, ns); err != nil {
-		in.Logger.Info("error wating for cleanup to complete: " + err.Error())
+		in.Logf("error wating for cleanup to complete: %+v", err)
 	}
 }
 
 func (in TestContext) Close() {
 	in.Cleanup()
+	if in.stop != nil {
+		close(in.stop)
+	}
 	if err := in.testEnv.Stop(); err != nil {
-		in.Logger.Info("error stopping test environment: " + err.Error())
+		in.Logf("error stopping test environment: %+v", err)
 	}
 }
 
@@ -103,6 +106,7 @@ func NewContext(startManager bool) (TestContext, error) {
 	testEnv := &envtest.Environment{
 		UseExistingCluster:       &useCluster,
 		AttachControlPlaneOutput: true,
+		CRDs:                     []runtime.Object{},
 	}
 
 	var err error
@@ -120,9 +124,16 @@ func NewContext(startManager bool) (TestContext, error) {
 		return TestContext{}, err
 	}
 
-	testEnv.CRDs = []runtime.Object{}
-
 	k8sManager, err := ctrl.NewManager(k8sCfg, ctrl.Options{Scheme: scheme.Scheme})
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	k8sClient := k8sManager.GetClient()
+	kubeClient, err := kubernetes.NewForConfig(k8sCfg)
+
+	// Ensure CRDs exist
+	err = coh.EnsureCRDs(k8sCfg)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -136,21 +147,16 @@ func NewContext(startManager bool) (TestContext, error) {
 		return TestContext{}, err
 	}
 
-	if startManager {
-		// Ensure CRDs exist
-		err = coh.EnsureCRDs(k8sCfg)
-		if err != nil {
-			return TestContext{}, err
-		}
+	var stop chan struct{}
 
+	if startManager {
 		// Start the manager, which will start the controller
+		stop = make(chan struct{})
 		go func() {
-			err = k8sManager.Start(ctrl.SetupSignalHandler())
+			err = k8sManager.Start(stop)
 		}()
 	}
 
-	k8sClient := k8sManager.GetClient()
-	kubeClient, err := kubernetes.NewForConfig(k8sCfg)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -159,9 +165,10 @@ func NewContext(startManager bool) (TestContext, error) {
 		Config:     k8sCfg,
 		Client:     k8sClient,
 		KubeClient: kubeClient,
-		testEnv:    testEnv,
 		Manager:    k8sManager,
 		Logger:     testLogger.WithName("test"),
+		testEnv:    testEnv,
+		stop:       stop,
 	}, nil
 }
 
@@ -496,7 +503,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 			}
 			return true, nil
 		} else {
-			ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%v", err.Error(), err)
+			ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%+v", err.Error(), err)
 			return false, nil
 		}
 	})

@@ -1,11 +1,11 @@
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Copyright (c) 2019, 2020, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # This is the Makefile to build the Coherence Kubernetes Operator.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 3.1.0
@@ -170,7 +170,6 @@ override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
 override CHART_DIR         := $(BUILD_OUTPUT)/helm-charts
 override PREV_CHART_DIR    := $(BUILD_OUTPUT)/previous-charts
-override CRD_DIR           := deploy/crds
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -183,7 +182,6 @@ endif
 GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
 COP_CHARTS   = $(shell find helm-charts/coherence-operator -type f)
-DEPLOYS      = $(shell find deploy -type f -name "*.yaml")
 CRD_VERSION  ?= "v1"
 
 TEST_MANIFEST_DIR         := $(BUILD_OUTPUT)/manifest
@@ -192,11 +190,11 @@ TEST_LOCAL_MANIFEST_FILE  := local-manifest.yaml
 TEST_GLOBAL_MANIFEST_FILE := global-manifest.yaml
 TEST_SSL_SECRET           := coherence-ssl-secret
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts
 # This is done because the Helm charts can be large and processing every file
 # makes the build slower
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 define replaceprop
 	for i in $(1); do \
 		filename="$(CHART_DIR)/$${i}"; \
@@ -212,9 +210,9 @@ endef
 .PHONY: all
 all: build-all-images
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_PROPS):
 	# Ensures that build output directories exist
 	@echo "Creating build directories"
@@ -232,9 +230,9 @@ $(BUILD_PROPS):
 	VERSION_FULL=$(VERSION_FULL)\n\
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Builds the project, helm charts and Docker image
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
 	@echo "Building Operator image"
 	docker build --build-arg version=$(VERSION_FULL) \
@@ -242,31 +240,31 @@ build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		. -t $(OPERATOR_IMAGE)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/manager: generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$BuildInfo -a -o $(BUILD_OUTPUT)/manager main.go
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the operator binary
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 manager: generate manifests
 	@echo "Building the Operator"
 	go build -o bin/manager -ldflags -X=main.BuildInfo=$(BUILD_INFO) main.go
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: ensure-sdk
 ensure-sdk:
 	@echo "Ensuring Operator SDK is present"
 	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator runner artifacts utility
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-runner-artifacts
 build-runner-artifacts: $(BUILD_BIN)/runner
 
@@ -274,19 +272,19 @@ $(BUILD_BIN)/runner: export CGO_ENABLED = 0
 $(BUILD_BIN)/runner: export GOARCH = $(ARCH)
 $(BUILD_BIN)/runner: export GOOS = $(OS)
 $(BUILD_BIN)/runner: export GO111MODULE = on
-$(BUILD_BIN)/runner: $(GOS) $(DEPLOYS)
+$(BUILD_BIN)/runner: $(GOS)
 	@echo "Building Operator Runner"
 	go build -ldflags -X=main.BuildInfo=$(BUILD_INFO) -o $(BUILD_BIN)/runner ./cmd/runner
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator legacy converter
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: converter
 converter: export CGO_ENABLED = 0
 converter: export GOARCH = $(ARCH)
 converter: export GOOS = $(OS)
 converter: export GO111MODULE = on
-converter: $(GOS) $(DEPLOYS)
+converter: $(GOS)
 converter:
 	@echo "Building v2 -> v3 Converter"
 	go build -o $(BUILD_BIN)/converter ./cmd/converter
@@ -294,9 +292,9 @@ converter:
 	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./cmd/converter
 	GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./cmd/converter
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator test utility
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-op-test
 build-op-test: $(BUILD_BIN)/op-test
 
@@ -304,12 +302,12 @@ $(BUILD_BIN)/op-test: export CGO_ENABLED = 0
 $(BUILD_BIN)/op-test: export GOARCH = $(ARCH)
 $(BUILD_BIN)/op-test: export GOOS = $(OS)
 $(BUILD_BIN)/op-test: export GO111MODULE = on
-$(BUILD_BIN)/op-test: $(GOS) $(DEPLOYS) $(OPTESTGOS)
+$(BUILD_BIN)/op-test: $(GOS) $(OPTESTGOS)
 	go build -o $(BUILD_BIN)/op-test ./cmd/optest
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS)
 	# Copy the Helm charts from their source location to the distribution folder
 	@echo "Copying Operator chart to $(CHART_DIR)/coherence-operator"
@@ -320,15 +318,15 @@ $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS
 	helm lint $(CHART_DIR)/coherence-operator
 	tar -C $(CHART_DIR)/coherence-operator -czf $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz .
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Helm chart and package it into a tar.gz
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: helm-chart
 helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
@@ -337,12 +335,12 @@ test-operator: build-operator gotestsum
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/...
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a LOCAL operator instance (i.e. the operator is not deployed to k8s).
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -362,12 +360,12 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a DEPLOYED operator instance (i.e. the operator Docker image is
 # deployed to k8s). These tests will use whichever k8s cluster the
 # local environment is pointing to.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
 e2e-test: export CGO_ENABLED = 0
 e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -390,7 +388,7 @@ e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotes
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/... \
 	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Prometheus in the k8s cluster
 # using a LOCAL operator instance (i.e. the operator is not deployed to k8s).
 #
@@ -399,7 +397,7 @@ e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotes
 #
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -416,18 +414,10 @@ run-prometheus-test: export VERSION_FULL := $(VERSION_FULL)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-prometheus-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-prometheus-test: build-operator create-ssl-secrets operator-manifest
-	@echo "executing Prometheus end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/prometheus \
-		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
-		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
-		--namespaced-manifest=$(TEST_MANIFEST) \
-		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
-	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-prometheus-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml
+run-prometheus-test: build-operator create-ssl-secrets operator-manifest gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
 
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: reset-namespace install-prometheus
@@ -438,7 +428,7 @@ e2e-prometheus-test: reset-namespace install-prometheus
 	; exit $$rc
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Elasticsearch in the k8s cluster
 # using a LOCAL operator instance (i.e. the operator is not deployed to k8s).
 #
@@ -447,7 +437,7 @@ e2e-prometheus-test: reset-namespace install-prometheus
 #
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -465,18 +455,10 @@ run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-elastic-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
-run-elastic-test: build-operator create-ssl-secrets operator-manifest
-	@echo "executing Elasticsearch end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/elastic \
-		--operator-namespace $(TEST_NAMESPACE) --watch-namespace  $(TEST_NAMESPACE)\
-		--up-local --verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--local-operator-flags "--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
-		--namespaced-manifest=$(TEST_MANIFEST) \
-		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
-	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-elastic-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml
+run-elastic-test: build-operator create-ssl-secrets operator-manifest gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
 
 .PHONY: e2e-elastic-test
 e2e-elastic-test: reset-namespace install-elastic
@@ -487,11 +469,11 @@ e2e-elastic-test: reset-namespace install-elastic
 	; exit $$rc
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Helm chart tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # Note that the namespace will be created if it does not exist.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: helm-test
 helm-test: export CGO_ENABLED = 0
 helm-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -506,21 +488,15 @@ helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 helm-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-helm-test: build-operator reset-namespace create-ssl-secrets
-	@echo "executing Operator Helm Chart end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/helm --operator-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-helm-test.out
-	$(MAKE) uninstall-crds
-	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-helm-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-e2e-helm-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml
+helm-test: build-operator reset-namespace create-ssl-secrets gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-helm-test.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Compatibility tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: helm-test
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -536,21 +512,15 @@ compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets get-previous
-	@echo "executing Operator compatibility tests"
-	$(OPERATOR_SDK) test local ./test/e2e/compatibility --operator-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-compatibility-test.out
-	$(MAKE) uninstall-crds
-	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -suite-name-prefix=compatibility-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-compatibility-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-compatibility-test.xml
+compatibility-test: build-operator clean-namespace reset-namespace create-ssl-secrets get-previous gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Obtain the previous versions of the Operator Helm chart that will be used
 # torun compatibiity tests.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-previous
 get-previous: $(BUILD_PROPS)
 	for i in $(COMPATIBLE_VERSIONS); do \
@@ -566,11 +536,11 @@ get-previous: $(BUILD_PROPS)
       tar -C $${DIR} -xzf $${FILE}; \
     done
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # Note that the namespace will be created if it does not exist.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
 certification-test: export CGO_ENABLED = 0
 certification-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -594,9 +564,9 @@ certification-test: install-certification
 	; exit $$rc
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Install the Operator prior to running compatability tests.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
 install-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 install-certification: export VERSION := $(VERSION)
@@ -611,11 +581,11 @@ else
 	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version $(CERTIFICATION_VERSION) operator ./helm-charts/coherence-operator
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # Note that the namespace will be created if it does not exist.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-certification
 run-certification: export CGO_ENABLED = 0
 run-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -632,18 +602,14 @@ run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-certification: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-certification: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-run-certification:
-	@echo "Executing Operator certification tests"
-	$(OPERATOR_SDK) test local ./test/certification --operator-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-certification-test.out
-	go run ./cmd/testreports/ -fail -suite-name-prefix=certification-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-certification-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-certification-test.xml
+run-certification: gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-certification-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-certification-test.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Clean up after to running compatability tests.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
 cleanup-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 cleanup-certification:
@@ -652,11 +618,11 @@ cleanup-certification:
 	$(MAKE) delete-namespace
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
 install-crds: uninstall-crds manifests kustomize
 	@echo "Installing CRDs $(CRD_VERSION)"
@@ -666,18 +632,18 @@ else
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: manifests kustomize
 	$(KUSTOMIZE) build config/crd | kubectl delete -f - || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 deploy: manifests kustomize
 	cp -R config/ $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
@@ -685,9 +651,9 @@ deploy: manifests kustomize
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 undeploy: manifests kustomize
 	cp -R config/ $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
@@ -695,14 +661,18 @@ undeploy: manifests kustomize
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl delete -f -
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate manifests e.g. CRD, RBAC etc.
+# ----------------------------------------------------------------------------------------------------------------------
 manifests: $(BUILD_PROPS) controller-gen
 	@echo "Generating CRD"
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" output:crd:artifacts:config=config/crd/bases
 	@echo "Generating CRD Doc"
 	$(MAKE) api-doc-gen
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate the data.json file used by the Operator for default configuration values
+# ----------------------------------------------------------------------------------------------------------------------
 generate-config:  $(BUILD_PROPS)
 	@echo "Generating Operator config"
 	@printf "{\n\
@@ -716,7 +686,10 @@ generate-config:  $(BUILD_PROPS)
 	fi
 	rm config/operator/new-data.json \
 
-generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate code, configuration and docs.
+# ----------------------------------------------------------------------------------------------------------------------
+generate: $(BUILD_PROPS) controller-gen kustomize
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 #   We only regenerate the embedded data if there are local changes to the generated CRD or config files
@@ -730,19 +703,20 @@ generate: $(BUILD_PROPS) controller-gen kustomize openapi-gen
 	  go run ./pkg/generate/assets_generate.go ; \
 	fi
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Runs the manifests and code generation targets and ensure that there are
 # no code changes afterwards. If there are someone has changed and pushed
 # code without running the manifests or generate targets before committing.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 verify-no-changes: manifests generate
 	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	git diff-index HEAD -- ./api ./config ./pkg
 	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
 
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
-# download controller-gen if necessary
+# ----------------------------------------------------------------------------------------------------------------------
 controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
@@ -758,25 +732,9 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
-# find or download openapi-gen
-# download openapi-gen if necessary
-openapi-gen:
-ifeq (, $(shell which openapi-gen))
-	@{ \
-	set -e ;\
-	OPENAPI_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$OPENAPI_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get k8s.io/kube-openapi/cmd/openapi-gen ;\
-	rm -rf $$OPENAPI_GEN_TMP_DIR ;\
-	}
-OPENAPI_GEN=$(GOBIN)/openapi-gen
-else
-OPENAPI_GEN=$(shell which openapi-gen)
-endif
-
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
-# download kustomize if necessary
+# ----------------------------------------------------------------------------------------------------------------------
 kustomize:
 ifeq (, $(shell which kustomize))
 	@{ \
@@ -792,7 +750,9 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
+# ----------------------------------------------------------------------------------------------------------------------
 gotestsum:
 ifeq (, $(shell which gotestsum))
 	@{ \
@@ -808,36 +768,23 @@ else
 GOTESTSUM=$(shell which gotestsum)
 endif
 
-# find or download go-bindata
-# download go-bindata if necessary
-gobindata:
-	@{ \
-	set -e ;\
-	GOBINDATA_TMP_DIR=$$(mktemp -d) ;\
-	cd $$GOBINDATA_TMP_DIR ;\
-	go mod init tmp ;\
-	go get -u github.com/shuLhan/go-bindata/... ;\
-	rm -rf $$GOBINDATA_TMP_DIR ;\
-	}
-GOBINDATA=$(GOBIN)/go-bindata
-
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 bundle: manifests
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the bundle image.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate API docs
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: api-doc-gen
 api-doc-gen:
 	go run ./cmd/docgen/ \
@@ -846,9 +793,9 @@ api-doc-gen:
 		api/v1/coherenceresource_types.go \
 		> docs/about/04_coherence_spec.adoc
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Clean-up all of the build artifacts
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean
 clean:
 	rm -rf build/_output
@@ -856,10 +803,10 @@ clean:
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Create the k8s yaml manifest that will be used by the Operator SDK to
 # install the Operator when running e2e tests.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: operator-manifest
 operator-manifest: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 operator-manifest: export TEST_MANIFEST_DIR := $(TEST_MANIFEST_DIR)
@@ -870,16 +817,16 @@ operator-manifest: $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 	@mkdir -p $(TEST_MANIFEST_DIR)
 	go run ./cmd/manifestutil/
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/certs:
 	@echo "Generating test keys and certs"
 	./hack/keys.sh
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: reset-namespace
 reset-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
 reset-namespace: export DOCKER_SERVER := $(DOCKER_SERVER)
@@ -911,9 +858,9 @@ ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
 								--docker-email "docker@dummy.com"
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Delete the test namespace
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-namespace
 delete-namespace: clean-namespace
 ifeq ($(CREATE_TEST_NAMESPACE),true)
@@ -924,9 +871,9 @@ endif
 	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Delete all resource from the test namespace
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters
 	for i in $$(kubectl -n $(TEST_NAMESPACE) get all -o name); do \
@@ -934,9 +881,9 @@ clean-namespace: delete-coherence-clusters
 		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
 	done
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: create-ssl-secrets
 create-ssl-secrets: $(BUILD_OUTPUT)/certs
 	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
@@ -953,43 +900,43 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator.crt=build/_output/certs/icarus.crt \
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
 	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: build-mvn
 	mvn $(USE_MAVEN_SETTINGS) -B -f java verify
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples package -DskipTests
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples verify
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-all
 test-all: test-mvn test-operator
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-operator-image
 push-operator-image: build-operator
 ifeq ($(OPERATOR_RELEASE_IMAGE), $(OPERATOR_IMAGE))
@@ -1002,18 +949,18 @@ else
 	docker push $(OPERATOR_RELEASE_IMAGE)
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Utils Docker image
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-utils-image
 build-utils-image: build-mvn build-runner-artifacts build-op-test
 	cp $(BUILD_BIN)/op-test java/coherence-utils/target/docker/op-test
 	cp $(BUILD_BIN)/runner  java/coherence-utils/target/docker/runner
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Utils Docker image
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-utils-image
 push-utils-image:
 ifeq ($(UTILS_RELEASE_IMAGE), $(UTILS_IMAGE))
@@ -1026,65 +973,65 @@ else
 	docker push $(UTILS_RELEASE_IMAGE)
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator JIB Test image
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-jib-image
 build-jib-image: build-mvn
 	mvn $(USE_MAVEN_SETTINGS) -B -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-jib-image
 push-jib-image:
 	@echo "Pushing $(TEST_APPLICATION_IMAGE)"
 	docker push $(TEST_APPLICATION_IMAGE)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
 build-all-images: build-operator build-utils-image build-jib-image
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
 push-all-images: push-operator-image push-utils-image push-jib-image
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images that are released
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
 push-release-images: push-operator-image push-utils-image
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build everything
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all
 build-all: build-mvn build-operator
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally.
 #
 # To exit out of the local Operator you can use ctrl-c or ctrl-z but
 # sometimes this leaves orphaned processes on the local machine so
 # ensure these are killed run "make debug-stop"
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run:
 	go run -ldflags='-X=main.BuildInfo=$(BUILD_INFO)' ./main.go \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally after deleting and recreating the test namespace.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-clean
 run-clean: reset-namespace run
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator in locally debug mode,
 # Running this task will start the Operator and pause it until a Delve
 # is attached.
@@ -1092,7 +1039,7 @@ run-clean: reset-namespace run
 # To exit out of the local Operator you can use ctrl-c or ctrl-z but
 # sometimes this leaves orphaned processes on the local machine so
 # ensure these are killed run "make debug-stop"
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
@@ -1107,24 +1054,23 @@ run-debug:
 	--enable-delve \
 	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally in debug mode after deleting and recreating
 # the test namespace.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-debug-clean
 run-debug-clean: reset-namespace run-debug
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Kill any locally running Operator
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: stop
 stop:
 	./hack/kill-local.sh
 
-
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 kind:
@@ -1132,61 +1078,67 @@ kind:
 	docker pull $(COHERENCE_IMAGE)
 	kind load docker-image --name operator $(COHERENCE_IMAGE)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind 1.12 cluster
-# ---------------------------------------------------------------------------
-.PHONY: kind-12
+# ----------------------------------------------------------------------------------------------------------------------
 kind-12: kind-12-start kind-load
 
-.PHONY: kind-12-start
 kind-12-start:
 	./hack/kind.sh --image "kindest/node:v1.12.10@sha256:faeb82453af2f9373447bb63f50bae02b8020968e0889c7fa308e19b348916cb"
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# Start a Kind 1.16 cluster
+# ----------------------------------------------------------------------------------------------------------------------
+kind-16: kind-16-start kind-load
+
+kind-16-start:
+	./hack/kind.sh --image "kindest/node:v1.16.9@sha256:7175872357bc85847ec4b1aba46ed1d12fa054c83ac7a8a11f5c268957fd5765"
+	docker pull $(COHERENCE_IMAGE) || true
+	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind 1.18 cluster
-# ---------------------------------------------------------------------------
-.PHONY: kind-18
+# ----------------------------------------------------------------------------------------------------------------------
 kind-18: kind-18-start kind-load
 
-.PHONY: kind-18-start
 kind-18-start:
 	./hack/kind.sh --image "kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f"
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
-# ---------------------------------------------------------------------------
-.PHONY: kind-load
+# ----------------------------------------------------------------------------------------------------------------------
 kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Install the Operator Helm chart.
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: operator-helm-install
 operator-helm-install: operator-helm-delete build-operator reset-namespace create-ssl-secrets
 	helm install --name operator --namespace $(TEST_NAMESPACE) $(CHART_DIR)/coherence-operator
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the Operator Helm chart.
 # This step will use whatever Kubeconfig the current environment is
 # configured to use.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: operator-helm-delete
 operator-helm-delete:
 	helm delete --purge operator || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-prometheus
 install-prometheus:
 	kubectl create ns $(TEST_NAMESPACE) || true
@@ -1206,9 +1158,9 @@ install-prometheus:
 	sleep 10
 	kubectl -n $(TEST_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Prometheus
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus:
 	kubectl -n $(TEST_NAMESPACE) delete -f etc/prometheus.yaml || true
@@ -1216,9 +1168,9 @@ uninstall-prometheus:
 	helm --namespace $(TEST_NAMESPACE) delete prometheus || true
 	kubectl delete -f etc/prometheus-rbac.yaml || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Grafana Pod.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-grafana
 port-forward-grafana: export GRAFANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app.kubernetes.io/name=grafana -o name)
 port-forward-grafana:
@@ -1226,9 +1178,9 @@ port-forward-grafana:
 	@echo "User: admin Password: prom-operator"
 	kubectl -n $(TEST_NAMESPACE) port-forward $(GRAFANA_POD) 3000:3000
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Install Elasticsearch & Kibana
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-elastic
 install-elastic: helm-install-elastic kibana-import
 
@@ -1257,27 +1209,27 @@ kibana-import:
 	KIBANA_POD=$$(kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name) \
 	; kubectl -n $(TEST_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-elastic
 uninstall-elastic:
 	helm uninstall --namespace $(TEST_NAMESPACE) kibana || true
 	helm uninstall --namespace $(TEST_NAMESPACE) elasticsearch || true
 	kubectl -n $(TEST_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Kibana Pod.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-kibana
 port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
 port-forward-kibana:
 	@echo "Reach Kibana on http://127.0.0.1:5601"
 	kubectl -n $(TEST_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Elasticsearch Pod.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-es
 port-forward-es: export ES_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=elasticsearch-master -o name)
 port-forward-es:
@@ -1285,35 +1237,35 @@ port-forward-es:
 	kubectl -n $(TEST_NAMESPACE) port-forward $(ES_POD) 9200:9200
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Delete all of the Coherence resources from the test namespace.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters:
 	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherence -o name); do \
 		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
 	done
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Obtain the golangci-lint binary
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_BIN)/golangci-lint:
 	@mkdir -p $(BUILD_BIN)
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.29.0
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint
 	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./cmd/...
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Performs a copyright check.
 # To add exclusions add the file or folder pattern using the -X parameter.
 # Add directories to be scanned at the end of the parameter list.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: copyright
 copyright:
 	@java -cp etc/glassfish-copyright-maven-plugin-2.1.jar \
@@ -1356,9 +1308,9 @@ copyright:
 	  -X pkg/data/zz_generated_assets.go \
 	  -X zz_generated.
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the code review targets.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: code-review
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
@@ -1366,33 +1318,33 @@ code-review: golangci copyright
 	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: version
 version:
 	@echo ${VERSION_FULL}
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the documentation.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
 	mvn $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION_FULL)
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: serve-docs
 serve-docs:
 	@echo "Serving documentation on http://localhost:8080"
 	cd $(BUILD_OUTPUT)/docs; \
 	python -m SimpleHTTPServer 8080
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator documentation and Helm chart to the
 # gh-pages branch.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-dashboards
 release-dashboards:
 	@echo "Releasing Dashboards $(VERSION_FULL)"
@@ -1407,10 +1359,10 @@ release-dashboards:
 	mkdir -p dashboards || true
 	mv $(BUILD_OUTPUT)/dashboards/$(VERSION_FULL)/ dashboards/
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator documentation and Helm chart to the
 # gh-pages branch.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
 release-ghpages: helm-chart docs
 	@echo "Releasing Dashboards $(VERSION_FULL)"
@@ -1473,9 +1425,9 @@ else
 endif
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Tag Git for the release.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-tag
 release-tag:
 ifeq (true, $(RELEASE_DRY_RUN))
@@ -1487,9 +1439,9 @@ else
 	git push origin --tags
 endif
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
 release:
 
@@ -1501,9 +1453,9 @@ release: build-all-images release-tag release-ghpages push-release-images
 endif
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # List all of the targets in the Makefile
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: list
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
