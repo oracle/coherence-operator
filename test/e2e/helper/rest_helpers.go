@@ -9,7 +9,6 @@ package helper
 import (
 	"context"
 	"fmt"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
@@ -18,26 +17,25 @@ import (
 )
 
 // Initialise the canary test in the deployment being scaled.
-func StartCanary(namespace, deploymentName string) error {
-	return canary(namespace, deploymentName, "canaryStart", http.MethodPut)
+func StartCanary(ctx TestContext, namespace, deploymentName string) error {
+	return canary(ctx, namespace, deploymentName, "canaryStart", http.MethodPut)
 }
 
 // Invoke the canary test in the deployment being scaled.
-func CheckCanary(namespace, deploymentName string) error {
-	return canary(namespace, deploymentName, "canaryCheck", http.MethodGet)
+func CheckCanary(ctx TestContext, namespace, deploymentName string) error {
+	return canary(ctx, namespace, deploymentName, "canaryCheck", http.MethodGet)
 }
 
 // Clear the canary test in the deployment being scaled.
-func ClearCanary(namespace, deploymentName string) error {
-	return canary(namespace, deploymentName, "canaryClear", http.MethodPost)
+func ClearCanary(ctx TestContext, namespace, deploymentName string) error {
+	return canary(ctx, namespace, deploymentName, "canaryClear", http.MethodPost)
 }
 
 // Make a canary ReST PUT call to Pod zero of the deployment.
-func canary(namespace, deploymentName, endpoint, method string) error {
+func canary(ctx TestContext, namespace, deploymentName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-0", deploymentName)
-	f := framework.Global
 
-	pod, err := f.KubeClient.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+	pod, err := ctx.KubeClient.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}

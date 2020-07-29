@@ -16,6 +16,9 @@ import (
 )
 
 func ZZTestRollingUpgrade(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
 
 	namespace := helper.GetTestNamespace()

@@ -326,7 +326,6 @@ $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz: $(COP_CHARTS) $(BUILD_PROPS
 .PHONY: helm-chart
 helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSION_FULL).tgz
 
-
 # ---------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
 # ---------------------------------------------------------------------------
@@ -334,14 +333,9 @@ helm-chart: $(COP_CHARTS) $(BUILD_PROPS) $(CHART_DIR)/coherence-operator-$(VERSI
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-#test-operator: build-operator
-test-operator:
+test-operator: build-operator gotestsum
 	@echo "Running operator tests"
-	go test $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/... \
-	2>&1 | tee $(TEST_LOGS_DIR)/operator-test.out
-	go run ./cmd/testreports/ -fail -suite-name-prefix=operator-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-test.xml
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/...
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -352,8 +346,6 @@ test-operator:
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-e2e-local-test: export TEST_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_LOCAL_MANIFEST_FILE)
-e2e-local-test: export TEST_GLOBAL_MANIFEST := $(TEST_MANIFEST_DIR)/$(TEST_GLOBAL_MANIFEST_FILE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -365,54 +357,10 @@ e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-local-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
-	@echo "executing end-to-end tests"
-	go test $(GO_TEST_FLAGS_E2E) ./test/e2e/local/... 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
-	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-local-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-e2e-local-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-e2e-local-test.xml
-
-# ---------------------------------------------------------------------------
-# Run e2e local test in debug mode.
-# This assumes that "make run-debug" has already been run so that a local
-# Operator is running in debug mode and that the k8s namespace has been
-# configured.
-#
-# Typically this step would be run with the GO_TEST_FLAGS variable set to
-# run a specific test. For example to just run the ZoneTest...
-#
-# make debug-e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
-#
-# ...where the -run argument is passed to go test and contains a reg-ex
-# matching the name of the individual test to run.
-#
-# The reg-ex used to identify a test can also be used to run individual
-# sub-tests. For example the status_ha_test.go file has a test called
-# TestStatusHA that has a sub-test called HttpStatusHAHandler.
-# To run this sub-test...
-#
-# make debug-e2e-test GO_TEST_FLAGS_E2E='-run=^TestStatusHA/HttpStatusHAHandler$$'
-#
-# ---------------------------------------------------------------------------
-.PHONY: debug-e2e-local-test
-debug-e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-debug-e2e-local-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-debug-e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-debug-e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-debug-e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-debug-e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-debug-e2e-local-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-debug-e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
-debug-e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-debug-e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-debug-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-debug-e2e-local-test:
-	$(OPERATOR_SDK) test local ./test/e2e/local \
-		--operator-namespace $(TEST_NAMESPACE) --watch-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags \
-		"$(GO_TEST_FLAGS_E2E)" --no-setup
-
+e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -437,66 +385,10 @@ e2e-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-test: build-operator reset-namespace create-ssl-secrets operator-manifest uninstall-crds
-	@echo "executing end-to-end tests"
-	$(OPERATOR_SDK) test local ./test/e2e/remote --operator-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--namespaced-manifest=$(TEST_MANIFEST) \
-		--global-manifest=$(TEST_GLOBAL_MANIFEST) \
-		 2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
-	$(MAKE) delete-namespace
-	go run ./cmd/testreports/ -fail -suite-name-prefix=e2e-test/ \
-	    -input $(TEST_LOGS_DIR)/operator-e2e-test.out \
-	    -output $(TEST_LOGS_DIR)/operator-e2e-test.xml
-
-# ---------------------------------------------------------------------------
-# Run e2e test in debug mode.
-# This assumes that "make run-debug" has already been run so that a local
-# Operator is running in debug mode and that the k8s namespace has been
-# configured.
-#
-# NOTE: The majority of e2e-test tests will FAIL if run woth a local operator
-# due to the fact that either the Operator needs to access a Pod directly
-# (for example in scaling tests) or the Pod needs to contact the Operator
-# directly (for example in the zone tests). Due to the network constraints
-# in k8s the Pods and Opererator cannot see eachother. For some debugging
-# scenarios this may be OK but BEWARE!!
-#
-# Typically this step would be run with the GO_TEST_FLAGS variable set to
-# run a specific test. For example to just run the ZoneTest...
-#
-# make debug-e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
-#
-# ...where the -run argument is passed to go test and contains a reg-ex
-# matching the name of the individual test to run.
-#
-# The reg-ex used to identify a test can also be used to run individual
-# sub-tests. For example the scaling_test.go file has a test called
-# TestScaling that has a sub-test called DownSafeScaling.
-# To run this sub-test...
-#
-# make debug-e2e-test GO_TEST_FLAGS_E2E='-run=^TestScaling/DownSafeScaling$$'
-#
-# ---------------------------------------------------------------------------
-.PHONY: debug-e2e-test
-debug-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-debug-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-debug-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-debug-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-debug-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-debug-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-debug-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-debug-e2e-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-debug-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-debug-e2e-test: export VERSION_FULL := $(VERSION_FULL)
-debug-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-debug-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-debug-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-debug-e2e-test:
-	$(OPERATOR_SDK) test local ./test/e2e/remote --operator-namespace $(TEST_NAMESPACE) \
-		--verbose --debug  --go-test-flags "$(GO_TEST_FLAGS_E2E)" \
-		--no-setup  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
-
+e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/... \
+	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
 
 # ---------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Prometheus in the k8s cluster
@@ -900,6 +792,22 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+# find or download gotestsum
+gotestsum:
+ifeq (, $(shell which gotestsum))
+	@{ \
+	set -e ;\
+	GOTESTSUM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$GOTESTSUM_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get gotest.tools/gotestsum@v0.5.2 ;\
+	rm -rf $$GOTESTSUM_GEN_TMP_DIR ;\
+	}
+GOTESTSUM=$(GOBIN)/gotestsum
+else
+GOTESTSUM=$(shell which gotestsum)
+endif
+
 # find or download go-bindata
 # download go-bindata if necessary
 gobindata:
@@ -1101,8 +1009,6 @@ endif
 build-utils-image: build-mvn build-runner-artifacts build-op-test
 	cp $(BUILD_BIN)/op-test java/coherence-utils/target/docker/op-test
 	cp $(BUILD_BIN)/runner  java/coherence-utils/target/docker/runner
-	cp -r image/config      java/coherence-utils/target/docker/config
-	cp -r image/logging     java/coherence-utils/target/docker/logging
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
 # ---------------------------------------------------------------------------

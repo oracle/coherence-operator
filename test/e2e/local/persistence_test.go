@@ -37,6 +37,8 @@ const (
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the deployment,
 // re-deploy the deployment and assert that the data is recovered.
 func ZZTestActivePersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
 }
 
@@ -44,6 +46,8 @@ func ZZTestActivePersistence(t *testing.T) {
 // Put data in a cache, take a snapshot, delete the data, recover the snapshot,
 // assert that the data is recovered.
 func ZZTestOnDemandPersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-on-demand.yaml", "", true, true, false, t)
 }
 
@@ -51,6 +55,8 @@ func ZZTestOnDemandPersistence(t *testing.T) {
 // a PVC will be created for the StatefulSet to use for snapshots. Put data in a cache, take a snapshot,
 // delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
 func ZZTestSnapshotPersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false, true, t)
 }
 
@@ -79,7 +85,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	}
 
 	// create data in some caches
-	err := helper.StartCanary(ns, deployment.GetName())
+	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	if isSnapshot {
@@ -92,7 +98,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 	if isClearCanary {
 		// delete the data
-		err = helper.ClearCanary(ns, deployment.GetName())
+		err = helper.ClearCanary(testContext, ns, deployment.GetName())
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -120,11 +126,11 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	}
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, deployment.GetName())
+	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
-	_ = helper.ClearCanary(ns, deployment.GetName())
+	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
 }
 
 func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod) {

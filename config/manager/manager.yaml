@@ -1,10 +1,3 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    control-plane: controller-manager
-  name: $(OPERATOR_NAMESPACE)
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,13 +23,19 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: coherenceImage
-                name: coherence-operator-env
+                name: env-vars
                 optional: true
           - name: UTILS_IMAGE
             valueFrom:
               configMapKeyRef:
                 key: utilsImage
-                name: coherence-operator-env
+                name: env-vars
+                optional: true
+          - name: WATCH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                key: watchNamespace
+                name: env-vars
                 optional: true
         args:
         - --enable-leader-election

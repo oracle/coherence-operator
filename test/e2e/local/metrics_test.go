@@ -40,11 +40,11 @@ type MetricsTestCase struct {
 func ZZTestMetrics(t *testing.T) {
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
 
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	// initialise Gomega so we can use matchers
 	g := NewWithT(t)
-
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t, testContext)
 
 	// Get the test namespace
 	namespace := helper.GetTestNamespace()

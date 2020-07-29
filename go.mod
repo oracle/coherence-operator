@@ -1,6 +1,6 @@
 module github.com/oracle/coherence-operator
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -17,6 +17,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/go2xunit v1.4.10
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
+	gotest.tools/gotestsum v0.5.2 // indirect
 	helm.sh/helm/v3 v3.2.4
 	k8s.io/api v0.18.2
 	k8s.io/apiextensions-apiserver v0.18.2

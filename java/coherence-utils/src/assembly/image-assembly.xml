@@ -60,5 +60,41 @@
       <fileMode>755</fileMode>
       <filtered>true</filtered>
     </fileSet>
+    <fileSet>
+      <directory>src/main/logging</directory>
+      <outputDirectory>logging</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/logging</directory>
+      <outputDirectory>logging</outputDirectory>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <filtered>true</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory>config</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory>config</outputDirectory>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <filtered>true</filtered>
+    </fileSet>
   </fileSets>
 </assembly>

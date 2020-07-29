@@ -20,8 +20,6 @@ import (
 
 // Test that a cluster can be created using the specified yaml.
 func AssertDeployments(t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t, testContext)
 	return AssertDeploymentsWithContext(t, yamlFile)
 }
 
@@ -49,17 +47,17 @@ func AssertDeploymentsWithContext(t *testing.T, yamlFile string) (map[string]coh
 	expectedClusterSize := 0
 	expectedWkaSize := 0
 	for _, d := range deployments {
-		t.Logf("Deployment %s has replica count %d", d.Name, d.GetReplicas())
+		testContext.Logf("Deployment %s has replica count %d", d.Name, d.GetReplicas())
 		replicas := int(d.GetReplicas())
 		expectedClusterSize += replicas
 		if d.Spec.Coherence.IsWKAMember() {
 			expectedWkaSize += replicas
 		}
 	}
-	t.Logf("Expected cluster size is %d", expectedClusterSize)
+	testContext.Logf("Expected cluster size is %d", expectedClusterSize)
 
 	for _, d := range deployments {
-		t.Logf("Deploying %s", d.Name)
+		testContext.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
 		err = testContext.Client.Create(context.TODO(), &d)
 		g.Expect(err).NotTo(HaveOccurred())
@@ -67,19 +65,19 @@ func AssertDeploymentsWithContext(t *testing.T, yamlFile string) (map[string]coh
 
 	// Assert that a StatefulSet of the correct number or replicas is created for each roleSpec in the cluster
 	for _, d := range deployments {
-		t.Logf("Waiting for StatefulSet for deployment %s", d.Name)
+		testContext.Logf("Waiting for StatefulSet for deployment %s", d.Name)
 		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
 		sts, err := helper.WaitForStatefulSet(testContext, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
-		t.Logf("Have StatefulSet for deployment %s", d.Name)
+		testContext.Logf("Have StatefulSet for deployment %s", d.Name)
 	}
 
 	// Get all of the Pods in the cluster
-	t.Logf("Getting all Pods for cluster '%s'", clusterName)
+	testContext.Logf("Getting all Pods for cluster '%s'", clusterName)
 	pods, err := helper.ListCoherencePodsForCluster(testContext, namespace, clusterName)
 	g.Expect(err).NotTo(HaveOccurred())
-	t.Logf("Found %d Pods for cluster '%s'", len(pods), clusterName)
+	testContext.Logf("Found %d Pods for cluster '%s'", len(pods), clusterName)
 
 	// assert that the correct number of Pods is returned
 	g.Expect(len(pods)).To(Equal(expectedClusterSize))

@@ -55,31 +55,43 @@ type TestContext struct {
 	Config     *rest.Config
 	Client     client.Client
 	KubeClient kubernetes.Interface
-	TestEnv    *envtest.Environment
 	Manager    ctrl.Manager
 	Logger     logr.Logger
+	testEnv    *envtest.Environment
 }
 
 func (in TestContext) Logf(format string, a ...interface{}) {
 	in.Logger.Info(fmt.Sprintf(format, a...))
 }
 
-func (in TestContext) Close() {
-	in.Logger.Info("tearing down the test environment")
+func (in TestContext) CleanupAfterTest(t *testing.T) {
+	fn := func() {
+		DumpOperatorLogs(t, in)
+		in.Cleanup()
+	}
+	t.Cleanup(fn)
+}
 
+func (in TestContext) Cleanup() {
+	in.Logger.Info("tearing down the test environment")
 	ns := GetTestNamespace()
-	err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns))
-	if err != nil {
+	if err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns)); err != nil {
 		in.Logger.Info("error tearing down the test environment: " + err.Error())
 	}
+	if err := WaitForCoherenceCleanup(in, ns); err != nil {
+		in.Logger.Info("error wating for cleanup to complete: " + err.Error())
+	}
+}
 
-	err = in.TestEnv.Stop()
-	if err != nil {
+func (in TestContext) Close() {
+	in.Cleanup()
+	if err := in.testEnv.Stop(); err != nil {
 		in.Logger.Info("error stopping test environment: " + err.Error())
 	}
 }
 
-func NewContext() (TestContext, error) {
+// Create a new TestContext.
+func NewContext(startManager bool) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
 
 	logf.SetLogger(testLogger)
@@ -124,16 +136,18 @@ func NewContext() (TestContext, error) {
 		return TestContext{}, err
 	}
 
-	// Ensure CRDs exist
-	err = coh.EnsureCRDs(k8sCfg)
-	if err != nil {
-		return TestContext{}, err
-	}
+	if startManager {
+		// Ensure CRDs exist
+		err = coh.EnsureCRDs(k8sCfg)
+		if err != nil {
+			return TestContext{}, err
+		}
 
-	// Start the manager, which will start the controller
-	go func() {
-		err = k8sManager.Start(ctrl.SetupSignalHandler())
-	}()
+		// Start the manager, which will start the controller
+		go func() {
+			err = k8sManager.Start(ctrl.SetupSignalHandler())
+		}()
+	}
 
 	k8sClient := k8sManager.GetClient()
 	kubeClient, err := kubernetes.NewForConfig(k8sCfg)
@@ -145,17 +159,12 @@ func NewContext() (TestContext, error) {
 		Config:     k8sCfg,
 		Client:     k8sClient,
 		KubeClient: kubeClient,
-		TestEnv:    testEnv,
+		testEnv:    testEnv,
 		Manager:    k8sManager,
 		Logger:     testLogger.WithName("test"),
 	}, nil
 }
 
-
-type Logger interface {
-	Log(args ...interface{})
-	Logf(format string, args ...interface{})
-}
 
 // WaitForStatefulSetForDeployment waits for a StatefulSet to be created for the specified deployment.
 func WaitForStatefulSetForDeployment(ctx TestContext, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
@@ -265,12 +274,12 @@ func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
-func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
-	return WaitForCoherenceCondition(ctx, namespace, name, alwaysCondition{}, retryInterval, timeout, logger)
+func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
+	return WaitForCoherenceCondition(ctx, namespace, name, alwaysCondition{}, retryInterval, timeout)
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
-func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration, logger Logger) (*coh.Coherence, error) {
+func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -356,7 +365,7 @@ func WaitForDeleteOfPodsWithSelector(ctx TestContext, namespace, selector string
 }
 
 // WaitForDeletion waits for deletion of the specified resource.
-func WaitForDeletion(ctx TestContext, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration, logger Logger) error {
+func WaitForDeletion(ctx TestContext, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
 	gvk, _ := apiutil.GVKForObject(resource, ctx.Manager.GetScheme())
 	ctx.Logf("Waiting for deletion of %v %s/%s", gvk, namespace, name)
 
@@ -413,6 +422,12 @@ func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int
 // List the Pods that exist for a deployment - this is Pods with the label "coherenceDeployment=<deployment>"
 func ListCoherencePodsForDeployment(ctx TestContext, namespace, deployment string) ([]corev1.Pod, error) {
 	selector := fmt.Sprintf("%s=%s", coh.LabelCoherenceDeployment, deployment)
+	return ListPodsWithLabelSelector(ctx, namespace, selector)
+}
+
+// List the all Coherence deployment Pods in a namespace
+func ListCoherencePods(ctx TestContext, namespace string) ([]corev1.Pod, error) {
+	selector := fmt.Sprintf("%s=%s", coh.LabelComponent, coh.LabelComponentCoherencePod)
 	return ListPodsWithLabelSelector(ctx, namespace, selector)
 }
 
@@ -482,6 +497,21 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 			return true, nil
 		} else {
 			ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%v", err.Error(), err)
+			return false, nil
+		}
+	})
+
+	// wait for all Coherence Pods to be deleted
+	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		list, err := ListCoherencePods(ctx, namespace)
+		if err == nil {
+			if len(list) > 0 {
+				ctx.Logf("Waiting for deletion of %d Coherence Pods", len(list))
+				return false, nil
+			}
+			return true, nil
+		} else {
+			ctx.Logf("Error waiting for deletion of Coherence Pods: %s", err.Error())
 			return false, nil
 		}
 	})

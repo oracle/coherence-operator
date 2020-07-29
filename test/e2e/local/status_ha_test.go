@@ -24,6 +24,9 @@ type StatusHATestCase struct {
 }
 
 func ZZTestStatusHA(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
 
@@ -51,6 +54,9 @@ func ZZTestStatusHA(t *testing.T) {
 }
 
 func assertStatusHA(t *testing.T, tc StatusHATestCase) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
 
@@ -63,9 +69,6 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	// Get the list of Pods
 	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, tc.Deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
-
-	// capture the Pod log in case we need it for debugging
-	helper.DumpPodLog(testContext, &pods[0], t.Name())
 
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())

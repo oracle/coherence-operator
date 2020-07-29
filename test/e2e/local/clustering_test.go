@@ -22,22 +22,30 @@ import (
 
 // Test that a deployment works using the minimal valid yaml for a Coherence
 func TestMinimalDeployment(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-minimal.yaml")
 }
 
 // Test that a deployment works with a replica count of 1
 func TestDeploymentWithOneReplica(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-one-replica.yaml")
 }
 
 // Test that a deployment works using the a yaml file containing two Coherence
 // specs that have the same cluster name.
 func TestTwoDeploymentsOneCluster(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-multi.yaml")
 }
 
 // Test that two deployments with dependencies start in the correct order
-func TestStartQuorumRequireAllPodsReady(t *testing.T) {
+func ZZTestStartQuorumRequireAllPodsReady(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)
 
 	// Start the two deployments
@@ -64,7 +72,9 @@ func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 }
 
 // Test that two deployments with dependency on single Pod ready start in the correct order
-func TestStartQuorumRequireOnePodReady(t *testing.T) {
+func ZZTestStartQuorumRequireOnePodReady(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)
 
 	// Start the two deployments
@@ -91,17 +101,18 @@ func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	g.Expect(testPodScheduled.Before(&dataPodReady)).To(BeFalse())
 }
 
-func TestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
+func ZZTestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-with-wka-exclusion.yaml")
 }
 
 // Test that a cluster can be created with zero replicas.
-func TestDeploymentWithZeroReplicas(t *testing.T) {
+func ZZTestDeploymentWithZeroReplicas(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	// initialise Gomega so we can use matchers
 	g := NewWithT(t)
-
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t, testContext)
 
 	// Get the test namespace
 	namespace := helper.GetTestNamespace()
@@ -117,7 +128,7 @@ func TestDeploymentWithZeroReplicas(t *testing.T) {
 
 	// The deployment should eventually be in the Stopped phase
 	condition := helper.StatusPhaseCondition(coh.ConditionTypeStopped)
-	_, err = helper.WaitForCoherenceCondition(testContext, namespace, deployment.Name, condition, time.Second, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(testContext, namespace, deployment.Name, condition, time.Second, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// There should be no StatefulSet

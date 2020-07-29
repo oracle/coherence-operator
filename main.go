@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/pflag"
 	"os"
 	"runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"strings"
 
@@ -61,13 +62,29 @@ func main() {
 	printVersion()
 	initialiseOperator()
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	watchNamespaces, err := getWatchNamespace()
+	if err != nil {
+	    setupLog.Error(err, "unable to get WatchNamespaces, " +
+	       "the manager will watch and manage resources in ALL namespaces")
+	}
+
+	options := ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "ca804aa8.oracle.com",
-	})
+	}
+
+	if len(watchNamespaces) == 1 {
+		// Watch a single namespace
+		options.Namespace = watchNamespaces[0]
+	} else if len(watchNamespaces) > 1 {
+		// Watch a multiple namespaces
+		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
@@ -121,6 +138,20 @@ func initialiseOperator() {
 		log.Error(err, "failed to start the REST server")
 		os.Exit(1)
 	}
+}
+
+// getWatchNamespace returns the Namespace(s) the operator should be watching for changes
+func getWatchNamespace() ([]string, error) {
+    // WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+    // which specifies the Namespace to watch.
+    // An empty value means the operator is running with cluster scope.
+    var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+    ns, found := os.LookupEnv(watchNamespaceEnvVar)
+    if !found {
+        return []string{}, fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+    }
+    return strings.Split(ns, ","), nil
 }
 
 func printVersion() {

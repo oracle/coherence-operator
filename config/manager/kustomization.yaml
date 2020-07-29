@@ -7,7 +7,7 @@ images:
   newName: container-registry.oracle.com/middleware/coherence-operator
   newTag: 3.1.0
 configMapGenerator:
-  - name: coherence-operator-env
+  - name: env-vars
     literals:
       - coherenceImage=oraclecoherence/coherence-ce:14.1.1-0-1
       - utilsImage=container-registry.oracle.com/middleware/coherence-operator:3.1.0-utils

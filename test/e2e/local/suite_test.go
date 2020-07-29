@@ -18,7 +18,7 @@ var testContext helper.TestContext
 func TestMain(m *testing.M) {
 	var err error
 	
-	if testContext, err = helper.NewContext(); err != nil {
+	if testContext, err = helper.NewContext(true); err != nil {
 		panic(err)
 	}
 	exitCode := m.Run()

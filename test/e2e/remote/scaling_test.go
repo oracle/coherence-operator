@@ -145,7 +145,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 
 	if doCanary {
 		t.Log("Initialising canary cache")
-		err = helper.StartCanary(namespace, deployment.Name)
+		err = helper.StartCanary(testContext, namespace, deployment.Name)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -157,7 +157,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 
 	if doCanary {
 		t.Log("Checking canary cache")
-		err = helper.CheckCanary(namespace, deployment.Name)
+		err = helper.CheckCanary(testContext, namespace, deployment.Name)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 }
@@ -191,7 +191,7 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 
 	// Wait for deletion of the StatefulSet
 	sts := appsv1.StatefulSet{}
-	err = helper.WaitForDeletion(f, namespace, deployment.Name, &sts, time.Second*5, time.Minute*5, t)
+	err = helper.WaitForDeletion(f, namespace, deployment.Name, &sts, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Coherence resource should still exist
@@ -203,6 +203,6 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 
 	// wait for the deployment to match the condition
 	condition := helper.ReplicaCountCondition(0)
-	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }

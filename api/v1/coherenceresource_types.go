@@ -404,12 +404,12 @@ func EnsureCRDs(cfg *rest2.Config) error {
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
-	logger.Info("Ensuring operator v1 CRDs are present")
 	return ensureV1CRDs(logger, crdClient, "crd_v1.yaml")
 }
 
 // EnsureCRD ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
 func ensureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface, fileNames ...string) error {
+	logger.Info("Ensuring operator v1 CRDs are present")
 	for _, fileName := range fileNames {
 		if err := ensureV1CRD(logger, crdClient, fileName); err != nil {
 			return err
@@ -420,8 +420,6 @@ func ensureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitio
 
 // EnsureCRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
 func ensureV1CRD(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface, fileName string) error {
-	logger.Info("Ensuring operator v1 CRDs are present")
-
 	f, err := data.Assets.Open(fileName)
 	if err != nil {
 		return errors.Wrap(err, "opening embedded CRD asset " + fileName)
@@ -476,12 +474,12 @@ func ensureV1CRD(logger logr.Logger, crdClient v1client.CustomResourceDefinition
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
-	logger.Info("Ensuring operator v1beta1 CRDs are present")
 	return ensureV1Beta1CRDs(logger, crdClient, "crd_v1beta1.yaml")
 }
 
 // EnsureCRD ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
 func ensureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface, fileNames ...string) error {
+	logger.Info("Ensuring operator v1beta1 CRDs are present")
 	for _, fileName := range fileNames {
 		if err := ensureV1Beta1CRD(logger, crdClient, fileName); err != nil {
 			return err
@@ -492,8 +490,6 @@ func ensureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourc
 
 // EnsureCRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
 func ensureV1Beta1CRD(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface, fileName string) error {
-	logger.Info("Ensuring operator v1 CRDs are present")
-
 	f, err := data.Assets.Open(fileName)
 	if err != nil {
 		return errors.Wrap(err, "opening embedded CRD asset " + fileName)
