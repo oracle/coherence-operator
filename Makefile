@@ -646,7 +646,8 @@ uninstall-crds: manifests kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 deploy: manifests kustomize
 	cp -R config/ $(BUILD_CONFIG)
-	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
+#   Uncomment to watch a single namespace
+#	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -

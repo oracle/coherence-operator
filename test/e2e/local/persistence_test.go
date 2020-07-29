@@ -36,7 +36,7 @@ const (
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the deployment,
 // re-deploy the deployment and assert that the data is recovered.
-func ZZTestActivePersistence(t *testing.T) {
+func TestActivePersistence(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
@@ -45,7 +45,7 @@ func ZZTestActivePersistence(t *testing.T) {
 // Deploy a Coherence resource with the minimal default configuration. Persistence will be on-demand.
 // Put data in a cache, take a snapshot, delete the data, recover the snapshot,
 // assert that the data is recovered.
-func ZZTestOnDemandPersistence(t *testing.T) {
+func TestOnDemandPersistence(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-on-demand.yaml", "", true, true, false, t)
@@ -54,7 +54,7 @@ func ZZTestOnDemandPersistence(t *testing.T) {
 // Deploy a Coherence resource with snapshot enabled. Persistence will be on-demand,
 // a PVC will be created for the StatefulSet to use for snapshots. Put data in a cache, take a snapshot,
 // delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
-func ZZTestSnapshotPersistence(t *testing.T) {
+func TestSnapshotPersistence(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false, true, t)

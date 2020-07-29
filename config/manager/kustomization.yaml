@@ -9,5 +9,5 @@ images:
 configMapGenerator:
   - name: env-vars
     literals:
-      - coherenceImage=oraclecoherence/coherence-ce:14.1.1-0-1
-      - utilsImage=container-registry.oracle.com/middleware/coherence-operator:3.1.0-utils
+      - COHERENCE_IMAGE=oraclecoherence/coherence-ce:14.1.1-0-1
+      - UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.1.0-utils

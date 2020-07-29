@@ -38,7 +38,7 @@ type ManagementTestCase struct {
 // TestManagement is a go test that uses sub-tests (test cases) to basically run the
 // same test with different parameters. In this case different Coherence
 // configurations with management over rest configured with and without SSL.
-func ZZTestManagementOverRest(t *testing.T) {
+func TestManagementOverRest(t *testing.T) {
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
 
 	// Make sure we defer clean-up when we're done!!

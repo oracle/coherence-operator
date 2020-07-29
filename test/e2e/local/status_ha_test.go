@@ -23,7 +23,7 @@ type StatusHATestCase struct {
 	Name       string
 }
 
-func ZZTestStatusHA(t *testing.T) {
+func TestStatusHA(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 

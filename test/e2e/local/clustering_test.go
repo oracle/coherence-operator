@@ -28,7 +28,7 @@ func TestMinimalDeployment(t *testing.T) {
 }
 
 // Test that a deployment works with a replica count of 1
-func ZZTestDeploymentWithOneReplica(t *testing.T) {
+func TestDeploymentWithOneReplica(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-one-replica.yaml")
@@ -36,14 +36,14 @@ func ZZTestDeploymentWithOneReplica(t *testing.T) {
 
 // Test that a deployment works using the a yaml file containing two Coherence
 // specs that have the same cluster name.
-func ZZTestTwoDeploymentsOneCluster(t *testing.T) {
+func TestTwoDeploymentsOneCluster(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-multi.yaml")
 }
 
 // Test that two deployments with dependencies start in the correct order
-func ZZTestStartQuorumRequireAllPodsReady(t *testing.T) {
+func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)
@@ -72,7 +72,7 @@ func ZZTestStartQuorumRequireAllPodsReady(t *testing.T) {
 }
 
 // Test that two deployments with dependency on single Pod ready start in the correct order
-func ZZTestStartQuorumRequireOnePodReady(t *testing.T) {
+func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)
@@ -101,14 +101,14 @@ func ZZTestStartQuorumRequireOnePodReady(t *testing.T) {
 	g.Expect(testPodScheduled.Before(&dataPodReady)).To(BeFalse())
 }
 
-func ZZTestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
+func TestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	AssertDeployments(t, "deployment-with-wka-exclusion.yaml")
 }
 
 // Test that a cluster can be created with zero replicas.
-func ZZTestDeploymentWithZeroReplicas(t *testing.T) {
+func TestDeploymentWithZeroReplicas(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	// initialise Gomega so we can use matchers

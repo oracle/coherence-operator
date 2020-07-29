@@ -37,7 +37,7 @@ type MetricsTestCase struct {
 // TestMetrics is a go test that uses sub-tests (test cases) to basically run the
 // same test with different parameters. In this case different Coherence resource
 // configurations with metrics configured with and without SSL.
-func ZZTestMetrics(t *testing.T) {
+func TestMetrics(t *testing.T) {
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
 
 	// Make sure we defer clean-up when we're done!!

@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func ZZTestRollingUpgrade(t *testing.T) {
+func TestRollingUpgrade(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 
