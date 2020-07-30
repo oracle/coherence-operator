@@ -52,8 +52,6 @@ OPERATOR_SDK_VERSION := v0.18.0
 OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 OP_CHMOD             := $(shell chmod +x $(OPERATOR_SDK))
 
-# The image prefix to use for Coherence images
-COHERENCE_IMAGE_PREFIX ?= oraclecoherence/
 # The Coherence image name to inject into the Helm chart
 HELM_COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
 
@@ -1053,7 +1051,6 @@ build-all: build-mvn build-operator
 # ---------------------------------------------------------------------------
 .PHONY: run
 run: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
@@ -1083,7 +1080,6 @@ run-clean: reset-namespace run
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
