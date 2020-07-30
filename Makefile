@@ -177,7 +177,7 @@ endif
 
 GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
-CRD_VERSION  ?= "v1"
+CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
@@ -310,7 +310,7 @@ e2e-local-test: export VERSION_FULL := $(VERSION_FULL)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotestsum
+e2e-local-test: build-operator reset-namespace create-ssl-secrets install-crds gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -342,8 +342,7 @@ run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-e2e-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-test.out
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Prometheus in the k8s cluster
@@ -534,11 +533,12 @@ cleanup-certification:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
 install-crds: uninstall-crds manifests kustomize
-	@echo "Installing CRDs $(CRD_VERSION)"
-ifeq ("$(CRD_VERSION)","v1beta1")
-	kubectl --validate=false create -f config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml || true
+ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
+	@echo "Installing apiextensions.k8s.io/v1 CRDs "
+	$(KUSTOMIZE) build config/crd | kubectl create -f -
 else
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	@echo "Installing apiextensions.k8s.io/v1beta1 CRDs "
+	kubectl --validate=false create -f config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml || true
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -559,7 +559,8 @@ deploy: manifests kustomize
 #	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
+	#$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_CONFIG)/default 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
