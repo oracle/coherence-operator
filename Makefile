@@ -284,9 +284,11 @@ $(BUILD_BIN)/op-test: $(GOS) $(OPTESTGOS)
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-test-operator: build-operator gotestsum
+#test-operator: build-operator gotestsum
+test-operator: gotestsum
 	@echo "Running operator tests"
-	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/...
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
+	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -322,6 +324,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds
 e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds deploy
 	$(MAKE) $(MAKEFLAGS) run-e2e-test \
 	; rc=$$? \
+	; echo "E2E Tests completed with return code $$rc" \
 	; $(MAKE) $(MAKEFLAGS) undeploy \
 	; $(MAKE) $(MAKEFLAGS) delete-namespace \
 	; exit $$rc
