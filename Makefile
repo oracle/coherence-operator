@@ -205,7 +205,7 @@ $(BUILD_PROPS):
 # ----------------------------------------------------------------------------------------------------------------------
 # Builds the Operator
 # ----------------------------------------------------------------------------------------------------------------------
-build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
+build-operator: $(BUILD_BIN)/manager build-runner-artifacts
 	@echo "Building Operator image"
 	docker build --build-arg version=$(VERSION_FULL) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
@@ -215,7 +215,7 @@ build-operator: $(BUILD_OUTPUT)/manager build-runner-artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_OUTPUT)/manager: generate manifests
+$(BUILD_BIN)/manager: generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$BuildInfo -a -o $(BUILD_OUTPUT)/manager main.go
 
 
@@ -312,8 +312,7 @@ e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: build-operator reset-namespace create-ssl-secrets uninstall-crds gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-local-test.out
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
