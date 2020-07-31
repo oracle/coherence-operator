@@ -39,7 +39,6 @@ spec:
     shortNames:
     - coh
     singular: coherence
-  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     scale:

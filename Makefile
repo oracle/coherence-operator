@@ -68,10 +68,6 @@ OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION_FULL)-utils
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-# We produce two version v1 for k8s 1.16+ and v1beta1 for eariler k8s versions
-CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions={v1,v1beta1}"
-
 # The test application image used in integration tests
 TEST_APPLICATION_IMAGE := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION_FULL)
 
@@ -175,8 +171,9 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-GOS          = $(shell find pkg -type f -name "*.go" ! -name "*_test.go")
+GOS          = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
+API_GO_FILES = $(shell find api -type f -name "*.go" ! -name "*_test.go")
 CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 
 TEST_SSL_SECRET := coherence-ssl-secret
@@ -205,6 +202,7 @@ $(BUILD_PROPS):
 # ----------------------------------------------------------------------------------------------------------------------
 # Builds the Operator
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-operator
 build-operator: $(BUILD_BIN)/manager build-runner-artifacts
 	@echo "Building Operator image"
 	docker build --build-arg version=$(VERSION_FULL) \
@@ -215,16 +213,8 @@ build-operator: $(BUILD_BIN)/manager build-runner-artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: generate manifests
+$(BUILD_BIN)/manager: $(GOS) generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$BuildInfo -a -o $(BUILD_OUTPUT)/manager main.go
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the operator binary
-# ----------------------------------------------------------------------------------------------------------------------
-manager: generate manifests
-	@echo "Building the Operator"
-	go build -o bin/manager -ldflags -X=main.BuildInfo=$(BUILD_INFO) main.go
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
@@ -252,16 +242,22 @@ $(BUILD_BIN)/runner: $(GOS)
 # Internal make step that builds the Operator legacy converter
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: converter
-converter: export CGO_ENABLED = 0
-converter: export GOARCH = $(ARCH)
-converter: export GOOS = $(OS)
-converter: export GO111MODULE = on
-converter: $(GOS)
-converter:
-	@echo "Building v2 -> v3 Converter"
+converter: $(BUILD_BIN)/converter $(BUILD_BIN)/converter-linux-amd64 $(BUILD_BIN)/converter-darwin-amd64 $(BUILD_BIN)/converter-windows-amd64
+
+$(BUILD_BIN)/converter: export CGO_ENABLED = 0
+$(BUILD_BIN)/converter: export GOARCH = $(ARCH)
+$(BUILD_BIN)/converter: export GOOS = $(OS)
+$(BUILD_BIN)/converter: export GO111MODULE = on
+$(BUILD_BIN)/converter: $(GOS)
 	go build -o $(BUILD_BIN)/converter ./cmd/converter
+
+$(BUILD_BIN)/converter-linux-amd64: $(GOS)
 	GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./cmd/converter
+
+$(BUILD_BIN)/converter-darwin-amd64: $(GOS)
 	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./cmd/converter
+
+$(BUILD_BIN)/converter-windows-amd64: $(GOS)
 	GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./cmd/converter
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -320,6 +316,7 @@ e2e-local-test: build-operator reset-namespace create-ssl-secrets install-crds g
 # deployed to k8s). These tests will use whichever k8s cluster the
 # local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: e2e-test
 e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds deploy
 	$(MAKE) $(MAKEFLAGS) run-e2e-test \
 	; rc=$$? \
@@ -328,6 +325,7 @@ e2e-test: build-operator reset-namespace create-ssl-secrets uninstall-crds deplo
 	; $(MAKE) $(MAKEFLAGS) delete-namespace \
 	; exit $$rc
 
+.PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
 run-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 run-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
@@ -424,6 +422,7 @@ e2e-elastic-test: reset-namespace install-elastic
 # Executes the Go end-to-end Operator Compatibility tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: compatibility-test
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -534,11 +533,9 @@ cleanup-certification:
 .PHONY: install-crds
 install-crds: uninstall-crds manifests kustomize
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
-	@echo "Installing apiextensions.k8s.io/v1 CRDs "
 	$(KUSTOMIZE) build config/crd | kubectl create -f -
 else
-	@echo "Installing apiextensions.k8s.io/v1beta1 CRDs "
-	kubectl --validate=false create -f config/crd/bases/coherence.oracle.com_coherences.v1beta1.yaml || true
+	$(KUSTOMIZE) build config/crd-v1beta1 | kubectl create -f -
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -548,23 +545,28 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: manifests kustomize
+ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
 	$(KUSTOMIZE) build config/crd | kubectl delete -f - || true
+else
+	$(KUSTOMIZE) build config/crd-v1beta1 | kubectl delete -f -
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: deploy
 deploy: manifests kustomize
 	cp -R config/ $(BUILD_CONFIG)
 #   Uncomment to watch a single namespace
 #	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	#$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
-	$(KUSTOMIZE) build $(BUILD_CONFIG)/default 
+	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: undeploy
 undeploy: manifests kustomize
 	cp -R config/ $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
@@ -575,15 +577,26 @@ undeploy: manifests kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate manifests e.g. CRD, RBAC etc.
 # ----------------------------------------------------------------------------------------------------------------------
-manifests: $(BUILD_PROPS) controller-gen
-	@echo "Generating CRD"
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" output:crd:artifacts:config=config/crd/bases
-	@echo "Generating CRD Doc"
-	$(MAKE) api-doc-gen
+.PHONY: manifests
+manifests: config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml api-doc-gen
+
+config/crd/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES)
+	$(CONTROLLER_GEN) "crd:trivialVersions=true,crdVersions={v1}" \
+	  rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" \
+	  output:crd:artifacts:config=config/crd/bases
+
+config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES)
+	@echo "Generating CRD v1beta1"
+	mkdir -p config/crd-v1beta1/ || true
+	cp -R config/crd/ config/crd-v1beta1
+	$(CONTROLLER_GEN) "crd:trivialVersions=true,crdVersions={v1beta1}" \
+	  rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" \
+	  output:crd:artifacts:config=config/crd-v1beta1/bases
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the data.json file used by the Operator for default configuration values
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: generate-config
 generate-config:  $(BUILD_PROPS)
 	@echo "Generating Operator config"
 	@printf "{\n\
@@ -600,6 +613,7 @@ generate-config:  $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate code, configuration and docs.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: generate
 generate: $(BUILD_PROPS) controller-gen kustomize
 	@echo "Generating deep copy code"
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
@@ -619,6 +633,7 @@ generate: $(BUILD_PROPS) controller-gen kustomize
 # no code changes afterwards. If there are someone has changed and pushed
 # code without running the manifests or generate targets before committing.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: verify-no-changes
 verify-no-changes: manifests generate
 	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	git diff-index HEAD -- ./api ./config ./pkg
@@ -628,6 +643,7 @@ verify-no-changes: manifests generate
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: controller-gen
 controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
@@ -646,6 +662,7 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kustomize
 kustomize:
 ifeq (, $(shell which kustomize))
 	@{ \
@@ -664,6 +681,7 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: gotestsum
 gotestsum:
 ifeq (, $(shell which gotestsum))
 	@{ \
@@ -682,6 +700,7 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: bundle
 bundle: manifests
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -690,6 +709,7 @@ bundle: manifests
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the bundle image.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
@@ -697,7 +717,10 @@ bundle-build:
 # Generate API docs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: api-doc-gen
-api-doc-gen:
+api-doc-gen: docs/about/04_coherence_spec.adoc
+
+docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
+	@echo "Generating CRD Doc"
 	go run ./cmd/docgen/ \
 		api/v1/coherenceresourcespec_types.go \
 		api/v1/coherence_types.go \
