@@ -561,7 +561,7 @@ deploy: manifests kustomize
 #	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/default && $(KUSTOMIZE) edit set namespace $(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_CONFIG)/default | kubectl create -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
