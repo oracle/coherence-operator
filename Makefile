@@ -295,7 +295,7 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 # local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets uninstall-crds deploy
+e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
 	$(MAKE) $(MAKEFLAGS) run-e2e-test \
 	; rc=$$? \
 	; echo "E2E Tests completed with return code $$rc" \
@@ -534,22 +534,29 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
 deploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+	-rm -r $(BUILD_CONFIG)
+	-mkdir -p $(BUILD_CONFIG)
 	cp -R config/ $(BUILD_CONFIG)
 #   Uncomment to watch a single namespace
 #	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl create -f -
+	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+	-rm -r $(BUILD_CONFIG)
+	-mkdir -p $(BUILD_CONFIG)
 	cp -R config/ $(BUILD_CONFIG)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit add configmap source-vars --from-literal OPERATOR_NAMESPACE=$(TEST_NAMESPACE)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
+	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
