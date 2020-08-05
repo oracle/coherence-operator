@@ -15,5 +15,5 @@ LABEL "com.oracle.coherence.version"="$version"
 ENV COHERENCE_IMAGE=$coherence_image \
     UTILS_IMAGE=$utils_image
 
-COPY build/_output/manager  .
+COPY bin/manager  .
 ENTRYPOINT ["/manager"]

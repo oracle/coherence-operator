@@ -94,7 +94,7 @@ func (in TestContext) Close() {
 }
 
 // Create a new TestContext.
-func NewContext(startManager bool) (TestContext, error) {
+func NewContext(startController bool) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
 
 	logf.SetLogger(testLogger)
@@ -138,24 +138,24 @@ func NewContext(startManager bool) (TestContext, error) {
 		return TestContext{}, err
 	}
 
-	// Create the Coherence controller
-	err = (&controllers.CoherenceReconciler{
-		Client:    k8sManager.GetClient(),
-		Log:       ctrl.Log.WithName("controllers").WithName("Coherence"),
-	}).SetupWithManager(k8sManager)
-	if err != nil {
-		return TestContext{}, err
-	}
-
 	var stop chan struct{}
 
-	if startManager {
-		// Start the manager, which will start the controller
-		stop = make(chan struct{})
-		go func() {
-			err = k8sManager.Start(stop)
-		}()
+	if startController {
+		// Create the Coherence controller
+		err = (&controllers.CoherenceReconciler{
+			Client:    k8sManager.GetClient(),
+			Log:       ctrl.Log.WithName("controllers").WithName("Coherence"),
+		}).SetupWithManager(k8sManager)
+		if err != nil {
+			return TestContext{}, err
+		}
 	}
+
+	// Start the manager, which will start the controller
+	stop = make(chan struct{})
+	go func() {
+		err = k8sManager.Start(stop)
+	}()
 
 	if err != nil {
 		return TestContext{}, err

@@ -34,7 +34,7 @@ const (
 	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv    = "COHERENCE_VERSION"
 	CompatibleVersionsEnv  = "COMPATIBLE_VERSIONS"
-	VersionEnv             = "VERSION_FULL"
+	VersionEnv             = "VERSION"
 	OperatorImageEnv       = "OPERATOR_IMAGE"
 	SkipCompatibilityEnv   = "SKIP_COMPATIBILITY"
 

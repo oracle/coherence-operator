@@ -19,7 +19,7 @@ var testContext helper.TestContext
 func TestMain(m *testing.M) {
 	var err error
 
-	// Create a new TestContext - DO NOT start an Operator.
+	// Create a new TestContext - DO NOT start any controllers.
 	if testContext, err = helper.NewContext(false); err != nil {
 		fmt.Printf("Error: %+v", err)
 		os.Exit(1)

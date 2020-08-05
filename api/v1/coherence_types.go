@@ -2466,6 +2466,7 @@ func (in Resources) EnsureGVK(s *runtime.Scheme) {
 				r.Spec.GetObjectKind().SetGroupVersionKind(gvks[0])
 			}
 		}
+		
 	}
 }
 
