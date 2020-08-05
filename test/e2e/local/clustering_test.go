@@ -24,14 +24,14 @@ import (
 func TestMinimalDeployment(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	AssertDeployments(t, "deployment-minimal.yaml")
+	helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
 }
 
 // Test that a deployment works with a replica count of 1
 func TestDeploymentWithOneReplica(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	AssertDeployments(t, "deployment-one-replica.yaml")
+	helper.AssertDeployments(testContext, t, "deployment-one-replica.yaml")
 }
 
 // Test that a deployment works using the a yaml file containing two Coherence
@@ -39,7 +39,7 @@ func TestDeploymentWithOneReplica(t *testing.T) {
 func TestTwoDeploymentsOneCluster(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	AssertDeployments(t, "deployment-multi.yaml")
+	helper.AssertDeployments(testContext, t, "deployment-multi.yaml")
 }
 
 // Test that two deployments with dependencies start in the correct order
@@ -49,7 +49,7 @@ func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 	g := NewWithT(t)
 
 	// Start the two deployments
-	deployments, pods := AssertDeployments(t, "deployment-with-start-quorum.yaml")
+	deployments, pods := helper.AssertDeployments(testContext, t, "deployment-with-start-quorum.yaml")
 	data, ok := deployments["data"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'data' deployment")
 	test, ok := deployments["test"]
@@ -78,7 +78,7 @@ func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	g := NewWithT(t)
 
 	// Start the two deployments
-	deployments, pods := AssertDeployments(t, "deployment-with-start-quorum-one-pod.yaml")
+	deployments, pods := helper.AssertDeployments(testContext, t, "deployment-with-start-quorum-one-pod.yaml")
 	data, ok := deployments["data"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'data' deployment")
 	test, ok := deployments["test"]
@@ -104,7 +104,7 @@ func TestStartQuorumRequireOnePodReady(t *testing.T) {
 func TestTwoDeploymentsOneClusterWithWKAExclusion(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	AssertDeployments(t, "deployment-with-wka-exclusion.yaml")
+	helper.AssertDeployments(testContext, t, "deployment-with-wka-exclusion.yaml")
 }
 
 // Test that a cluster can be created with zero replicas.

@@ -25,7 +25,7 @@ func TestRollingUpgrade(t *testing.T) {
 
 	t.Log("Deploying initial version of Coherence cluster")
 	// Do the initial deployment
-	deployments, _ := AssertDeployments(t, "rolling-upgrade.yaml")
+	deployments, _ := helper.AssertDeployments(testContext, t, "rolling-upgrade.yaml")
 	// Get the expected single deployment from the returned map
 	deployment, ok := deployments["rolling-cluster"]
 	g.Expect(ok).To(BeTrue())

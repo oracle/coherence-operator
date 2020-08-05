@@ -298,7 +298,6 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
 	$(MAKE) $(MAKEFLAGS) run-e2e-test \
 	; rc=$$? \
-	; echo "E2E Tests completed with return code $$rc" \
 	; $(MAKE) $(MAKEFLAGS) undeploy \
 	; $(MAKE) $(MAKEFLAGS) delete-namespace \
 	; exit $$rc
@@ -330,6 +329,15 @@ run-e2e-test: gotestsum
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: e2e-prometheus-test
+e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
+	$(MAKE) $(MAKEFLAGS) run-prometheus-test \
+	; rc=$$? \
+	; $(MAKE) $(MAKEFLAGS) uninstall-prometheus \
+	; $(MAKE) $(MAKEFLAGS) undeploy \
+	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; exit $$rc
+
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -344,18 +352,9 @@ run-prometheus-test: export VERSION := $(VERSION)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-prometheus-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-prometheus-test: $(BUILD_TARGETS)/build-operator create-ssl-secrets gotestsum
+run-prometheus-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.out
-
-.PHONY: e2e-prometheus-test
-e2e-prometheus-test: reset-namespace install-prometheus
-	$(MAKE) $(MAKEFLAGS) run-prometheus-test \
-	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) uninstall-prometheus \
-	; $(MAKE) $(MAKEFLAGS) delete-namespace \
-	; exit $$rc
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -368,6 +367,15 @@ e2e-prometheus-test: reset-namespace install-prometheus
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: e2e-elastic-test
+e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
+	$(MAKE) $(MAKEFLAGS) run-elastic-test \
+	; rc=$$? \
+	; $(MAKE) $(MAKEFLAGS) uninstall-elastic \
+	; $(MAKE) $(MAKEFLAGS) undeploy \
+	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; exit $$rc
+
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
@@ -383,18 +391,9 @@ run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-elastic-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
-run-elastic-test: $(BUILD_TARGETS)/build-operator create-ssl-secrets gotestsum
+run-elastic-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-elastic-test.out
-
-.PHONY: e2e-elastic-test
-e2e-elastic-test: reset-namespace install-elastic
-	$(MAKE) $(MAKEFLAGS) run-elastic-test \
-	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) uninstall-elastic \
-	; $(MAKE) $(MAKEFLAGS) delete-namespace \
-	; exit $$rc
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Compatibility tests.

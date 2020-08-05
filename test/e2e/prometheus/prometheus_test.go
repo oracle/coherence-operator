@@ -11,11 +11,9 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"github.com/oracle/coherence-operator/test/e2e/local"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	"net/http"
 	"strings"
 	"testing"
@@ -23,6 +21,9 @@ import (
 )
 
 func TestPrometheus(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
 	ok, promPod, err := IsPrometheusInstalled()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -34,13 +35,8 @@ func TestPrometheus(t *testing.T) {
 func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod) {
 	ShouldGetPrometheusConfig(t, promPod)
 
-	// Create the Operator SDK test context (this will deploy the Operator)
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t)
-
 	// Deploy the Coherence cluster
-	_, cohPods := local.AssertDeploymentsWithContext(t, ctx, yamlFile)
+	_, cohPods := helper.AssertDeployments(testContext, t, yamlFile)
 
 	// Wait for Coherence metrics to appear in Prometheus
 	ShouldEventuallySeeClusterMetrics(t, promPod, cohPods)
@@ -50,16 +46,8 @@ func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod) {
 }
 
 func IsPrometheusInstalled() (bool, corev1.Pod, error) {
-	cfg, _, err := helper.GetKubeconfigAndNamespace("")
-	if err != nil {
-		return false, corev1.Pod{}, err
-	}
-	cl, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return false, corev1.Pod{}, err
-	}
 	promNamespace := helper.GetTestNamespace()
-	promPods, err := helper.ListPodsWithLabelSelector(cl, promNamespace, "app=prometheus,prometheus=prometheus")
+	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app=prometheus,prometheus=prometheus")
 	if err != nil || len(promPods) == 0 {
 		return false, corev1.Pod{}, err
 	}
