@@ -558,7 +558,7 @@ undeploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 .PHONY: manifests
 manifests: $(BUILD_TARGETS)/manifests
 
-$(BUILD_TARGETS)/manifests: config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml docs/about/04_coherence_spec.adoc
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
 config/crd/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
