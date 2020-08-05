@@ -55,6 +55,7 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 
 // +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherences,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherences/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;persistentvolumeclaims;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete

@@ -158,7 +158,7 @@ endif
 
 GOS          = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
-API_GO_FILES = $(shell find api -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
+API_GO_FILES = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 
 TEST_SSL_SECRET := coherence-ssl-secret
@@ -595,7 +595,6 @@ generate-config:  $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate
-	touch $(BUILD_TARGETS)/generate
 
 $(BUILD_TARGETS)/generate: $(BUILD_PROPS) api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
 	touch $(BUILD_TARGETS)/generate
