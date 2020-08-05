@@ -614,18 +614,6 @@ pkg/data/zz_generated_assets.go: config/operator/data.json config/crd/bases/cohe
 	go run ./pkg/generate/assets_generate.go
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Runs the manifests and code generation targets and ensure that there are
-# no code changes afterwards. If there are someone has changed and pushed
-# code without running the manifests or generate targets before committing.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: verify-no-changes
-verify-no-changes: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate
-	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	git diff-index HEAD -- ./api ./config ./pkg
-	@echo "Git Diff >>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	@if ! git diff-index --quiet HEAD -- ./api ./config ./pkg ; then echo "There are code changes caused by generated code"; exit 1; fi
-
-# ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
 # ----------------------------------------------------------------------------------------------------------------------
 $(GOBIN)/controller-gen:
