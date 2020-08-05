@@ -533,9 +533,7 @@ endif
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
-deploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_CONFIG)
-	-mkdir -p $(BUILD_CONFIG)
+deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	cp -R config/ $(BUILD_CONFIG)
 #   Uncomment to watch a single namespace
 #	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
@@ -549,9 +547,7 @@ deploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_CONFIG)
-	-mkdir -p $(BUILD_CONFIG)
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	cp -R config/ $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
