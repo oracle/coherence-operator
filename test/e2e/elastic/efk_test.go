@@ -57,7 +57,7 @@ func TestElasticSearch(t *testing.T) {
 // Assert that it is possible to connect to Elasticsearch
 func shouldConnectToES(t *testing.T, cl ESClient) {
 	g := NewGomegaWithT(t)
-	_, _ = AssertElasticsearchInstalled(t)
+	_, _ = AssertElasticsearchInstalled(testContext, t)
 
 	res, err := cl.Query(func(es *es.Client) (*esapi.Response, error) {
 		return es.Info()
