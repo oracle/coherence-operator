@@ -57,7 +57,7 @@ HELM_COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
 
 # One may need to define RELEASE_IMAGE_PREFIX in the environment.
 # For releases this will be docker.pkg.github.com/oracle/coherence-operator/
-RELEASE_IMAGE_PREFIX   ?= "oraclecoherence/"
+RELEASE_IMAGE_PREFIX   ?= oraclecoherence/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION_FULL)-utils
@@ -140,7 +140,7 @@ endif
 endif
 endif
 
-IMAGE_PULL_POLICY  ?=
+IMAGE_PULL_POLICY  ?= IfNotPresent
 
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
@@ -1051,6 +1051,7 @@ build-all: build-mvn build-operator
 # ---------------------------------------------------------------------------
 .PHONY: run
 run: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: export VERSION_FULL := $(VERSION_FULL)
 run: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
@@ -1080,6 +1081,7 @@ run-clean: reset-namespace run
 # ---------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug: export VERSION_FULL := $(VERSION_FULL)
 run-debug: export HELM_COHERENCE_IMAGE := $(HELM_COHERENCE_IMAGE)
