@@ -142,11 +142,12 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
 override BUILD_OUTPUT      := ./build/_output
+override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_BIN         := ./bin
 override BUILD_CONFIG      := $(BUILD_OUTPUT)/config
-override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
-override BUILD_TARGETS     := $(BUILD_OUTPUT)/targets
+override BUILD_HELM        := $(BUILD_OUTPUT)/helm-carts
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
+override BUILD_TARGETS     := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -160,8 +161,27 @@ GOS          = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
 API_GO_FILES = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
+HELM_FILES   = $(shell find helm-charts/coherence-operator -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
+
+# ---------------------------------------------------------------------------
+# Do a search and replace of properties in selected files (e.g. in the Helm
+# charts. This is done because the Helm charts can be large and processing
+# every file makes the build slower.
+# ---------------------------------------------------------------------------
+define replaceprop
+	for i in $(1); do \
+		filename="$(BUILD_HELM)/$${i}"; \
+		echo "Replacing properties in file $${filename}"; \
+		if [ -f $${filename} ]; then \
+			temp_file=$(BUILD_OUTPUT)/temp.out; \
+			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
+			mv $${temp_file} $${filename}; \
+		fi \
+	done
+endef
+
 
 .PHONY: all
 all: build-all-images
@@ -173,8 +193,10 @@ $(BUILD_PROPS):
 	# Ensures that build output directories exist
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
-	@mkdir -p $(BUILD_BIN)
 	@mkdir -p $(BUILD_ASSETS)
+	@mkdir -p $(BUILD_BIN)
+	@mkdir -p $(BUILD_CONFIG)
+	@mkdir -p $(BUILD_HELM)
 	@mkdir -p $(BUILD_TARGETS)
 	@mkdir -p $(TEST_LOGS_DIR)
 	# create build.properties
@@ -501,6 +523,20 @@ cleanup-certification:
 	$(MAKE) uninstall-crds
 	$(MAKE) delete-namespace
 
+# ---------------------------------------------------------------------------
+# Build the Coherence operator Helm chart and package it into a tar.gz
+# ---------------------------------------------------------------------------
+.PHONY: helm-chart
+helm-chart: $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
+
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/manifests
+	# Copy the Helm charts from their source location to the distribution folder
+	-mkdir -p $(BUILD_HELM)
+	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
+	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
+	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+	helm lint $(BUILD_HELM)/coherence-operator
+	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
@@ -533,9 +569,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
 deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_CONFIG)
+	-rm -r $(BUILD_OUTPUT)
 	mkdir -p $(BUILD_CONFIG)
-	cp -R config/ $(BUILD_CONFIG)/
+	cp -R config/ $(BUILD_OUTPUT)/
 	ls $(BUILD_CONFIG)
 #   Uncomment to watch a single namespace
 #	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
@@ -550,12 +586,32 @@ deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	cp -R config/ $(BUILD_CONFIG)
+	-rm -r $(BUILD_OUTPUT)
+	mkdir -p $(BUILD_CONFIG)
+	cp -R config/ $(BUILD_OUTPUT)/
+	ls $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
 	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: generate-helm
+generate-helm: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+	-rm -r $(BUILD_CONFIG)
+	mkdir -p $(BUILD_CONFIG)
+	cp -R config/ $(BUILD_CONFIG)/
+	ls $(BUILD_CONFIG)
+#   Uncomment to watch a single namespace
+#	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
+	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate manifests e.g. CRD, RBAC etc.
