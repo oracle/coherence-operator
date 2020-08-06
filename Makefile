@@ -535,7 +535,8 @@ endif
 deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	-rm -r $(BUILD_CONFIG)
 	mkdir -p $(BUILD_CONFIG)
-	cp -R config/ $(BUILD_CONFIG)
+	cp -R config/ $(BUILD_CONFIG)/
+	ls $(BUILD_CONFIG)
 #   Uncomment to watch a single namespace
 #	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
