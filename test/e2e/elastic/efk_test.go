@@ -12,9 +12,7 @@ import (
 	es "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"github.com/oracle/coherence-operator/test/e2e/local"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"testing"
@@ -22,15 +20,12 @@ import (
 )
 
 func TestElasticSearch(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
-	f := framework.Global
 
-	// Create the Operator SDK test context
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogs(t)
-
-	esPod, kPod := AssertElasticsearchInstalled(t)
+	esPod, kPod := AssertElasticsearchInstalled(testContext, t)
 
 	// Create the ConfigMap with the Fluentd config
 	cm := &corev1.ConfigMap{}
@@ -39,7 +34,7 @@ func TestElasticSearch(t *testing.T) {
 
 	cm.SetNamespace(helper.GetTestNamespace())
 
-	err = f.Client.Create(context.TODO(), cm, helper.DefaultCleanup(ctx))
+	err = testContext.Client.Create(context.TODO(), cm)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Create an Elasticsearch client
@@ -48,7 +43,7 @@ func TestElasticSearch(t *testing.T) {
 	shouldConnectToES(t, cl)
 
 	// Deploy the Coherence cluster
-	_, pods := local.AssertDeploymentsWithContext(t, ctx, "efk-test.yaml")
+	_, pods := helper.AssertDeployments(testContext, t, "efk-test.yaml")
 	assertAllHaveFluentdContainers(t, pods)
 
 	// It can take a while for things to start to appear in Elasticsearch so wait...

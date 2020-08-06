@@ -16,7 +16,6 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	"net/http"
 	"os"
 	"strings"
@@ -26,28 +25,22 @@ import (
 
 // Determine whether Elasticsearch and Kibana are installed returning
 // the installed Elasticsearch and Kibana Pods
-func AssertElasticsearchInstalled(t *testing.T) (*corev1.Pod, *corev1.Pod) {
+func AssertElasticsearchInstalled(ctx helper.TestContext, t *testing.T) (*corev1.Pod, *corev1.Pod) {
 	g := NewGomegaWithT(t)
 
 	var esPod *corev1.Pod
 	var kPod *corev1.Pod
 
-	cfg, _, err := helper.GetKubeconfigAndNamespace("")
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cl, err := kubernetes.NewForConfig(cfg)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	namespace := helper.GetTestNamespace()
 
 	// Find the Elasticsearch Pods
-	pods, err := helper.ListPodsWithLabelSelector(cl, namespace, "app=elasticsearch-master")
+	pods, err := helper.ListPodsWithLabelSelector(ctx, namespace, "app=elasticsearch-master")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).NotTo(BeZero(), "No Elasticsearch Pods found")
 	esPod = &pods[0]
 
 	// Find the Kibana Pods
-	pods, err = helper.ListPodsWithLabelSelector(cl, namespace, "app=kibana")
+	pods, err = helper.ListPodsWithLabelSelector(ctx, namespace, "app=kibana")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).NotTo(BeZero(), "No Kibana Pods found")
 	kPod = &pods[0]
