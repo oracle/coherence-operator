@@ -1218,6 +1218,7 @@ copyright:
 	  -X go.mod \
 	  -X go.sum \
 	  -X HEADER.txt \
+	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
 	  -X java/src/copyright/EXCLUDE.txt \
 	  -X Jenkinsfile \
