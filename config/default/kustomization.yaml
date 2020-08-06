@@ -12,8 +12,8 @@ namespace: coherence-operator
 namePrefix: "coherence-operator-"
 
 # Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
+commonLabels:
+  component: "coherence-operator"
 
 configurations:
   - config.yaml

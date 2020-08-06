@@ -79,6 +79,8 @@ GO_TEST_FLAGS_E2E := -timeout=100m
 
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
+# the oprional namespaces the operator should watch
+WATCH_NAMESPACE ?=
 # flag indicating whether the test namespace should be reset (deleted and recreated) before tests
 CREATE_TEST_NAMESPACE ?= true
 
@@ -145,7 +147,7 @@ override BUILD_OUTPUT      := ./build/_output
 override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
 override BUILD_BIN         := ./bin
 override BUILD_CONFIG      := $(BUILD_OUTPUT)/config
-override BUILD_HELM        := $(BUILD_OUTPUT)/helm-carts
+override BUILD_HELM        := $(BUILD_OUTPUT)/helm-charts
 override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS     := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
@@ -164,24 +166,6 @@ CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$'
 HELM_FILES   = $(shell find helm-charts/coherence-operator -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
-
-# ---------------------------------------------------------------------------
-# Do a search and replace of properties in selected files (e.g. in the Helm
-# charts. This is done because the Helm charts can be large and processing
-# every file makes the build slower.
-# ---------------------------------------------------------------------------
-define replaceprop
-	for i in $(1); do \
-		filename="$(BUILD_HELM)/$${i}"; \
-		echo "Replacing properties in file $${filename}"; \
-		if [ -f $${filename} ]; then \
-			temp_file=$(BUILD_OUTPUT)/temp.out; \
-			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
-			mv $${temp_file} $${filename}; \
-		fi \
-	done
-endef
-
 
 .PHONY: all
 all: build-all-images
@@ -529,14 +513,42 @@ cleanup-certification:
 .PHONY: helm-chart
 helm-chart: $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
 
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/manifests
-	# Copy the Helm charts from their source location to the distribution folder
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+# Copy the Helm charts from their source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
 	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
-	# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+# Create the deployment.yaml from the manifests
+	$(call prepare_deploy,--operator-image--:1.0,namespace--namespace)
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=watch--watch
+	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set nameprefix prefix--prefix-
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default > $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/watch--watch/{{ .Values.coherenceOperator.watchNamespace | quote }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/prefix--prefix/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/--operator-image--:1.0/{{ .Values.coherenceOperator.image }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old 's/    component: coherence-operator/{{- include "coherence-operator.release_labels" . | indent 4 }}/g' $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	rm $(BUILD_HELM)/coherence-operator/templates/deployment.yaml.old
+# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+
+# ---------------------------------------------------------------------------
+# Do a search and replace of properties in selected files in the Helm charts.
+# This is done because the Helm charts can be large and processing every file
+# makes the build slower.
+# ---------------------------------------------------------------------------
+define replaceprop
+	for i in $(1); do \
+		filename="$(BUILD_HELM)/$${i}"; \
+		echo "Replacing properties in file $${filename}"; \
+		if [ -f $${filename} ]; then \
+			temp_file=$(BUILD_OUTPUT)/temp.out; \
+			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
+			mv $${temp_file} $${filename}; \
+		fi \
+	done
+endef
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
@@ -569,17 +581,22 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
 deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_OUTPUT)
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(TEST_NAMESPACE))
+ifneq (,$(WATCH_NAMESPACE))
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+endif
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
+
+define prepare_deploy
+	-rm -r $(BUILD_CONFIG)
 	mkdir -p $(BUILD_CONFIG)
-	cp -R config/ $(BUILD_OUTPUT)/
+	cp -R config $(BUILD_OUTPUT)
 	ls $(BUILD_CONFIG)
-#   Uncomment to watch a single namespace
-#	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
+	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(1)
+	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(2)
+endef
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
