@@ -27,3 +27,4 @@ spec:
         image: controller:latest
         name: manager
       terminationGracePeriodSeconds: 10
+      serviceAccountName: account
