@@ -211,7 +211,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$BuildInfo -a -o $(BUILD_BIN)/manager main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$(BuildInfo) -a -o $(BUILD_BIN)/manager main.go
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
