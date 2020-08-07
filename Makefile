@@ -582,7 +582,6 @@ define prepare_deploy
 	-rm -r $(BUILD_CONFIG)
 	mkdir -p $(BUILD_CONFIG)
 	cp -R config $(BUILD_OUTPUT)
-	ls $(BUILD_CONFIG)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(1)
