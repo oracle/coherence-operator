@@ -457,7 +457,7 @@ certification-test: install-certification
 # Install the Operator prior to running compatability tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
+install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
