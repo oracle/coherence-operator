@@ -546,7 +546,7 @@ install-crds: uninstall-crds $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
 	$(GOBIN)/kustomize build config/crd | kubectl create -f -
 else
-	$(GOBIN)/kustomize build config/crd-v1beta1 | kubectl create -f -
+	$(GOBIN)/kustomize build config/crd-v1beta1 | kubectl create -f --validate=false -
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
