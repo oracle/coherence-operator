@@ -422,8 +422,7 @@ compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 compatibility-test: $(BUILD_TARGETS)/build-operator clean-namespace reset-namespace create-ssl-secrets gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.out
+	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -458,18 +457,7 @@ certification-test: install-certification
 # Install the Operator prior to running compatability tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-install-certification: export VERSION := $(VERSION)
-install-certification: export VERSION := $(VERSION)
-install-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
-install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets
-ifeq ("$(CERTIFICATION_VERSION)","$(VERSION)")
-	$(MAKE) deploy
-#else
-#	helm repo add coherence https://oracle.github.io/coherence-operator/charts || true
-#	helm repo update || true
-#	helm install --atomic --namespace $(TEST_NAMESPACE) --wait --version $(CERTIFICATION_VERSION) operator ./helm-charts/coherence-operator
-endif
+install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -491,11 +479,9 @@ run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
 run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-certification: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-certification: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 run-certification: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-certification-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/... \
-	  2>&1 | tee $(TEST_LOGS_DIR)/operator-e2e-certification-test.out
+	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Clean up after to running compatability tests.
@@ -587,6 +573,11 @@ ifneq (,$(WATCH_NAMESPACE))
 endif
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Prepare the deployment manifests - this is called by a number of other targets.
+# Parameter #1 is the Operator Image Name
+# Parameter #2 is the name of the namespace to deploy into
+# ----------------------------------------------------------------------------------------------------------------------
 define prepare_deploy
 	-rm -r $(BUILD_CONFIG)
 	mkdir -p $(BUILD_CONFIG)
@@ -603,32 +594,8 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_OUTPUT)
-	mkdir -p $(BUILD_CONFIG)
-	cp -R config/ $(BUILD_OUTPUT)/
-	ls $(BUILD_CONFIG)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(TEST_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: generate-helm
-generate-helm: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	-rm -r $(BUILD_CONFIG)
-	mkdir -p $(BUILD_CONFIG)
-	cp -R config/ $(BUILD_CONFIG)/
-	ls $(BUILD_CONFIG)
-#   Uncomment to watch a single namespace
-#	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(TEST_NAMESPACE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(TEST_NAMESPACE)
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate manifests e.g. CRD, RBAC etc.

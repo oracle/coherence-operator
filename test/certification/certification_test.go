@@ -13,8 +13,6 @@ import (
 	"flag"
 	"fmt"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io/ioutil"
@@ -44,11 +42,10 @@ const (
 )
 
 func TestCertifyMinimalSpec(t *testing.T) {
-	g := NewGomegaWithT(t)
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
+	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
 	d := &v1.Coherence{
@@ -58,19 +55,17 @@ func TestCertifyMinimalSpec(t *testing.T) {
 		},
 	}
 
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func TestCertifyScaling(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
-
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 	d := &v1.Coherence{
@@ -88,21 +83,21 @@ func TestCertifyScaling(t *testing.T) {
 	}
 
 	// Start with one replica
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Up to three
 	err = scale(t, ns, d.Name, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 3, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSet(testContext, ns, d.Name, 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale down to one
 	err = scale(t, ns, d.Name, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, d.Name, 1, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSet(testContext, ns, d.Name, 1, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -115,11 +110,9 @@ func scale(t *testing.T, namespace, name string, replicas int32) error {
 }
 
 func TestCertifyManagementDefaultPort(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -140,20 +133,21 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 		},
 	}
 
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "management-default")
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, "management-default")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
 	println("Available ports:")
@@ -170,7 +164,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 	// try a max of 5 times
 	for i := 0; i < 5; i++ {
 		resp, err = client.Get(url)
-		if err == nil || !true {
+		if err == nil {
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -180,11 +174,9 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 
 }
 func TestCertifyManagementNonStandardPort(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -207,20 +199,21 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 		},
 	}
 
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "management-nondefault")
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, "management-nondefault")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
 	println("Available ports:")
@@ -237,7 +230,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	// try a max of 5 times
 	for i := 0; i < 5; i++ {
 		resp, err = client.Get(url)
-		if err == nil || !true {
+		if err == nil {
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -248,11 +241,9 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 }
 
 func TestCertifyMetricsDefaultPort(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -273,20 +264,21 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 		},
 	}
 
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "metric-default")
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, "metric-default")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
 	fmt.Println("Available ports:")
@@ -303,7 +295,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	// try a max of 5 times
 	for i := 0; i < 5; i++ {
 		resp, err = client.Get(url)
-		if err == nil || !true {
+		if err == nil {
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -314,11 +306,9 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 }
 
 func TestCertifyMetricsNonStandardPort(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogs(t)
 
 	ns := helper.GetTestNamespace()
 
@@ -341,20 +331,21 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 		},
 	}
 
-	err := f.Client.Create(context.TODO(), d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the deployment Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, "metric-nondefault")
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, "metric-nondefault")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
 	fmt.Println("Available ports:")
@@ -371,7 +362,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	// try a max of 5 times
 	for i := 0; i < 5; i++ {
 		resp, err = client.Get(url)
-		if err == nil || !true {
+		if err == nil {
 			break
 		}
 		time.Sleep(5 * time.Second)

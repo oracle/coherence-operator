@@ -1,3 +1,9 @@
+<!--
+  Copyright 2020, Oracle Corporation and/or its affiliates.
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
 # coherence-operator
 Install coherence-operator to work with Coherence clusters on Kubernetes.
 
@@ -15,7 +21,7 @@ package manager.
 To install the chart with the release name `sample-coherence-operator`:
 
 ```
-@ helm install --name sample-coherence-operator coherence-operator
+@ helm install sample-coherence-operator coherence-operator
 ```
 
 The command deploys coherence-operator on the Kubernetes cluster in the
@@ -27,12 +33,5 @@ To uninstall the `sample-coherence-operator` deployment:
 
 ```
 $ helm delete sample-coherence-operator
-```
-
-The command removes all the Kubernetes components associated with the chart
-and deletes the release.
-
-```
-$ kubectl delete secret coherence-monitoring-config
 ```
 

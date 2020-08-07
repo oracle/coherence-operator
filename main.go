@@ -9,7 +9,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
@@ -168,7 +167,6 @@ func printVersion() {
 	log.Info(fmt.Sprintf("Operator Utils Image: %s", cfg.GetDefaultUtilsImage()))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
-	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
 }
 
 // ---- Coherence Operator additions ---------------------------------------------------------------

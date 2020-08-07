@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-sdk/pkg/status"
+	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
 	"golang.org/x/net/context"

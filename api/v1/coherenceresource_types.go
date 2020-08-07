@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/status"
+	"github.com/operator-framework/operator-lib/status"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/pkg/errors"

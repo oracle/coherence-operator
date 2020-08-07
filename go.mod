@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/go-test/deep v1.0.3
 	github.com/onsi/gomega v1.10.1
-	github.com/operator-framework/operator-sdk v0.19.0
+	github.com/operator-framework/operator-lib v0.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/vfsgen v0.0.0-20200627165143-92b8a710ab6c
 	github.com/spf13/pflag v1.0.5

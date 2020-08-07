@@ -12,7 +12,6 @@ import (
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -211,10 +210,30 @@ func (in *ReconcileServiceMonitor) hasServiceMonitor() bool {
 	dc := discovery.NewDiscoveryClientForConfigOrDie(in.GetManager().GetConfig())
 	apiVersion := coh.ServiceMonitorGroupVersion
 	kind := coh.ServiceMonitorKind
-	ok, err := k8sutil.ResourceExists(dc, apiVersion, kind)
+	ok, err := ResourceExists(dc, apiVersion, kind)
 	if err != nil {
 		in.GetLog().Error(err, "error checking for Prometheus ServiceMonitor CRD")
 		return false
 	}
 	return ok
+}
+
+// ResourceExists returns true if the given resource kind exists
+// in the given api groupversion
+func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
+
+	_, apiLists, err := dc.ServerGroupsAndResources()
+	if err != nil {
+		return false, err
+	}
+	for _, apiList := range apiLists {
+		if apiList.GroupVersion == apiGroupVersion {
+			for _, r := range apiList.APIResources {
+				if r.Kind == kind {
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, nil
 }

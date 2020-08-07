@@ -34,6 +34,10 @@ func TestElasticSearch(t *testing.T) {
 
 	cm.SetNamespace(helper.GetTestNamespace())
 
+	// delete the ConfigMap just in case it already exists, we don't care if this fails
+	// as it probably means the CM does not exist, which is that normal case.
+	_ = testContext.Client.Delete(context.TODO(), cm)
+
 	err = testContext.Client.Create(context.TODO(), cm)
 	g.Expect(err).ToNot(HaveOccurred())
 
