@@ -429,8 +429,8 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with one replica
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
-	g.Expect(err).NotTo(HaveOccurred())
+	//_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
+	//g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Up to three
 	err = scale(t, ns, deployment.Name, 3)
@@ -499,8 +499,8 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with three replicas
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
-	g.Expect(err).NotTo(HaveOccurred())
+	//_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
+	//g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Down to One
 	err = scale(t, ns, deployment.Name, 1)
