@@ -723,10 +723,9 @@ func readCertFile(name string) ([]byte, error) {
 
 // Dump the operator logs
 func DumpOperatorLogs(t *testing.T, ctx TestContext) {
-	opNamespace := GetOperatorTestNamespace()
-	DumpOperatorLog(ctx, opNamespace, t.Name())
-	watchNamespace := GetTestNamespace()
-	DumpState(ctx, watchNamespace, t.Name())
+	namespace := GetTestNamespace()
+	DumpOperatorLog(ctx, namespace, t.Name())
+	DumpState(ctx, namespace, t.Name())
 }
 
 func DumpState(ctx TestContext, namespace, dir string) {
@@ -1077,7 +1076,7 @@ func dumpServiceAccounts(namespace, dir string, ctx TestContext) {
 }
 
 func DumpPodsForTest(ctx TestContext, t *testing.T) {
-	namespace := GetOperatorTestNamespace()
+	namespace := GetTestNamespace()
 	dumpPods(namespace, t.Name(), ctx)
 }
 
@@ -1201,11 +1200,13 @@ func GetFirstPodScheduledTime(pods []corev1.Pod, deployment string) metav1.Time 
 
 // Test that a cluster can be created using the specified yaml.
 func AssertDeployments(ctx TestContext, t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
+	return AssertDeploymentsInNamespace(ctx, t, yamlFile, GetTestNamespace())
+}
+
+// Test that a cluster can be created using the specified yaml.
+func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, namespace string) (map[string]coh.Coherence, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)
-
-	// Get the test namespace
-	namespace := GetTestNamespace()
 
 	deployments, err := NewCoherenceFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())

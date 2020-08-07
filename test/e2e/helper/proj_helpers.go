@@ -28,28 +28,19 @@ import (
 
 const (
 	TestNamespaceEnv       = "TEST_NAMESPACE"
-	TestOpNamespaceEnv     = "TEST_OPERATOR_NAMESPACE"
-	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
+	WatchNamespaceEnv      = "WATCH_NAMESPACE"
 	TestSslSecretEnv       = "TEST_SSL_SECRET"
 	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"
 	CoherenceVersionEnv    = "COHERENCE_VERSION"
-	CompatibleVersionsEnv  = "COMPATIBLE_VERSIONS"
-	VersionEnv             = "VERSION"
-	OperatorImageEnv       = "OPERATOR_IMAGE"
-	SkipCompatibilityEnv   = "SKIP_COMPATIBILITY"
 
 	defaultNamespace = "operator-test"
 
 	buildDir           = "build"
 	outDir             = buildDir + string(os.PathSeparator) + "_output"
 	chartDir           = outDir + string(os.PathSeparator) + "helm-charts"
-	compatibleChartDir = outDir + string(os.PathSeparator) + "previous-charts"
 	operatorChart      = chartDir + string(os.PathSeparator) + "coherence-operator"
-	compatibleCharts   = compatibleChartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
 	certs              = outDir + string(os.PathSeparator) + "certs"
-	deploy             = "deploy"
-	manifest           = outDir + string(os.PathSeparator) + "manifest"
 )
 
 func GetTestNamespace() string {
@@ -60,35 +51,12 @@ func GetTestNamespace() string {
 	return ns
 }
 
-func GetOperatorTestNamespace() string {
-	ns := os.Getenv(TestOpNamespaceEnv)
-	if ns == "" {
-		ns = GetTestNamespace()
+func GetWatchNamespaces() []string {
+	ns := os.Getenv(WatchNamespaceEnv)
+	if ns != "" {
+		return strings.Split(ns, ",")
 	}
-	return ns
-}
-
-func GetPrometheusNamespace() string {
-	ns := os.Getenv(PrometheusNamespaceEnv)
-	if ns == "" {
-		ns = GetTestNamespace()
-	}
-	return ns
-}
-
-func GetOperatorVersion() string {
-	return os.Getenv(VersionEnv)
-}
-
-func GetCompatibleOperatorVersions() []string {
-	var versions []string
-	list, ok := os.LookupEnv(CompatibleVersionsEnv)
-	if ok {
-		versions = strings.Split(list, " ")
-	} else {
-		versions = []string{}
-	}
-	return versions
+	return []string{}
 }
 
 func GetTestSSLSecretName() string {
@@ -126,13 +94,6 @@ func FindProjectRootDir() (string, error) {
 	return "", os.ErrNotExist
 }
 
-func AssumeRunningCompatibilityTests(t *testing.T) {
-	s := os.Getenv(SkipCompatibilityEnv)
-	if strings.ToLower(s) == "true" {
-		t.Skipf("Skipping compatibility tests, %s environment variable set to '%s'", SkipCompatibilityEnv, s)
-	}
-}
-
 func FindOperatorHelmChartDir() (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
@@ -140,15 +101,6 @@ func FindOperatorHelmChartDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + operatorChart, nil
-}
-
-func FindPreviousOperatorHelmChartDir(v string) (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	return pd + string(os.PathSeparator) + compatibleCharts + "-" + v, nil
 }
 
 func FindTestLogsDir() (string, error) {
@@ -167,20 +119,6 @@ func FindTestCertsDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + certs, nil
-}
-
-func FindTestManifestDir() (string, error) {
-	pd, err := FindProjectRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	return pd + string(os.PathSeparator) + manifest, nil
-}
-
-// NewCoherence creates a new Coherence resource from the default minimal yaml file.
-func NewCoherence(namespace string) (coh.Coherence, error) {
-	return NewSingleCoherenceFromYaml(namespace, "")
 }
 
 // NewSingleCoherenceFromYaml creates a single new Coherence resource from a yaml file.
