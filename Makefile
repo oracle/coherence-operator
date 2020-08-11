@@ -79,7 +79,7 @@ GO_TEST_FLAGS_E2E := -timeout=100m
 
 # default as in test/e2e/helper/proj_helpers.go
 TEST_NAMESPACE ?= operator-test
-# the oprional namespaces the operator should watch
+# the optional namespaces the operator should watch
 WATCH_NAMESPACE ?=
 # flag indicating whether the test namespace should be reset (deleted and recreated) before tests
 CREATE_TEST_NAMESPACE ?= true
@@ -160,7 +160,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 GOS          = $(shell find . -type f -name "*.go" ! -name "*_test.go")
-OPTESTGOS    = $(shell find cmd/optest -type f -name "*.go" ! -name "*_test.go")
+OPTESTGOS    = $(shell find ./optest -type f -name "*.go" ! -name "*_test.go")
 API_GO_FILES = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 HELM_FILES   = $(shell find helm-charts/coherence-operator -type f)
@@ -229,7 +229,7 @@ build-runner: $(BUILD_BIN)/runner
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	@echo "Building Operator Runner"
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$(BUILD_INFO) -o $(BUILD_BIN)/runner ./cmd/runner
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$(BUILD_INFO) -o $(BUILD_BIN)/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator legacy converter
@@ -238,16 +238,16 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 converter: $(BUILD_BIN)/converter $(BUILD_BIN)/converter-linux-amd64 $(BUILD_BIN)/converter-darwin-amd64 $(BUILD_BIN)/converter-windows-amd64
 
 $(BUILD_BIN)/converter: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/converter ./cmd/converter
+	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/converter ./converter
 
 $(BUILD_BIN)/converter-linux-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./cmd/converter
+	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./converter
 
 $(BUILD_BIN)/converter-darwin-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./cmd/converter
+	CGO_ENABLED=0 GO111MODULE=on GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./converter
 
 $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./cmd/converter
+	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./converter
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator test utility
@@ -256,7 +256,7 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 build-op-test: $(BUILD_BIN)/op-test
 
 $(BUILD_BIN)/op-test: $(BUILD_PROPS) $(GOS) $(OPTESTGOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/op-test ./cmd/optest
+	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/op-test ./optest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
@@ -268,7 +268,7 @@ test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
 test-operator: $(BUILD_TARGETS)/build-operator gotestsum
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
-	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./cmd/... ./pkg/...
+	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -278,6 +278,7 @@ test-operator: $(BUILD_TARGETS)/build-operator gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
+e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -346,6 +347,7 @@ e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-o
 
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
+run-prometheus-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-prometheus-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -384,6 +386,7 @@ e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operato
 
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
+run-elastic-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -431,21 +434,6 @@ compatibility-test: $(BUILD_TARGETS)/build-operator clean-namespace reset-namesp
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
-certification-test: export CGO_ENABLED = 0
-certification-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
-certification-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-certification-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-certification-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-certification-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-certification-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-certification-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-certification-test: export VERSION := $(VERSION)
-certification-test: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
-certification-test: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
-certification-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-certification-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-certification-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-certification-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 certification-test: install-certification
 	$(MAKE) $(MAKEFLAGS) run-certification \
 	; rc=$$? \
@@ -726,7 +714,7 @@ api-doc-gen: docs/about/04_coherence_spec.adoc
 
 docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
 	@echo "Generating CRD Doc"
-	go run ./cmd/docgen/ \
+	go run ./docgen/ \
 		api/v1/coherenceresourcespec_types.go \
 		api/v1/coherence_types.go \
 		api/v1/coherenceresource_types.go \
@@ -1158,7 +1146,7 @@ $(BUILD_BIN)/golangci-lint:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./cmd/...
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------

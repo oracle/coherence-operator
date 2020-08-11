@@ -61,12 +61,6 @@ func main() {
 	printVersion()
 	initialiseOperator()
 
-	watchNamespaces, err := getWatchNamespace()
-	if err != nil {
-	    setupLog.Info("unable to get WatchNamespaces, " +
-	       "the manager will watch and manage resources in ALL namespaces")
-	}
-
 	options := ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -75,11 +69,19 @@ func main() {
 		LeaderElectionID:   "ca804aa8.oracle.com",
 	}
 
-	if len(watchNamespaces) == 1 {
+	// Determine the Operator scope...
+	watchNamespaces := getWatchNamespace()
+	switch len(watchNamespaces) {
+	case 0:
+		// Watching all namespaces
+		setupLog.Info("Operator will watch all namespaces")
+	case 1:
 		// Watch a single namespace
+		setupLog.Info("Operator will watch single namespace: " + watchNamespaces[0])
 		options.Namespace = watchNamespaces[0]
-	} else if len(watchNamespaces) > 1 {
+	default:
 		// Watch a multiple namespaces
+		setupLog.Info(fmt.Sprintf("Operator will watch multiple namespaces: %v", watchNamespaces))
 		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
 	}
 
@@ -140,17 +142,22 @@ func initialiseOperator() {
 }
 
 // getWatchNamespace returns the Namespace(s) the operator should be watching for changes
-func getWatchNamespace() ([]string, error) {
+func getWatchNamespace() []string {
     // WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
     // which specifies the Namespace to watch.
     // An empty value means the operator is running with cluster scope.
     var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	var watches []string
 
     ns, found := os.LookupEnv(watchNamespaceEnvVar)
-    if !found {
-        return []string{}, fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+    if !found || ns == "" || strings.TrimSpace(ns) == "" {
+        return watches
     }
-    return strings.Split(ns, ","), nil
+
+    for _, s := range strings.Split(ns, ",") {
+    	watches = append(watches, strings.TrimSpace(s))
+	}
+	return watches
 }
 
 func printVersion() {

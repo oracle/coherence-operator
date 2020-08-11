@@ -28,6 +28,7 @@ import (
 	"k8s.io/client-go/rest"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -47,8 +48,8 @@ import (
 const operatorPodSelector = "name=coherence-operator"
 
 var (
-	RetryInterval        = time.Second * 5
-	Timeout              = time.Minute * 3
+	RetryInterval = time.Second * 5
+	Timeout       = time.Minute * 3
 )
 
 // A context for end-to-end tests
@@ -60,6 +61,7 @@ type TestContext struct {
 	Logger     logr.Logger
 	testEnv    *envtest.Environment
 	stop       chan struct{}
+	namespaces []string
 }
 
 func (in TestContext) Logf(format string, a ...interface{}) {
@@ -76,12 +78,55 @@ func (in TestContext) CleanupAfterTest(t *testing.T) {
 func (in TestContext) Cleanup() {
 	in.Logger.Info("tearing down the test environment")
 	ns := GetTestNamespace()
+	in.CleanupNamespace(ns)
+	for i := range in.namespaces {
+		_ = in.cleanAndDeleteNamespace(in.namespaces[i])
+	}
+	in.namespaces = []string{}
+}
+
+func (in TestContext) CleanupNamespace(ns string) {
+	in.Logger.Info("tearing down the test environment - namespace: " + ns)
 	if err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns)); err != nil {
 		in.Logf("error tearing down the test environment: %+v", err)
 	}
 	if err := WaitForCoherenceCleanup(in, ns); err != nil {
 		in.Logf("error wating for cleanup to complete: %+v", err)
 	}
+}
+
+func (in TestContext) CreateNamespace(ns string) error {
+	n := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ns,
+			Namespace: ns,
+		},
+		Spec: corev1.NamespaceSpec{},
+	}
+	_, err := in.KubeClient.CoreV1().Namespaces().Create(context.TODO(), &n, metav1.CreateOptions{})
+	if err != nil {
+		in.namespaces = append(in.namespaces, ns)
+	}
+	return err
+}
+
+func (in TestContext) DeleteNamespace(ns string) error {
+	for i := range in.namespaces {
+		if in.namespaces[i] == ns {
+			err := in.cleanAndDeleteNamespace(ns)
+			last := len(in.namespaces)-1
+			in.namespaces[i] = in.namespaces[last] // Copy last element to index i.
+			in.namespaces[last-1] = ""             // Erase last element (write zero value).
+			in.namespaces = in.namespaces[:last]   // Truncate slice.
+			return err
+		}
+	}
+	return nil
+}
+
+func (in TestContext) cleanAndDeleteNamespace(ns string) error {
+	in.CleanupNamespace(ns)
+	return in.KubeClient.CoreV1().Namespaces().Delete(context.TODO(), ns, metav1.DeleteOptions{})
 }
 
 func (in TestContext) Close() {
@@ -95,7 +140,7 @@ func (in TestContext) Close() {
 }
 
 // Create a new TestContext.
-func NewContext(startController bool) (TestContext, error) {
+func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
 
 	logf.SetLogger(testLogger)
@@ -125,7 +170,17 @@ func NewContext(startController bool) (TestContext, error) {
 		return TestContext{}, err
 	}
 
-	k8sManager, err := ctrl.NewManager(k8sCfg, ctrl.Options{Scheme: scheme.Scheme})
+	options := ctrl.Options{Scheme: scheme.Scheme}
+
+	if len(watchNamespaces) == 1 {
+		// Watch a single namespace
+		options.Namespace = watchNamespaces[0]
+	} else if len(watchNamespaces) > 1 {
+		// Watch a multiple namespaces
+		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
+	}
+
+	k8sManager, err := ctrl.NewManager(k8sCfg, options)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -144,8 +199,8 @@ func NewContext(startController bool) (TestContext, error) {
 	if startController {
 		// Create the Coherence controller
 		err = (&controllers.CoherenceReconciler{
-			Client:    k8sManager.GetClient(),
-			Log:       ctrl.Log.WithName("controllers").WithName("Coherence"),
+			Client: k8sManager.GetClient(),
+			Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
 		}).SetupWithManager(k8sManager)
 		if err != nil {
 			return TestContext{}, err
@@ -172,7 +227,6 @@ func NewContext(startController bool) (TestContext, error) {
 		stop:       stop,
 	}, nil
 }
-
 
 // WaitForStatefulSetForDeployment waits for a StatefulSet to be created for the specified deployment.
 func WaitForStatefulSetForDeployment(ctx TestContext, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
