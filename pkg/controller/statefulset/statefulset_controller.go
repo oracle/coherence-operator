@@ -285,16 +285,26 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage) (bool, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
-	name := current.GetName()
-	original, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, name)
+	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
+	original := &appsv1.StatefulSet{}
+	err := resource.As(original)
+	if err != nil {
+		return false, err
+	}
 
 	// We NEVER change the replicas or Status in an update.
 	// Replicas is handled by scaling so we always set the desired replicas to match the current replicas
 	desired.Spec.Replicas = current.Spec.Replicas
+	original.Spec.Replicas = current.Spec.Replicas
 	// We need to ensure we do not create a patch due to differences in StatefulSet Status
-	desired.Status = current.Status
-	// If the StatefulSet has PVs we need to ensure we do not create a patch due to ignorable differences in PV
-	in.mergeVolumeClaims(desired, current)
+	desired.Status = appsv1.StatefulSetStatus{}
+	current.Status = appsv1.StatefulSetStatus{}
+	original.Status = appsv1.StatefulSetStatus{}
+
+	// The VolumeClaimTemplates of a StetfulSet cannot be changed so blank them out for the patch
+	desired.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
+	current.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
+	original.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch
 	callback := func() {
@@ -304,7 +314,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 		}
 	}
 
-	patched, err := in.ThreeWayPatchWithCallback(name, current, original.Spec, desired, callback)
+	patched, err := in.ThreeWayPatchWithCallback(current.GetName(), current, original, desired, callback)
 	// log the result of patching
 	switch {
 	case err != nil:
@@ -316,37 +326,6 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 	}
 
 	return patched, err
-}
-
-// If the desired StatefulSet has PVs update the desired PV to avid needless merges
-func (in *ReconcileStatefulSet) mergeVolumeClaims(desired, current *appsv1.StatefulSet) {
-	if len(desired.Spec.VolumeClaimTemplates) == 0 {
-		return
-	}
-
-	// Make a map of current PVs by name
-	m := make(map[string]corev1.PersistentVolumeClaim)
-	for _, pv := range current.Spec.VolumeClaimTemplates {
-		m[pv.Name] = pv
-	}
-
-	dfltVolumeMode := corev1.PersistentVolumeFilesystem
-
-	for i, pv := range desired.Spec.VolumeClaimTemplates {
-		currentPV, found := m[pv.Name]
-		if found {
-			// Update the desired PV statuses
-			pv.Status = currentPV.Status
-
-			// Set the desired volume mode to the default if it is not set
-			if pv.Spec.VolumeMode == nil {
-				pv.Spec.VolumeMode = &dfltVolumeMode
-			}
-
-			// set the updated PV back into the desired array
-			desired.Spec.VolumeClaimTemplates[i] = pv
-		}
-	}
 }
 
 // Scale will scale a StatefulSet up or down
