@@ -186,7 +186,7 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(namespace, name string, 
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.Spec.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
 	// create the patch
-	data, err := in.CreateThreeWayPatchData(name, original.Spec, desired.Spec, current)
+	data, err := in.CreateThreeWayPatchData(original.Spec, desired.Spec, current)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create patch for ServiceMonitor %s/%s", namespace, name)
 	}

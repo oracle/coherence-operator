@@ -73,7 +73,7 @@ PRE_RELEASE      ?= true
 # Extra arguments to pass to the go test command for the various test steps.
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
-#   make e2e-test GO_TEST_FLAGS='-run=^TestZone$$'
+#   make e2e-test GO_TEST_FLAGS_E2E='-run=^TestZone$$'
 GO_TEST_FLAGS     ?= -timeout=20m
 GO_TEST_FLAGS_E2E := -timeout=100m
 
