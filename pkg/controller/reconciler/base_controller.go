@@ -328,7 +328,7 @@ func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, orig
 
 // Create a three-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
-	data, err := in.CreateThreeWayPatchData(name, original, desired, current, ignore...)
+	data, err := in.CreateThreeWayPatchData(original, desired, current, ignore...)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating three-way patch")
 	}
@@ -350,7 +350,7 @@ func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, 
 }
 
 // Create a three-way patch between the original state, the current state and the desired state of a k8s resource.
-func (in *CommonReconciler) CreateThreeWayPatchData(name string, original, desired, current runtime.Object, ignore ...string) ([]byte, error) {
+func (in *CommonReconciler) CreateThreeWayPatchData(original, desired, current runtime.Object, ignore ...string) ([]byte, error) {
 	originalData, err := json.Marshal(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "serializing original configuration")
