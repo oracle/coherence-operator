@@ -2332,6 +2332,24 @@ func (in *Resource) IsDelete() bool {
 	return in.Spec == nil
 }
 
+// Convert the Spec to the specified value.
+// This is done by serializing the Spec to json and deserializing into the specified object.
+func (in *Resource) As(o runtime.Object) error {
+	if in == nil {
+		return fmt.Errorf("cannot convert to runtime.Object - resource is nil")
+	}
+	if in.Spec == nil {
+		return fmt.Errorf("cannot convert resource - spec is nil")
+	}
+
+	data, err := json.Marshal(in.Spec)
+	if err != nil {
+		return errors.Wrap(err, "marshalling spec to json")
+	}
+
+	return json.Unmarshal(data, o)
+}
+
 // Set the the controller/owner of the resource
 func (in *Resource) SetController(object runtime.Object, scheme *runtime.Scheme) error {
 	if in == nil || in.Spec == nil {
