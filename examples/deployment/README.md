@@ -92,6 +92,9 @@ following command to build the projects and associated Docker images:
 mvn clean install -P docker
 ```            
 
+> Note: If you want to change the Coherence version from the default of 14.1.1-0-1 to 20.06, then 
+> you can supply the -Dcoherence.version=20.06 for the mvn commands below. You must also use JDK11.
+
 > Note: If you are running behind a corporate proxy and receive the following message building the 
 > Docker image:
 > `Connect to gcr.io:443 [gcr.io/172.217.212.82] failed: connect timed out` you must modify the build command 
