@@ -314,13 +314,14 @@ public class HealthServer {
                 }
                 CacheFactory.log("HealthServer: Suspending service " + name, CacheFactory.LOG_WARN);
                 cluster.suspendService(name);
-            } else {
+            }
+            else {
                 CacheFactory.log("HealthServer: Suspending all services", CacheFactory.LOG_WARN);
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
-                    Service service = cluster.getService(name);
-                    if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+                    Service svc = cluster.getService(name);
+                    if (svc instanceof DistributedCacheService && ((DistributedCacheService) svc).isLocalStorageEnabled()) {
                         cluster.suspendService(name);
                     }
                 }
@@ -357,7 +358,8 @@ public class HealthServer {
                 }
                 CacheFactory.log("HealthServer: Resuming service " + name, CacheFactory.LOG_WARN);
                 cluster.resumeService(name);
-            } else {
+            }
+            else {
                 CacheFactory.log("HealthServer: Resuming all services", CacheFactory.LOG_WARN);
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
