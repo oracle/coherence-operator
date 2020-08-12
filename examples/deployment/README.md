@@ -38,14 +38,14 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 ## Coherence Operator Quick Start
 
-Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/#/about/03_quickstart) including the
+Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.0.1/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
 ## Software Versions
 
 Ensure you have the following software installed:
 
-* [Java 11+ JDK](http://jdk.java.net/)
+* [Java 8+ JDK](http://jdk.java.net/)
 * [Maven](https://maven.apache.org) version 3.6.0+
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
@@ -91,6 +91,9 @@ following command to build the projects and associated Docker images:
 ```bash
 mvn clean install -P docker
 ```            
+
+> Note: If you want to change the Coherence version from the default of 14.1.1-0-1 to 20.06, then 
+> you can supply the -Dcoherence.version=20.06 for the mvn commands below. You must also use JDK11.
 
 > Note: If you are running behind a corporate proxy and receive the following message building the 
 > Docker image:
