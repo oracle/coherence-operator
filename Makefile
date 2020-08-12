@@ -32,7 +32,7 @@ GOPROXY         ?= https://proxy.golang.org
 # Set the location of the Operator SDK executable
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v0.19.0
+OPERATOR_SDK_VERSION := v1.0.0
 OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # The Coherence image to use for deployments that do not specify an image
@@ -696,6 +696,7 @@ endif
 .PHONY: bundle
 bundle: $(BUILD_TARGETS)/manifests
 	$(OPERATOR_SDK) generate $(GOBIN)/kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 

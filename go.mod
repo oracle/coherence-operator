@@ -15,15 +15,15 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20200627165143-92b8a710ab6c
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	k8s.io/api v0.18.4
-	k8s.io/apiextensions-apiserver v0.18.4
-	k8s.io/apimachinery v0.18.4
+	k8s.io/api v0.18.6
+	k8s.io/apiextensions-apiserver v0.18.6
+	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubernetes v1.13.0
 	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
-	sigs.k8s.io/controller-runtime v0.6.1
+	sigs.k8s.io/controller-runtime v0.6.2
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.2.0
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.18.4
+replace k8s.io/client-go => k8s.io/client-go v0.18.6

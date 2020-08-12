@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +22,8 @@ import java.util.stream.Collectors;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Service;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
@@ -37,6 +40,11 @@ public class HealthServer {
      * The system property to use to set the health port.
      */
     public static final String PROP_HEALTH_PORT = "coherence.health.port";
+
+    /**
+     * The system property to use to determine whether to wait for DCS to start.
+     */
+    public static final String PROP_WAIT_FOR_DCS = "coherence.health.wait.dcs";
 
     /**
      * The path to the ready endpoint.
@@ -57,6 +65,16 @@ public class HealthServer {
      * The path to the status endpoint.
      */
     public static final String PATH_STATUS = "/status";
+
+    /**
+     * The path to the suspend endpoint.
+     */
+    public static final String PATH_SUSPEND = "/suspend";
+
+    /**
+     * The path to the resume endpoint.
+     */
+    public static final String PATH_RESUME = "/resume";
 
     /**
      * The MBean name of the PartitionAssignment MBean.
@@ -158,6 +176,8 @@ public class HealthServer {
             server.createContext(PATH_HEALTH, this::health);
             server.createContext(PATH_HA, this::statusHA);
             server.createContext(PATH_STATUS, this::status);
+            server.createContext(PATH_SUSPEND, this::suspend);
+            server.createContext(PATH_RESUME, this::resume);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -270,6 +290,88 @@ public class HealthServer {
         }
     }
 
+    /**
+     * Process a suspend request.
+     *
+     * @param exchange the {@link HttpExchange} to send the response to
+     */
+    @SuppressWarnings("unchecked")
+    void suspend(HttpExchange exchange) {
+        try {
+            String   path  = exchange.getRequestURI().getPath();
+            String   name  = "";
+            String[] parts = path.split("/");
+            if (parts.length > 2) {
+                name = parts[2].trim();
+            }
+
+            Cluster cluster = clusterSupplier.get();
+            if (!name.isEmpty()) {
+                Service service = cluster.getService(name);
+                if (service == null) {
+                    send(exchange, 404);
+                    return;
+                }
+                CacheFactory.log("HealthServer: Suspending service " + name, CacheFactory.LOG_WARN);
+                cluster.suspendService(name);
+            } else {
+                CacheFactory.log("HealthServer: Suspending all services", CacheFactory.LOG_WARN);
+                Enumeration<String> names = cluster.getServiceNames();
+                while (names.hasMoreElements()) {
+                    name = names.nextElement();
+                    Service service = cluster.getService(name);
+                    if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+                        cluster.suspendService(name);
+                    }
+                }
+            }
+            send(exchange, 200);
+        }
+        catch (Exception e) {
+            CacheFactory.err(e);
+            send(exchange, 500);
+        }
+    }
+
+    /**
+     * Process a resume request.
+     *
+     * @param exchange the {@link HttpExchange} to send the response to
+     */
+    @SuppressWarnings("unchecked")
+    void resume(HttpExchange exchange) {
+        try {
+            String   path  = exchange.getRequestURI().getPath();
+            String   name  = "";
+            String[] parts = path.split("/");
+            if (parts.length > 2) {
+                name = parts[2].trim();
+            }
+
+            Cluster cluster = clusterSupplier.get();
+            if (!name.isEmpty()) {
+                Service service = cluster.getService(name);
+                if (service == null) {
+                    send(exchange, 404);
+                    return;
+                }
+                CacheFactory.log("HealthServer: Resuming service " + name, CacheFactory.LOG_WARN);
+                cluster.resumeService(name);
+            } else {
+                CacheFactory.log("HealthServer: Resuming all services", CacheFactory.LOG_WARN);
+                Enumeration<String> names = cluster.getServiceNames();
+                while (names.hasMoreElements()) {
+                    cluster.resumeService(names.nextElement());
+                }
+            }
+            send(exchange, 200);
+        }
+        catch (Exception e) {
+            CacheFactory.err(e);
+            send(exchange, 500);
+        }
+    }
+
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
         CacheFactory.log(action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
@@ -370,9 +472,12 @@ public class HealthServer {
     }
 
     private static void waitForDCS() {
-        DefaultCacheServer dcs = DefaultCacheServer.getInstance();
-        // Wait for service start to ensure that we will get back any partition cache MBeans
-        dcs.waitForServiceStart();
+        String s = System.getProperty(PROP_WAIT_FOR_DCS, "true");
+        if (Boolean.parseBoolean(s)) {
+            DefaultCacheServer dcs = DefaultCacheServer.getInstance();
+            // Wait for service start to ensure that we will get back any partition cache MBeans
+            dcs.waitForServiceStart();
+        }
     }
 
     /**
