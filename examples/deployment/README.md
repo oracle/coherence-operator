@@ -38,7 +38,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 ## Coherence Operator Quick Start
 
-Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/#/about/03_quickstart) including the
+Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.0.1/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
 ## Software Versions
