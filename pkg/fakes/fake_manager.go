@@ -8,6 +8,7 @@ package fakes
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
@@ -21,6 +22,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"net/http"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -76,6 +78,10 @@ type FakeManager struct {
 	Events *FakeEventRecorder
 	Mapper meta.RESTMapper
 	Config *rest.Config
+}
+
+func (f *FakeManager) GetLogger() logr.Logger {
+	return ctrl.Log.WithName("manager")
 }
 
 func (f *FakeManager) Elected() <-chan struct{} {
