@@ -25,6 +25,6 @@ spec:
     cacheConfig: storage-cache-config.xml
     metrics:
       enabled: true
-  image: deployment-example:3.0.2
+  image: deployment-example:3.0.3
   imagePullPolicy: Always
   replicas: 3

@@ -38,7 +38,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 ## Coherence Operator Quick Start
 
-Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.0.1/#/about/03_quickstart) including the
+Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.0.2/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
 ## Software Versions
@@ -108,7 +108,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.0.2
+deployment-example:3.0.3
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
@@ -281,7 +281,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.2
+  image: deployment-example:3.0.3
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -393,7 +393,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.2
+  image: deployment-example:3.0.3
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main

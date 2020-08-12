@@ -20,7 +20,7 @@ spec:
       serviceAccountName: coherence-operator
       containers:
         - name: coherence-operator
-          image: docker.pkg.github.com/oracle/coherence-operator/coherence-operator:3.0.2-ci
+          image: docker.pkg.github.com/oracle/coherence-operator/coherence-operator:3.0.3-ci
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
