@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 package webhook
 
 import (
@@ -8,21 +14,16 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	admissionv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/util/wait"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
-	"time"
-
-	admissionv1beta1 "k8s.io/api/admissionregistration/v1beta1"
-	kerrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type HookInstaller struct {
@@ -55,20 +56,12 @@ var (
 )
 
 func (k *HookInstaller) uninstallWebHook(client client.Client) error {
-	log.Info(fmt.Sprintf("Uninstall webhook resources"))
+	log.Info("Uninstall webhook resources")
 
-	//ns := operator.GetNamespace()
-	//// We can create the generic version here, for delete we don't care about the details
-	//m := createMutatingWebhookConfiguration(ns)
-	//if err := deleteAndWait(client, &m); err != nil {
-	//	log.Error(err, "error deleting MutatingWebhookConfiguration " + m.GetName())
-	//}
-	//
-	//// We can create the generic version here, for delete we don't care about the details
-	//v := createValidatingWebhookConfiguration(ns)
-	//if err := deleteAndWait(client, &v); err != nil {
-	//	log.Error(err, "error deleting ValidatingWebhookConfiguration " + v.GetName())
-	//}
+	// We only clean up cert-manager resource here.
+	// We specifically DO NOT clean-up the web-hook resources because we do not
+	// want mutations of Coherence resources to go through whilst the operator is not
+	// running as these may result in invalid configurations.
 
 	if k.certificate != nil {
 		log.Info("deleting cert-manager certificate " + k.certificate.GetName())
@@ -498,48 +491,4 @@ func equal(expected, actual interface{}) bool {
 		return expected == actual
 	}
 	return reflect.DeepEqual(expected, actual)
-}
-
-// DeleteAndWait deletes the given runtime object and waits until it is fully deleted
-func deleteAndWait(c client.Client, obj runtime.Object, options ...client.DeleteOption) error {
-	err := c.Delete(context.TODO(), obj, options...)
-
-	if err != nil {
-		key := objectKey(obj)
-
-		if kerrors.IsNotFound(err) {
-			// Obj is already deleted, we can return directly
-			log.Info(fmt.Sprintf("Deleting obj %s/%s is already NotFound, return now", key.Namespace, key.Name))
-			return nil
-		}
-		return fmt.Errorf("failed to delete %s/%s: %v", key.Namespace, key.Name, err)
-	}
-
-	return waitForDelete(c, obj)
-}
-
-// WaitForDelete waits for the provided runtime object to be deleted from cluster
-func waitForDelete(c client.Client, obj runtime.Object) error {
-	key := objectKey(obj)
-	log.Info(fmt.Sprintf("Waiting for obj %s/%s to be finally deleted", key.Namespace, key.Name))
-
-	// Wait for resources to be deleted.
-	return wait.PollImmediate(250*time.Millisecond, 30*time.Second, func() (done bool, err error) {
-		err = c.Get(context.TODO(), key, obj.DeepCopyObject())
-		log.V(6).Info(fmt.Sprintf("Fetched %s/%s to wait for delete: %v", key.Namespace, key.Name, err))
-
-		if err != nil && kerrors.IsNotFound(err) {
-			return true, nil
-		}
-		return false, err
-	})
-}
-
-// ObjectKey returns an instantiated ObjectKey for the provided object.
-func objectKey(obj runtime.Object) client.ObjectKey {
-	m, _ := meta.Accessor(obj)
-	return client.ObjectKey{
-		Name:      m.GetName(),
-		Namespace: m.GetNamespace(),
-	}
 }

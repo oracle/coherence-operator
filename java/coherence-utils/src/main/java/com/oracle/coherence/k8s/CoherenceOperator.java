@@ -16,10 +16,13 @@ import com.tangosol.net.CacheFactory;
 public class CoherenceOperator
         implements CoherenceOperatorMBean {
 
-    public static final String NA = "n/a";
+    private static final String NA = "n/a";
 
     private String identity = NA;
 
+    /**
+     * Create a CoherenceOperator MBean.
+     */
     public CoherenceOperator() {
         String id = System.getProperty(PROP_IDENTITY, NA);
         if (!id.isEmpty()) {

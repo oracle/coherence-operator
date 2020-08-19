@@ -21,14 +21,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
-	"sync"
 )
 
 // The logger to use to log messages
 var (
 	log   = logf.Log.WithName("rest-server")
 	svr   *server
-	mutex = sync.Mutex{}
 )
 
 type handler struct {

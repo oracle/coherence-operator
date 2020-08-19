@@ -7,7 +7,7 @@ resources:
 
 patchesStrategicMerge:
 # patches here are for enabling the conversion webhook for each CRD
-- patches/webhook_in_coherences.yaml
+#- patches/webhook_in_coherences.yaml
 # +kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable webhook, uncomment all the sections with [CERTMANAGER] prefix.

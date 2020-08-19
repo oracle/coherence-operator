@@ -317,7 +317,8 @@ public class OperatorRestServer {
             MBeanAccessor accessor = new MBeanAccessor();
             Map<String, Map<String, Object>> map = accessor.getAttributes(query);
             for (Map<String, Object> m : map.values()) {
-                identityMap.put((Integer) m.get(CoherenceOperator.ATTRIBUTE_NODE), (String) m.get(CoherenceOperator.ATTRIBUTE_IDENTITY));
+                identityMap.put((Integer) m.get(CoherenceOperator.ATTRIBUTE_NODE),
+                                (String) m.get(CoherenceOperator.ATTRIBUTE_IDENTITY));
             }
 
             if (!name.isEmpty()) {
@@ -344,10 +345,11 @@ public class OperatorRestServer {
                         if (count == 1) {
                             CacheFactory.log("CoherenceOperator: Suspending service " + name, CacheFactory.LOG_INFO);
                             cluster.suspendService(name);
-                        } else {
+                        }
+                        else {
                             CacheFactory.log("CoherenceOperator: Not suspending service "
-                                    + name + " - is storage enabled in other deployments"
-                                    , CacheFactory.LOG_INFO);
+                                    + name + " - is storage enabled in other deployments",
+                                    CacheFactory.LOG_INFO);
                         }
                     }
                 }
