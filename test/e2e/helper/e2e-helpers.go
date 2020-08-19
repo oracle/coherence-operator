@@ -10,6 +10,7 @@ package helper
 import (
 	goctx "context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
@@ -17,6 +18,10 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
@@ -143,8 +148,21 @@ func (in TestContext) Close() {
 // Create a new TestContext.
 func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
-
 	logf.SetLogger(testLogger)
+
+	// create a dummy command
+	Cmd := &cobra.Command{
+		Use:   "manager",
+		Short: "Start the operator manager",
+	}
+
+	// configure viper for the the flags and env-vars
+	operator.SetupFlags(Cmd)
+	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
+	flagSet.AddGoFlagSet(flag.CommandLine)
+	if err := viper.BindPFlags(flagSet); err != nil {
+		return TestContext{}, err
+	}
 
 	// We need a real cluster for these tests
 	useCluster := true
