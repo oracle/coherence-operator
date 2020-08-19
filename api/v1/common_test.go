@@ -14,6 +14,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -264,6 +265,10 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				Name:  "OPERATOR_REQUEST_TIMEOUT",
 				Value: "120",
 			},
+			{
+				Name:  coh.EnvVarCohIdentity,
+				Value: deployment.Name + "@" + deployment.Namespace,
+			},
 		},
 	}
 
@@ -470,11 +475,9 @@ func createTestDeployment(spec coh.CoherenceResourceSpec) *coh.Coherence {
 }
 
 func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpected *appsv1.StatefulSet) {
-	cfg := operator.Config{
-		CoherenceImage: testCoherenceImage,
-		UtilsImage:     testUtilsImage,
-	}
+	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
+	viper.Set(operator.FlagUtilsImage, testUtilsImage)
 
-	res := deployment.Spec.CreateStatefulSet(deployment, cfg)
+	res := deployment.Spec.CreateStatefulSet(deployment)
 	assertStatefulSet(t, res, stsExpected)
 }

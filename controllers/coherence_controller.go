@@ -15,8 +15,6 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
-	"github.com/oracle/coherence-operator/pkg/flags"
-	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,7 +43,6 @@ type CoherenceReconciler struct {
 	reconciler.CommonReconciler
 	Log         logr.Logger
 	Scheme      *runtime.Scheme
-	opFlags     *flags.CoherenceOperatorFlags
 	reconcilers []reconciler.SecondaryResourceReconciler
 }
 
@@ -123,16 +120,10 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
-	cfg, err := operator.GetOperatorConfig()
-	if err != nil {
-		err = errors.Wrap(err, "obtaining Operator config")
-		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
-	}
-
 	// obtain the original resources from the state store
 	originalResources := storage.GetLatest()
 	// Create the desired resources the deployment
-	desiredResources, err := deployment.Spec.CreateKubernetesResources(deployment, cfg)
+	desiredResources, err := deployment.Spec.CreateKubernetesResources(deployment)
 	if err != nil {
 		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -194,13 +185,6 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	f := flags.GetOperatorFlags()
-	return in.SetupWithManagerAndFlags(mgr, f)
-}
-
-func (in *CoherenceReconciler) SetupWithManagerAndFlags(mgr ctrl.Manager, f *flags.CoherenceOperatorFlags) error {
-	in.opFlags = f
-
 	gv := schema.GroupVersion{
 		Group:   coh.ServiceMonitorGroup,
 		Version: coh.ServiceMonitorVersion,

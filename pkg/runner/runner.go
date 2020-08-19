@@ -390,7 +390,8 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
 	details.AddArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.AddArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+	details.AddArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.k8s.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
 
@@ -453,7 +454,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	allowEndangered := details.Getenv(v1.EnvVarCohAllowEndangered)
 	if allowEndangered != "" {
-		details.AddArg("-Dcoherence.operator.statusha.allowendangered=" + allowEndangered)
+		details.AddArg("-Dcoherence.k8s.operator.statusha.allowendangered=" + allowEndangered)
 	}
 
 	// Get the K8s Pod UID

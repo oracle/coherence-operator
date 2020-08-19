@@ -17,8 +17,9 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/fakes"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -175,15 +176,13 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 		return nil, err
 	}
 
-	opFlags := &flags.CoherenceOperatorFlags{
-		CoherenceImage:      testCoherenceImage,
-		CoherenceUtilsImage: testUtilsImage,
-	}
+	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
+	viper.Set(operator.FlagUtilsImage, testUtilsImage)
 
 	r := &cc.CoherenceReconciler{
 		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
 	}
-	if err = r.SetupWithManagerAndFlags(mgr, opFlags); err != nil {
+	if err = r.SetupWithManager(mgr); err != nil {
 		return nil, err
 	}
 	r.SetPatchType(apitypes.StrategicMergePatchType)

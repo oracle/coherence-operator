@@ -11,13 +11,11 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Capture;
 import org.junit.Test;
@@ -25,7 +23,7 @@ import org.junit.Test;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 
-public class HealthIT {
+public class OperatorRestServerIT {
     @Test
     public void shouldBeReadySingleMember() throws Exception {
         LocalPlatform platform = LocalPlatform.get();
@@ -34,11 +32,11 @@ public class HealthIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
-                                                   SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
             Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
-            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_READY), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_READY), is(200));
         }
     }
 
@@ -51,15 +49,15 @@ public class HealthIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
-                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
-                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_READY), is(200));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_READY), is(200));
             }
         }
     }
@@ -72,9 +70,9 @@ public class HealthIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
-                                                   SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
             Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
-            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HEALTH), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HEALTH), is(200));
         }
     }
 
@@ -87,15 +85,15 @@ public class HealthIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
-                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
-                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HEALTH), is(200));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HEALTH), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_HEALTH), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_HEALTH), is(200));
             }
         }
     }
@@ -108,9 +106,9 @@ public class HealthIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
-                                                   SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort))) {
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
             Eventually.assertDeferred(() -> this.isServiceRunning(app), is(true));
-            Eventually.assertDeferred(() -> this.httpRequest(httpPort, HealthServer.PATH_HA), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HA), is(200));
         }
     }
 
@@ -123,15 +121,15 @@ public class HealthIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
-                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
-                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_HA), is(200));
             }
         }
     }
@@ -146,16 +144,16 @@ public class HealthIT {
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(400));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(400));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_HA), is(400));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_HA), is(400));
             }
         }
     }
@@ -170,18 +168,18 @@ public class HealthIT {
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                    SystemProperty.of(HealthServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
-                                                    SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort1))) {
+                                                    SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
-                                                        SystemProperty.of(HealthServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCache"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                        SystemProperty.of(HealthServer.PROP_HEALTH_PORT, httpPort2))) {
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceRunning(app2), is(true));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, HealthServer.PATH_HA), is(200));
-                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, HealthServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_HA), is(200));
             }
         }
     }

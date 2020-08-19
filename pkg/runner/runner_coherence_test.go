@@ -279,7 +279,7 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.operator.statusha.allowendangered=foo,bar")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.k8s.operator.statusha.allowendangered=foo,bar")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())

@@ -69,7 +69,7 @@ The Coherence Operator will add the following JVM arguments by default:
 -Dcoherence.role=<role>
 -Dcoherence.wka=<deployment-name>-wka
 -Dcoherence.cacheconfig=coherence-cache-config.xml
--Dcoherence.health.port=6676
+-Dcoherence.k8s.operator.health.port=6676
 -Dcoherence.management.http.port=30000
 -Dcoherence.metrics.http.port=9612
 -Dcoherence.distributed.persistence-mode=on-demand

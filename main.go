@@ -9,14 +9,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/controllers/webhook"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"os"
 	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -31,41 +34,77 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
+const (
+	flagMetricsAddress = "metrics-addr"
+	flagLeaderElection = "enable-leader-election"
+)
+
 var (
 	scheme   = apiruntime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+
+	// Cmd is the cobra command to start the manager.
+	Cmd = &cobra.Command{
+		Use:   "manager",
+		Short: "Start the operator manager",
+		Long:  "manager starts the manager for this operator, which will in turn create the necessary controller.",
+		Run: func(cmd *cobra.Command, args []string) {
+			execute()
+		},
+	}
 )
 
 func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	operator.SetupFlags(Cmd)
+	Cmd.Flags().String(flagMetricsAddress, ":8080", "The address the metric endpoint binds to.")
+	Cmd.Flags().Bool(flagLeaderElection, false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
 
+	// Add flags registered by imported packages (e.g. glog and controller-runtime)
+	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
+	flagSet.AddGoFlagSet(flag.CommandLine)
+	if err := viper.BindPFlags(flagSet); err != nil {
+		setupLog.Error(err, "binding flags")
+		os.Exit(1)
+	}
+
+	// Validate the command line flags and environment variables
+	if err := operator.ValidateFlags(); err != nil {
+		fmt.Println(err.Error())
+		_ = Cmd.Help()
+		os.Exit(1)
+	}
+
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(coh.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
+	if err := Cmd.Execute(); err != nil {
+		logf.Log.WithName("main").Error(err, "Unexpected error while executing command")
+	}
+}
 
-	pflag.CommandLine.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	pflag.CommandLine.BoolVar(&enableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-
-	// Add flags registered by imported packages (e.g. glog and
-	// controller-runtime)
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.Parse()
-
+func execute() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 	printVersion()
-	initialiseOperator()
+
+	cfg := ctrl.GetConfigOrDie()
+	cl, err := clients.NewForConfig(cfg)
+	if err != nil {
+		setupLog.Error(err, "unable to create client set")
+		os.Exit(1)
+	}
+
+	initialiseOperator(cl)
 
 	options := ctrl.Options{
 		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
+		MetricsBindAddress: viper.GetString(flagMetricsAddress),
 		Port:               9443,
-		LeaderElection:     enableLeaderElection,
+		LeaderElection:     viper.GetBool(flagLeaderElection),
 		LeaderElectionID:   "ca804aa8.oracle.com",
 	}
 
@@ -85,12 +124,13 @@ func main() {
 		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
+	mgr, err := ctrl.NewManager(cfg, options)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
+	// Set-up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
@@ -99,44 +139,59 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Coherence")
 		os.Exit(1)
 	}
+
+	// Create the REST server
+	if err := rest.NewServer(cl).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, " unable to start REST server")
+		os.Exit(1)
+	}
+
+	// Set-up webhooks if required
+	var cr *webhook.CertReconciler
+	if operator.ShouldEnableWebhooks() {
+		// Set-up the webhook certificate reconciler
+		cr = &webhook.CertReconciler{
+			Clientset: cl,
+		}
+		if err := cr.SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, " unable to create webhook certificate controller","controller", "Certs")
+			os.Exit(1)
+		}
+
+		// Set-up the webhooks
+		if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, " unable to create webhook", "webhook", "Coherence")
+			os.Exit(1)
+		}
+	}
+
 	// +kubebuilder:scaffold:builder
 
+	// We intercept the signal handler here so that we can do clean-up before the Manager stops
+	signal := ctrl.SetupSignalHandler()
+	stop := make(chan struct{})
+	go func() {
+		<- signal
+		if cr != nil {
+			cr.Cleanup()
+		}
+		close(stop)
+	}()
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(stop); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
 }
 
-func initialiseOperator() {
-	log := ctrl.Log.WithName("operator")
-
-	// Get a config to talk to the apiserver
-	cfg, err := config.GetConfig()
-	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
+func initialiseOperator(cl clients.ClientSet) {
+	opLog := ctrl.Log.WithName("operator")
 
 	// Ensure that the CRDs exist
-	err = coh.EnsureCRDs(cfg)
+	err := coh.EnsureCRDs(cl)
 	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-
-	opFlags := flags.GetOperatorFlags()
-
-	// Create the REST server
-	s, err := rest.EnsureServer(cfg, opFlags)
-	if err != nil {
-		log.Error(err, "failed to create REST server")
-		os.Exit(1)
-	}
-	// Add the REST server to the Manager so that is is started after the Manager is initialized
-	err = s.Start()
-	if err != nil {
-		log.Error(err, "failed to start the REST server")
+		opLog.Error(err, "")
 		os.Exit(1)
 	}
 }
@@ -161,22 +216,15 @@ func getWatchNamespace() []string {
 }
 
 func printVersion() {
-	cfg, err := operator.GetOperatorConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	log := ctrl.Log.WithName("operator")
-	log.Info(fmt.Sprintf("Operator Version: %s", Version))
-	log.Info(fmt.Sprintf("Operator Build Date: %s", Date))
-	log.Info(fmt.Sprintf("Operator Git Commit: %s", Commit))
-	log.Info(fmt.Sprintf("Operator Coherence Image: %s", cfg.GetDefaultCoherenceImage()))
-	log.Info(fmt.Sprintf("Operator Utils Image: %s", cfg.GetDefaultUtilsImage()))
-	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
-	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
+	opLog := ctrl.Log.WithName("operator")
+	opLog.Info(fmt.Sprintf("Operator Version: %s", Version))
+	opLog.Info(fmt.Sprintf("Operator Build Date: %s", Date))
+	opLog.Info(fmt.Sprintf("Operator Git Commit: %s", Commit))
+	opLog.Info(fmt.Sprintf("Operator Coherence Image: %s", viper.GetString(operator.FlagCoherenceImage)))
+	opLog.Info(fmt.Sprintf("Operator Utils Image: %s", viper.GetString(operator.FlagUtilsImage)))
+	opLog.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
+	opLog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 }
-
-// ---- Coherence Operator additions ---------------------------------------------------------------
 
 var (
 	// BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
@@ -187,10 +235,6 @@ var (
 )
 
 func init() {
-	// Use the Go init function to add Operator specific functionality to main
-	// Add the Operator flags
-	pflag.CommandLine.AddFlagSet(flags.FlagSet())
-
 	if BuildInfo != "" {
 		parts := strings.Split(BuildInfo, "|")
 

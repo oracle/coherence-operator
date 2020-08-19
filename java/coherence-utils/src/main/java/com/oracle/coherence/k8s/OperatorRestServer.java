@@ -24,6 +24,7 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
+import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
@@ -33,18 +34,18 @@ import com.sun.net.httpserver.HttpServer;
 /**
  * Simple http endpoint for heath checking.
  */
-public class HealthServer {
+public class OperatorRestServer {
     // ----- constants ------------------------------------------------------
 
     /**
      * The system property to use to set the health port.
      */
-    public static final String PROP_HEALTH_PORT = "coherence.health.port";
+    public static final String PROP_HEALTH_PORT = "coherence.k8s.operator.health.port";
 
     /**
      * The system property to use to determine whether to wait for DCS to start.
      */
-    public static final String PROP_WAIT_FOR_DCS = "coherence.health.wait.dcs";
+    public static final String PROP_WAIT_FOR_DCS = "coherence.k8s.operator.health.wait.dcs";
 
     /**
      * The path to the ready endpoint.
@@ -133,7 +134,7 @@ public class HealthServer {
     /**
      * System property to specify service names to be skipped in the StatusHA test.
      */
-    public static final String PROP_ALLOW_ENDANGERED = "coherence.operator.statusha.allowendangered";
+    public static final String PROP_ALLOW_ENDANGERED = "coherence.k8s.operator.statusha.allowendangered";
 
     // ----- data members ---------------------------------------------------
 
@@ -151,11 +152,11 @@ public class HealthServer {
 
     // ----- constructors ---------------------------------------------------
 
-    HealthServer() {
-        this(CacheFactory::getCluster, HealthServer::waitForDCS);
+    OperatorRestServer() {
+        this(CacheFactory::getCluster, OperatorRestServer::waitForDCS);
     }
 
-    HealthServer(Supplier<Cluster> supplier, Runnable waitForServiceStart) {
+    OperatorRestServer(Supplier<Cluster> supplier, Runnable waitForServiceStart) {
         this.clusterSupplier = supplier;
         this.waitForServiceStart = waitForServiceStart;
     }
@@ -182,7 +183,7 @@ public class HealthServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            System.out.println("REST server is UP! http://localhost:" + server.getAddress().getPort());
+            System.out.println("CoherenceOperator REST server is listening on http://localhost:" + server.getAddress().getPort());
 
             httpServer = server;
         }
@@ -265,9 +266,9 @@ public class HealthServer {
      */
     void statusHA(HttpExchange exchange) {
         try {
-            CacheFactory.log("HealthServer: StatusHA check request", CacheFactory.LOG_INFO);
+            CacheFactory.log("CoherenceOperator: StatusHA check request", CacheFactory.LOG_INFO);
             int response = isStatusHA() ? 200 : 400;
-            CacheFactory.log("HealthServer: StatusHA check response " + response, CacheFactory.LOG_INFO);
+            CacheFactory.log("CoherenceOperator: StatusHA check response " + response, CacheFactory.LOG_INFO);
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -306,23 +307,48 @@ public class HealthServer {
             }
 
             Cluster cluster = clusterSupplier.get();
+            Registry registry = cluster.getManagement();
+
+            MBeanAccessor.QueryBuilder.ParsedQuery query = new MBeanAccessor.QueryBuilder()
+                    .withBaseQuery(registry.getDomainName() + ":" + CoherenceOperator.OBJECT_NAME)
+                    .build();
+
+            Map<Integer, String> identityMap = new HashMap<>();
+            MBeanAccessor accessor = new MBeanAccessor();
+            Map<String, Map<String, Object>> map = accessor.getAttributes(query);
+            for (Map<String, Object> m : map.values()) {
+                identityMap.put((Integer) m.get(CoherenceOperator.ATTRIBUTE_NODE), (String) m.get(CoherenceOperator.ATTRIBUTE_IDENTITY));
+            }
+
             if (!name.isEmpty()) {
                 Service service = cluster.getService(name);
                 if (service == null) {
                     send(exchange, 404);
                     return;
                 }
-                CacheFactory.log("HealthServer: Suspending service " + name, CacheFactory.LOG_WARN);
+                CacheFactory.log("CoherenceOperator: Suspending service " + name, CacheFactory.LOG_WARN);
                 cluster.suspendService(name);
             }
             else {
-                CacheFactory.log("HealthServer: Suspending all services", CacheFactory.LOG_WARN);
+                CacheFactory.log("CoherenceOperator: Suspending all services", CacheFactory.LOG_WARN);
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
                     Service svc = cluster.getService(name);
                     if (svc instanceof DistributedCacheService && ((DistributedCacheService) svc).isLocalStorageEnabled()) {
-                        cluster.suspendService(name);
+                        DistributedCacheService dcs = (DistributedCacheService) svc;
+                        long count = dcs.getOwnershipEnabledMembers().stream()
+                                        .map(m -> identityMap.get(m.getId()))
+                                        .distinct()
+                                        .count();
+                        if (count == 1) {
+                            CacheFactory.log("CoherenceOperator: Suspending service " + name, CacheFactory.LOG_INFO);
+                            cluster.suspendService(name);
+                        } else {
+                            CacheFactory.log("CoherenceOperator: Not suspending service "
+                                    + name + " - is storage enabled in other deployments"
+                                    , CacheFactory.LOG_INFO);
+                        }
                     }
                 }
             }
@@ -356,11 +382,11 @@ public class HealthServer {
                     send(exchange, 404);
                     return;
                 }
-                CacheFactory.log("HealthServer: Resuming service " + name, CacheFactory.LOG_WARN);
+                CacheFactory.log("CoherenceOperator: Resuming service " + name, CacheFactory.LOG_WARN);
                 cluster.resumeService(name);
             }
             else {
-                CacheFactory.log("HealthServer: Resuming all services", CacheFactory.LOG_WARN);
+                CacheFactory.log("CoherenceOperator: Resuming all services", CacheFactory.LOG_WARN);
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     cluster.resumeService(names.nextElement());
@@ -376,7 +402,7 @@ public class HealthServer {
 
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
-        CacheFactory.log(action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
+        CacheFactory.log("CoherenceOperator: " + action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
         if (msg != null && msg.contains(NO_MANAGED_NODES)) {
             send(t, 400);
         }
@@ -412,7 +438,7 @@ public class HealthServer {
         }
         catch (IllegalStateException e) {
             // there is probably no DCS
-            CacheFactory.log("HealthServer: StatusHA check failed, " + e.getMessage(), CacheFactory.LOG_ERR);
+            CacheFactory.log("CoherenceOperator: StatusHA check failed, " + e.getMessage(), CacheFactory.LOG_ERR);
             return false;
         }
 
@@ -430,17 +456,17 @@ public class HealthServer {
                     // this service is allowed to be endangered so skip it.
                     continue;
                 }
-                CacheFactory.log("HealthServer: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
+                CacheFactory.log("CoherenceOperator: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
                 if (!isServiceStatusHA(attributes)) {
-                    CacheFactory.log("HealthServer: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
+                    CacheFactory.log("CoherenceOperator: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
                     return false;
                 }
             }
             return true;
         }
         else {
-            CacheFactory.log("HealthServer: StatusHA check failed - cluster is null", CacheFactory.LOG_ERR);
+            CacheFactory.log("CoherenceOperator: StatusHA check failed - cluster is null", CacheFactory.LOG_ERR);
             return false;
         }
     }

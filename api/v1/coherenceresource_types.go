@@ -12,6 +12,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/status"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/pkg/errors"
@@ -20,7 +21,6 @@ import (
 	coreV1 "k8s.io/api/core/v1"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	v1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 	v1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -28,8 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/version"
-	"k8s.io/client-go/discovery"
-	rest2 "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -370,18 +368,8 @@ type CoherenceList struct {
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
 // CRDs will be created depending on the server version of k8s. For k8s v1.16.0 and above
 // the v1 CRDs will be created and for lower than v1.16.0 the v1beta1 CRDs will be created.
-func EnsureCRDs(cfg *rest2.Config) error {
-	// Create the CRD client
-	c, err := apiextensions.NewForConfig(cfg)
-	if err != nil {
-		return err
-	}
-
-	cl, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return err
-	}
-	sv, err := cl.ServerVersion()
+func EnsureCRDs(c clients.ClientSet) error {
+	sv, err := c.DiscoveryClient.ServerVersion()
 	if err != nil {
 		return err
 	}
@@ -394,11 +382,11 @@ func EnsureCRDs(cfg *rest2.Config) error {
 
 	if v.Major() > 1 || (v.Major() == 1 && v.Minor() >= 16) {
 		// k8s v1.16.0 or above - install v1 CRD
-		crdClient := c.ApiextensionsV1().CustomResourceDefinitions()
+		crdClient := c.ExtClient.ApiextensionsV1().CustomResourceDefinitions()
 		return EnsureV1CRDs(logger, crdClient)
 	}
 	// k8s lower than v1.16.0 - install v1beta1 CRD
-	crdClient := c.ApiextensionsV1beta1().CustomResourceDefinitions()
+	crdClient := c.ExtClient.ApiextensionsV1beta1().CustomResourceDefinitions()
 	return EnsureV1Beta1CRDs(logger, crdClient)
 }
 

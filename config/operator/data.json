@@ -1,4 +1,0 @@
-{
-  "CoherenceImage": "oraclecoherence/coherence-ce:14.1.1-0-1",
-  "UtilsImage": "container-registry.oracle.com/middleware/coherence-operator:3.1.0-ci-utils"
-}

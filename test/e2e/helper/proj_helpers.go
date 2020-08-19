@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	TestNamespaceEnv       = "TEST_NAMESPACE"
+	TestNamespaceEnv       = "OPERATOR_NAMESPACE"
 	WatchNamespaceEnv      = "WATCH_NAMESPACE"
 	TestSslSecretEnv       = "TEST_SSL_SECRET"
 	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"

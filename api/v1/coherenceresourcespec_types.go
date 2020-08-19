@@ -344,7 +344,7 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *ScalingProbe {
 // Create the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.
-func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, cfg operator.Config) (Resources, error) {
+func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resources, error) {
 	var res []Resource
 
 	if in.GetReplicas() <= 0 {
@@ -361,7 +361,7 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence, cfg ope
 	res = append(res, in.CreateHeadlessService(d))
 
 	// Create the StatefulSet
-	res = append(res, in.CreateStatefulSet(d, cfg))
+	res = append(res, in.CreateStatefulSet(d))
 
 	// Create the Services for each port (and optionally ServiceMonitors)
 	res = append(res, in.CreateServicesForPort(d)...)
@@ -489,7 +489,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 }
 
 // Create the deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, cfg operator.Config) Resource {
+func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resource {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -508,7 +508,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, cfg op
 	}
 
 	replicas := in.GetReplicas()
-	cohContainer := in.CreateCoherenceContainer(deployment, cfg)
+	cohContainer := in.CreateCoherenceContainer(deployment)
 
 	// Add additional ports
 	for _, p := range in.Ports {
@@ -547,7 +547,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence, cfg op
 				Affinity:                     in.EnsurePodAffinity(deployment),
 				NodeSelector:                 in.NodeSelector,
 				InitContainers: []corev1.Container{
-					in.CreateUtilsContainer(deployment, cfg),
+					in.CreateUtilsContainer(deployment),
 				},
 				Containers: []corev1.Container{cohContainer},
 				Volumes: []corev1.Volume{
@@ -610,11 +610,11 @@ func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 }
 
 // Create the Coherence container spec.
-func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence, cfg operator.Config) corev1.Container {
+func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence) corev1.Container {
 	var cohImage string
 
 	if in.Image == nil {
-		cohImage = cfg.GetDefaultCoherenceImage()
+		cohImage = operator.GetDefaultCoherenceImage()
 	} else {
 		cohImage = *in.Image
 	}
@@ -680,24 +680,24 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1
 	return []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "spec.nodeName",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "spec.nodeName",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohMemberName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohPodUID, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.uid",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.uid",
 			},
+		},
 		},
 		{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
@@ -722,6 +722,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
+		corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace},
 	)
 }
 
@@ -780,10 +781,10 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 }
 
 // Get the Utils init-container spec.
-func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence, cfg operator.Config) corev1.Container {
+func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) corev1.Container {
 	var utilsImage string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
-		utilsImage = cfg.GetDefaultUtilsImage()
+		utilsImage = operator.GetDefaultUtilsImage()
 	} else {
 		utilsImage = *in.CoherenceUtils.Image
 	}

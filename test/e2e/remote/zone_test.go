@@ -10,8 +10,8 @@ import (
 	goctx "context"
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
 	"github.com/oracle/coherence-operator/pkg/management"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"golang.org/x/net/context"
 	"net/http"
@@ -39,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", flags.DefaultSiteLabel, fn, dfn)
+	assertLabel(t, "zone", operator.DefaultSiteLabel, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -58,7 +58,7 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", flags.DefaultRackLabel, fn, dfn)
+	assertLabel(t, "rack", operator.DefaultRackLabel, fn, dfn)
 }
 
 func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {

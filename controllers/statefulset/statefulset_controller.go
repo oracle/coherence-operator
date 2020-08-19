@@ -37,7 +37,7 @@ const (
 	statusHaRetryEnv = "STATUS_HA_RETRY"
 )
 
-// blank assignment to verify that ReconcileConfigMap implements reconcile.Reconciler.
+// blank assignment to verify that ReconcileStatefulSet implements reconcile.Reconciler.
 // If the reconcile.Reconciler API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileStatefulSet{}
 

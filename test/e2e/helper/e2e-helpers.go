@@ -16,6 +16,7 @@ import (
 	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
@@ -186,10 +187,14 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	}
 
 	k8sClient := k8sManager.GetClient()
-	kubeClient, err := kubernetes.NewForConfig(k8sCfg)
+
+	cl, err := clients.NewForConfig(k8sCfg)
+	if err != nil {
+		return TestContext{}, err
+	}
 
 	// Ensure CRDs exist
-	err = coh.EnsureCRDs(k8sCfg)
+	err = coh.EnsureCRDs(cl)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -220,7 +225,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	return TestContext{
 		Config:     k8sCfg,
 		Client:     k8sClient,
-		KubeClient: kubeClient,
+		KubeClient: cl.KubeClient,
 		Manager:    k8sManager,
 		Logger:     testLogger.WithName("test"),
 		testEnv:    testEnv,

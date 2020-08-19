@@ -8,7 +8,10 @@ package com.oracle.coherence.k8s;
 
 import java.lang.reflect.Method;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
+
+import com.tangosol.run.xml.XmlElement;
 
 /**
  * A main class that is used to run some initialisation code before
@@ -33,7 +36,17 @@ public class Main {
             args = new String[] {DefaultCacheServer.class.getCanonicalName()};
         }
 
-        HealthServer server = new HealthServer();
+        // ensure that we add the operator MBean to the management configuration
+        XmlElement xml    = CacheFactory.getManagementConfig();
+        XmlElement mbeans = xml.getSafeElement("mbeans");
+        XmlElement mbean  = mbeans.addElement("mbean");
+        mbean.addAttribute("id").setString("coherence.operator");
+        mbean.addElement("mbean-class").setString(CoherenceOperator.class.getName());
+        mbean.addElement("mbean-name").setString(CoherenceOperator.OBJECT_NAME);
+        mbean.addElement("enabled").setBoolean(true);
+        CacheFactory.setManagementConfig(xml);
+
+        OperatorRestServer server = new OperatorRestServer();
         server.start();
 
         String sMainClass = args[0];

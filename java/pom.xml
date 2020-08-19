@@ -51,7 +51,7 @@
     <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
     <version.lib.checkstyle>8.18</version.lib.checkstyle>
     <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
-    <version.plugin.jib>2.4.0</version.plugin.jib>
+    <version.plugin.jib>2.5.2</version.plugin.jib>
     <version.plugin.deploy>2.8.2</version.plugin.deploy>
     <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
     <version.plugin.project-info-reports>3.0.1</version.plugin.project-info-reports>

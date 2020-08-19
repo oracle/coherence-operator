@@ -10,14 +10,15 @@ package rest
 import (
 	"context"
 	"fmt"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	onet "github.com/oracle/coherence-operator/pkg/net"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"net"
 	"net/http"
+	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 	"sync"
@@ -48,7 +49,8 @@ type Server interface {
 	// GetHostAndPort returns the address that the ReST server should be reached on by external processes
 	GetHostAndPort() string
 	// Start the REST server
-	Start() error
+	Start(stop <-chan struct{}) error
+	SetupWithManager(mgr ctrl.Manager) error
 }
 
 // Obtain the host and port that the REST server is listening on of empty string if the server
@@ -60,34 +62,30 @@ func GetServerHostAndPort() string {
 	return svr.GetHostAndPort()
 }
 
-func EnsureServer(cfg *rest.Config, cf *flags.CoherenceOperatorFlags) (Server, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
+func NewServer(c clients.ClientSet) Server {
 	if svr == nil {
-		client, err := k8s.NewForConfig(cfg)
-		if err != nil {
-			return nil, err
-		}
 		svr = &server{
-			cohFlags: cf,
-			client:   client,
+			client: c.KubeClient,
 		}
 	}
-	return svr, nil
+	return svr
 }
 
 type server struct {
-	cohFlags *flags.CoherenceOperatorFlags
 	listener net.Listener
-	client   *k8s.Clientset
+	client   k8s.Interface
 }
 
-func (s server) Start() error {
+func (s server) SetupWithManager(mgr ctrl.Manager) error {
+	return mgr.Add(s)
+}
+
+func (s server) Start(stop <-chan struct{}) error {
 	mux := http.NewServeMux()
 	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
 	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
 
-	address := fmt.Sprintf("%s:%d", s.cohFlags.RestHost, s.cohFlags.RestPort)
+	address := fmt.Sprintf("%s:%d", operator.GetRestHost(), operator.GetRestPort())
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return errors.Wrap(err, "failed to start REST server")
@@ -120,13 +118,16 @@ func (s server) GetHostAndPort() string {
 	var service string
 	var port int32
 
+	restHost := operator.GetRestHost()
+	serviceName := operator.GetRestServiceName()
+
 	switch {
-	case s.cohFlags.ServiceName != "":
+	case serviceName != "":
 		// use the service name if it was specifically set
-		service = s.cohFlags.ServiceName
-	case s.cohFlags.RestHost != "0.0.0.0":
+		service = serviceName
+	case restHost != "0.0.0.0":
 		// if no service name was set but REST is bound to a specific address then use that
-		service = s.cohFlags.RestHost
+		service = restHost
 	default:
 		// REST is bound to 0.0.0.0 so use any of our local addresses.
 		// This does not guarantee we're reachable but would be OK in local testing
@@ -136,11 +137,14 @@ func (s server) GetHostAndPort() string {
 		}
 	}
 
+	restPort := operator.GetRestPort()
+	servicePort := operator.GetRestServicePort()
+
 	switch {
-	case s.cohFlags.ServicePort != -1:
-		port = s.cohFlags.ServicePort
-	case s.cohFlags.RestPort > 0:
-		port = s.cohFlags.RestPort
+	case servicePort != -1:
+		port = servicePort
+	case restPort > 0:
+		port = restPort
 	default:
 		port = s.GetPort()
 	}
@@ -150,12 +154,12 @@ func (s server) GetHostAndPort() string {
 
 // getSiteLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence site value.
 func (s server) getSiteLabelForNode(w http.ResponseWriter, r *http.Request) {
-	s.getLabelForNode(s.cohFlags.SiteLabel, w, r)
+	s.getLabelForNode(operator.GetSiteLabel(), w, r)
 }
 
 // getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
 func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
-	s.getLabelForNode(s.cohFlags.RackLabel, w, r)
+	s.getLabelForNode(operator.GetRackLabel(), w, r)
 }
 
 // getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.

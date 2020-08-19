@@ -48,9 +48,13 @@ const (
 	VolumeNameSnapshots     = "snapshot-volume"
 	VolumeNameLogs          = "logs"
 	VolumeNameUtils         = "coh-utils"
+	VolumePodInfo           = "coh-pod-info"
 	VolumeNameJVM           = "jvm"
 	VolumeNameManagementSSL = "management-ssl-config"
 	VolumeNameMetricsSSL    = "metrics-ssl-config"
+
+	VolumePathAttributes = "attributes";
+	VolumePathLabels     = "labels";
 
 	// Volume mount paths
 	VolumeMountRoot                = "/coherence-operator"
@@ -60,6 +64,8 @@ const (
 	VolumeMountPathJVM             = VolumeMountRoot + "/jvm"
 	VolumeMountPathManagementCerts = VolumeMountRoot + "/coherence/certs/management"
 	VolumeMountPathMetricsCerts    = VolumeMountRoot + "/coherence/certs/metrics"
+
+	AnnotationIdentity = "coherence.k8s.operator.identity"
 
 	// Start command for the runner
 	RunnerCommand = VolumeMountPathUtils + "/runner"
@@ -105,6 +111,7 @@ const (
 	EnvVarCohDependencyModules        = "DEPENDENCY_MODULES"
 	EnvVarCohSkipVersionCheck         = "COH_SKIP_VERSION_CHECK"
 	EnvVarCohClusterName              = "COH_CLUSTER_NAME"
+	EnvVarCohIdentity                 = "COH_IDENTITY"
 	EnvVarCohWka                      = "COH_WKA"
 	EnvVarCohAppDir                   = "COH_APP_DIR"
 	EnvVarCohMachineName              = "COH_MACHINE_NAME"

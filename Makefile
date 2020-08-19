@@ -78,11 +78,11 @@ GO_TEST_FLAGS     ?= -timeout=20m
 GO_TEST_FLAGS_E2E := -timeout=100m
 
 # default as in test/e2e/helper/proj_helpers.go
-TEST_NAMESPACE ?= operator-test
+OPERATOR_NAMESPACE ?= operator-test
 # the optional namespaces the operator should watch
 WATCH_NAMESPACE ?=
 # flag indicating whether the test namespace should be reset (deleted and recreated) before tests
-CREATE_TEST_NAMESPACE ?= true
+CREATE_OPERATOR_NAMESPACE ?= true
 
 # Prometheus Operator settings (used in integration tests)
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
@@ -159,11 +159,13 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-GOS          = $(shell find . -type f -name "*.go" ! -name "*_test.go")
-OPTESTGOS    = $(shell find ./optest -type f -name "*.go" ! -name "*_test.go")
-API_GO_FILES = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
-CRD_V1       ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
-HELM_FILES   = $(shell find helm-charts/coherence-operator -type f)
+GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
+OPTESTGOS        = $(shell find ./optest -type f -name "*.go" ! -name "*_test.go")
+HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
+API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
+CRDV1_FILES      = $(shell find ./config/crd -type f)
+CRDV1BETA1_FILES = $(shell find ./config/crd-v1beta1 -type f)
+CRD_V1           ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
@@ -278,7 +280,7 @@ test-operator: $(BUILD_TARGETS)/build-operator gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
-e2e-local-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -312,7 +314,7 @@ e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets ins
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
 run-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-run-e2e-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-e2e-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 run-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
@@ -347,7 +349,7 @@ e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-o
 
 .PHONY: run-prometheus-test
 run-prometheus-test: export CGO_ENABLED = 0
-run-prometheus-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-prometheus-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-prometheus-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -386,7 +388,7 @@ e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operato
 
 .PHONY: run-elastic-test
 run-elastic-test: export CGO_ENABLED = 0
-run-elastic-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-elastic-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -410,7 +412,7 @@ run-elastic-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
 compatibility-test: export CGO_ENABLED = 0
-compatibility-test: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -454,7 +456,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-certification
 run-certification: export CGO_ENABLED = 0
-run-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-certification: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
@@ -475,7 +477,7 @@ run-certification: gotestsum
 # Clean up after to running compatability tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
-cleanup-certification: export TEST_NAMESPACE := $(TEST_NAMESPACE)
+cleanup-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 cleanup-certification:
 	$(MAKE) deploy
 	$(MAKE) uninstall-crds
@@ -530,11 +532,11 @@ endef
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: uninstall-crds $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+install-crds: prepare-deploy uninstall-crds
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
-	$(GOBIN)/kustomize build config/crd | kubectl create -f -
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd | kubectl create -f -
 else
-	$(GOBIN)/kustomize build config/crd-v1beta1 | kubectl create -f --validate=false -
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd-v1beta1 | kubectl create -f --validate=false -
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -543,26 +545,31 @@ endif
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
-uninstall-crds: $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+uninstall-crds: prepare-deploy
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
-	$(GOBIN)/kustomize build config/crd | kubectl delete -f - || true
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd | kubectl delete -f - || true
 else
-	$(GOBIN)/kustomize build config/crd-v1beta1 | kubectl delete -f - || true
+	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd-v1beta1 | kubectl delete -f - || true
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
-deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(TEST_NAMESPACE))
+deploy: prepare-deploy
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
+	#$(GOBIN)/kustomize build $(BUILD_CONFIG)/default
+
+.PHONY: prepare-deploy
+prepare-deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Prepare the deployment manifests - this is called by a number of other targets.
+# Prepare the deployment manifests - this is called by a number of other targets.
 # Parameter #1 is the Operator Image Name
 # Parameter #2 is the name of the namespace to deploy into
 # ----------------------------------------------------------------------------------------------------------------------
@@ -581,8 +588,17 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(TEST_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret webhook-server-cert || true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Tail the deployed operator logs.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: tail-logs
+tail-logs: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l component=coherence-operator -o name)
+tail-logs:
+	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate manifests e.g. CRD, RBAC etc.
@@ -595,32 +611,30 @@ $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com
 
 config/crd/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
-	  rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" \
+	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
 
 config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
 	@echo "Generating CRD v1beta1"
-	cp -R config/crd/bases config/crd-v1beta1/bases
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1beta1}" \
-	  rbac:roleName=manager-role webhook paths="{./api/...,./controllers/...}" \
+	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd-v1beta1/bases
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Generate the data.json file used by the Operator for default configuration values
+# Generate the config.json file used by the Operator for default configuration values
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: generate-config
 generate-config:  $(BUILD_PROPS)
 	@echo "Generating Operator config"
-	@printf "{\n\
-	  \"CoherenceImage\": \"$(COHERENCE_IMAGE)\",\n\
-	  \"UtilsImage\": \"$(UTILS_RELEASE_IMAGE)\"\n\
-	}" > config/operator/new-data.json
+	@printf "{\n \
+	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
+	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > config/operator/new-config.json
 # If the new file is different to the old file replace the old with the new
 # This ensures that Git only thinks there is a file update if ghe contents have actually changed
-	@if ! diff config/operator/new-data.json config/operator/data.json; then \
-	  cp config/operator/new-data.json config/operator/data.json ; \
+	@if ! diff config/operator/new-config.json config/operator/config.json; then \
+	  cp config/operator/new-config.json config/operator/config.json ; \
 	fi
-	rm config/operator/new-data.json \
+	rm config/operator/new-config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate code, configuration and docs.
@@ -634,9 +648,9 @@ $(BUILD_TARGETS)/generate: $(BUILD_PROPS) api/v1/zz_generated.deepcopy.go pkg/da
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="./hack/boilerplate.go.txt" paths="./api/..."
 
-pkg/data/zz_generated_assets.go: config/operator/data.json config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml $(GOBIN)/kustomize
+pkg/data/zz_generated_assets.go: config/operator/config.json $(CRDV1_FILES) $(CRDV1BETA1_FILES) $(GOBIN)/kustomize
 	echo "Embedding configuration and CRD files"
-	cp config/operator/data.json $(BUILD_ASSETS)/data.json
+	cp config/operator/config.json $(BUILD_ASSETS)/config.json
 	echo "Embedding v1 CRD files"
 	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 	echo "Embedding v1beat1 CRD files"
@@ -749,14 +763,14 @@ reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
 reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
 reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
 reset-namespace: delete-namespace
-ifeq ($(CREATE_TEST_NAMESPACE),true)
-	@echo "Creating test namespace $(TEST_NAMESPACE)"
-	kubectl create namespace $(TEST_NAMESPACE)
+ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
+	@echo "Creating test namespace $(OPERATOR_NAMESPACE)"
+	kubectl create namespace $(OPERATOR_NAMESPACE)
 endif
 ifneq ($(DOCKER_SERVER),)
 	@echo "Creating pull secrets for $(DOCKER_SERVER)"
 	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-								--namespace $(TEST_NAMESPACE) \
+								--namespace $(OPERATOR_NAMESPACE) \
 								--docker-server "$(DOCKER_SERVER)" \
 								--docker-username "$(DOCKER_USERNAME)" \
 								--docker-password "$(DOCKER_PASSWORD)" \
@@ -765,7 +779,7 @@ endif
 ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
 	@echo "Creating pull secrets for container-registry.oracle.com"
 	kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-								--namespace $(TEST_NAMESPACE) \
+								--namespace $(OPERATOR_NAMESPACE) \
 								--docker-server container-registry.oracle.com \
 								--docker-username "$(OCR_DOCKER_USERNAME)" \
 								--docker-password "$(OCR_DOCKER_PASSWORD)" \
@@ -777,9 +791,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-namespace
 delete-namespace: clean-namespace
-ifeq ($(CREATE_TEST_NAMESPACE),true)
-	@echo "Deleting test namespace $(TEST_NAMESPACE)"
-	kubectl delete namespace $(TEST_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
+ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
+	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
+	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
 endif
 	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
@@ -790,9 +804,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters
-	for i in $$(kubectl -n $(TEST_NAMESPACE) get all -o name); do \
-		echo "Deleting $${i} from test namespace $(TEST_NAMESPACE)" \
-		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
+	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -801,10 +815,10 @@ clean-namespace: delete-coherence-clusters
 .PHONY: create-ssl-secrets
 create-ssl-secrets: $(BUILD_OUTPUT)/certs
 	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
-	kubectl --namespace $(TEST_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
+	kubectl --namespace $(OPERATOR_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
 	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
 	kubectl create secret generic $(TEST_SSL_SECRET) \
-		--namespace $(TEST_NAMESPACE) \
+		--namespace $(OPERATOR_NAMESPACE) \
 		--from-file=keystore.jks=build/_output/certs/icarus.jks \
 		--from-file=storepass.txt=build/_output/certs/storepassword.txt \
 		--from-file=keypass.txt=build/_output/certs/keypassword.txt \
@@ -949,18 +963,10 @@ run-clean: reset-namespace run
 # ensure these are killed run "make debug-stop"
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-debug
-run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: export VERSION := $(VERSION)
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug:
-	$(OPERATOR_SDK) run local --watch-namespace=$(TEST_NAMESPACE) \
-	--go-ldflags="-X=main.BuildInfo=$(BUILD_INFO)" \
-	--operator-flags="--coherence-image=$(COHERENCE_IMAGE) --utils-image=$(UTILS_IMAGE)" \
-	--enable-delve \
-	2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally in debug mode after deleting and recreating
@@ -1030,42 +1036,42 @@ kind-load:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-prometheus
 install-prometheus:
-	kubectl create ns $(TEST_NAMESPACE) || true
+	kubectl create ns $(OPERATOR_NAMESPACE) || true
 	kubectl create -f etc/prometheus-rbac.yaml
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	@echo "Create Grafana Dashboards ConfigMap:"
-	kubectl -n $(TEST_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
-	kubectl -n $(TEST_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
+	kubectl -n $(OPERATOR_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
+	kubectl -n $(OPERATOR_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
 	@echo "Getting Helm Version:"
 	helm version
 	@echo "Installing stable/prometheus-operator:"
-	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(PROMETHEUS_OPERATOR_VERSION) --wait \
+	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(PROMETHEUS_OPERATOR_VERSION) --wait \
 		--set grafana.enabled=$(PROMETHEUS_INCLUDE_GRAFANA) \
 		--values etc/prometheus-values.yaml prometheus stable/prometheus-operator
 	@echo "Installing Prometheus instance:"
-	kubectl -n $(TEST_NAMESPACE) apply -f etc/prometheus.yaml
+	kubectl -n $(OPERATOR_NAMESPACE) apply -f etc/prometheus.yaml
 	sleep 10
-	kubectl -n $(TEST_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
+	kubectl -n $(OPERATOR_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus:
-	kubectl -n $(TEST_NAMESPACE) delete -f etc/prometheus.yaml || true
-	kubectl -n $(TEST_NAMESPACE) delete configmap coherence-grafana-dashboards || true
-	helm --namespace $(TEST_NAMESPACE) delete prometheus || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete -f etc/prometheus.yaml || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete configmap coherence-grafana-dashboards || true
+	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus || true
 	kubectl delete -f etc/prometheus-rbac.yaml || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Grafana Pod.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-grafana
-port-forward-grafana: export GRAFANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app.kubernetes.io/name=grafana -o name)
+port-forward-grafana: export GRAFANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app.kubernetes.io/name=grafana -o name)
 port-forward-grafana:
 	@echo "Reach Grafana on http://127.0.0.1:3000"
 	@echo "User: admin Password: prom-operator"
-	kubectl -n $(TEST_NAMESPACE) port-forward $(GRAFANA_POD) 3000:3000
+	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(GRAFANA_POD) 3000:3000
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Elasticsearch & Kibana
@@ -1075,55 +1081,55 @@ install-elastic: helm-install-elastic kibana-import
 
 .PHONY: helm-install-elastic
 helm-install-elastic:
-	kubectl create ns $(TEST_NAMESPACE) || true
+	kubectl create ns $(OPERATOR_NAMESPACE) || true
 #   Create the ConfigMap containing the Coherence Kibana dashboards
-	kubectl -n $(TEST_NAMESPACE) delete secret coherence-kibana-dashboard || true
-	kubectl -n $(TEST_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-dashboard || true
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
 #   Create the ConfigMap containing the Coherence Kibana dashboards import script
-	kubectl -n $(TEST_NAMESPACE) delete secret coherence-kibana-import || true
-	kubectl -n $(TEST_NAMESPACE) create secret generic --from-file etc/coherence-dashboard-import.sh coherence-kibana-import
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-import || true
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file etc/coherence-dashboard-import.sh coherence-kibana-import
 #   Set-up the Elastic Helm repo
 	@echo "Getting Helm Version:"
 	helm version
 	helm repo add elastic https://helm.elastic.co || true
 #   Install Elasticsearch
-	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
+	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
-	helm install --atomic --namespace $(TEST_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
+	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values etc/kibana-values.yaml kibana elastic/kibana \
 
 .PHONY: kibana-import
 kibana-import:
-	KIBANA_POD=$$(kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(TEST_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
+	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
+	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-elastic
 uninstall-elastic:
-	helm uninstall --namespace $(TEST_NAMESPACE) kibana || true
-	helm uninstall --namespace $(TEST_NAMESPACE) elasticsearch || true
-	kubectl -n $(TEST_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
+	helm uninstall --namespace $(OPERATOR_NAMESPACE) kibana || true
+	helm uninstall --namespace $(OPERATOR_NAMESPACE) elasticsearch || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Kibana Pod.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-kibana
-port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=kibana -o name)
+port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name)
 port-forward-kibana:
 	@echo "Reach Kibana on http://127.0.0.1:5601"
-	kubectl -n $(TEST_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
+	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Elasticsearch Pod.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-es
-port-forward-es: export ES_POD := $(shell kubectl -n $(TEST_NAMESPACE) get pod -l app=elasticsearch-master -o name)
+port-forward-es: export ES_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name)
 port-forward-es:
 	@echo "Reach Elasticsearch on http://127.0.0.1:9200"
-	kubectl -n $(TEST_NAMESPACE) port-forward $(ES_POD) 9200:9200
+	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(ES_POD) 9200:9200
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1131,8 +1137,8 @@ port-forward-es:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters:
-	for i in $$(kubectl -n  $(TEST_NAMESPACE) get coherence -o name); do \
-		kubectl -n $(TEST_NAMESPACE) delete $${i}; \
+	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence -o name); do \
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
 
 # ----------------------------------------------------------------------------------------------------------------------
