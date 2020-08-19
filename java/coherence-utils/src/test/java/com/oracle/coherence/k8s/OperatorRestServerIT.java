@@ -272,12 +272,10 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config-two.xml"),
-                                                    SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "foo"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config-two.xml"),
-                                                        SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "bar"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
