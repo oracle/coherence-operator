@@ -33,4 +33,4 @@ bin
 pkg/**/test-report.xml
 test/**/test-report.xml
 /temp/
-/etc/sdk/*
+/hack/sdk/*

@@ -76,7 +76,7 @@ func (r *CertReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// set-up this controller
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Secret{}).
-		Named("webhook-server-cert").
+		Named("coherence-webhook-server-cert").
 		WithEventFilter(&predicates.NamedPredicate{
 			Namespace: operator.GetNamespace(),
 			Name:      viper.GetString(operator.FlagWebhookSecret),

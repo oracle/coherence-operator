@@ -274,8 +274,8 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <configuration>
-              <configLocation>/etc/checkstyle.xml</configLocation>
-              <suppressionsLocation>/etc/checkstyle-suppressions.xml</suppressionsLocation>
+              <configLocation>/hack/checkstyle.xml</configLocation>
+              <suppressionsLocation>/hack/checkstyle-suppressions.xml</suppressionsLocation>
           </configuration>
       </plugin>
     </plugins>
@@ -303,8 +303,8 @@
                             </goals>
                             <phase>validate</phase>
                             <configuration>
-                                <configLocation>${top.parent.basedir}/../etc/checkstyle.xml</configLocation>
-                                <suppressionsLocation>${top.parent.basedir}/../etc/checkstyle-suppressions.xml</suppressionsLocation>
+                                <configLocation>${top.parent.basedir}/../hack/checkstyle.xml</configLocation>
+                                <suppressionsLocation>${top.parent.basedir}/../hack/checkstyle-suppressions.xml</suppressionsLocation>
                             </configuration>
                         </execution>
                     </executions>

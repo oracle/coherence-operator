@@ -33,7 +33,7 @@ GOPROXY         ?= https://proxy.golang.org
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
 OPERATOR_SDK_VERSION := v1.0.0
-OPERATOR_SDK          = $(CURRDIR)/etc/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
+OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # The Coherence image to use for deployments that do not specify an image
 COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
@@ -160,7 +160,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
-OPTESTGOS        = $(shell find ./optest -type f -name "*.go" ! -name "*_test.go")
+OPTESTGOS        = $(shell find ./test/optest -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRDV1_FILES      = $(shell find ./config/crd -type f)
@@ -258,7 +258,7 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 build-op-test: $(BUILD_BIN)/op-test
 
 $(BUILD_BIN)/op-test: $(BUILD_PROPS) $(GOS) $(OPTESTGOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/op-test ./optest
+	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/op-test ./test/optest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
@@ -560,7 +560,7 @@ deploy: prepare-deploy
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic webhook-server-cert || true
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
 	#$(GOBIN)/kustomize build $(BUILD_CONFIG)/default
 
@@ -590,7 +590,7 @@ endef
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret webhook-server-cert || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.
@@ -703,6 +703,20 @@ GOTESTSUM=$(GOBIN)/gotestsum
 else
 GOTESTSUM=$(shell which gotestsum)
 endif
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download yq
+# ----------------------------------------------------------------------------------------------------------------------
+$(GOBIN)/yq:
+	@{ \
+	set -e ;\
+	YQ_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$YQ_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get github.com/mikefarah/yq/v3 ;\
+	rm -rf $$YQ_GEN_TMP_DIR ;\
+	}
+	YQ=$(GOBIN)/yq
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
@@ -1037,7 +1051,7 @@ kind-load:
 .PHONY: install-prometheus
 install-prometheus:
 	kubectl create ns $(OPERATOR_NAMESPACE) || true
-	kubectl create -f etc/prometheus-rbac.yaml
+	kubectl create -f hack/prometheus-rbac.yaml
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	@echo "Create Grafana Dashboards ConfigMap:"
 	kubectl -n $(OPERATOR_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
@@ -1047,9 +1061,9 @@ install-prometheus:
 	@echo "Installing stable/prometheus-operator:"
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(PROMETHEUS_OPERATOR_VERSION) --wait \
 		--set grafana.enabled=$(PROMETHEUS_INCLUDE_GRAFANA) \
-		--values etc/prometheus-values.yaml prometheus stable/prometheus-operator
+		--values hack/prometheus-values.yaml prometheus stable/prometheus-operator
 	@echo "Installing Prometheus instance:"
-	kubectl -n $(OPERATOR_NAMESPACE) apply -f etc/prometheus.yaml
+	kubectl -n $(OPERATOR_NAMESPACE) apply -f hack/prometheus.yaml
 	sleep 10
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
 
@@ -1058,10 +1072,10 @@ install-prometheus:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus:
-	kubectl -n $(OPERATOR_NAMESPACE) delete -f etc/prometheus.yaml || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete -f hack/prometheus.yaml || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete configmap coherence-grafana-dashboards || true
 	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus || true
-	kubectl delete -f etc/prometheus-rbac.yaml || true
+	kubectl delete -f hack/prometheus-rbac.yaml || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Grafana Pod.
@@ -1087,17 +1101,17 @@ helm-install-elastic:
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
 #   Create the ConfigMap containing the Coherence Kibana dashboards import script
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-import || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file etc/coherence-dashboard-import.sh coherence-kibana-import
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file hack/coherence-dashboard-import.sh coherence-kibana-import
 #   Set-up the Elastic Helm repo
 	@echo "Getting Helm Version:"
 	helm version
 	helm repo add elastic https://helm.elastic.co || true
 #   Install Elasticsearch
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values etc/elastic-values.yaml elasticsearch elastic/elasticsearch
+		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values etc/kibana-values.yaml kibana elastic/kibana \
+		--debug --values hack/kibana-values.yaml kibana elastic/kibana \
 
 .PHONY: kibana-import
 kibana-import:
@@ -1163,8 +1177,8 @@ golangci: $(BUILD_BIN)/golangci-lint
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: copyright
 copyright:
-	@java -cp etc/glassfish-copyright-maven-plugin-2.1.jar \
-	  org.glassfish.copyright.Copyright -C etc/copyright.txt \
+	@java -cp hack/glassfish-copyright-maven-plugin-2.1.jar \
+	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
 	  -X .adoc \
 	  -X bin/ \
 	  -X build/_output/ \
@@ -1173,9 +1187,9 @@ copyright:
 	  -X dashboards/kibana/ \
 	  -X /Dockerfile \
 	  -X docs/ \
-	  -X etc/copyright.txt \
-	  -X etc/intellij-codestyle.xml \
-	  -X etc/sdk/ \
+	  -X hack/copyright.txt \
+	  -X hack/intellij-codestyle.xml \
+	  -X hack/sdk/ \
 	  -X go.mod \
 	  -X go.sum \
 	  -X HEADER.txt \

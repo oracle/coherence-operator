@@ -179,7 +179,7 @@ func SetupFlags(cmd *cobra.Command) {
 	)
 	cmd.Flags().String(
 		FlagWebhookSecret,
-		"webhook-server-cert",
+		"coherence-webhook-server-cert",
 		"K8s secret to be used for webhook certificates",
 	)
 	cmd.Flags().String(
