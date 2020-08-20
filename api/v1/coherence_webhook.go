@@ -17,16 +17,11 @@ import (
 // log is for logging in this package.
 var (
 	webhookLogger = logf.Log.WithName("coherence-webhook")
-	coherenceImage string
-	utilsImage string
 )
 
-func (r *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	coherenceImage = operator.GetDefaultCoherenceImage()
-	utilsImage = operator.GetDefaultUtilsImage()
-
+func (in *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
+		For(in).
 		Complete()
 }
 
@@ -42,15 +37,17 @@ const MutatingWebHookPath = "/mutate-coherence-oracle-com-v1-coherence"
 var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *Coherence) Default() {
-	webhookLogger.Info("default", "name", r.Name)
+func (in *Coherence) Default() {
+	webhookLogger.Info("default", "name", in.Name)
 
-	if r.Spec.Replicas == nil {
-		r.Spec.SetReplicas(3)
+	if in.Spec.Replicas == nil {
+		in.Spec.SetReplicas(3)
 	}
 
-	r.Spec.EnsureCoherenceImage(&coherenceImage)
-	r.Spec.EnsureCoherenceUtilsImage(&utilsImage)
+	coherenceImage := operator.GetDefaultCoherenceImage()
+	in.Spec.EnsureCoherenceImage(&coherenceImage)
+	utilsImage := operator.GetDefaultUtilsImage()
+	in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 }
 
 // The path in this annotation MUST match the const below
@@ -64,19 +61,19 @@ const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
 var _ webhook.Validator = &Coherence{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *Coherence) ValidateCreate() error {
-	webhookLogger.Info("validate create", "name", r.Name)
+func (in *Coherence) ValidateCreate() error {
+	webhookLogger.Info("validate create", "name", in.Name)
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *Coherence) ValidateUpdate(previous runtime.Object) error {
-	webhookLogger.Info("validate update", "name", r.Name)
+func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
+	webhookLogger.Info("validate update", "name", in.Name)
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *Coherence) ValidateDelete() error {
+func (in *Coherence) ValidateDelete() error {
 	// we do not need to validate deletions
 	return nil
 }
