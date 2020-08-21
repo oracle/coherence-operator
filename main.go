@@ -227,27 +227,8 @@ func printVersion() {
 }
 
 var (
-	// BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
-	BuildInfo string
+	// build information injected by the Go linker at build time.
 	Version   string
 	Commit    string
 	Date      string
 )
-
-func init() {
-	if BuildInfo != "" {
-		parts := strings.Split(BuildInfo, "|")
-
-		if len(parts) > 0 {
-			Version = parts[0]
-		}
-
-		if len(parts) > 1 {
-			Commit = parts[1]
-		}
-
-		if len(parts) > 2 {
-			Date = strings.Replace(parts[2], ".", " ", -1)
-		}
-	}
-}

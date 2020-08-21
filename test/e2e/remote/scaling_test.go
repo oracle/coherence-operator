@@ -205,21 +205,12 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-
-// installSimpleDeployment installs a deployment and asserts that the underlying StatefulSet resources reach the correct state.
-func installSimpleDeployment(t *testing.T, d cohv1.Coherence) {
-	g := NewGomegaWithT(t)
-	err := testContext.Client.Create(context.TODO(), &d)
-	g.Expect(err).NotTo(HaveOccurred())
-	assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
-}
-
 // assertDeploymentEventuallyInDesiredState asserts that a Coherence resource exists and has the correct spec and that the
 // underlying StatefulSet exists with the correct status and ready replicas.
 func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, replicas int32) {
 	g := NewGomegaWithT(t)
 
-	testContext.Logf("Asserting Coherence resource %s exists with %d replicas\n", d.Name, replicas)
+	testContext.Logf("Asserting Coherence resource %s exists with %d replicas", d.Name, replicas)
 
 	// create a DeploymentStateCondition that checks a deployment's replica count
 	condition := helper.ReplicaCountCondition(replicas)
@@ -228,12 +219,12 @@ func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, r
 	_, err := helper.WaitForCoherenceCondition(testContext, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	testContext.Logf("Asserting StatefulSet %s exists with %d replicas\n", d.Name, replicas)
+	testContext.Logf("Asserting StatefulSet %s exists with %d replicas", d.Name, replicas)
 
 	// wait for the StatefulSet to have the required ready replicas
 	sts, err := helper.WaitForStatefulSet(testContext, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
-	testContext.Logf("Asserting StatefulSet %s exist with %d replicas - Done!\n", d.Name, replicas)
+	testContext.Logf("Asserting StatefulSet %s exist with %d replicas - Done!", d.Name, replicas)
 }

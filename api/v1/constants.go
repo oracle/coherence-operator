@@ -17,7 +17,7 @@ const (
 	HeadlessServiceNameSuffix = "-sts"
 
 	// The finalizer that the Operator adds to Coherence deployments
-	Finalizer = "finalizer.operator.coherence.oracle.com"
+	Finalizer = "coherence.oracle.com/operator"
 
 	// Label keys used to label k8s resources
 	LabelCoherenceDeployment = "coherenceDeployment"

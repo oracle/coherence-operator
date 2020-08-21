@@ -7,7 +7,10 @@
 package remote
 
 import (
+	"context"
 	"fmt"
+	. "github.com/onsi/gomega"
+	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"os"
 	"testing"
@@ -29,4 +32,13 @@ func TestMain(m *testing.M) {
 	testContext.Logf("Tests completed with return code %d", exitCode)
 	testContext.Close()
 	os.Exit(exitCode)
+}
+
+// installSimpleDeployment installs a deployment and asserts that the underlying
+// StatefulSet resources reach the correct state.
+func installSimpleDeployment(t *testing.T, d cohv1.Coherence) {
+	g := NewGomegaWithT(t)
+	err := testContext.Client.Create(context.TODO(), &d)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 }

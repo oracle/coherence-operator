@@ -159,7 +159,12 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-LDFLAGS          = -X main.BuildInfo=$(BuildInfo)
+SOURCE_DATE_EPOCH := $(shell git show -s --format=format:%ct HEAD)
+DATE_FMT          := "%Y-%m-%dT%H:%M:%SZ"
+BUILD_DATE        := $(shell date -u -d "@$SOURCE_DATE_EPOCH" "+${DATE_FMT}" 2>/dev/null || date -u -r "${SOURCE_DATE_EPOCH}" "+${DATE_FMT}" 2>/dev/null || date -u "+${DATE_FMT}")
+
+BUILD_INFO       = $(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)
+LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Date=$(BUILD_DATE)
 GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
@@ -296,10 +301,10 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
 e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
-	$(MAKE) $(MAKEFLAGS) run-e2e-test \
+	$(MAKE) '$(MAKEFLAGS)' run-e2e-test \
 	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) undeploy \
-	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; $(MAKE) '$(MAKEFLAGS)' undeploy \
+	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
 	; exit $$rc
 
 .PHONY: run-e2e-test
@@ -331,11 +336,11 @@ run-e2e-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
-	$(MAKE) $(MAKEFLAGS) run-prometheus-test \
+	$(MAKE) '$(MAKEFLAGS)' run-prometheus-test \
 	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) uninstall-prometheus \
-	; $(MAKE) $(MAKEFLAGS) undeploy \
-	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; $(MAKE) '$(MAKEFLAGS)' uninstall-prometheus \
+	; $(MAKE) '$(MAKEFLAGS)' undeploy \
+	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
 	; exit $$rc
 
 .PHONY: run-prometheus-test
@@ -370,11 +375,11 @@ run-prometheus-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-elastic-test
 e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
-	$(MAKE) $(MAKEFLAGS) run-elastic-test \
+	$(MAKE) '$(MAKEFLAGS)' run-elastic-test \
 	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) uninstall-elastic \
-	; $(MAKE) $(MAKEFLAGS) undeploy \
-	; $(MAKE) $(MAKEFLAGS) delete-namespace \
+	; $(MAKE) '$(MAKEFLAGS)' uninstall-elastic \
+	; $(MAKE) '$(MAKEFLAGS)' undeploy \
+	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
 	; exit $$rc
 
 .PHONY: run-elastic-test
@@ -428,9 +433,9 @@ compatibility-test: $(BUILD_TARGETS)/build-operator clean-namespace reset-namesp
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
 certification-test: install-certification
-	$(MAKE) $(MAKEFLAGS) run-certification \
+	$(MAKE) '$(MAKEFLAGS)' run-certification \
 	; rc=$$? \
-	; $(MAKE) $(MAKEFLAGS) cleanup-certification \
+	; $(MAKE) '$(MAKEFLAGS)' cleanup-certification \
 	; exit $$rc
 
 

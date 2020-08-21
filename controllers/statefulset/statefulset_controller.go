@@ -123,7 +123,9 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 		if stsExists {
 			// The deployment does not exist, or is scaling down to zero.
 			// Do service suspension if there is more than one replica...
-			if deployment != nil && deployment.GetReplicas() == 1 {
+			if deployment != nil {
+				logger.Info("Scaling down to zero")
+				// we must be scaling down to zero so suspend services
 				probe := CoherenceProbe{
 					Client: in.GetClient(),
 					Config: in.GetManager().GetConfig(),
@@ -304,6 +306,9 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 	// Replicas is handled by scaling so we always set the desired replicas to match the current replicas
 	desired.Spec.Replicas = current.Spec.Replicas
 	original.Spec.Replicas = current.Spec.Replicas
+	// Do not patch finalizers
+	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
+	desired.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
 	// We need to ensure we do not create a patch due to differences in StatefulSet Status
 	desired.Status = appsv1.StatefulSetStatus{}
 	current.Status = appsv1.StatefulSetStatus{}
