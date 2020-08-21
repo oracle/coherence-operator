@@ -76,6 +76,10 @@ type CoherenceResourceSpec struct {
 	// The configuration to control safe scaling.
 	// +optional
 	Scaling *ScalingSpec `json:"scaling,omitempty"`
+	// The configuration of the probe used to signal that services must be suspended
+	// before a deployment is stopped.
+	// +optional
+	SuspendProbe *Probe `json:"suspendProbe,omitempty"`
 	// StartQuorum controls the start-up order of this Coherence resource
 	// in relation to other Coherence resources.
 	// +listType=map
@@ -315,20 +319,20 @@ func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 	return *in.HealthPort
 }
 
-// Returns the ScalingProbe to use for checking Phase HA for the deployment.
+// Returns the Probe to use for checking Phase HA for the deployment.
 // This method will not return nil.
-func (in *CoherenceResourceSpec) GetScalingProbe() *ScalingProbe {
+func (in *CoherenceResourceSpec) GetScalingProbe() *Probe {
 	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
 		return in.GetDefaultScalingProbe()
 	}
 	return in.Scaling.Probe
 }
 
-// Obtain a default ScalingProbe
-func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *ScalingProbe {
+// Obtain a default Scaling probe
+func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 	timeout := 10
 
-	defaultStatusHA := ScalingProbe{
+	probe := Probe{
 		TimeoutSeconds: &timeout,
 		Handler: corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
@@ -338,7 +342,34 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *ScalingProbe {
 		},
 	}
 
-	return defaultStatusHA.DeepCopy()
+	return probe.DeepCopy()
+}
+
+// Returns the Probe to use for signaling to a deployment that services should be suspended
+// prior to the deployment being stopped.
+// This method will not return nil.
+func (in *CoherenceResourceSpec) GetSuspendProbe() *Probe {
+	if in == nil || in.SuspendProbe == nil {
+		return in.GetDefaultSuspendProbe()
+	}
+	return in.SuspendProbe
+}
+
+// Obtain a default Suspend probe
+func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
+	timeout := 10
+
+	probe := Probe{
+		TimeoutSeconds: &timeout,
+		Handler: corev1.Handler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/suspend",
+				Port: intstr.FromString(PortNameHealth),
+			},
+		},
+	}
+
+	return probe.DeepCopy()
 }
 
 // Create the Kubernetes resources that should be deployed for this deployment.

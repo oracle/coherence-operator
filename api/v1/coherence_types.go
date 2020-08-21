@@ -1758,17 +1758,18 @@ type ScalingSpec struct {
 	// concept of Phase HA to just checking Coherence services then
 	// a different handler may be specified.
 	// +optional
-	Probe *ScalingProbe `json:"probe,omitempty"`
+	Probe *Probe `json:"probe,omitempty"`
 }
 
-// ----- ScalingProbe ----------------------------------------------------
+// ----- Probe ----------------------------------------------------
 
-// ScalingProbe is the handler that will be used to determine how to check for StatusHA in a Coherence.
+// Probe is the handler that will be used to determine how to communicate with a Coherence deployment for
+// operations like StatusHA checking and service suspension.
 // StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA
 // state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting
 // Enabled to false then no check will take place and a deployment will be assumed to be safe).
 // +k8s:openapi-gen=true
-type ScalingProbe struct {
+type Probe struct {
 	corev1.Handler `json:",inline"`
 	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
 	// Defaults to 1 second. Minimum value is 1.
@@ -1777,7 +1778,7 @@ type ScalingProbe struct {
 }
 
 // Returns the timeout value in seconds.
-func (in *ScalingProbe) GetTimeout() time.Duration {
+func (in *Probe) GetTimeout() time.Duration {
 	if in == nil || in.TimeoutSeconds == nil || *in.TimeoutSeconds <= 0 {
 		return time.Second
 	}

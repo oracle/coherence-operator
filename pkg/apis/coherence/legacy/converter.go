@@ -339,7 +339,7 @@ func doScaling(r *CoherenceRoleSpec) *v1.ScalingSpec {
 		scaling.Policy = &policy
 	}
 
-	probe := &v1.ScalingProbe{}
+	probe := &v1.Probe{}
 	if r.Scaling.Probe != nil {
 		probe.TimeoutSeconds = r.Scaling.Probe.TimeoutSeconds
 		probe.Exec = r.Scaling.Probe.Exec

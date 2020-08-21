@@ -1327,6 +1327,16 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
 	}
 
+	// Assert that the finalizer has been added to all of the deployments
+	for _, d := range deployments {
+		ctx.Logf("Deploying %s", d.Name)
+		// deploy the Coherence resource
+		actual := &coh.Coherence{}
+		err = ctx.Client.Get(context.TODO(), d.GetNamespacedName(), actual)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(actual.GetFinalizers()).To(ContainElement(coh.Finalizer))
+	}
+
 	// Get all of the Pods in the cluster
 	ctx.Logf("Getting all Pods for cluster '%s'", clusterName)
 	pods, err := ListCoherencePodsForCluster(ctx, namespace, clusterName)

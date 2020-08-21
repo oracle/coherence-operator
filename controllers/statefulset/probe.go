@@ -25,35 +25,35 @@ import (
 	"strings"
 )
 
-type ScalableChecker struct {
+type CoherenceProbe struct {
 	Client         client.Client
 	Config         *rest.Config
 	getPodHostName func(pod corev1.Pod) string
 	translatePort  func(name string, port int) int
 }
 
-func (in *ScalableChecker) SetGetPodHostName(fn func(pod corev1.Pod) string) {
+func (in *CoherenceProbe) SetGetPodHostName(fn func(pod corev1.Pod) string) {
 	if in == nil {
 		return
 	}
 	in.getPodHostName = fn
 }
 
-func (in *ScalableChecker) GetPodHostName(pod corev1.Pod) string {
+func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod) string {
 	if in.getPodHostName == nil {
 		return pod.Status.PodIP
 	}
 	return in.getPodHostName(pod)
 }
 
-func (in *ScalableChecker) SetTranslatePort(fn func(name string, port int) int) {
+func (in *CoherenceProbe) SetTranslatePort(fn func(name string, port int) int) {
 	if in == nil {
 		return
 	}
 	in.translatePort = fn
 }
 
-func (in *ScalableChecker) TranslatePort(name string, port int) int {
+func (in *CoherenceProbe) TranslatePort(name string, port int) int {
 	if in.translatePort == nil {
 		return port
 	}
@@ -64,11 +64,28 @@ func (in *ScalableChecker) TranslatePort(name string, port int) int {
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+	log.Info("Checking StatefulSet " + sts.Name + " for StatusHA",
+		"Namespace", deployment.Namespace, "Name", deployment.Name)
+	p := deployment.Spec.GetScalingProbe()
+	return in.ExecuteProbe(deployment, sts, p)
+}
+
+// SuspendServices will request services be suspended in the Coherence cluster.
+// This is called prior to stopping a StatefulSet to then have a graceful shutdown.
+// The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
+// ALl Pods must be in the ready state
+// All Pods must pass the StatusHA check
+func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+	log.Info("Suspending Coherence services in StatefulSet " + sts.Name,
+		"Namespace", deployment.Namespace, "Name", deployment.Name)
+	p := deployment.Spec.GetSuspendProbe()
+	return in.ExecuteProbe(deployment, sts, p)
+}
+
+func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
 	logger := log.WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 	list := corev1.PodList{}
-
-	logger.Info("Checking StatefulSet " + sts.Name + " for StatusHA")
 
 	labels := client.MatchingLabels{}
 	for k, v := range sts.Spec.Selector.MatchLabels {
@@ -84,7 +101,7 @@ func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Sta
 	// All Pods must be in the Running Phase
 	for _, pod := range list.Items {
 		if !in.IsPodReady(pod) {
-			logger.Info("Cannot scale, one or more Pods is not in a ready state")
+			logger.Info("Cannot execute probe, one or more Pods is not in a ready state")
 			return false
 		}
 	}
@@ -92,7 +109,7 @@ func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Sta
 	count := int32(len(list.Items))
 	switch {
 	case count == 0:
-		logger.Info("Cannot find any Pods for StatefulSet " + sts.Name + " - assuming StatusHA is true")
+		logger.Info("Cannot find any Pods for StatefulSet " + sts.Name)
 		return true
 	case sts.Spec.Replicas == nil && count != 1:
 		logger.Info(fmt.Sprintf("Pod count of %d does not yet match StatefulSet replica count: 1", count))
@@ -102,22 +119,21 @@ func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Sta
 		return false
 	}
 
-	scalingProbe := deployment.Spec.GetScalingProbe()
 
 	for _, pod := range list.Items {
 		if pod.Status.Phase == "Running" {
 			if log.Enabled() {
-				log.Info("Checking pod " + pod.Name + " for StatusHA")
+				log.Info("Using pod " + pod.Name + " to execute probe")
 			}
 
-			ha, err := in.CanScale(pod, scalingProbe)
+			ha, err := in.RunProbe(pod, probe)
 			if err == nil {
-				log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t)", pod.Name, ha))
+				log.Info(fmt.Sprintf("Execute probe using pod %s (%t)", pod.Name, ha))
 				return ha
 			}
-			log.Info(fmt.Sprintf("Checked pod %s for StatusHA (%t) error %s", pod.Name, ha, err.Error()))
+			log.Info(fmt.Sprintf("Execute probe using pod %s (%t) error %s", pod.Name, ha, err.Error()))
 		} else {
-			log.Info("Skipping StatusHA checking for pod " + pod.Name + " as Pod status not in running phase")
+			log.Info("Skipping execute probe for pod " + pod.Name + " as Pod status not in running phase")
 		}
 	}
 
@@ -125,7 +141,7 @@ func (in *ScalableChecker) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Sta
 }
 
 // Determine whether the specified Pods are in the Ready state.
-func (in *ScalableChecker) IsPodReady(pod corev1.Pod) bool {
+func (in *CoherenceProbe) IsPodReady(pod corev1.Pod) bool {
 	if pod.DeletionTimestamp != nil || pod.Status.Phase != corev1.PodRunning {
 		return false
 	}
@@ -138,21 +154,20 @@ func (in *ScalableChecker) IsPodReady(pod corev1.Pod) bool {
 	return false
 }
 
-// Determine whether a deployment is allowed to scale using the configured probe.
-func (in *ScalableChecker) CanScale(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
+func (in *CoherenceProbe) RunProbe(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	switch {
 	case handler.Exec != nil:
-		return in.ExecIsPodStatusHA(pod, handler)
+		return in.ProbeUsingExec(pod, handler)
 	case handler.HTTPGet != nil:
-		return in.HTTPIsPodStatusHA(pod, handler)
+		return in.ProbeUsingHttp(pod, handler)
 	case handler.TCPSocket != nil:
-		return in.TCPIsPodStatusHA(pod, handler)
+		return in.ProbeUsingTcp(pod, handler)
 	default:
 		return true, nil
 	}
 }
 
-func (in *ScalableChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingExec(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	req := &mgmt.ExecRequest{
 		Pod:       pod.Name,
 		Container: coh.ContainerNameCoherence,
@@ -164,7 +179,7 @@ func (in *ScalableChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.Scalin
 
 	exitCode, _, _, err := mgmt.PodExec(req, in.Config)
 
-	log.Info(fmt.Sprintf("StatusHA check Exec: '%s' result=%d error=%s", strings.Join(handler.Exec.Command, ", "), exitCode, err))
+	log.Info(fmt.Sprintf("Exec Probe: '%s' result=%d error=%s", strings.Join(handler.Exec.Command, ", "), exitCode, err))
 
 	if err != nil {
 		return false, err
@@ -173,7 +188,7 @@ func (in *ScalableChecker) ExecIsPodStatusHA(pod corev1.Pod, handler *coh.Scalin
 	return exitCode == 0, nil
 }
 
-func (in *ScalableChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingHttp(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	var (
 		scheme corev1.URIScheme
 		host   string
@@ -226,12 +241,12 @@ func (in *ScalableChecker) HTTPIsPodStatusHA(pod corev1.Pod, handler *coh.Scalin
 	p := httpprobe.New()
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
-	log.Info(fmt.Sprintf("StatusHA check URL: %s result=%s msg=%s error=%s", u.String(), result, s, err))
+	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%s msg=%s error=%s", u.String(), result, s, err))
 
 	return result == probe.Success, err
 }
 
-func (in *ScalableChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.ScalingProbe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingTcp(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	var (
 		host string
 		port int
@@ -253,12 +268,12 @@ func (in *ScalableChecker) TCPIsPodStatusHA(pod corev1.Pod, handler *coh.Scaling
 	p := tcprobe.New()
 	result, _, err := p.Probe(host, port, handler.GetTimeout())
 
-	log.Info(fmt.Sprintf("StatusHA check TCP: %s:%d result=%s error=%s", host, port, result, err))
+	log.Info(fmt.Sprintf("TCP Probe: %s:%d result=%s error=%s", host, port, result, err))
 
 	return result == probe.Success, err
 }
 
-func (in *ScalableChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
+func (in *CoherenceProbe) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
 	if port.Type == intstr.Int {
 		return port.IntValue(), nil
 	}
@@ -273,7 +288,7 @@ func (in *ScalableChecker) findPort(pod corev1.Pod, port intstr.IntOrString) (in
 	return in.findPortInPod(pod, s)
 }
 
-func (in *ScalableChecker) findPortInPod(pod corev1.Pod, name string) (int, error) {
+func (in *CoherenceProbe) findPortInPod(pod corev1.Pod, name string) (int, error) {
 	for _, container := range pod.Spec.Containers {
 		if container.Name == coh.ContainerNameCoherence {
 			return in.findPortInContainer(pod, container, name)
@@ -283,7 +298,7 @@ func (in *ScalableChecker) findPortInPod(pod corev1.Pod, name string) (int, erro
 	return -1, fmt.Errorf("cannot find coherence container in Pod '%s'", pod.Name)
 }
 
-func (in *ScalableChecker) findPortInContainer(pod corev1.Pod, container corev1.Container, name string) (int, error) {
+func (in *CoherenceProbe) findPortInContainer(pod corev1.Pod, container corev1.Container, name string) (int, error) {
 	for _, port := range container.Ports {
 		if port.Name == name {
 			p := in.TranslatePort(port.Name, int(port.ContainerPort))

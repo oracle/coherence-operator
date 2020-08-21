@@ -458,7 +458,6 @@ public class OperatorRestServer {
                     // this service is allowed to be endangered so skip it.
                     continue;
                 }
-                CacheFactory.log("CoherenceOperator: StatusHA check MBean " + mBean, CacheFactory.LOG_DEBUG);
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
                 if (!isServiceStatusHA(attributes)) {
                     CacheFactory.log("CoherenceOperator: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);

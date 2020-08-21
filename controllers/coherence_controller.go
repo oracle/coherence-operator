@@ -17,12 +17,14 @@ import (
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -60,27 +62,61 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 
 func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = in.Log.WithValues("coherence", request.NamespacedName)
+	log := in.Log.WithValues("coherence", request.NamespacedName)
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		in.Log.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
+		log.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
 		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
 	// Fetch the Coherence resource instance
-	deployment, found, err := in.MaybeFindDeployment(request.Namespace, request.Name)
+	deployment := &coh.Coherence{}
+	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: request.Namespace, Name: request.Name}, deployment)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected.
+			// Return and don't requeue
+			log.Info("Coherence resource not found. Ignoring request since object must be deleted.")
+			return ctrl.Result{}, nil
+		}
 		// Error reading the current deployment state from k8s.
 		return reconcile.Result{}, err
 	}
 
-	if !found || deployment.GetDeletionTimestamp() != nil {
-		in.Log.Info("Coherence resource deleted")
-		return reconcile.Result{}, nil
+	// Check whether this is a deletion
+	if deployment.GetDeletionTimestamp() != nil {
+		// Check whether finalization needs to be run
+		if utils.StringArrayContains(deployment.GetFinalizers(), coh.Finalizer) {
+			// Run finalization logic.
+			// If the finalization logic fails, don't remove the finalizer so
+			// that we can retry during the next reconciliation.
+			if err := in.finalizeDeployment(deployment); err != nil {
+				return ctrl.Result{}, err
+			}
+			// Remove the finalizer. Once all finalizers have been
+			// removed, the object will be deleted.
+			controllerutil.RemoveFinalizer(deployment, coh.Finalizer)
+			err := in.GetClient().Update(context.TODO(), deployment)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	// The request is an add or update
+
+	// Add finalizer for this CR if required
+	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.Finalizer) {
+		// Adding the finalizer causes an update so the request will come around again
+		if err := in.addFinalizer(deployment); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	// ensure that the deployment has an initial status
@@ -148,10 +184,8 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 	if isDiff {
 		in.Log.Info("Reconciling Coherence resource secondary resources")
 		// make the deployment the owner of all of the secondary resources about to be reconciled
-		if deployment != nil {
-			if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
-				return reconcile.Result{}, err
-			}
+		if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
+			return reconcile.Result{}, err
 		}
 
 		// update the store to have the desired state as the latest state.
@@ -242,3 +276,41 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 }
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
+
+func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
+    in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
+    controllerutil.AddFinalizer(c, coh.Finalizer)
+
+    // Update CR
+    err := in.GetClient().Update(context.TODO(), c)
+    if err != nil {
+        in.Log.Error(err, "Failed to update Coherence resource with finalizer",
+        	"Namespace", c.Namespace, "Name", c.Name)
+        return err
+    }
+    return nil
+}
+
+func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
+	if c.GetReplicas() == 0 {
+		// nothing to finalize as this would have been done when replicas was set to zero
+		return nil
+	}
+    in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
+	// Get the StatefulSet
+	sts, stsExists, err := in.MaybeFindStatefulSet(c.Namespace, c.Name)
+	if err != nil {
+		return errors.Wrapf(err, "getting StatefulSet %s/%s", c.Namespace, c.Name)
+	}
+	if stsExists {
+		// Do service suspension...
+	    probe := statefulset.CoherenceProbe{
+			Client: in.GetClient(),
+			Config: in.GetManager().GetConfig(),
+		}
+		if !probe.SuspendServices(c, sts) {
+			return fmt.Errorf("failed to suspend services")
+		}
+	}
+    return nil
+}

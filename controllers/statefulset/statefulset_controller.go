@@ -110,7 +110,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(request.Namespace, request.Name)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Finished reconciling StatefulSet for deployment with error: %s", err.Error()))
-		return result, errors.Wrapf(err, "getting Service %s/%s", request.Namespace, request.Name)
+		return result, errors.Wrapf(err, "getting StatefulSet %s/%s", request.Namespace, request.Name)
 	}
 
 	if stsExists && stsCurrent.GetDeletionTimestamp() != nil {
@@ -121,10 +121,18 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 	switch {
 	case deployment == nil || deployment.GetReplicas() == 0:
 		if stsExists {
-			// The deployment does not exist (or is scaled down to zero) but the StatefulSet still does,
-			// ensure that the StatefulSet is deleted.
-			// This should not actually be required as everything is owned by the deployment
-			// and there should be a cascaded delete by k8s.
+			// The deployment does not exist, or is scaling down to zero.
+			// Do service suspension if there is more than one replica...
+			if deployment != nil && deployment.GetReplicas() == 1 {
+				probe := CoherenceProbe{
+					Client: in.GetClient(),
+					Config: in.GetManager().GetConfig(),
+				}
+				if !probe.SuspendServices(deployment, stsCurrent) {
+					return result, fmt.Errorf("failed to suspend services prior to scaling down to zero")
+				}
+			}
+			// delete the StatefulSet
 			err = in.Delete(request.Namespace, request.Name, logger)
 		}
 	case !stsExists:
@@ -374,7 +382,7 @@ func (in *ReconcileStatefulSet) safeScale(deployment *coh.Coherence, sts *appsv1
 		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - re-queing scaling request. Stateful set ready replicas is %d", deployment.Name, sts.Status.ReadyReplicas))
 	}
 
-	checker := ScalableChecker{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 	ha := current == 1 || checker.IsStatusHA(deployment, sts)
 
 	if ha {

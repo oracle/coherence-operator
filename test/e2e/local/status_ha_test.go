@@ -74,7 +74,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
-	ckr := statefulset.ScalableChecker{Client: testContext.Client, Config: testContext.Config}
+	ckr := statefulset.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
 	ha := ckr.IsStatusHA(tc.Deployment, sts)

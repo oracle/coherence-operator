@@ -1151,7 +1151,8 @@ port-forward-es:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters:
-	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence -o name); do \
+	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
 

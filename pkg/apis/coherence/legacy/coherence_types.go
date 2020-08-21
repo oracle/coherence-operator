@@ -1428,7 +1428,7 @@ func (in *ScalingSpec) DeepCopyWithDefaults(defaults *ScalingSpec) *ScalingSpec 
 	return &clone
 }
 
-// ----- ScalingProbe ----------------------------------------------------
+// ----- Probe ----------------------------------------------------
 
 // ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
 // StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state

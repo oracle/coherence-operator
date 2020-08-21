@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	zoneLabel = "failure-domain.beta.kubernetes.io/zone"
-	//	regionLabel            = "failure-domain.beta.kubernetes.io/region"
+	zoneLabel = "topology.kubernetes.io/zone"
+	//	regionLabel            = "topology.kubernetes.io/region"
 	DefaultSiteLabel       = zoneLabel
 	DefaultRackLabel       = zoneLabel
 	DefaultRestHost        = "0.0.0.0"

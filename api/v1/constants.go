@@ -6,6 +6,8 @@
 
 package v1
 
+import "github.com/oracle/coherence-operator/pkg/operator"
+
 const (
 	// The default number of replicas that will be created for a deployment if no value is specified in the spec
 	DefaultReplicas int32 = 3
@@ -13,6 +15,9 @@ const (
 	WKAServiceNameSuffix = "-wka"
 	// The suffix appended to a deployment name to give the StatefulSet headless-service name
 	HeadlessServiceNameSuffix = "-sts"
+
+	// The finalizer that the Operator adds to Coherence deployments
+	Finalizer = "finalizer.operator.coherence.oracle.com"
 
 	// Label keys used to label k8s resources
 	LabelCoherenceDeployment = "coherenceDeployment"
@@ -37,7 +42,7 @@ const (
 	DefaultServiceAccount = "default"
 
 	// The affinity topology key for fault domains.
-	AffinityTopologyKey = "failure-domain.beta.kubernetes.io/zone"
+	AffinityTopologyKey = operator.DefaultSiteLabel
 
 	// Container Names
 	ContainerNameCoherence = "coherence"
