@@ -159,8 +159,8 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+LDFLAGS          = -X main.BuildInfo=$(BuildInfo)
 GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
-OPTESTGOS        = $(shell find ./test/optest -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRDV1_FILES      = $(shell find ./config/crd -type f)
@@ -213,7 +213,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$(BuildInfo) -a -o $(BUILD_BIN)/manager main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
@@ -231,7 +231,7 @@ build-runner: $(BUILD_BIN)/runner
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	@echo "Building Operator Runner"
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags -X=main.BuildInfo=$(BUILD_INFO) -o $(BUILD_BIN)/runner ./runner
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator legacy converter
@@ -250,15 +250,6 @@ $(BUILD_BIN)/converter-darwin-amd64: $(BUILD_PROPS) $(GOS)
 
 $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./converter
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Internal make step that builds the Operator test utility
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-op-test
-build-op-test: $(BUILD_BIN)/op-test
-
-$(BUILD_BIN)/op-test: $(BUILD_PROPS) $(GOS) $(OPTESTGOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/op-test ./test/optest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
@@ -895,8 +886,7 @@ endif
 # Build the Operator Utils Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-utils-image
-build-utils-image: build-mvn $(BUILD_BIN)/runner $(BUILD_BIN)/op-test
-	cp $(BUILD_BIN)/op-test java/coherence-utils/target/docker/op-test
+build-utils-image: build-mvn $(BUILD_BIN)/runner
 	cp $(BUILD_BIN)/runner  java/coherence-utils/target/docker/runner
 	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
 
@@ -958,7 +948,7 @@ push-release-images: push-operator-image push-utils-image
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run:
-	go run -ldflags='-X=main.BuildInfo=$(BUILD_INFO)' ./main.go \
+	go run -ldflags "$(LDFLAGS)" ./main.go \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ----------------------------------------------------------------------------------------------------------------------

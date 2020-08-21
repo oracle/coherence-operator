@@ -44,7 +44,6 @@ const (
 	AppTypeJava      = "java"
 	AppTypeCoherence = "coherence"
 	AppTypeHelidon   = "helidon"
-	AppTypeTest      = "op-test"
 )
 
 // Run the Coherence process using the specified args and environment variables.
@@ -184,16 +183,6 @@ func Initialise() error {
 	if err == nil {
 		fmt.Println("Copying runner utility")
 		err = utils.CopyFile(run, utilDir+pathSep+"runner")
-		if err != nil {
-			return err
-		}
-	}
-
-	opTest := filesDir + pathSep + "op-test"
-	_, err = os.Stat(opTest)
-	if err == nil {
-		fmt.Println("Copying op-test utility")
-		err = utils.CopyFile(opTest, utilDir+pathSep+"op-test")
 		if err != nil {
 			return err
 		}
@@ -653,9 +642,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.GetJava(), details)
-	case details.AppType == AppTypeTest:
-		app = "Java"
-		cmd, err = createJavaCommand(v1.TestCommand, details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = runGraal(details)

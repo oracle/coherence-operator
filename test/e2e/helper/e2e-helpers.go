@@ -93,11 +93,8 @@ func (in TestContext) Cleanup() {
 
 func (in TestContext) CleanupNamespace(ns string) {
 	in.Logger.Info("tearing down the test environment - namespace: " + ns)
-	if err := in.Client.DeleteAllOf(context.Background(), &coh.Coherence{}, client.InNamespace(ns)); err != nil {
-		in.Logf("error tearing down the test environment: %+v", err)
-	}
 	if err := WaitForCoherenceCleanup(in, ns); err != nil {
-		in.Logf("error wating for cleanup to complete: %+v", err)
+		in.Logf("error waiting for cleanup to complete: %+v", err)
 	}
 }
 
@@ -563,7 +560,12 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	}
 
 	// Delete all of the Coherence resources
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
 	for _, r := range list.Items {
+		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", r.Name, r.Namespace)
+		if err := ctx.Client.Patch(context.Background(), &r, patch); err != nil {
+			ctx.Logf("error patching Coherence %s: %+v", r.Name, err)
+		}
 		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
 		err = ctx.Client.Delete(goctx.TODO(), &r)
 		if err != nil {

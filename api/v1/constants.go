@@ -75,9 +75,6 @@ const (
 	// Start command for the runner
 	RunnerCommand = VolumeMountPathUtils + "/runner"
 
-	// Start command for the test executable
-	TestCommand = VolumeMountPathUtils + "/op-test"
-
 	// Start command for the utils init container
 	UtilsInitCommand = "/files/runner"
 	RunnerInit       = "init"
