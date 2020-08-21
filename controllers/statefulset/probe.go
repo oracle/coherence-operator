@@ -159,9 +159,9 @@ func (in *CoherenceProbe) RunProbe(pod corev1.Pod, handler *coh.Probe) (bool, er
 	case handler.Exec != nil:
 		return in.ProbeUsingExec(pod, handler)
 	case handler.HTTPGet != nil:
-		return in.ProbeUsingHttp(pod, handler)
+		return in.ProbeUsingHTTP(pod, handler)
 	case handler.TCPSocket != nil:
-		return in.ProbeUsingTcp(pod, handler)
+		return in.ProbeUsingTCP(pod, handler)
 	default:
 		return true, nil
 	}
@@ -188,7 +188,7 @@ func (in *CoherenceProbe) ProbeUsingExec(pod corev1.Pod, handler *coh.Probe) (bo
 	return exitCode == 0, nil
 }
 
-func (in *CoherenceProbe) ProbeUsingHttp(pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	var (
 		scheme corev1.URIScheme
 		host   string
@@ -246,7 +246,7 @@ func (in *CoherenceProbe) ProbeUsingHttp(pod corev1.Pod, handler *coh.Probe) (bo
 	return result == probe.Success, err
 }
 
-func (in *CoherenceProbe) ProbeUsingTcp(pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	var (
 		host string
 		port int
