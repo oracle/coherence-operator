@@ -279,6 +279,8 @@ public class OperatorRestServerIT {
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app2), is(true));
 
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_SUSPEND), is(200));
                 Eventually.assertDeferred(() -> this.isServiceOneSuspended(app1), is(true));
@@ -313,6 +315,8 @@ public class OperatorRestServerIT {
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app2), is(true));
 
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_SUSPEND), is(200));
                 assertThat(isServiceOneSuspended(app1), is(false));
@@ -341,6 +345,8 @@ public class OperatorRestServerIT {
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app2), is(true));
 
                 Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_SUSPEND), is(200));
                 assertThat(isServiceOneSuspended(app1), is(false));
