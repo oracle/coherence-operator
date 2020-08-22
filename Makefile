@@ -73,7 +73,7 @@ PRE_RELEASE      ?= true
 # Extra arguments to pass to the go test command for the various test steps.
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
-#   make e2e-test GO_TEST_FLAGS_E2E='-run=^TestZone$$'
+#   make e2e-test GO_TEST_FLAGS_E2E=-run=^TestZone$
 GO_TEST_FLAGS     ?= -timeout=20m
 GO_TEST_FLAGS_E2E := -timeout=100m
 
@@ -300,11 +300,12 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 # local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
+e2e-test: export MF = $(MAKEFLAGS)
 e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
-	$(MAKE) '$(MAKEFLAGS)' run-e2e-test \
+	$(MAKE) run-e2e-test $${MF} \
 	; rc=$$? \
-	; $(MAKE) '$(MAKEFLAGS)' undeploy \
-	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
+	; $(MAKE) undeploy $${MF} \
+	; $(MAKE) delete-namespace $${MF} \
 	; exit $$rc
 
 .PHONY: run-e2e-test
@@ -335,12 +336,13 @@ run-e2e-test: gotestsum
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
+e2e-prometheus-test: export MF = $(MAKEFLAGS)
 e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
-	$(MAKE) '$(MAKEFLAGS)' run-prometheus-test \
+	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
-	; $(MAKE) '$(MAKEFLAGS)' uninstall-prometheus \
-	; $(MAKE) '$(MAKEFLAGS)' undeploy \
-	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
+	; $(MAKE) uninstall-prometheus $${MF} \
+	; $(MAKE) undeploy $${MF} \
+	; $(MAKE) delete-namespace $${MF} \
 	; exit $$rc
 
 .PHONY: run-prometheus-test
@@ -374,12 +376,13 @@ run-prometheus-test: gotestsum
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-elastic-test
+e2e-elastic-test: export MF = $(MAKEFLAGS)
 e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
-	$(MAKE) '$(MAKEFLAGS)' run-elastic-test \
+	$(MAKE) run-elastic-test $${MF} \
 	; rc=$$? \
-	; $(MAKE) '$(MAKEFLAGS)' uninstall-elastic \
-	; $(MAKE) '$(MAKEFLAGS)' undeploy \
-	; $(MAKE) '$(MAKEFLAGS)' delete-namespace \
+	; $(MAKE) uninstall-elastic $${MF} \
+	; $(MAKE) undeploy $${MF} \
+	; $(MAKE) delete-namespace $${MF} \
 	; exit $$rc
 
 .PHONY: run-elastic-test
@@ -432,10 +435,11 @@ compatibility-test: $(BUILD_TARGETS)/build-operator clean-namespace reset-namesp
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
+certification-test: export MF = $(MAKEFLAGS)
 certification-test: install-certification
-	$(MAKE) '$(MAKEFLAGS)' run-certification \
+	$(MAKE) run-certification  $${MF} \
 	; rc=$$? \
-	; $(MAKE) '$(MAKEFLAGS)' cleanup-certification \
+	; $(MAKE) cleanup-certification $${MF} \
 	; exit $$rc
 
 
@@ -473,11 +477,7 @@ run-certification: gotestsum
 # Clean up after to running compatability tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
-cleanup-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
-cleanup-certification:
-	$(MAKE) deploy
-	$(MAKE) uninstall-crds
-	$(MAKE) delete-namespace
+cleanup-certification: undeploy uninstall-crds clean-namespace
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
