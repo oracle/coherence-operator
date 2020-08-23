@@ -386,7 +386,7 @@ public class OperatorRestServerIT {
 
     private boolean isServiceTwoRunning(JavaApplication app) {
         try {
-            return app.submit(new IsServiceRunning("PartitionedCacheOne")).get();
+            return app.submit(new IsServiceRunning("PartitionedCacheTwo")).get();
         }
         catch (Exception e) {
             System.err.println("ERROR: isServiceRunning failed: " + e.getMessage());
