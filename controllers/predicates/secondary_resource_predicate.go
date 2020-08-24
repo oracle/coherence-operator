@@ -13,8 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-var log = logf.Log.WithName("predicate")
-
 var _ predicate.Predicate = SecondaryPredicate{}
 
 // SecondaryPredicate is a predicate that filters events for resources
