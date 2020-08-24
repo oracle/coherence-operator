@@ -13,7 +13,7 @@ clusters into the cloud. By supporting industry standards, such as Docker and Ku
 Coherence on cloud-neutral infrastructure. In addition, Oracle provides an open-source Coherence Operator ("the operator"), 
 which implements features to assist with deploying and managing Coherence clusters in a Kubernetes environment. You can:
 
-The current version of the [Coherence Operator is 2.0.2](https://oracle.github.io/coherence-operator/docs/2.0.2)
+The current version of the [Coherence Operator is 3.0.2](https://oracle.github.io/coherence-operator/docs/3.0.2)
 
 ## Features
 
@@ -52,7 +52,7 @@ The current version of the [Coherence Operator is 2.0.2](https://oracle.github.i
 ## Getting Started
 
 The fastest way to experience the operator is to follow the 
-[Quick Start guide](https://oracle.github.io/coherence-operator/docs/2.0.2/#/about/03_quickstart)
+[Quick Start guide](https://oracle.github.io/coherence-operator/docs/3.0.2/#/about/03_quickstart)
 
 
 ## Need more help? Have a suggestion? Come and say "Hello!"
@@ -72,3 +72,4 @@ After you are logged in, please come to `#operator` and say, "hello!"
 Looking for a previous version's documentation?
 
 [Version 1.0.0](https://oracle.github.io/coherence-operator/docs/1.0.0/)
+[Version 2.1.1](https://oracle.github.io/coherence-operator/docs/2.1.0/)
