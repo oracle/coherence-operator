@@ -114,6 +114,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 	}
 
 	if stsExists && stsCurrent.GetDeletionTimestamp() != nil {
+		logger.Info("Finished reconciling StatefulSet. The StatefulSet is being deleted")
 		// The StatefulSet exists but is being deleted
 		return result, nil
 	}
@@ -124,6 +125,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 			// The deployment does not exist, or is scaling down to zero.
 			// Do service suspension if there is more than one replica...
 			if deployment != nil {
+				// If we get here we must be scaling down to zero
 				logger.Info("Scaling down to zero")
 				// we must be scaling down to zero so suspend services
 				probe := CoherenceProbe{
@@ -135,21 +137,25 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 				}
 			}
 			// delete the StatefulSet
+			logger.Info("Deleting StatefulSet")
 			err = in.Delete(request.Namespace, request.Name, logger)
 		}
 	case !stsExists:
 		// StatefulSet does not exist but deployment does so create the StatefulSet (checking any start quorum)
+		logger.Info("Creating StatefulSet")
 		result, err = in.createStatefulSet(deployment, storage, logger)
 	default:
 		// Both StatefulSet and deployment exists so this is maybe an update
+		logger.Info("Updating StatefulSet")
 		result, err = in.updateStatefulSet(deployment, stsCurrent, storage)
 	}
 
 	if err == nil {
+		logger.Info("updating deployment status")
 		err = in.UpdateDeploymentStatus(request)
 	}
 
-	logger.Info(fmt.Sprintf("Finished reconciling StatefulSet for deployment. Result='%v'", result))
+	logger.Info(fmt.Sprintf("Finished reconciling StatefulSet for deployment. Result='%v', error=%v", result, err))
 	return result, err
 }
 
@@ -297,9 +303,14 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
-	err := resource.As(original)
-	if err != nil {
-		return false, err
+	if resource.IsPresent() {
+		err := resource.As(original)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		// there was no previous
+		original = desired
 	}
 
 	// We NEVER change the replicas or Status in an update.

@@ -60,6 +60,7 @@ const (
 	FlagServiceName           = "service-name"
 	FlagServicePort           = "service-port"
 	FlagSiteLabel             = "site-label"
+	FlagSkipServiceSuspend    = "skip-service-suspend"
 	FlagUtilsImage            = "utils-image"
 	FlagUseCertManager        = "use-cert-manager"
 	FlagValidatingWebhookName = "validating-webhook-name"
@@ -156,6 +157,12 @@ func SetupFlags(cmd *cobra.Command) {
 		FlagSiteLabel,
 		DefaultSiteLabel,
 		"The node label to use when obtaining a value for a Pod's Coherence site.",
+	)
+	cmd.Flags().Bool(
+		FlagSkipServiceSuspend,
+		false,
+		"Suspend Coherence services on a cluster prior to shutdown or scaling to zero. " +
+			"This option is rarely set to false outside of testing.",
 	)
 	cmd.Flags().String(
 		FlagUtilsImage,

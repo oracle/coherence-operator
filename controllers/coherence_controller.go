@@ -12,6 +12,7 @@ import (
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
@@ -268,7 +269,8 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 	src := &source.Kind{Type: s.GetTemplate()}
 	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.Coherence{}}
-	if err := c.Watch(src, h); err != nil {
+	p := predicates.SecondaryPredicate{}
+	if err := c.Watch(src, h, p); err != nil {
 		return err
 	}
 

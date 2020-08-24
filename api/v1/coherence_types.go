@@ -2346,6 +2346,13 @@ func (in *Resource) IsDelete() bool {
 	return in.Spec == nil
 }
 
+func (in *Resource) IsPresent() bool {
+	if in == nil {
+		return false
+	}
+	return in.Spec != nil
+}
+
 // Convert the Spec to the specified value.
 // This is done by serializing the Spec to json and deserializing into the specified object.
 func (in *Resource) As(o runtime.Object) error {
@@ -2534,12 +2541,12 @@ func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme)
 func (in Resources) Create(kind ResourceType, name string, mgr manager.Manager, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Creating %s for deployment", kind))
 	// Get the resource state
-	resource, found := in.GetResource(kind, name)
+	r, found := in.GetResource(kind, name)
 	if !found {
 		return fmt.Errorf("cannot create %s for deployment %s as state not present in store", kind, name)
 	}
 	// create the resource
-	if err := mgr.GetClient().Create(context.TODO(), resource.Spec); err != nil {
+	if err := mgr.GetClient().Create(context.TODO(), r.Spec); err != nil {
 		return errors.Wrapf(err, "failed to create %s", kind)
 	}
 	return nil

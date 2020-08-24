@@ -8,7 +8,9 @@ package local
 
 import (
 	"fmt"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"github.com/spf13/viper"
 	"os"
 	"testing"
 )
@@ -23,6 +25,9 @@ func TestMain(m *testing.M) {
 		fmt.Printf("Error: %+v", err)
 		os.Exit(1)
 	}
+
+	// We never do service suspension in local tests as the external Operator cannot see the Pods directly
+	viper.Set(operator.FlagSkipServiceSuspend, true)
 
 	exitCode := m.Run()
 	testContext.Logf("Tests completed with return code %d", exitCode)

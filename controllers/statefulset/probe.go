@@ -11,6 +11,8 @@ import (
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	mgmt "github.com/oracle/coherence-operator/pkg/management"
+	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -77,6 +79,12 @@ func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Stat
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
 func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+	if viper.GetBool(operator.FlagSkipServiceSuspend) {
+		log.Info("Skipping suspension of Coherence services in StatefulSet " + sts.Name +
+			operator.FlagSkipServiceSuspend + " is set to true",
+			"Namespace", deployment.Namespace, "Name", deployment.Name)
+		return true
+	}
 	log.Info("Suspending Coherence services in StatefulSet " + sts.Name,
 		"Namespace", deployment.Namespace, "Name", deployment.Name)
 	p := deployment.Spec.GetSuspendProbe()
