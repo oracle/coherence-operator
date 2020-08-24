@@ -38,6 +38,13 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfiguration
+  verbs:
+  - '*'
+- apiGroups:
   - apps
   resources:
   - statefulsets
