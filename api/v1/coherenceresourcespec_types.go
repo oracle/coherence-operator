@@ -372,6 +372,15 @@ func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
 	return probe.DeepCopy()
 }
 
+// GetCoherencePersistence returns the Coherence PersistenceSpec or nil if
+// persistence is not configured.
+func (in *CoherenceResourceSpec) GetCoherencePersistence() *PersistenceSpec {
+	if in == nil {
+		return nil
+	}
+	return in.Coherence.GetPersistenceSpec()
+}
+
 // Create the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.

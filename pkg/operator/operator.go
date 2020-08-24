@@ -112,6 +112,11 @@ func SetupFlags(cmd *cobra.Command) {
 		"Run in dev mode. This should only be used during testing outside of a k8s cluster",
 	)
 	cmd.Flags().Bool(
+		FlagEnableWebhook,
+		true,
+		"Enables the defaulting and validating web-hooks",
+	)
+	cmd.Flags().Bool(
 		FlagManageWebhookCerts,
 		true,
 		"Enables automatic certificate management for the webhook. " +

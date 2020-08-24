@@ -12,6 +12,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/spf13/viper"
+	corev1 "k8s.io/api/core/v1"
 	"testing"
 )
 
@@ -94,4 +95,172 @@ func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal(image))
+}
+
+func TestPersistenceModeChangeNotAllowed(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cm := "on-demand"
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &cm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	pm := "active"
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &pm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cm := "on-demand"
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: int32Ptr(0),
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &cm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	pm := "active"
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &pm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cm := "on-demand"
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &cm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	pm := "active"
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: int32Ptr(0),
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &pm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cm := "on-demand"
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &cm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+							VolumeName: "foo",
+						},
+						Volume:                &corev1.VolumeSource{},
+					},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	pm := "active"
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				Persistence: &coh.PersistenceSpec{
+					Mode:                  &pm,
+					PersistentStorageSpec: coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+							VolumeName: "bar",
+						},
+						Volume:                &corev1.VolumeSource{},
+					},
+					Snapshots:             &coh.PersistentStorageSpec{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+						Volume:                &corev1.VolumeSource{},
+					},
+				},
+			},
+		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
 }

@@ -375,6 +375,13 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	}
 }
 
+func (in *CoherenceSpec) GetPersistenceSpec() *PersistenceSpec {
+	if in == nil {
+		return nil
+	}
+	return in.Persistence
+}
+
 // ----- CoherenceWKASpec struct --------------------------------------------
 // CoherenceWKASpec configures Coherence well-known-addressing to use an
 // existing Coherence deployment for WKA.

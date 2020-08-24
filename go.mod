@@ -11,8 +11,7 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/operator-framework/operator-lib v0.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/common v0.10.0
-	github.com/shurcooL/vfsgen v0.0.0-20200627165143-92b8a710ab6c
+	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1

@@ -16,8 +16,10 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -294,7 +296,8 @@ func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
-	if c.GetReplicas() == 0 {
+	skip := viper.GetBool(operator.FlagSkipServiceSuspend)
+	if skip || c.GetReplicas() == 0 {
 		// nothing to finalize as this would have been done when replicas was set to zero
 		return nil
 	}

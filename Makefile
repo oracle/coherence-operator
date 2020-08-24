@@ -953,7 +953,8 @@ push-release-images: push-operator-image push-utils-image
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run:
-	go run -ldflags "$(LDFLAGS)" ./main.go \
+	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
+		--cert-type=self-signed --webhook-service=host.docker.internal \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -7,6 +7,8 @@
 package v1
 
 import (
+	"fmt"
+	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -69,11 +71,28 @@ func (in *Coherence) ValidateCreate() error {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	webhookLogger.Info("validate update", "name", in.Name)
+	prev := previous.(*Coherence)
+	if err := in.validatePersistence(prev); err != nil {
+		return err
+	}
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateDelete() error {
 	// we do not need to validate deletions
+	return nil
+}
+
+func (in *Coherence) validatePersistence(previous *Coherence) error {
+	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
+		// changes are allowed if current or previous replicas == 0
+		return nil
+	}
+
+	diff := deep.Equal(previous.Spec.GetCoherencePersistence(), in.Spec.GetCoherencePersistence())
+	if len(diff) != 0 {
+		return fmt.Errorf("changes cannot be made to spec.coherence.persistence unless replicas == 0")
+	}
 	return nil
 }
