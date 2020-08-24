@@ -9,7 +9,6 @@ package predicates
 
 import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
@@ -37,24 +36,24 @@ type SecondaryPredicate struct {
 // Create filters out all events. It assumes that the controller
 // reconciling the parent is the only client creating the dependent
 // resources.
-func (SecondaryPredicate) Create(e event.CreateEvent) bool {
+func (SecondaryPredicate) Create(event.CreateEvent) bool {
 	return false
 }
 
 // Update passes all events through.
-func (SecondaryPredicate) Update(e event.UpdateEvent) bool {
+func (SecondaryPredicate) Update(event.UpdateEvent) bool {
 	return true
 }
 
 // Delete passes all events through. This allows the controller to
 // recreate deleted dependent resources if the primary resource is
 // not deleted.
-func (SecondaryPredicate) Delete(e event.DeleteEvent) bool {
+func (SecondaryPredicate) Delete(event.DeleteEvent) bool {
 	return true
 }
 
 // Generic filters out all events.
-func (SecondaryPredicate) Generic(e event.GenericEvent) bool {
+func (SecondaryPredicate) Generic(event.GenericEvent) bool {
 	return false
 }
 
