@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"testing"
 	"time"
@@ -57,7 +58,7 @@ func TestSuspendServices(t *testing.T) {
 	g.Expect(svc["quorumStatus"]).To(BeEquivalentTo([]interface{}{"Suspended"}))
 
 	// remove the test finalizer which should then let everything be deleted
-	err = removeTestFinalizer(&c)
+	err = removeAllFinalizers(&c)
 	g.Expect(err).NotTo(HaveOccurred())
 	// the StatefulSet should eventually be deleted
 	err = helper.WaitForDelete(testContext, sts)
@@ -85,7 +86,7 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	err = addTestFinalizer(sts)
 	g.Expect(err).NotTo(HaveOccurred())
 	// ensure we remove the finalizer
-	defer removeTestFinalizer(sts)
+	defer removeAllFinalizers(sts)
 
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
 	err = testContext.Client.Get(context.TODO(), c.GetNamespacedName(), &c)
@@ -105,9 +106,9 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	g.Expect(svc["quorumStatus"]).To(BeEquivalentTo([]interface{}{"Suspended"}))
 
 	// remove the test finalizer from the StatefulSet and Coherence deployment which should then let everything be deleted
-	err = removeTestFinalizer(sts)
+	err = removeAllFinalizers(sts)
 	g.Expect(err).NotTo(HaveOccurred())
-	err = removeTestFinalizer(&c)
+	err = removeAllFinalizers(&c)
 	g.Expect(err).NotTo(HaveOccurred())
 	// the StatefulSet should eventually be deleted
 	err = helper.WaitForDelete(testContext, sts)
@@ -145,13 +146,14 @@ func addTestFinalizer(o controllerutil.Object) error {
 	return testContext.Client.Update(context.TODO(), o)
 }
 
-func removeTestFinalizer(o controllerutil.Object) error {
+func removeAllFinalizers(o controllerutil.Object) error {
 	k := helper.ObjectKey(o)
-	if err := testContext.Client.Get(context.TODO(), k, o); err != nil {
+	cpy := o.DeepCopyObject()
+	if err := testContext.Client.Get(context.TODO(), k, cpy); err != nil {
 		return err
 	}
-	controllerutil.RemoveFinalizer(o, testFinalizer)
-	return testContext.Client.Update(context.TODO(), o)
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
+	return testContext.Client.Patch(context.TODO(), cpy, patch)
 }
 
 func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]interface{}, error) {
@@ -180,9 +182,9 @@ func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]inte
 	var resp *http.Response
 
 	// try a max of 5 times
-	client := &http.Client{}
+	cl := &http.Client{}
 	for i := 0; i < 5; i++ {
-		resp, err = client.Get(url)
+		resp, err = cl.Get(url)
 		if err == nil {
 			break
 		}
