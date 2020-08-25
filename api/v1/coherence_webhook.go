@@ -65,12 +65,18 @@ var _ webhook.Validator = &Coherence{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateCreate() error {
 	webhookLogger.Info("validate create", "name", in.Name)
+	if err := in.validateReplicas(); err != nil {
+		return err
+	}
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	webhookLogger.Info("validate update", "name", in.Name)
+	if err := in.validateReplicas(); err != nil {
+		return err
+	}
 	prev := previous.(*Coherence)
 	if err := in.validatePersistence(prev); err != nil {
 		return err
@@ -84,6 +90,16 @@ func (in *Coherence) ValidateDelete() error {
 	return nil
 }
 
+// validateReplicas validates that spec.replicas >= 0
+func (in *Coherence) validateReplicas() error {
+	replicas := in.GetReplicas()
+	if replicas < 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: " +
+			"must be greater than or equal to 0", in.Name, replicas)
+	}
+	return nil
+}
+
 func (in *Coherence) validatePersistence(previous *Coherence) error {
 	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
 		// changes are allowed if current or previous replicas == 0
@@ -92,7 +108,9 @@ func (in *Coherence) validatePersistence(previous *Coherence) error {
 
 	diff := deep.Equal(previous.Spec.GetCoherencePersistence(), in.Spec.GetCoherencePersistence())
 	if len(diff) != 0 {
-		return fmt.Errorf("changes cannot be made to spec.coherence.persistence unless replicas == 0")
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: " +
+			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous" +
+			"instance of the resource has spec.replicas == 0", in.Name)
 	}
 	return nil
 }

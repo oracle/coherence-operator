@@ -127,7 +127,6 @@ func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.St
 		return false
 	}
 
-
 	for _, pod := range list.Items {
 		if pod.Status.Phase == "Running" {
 			if log.Enabled() {
@@ -136,7 +135,7 @@ func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.St
 
 			ha, err := in.RunProbe(pod, probe)
 			if err == nil {
-				log.Info(fmt.Sprintf("Execute probe using pod %s (%t)", pod.Name, ha))
+				log.Info(fmt.Sprintf("Executed probe using pod %s result=%t", pod.Name, ha))
 				return ha
 			}
 			log.Info(fmt.Sprintf("Execute probe using pod %s (%t) error %s", pod.Name, ha, err.Error()))

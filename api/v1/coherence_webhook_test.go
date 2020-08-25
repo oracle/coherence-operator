@@ -13,6 +13,8 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 	"testing"
 )
 
@@ -259,6 +261,124 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(19),
+		},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(19),
+		},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(-1),
+		},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(19),
+		},
+	}
+
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(19),
+		},
+	}
+
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32Ptr(-1),
+		},
+	}
+
+	prev := &coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)

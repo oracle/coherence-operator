@@ -115,6 +115,46 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
+func TestNotSuspendServicesInMultipleDeployments(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	ns := helper.GetTestNamespace()
+	clusterName := "test-cluster"
+	cOne, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+	cTwo := cohv1.Coherence{}
+	cOne.DeepCopyInto(&cTwo)
+	cOne.SetName("test-one")
+	cOne.Spec.Cluster = &clusterName
+	cTwo.SetName("test-two")
+	cTwo.Spec.Cluster = &clusterName
+
+	// install deployment one
+	installSimpleDeployment(t, cOne)
+	// install deployment two
+	installSimpleDeployment(t, cTwo)
+
+	// assert that cluster size is correct
+	size := cOne.GetReplicas() + cTwo.GetReplicas()
+	data, err := ManagementOverRestRequest(&cOne, "/management/coherence/cluster")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(data["clusterSize"]).To(BeEquivalentTo(size))
+
+	// Delete deployment two, which should cause services to be suspended
+	err = testContext.Client.Delete(context.TODO(), &cTwo)
+	g.Expect(err).NotTo(HaveOccurred())
+	// wait for deployment two to be deleted
+	err = helper.WaitForDelete(testContext, &cTwo)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// assert that the cache service is NOT suspended
+	svc, err := ManagementOverRestRequest(&cOne, "/management/coherence/cluster/services/PartitionedCache")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
+}
+
 func waitForFinalizerTasks(n types.NamespacedName) error {
 	// wait for the Operator finalizer to be removed which signals that the Operator finalization
 	// is complete and services should be suspended.

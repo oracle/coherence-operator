@@ -24,9 +24,9 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
-import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
+import com.tangosol.util.Filters;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -308,17 +308,14 @@ public class OperatorRestServer {
 
             Cluster cluster = clusterSupplier.get();
             Registry registry = cluster.getManagement();
-
-            MBeanAccessor.QueryBuilder.ParsedQuery query = new MBeanAccessor.QueryBuilder()
-                    .withBaseQuery(registry.getDomainName() + ":" + CoherenceOperator.OBJECT_NAME)
-                    .build();
-
+            MBeanServerProxy proxy = registry.getMBeanServerProxy();
             Map<Integer, String> identityMap = new HashMap<>();
-            MBeanAccessor accessor = new MBeanAccessor();
-            Map<String, Map<String, Object>> map = accessor.getAttributes(query);
-            for (Map<String, Object> m : map.values()) {
-                identityMap.put((Integer) m.get(CoherenceOperator.ATTRIBUTE_NODE),
-                                (String) m.get(CoherenceOperator.ATTRIBUTE_IDENTITY));
+
+            Set<String> mbeanNames = proxy.queryNames(":type=KubernetesOperator,nodeId=*", Filters.always());
+            for (String mbeanName : mbeanNames) {
+                Map<String, Object> attributes = proxy.getAttributes(mbeanName, Filters.always());
+                identityMap.put((Integer) attributes.get(CoherenceOperatorMBean.ATTRIBUTE_NODE),
+                                (String) attributes.get(CoherenceOperatorMBean.ATTRIBUTE_IDENTITY));
             }
 
             if (!name.isEmpty()) {
