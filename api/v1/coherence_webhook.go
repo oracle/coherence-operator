@@ -81,6 +81,9 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	if err := in.validatePersistence(prev); err != nil {
 		return err
 	}
+	if err := in.validateVolumeClaimTemplates(prev); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -110,7 +113,27 @@ func (in *Coherence) validatePersistence(previous *Coherence) error {
 	if len(diff) != 0 {
 		return fmt.Errorf("the Coherence resource \"%s\" is invalid: " +
 			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous" +
-			"instance of the resource has spec.replicas == 0", in.Name)
+			" instance of the resource has spec.replicas == 0", in.Name)
+	}
+	return nil
+}
+
+func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
+	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
+		// changes are allowed if current or previous replicas == 0
+		return nil
+	}
+
+	if len(in.Spec.VolumeClaimTemplates) == 0 && len(previous.Spec.VolumeClaimTemplates) == 0 {
+		// no PVCs in either deployment
+		return nil
+	}
+
+	diff := deep.Equal(previous.Spec.VolumeClaimTemplates, in.Spec.VolumeClaimTemplates)
+	if len(diff) != 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: " +
+			"changes cannot be made to spec.volumeclaimtemplates unless spec.replicas == 0 or the previous" +
+			" instance of the resource has spec.replicas == 0", in.Name)
 	}
 	return nil
 }

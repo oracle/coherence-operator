@@ -384,3 +384,88 @@ func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
+
+func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{},
+		},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+					Spec: corev1.PersistentVolumeClaimSpec{},
+				},
+			},
+		},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+		},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+					Spec: corev1.PersistentVolumeClaimSpec{},
+				},
+			},
+		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
+}
