@@ -301,12 +301,15 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
 e2e-test: export MF = $(MAKEFLAGS)
-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
+e2e-test: prepare-e2e-test
 	$(MAKE) run-e2e-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) undeploy $${MF} \
 	; $(MAKE) delete-namespace $${MF} \
 	; exit $$rc
+
+.PHONY: prepare-e2e-test
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -558,10 +561,9 @@ ifneq (,$(WATCH_NAMESPACE))
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
-	#$(GOBIN)/kustomize build $(BUILD_CONFIG)/default
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+prepare-deploy: $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1040,6 +1042,7 @@ kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
+	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

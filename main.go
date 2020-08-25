@@ -36,6 +36,7 @@ import (
 
 const (
 	flagMetricsAddress = "metrics-addr"
+	flagHealthAddress  = "health-addr"
 	flagLeaderElection = "enable-leader-election"
 )
 
@@ -55,11 +56,12 @@ var (
 )
 
 func init() {
-	operator.SetupFlags(Cmd)
 	Cmd.Flags().String(flagMetricsAddress, ":8080", "The address the metric endpoint binds to.")
+	Cmd.Flags().String(flagHealthAddress, ":8088", "The address the health endpoint binds to.")
 	Cmd.Flags().Bool(flagLeaderElection, false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	operator.SetupFlags(Cmd)
 
 	// Add flags registered by imported packages (e.g. glog and controller-runtime)
 	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
@@ -101,11 +103,12 @@ func execute() {
 	initialiseOperator(cl)
 
 	options := ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: viper.GetString(flagMetricsAddress),
-		Port:               9443,
-		LeaderElection:     viper.GetBool(flagLeaderElection),
-		LeaderElectionID:   "ca804aa8.oracle.com",
+		Scheme:                 scheme,
+		HealthProbeBindAddress: viper.GetString(flagHealthAddress),
+		MetricsBindAddress:     viper.GetString(flagMetricsAddress),
+		Port:                   9443,
+		LeaderElection:         viper.GetBool(flagLeaderElection),
+		LeaderElectionID:       "ca804aa8.oracle.com",
 	}
 
 	// Determine the Operator scope...
@@ -164,6 +167,14 @@ func execute() {
 			os.Exit(1)
 		}
 	}
+
+	//// ToDo: Make the ready check actually check stuff...
+	//if err = mgr.AddReadyzCheck("operator", func(req *http.Request) error {
+	//	return nil
+	//}); err != nil {
+	//	setupLog.Error(err, " unable to add operator readyz check")
+	//	os.Exit(1)
+	//}
 
 	// +kubebuilder:scaffold:builder
 
