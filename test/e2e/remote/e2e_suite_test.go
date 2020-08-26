@@ -28,6 +28,19 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Ensure that the Operator has been deployed to the test namespace
+	namespace := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, namespace)
+	if err != nil {
+		fmt.Printf("Error looking for Operator Pods in namespace %s : %+v", namespace, err)
+		os.Exit(1)
+	}
+	if len(pods) == 0 {
+		fmt.Printf("Cannot find any Operator Pods in namespace %s. " +
+			"This test suite requires an Operator is already deployed", namespace)
+		os.Exit(1)
+	}
+
 	exitCode := m.Run()
 	testContext.Logf("Tests completed with return code %d", exitCode)
 	testContext.Close()
