@@ -297,11 +297,23 @@ func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
-	skip := viper.GetBool(operator.FlagSkipServiceSuspend)
-	if skip || c.GetReplicas() == 0 {
-		// nothing to finalize as this would have been done when replicas was set to zero
+	// determine whether we can skip service suspension
+	if viper.GetBool(operator.FlagSkipServiceSuspend) {
+		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
+			operator.FlagSkipServiceSuspend + " is set to true")
 		return nil
 	}
+	if c.Spec.SuspendServicesOnShutdown != nil && !*c.Spec.SuspendServicesOnShutdown {
+		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
+			" Spec.SuspendServicesOnShutdown is set to false")
+		return nil
+	}
+	if c.GetReplicas() == 0 {
+		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
+			" Spec.Replicas is zero")
+		return nil
+	}
+
     in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
 	// Get the StatefulSet
 	sts, stsExists, err := in.MaybeFindStatefulSet(c.Namespace, c.Name)

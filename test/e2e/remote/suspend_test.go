@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/pointer"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -56,6 +57,46 @@ func TestSuspendServices(t *testing.T) {
 	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(svc["quorumStatus"]).To(BeEquivalentTo([]interface{}{"Suspended"}))
+
+	// remove the test finalizer which should then let everything be deleted
+	err = removeAllFinalizers(&c)
+	g.Expect(err).NotTo(HaveOccurred())
+	// the StatefulSet should eventually be deleted
+	err = helper.WaitForDelete(testContext, sts)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	ns := helper.GetTestNamespace()
+	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+	controllerutil.AddFinalizer(&c, testFinalizer)
+
+	// Set the flag to NOT suspend on shutdown
+	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
+
+	installSimpleDeployment(t, c)
+
+	// get the StatefulSet for the deployment
+	sts, err := testContext.KubeClient.AppsV1().StatefulSets(ns).Get(context.TODO(), c.Name, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Delete the deployment which should cause services to be suspended
+	// The deployment will not be deleted yet as we still have the test finalizer in place
+	err = testContext.Client.Delete(context.TODO(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
+	// The Operator should run its finalizer and suspend services
+	err = waitForFinalizerTasks(c.GetNamespacedName())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// assert that the cache service is suspended
+	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
 
 	// remove the test finalizer which should then let everything be deleted
 	err = removeAllFinalizers(&c)
@@ -104,6 +145,60 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(svc["quorumStatus"]).To(BeEquivalentTo([]interface{}{"Suspended"}))
+
+	// remove the test finalizer from the StatefulSet and Coherence deployment which should then let everything be deleted
+	err = removeAllFinalizers(sts)
+	g.Expect(err).NotTo(HaveOccurred())
+	err = removeAllFinalizers(&c)
+	g.Expect(err).NotTo(HaveOccurred())
+	// the StatefulSet should eventually be deleted
+	err = helper.WaitForDelete(testContext, sts)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	ns := helper.GetTestNamespace()
+	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+	controllerutil.AddFinalizer(&c, testFinalizer)
+
+	// Set the flag to NOT suspend on shutdown
+	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
+
+	installSimpleDeployment(t, c)
+
+	// Add a finalizer to the StatefulSet to stop it being deleted
+	sts := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      c.Name,
+			Namespace: c.Namespace,
+		},
+	}
+	err = addTestFinalizer(sts)
+	g.Expect(err).NotTo(HaveOccurred())
+	// ensure we remove the finalizer
+	defer removeAllFinalizers(sts)
+
+	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
+	err = testContext.Client.Get(context.TODO(), c.GetNamespacedName(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
+	c.SetReplicas(0)
+	err = testContext.Client.Update(context.TODO(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// The Operator should suspend services and delete the StatefulSet causing its deletion timestamp to be set
+	// As we added a finalizer to the StatefulSet it will not actually get deleted yet
+	err = waitForStatefulSetDeletionTimestamp(c.GetNamespacedName())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// assert that the cache service is suspended
+	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
 
 	// remove the test finalizer from the StatefulSet and Coherence deployment which should then let everything be deleted
 	err = removeAllFinalizers(sts)

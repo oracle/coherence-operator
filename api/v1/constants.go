@@ -138,7 +138,6 @@ const (
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
-	EnvSkipServiceSuspend             = "COH_SKIP_SVC_SUSPEND"
 	EnvVarSuffixSSLEnabled            = "_SSL_ENABLED"
 	EnvVarSuffixSSLCerts              = "_SSL_CERTS"
 	EnvVarSuffixSSLKeyStore           = "_SSL_KEYSTORE"

@@ -85,6 +85,12 @@ func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
 		return true
 	}
+	if deployment.Spec.SuspendServicesOnShutdown != nil && !*deployment.Spec.SuspendServicesOnShutdown {
+		log.Info("Skipping suspension of Coherence services in StatefulSet " + sts.Name +
+			" spec.SuspendServicesOnShutdown is set to false",
+			"Namespace", deployment.Namespace, "Name", deployment.Name)
+		return true
+	}
 	log.Info("Suspending Coherence services in StatefulSet " + sts.Name,
 		"Namespace", deployment.Namespace, "Name", deployment.Name)
 	p := deployment.Spec.GetSuspendProbe()

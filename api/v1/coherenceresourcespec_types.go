@@ -80,6 +80,15 @@ type CoherenceResourceSpec struct {
 	// before a deployment is stopped.
 	// +optional
 	SuspendProbe *Probe `json:"suspendProbe,omitempty"`
+	// A flag controlling whether storage enabled cache services in this deployment
+	// will be suspended before the deployment is shutdown or scaled to zero.
+	// The action of suspending storage enabled services when the whole deployment is being
+	// stopped ensures that cache services with persistence enabled will shutdown cleanly
+	// without the possibility of Coherence trying to recover and re-balance partitions
+	// as Pods are stopped.
+	// The default value if not specified is true.
+	// +optional
+	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
 	// StartQuorum controls the start-up order of this Coherence resource
 	// in relation to other Coherence resources.
 	// +listType=map

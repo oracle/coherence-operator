@@ -171,6 +171,11 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(Probe)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.SuspendServicesOnShutdown != nil {
+		in, out := &in.SuspendServicesOnShutdown, &out.SuspendServicesOnShutdown
+		*out = new(bool)
+		**out = **in
+	}
 	if in.StartQuorum != nil {
 		in, out := &in.StartQuorum, &out.StartQuorum
 		*out = make([]StartQuorum, len(*in))
