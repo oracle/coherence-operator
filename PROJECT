@@ -1,0 +1,11 @@
+domain: oracle.com
+layout: go.kubebuilder.io/v2
+projectName: coherence-operator
+repo: github.com/oracle/coherence-operator
+resources:
+- group: coherence.oracle.com
+  kind: Coherence
+  version: v1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

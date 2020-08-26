@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -33,7 +33,7 @@ spec:
         resources:
           requests:
             storage: 1Gi
-  image: deployment-example:3.0.3
+  image: deployment-example:3.1.0
   imagePullPolicy: Always
   replicas: 3
 ---
@@ -60,7 +60,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.3
+  image: deployment-example:3.1.0
   imagePullPolicy: Always
   replicas: 1
 ---
@@ -87,7 +87,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.3
+  image: deployment-example:3.1.0
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main

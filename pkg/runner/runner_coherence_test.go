@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,7 +8,7 @@ package runner
 
 import (
 	. "github.com/onsi/gomega"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -279,7 +279,7 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.operator.statusha.allowendangered=foo,bar")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.k8s.operator.statusha.allowendangered=foo,bar")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,233 +8,295 @@
 package operator
 
 import (
-	"context"
 	"fmt"
-	"github.com/ghodss/yaml"
-	"github.com/go-logr/logr"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/rest"
-	"github.com/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
-	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	v1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
-	v1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/version"
-	"k8s.io/client-go/discovery"
-	rest2 "k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"github.com/oracle/coherence-operator/pkg/data"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
+	"time"
 )
 
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-// CRDs will be created depending on the server version of k8s. For k8s v1.16.0 and above
-// the v1 CRDs will be created and for lower than v1.16.0 the v1beta1 CRDs will be created.
-func EnsureCRDs(cfg *rest2.Config) error {
-	// Create the CRD client
-	c, err := apiextensions.NewForConfig(cfg)
+const (
+	zoneLabel = "topology.kubernetes.io/zone"
+	//	regionLabel            = "topology.kubernetes.io/region"
+	DefaultSiteLabel       = zoneLabel
+	DefaultRackLabel       = zoneLabel
+	DefaultRestHost        = "0.0.0.0"
+	DefaultRestPort  int32 = 8000
+
+	// DefaultCertValidity makes new certificates default to a 1 year expiration
+	DefaultCertValidity = 365 * 24 * time.Hour
+	// DefaultRotateBefore defines how long before expiration a certificate
+	// should be re-issued
+	DefaultRotateBefore = 24 * time.Hour
+
+	// CertFileName is used for Certificates inside a secret
+	CertFileName = "tls.crt"
+	// KeyFileName is used for Private Keys inside a secret
+	KeyFileName = "tls.key"
+
+	CertTypeSelfSigned  = "self-signed"
+	CertTypeCertManager = "cert-manager"
+	CertTypeManual      = "manual"
+
+	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
+	DefaultValidatingWebhookName = "coherence-operator-validating-webhook-configuration"
+
+	FlagCACertRotateBefore    = "ca-cert-rotate-before"
+	FlagCACertValidity        = "ca-cert-validity"
+	FlagCertType              = "cert-type"
+	FlagCoherenceImage        = "coherence-image"
+	FlagDevMode               = "coherence-dev-mode"
+	FlagEnableWebhook         = "enable-webhook"
+	FlagManageWebhookCerts    = "self-signed-certs"
+	FlagMutatingWebhookName   = "mutating-webhook-name"
+	FlagOperatorNamespace     = "operator-namespace"
+	FlagRackLabel             = "rack-label"
+	FlagRestHost              = "rest-host"
+	FlagRestPort              = "rest-port"
+	FlagServiceName           = "service-name"
+	FlagServicePort           = "service-port"
+	FlagSiteLabel             = "site-label"
+	FlagSkipServiceSuspend    = "skip-service-suspend"
+	FlagUtilsImage            = "utils-image"
+	FlagUseCertManager        = "use-cert-manager"
+	FlagValidatingWebhookName = "validating-webhook-name"
+	FlagWebhookCertDir        = "webhook-cert-dir"
+	FlagWebhookSecret         = "webhook-secret"
+	FlagWebhookService        = "webhook-service"
+)
+
+var setupLog = ctrl.Log.WithName("setup")
+
+func SetupFlags(cmd *cobra.Command) {
+	f, err := data.Assets.Open("config.json")
 	if err != nil {
-		return err
+		setupLog.Error(err, "finding data.json asset")
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	viper.SetConfigType("json")
+	if err := viper.ReadConfig(f); err != nil {
+		setupLog.Error(err, "reading configuration file")
+		os.Exit(1)
 	}
 
-	cl, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return err
-	}
-	sv, err := cl.ServerVersion()
-	if err != nil {
-		return err
-	}
-	v, err := version.ParseSemantic(sv.GitVersion)
-	if err != nil {
-		return err
+	cmd.Flags().Duration(
+		FlagCACertRotateBefore,
+		DefaultRotateBefore,
+		"Duration representing how long before expiration CA certificates should be reissued",
+	)
+	cmd.Flags().Duration(
+		FlagCACertValidity,
+		DefaultCertValidity,
+		"Duration representing how long before a newly created CA cert expires",
+	)
+	cmd.Flags().String(
+		FlagCertType,
+		CertTypeSelfSigned,
+		fmt.Sprintf("The type of certificate management used for webhook certificates. " +
+			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
+	)
+	cmd.Flags().String(
+		FlagCoherenceImage,
+		"",
+		"The default Coherence image to use if none is specified.",
+	)
+	cmd.Flags().Bool(
+		FlagDevMode,
+		false,
+		"Run in dev mode. This should only be used during testing outside of a k8s cluster",
+	)
+	cmd.Flags().Bool(
+		FlagEnableWebhook,
+		true,
+		"Enables the defaulting and validating web-hooks",
+	)
+	cmd.Flags().Bool(
+		FlagManageWebhookCerts,
+		true,
+		"Enables automatic certificate management for the webhook. " +
+			"The certificate Secret and the webhook configurations must be created before running the operator",
+	)
+	cmd.Flags().String(
+		FlagMutatingWebhookName,
+		DefaultMutatingWebhookName,
+		"Name of the Kubernetes ValidatingWebhookConfiguration resource. Only used when enable-webhook is true.",
+	)
+	cmd.Flags().String(
+		FlagOperatorNamespace,
+		"operator-test",
+		"The K8s namespace the operator is running in",
+	)
+	cmd.Flags().String(
+		FlagRackLabel,
+		DefaultRackLabel,
+		"The node label to use when obtaining a value for a Pod's Coherence rack.",
+	)
+	cmd.Flags().String(
+		FlagRestHost,
+		DefaultRestHost,
+		"The address that the REST server will bind to",
+	)
+	cmd.Flags().Int32(
+		FlagRestPort,
+		DefaultRestPort,
+		"The port that the REST server will bind to",
+	)
+	cmd.Flags().String(
+		FlagServiceName,
+		"",
+		"The service name that operator clients use as the host name to make REST calls back to the operator.",
+	)
+	cmd.Flags().Int32(
+		FlagServicePort,
+		-1,
+		"The service port that operator clients use in the host name to make REST calls back to the operator. " +
+			"If not set defaults to the same as the REST port",
+	)
+	cmd.Flags().String(
+		FlagSiteLabel,
+		DefaultSiteLabel,
+		"The node label to use when obtaining a value for a Pod's Coherence site.",
+	)
+	cmd.Flags().Bool(
+		FlagSkipServiceSuspend,
+		false,
+		"Suspend Coherence services on a cluster prior to shutdown or scaling to zero. " +
+			"This option is rarely set to false outside of testing.",
+	)
+	cmd.Flags().String(
+		FlagUtilsImage,
+		"",
+		"The default Coherence Operator utils image to use if none is specified.",
+	)
+	cmd.Flags().Bool(
+		FlagUseCertManager,
+		false,
+		"If webhooks are enabled configure cert-manager to manage the certificates.",
+	)
+	cmd.Flags().String(
+		FlagValidatingWebhookName,
+		DefaultValidatingWebhookName,
+		"Name of the Kubernetes ValidatingWebhookConfiguration resource. Only used when enable-webhook is true.",
+	)
+	cmd.Flags().String(
+		FlagWebhookCertDir,
+		filepath.Join(os.TempDir(), "k8s-webhook-server", "serving-certs"),
+		"The name of the directory containing the webhook server key and certificate",
+	)
+	cmd.Flags().String(
+		FlagWebhookSecret,
+		"coherence-webhook-server-cert",
+		"K8s secret to be used for webhook certificates",
+	)
+	cmd.Flags().String(
+		FlagWebhookService,
+		"webhook-service",
+		"The K8s service used for the webhook",
+	)
+
+	// enable using dashed notation in flags and underscores in env
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	if err := viper.BindPFlags(cmd.Flags()); err != nil {
+		setupLog.Error(err, "binding flags")
+		os.Exit(1)
 	}
 
-	logger := logf.Log.WithName("operator")
-
-	if v.Major() > 1 || (v.Major() == 1 && v.Minor() >= 16) {
-		// k8s v1.16.0 or above - install v1 CRD
-		crdClient := c.ApiextensionsV1().CustomResourceDefinitions()
-		return EnsureV1CRDs(logger, crdClient)
-	}
-	// k8s lower than v1.16.0 - install v1beta1 CRD
-	crdClient := c.ApiextensionsV1beta1().CustomResourceDefinitions()
-	return EnsureV1Beta1CRDs(logger, crdClient)
+	viper.AutomaticEnv()
 }
 
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface) error {
-	logger.Info("Ensuring operator v1 CRDs are present")
-
-	assets, err := AssetDir("deploy/crds")
-	if err != nil {
-		return errors.Wrap(err, "finding embedded CRD assets")
+func ValidateFlags() error {
+	certValidity := viper.GetDuration(FlagCACertValidity)
+	certRotateBefore := viper.GetDuration(FlagCACertRotateBefore)
+	if certRotateBefore > certValidity {
+		return fmt.Errorf("%s must be larger than %s", FlagCACertValidity, FlagCACertRotateBefore)
 	}
 
-	for _, file := range assets {
-		if strings.HasSuffix(file, "_crd.yaml") {
-			yml, err := Asset("deploy/crds/" + file)
-			if err != nil {
-				return errors.Wrap(err, "loading embedded CRD asset "+file)
-			}
-
-			u := unstructured.Unstructured{}
-			err = yaml.Unmarshal(yml, &u)
-			if err != nil {
-				return err
-			}
-
-			if u.GetAPIVersion() != crdbeta1.GroupName+"/v1" {
-				continue
-			}
-
-			newCRD := crdv1.CustomResourceDefinition{}
-			err = yaml.Unmarshal(yml, &newCRD)
-			if err != nil {
-				return err
-			}
-
-			// make sure we're only loading v1 files
-			if newCRD.APIVersion != crdbeta1.GroupName+"/v1" {
-				continue
-			}
-			logger.Info("Loading operator CRD yaml from '" + file + "'")
-
-			// Get the existing CRD
-			oldCRD, err := crdClient.Get(context.TODO(), newCRD.Name, metav1.GetOptions{})
-			switch {
-			case err == nil:
-				// CRD exists so update it
-				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-				newCRD.ResourceVersion = oldCRD.ResourceVersion
-				_, err = crdClient.Update(context.TODO(), &newCRD, metav1.UpdateOptions{})
-				if err != nil {
-					return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
-				}
-			case apierrors.IsNotFound(err):
-				// CRD does not exist so create it
-				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-				_, err = crdClient.Create(context.TODO(), &newCRD, metav1.CreateOptions{})
-				if err != nil {
-					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
-				}
-			default:
-				// An error occurred
-				logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-				return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
-			}
-		}
+	certType := viper.GetString(FlagCertType)
+	if certType != CertTypeSelfSigned && certType != CertTypeCertManager && certType != CertTypeManual {
+		return fmt.Errorf("%s parameter is invalid", FlagCertType)
 	}
 
 	return nil
 }
 
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface) error {
-	logger.Info("Ensuring operator v1beta1 CRDs are present")
-
-	assets, err := AssetDir("deploy/crds/v1beta1")
-	if err != nil {
-		return errors.Wrap(err, "finding embedded CRD assets")
-	}
-
-	for _, file := range assets {
-		if strings.HasSuffix(file, "_crd.yaml") {
-			yml, err := Asset("deploy/crds/v1beta1/" + file)
-			if err != nil {
-				return err
-			}
-
-			u := unstructured.Unstructured{}
-			err = yaml.Unmarshal(yml, &u)
-			if err != nil {
-				return err
-			}
-
-			if u.GetAPIVersion() != crdbeta1.GroupName+"/v1beta1" {
-				continue
-			}
-
-			newCRD := crdbeta1.CustomResourceDefinition{}
-			err = yaml.Unmarshal(yml, &newCRD)
-			if err != nil {
-				return err
-			}
-
-			// make sure we're only loading v1beta1 files
-			if newCRD.APIVersion != crdbeta1.GroupName+"/v1beta1" {
-				continue
-			}
-			logger.Info("Loading operator CRD yaml from '" + file + "'")
-
-			// Get the existing CRD
-			oldCRD, err := crdClient.Get(context.TODO(), newCRD.Name, metav1.GetOptions{})
-			switch {
-			case err == nil:
-				// CRD exists so update it
-				logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-				newCRD.ResourceVersion = oldCRD.ResourceVersion
-				_, err = crdClient.Update(context.TODO(), &newCRD, metav1.UpdateOptions{})
-				if err != nil {
-					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
-				}
-			case apierrors.IsNotFound(err):
-				// CRD does not exist so create it
-				logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-				_, err = crdClient.Create(context.TODO(), &newCRD, metav1.CreateOptions{})
-				if err != nil {
-					return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
-				}
-			default:
-				// An error occurred
-				logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-				return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
-			}
-		}
-	}
-
-	return nil
+func IsDevMode() bool {
+	return viper.GetBool(FlagDevMode)
 }
 
-// EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) error {
-	log.Info("Ensuring configuration secret")
+func GetDefaultCoherenceImage() string {
+	return viper.GetString(FlagCoherenceImage)
+}
 
-	secret := &corev1.Secret{}
+func GetDefaultUtilsImage() string {
+	return viper.GetString(FlagUtilsImage)
+}
 
-	err := c.Get(context.TODO(), types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, secret)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
-	}
+func GetRestHost() string {
+	return viper.GetString(FlagRestHost)
+}
 
-	restHostAndPort := rest.GetServerHostAndPort()
+func GetRestPort() int32 {
+	return viper.GetInt32(FlagRestPort)
+}
 
-	log.Info(fmt.Sprintf("Operator Configuration: '%s' value set to %s", coh.OperatorConfigKeyHost, restHostAndPort))
+func GetRestServiceName() string {
+	return viper.GetString(FlagServiceName)
+}
 
-	secret.SetNamespace(namespace)
-	secret.SetName(coh.OperatorConfigName)
+func GetRestServicePort() int32 {
+	return viper.GetInt32(FlagServicePort)
+}
+func GetSiteLabel() string {
+	return viper.GetString(FlagSiteLabel)
+}
 
-	if secret.StringData == nil {
-		secret.StringData = make(map[string]string)
-	}
+func GetRackLabel() string {
+	return viper.GetString(FlagRackLabel)
+}
 
-	secret.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
+func ShouldEnableWebhooks() bool {
+	return viper.GetBool(FlagEnableWebhook)
+}
 
-	if apierrors.IsNotFound(err) {
-		// for some reason we're getting here even if the secret exists so delete it!!
-		_ = c.Delete(context.TODO(), secret)
-		log.Info("Creating secret " + coh.OperatorConfigName + " in namespace " + namespace)
-		err = c.Create(context.TODO(), secret)
+func ShouldUseSelfSignedCerts() bool {
+	return viper.GetString(FlagCertType) == CertTypeSelfSigned
+}
+
+func ShouldUseCertManager() bool {
+	return viper.GetString(FlagCertType) == CertTypeCertManager
+}
+
+func GetNamespace() string {
+	return viper.GetString(FlagOperatorNamespace)
+}
+
+func GetWebhookCertDir() string {
+	return viper.GetString(FlagWebhookCertDir)
+}
+
+func GetCACertRotateBefore() time.Duration {
+	return viper.GetDuration(FlagCACertRotateBefore)
+}
+
+func GetWebhookServiceDNSNames() []string {
+	var dns []string
+	s := viper.GetString(FlagWebhookService)
+	if IsDevMode() {
+		dns = []string{s}
 	} else {
-		log.Info("Updating secret " + coh.OperatorConfigName + " in namespace " + namespace)
-		err = c.Update(context.TODO(), secret)
+		ns := GetNamespace()
+		return []string{
+			fmt.Sprintf("%s.%s", s, ns),
+			fmt.Sprintf("%s.%s.svc", s, ns),
+			fmt.Sprintf("%s.%s.svc.cluster.local", s, ns),
+		}
 	}
-
-	return err
+	return dns
 }

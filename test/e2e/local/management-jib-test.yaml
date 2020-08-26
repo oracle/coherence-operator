@@ -4,7 +4,7 @@ metadata:
   name: management-jib
 spec:
   replicas: 1
-  image: ${TEST_USER_IMAGE}
+  image: ${TEST_APPLICATION_IMAGE}
   coherence:
     management:
       enabled: true

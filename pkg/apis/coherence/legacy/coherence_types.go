@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -78,7 +78,6 @@ func MergeMap(m1, m2 map[string]string) map[string]string {
 
 // The specification of the application deployed into the Coherence
 // role members.
-// +k8s:openapi-gen=true
 type ApplicationSpec struct {
 	// The application type to execute.
 	// This field would be set if using the Coherence Graal image and running a none-Java
@@ -175,7 +174,6 @@ func (in *ApplicationSpec) DeepCopyWithDefaults(defaults *ApplicationSpec) *Appl
 // ----- CoherenceSpec struct -----------------------------------------------
 
 // The Coherence specific configuration.
-// +k8s:openapi-gen=true
 type CoherenceSpec struct {
 	// The Coherence images configuration.
 	ImageSpec `json:",inline"`
@@ -281,7 +279,6 @@ func (in *CoherenceSpec) IsWKAMember() bool {
 // ----- JVMSpec struct -----------------------------------------------------
 
 // The JVM configuration.
-// +k8s:openapi-gen=true
 type JVMSpec struct {
 	// Args specifies the options (System properties, -XX: args etc) to pass to the JVM.
 	// +listType=atomic
@@ -367,7 +364,6 @@ func (in *JVMSpec) DeepCopyWithDefaults(defaults *JVMSpec) *JVMSpec {
 // ----- ImageSpec struct ---------------------------------------------------
 
 // CoherenceInternalImageSpec defines the settings for a Docker image
-// +k8s:openapi-gen=true
 type ImageSpec struct {
 	// Docker image name.
 	// More info: https://kubernetes.io/docs/concepts/containers/images
@@ -423,7 +419,6 @@ func (in *ImageSpec) DeepCopyWithDefaults(defaults *ImageSpec) *ImageSpec {
 // ----- LoggingSpec struct -------------------------------------------------
 
 // LoggingSpec defines the settings for the Coherence Pod logging
-// +k8s:openapi-gen=true
 type LoggingSpec struct {
 	// ConfigFile allows the location of the Java util logging configuration file to be overridden.
 	//  If this value is not set the logging.properties file embedded in this chart will be used.
@@ -480,7 +475,6 @@ func (in *LoggingSpec) DeepCopyWithDefaults(defaults *LoggingSpec) *LoggingSpec 
 // ----- PersistentStorageSpec struct ---------------------------------------
 
 // PersistenceStorageSpec defines the persistence settings for the Coherence
-// +k8s:openapi-gen=true
 type PersistentStorageSpec struct {
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
@@ -538,7 +532,6 @@ func (in *PersistentStorageSpec) DeepCopyWithDefaults(defaults *PersistentStorag
 // ----- SSLSpec struct -----------------------------------------------------
 
 // SSLSpec defines the SSL settings for a Coherence component over REST endpoint.
-// +k8s:openapi-gen=true
 type SSLSpec struct {
 	// Enabled is a boolean flag indicating whether enables or disables SSL on the Coherence management
 	// over REST endpoint, the default is false (disabled).
@@ -704,7 +697,6 @@ func (in *SSLSpec) DeepCopyWithDefaults(defaults *SSLSpec) *SSLSpec {
 
 // ----- PortSpec struct ----------------------------------------------------
 // PortSpec defines the port settings for a Coherence component
-// +k8s:openapi-gen=true
 type PortSpec struct {
 	// Port specifies the port used.
 	// +optional
@@ -756,7 +748,6 @@ func (in *PortSpec) DeepCopyWithDefaults(defaults *PortSpec) *PortSpec {
 
 // ----- NamedPortSpec struct ----------------------------------------------------
 // NamedPortSpec defines a named port for a Coherence component
-// +k8s:openapi-gen=true
 type NamedPortSpec struct {
 	// Name specifies the name of th port.
 	// +optional
@@ -827,7 +818,8 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 	var mr []NamedPortSpec
 	mr = append(mr, primary...)
 
-	for _, p := range secondary {
+	for i := range secondary {
+		p := secondary[i]
 		found := false
 		for i, pp := range primary {
 			if pp.Name == p.Name {
@@ -850,7 +842,6 @@ func MergeNamedPortSpecs(primary, secondary []NamedPortSpec) []NamedPortSpec {
 
 // The JVM Debug specific configuration.
 // See:
-// +k8s:openapi-gen=true
 type JvmDebugSpec struct {
 	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
 	// +optional
@@ -1152,7 +1143,6 @@ func (in *JvmJmxmpSpec) DeepCopyWithDefaults(defaults *JvmJmxmpSpec) *JvmJmxmpSp
 // ----- PortSpecWithSSL struct ----------------------------------------------------
 
 // PortSpecWithSSL defines a port with SSL settings for a Coherence component
-// +k8s:openapi-gen=true
 type PortSpecWithSSL struct {
 	// Enable or disable flag.
 	// +optional
@@ -1212,7 +1202,6 @@ func (in *PortSpecWithSSL) DeepCopyWithDefaults(defaults *PortSpecWithSSL) *Port
 
 // ----- ServiceSpec struct -------------------------------------------------
 // ServiceSpec defines the settings for a Service
-// +k8s:openapi-gen=true
 type ServiceSpec struct {
 	// Enabled controls whether to create the service yaml or not
 	// +optional
@@ -1439,13 +1428,12 @@ func (in *ScalingSpec) DeepCopyWithDefaults(defaults *ScalingSpec) *ScalingSpec 
 	return &clone
 }
 
-// ----- ScalingProbe ----------------------------------------------------
+// ----- Probe ----------------------------------------------------
 
 // ScalingProbe is the handler that will be used to determine how to check for StatusHA in a CoherenceRole.
 // StatusHA checking is primarily used during scaling of a role, a role must be in a safe Status HA state
 // before scaling takes place. If StatusHA handler is disabled for a role (by specifically setting Enabled
 // to false then no check will take place and a role will be assumed to be safe).
-// +k8s:openapi-gen=true
 type ScalingProbe struct {
 	corev1.Handler `json:",inline"`
 	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
@@ -1509,7 +1497,6 @@ func (in *ScalingProbe) DeepCopyWithDefaults(defaults *ScalingProbe) *ScalingPro
 // ----- ReadinessProbeSpec struct ------------------------------------------
 
 // ReadinessProbeSpec defines the settings for the Coherence Pod readiness probe
-// +k8s:openapi-gen=true
 type ReadinessProbeSpec struct {
 	// The action taken to determine the health of a container
 	ProbeHandler `json:",inline"`
@@ -1598,7 +1585,6 @@ func (in *ReadinessProbeSpec) DeepCopyWithDefaults(defaults *ReadinessProbeSpec)
 // ----- FluentdSpec struct -------------------------------------------------
 
 // FluentdSpec defines the settings for the fluentd image
-// +k8s:openapi-gen=true
 type FluentdSpec struct {
 	ImageSpec `json:",inline"`
 	// Controls whether or not log capture via a Fluentd sidecar container to an EFK stack is enabled.
@@ -1684,7 +1670,6 @@ type LocalObjectReference struct {
 // ----- NetworkSpec --------------------------------------------------------
 
 // NetworkSpec configures various networking and DNS settings for Pods in a role.
-// +k8s:openapi-gen=true
 type NetworkSpec struct {
 	// Specifies the DNS parameters of a pod. Parameters specified here will be merged to the
 	// generated DNS configuration based on DNSPolicy.
@@ -1774,7 +1759,6 @@ func (in *NetworkSpec) DeepCopyWithDefaults(defaults *NetworkSpec) *NetworkSpec 
 
 // PodDNSConfig defines the DNS parameters of a pod in addition to
 // those generated from DNSPolicy.
-// +k8s:openapi-gen=true
 type PodDNSConfig struct {
 	// A list of DNS name server IP addresses.
 	// This will be appended to the base nameservers generated from DNSPolicy.
@@ -1860,7 +1844,6 @@ func (in *PodDNSConfig) DeepCopyWithDefaults(defaults *PodDNSConfig) *PodDNSConf
 
 // StartQuorum defines the order that roles will be created when initially
 // creating a new cluster.
-// +k8s:openapi-gen=true
 type StartQuorum struct {
 	// The list of roles to start first.
 	// +optional

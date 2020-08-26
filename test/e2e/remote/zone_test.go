@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,10 +9,9 @@ package remote
 import (
 	goctx "context"
 	"fmt"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/management"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"golang.org/x/net/context"
 	"net/http"
@@ -29,6 +28,8 @@ import (
 func TestSiteLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the site
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 
 	fn := func(member management.MemberData) string {
 		return member.SiteName
@@ -38,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", flags.DefaultSiteLabel, fn, dfn)
+	assertLabel(t, "zone", operator.DefaultSiteLabel, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -46,6 +47,8 @@ func TestSiteLabel(t *testing.T) {
 func TestRackLabel(t *testing.T) {
 	// This test uses Management over ReST to verify the rack
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 
 	fn := func(member management.MemberData) string {
 		return member.RackName
@@ -55,18 +58,12 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", flags.DefaultRackLabel, fn, dfn)
+	assertLabel(t, "rack", operator.DefaultRackLabel, fn, dfn)
 }
 
 func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	// load the test Coherence resource from a yaml files
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "zone-test.yaml")
@@ -75,22 +72,22 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	deployment.SetName(name + "-zone-test")
 
 	// deploy to k8s
-	err = f.Client.Create(goctx.TODO(), &deployment, helper.DefaultCleanup(ctx))
+	err = testContext.Client.Create(goctx.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	replicas := deployment.GetReplicas()
 
 	// Wait for the StatefulSet for the deployment to be ready - wait five minutes max
-	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, namespace, &deployment, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForDeployment(testContext, namespace, &deployment, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, namespace, deployment.Name)
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, namespace, deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// capture the Pod log in case we need it for debugging
-	helper.DumpPodLog(f.KubeClient, &pods[0], t.Name(), t)
+	helper.DumpPodLog(testContext, &pods[0], t.Name())
 
 	// Port forward to the first Pod
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
@@ -106,7 +103,7 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	for _, member := range members.Items {
 		g.Expect(member.MachineName).NotTo(BeEmpty())
 		// The member's machine name is the k8s Node name
-		node, err := f.KubeClient.CoreV1().Nodes().Get(context.TODO(), member.MachineName, metav1.GetOptions{})
+		node, err := testContext.KubeClient.CoreV1().Nodes().Get(context.TODO(), member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		zone := node.GetLabels()[label]
 

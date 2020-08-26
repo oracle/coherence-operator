@@ -3,7 +3,7 @@ kind: Coherence
 metadata:
   name: test
 spec:
-  image: ${TEST_USER_IMAGE}
+  image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   scaling:
     policy: Parallel

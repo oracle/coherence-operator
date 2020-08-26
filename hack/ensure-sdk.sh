@@ -5,13 +5,13 @@ REQUIRED_VERSION=$1
 CURRDIR=$(pwd)
 UNAME_S=$(uname -s)
 UNAME_M=$(uname -m)
-OPERATOR_SDK=${CURRDIR}/etc/sdk/${UNAME_S}-${UNAME_M}/operator-sdk
+OPERATOR_SDK=${CURRDIR}/hack/sdk/${UNAME_S}-${UNAME_M}/operator-sdk
 OK=0
 
 if [ ! -f "${OPERATOR_SDK}" ]; then
 #  Operator SDK does not exist
   echo "Operator SDK not found at ${OPERATOR_SDK}"
-  mkdir -p ${CURRDIR}/etc/sdk/${UNAME_S}-${UNAME_M} || true
+  mkdir -p ${CURRDIR}/hack/sdk/${UNAME_S}-${UNAME_M} || true
   OK=1
 else
 #  Operator SDK exists, check its version

@@ -5,11 +5,11 @@ metadata:
 spec:
   role: one
   replicas: 1
-  image: ${TEST_USER_IMAGE}
+  image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
-  #readinessProbe:
-  #  initialDelaySeconds: 10
-  #  periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
   coherence:
     cacheConfig: test-cache-config.xml
     management:
@@ -22,7 +22,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 2Gi
+            storage: 1Gi
   application:
     main: com.oracle.coherence.k8s.testing.RestServer
   ports:

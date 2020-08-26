@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,7 +8,8 @@ package runner
 
 import (
 	"fmt"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -43,7 +44,6 @@ const (
 	AppTypeJava      = "java"
 	AppTypeCoherence = "coherence"
 	AppTypeHelidon   = "helidon"
-	AppTypeTest      = "op-test"
 )
 
 // Run the Coherence process using the specified args and environment variables.
@@ -94,6 +94,9 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 			queryPlus(details)
 		case CommandMBeanServer:
 			mbeanServer(details)
+		case v1.RunnerInit:
+			err := Initialise()
+			return "", nil, err
 		case CommandVersion:
 			return "", nil, nil
 		default:
@@ -103,6 +106,126 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 	}
 
 	return start(details)
+}
+
+func Initialise() error {
+	var err error
+
+	pathSep                 := string(os.PathSeparator)
+	filesDir                := pathSep + "files"
+	configSrc               := filesDir + pathSep + "config"
+	loggingSrc              := filesDir + pathSep + "logging"
+	libSrc                  := filesDir + pathSep + "lib"
+	snapshotDir             := v1.VolumeMountPathSnapshots
+	persistenceDir          := v1.VolumeMountPathPersistence
+	persistenceActiveDir    := persistenceDir + pathSep + "active"
+	persistenceTrashDir     := persistenceDir + pathSep + "trash"
+	persistenceSnapshotsDir := persistenceDir + pathSep + "snapshots"
+
+	fmt.Println("Starting container initialisation")
+
+	utilDir := os.Getenv(v1.EnvVarCohUtilDir)
+	if utilDir == "" {
+		utilDir = v1.VolumeMountPathUtils
+	}
+
+	configDir := utilDir + pathSep + "config"
+	loggingDir := utilDir + pathSep + "logging"
+	libDir := utilDir + pathSep + "lib"
+
+	fmt.Printf("Creating target directories under %s\n", utilDir)
+	err = os.MkdirAll(configDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(loggingDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(libDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Copying files to %s\n", utilDir)
+	fmt.Printf("Copying %s to %s\n", configSrc, configDir)
+	err = utils.CopyDir(configSrc, configDir, func(f string) bool { return true })
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Copying %s to %s\n", loggingSrc, loggingDir)
+	err = utils.CopyDir(loggingSrc, loggingDir, func(f string) bool { return true })
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Copying %s to %s\n", libSrc, libDir)
+	err = utils.CopyDir(libSrc, libDir, func(f string) bool { return true })
+	if err != nil {
+		return err
+	}
+
+	cp := filesDir + pathSep + "copy"
+	_, err = os.Stat(cp)
+	if err == nil {
+		fmt.Println("Copying copy utility")
+		err = utils.CopyFile(cp, utilDir+pathSep+"copy")
+		if err != nil {
+			return err
+		}
+	}
+
+	run := filesDir + pathSep + "runner"
+	_, err = os.Stat(run)
+	if err == nil {
+		fmt.Println("Copying runner utility")
+		err = utils.CopyFile(run, utilDir+pathSep+"runner")
+		if err != nil {
+			return err
+		}
+	}
+
+	var dirNames []string
+
+	_, err = os.Stat(persistenceDir)
+	if err == nil {
+		// if "/persistence" exists then we'll create the sub-directories
+		dirNames = append(dirNames, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir)
+	}
+
+	_, err = os.Stat(snapshotDir)
+	if err == nil {
+		// if "/snapshot" exists then we'll create the cluster snapshot directory
+		clusterName := os.Getenv(v1.EnvVarCohClusterName)
+		if clusterName != "" {
+			snapshotClusterDir := pathSep + "snapshot" + pathSep + clusterName
+			dirNames = append(dirNames, snapshotClusterDir)
+		}
+	}
+
+	for _, dirName := range dirNames {
+		fmt.Printf("Creating directory %s\n", dirName)
+		err = os.MkdirAll(dirName, os.ModePerm)
+		if err != nil {
+			return err
+		}
+		info, err := os.Stat(dirName)
+		if err != nil {
+			return err
+		}
+		if info.Mode().Perm() != os.ModePerm {
+			err = os.Chmod(dirName, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	fmt.Println("Finished container initialisation")
+	return nil
 }
 
 // Configure the runner to run a Coherence Server
@@ -256,7 +379,8 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
 	details.AddArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.AddArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+	details.AddArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.k8s.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
 
@@ -319,7 +443,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 
 	allowEndangered := details.Getenv(v1.EnvVarCohAllowEndangered)
 	if allowEndangered != "" {
-		details.AddArg("-Dcoherence.operator.statusha.allowendangered=" + allowEndangered)
+		details.AddArg("-Dcoherence.k8s.operator.statusha.allowendangered=" + allowEndangered)
 	}
 
 	// Get the K8s Pod UID
@@ -518,9 +642,6 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.GetJava(), details)
-	case details.AppType == AppTypeTest:
-		app = "Java"
-		cmd, err = createJavaCommand(v1.TestCommand, details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = runGraal(details)

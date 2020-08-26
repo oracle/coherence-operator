@@ -14,6 +14,7 @@ target/
 
 # Operator-SDK build output
 _output/
+bin
 
 # Binaries for programs and plugins
 *.exe
@@ -32,4 +33,4 @@ _output/
 pkg/**/test-report.xml
 test/**/test-report.xml
 /temp/
-/etc/sdk/*
+/hack/sdk/*

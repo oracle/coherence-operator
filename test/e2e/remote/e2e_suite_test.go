@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,71 +8,50 @@ package remote
 
 import (
 	"context"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"k8s.io/apimachinery/pkg/types"
-	"testing"
-	"time"
-
+	"fmt"
 	. "github.com/onsi/gomega"
+	cohv1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"os"
+	"testing"
 )
 
-// Operator SDK test suite entry point
+var testContext helper.TestContext
+
+// The entry point for the test suite
 func TestMain(m *testing.M) {
-	framework.MainEntry(m)
-}
+	var err error
 
-func cleanup(t *testing.T, ctx *framework.Context, names ...types.NamespacedName) {
-	helper.DumpOperatorLogs(t, ctx)
-	for _, name := range names {
-		deleteDeployment(name.Namespace, name.Name)
+	// Create a new TestContext - DO NOT start any controllers.
+	if testContext, err = helper.NewContext(false); err != nil {
+		fmt.Printf("Error: %+v", err)
+		os.Exit(1)
 	}
-	ctx.Cleanup()
-}
 
-// deleteDeployment deletes a deployment.
-func deleteDeployment(namespace, name string) {
-	deployment := cohv1.Coherence{}
-	f := framework.Global
-
-	err := f.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
-
-	if err == nil {
-		_ = f.Client.Delete(context.TODO(), &deployment)
+	// Ensure that the Operator has been deployed to the test namespace
+	namespace := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, namespace)
+	if err != nil {
+		fmt.Printf("Error looking for Operator Pods in namespace %s : %+v", namespace, err)
+		os.Exit(1)
 	}
+	if len(pods) == 0 {
+		fmt.Printf("Cannot find any Operator Pods in namespace %s. " +
+			"This test suite requires an Operator is already deployed", namespace)
+		os.Exit(1)
+	}
+
+	exitCode := m.Run()
+	testContext.Logf("Tests completed with return code %d", exitCode)
+	testContext.Close()
+	os.Exit(exitCode)
 }
 
-// installSimpleDeployment installs a deployment and asserts that the underlying StatefulSet resources reach the correct state.
-func installSimpleDeployment(t *testing.T, ctx *framework.Context, d cohv1.Coherence) {
+// installSimpleDeployment installs a deployment and asserts that the underlying
+// StatefulSet resources reach the correct state.
+func installSimpleDeployment(t *testing.T, d cohv1.Coherence) {
 	g := NewGomegaWithT(t)
-	f := framework.Global
-	err := f.Client.Create(context.TODO(), &d, helper.DefaultCleanup(ctx))
+	err := testContext.Client.Create(context.TODO(), &d)
 	g.Expect(err).NotTo(HaveOccurred())
 	assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
-}
-
-// assertDeploymentEventuallyInDesiredState asserts that a Coherence resource exists and has the correct spec and that the
-// underlying StatefulSet exists with the correct status and ready replicas.
-func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, replicas int32) {
-	g := NewGomegaWithT(t)
-	f := framework.Global
-
-	t.Logf("Asserting Coherence resource %s exists with %d replicas\n", d.Name, replicas)
-
-	// create a DeploymentStateCondition that checks a deployment's replica count
-	condition := helper.ReplicaCountCondition(replicas)
-
-	// wait for the deployment to match the condition
-	_, err := helper.WaitForCoherenceCondition(f, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5, t)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	t.Logf("Asserting StatefulSet %s exists with %d replicas\n", d.Name, replicas)
-
-	// wait for the StatefulSet to have the required ready replicas
-	sts, err := helper.WaitForStatefulSet(f.KubeClient, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5, t)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
-
-	t.Logf("Asserting StatefulSet %s exist with %d replicas - Done!\n", d.Name, replicas)
 }

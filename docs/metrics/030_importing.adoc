@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2020, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -25,7 +25,7 @@ then obtain the dashboards from the `dashboards/` directory.
 
 [source,bash]
 ----
-VERSION=3.0.3
+VERSION=3.1.0
 curl https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-dashboards.tar.gz \
     -o coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz
@@ -125,7 +125,7 @@ the following commands can be used:
 
 [source,bash]
 ----
-VERSION=3.0.3
+VERSION=3.1.0
 kubectl -n monitoring create \
     -f https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-grafana-dashboards.yaml
 ----
@@ -139,7 +139,7 @@ URL to `coherence-grafana-legacy-dashboards.yaml`, for example:
 
 [source,bash]
 ----
-VERSION=3.0.3
+VERSION=3.1.0
 kubectl -n monitoring create \
     -f https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-grafana-legacy-dashboards.yaml
 ----
@@ -152,7 +152,7 @@ Operator release the following commands can be used:
 
 [source,bash]
 ----
-VERSION=3.0.3
+VERSION=3.1.0
 curl https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-dashboards.tar.gz \
     -o coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz

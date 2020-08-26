@@ -38,7 +38,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 ## Coherence Operator Quick Start
 
-Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.0.2/#/about/03_quickstart) including the
+Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.1.0/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
 ## Software Versions
@@ -108,7 +108,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.0.3
+deployment-example:3.1.0
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
@@ -281,7 +281,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.3
+  image: deployment-example:3.1.0
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -393,7 +393,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.0.3
+  image: deployment-example:3.1.0
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
@@ -683,7 +683,7 @@ install any of the examples above.
    
     kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1  
 
-    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.0.0/coherence-grafana-dashboards.yaml
+    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.0/coherence-grafana-dashboards.yaml
 
     kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
     ```        
