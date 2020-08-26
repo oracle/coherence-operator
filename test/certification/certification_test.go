@@ -10,7 +10,6 @@ import (
 	"context"
 	goctx "context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
@@ -19,12 +18,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog"
 	"k8s.io/utils/pointer"
 	"net/http"
 	"os"
 	"os/exec"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
 	"strings"
 	"testing"
@@ -36,9 +33,9 @@ type snapshotActionType int
 const (
 	canaryServiceName = "CanaryService"
 
-	create snapshotActionType = iota
-	recover
-	delete
+	createSnapshot snapshotActionType = iota
+	recoverSnapshot
+	deleteSnapshot
 )
 
 func TestCertifyMinimalSpec(t *testing.T) {
@@ -379,43 +376,31 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	var yamlFile = "persistence-active-1.yaml"
 	var pVolName = "persistence-volume"
 
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	logf.SetLogger(zap.Logger())
-
-	flags := &flag.FlagSet{}
-	klog.InitFlags(flags)
-	_ = flags.Set("v", "4")
-
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	ns, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deployment, pods := ensurePods(g, ctx, yamlFile, ns, t)
+	ns := helper.GetTestNamespace()
+	deployment, pods := ensurePods(g, yamlFile, ns, t)
 
 	// check the pvc is created for the given volume
-	if pVolName != "" {
-		pvcName := ""
-		for _, vol := range pods[0].Spec.Volumes {
-			if vol.Name == pVolName {
-				if vol.PersistentVolumeClaim != nil {
-					pvcName = vol.PersistentVolumeClaim.ClaimName
-				}
-				break
+	pvcName := ""
+	for _, vol := range pods[0].Spec.Volumes {
+		if vol.Name == pVolName {
+			if vol.PersistentVolumeClaim != nil {
+				pvcName = vol.PersistentVolumeClaim.ClaimName
 			}
+			break
 		}
-
-		// check the pvc is created
-		g.Expect(pvcName).NotTo(Equal(""))
-		pvc := f.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
-		g.Expect(pvc).ShouldNot(BeNil())
 	}
 
+	// check the pvc is created
+	g.Expect(pvcName).NotTo(Equal(""))
+	pvc := testContext.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
+	g.Expect(pvc).ShouldNot(BeNil())
+
 	// create data in some caches
-	err = helper.StartCanary(ns, deployment.GetName())
+	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with one replica
@@ -425,21 +410,21 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	// Scale Up to three
 	err = scale(t, ns, deployment.Name, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, deployment.Name, 3, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(testContext, ns, deployment.Name, 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale down to one
 	err = scale(t, ns, deployment.Name, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, deployment.Name, 1, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(testContext, ns, deployment.Name, 1, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, deployment.GetName())
+	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
-	_ = helper.ClearCanary(ns, deployment.GetName())
+	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
 }
 
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
@@ -449,43 +434,32 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	var yamlFile = "persistence-active-3.yaml"
 	var pVolName = "persistence-volume"
 
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	logf.SetLogger(zap.Logger())
+	ns := helper.GetTestNamespace()
 
-	flags := &flag.FlagSet{}
-	klog.InitFlags(flags)
-	_ = flags.Set("v", "4")
-
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	ns, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deployment, pods := ensurePods(g, ctx, yamlFile, ns, t)
+	deployment, pods := ensurePods(g, yamlFile, ns, t)
 
 	// check the pvc is created for the given volume
-	if pVolName != "" {
-		pvcName := ""
-		for _, vol := range pods[0].Spec.Volumes {
-			if vol.Name == pVolName {
-				if vol.PersistentVolumeClaim != nil {
-					pvcName = vol.PersistentVolumeClaim.ClaimName
-				}
-				break
+	pvcName := ""
+	for _, vol := range pods[0].Spec.Volumes {
+		if vol.Name == pVolName {
+			if vol.PersistentVolumeClaim != nil {
+				pvcName = vol.PersistentVolumeClaim.ClaimName
 			}
+			break
 		}
-
-		// check the pvc is created
-		g.Expect(pvcName).NotTo(Equal(""))
-		pvc := f.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
-		g.Expect(pvc).ShouldNot(BeNil())
 	}
 
+	// check the pvc is created
+	g.Expect(pvcName).NotTo(Equal(""))
+	pvc := testContext.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
+	g.Expect(pvc).ShouldNot(BeNil())
+
 	// create data in some caches
-	err = helper.StartCanary(ns, deployment.GetName())
+	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with three replicas
@@ -495,21 +469,21 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	// Scale Down to One
 	err = scale(t, ns, deployment.Name, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, deployment.Name, 1, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(testContext, ns, deployment.Name, 1, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale back up to Three
 	err = scale(t, ns, deployment.Name, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(f.KubeClient, ns, deployment.Name, 3, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForStatefulSet(testContext, ns, deployment.Name, 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, deployment.GetName())
+	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
-	_ = helper.ClearCanary(ns, deployment.GetName())
+	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
 }
 
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
@@ -519,50 +493,39 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 	var yamlFile = "persistence-snapshot.yaml"
 	var pVolName = "snapshot-volume"
 
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	logf.SetLogger(zap.Logger())
+	ns := helper.GetTestNamespace()
 
-	flags := &flag.FlagSet{}
-	klog.InitFlags(flags)
-	_ = flags.Set("v", "4")
-
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	ns, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deployment, pods := ensurePods(g, ctx, yamlFile, ns, t)
+	deployment, pods := ensurePods(g, yamlFile, ns, t)
 
 	// check the pvc is created for the given volume
-	if pVolName != "" {
-		pvcName := ""
-		for _, vol := range pods[0].Spec.Volumes {
-			if vol.Name == pVolName {
-				if vol.PersistentVolumeClaim != nil {
-					pvcName = vol.PersistentVolumeClaim.ClaimName
-				}
-				break
+	pvcName := ""
+	for _, vol := range pods[0].Spec.Volumes {
+		if vol.Name == pVolName {
+			if vol.PersistentVolumeClaim != nil {
+				pvcName = vol.PersistentVolumeClaim.ClaimName
 			}
+			break
 		}
-
-		// check the pvc is created
-		g.Expect(pvcName).NotTo(Equal(""))
-		pvc := f.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
-		g.Expect(pvc).ShouldNot(BeNil())
 	}
 
+	// check the pvc is created
+	g.Expect(pvcName).NotTo(Equal(""))
+	pvc := testContext.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
+	g.Expect(pvc).ShouldNot(BeNil())
+
 	// create data in some caches
-	err = helper.StartCanary(ns, deployment.GetName())
+	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// take a snapshot
-	err = processSnapshotRequest(pods[0], create)
+	err = processSnapshotRequest(pods[0], createSnapshot)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	defer processSnapshotRequest(pods[0], delete)
+	defer processSnapshotRequest(pods[0], deleteSnapshot)
 
 	localStorageRestartEnv := os.Getenv("LOCAL_STORAGE_RESTART")
 	localStorageRestart, err := strconv.ParseBool(localStorageRestartEnv)
@@ -573,44 +536,42 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 	if !localStorageRestart {
 		fmt.Println("Restarting...")
 		// dump the pod logs before deleting
-		helper.DumpPodsForTest(t, ctx)
+		helper.DumpPodsForTest(testContext, t)
 		// delete the deployment
-		err = helper.WaitForCoherenceCleanup(f, ns)
+		err = helper.WaitForCoherenceCleanup(testContext, ns)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		// re-deploy the deployment
-		deployment, pods = ensurePods(g, ctx, yamlFile, ns, t)
+		deployment, pods = ensurePods(g, yamlFile, ns, t)
 	}
 
 	// recover the snapshot
-	err = processSnapshotRequest(pods[0], recover)
+	err = processSnapshotRequest(pods[0], recoverSnapshot)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, deployment.GetName())
+	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
-	_ = helper.ClearCanary(ns, deployment.GetName())
+	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
 }
 
-func ensurePods(g *GomegaWithT, ctx *framework.Context, yamlFile, ns string, t *testing.T) (v1.Coherence, []corev1.Pod) {
-	f := framework.Global
-
+func ensurePods(g *GomegaWithT, yamlFile, ns string, t *testing.T) (v1.Coherence, []corev1.Pod) {
 	deployment, err := helper.NewSingleCoherenceFromYaml(ns, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	d, _ := json.Marshal(deployment)
 	fmt.Printf("Persistence Test installing deployment:\n%s\n", string(d))
 
-	err = f.Client.Create(goctx.TODO(), &deployment, helper.DefaultCleanup(ctx))
+	err = testContext.Client.Create(goctx.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, helper.RetryInterval, helper.Timeout, t)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, deployment.GetName())
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).Should(BeNumerically(">", 0))
 
@@ -628,10 +589,10 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 	url := fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence/snapshots/snapshotOne",
 		ports[v1.PortNameManagement], canaryServiceName)
 	httpMethod := "POST"
-	if actionType == delete {
+	if actionType == deleteSnapshot {
 		httpMethod = "DELETE"
 	}
-	if actionType == recover {
+	if actionType == recoverSnapshot {
 		url = url + "/recover"
 	}
 
