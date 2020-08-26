@@ -52,7 +52,7 @@ import (
 	"time"
 )
 
-const operatorPodSelector = "name=coherence-operator"
+const operatorPodSelector = "control-plane=controller-manager"
 
 var (
 	RetryInterval = time.Second * 5
