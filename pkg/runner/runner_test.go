@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,8 +8,7 @@ package runner
 
 import (
 	. "github.com/onsi/gomega"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/flags"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -92,7 +91,8 @@ func GetMinimalExpectedArgs() []string {
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka",
 		"-Dcoherence.cluster=test",
-		"-Dcoherence.health.port=6676",
+		"-Dcoherence.k8s.operator.identity=test@",
+		"-Dcoherence.k8s.operator.health.port=6676",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",
 		"-Dcoherence.distributed.persistence-mode=on-demand",
@@ -143,8 +143,7 @@ func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 		d.Spec.JVM = &coh.JVMSpec{}
 	}
 
-	opFlags := &flags.CoherenceOperatorFlags{}
-	res := d.Spec.CreateStatefulSet(d, opFlags)
+	res := d.Spec.CreateStatefulSet(d)
 	sts := res.Spec.(*appsv1.StatefulSet)
 	c := coh.FindContainer(coh.ContainerNameCoherence, sts)
 	for _, ev := range c.Env {

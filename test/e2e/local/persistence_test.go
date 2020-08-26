@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,20 +9,15 @@ package local
 import (
 	goctx "context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog"
 	"net/http"
 	"os"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
 	"testing"
 	"time"
@@ -33,15 +28,17 @@ type snapshotActionType int
 const (
 	canaryServiceName = "CanaryService"
 
-	create snapshotActionType = iota
-	recover
-	delete
+	Create snapshotActionType = iota
+	Recover
+	Delete
 )
 
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the deployment,
 // re-deploy the deployment and assert that the data is recovered.
 func TestActivePersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
 }
 
@@ -49,6 +46,8 @@ func TestActivePersistence(t *testing.T) {
 // Put data in a cache, take a snapshot, delete the data, recover the snapshot,
 // assert that the data is recovered.
 func TestOnDemandPersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-on-demand.yaml", "", true, true, false, t)
 }
 
@@ -56,26 +55,16 @@ func TestOnDemandPersistence(t *testing.T) {
 // a PVC will be created for the StatefulSet to use for snapshots. Put data in a cache, take a snapshot,
 // delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
 func TestSnapshotPersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false, true, t)
 }
 
 func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isRestart bool, t *testing.T) {
 	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
 
-	logf.SetLogger(zap.Logger())
-
-	flags := &flag.FlagSet{}
-	klog.InitFlags(flags)
-	_ = flags.Set("v", "4")
-
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	ns, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deployment, pods := ensurePods(g, ctx, yamlFile, ns, t)
+	deployment, pods := ensurePods(g, yamlFile, ns)
 
 	// check the pvc is created for the given volume
 	if pVolName != "" {
@@ -91,25 +80,25 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 		// check the pvc is created
 		g.Expect(pvcName).NotTo(Equal(""))
-		pvc := f.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
+		pvc := testContext.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
 		g.Expect(pvc).ShouldNot(BeNil())
 	}
 
 	// create data in some caches
-	err = helper.StartCanary(ns, deployment.GetName())
+	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	if isSnapshot {
 		// take a snapshot
-		err = processSnapshotRequest(pods[0], create)
+		err = processSnapshotRequest(pods[0], Create)
 		g.Expect(err).NotTo(HaveOccurred())
 
-		defer processSnapshotRequest(pods[0], delete)
+		defer processSnapshotRequest(pods[0], Delete)
 	}
 
 	if isClearCanary {
 		// delete the data
-		err = helper.ClearCanary(ns, deployment.GetName())
+		err = helper.ClearCanary(testContext, ns, deployment.GetName())
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -121,46 +110,44 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	// restart Coherence may be on a different instance, local storage will not work
 	if isRestart && !localStorageRestart {
 		// dump the pod logs before deleting
-		helper.DumpPodsForTest(t, ctx)
+		helper.DumpPodsForTest(testContext, t)
 		// delete the deployment
-		err = helper.WaitForCoherenceCleanup(f, ns)
+		err = helper.WaitForCoherenceCleanup(testContext, ns)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		// re-deploy the deployment
-		deployment, pods = ensurePods(g, ctx, yamlFile, ns, t)
+		deployment, pods = ensurePods(g, yamlFile, ns)
 	}
 
 	if isSnapshot {
 		// recover the snapshot
-		err = processSnapshotRequest(pods[0], recover)
+		err = processSnapshotRequest(pods[0], Recover)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(ns, deployment.GetName())
+	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
-	_ = helper.ClearCanary(ns, deployment.GetName())
+	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
 }
 
-func ensurePods(g *GomegaWithT, ctx *framework.Context, yamlFile, ns string, t *testing.T) (v1.Coherence, []corev1.Pod) {
-	f := framework.Global
-
+func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod) {
 	deployment, err := helper.NewSingleCoherenceFromYaml(ns, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	d, _ := json.Marshal(deployment)
 	fmt.Printf("Persistence Test installing deployment:\n%s\n", string(d))
 
-	err = f.Client.Create(goctx.TODO(), &deployment, helper.DefaultCleanup(ctx))
+	err = testContext.Client.Create(goctx.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, helper.RetryInterval, helper.Timeout, t)
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, deployment.GetName())
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).Should(BeNumerically(">", 0))
 
@@ -178,10 +165,10 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 	url := fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence/snapshots/snapshotOne",
 		ports[v1.PortNameManagement], canaryServiceName)
 	httpMethod := "POST"
-	if actionType == delete {
+	if actionType == Delete {
 		httpMethod = "DELETE"
 	}
-	if actionType == recover {
+	if actionType == Recover {
 		url = url + "/recover"
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,8 +9,7 @@ package remote
 import (
 	goctx "context"
 	"fmt"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	cohv1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"golang.org/x/net/context"
 	"io/ioutil"
@@ -26,6 +25,9 @@ import (
 // Test scaling up and down with different policies.
 // This test is an example of using sub-tests to run the test with different test cases.
 func TestScaling(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
 	testCases := []struct {
 		testName string
 		start    int32
@@ -49,23 +51,31 @@ func TestScaling(t *testing.T) {
 
 // Test that a deployment can be scaled up using the kubectl scale command
 func TestScalingUpWithKubectl(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	assertScale(t, 10, cohv1.ParallelUpSafeDownScaling, 1, 3, kubeCtlScaler)
 }
 
 // Test that a deployment can be scaled down using the kubectl scale command
 func TestScalingDownWithKubectl(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	assertScale(t, 20, cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlScaler)
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
 // This test scales down by directly updating the replica count in the deployment to zero.
 func TestScaleDownToZero(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	assertScaleDownToZero(t, 30, deploymentScaler)
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
 // This test scales down using the "kubectl scale --relicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
 	assertScaleDownToZero(t, 40, kubeCtlScaler)
 }
 
@@ -76,20 +86,18 @@ type ScaleFunction func(t *testing.T, d *cohv1.Coherence, replicas int32) error
 
 // A scaler function that scales a deployment by directly updating it to have a set number of replicas
 var deploymentScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error {
-	f := framework.Global
-	current, err := helper.GetCoherence(f, d.Namespace, d.Name)
+	current, err := helper.GetCoherence(testContext, d.Namespace, d.Name)
 	if err != nil {
 		return err
 	}
 	current.Spec.SetReplicas(replicas)
 	t.Logf("Scaling %s to %d", current.Name, replicas)
-	return f.Client.Update(goctx.TODO(), current)
+	return testContext.Client.Update(goctx.TODO(), current)
 }
 
 // A scaler function that scales a deployment using the kubectl scale command
 var kubeCtlScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error {
-	f := framework.Global
-	current, err := helper.GetCoherence(f, d.Namespace, d.Name)
+	current, err := helper.GetCoherence(testContext, d.Namespace, d.Name)
 	if err != nil {
 		return err
 	}
@@ -115,11 +123,8 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	g := NewGomegaWithT(t)
 
 	t.Log("assertScale() - Starting...")
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
 
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -140,12 +145,12 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 
 	t.Logf("assertScale() - doCanary=%t", doCanary)
 	t.Log("assertScale() - Installing Coherence deployment...")
-	installSimpleDeployment(t, ctx, deployment)
+	installSimpleDeployment(t, deployment)
 	t.Log("assertScale() - Installed Coherence deployment")
 
 	if doCanary {
 		t.Log("Initialising canary cache")
-		err = helper.StartCanary(namespace, deployment.Name)
+		err = helper.StartCanary(testContext, namespace, deployment.Name)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -157,7 +162,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 
 	if doCanary {
 		t.Log("Checking canary cache")
-		err = helper.CheckCanary(namespace, deployment.Name)
+		err = helper.CheckCanary(testContext, namespace, deployment.Name)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 }
@@ -168,22 +173,15 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	)
 
 	g := NewGomegaWithT(t)
-	ctx := helper.CreateTestContext(t)
-
-	namespace, err := ctx.GetWatchNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
+	namespace := helper.GetTestNamespace()
 
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	defer cleanup(t, ctx, deployment.GetNamespacedName())
-
 	//Give the deployment a unique name based on the test name
 	deployment.SetName(fmt.Sprintf("%s-%d", deployment.GetName(), uid))
 
-	installSimpleDeployment(t, ctx, deployment)
-
-	f := framework.Global
+	installSimpleDeployment(t, deployment)
 
 	// Scale the deployment down to zero
 	err = scaler(t, &deployment, zero)
@@ -191,18 +189,42 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 
 	// Wait for deletion of the StatefulSet
 	sts := appsv1.StatefulSet{}
-	err = helper.WaitForDeletion(f, namespace, deployment.Name, &sts, time.Second*5, time.Minute*5, t)
+	err = helper.WaitForDeletion(testContext, namespace, deployment.Name, &sts, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Coherence resource should still exist
 	updated := cohv1.Coherence{}
-	err = f.Client.Get(context.TODO(), deployment.GetNamespacedName(), &updated)
+	err = testContext.Client.Get(context.TODO(), deployment.GetNamespacedName(), &updated)
 	g.Expect(err).NotTo(HaveOccurred())
 	// The replica count for the deployment spec in the deployment should be zero
 	g.Expect(updated.GetReplicas()).To(Equal(zero))
 
 	// wait for the deployment to match the condition
 	condition := helper.ReplicaCountCondition(0)
-	_, err = helper.WaitForCoherenceCondition(f, namespace, deployment.Name, condition, time.Second*10, time.Minute*5, t)
+	_, err = helper.WaitForCoherenceCondition(testContext, namespace, deployment.Name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
+}
+
+// assertDeploymentEventuallyInDesiredState asserts that a Coherence resource exists and has the correct spec and that the
+// underlying StatefulSet exists with the correct status and ready replicas.
+func assertDeploymentEventuallyInDesiredState(t *testing.T, d cohv1.Coherence, replicas int32) {
+	g := NewGomegaWithT(t)
+
+	testContext.Logf("Asserting Coherence resource %s exists with %d replicas", d.Name, replicas)
+
+	// create a DeploymentStateCondition that checks a deployment's replica count
+	condition := helper.ReplicaCountCondition(replicas)
+
+	// wait for the deployment to match the condition
+	_, err := helper.WaitForCoherenceCondition(testContext, d.Namespace, d.Name, condition, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	testContext.Logf("Asserting StatefulSet %s exists with %d replicas", d.Name, replicas)
+
+	// wait for the StatefulSet to have the required ready replicas
+	sts, err := helper.WaitForStatefulSet(testContext, d.Namespace, d.Name, replicas, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(sts.Status.ReadyReplicas).To(Equal(replicas))
+
+	testContext.Logf("Asserting StatefulSet %s exist with %d replicas - Done!", d.Name, replicas)
 }

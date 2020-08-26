@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2020, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -45,12 +45,12 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<PersistentStorageSpec,PersistentStorageSpec>>
 * <<PodDNSConfig,PodDNSConfig>>
 * <<PortSpecWithSSL,PortSpecWithSSL>>
+* <<Probe,Probe>>
 * <<ProbeHandler,ProbeHandler>>
 * <<ReadinessProbeSpec,ReadinessProbeSpec>>
 * <<Resource,Resource>>
 * <<Resources,Resources>>
 * <<SSLSpec,SSLSpec>>
-* <<ScalingProbe,ScalingProbe>>
 * <<ScalingSpec,ScalingSpec>>
 * <<SecretVolumeSpec,SecretVolumeSpec>>
 * <<ServiceMonitorSpec,ServiceMonitorSpec>>
@@ -79,6 +79,8 @@ m| application | The optional application specific settings. m| &#42;<<Applicati
 m| jvm | The JVM specific options m| &#42;<<JVMSpec,JVMSpec>> | false
 m| ports | Ports specifies additional port mappings for the Pod and additional Services for those ports. m| []<<NamedPortSpec,NamedPortSpec>> | false
 m| scaling | The configuration to control safe scaling. m| &#42;<<ScalingSpec,ScalingSpec>> | false
+m| suspendProbe | The configuration of the probe used to signal that services must be suspended before a deployment is stopped. m| &#42;<<Probe,Probe>> | false
+m| suspendServicesOnShutdown | A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shutdown cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true. m| &#42;bool | false
 m| startQuorum | StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources. m| []<<StartQuorum,StartQuorum>> | false
 m| env | Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvar-v1-core[corev1.EnvVar] | false
 m| labels | The extra labels to add to the all of the Pods in this deployments. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
@@ -502,6 +504,18 @@ m| ssl | SSL configures SSL settings for a Coherence component m| &#42;<<SSLSpec
 
 <<Table of Contents,Back to TOC>>
 
+=== Probe
+
+Probe is the handler that will be used to determine how to communicate with a Coherence deployment for operations like StatusHA checking and service suspension. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| timeoutSeconds | Number of seconds after which the handler times out (only applies to http and tcp handlers). Defaults to 1 second. Minimum value is 1. m| &#42;int | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
 === ProbeHandler
 
 The definition of a probe handler.
@@ -601,18 +615,6 @@ m| requireClientCert | RequireClientCert is a boolean flag indicating whether th
 
 <<Table of Contents,Back to TOC>>
 
-=== ScalingProbe
-
-ScalingProbe is the handler that will be used to determine how to check for StatusHA in a Coherence. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| timeoutSeconds | Number of seconds after which the handler times out (only applies to http and tcp handlers). Defaults to 1 second. Minimum value is 1. m| &#42;int | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
 === ScalingSpec
 
 The configuration to control safe scaling.
@@ -621,7 +623,7 @@ The configuration to control safe scaling.
 |===
 | Field | Description | Type | Required
 m| policy | ScalingPolicy describes how the replicas of the deployment will be scaled. The default if not specified is based upon the value of the StorageEnabled field. If StorageEnabled field is not specified or is true the default scaling will be safe, if StorageEnabled is set to false the default scaling will be parallel. m| &#42;ScalingPolicy | false
-m| probe | The probe to use to determine whether a deployment is Phase HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Phase HA to just checking Coherence services then a different handler may be specified. m| &#42;<<ScalingProbe,ScalingProbe>> | false
+m| probe | The probe to use to determine whether a deployment is Phase HA. If not set the default handler will be used. In most use-cases the default handler would suffice but in advanced use-cases where the application code has a different concept of Phase HA to just checking Coherence services then a different handler may be specified. m| &#42;<<Probe,Probe>> | false
 |===
 
 <<Table of Contents,Back to TOC>>

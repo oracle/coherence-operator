@@ -4,7 +4,7 @@ metadata:
   name: test
 spec:
   replicas: 3
-  image: ${TEST_USER_IMAGE}
+  image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   readinessProbe:
     initialDelaySeconds: 10

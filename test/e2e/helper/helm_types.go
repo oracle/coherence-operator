@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,7 +9,7 @@ package helper
 import (
 	"errors"
 	"github.com/ghodss/yaml"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"io/ioutil"
 	coreV1 "k8s.io/api/core/v1"
 	"os"

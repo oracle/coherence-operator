@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,18 +13,15 @@ import (
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // CoherenceRole is the Schema for the coherenceroles API
-// +k8s:openapi-gen=true
-// +kubebuilder:subresource:status
-// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:resource:shortName=cr,categories=coherence
-// +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".spec.role",description="The name of this role"
-// +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".metadata.labels.coherenceCluster",description="The name of the Coherence cluster that this role belongs to"
-// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="The number of Coherence Pods for this role"
-// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence Pods for this role"
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status",description="The status of this role"
+//
+//
+//
+//
+//
+//
+//
+//
 type CoherenceRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -32,8 +29,6 @@ type CoherenceRole struct {
 	Spec   CoherenceRoleSpec   `json:"spec,omitempty"`
 	Status CoherenceRoleStatus `json:"status,omitempty"`
 }
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CoherenceRoleList contains a list of CoherenceRole
 type CoherenceRoleList struct {
@@ -43,7 +38,6 @@ type CoherenceRoleList struct {
 }
 
 // CoherenceRoleStatus defines the observed state of CoherenceRole
-// +k8s:openapi-gen=true
 type CoherenceRoleStatus struct {
 	// The name of the cluster.
 	ClusterName string `json:"clusterName,omitempty"`

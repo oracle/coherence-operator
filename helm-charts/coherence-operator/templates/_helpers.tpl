@@ -1,6 +1,6 @@
-{{/* Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved. */}}
-{{/* Licensed under the Universal Permissive License v 1.0 as shown at               */}}
-{{/* http://oss.oracle.com/licenses/upl.                                             */}}
+{{/* Copyright 2020, Oracle Corporation and/or its affiliates           */}}
+{{/* Licensed under the Universal Permissive License v 1.0 as shown at  */}}
+{{/* http://oss.oracle.com/licenses/upl.                                */}}
 
 {{/* vim: set filetype=mustache: */}}
 {{/*
@@ -46,4 +46,5 @@ heritage: {{ .Release.Service | quote }}
 release: {{ .Release.Name | quote }}
 chart: {{ template "coherence-operator.chart" . }}
 app: {{ template "coherence-operator.name" . }}
+component: coherence-operator
 {{- end }}

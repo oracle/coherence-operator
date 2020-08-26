@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,9 +12,7 @@ import (
 	es "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"github.com/oracle/coherence-operator/test/e2e/local"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"testing"
@@ -22,15 +20,12 @@ import (
 )
 
 func TestElasticSearch(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
-	f := framework.Global
 
-	// Create the Operator SDK test context
-	ctx := helper.CreateTestContext(t)
-	// Make sure we defer clean-up (uninstall the operator) when we're done
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
-
-	esPod, kPod := AssertElasticsearchInstalled(t)
+	esPod, kPod := AssertElasticsearchInstalled(testContext, t)
 
 	// Create the ConfigMap with the Fluentd config
 	cm := &corev1.ConfigMap{}
@@ -39,7 +34,11 @@ func TestElasticSearch(t *testing.T) {
 
 	cm.SetNamespace(helper.GetTestNamespace())
 
-	err = f.Client.Create(context.TODO(), cm, helper.DefaultCleanup(ctx))
+	// delete the ConfigMap just in case it already exists, we don't care if this fails
+	// as it probably means the CM does not exist, which is that normal case.
+	_ = testContext.Client.Delete(context.TODO(), cm)
+
+	err = testContext.Client.Create(context.TODO(), cm)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Create an Elasticsearch client
@@ -48,7 +47,7 @@ func TestElasticSearch(t *testing.T) {
 	shouldConnectToES(t, cl)
 
 	// Deploy the Coherence cluster
-	_, pods := local.AssertDeploymentsWithContext(t, ctx, "efk-test.yaml")
+	_, pods := helper.AssertDeployments(testContext, t, "efk-test.yaml")
 	assertAllHaveFluentdContainers(t, pods)
 
 	// It can take a while for things to start to appear in Elasticsearch so wait...
@@ -62,7 +61,7 @@ func TestElasticSearch(t *testing.T) {
 // Assert that it is possible to connect to Elasticsearch
 func shouldConnectToES(t *testing.T, cl ESClient) {
 	g := NewGomegaWithT(t)
-	_, _ = AssertElasticsearchInstalled(t)
+	_, _ = AssertElasticsearchInstalled(testContext, t)
 
 	res, err := cl.Query(func(es *es.Client) (*esapi.Response, error) {
 		return es.Info()

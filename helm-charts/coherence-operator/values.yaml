@@ -1,4 +1,4 @@
-# Copyright 2019, 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2020, 2020 Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -54,6 +54,6 @@ coherenceOperator:
   # imagePullPolicy controls the K8s container spec's pull policy
   # If not set the pull policy is "IfNotPresent".
   imagePullPolicy:
-  defaultCoherenceImage: "${HELM_COHERENCE_IMAGE}"
+  defaultCoherenceImage: "${COHERENCE_IMAGE}"
   defaultCoherenceUtilsImage: "${UTILS_IMAGE}"
-
+  watchNamespace: ""

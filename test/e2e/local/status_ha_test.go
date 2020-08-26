@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,15 +8,10 @@ package local
 
 import (
 	goctx "context"
-	"flag"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
-	"github.com/oracle/coherence-operator/pkg/controller/statefulset"
+	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/klog"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"testing"
 	"time"
 
@@ -29,14 +24,11 @@ type StatusHATestCase struct {
 }
 
 func TestStatusHA(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
-
-	logf.SetLogger(zap.Logger())
-
-	flags := &flag.FlagSet{}
-	klog.InitFlags(flags)
-	_ = flags.Set("v", "4")
 
 	deploymentDefault, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-default.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -62,32 +54,27 @@ func TestStatusHA(t *testing.T) {
 }
 
 func assertStatusHA(t *testing.T, tc StatusHATestCase) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+
 	g := NewGomegaWithT(t)
-	f := framework.Global
-	ctx := helper.CreateTestContext(t)
-	defer helper.DumpOperatorLogsAndCleanup(t, ctx)
+	ns := helper.GetTestNamespace()
 
-	ns, err := ctx.GetWatchNamespace()
+	err := testContext.Client.Create(goctx.TODO(), tc.Deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = f.Client.Create(goctx.TODO(), tc.Deployment, helper.DefaultCleanup(ctx))
-	g.Expect(err).NotTo(HaveOccurred())
-
-	sts, err := helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, tc.Deployment, time.Second*10, time.Minute*5, t)
+	sts, err := helper.WaitForStatefulSetForDeployment(testContext, ns, tc.Deployment, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the list of Pods
-	pods, err := helper.ListCoherencePodsForDeployment(f.KubeClient, ns, tc.Deployment.Name)
+	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, tc.Deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
-
-	// capture the Pod log in case we need it for debugging
-	helper.DumpPodLog(f.KubeClient, &pods[0], t.Name(), t)
 
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
-	ckr := statefulset.ScalableChecker{Client: f.Client.Client, Config: f.KubeConfig}
+	ckr := statefulset.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
 	ha := ckr.IsStatusHA(tc.Deployment, sts)

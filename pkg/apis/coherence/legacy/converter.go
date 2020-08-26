@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,7 +8,7 @@ package legacy
 
 import (
 	"fmt"
-	v1 "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -41,8 +41,8 @@ func Convert(fileName string, out io.Writer) error {
 
 	roles := cc.GetRoles()
 	sep := false
-	for _, role := range roles {
-
+	for i := range roles {
+		role := roles[i]
 		if sep {
 			_, err = fmt.Fprintln(out, "---")
 			if err != nil {
@@ -339,7 +339,7 @@ func doScaling(r *CoherenceRoleSpec) *v1.ScalingSpec {
 		scaling.Policy = &policy
 	}
 
-	probe := &v1.ScalingProbe{}
+	probe := &v1.Probe{}
 	if r.Scaling.Probe != nil {
 		probe.TimeoutSeconds = r.Scaling.Probe.TimeoutSeconds
 		probe.Exec = r.Scaling.Probe.Exec

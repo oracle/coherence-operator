@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,8 +8,9 @@ package fakes
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	coh "github.com/oracle/coherence-operator/pkg/apis/coherence/v1"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -21,6 +22,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"net/http"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -78,6 +80,10 @@ type FakeManager struct {
 	Config *rest.Config
 }
 
+func (f *FakeManager) GetLogger() logr.Logger {
+	return ctrl.Log.WithName("manager")
+}
+
 func (f *FakeManager) Elected() <-chan struct{} {
 	panic("implement me")
 }
@@ -110,19 +116,19 @@ func (f *FakeManager) Reset(initObjs ...runtime.Object) {
 }
 
 func (f *FakeManager) AddHealthzCheck(name string, check healthz.Checker) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) AddReadyzCheck(name string, check healthz.Checker) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) Add(manager.Runnable) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) SetFields(interface{}) error {
-	panic("fake method not implemented")
+	return nil
 }
 
 func (f *FakeManager) Start(<-chan struct{}) error {
@@ -146,7 +152,7 @@ func (f *FakeManager) GetFieldIndexer() client.FieldIndexer {
 }
 
 func (f *FakeManager) GetCache() cache.Cache {
-	panic("fake method not implemented")
+	return fakeCache{}
 }
 
 func (f *FakeManager) GetRESTMapper() meta.RESTMapper {
@@ -248,4 +254,36 @@ func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coheren
 	Expect(err).NotTo(HaveOccurred())
 	Expect(service).NotTo(BeNil())
 	Expect(service.Spec.Selector[coh.LabelCoherenceCluster]).To(Equal(deployment.Name))
+}
+
+type fakeCache struct {
+
+}
+
+func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+	panic("implement me")
+}
+
+func (f fakeCache) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+	panic("implement me")
+}
+
+func (f fakeCache) GetInformer(ctx context.Context, obj runtime.Object) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) GetInformerForKind(ctx context.Context, gvk schema.GroupVersionKind) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) Start(stopCh <-chan struct{}) error {
+	panic("implement me")
+}
+
+func (f fakeCache) WaitForCacheSync(stop <-chan struct{}) bool {
+	panic("implement me")
+}
+
+func (f fakeCache) IndexField(ctx context.Context, obj runtime.Object, field string, extractValue client.IndexerFunc) error {
+	panic("implement me")
 }
