@@ -260,19 +260,25 @@ func (in *CoherenceSpec) RequiresWKAService() bool {
 }
 
 // GetWKA returns the host name Coherence should for WKA.
-func (in *CoherenceSpec) GetWKA(deployment string) string {
+func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
+	var ns string
+	var svc string
+
 	if in == nil || in.WKA == nil || in.WKA.Deployment == "" {
 		// there is no WKA override so return the deployment name
-		return deployment + WKAServiceNameSuffix
+		ns = deployment.Namespace
+		svc = deployment.Name + WKAServiceNameSuffix
+	} else {
+		if in.WKA.Namespace != "" {
+			// A WKA override is specified with a namespace
+			ns = in.WKA.Namespace
+		} else {
+			ns = deployment.Namespace
+		}
+		svc = in.WKA.Deployment + WKAServiceNameSuffix
 	}
 
-	if in.WKA.Namespace != "" {
-		// A WKA override is specified with a namespace
-		return fmt.Sprintf("%s%s.%s.svc.cluster.local", in.WKA.Deployment, WKAServiceNameSuffix, in.WKA.Namespace)
-	}
-
-	// A WKA override is specified without a namespace
-	return in.WKA.Deployment + WKAServiceNameSuffix
+	return fmt.Sprintf("%s.%s.svc.cluster.local", svc, ns)
 }
 
 // Add the persistence and snapshot volume mounts to the specified container
