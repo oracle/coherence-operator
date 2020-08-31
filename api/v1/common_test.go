@@ -241,7 +241,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			},
 			{
 				Name:  "COH_WKA",
-				Value: deployment.GetWkaServiceName() + ".svc.cluster.local",
+				Value: deployment.GetWKA(),
 			},
 			{
 				Name:  "JVM_GC_LOGGING",

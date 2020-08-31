@@ -354,6 +354,14 @@ func (in *Coherence) GetRoleName() string {
 	}
 }
 
+// GetWKA returns the host name Coherence should for WKA.
+func (in *Coherence) GetWKA() string {
+	if in == nil {
+		return ""
+	}
+	return in.Spec.Coherence.GetWKA(in)
+}
+
 // ----- CoherenceList type ------------------------------------------------------------------------
 
 // +kubebuilder:object:root=true
