@@ -222,7 +222,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaSameNamespace(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: "storage" + coh.WKAServiceNameSuffix})
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: "storage" + coh.WKAServiceNameSuffix + ".svc.cluster.local"})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the StatefulSet is as expected

@@ -263,7 +263,7 @@ func (in *CoherenceSpec) RequiresWKAService() bool {
 func (in *CoherenceSpec) GetWKA(deployment string) string {
 	if in == nil || in.WKA == nil || in.WKA.Deployment == "" {
 		// there is no WKA override so return the deployment name
-		return deployment + WKAServiceNameSuffix
+		return deployment + WKAServiceNameSuffix + ".svc.cluster.local"
 	}
 
 	if in.WKA.Namespace != "" {
@@ -272,7 +272,7 @@ func (in *CoherenceSpec) GetWKA(deployment string) string {
 	}
 
 	// A WKA override is specified without a namespace
-	return in.WKA.Deployment + WKAServiceNameSuffix
+	return in.WKA.Deployment + WKAServiceNameSuffix + ".svc.cluster.local"
 }
 
 // Add the persistence and snapshot volume mounts to the specified container
