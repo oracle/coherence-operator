@@ -67,7 +67,7 @@ The Coherence Operator will add the following JVM arguments by default:
 ----
 -Dcoherence.cluster=<cluster-name>
 -Dcoherence.role=<role>
--Dcoherence.wka=<deployment-name>-wka
+-Dcoherence.wka=<deployment-name>-wka.svc.cluster.local
 -Dcoherence.cacheconfig=coherence-cache-config.xml
 -Dcoherence.k8s.operator.health.port=6676
 -Dcoherence.management.http.port=30000
