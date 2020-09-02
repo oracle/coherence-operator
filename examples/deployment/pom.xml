@@ -147,7 +147,7 @@
             <version>${jib.version}</version>
             <configuration>
               <from>
-                <image>gcr.io/distroless/java@sha256:f59b26c5ecc735514a38afbf845214383c4e2ba1fdd15a76225339b8ab7da8ef</image>
+                <image>gcr.io/distroless/java:11</image>
               </from>
               <to>
                 <image>${project.artifactId}</image>
