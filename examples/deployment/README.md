@@ -7,7 +7,7 @@ The following scenarios are covered:
 1. Installing the Coherence Operator 
 1. Installing a Coherence cluster 
 1. Deploying a Proxy tier
-1. Deploying an storage-disabled application 
+1. Deploying a storage-disabled application 
 1. Enabling Active Persistence
 1. Viewing Metrics via Grafana
 
