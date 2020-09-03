@@ -65,6 +65,7 @@ public class HeapUsage
      * This factory method will be called by Coherence to register the MBean.
      *
      * @return the heap usage MBean
+     * @throws NotCompliantMBeanException if there is an error creating the MBean
      */
     public static AnnotatedStandardMBean create() throws NotCompliantMBeanException {
         // Find the heap memory pools
@@ -85,7 +86,7 @@ public class HeapUsage
     /**
      * Find the {@link List} of {@link CompositeDataSupport} instances for
      * the latest gc.
-     * 
+     *
      * @return the {@link List} of {@link CompositeDataSupport} instances for
      *         the latest gc
      */
