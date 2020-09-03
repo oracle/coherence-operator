@@ -16,36 +16,28 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>deployment-example</artifactId>
-  <name>Coherence Operator Deployment Example</name>
+  <artifactId>autoscaler-example</artifactId>
+  <name>Coherence Operator Autoscaler Example</name>
   <version>3.1.0</version>
 
   <properties>
     <docker.version>${project.version}</docker.version>
+    <test.extend.port>20000</test.extend.port>
   </properties>
 
   <dependencies>
-    <!-- module dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
     </dependency>
-    
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
     </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-metrics</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>io.helidon.bundles</groupId>
-      <artifactId>helidon-bundles-webserver</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -84,8 +76,7 @@
           <target>${maven.compiler.target}</target>
         </configuration>
       </plugin>
-     
-      <!-- run com.tangosol.coherence.dslquery.QueryPlus via mvn exec:java -->
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -98,7 +89,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+          <mainClass>com.tangosol.net.CacheFactory</mainClass>
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
           <systemProperties>
             <systemProperty>
@@ -110,16 +101,8 @@
               <value>client-cache-config.xml</value>
             </systemProperty>
             <systemProperty>
-              <key>coherence.pof.config</key>
-              <value>storage-pof-config.xml</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.tcmpenabled</key>
-              <value>false</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.cluster</key>
-              <value>sidecar-cluster</value>
+              <key>test.extend.port</key>
+              <value>${test.extend.port}</value>
             </systemProperty>
           </systemProperties>
         </configuration>
@@ -165,9 +148,6 @@
                   <jmxFlag>-XX:+UseG1GC</jmxFlag>
                 </jvmFlags>
                 <mainClass>com.tangosol.net.DefaultCacheServer</mainClass>
-                <ports>
-                  <port>8080</port>
-                </ports>
                 <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
               </container>
               <containerizingMode>packaged</containerizingMode>

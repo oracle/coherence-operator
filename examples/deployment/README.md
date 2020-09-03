@@ -45,7 +45,7 @@ prerequisites and have been able to successfully install the Coherence Operator 
 
 Ensure you have the following software installed:
 
-* [Java 8+ JDK](http://jdk.java.net/)
+* Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
 * [Maven](https://maven.apache.org) version 3.6.0+
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
