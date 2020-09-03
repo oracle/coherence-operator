@@ -1,0 +1,59 @@
+rules:
+  default: false
+  custom:
+    - seriesQuery: 'application:coherence_heap_usage_percentage_used'
+      resources:
+        overrides:
+          namespace:
+            resource: "namespace"
+          pod:
+            resource: "pod"
+          role:
+            group: "coherence.oracle.com"
+            resource: "coherences"
+      name:
+        matches: ""
+        as: "heap_memory_usage_after_gc_pct"
+      metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+    - seriesQuery: 'application:coherence_heap_usage_percentage_used'
+      resources:
+        overrides:
+          namespace:
+            resource: "namespace"
+          pod:
+            resource: "pod"
+          role:
+            group: "coherence.oracle.com"
+            resource: "coherences"
+      name:
+        matches: ""
+        as: "heap_memory_usage_after_gc_max_pct"
+      metricsQuery: max(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+    - seriesQuery: 'application:coherence_heap_usage_used'
+      resources:
+        overrides:
+          namespace:
+            resource: "namespace"
+          pod:
+            resource: "pod"
+          role:
+            group: "coherence.oracle.com"
+            resource: "coherences"
+      name:
+        matches: ""
+        as: "heap_memory_usage_after_gc"
+      metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+    - seriesQuery: 'application:coherence_heap_usage_used'
+      resources:
+        overrides:
+          namespace:
+            resource: "namespace"
+          pod:
+            resource: "pod"
+          role:
+            group: "coherence.oracle.com"
+            resource: "coherences"
+      name:
+        matches: ""
+        as: "heap_memory_usage_after_gc_max"
+      metricsQuery: max(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)

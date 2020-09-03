@@ -8,3 +8,5 @@ to be depended upon to create production environments.
 
 * [Coherence Operator Deployment Example](deployment/)
 
+* [Kubernetes Horizontal Pod Autoscaler Example](autoscaler/)
+

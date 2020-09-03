@@ -1,0 +1,27 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  image: autoscaler-example:latest
+  imagePullPolicy: IfNotPresent
+  replicas: 2
+  coherence:
+    metrics:
+      enabled: true
+  jvm:
+    memory:
+      heapSize: 500m
+  ports:
+    - name: metrics
+      service:
+        type: NodePort
+      serviceMonitor:
+        enabled: true
+    - name: extend
+      port: 20000
+      service:
+        type: NodePort
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10

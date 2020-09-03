@@ -36,7 +36,7 @@ OPERATOR_SDK_VERSION := v1.0.0
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # The Coherence image to use for deployments that do not specify an image
-COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:14.1.1-0-1
+COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:20.06.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -87,6 +87,7 @@ CREATE_OPERATOR_NAMESPACE ?= true
 # Prometheus Operator settings (used in integration tests)
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
 PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
+PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana-legacy/
 
 # Elasticsearch & Kibana settings (used in integration tests)
@@ -263,7 +264,7 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-test-operator: $(BUILD_TARGETS)/build-operator gotestsum
+test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate gotestsum
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
 	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/...
@@ -486,7 +487,7 @@ cleanup-certification: undeploy uninstall-crds clean-namespace
 # Build the Coherence operator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
 .PHONY: helm-chart
-helm-chart: $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
+helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
 
 $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # Copy the Helm charts from their source location to the distribution folder
@@ -496,10 +497,8 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Create the deployment.yaml from the manifests
 	$(call prepare_deploy,--operator-image--:1.0,namespace--namespace)
 	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=watch--watch
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set nameprefix prefix--prefix-
 	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default > $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	sed -i .old "s/watch--watch/{{ .Values.coherenceOperator.watchNamespace | quote }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/prefix--prefix/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	sed -i .old "s/--operator-image--:1.0/{{ .Values.coherenceOperator.image }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	sed -i .old 's/    component: coherence-operator/{{- include "coherence-operator.release_labels" . | indent 4 }}/g' $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
@@ -755,7 +754,7 @@ clean:
 	-rm -rf build/_output
 	-rm -f bin/*
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
-	mvn $(USE_MAVEN_SETTINGS) -f examples clean
+	mvn $(USE_MAVEN_SETTINGS) -f examples/sample-app clean
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
@@ -859,14 +858,14 @@ test-mvn: build-mvn
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples package -DskipTests
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples/sample-app package -DskipTests
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples verify
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples/sample-app verify
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
@@ -1075,6 +1074,18 @@ uninstall-prometheus:
 	kubectl -n $(OPERATOR_NAMESPACE) delete configmap coherence-grafana-dashboards || true
 	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus || true
 	kubectl delete -f hack/prometheus-rbac.yaml || true
+
+.PHONY: install-prometheus-adapter
+install-prometheus-adapter:
+	kubectl create ns $(OPERATOR_NAMESPACE) || true
+	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
+	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(PROMETHEUS_ADAPTER_VERSION) --wait \
+		--set prometheus.url=http://prometheus.$(OPERATOR_NAMESPACE).svc \
+		--values hack/prometheus-adapter-values.yaml prometheus-adapter stable/prometheus-adapter
+
+.PHONY: uninstall-prometheus-adapter
+uninstall-prometheus-adapter:
+	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus-adapter || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a port-forward process to the Grafana Pod.

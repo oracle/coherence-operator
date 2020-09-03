@@ -1,0 +1,29 @@
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: test-cluster-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: coherence.oracle.com/v1
+    kind: Coherence
+    name: test-cluster
+  minReplicas: 2
+  maxReplicas: 10
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+    scaleDown:
+      stabilizationWindowSeconds: 120
+  metrics:
+  - type: Object
+    object:
+      describedObject:
+        apiVersion: coherence.oracle.com/v1
+        kind: Coherence
+        name: test-cluster
+      metric:
+        name: heap_memory_usage_after_gc_max_pct
+      target:
+        type: Value
+        value: 80000m
+
