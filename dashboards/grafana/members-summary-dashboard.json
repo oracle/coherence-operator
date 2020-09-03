@@ -1213,7 +1213,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "svendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} - vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval",
+          "expr": "vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} - vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval",
           "format": "time_series",
           "instant": false,
           "interval": "",
