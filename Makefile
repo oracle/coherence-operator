@@ -1198,6 +1198,7 @@ copyright:
 	  -X dashboards/kibana/ \
 	  -X /Dockerfile \
 	  -X docs/ \
+	  -X examples/.mvn/ \
 	  -X hack/copyright.txt \
 	  -X hack/intellij-codestyle.xml \
 	  -X hack/sdk/ \
@@ -1214,6 +1215,9 @@ copyright:
 	  -X LICENSE.txt \
 	  -X Makefile \
 	  -X .md \
+	  -X mvnw \
+	  -X mvnw.cmd \
+	  -X .png \
 	  -X PROJECT \
 	  -X .sh \
 	  -X temp/ \
