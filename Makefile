@@ -768,7 +768,7 @@ clean:
 	-rm -rf build/_output
 	-rm -f bin/*
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
-	mvn $(USE_MAVEN_SETTINGS) -f examples/sample-app clean
+	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
@@ -872,14 +872,14 @@ test-mvn: build-mvn
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples/sample-app package -DskipTests
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples/sample-app verify
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples verify
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
