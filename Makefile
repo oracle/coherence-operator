@@ -144,14 +144,16 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
-override BUILD_OUTPUT      := ./build/_output
-override BUILD_ASSETS      := $(BUILD_OUTPUT)/assets
-override BUILD_BIN         := ./bin
-override BUILD_CONFIG      := $(BUILD_OUTPUT)/config
-override BUILD_HELM        := $(BUILD_OUTPUT)/helm-charts
-override BUILD_PROPS       := $(BUILD_OUTPUT)/build.properties
-override BUILD_TARGETS     := $(BUILD_OUTPUT)/targets
-override TEST_LOGS_DIR     := $(BUILD_OUTPUT)/test-logs
+override BUILD_OUTPUT        := ./build/_output
+override BUILD_ASSETS        := $(BUILD_OUTPUT)/assets
+override BUILD_BIN           := ./bin
+override BUILD_DEPLOY        := $(BUILD_OUTPUT)/deploy
+override BUILD_HELM          := $(BUILD_OUTPUT)/helm-charts
+override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
+override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests-$(VERSION).tar.gz
+override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
+override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
+override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -187,8 +189,9 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_OUTPUT)
 	@mkdir -p $(BUILD_ASSETS)
 	@mkdir -p $(BUILD_BIN)
-	@mkdir -p $(BUILD_CONFIG)
+	@mkdir -p $(BUILD_DEPLOY)
 	@mkdir -p $(BUILD_HELM)
+	@mkdir -p $(BUILD_MANIFESTS)
 	@mkdir -p $(BUILD_TARGETS)
 	@mkdir -p $(TEST_LOGS_DIR)
 	# create build.properties
@@ -489,19 +492,22 @@ cleanup-certification: undeploy uninstall-crds clean-namespace
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
 
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # Copy the Helm charts from their source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
 	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
 # Create the deployment.yaml from the manifests
 	$(call prepare_deploy,--operator-image--:1.0,namespace--namespace)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=watch--watch
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default > $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/watch--watch/{{ .Values.coherenceOperator.watchNamespace | quote }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE="\"{{ .Values.watchNamespaces }}\""
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal CERT_TYPE="\"{{ .Values.webhookCertType }}\""
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal SITE_LABEL="\"{{ .Values.siteLabel }}\""
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal RACK_LABEL="\"{{ .Values.rackLabel }}\""
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default > $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/--operator-image--:1.0/{{ .Values.coherenceOperator.image }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old 's/    component: coherence-operator/{{- include "coherence-operator.release_labels" . | indent 4 }}/g' $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/--operator-image--:1.0/{{ .Values.image }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
+	sed -i .old "s/coherence-webhook-server-cert/{{ .Values.webhookCertSecret }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
 	rm $(BUILD_HELM)/coherence-operator/templates/deployment.yaml.old
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
@@ -532,9 +538,9 @@ endef
 .PHONY: install-crds
 install-crds: prepare-deploy uninstall-crds
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd | kubectl create -f -
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl create -f -
 else
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd-v1beta1 | kubectl create -f --validate=false -
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd-v1beta1 | kubectl create -f --validate=false -
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -545,9 +551,9 @@ endif
 .PHONY: uninstall-crds
 uninstall-crds: prepare-deploy
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd | kubectl delete -f - || true
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 else
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/crd-v1beta1 | kubectl delete -f - || true
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd-v1beta1 | kubectl delete -f - || true
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -556,13 +562,13 @@ endif
 .PHONY: deploy
 deploy: prepare-deploy
 ifneq (,$(WATCH_NAMESPACE))
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl apply -f -
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+prepare-deploy: generate manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -571,13 +577,13 @@ prepare-deploy: $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 # Parameter #2 is the name of the namespace to deploy into
 # ----------------------------------------------------------------------------------------------------------------------
 define prepare_deploy
-	-rm -r $(BUILD_CONFIG)
-	mkdir -p $(BUILD_CONFIG)
+	-rm -r $(BUILD_DEPLOY)
+	mkdir -p $(BUILD_DEPLOY)
 	cp -R config $(BUILD_OUTPUT)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
-	cd $(BUILD_CONFIG)/manager && $(GOBIN)/kustomize edit set image controller=$(1)
-	cd $(BUILD_CONFIG)/default && $(GOBIN)/kustomize edit set namespace $(2)
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit set image controller=$(1)
+	cd $(BUILD_DEPLOY)/default && $(GOBIN)/kustomize edit set namespace $(2)
 endef
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -586,7 +592,7 @@ endef
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(GOBIN)/kustomize build $(BUILD_CONFIG)/default | kubectl delete -f -
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl delete -f -
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -601,7 +607,15 @@ tail-logs:
 # Generate manifests e.g. CRD, RBAC etc.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: manifests
-manifests: $(BUILD_TARGETS)/manifests
+manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG)
+
+$(BUILD_MANIFESTS_PKG):
+	rm -rf $(BUILD_MANIFESTS) || true
+	mkdir -p $(BUILD_MANIFESTS)
+	cp -R config/default/ $(BUILD_MANIFESTS)/default
+	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
+	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
+	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
 
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
@@ -639,7 +653,7 @@ generate-config:  $(BUILD_PROPS)
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) generate-config api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen

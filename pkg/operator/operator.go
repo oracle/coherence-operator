@@ -51,7 +51,6 @@ const (
 	FlagCoherenceImage        = "coherence-image"
 	FlagDevMode               = "coherence-dev-mode"
 	FlagEnableWebhook         = "enable-webhook"
-	FlagManageWebhookCerts    = "self-signed-certs"
 	FlagMutatingWebhookName   = "mutating-webhook-name"
 	FlagOperatorNamespace     = "operator-namespace"
 	FlagRackLabel             = "rack-label"
@@ -62,7 +61,6 @@ const (
 	FlagSiteLabel             = "site-label"
 	FlagSkipServiceSuspend    = "skip-service-suspend"
 	FlagUtilsImage            = "utils-image"
-	FlagUseCertManager        = "use-cert-manager"
 	FlagValidatingWebhookName = "validating-webhook-name"
 	FlagWebhookCertDir        = "webhook-cert-dir"
 	FlagWebhookSecret         = "webhook-secret"
@@ -98,7 +96,7 @@ func SetupFlags(cmd *cobra.Command) {
 	cmd.Flags().String(
 		FlagCertType,
 		CertTypeSelfSigned,
-		fmt.Sprintf("The type of certificate management used for webhook certificates. " +
+		fmt.Sprintf("The type of certificate management used for webhook certificates. "+
 			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
 	)
 	cmd.Flags().String(
@@ -115,12 +113,6 @@ func SetupFlags(cmd *cobra.Command) {
 		FlagEnableWebhook,
 		true,
 		"Enables the defaulting and validating web-hooks",
-	)
-	cmd.Flags().Bool(
-		FlagManageWebhookCerts,
-		true,
-		"Enables automatic certificate management for the webhook. " +
-			"The certificate Secret and the webhook configurations must be created before running the operator",
 	)
 	cmd.Flags().String(
 		FlagMutatingWebhookName,
@@ -155,7 +147,7 @@ func SetupFlags(cmd *cobra.Command) {
 	cmd.Flags().Int32(
 		FlagServicePort,
 		-1,
-		"The service port that operator clients use in the host name to make REST calls back to the operator. " +
+		"The service port that operator clients use in the host name to make REST calls back to the operator. "+
 			"If not set defaults to the same as the REST port",
 	)
 	cmd.Flags().String(
@@ -166,18 +158,13 @@ func SetupFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(
 		FlagSkipServiceSuspend,
 		false,
-		"Suspend Coherence services on a cluster prior to shutdown or scaling to zero. " +
+		"Suspend Coherence services on a cluster prior to shutdown or scaling to zero. "+
 			"This option is rarely set to false outside of testing.",
 	)
 	cmd.Flags().String(
 		FlagUtilsImage,
 		"",
 		"The default Coherence Operator utils image to use if none is specified.",
-	)
-	cmd.Flags().Bool(
-		FlagUseCertManager,
-		false,
-		"If webhooks are enabled configure cert-manager to manage the certificates.",
 	)
 	cmd.Flags().String(
 		FlagValidatingWebhookName,

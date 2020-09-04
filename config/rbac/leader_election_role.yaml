@@ -3,6 +3,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: leader-election-role
+  labels:
+# +helm-gen:scaffold:labels
+    control-plane: coherence
 rules:
 - apiGroups:
   - ""

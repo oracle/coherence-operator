@@ -41,7 +41,6 @@ These are a common set of labels applied to all of the resources
 generated from this chart.
 */}}
 {{- define "coherence-operator.release_labels" }}
-coherenceOperatorCluster: {{ template "coherence-operator.fullname" . }}
 heritage: {{ .Release.Service | quote }}
 release: {{ .Release.Name | quote }}
 chart: {{ template "coherence-operator.chart" . }}

@@ -4,9 +4,9 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v0.19.0
+    operators.operatorframework.io/builder: operator-sdk-v1.0.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: coherence-operator.vX.Y.Z
+  name: coherence-operator.v3.1.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -30,7 +30,7 @@ spec:
     type: OwnNamespace
   - supported: true
     type: SingleNamespace
-  - supported: false
+  - supported: true
     type: MultiNamespace
   - supported: true
     type: AllNamespaces
@@ -38,9 +38,9 @@ spec:
   - coherence
   links:
   - name: Coherence Operator
-    url: https://coherence-operator.domain
+    url: https://oracle.github.io/coherence-operator/docs/3.1.0
   maturity: alpha
   provider:
     name: Oracle
     url: https://oracle.github.io/coherence-operator/docs/3.1.0
-  version: 0.0.0
+  version: 3.1.0
