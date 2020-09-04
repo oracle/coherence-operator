@@ -52,7 +52,7 @@ import (
 	"time"
 )
 
-const operatorPodSelector = "control-plane=controller-manager"
+const operatorPodSelector = "control-plane=coherence"
 
 var (
 	RetryInterval = time.Second * 5
@@ -118,7 +118,7 @@ func (in TestContext) DeleteNamespace(ns string) error {
 	for i := range in.namespaces {
 		if in.namespaces[i] == ns {
 			err := in.cleanAndDeleteNamespace(ns)
-			last := len(in.namespaces)-1
+			last := len(in.namespaces) - 1
 			in.namespaces[i] = in.namespaces[last] // Copy last element to index i.
 			in.namespaces[last-1] = ""             // Erase last element (write zero value).
 			in.namespaces = in.namespaces[:last]   // Truncate slice.
