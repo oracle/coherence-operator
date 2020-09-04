@@ -2,20 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: system
+  namespace: default
   labels:
-    control-plane: controller-manager
+# +helm-gen:scaffold:labels
+    control-plane: coherence
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: coherence
   replicas: 1
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        control-plane: coherence
     spec:
       terminationGracePeriodSeconds: 10
+# +helm-gen:scaffold:spec
       containers:
       - name: manager
         image: controller:latest
@@ -27,12 +29,6 @@ spec:
           - /manager
         args:
           - --enable-leader-election
-#        readinessProbe:
-#          initialDelaySeconds: 5
-#          periodSeconds: 10
-#          httpGet:
-#            port: 8088
-#            path: /readyz/operator
         envFrom:
           - configMapRef:
               name: env-vars
@@ -48,6 +44,9 @@ spec:
                 fieldPath: metadata.name
           - name: WEBHOOK_SERVICE
             value: $(SERVICE_NAME)
+          - name: WEBHOOK_SECRET
+            value: coherence-webhook-server-cert
+# +helm-gen:scaffold:env
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert

@@ -39,8 +39,8 @@ var _ reconcile.Reconciler = &CertReconciler{}
 
 type CertReconciler struct {
 	reconciler.CommonReconciler
-	Clientset    clients.ClientSet
-	rotateBefore time.Duration
+	Clientset     clients.ClientSet
+	rotateBefore  time.Duration
 	hookInstaller *HookInstaller
 }
 
@@ -98,7 +98,7 @@ func (r *CertReconciler) Reconcile(request reconcile.Request) (reconcile.Result,
 	}
 
 	if operator.ShouldUseCertManager() {
-		// for cert-manager certs we don;t need to do anythign except update the local certs
+		// for cert-manager certs we don't need to do anything except update the local certs
 		if operator.IsDevMode() {
 			if err := r.writeLocalCertsFromSecret(secret); err != nil {
 				r.GetLog().Error(err, "error writing local certs")
@@ -250,7 +250,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ca *certs.CA) bool {
 	// Read the certificate in the mutating webhook configuration
 	for _, webhook := range mCfg.Webhooks {
 		caBytes := webhook.ClientConfig.CABundle
-		if len(caBytes) == 0 || !bytes.Equal(caBytes, ca.Cert.Raw){
+		if len(caBytes) == 0 || !bytes.Equal(caBytes, ca.Cert.Raw) {
 			return true
 		}
 	}
@@ -258,7 +258,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ca *certs.CA) bool {
 	// Read the certificate in the mutating webhook configuration
 	for _, webhook := range vCfg.Webhooks {
 		caBytes := webhook.ClientConfig.CABundle
-		if len(caBytes) == 0 || !bytes.Equal(caBytes, ca.Cert.Raw){
+		if len(caBytes) == 0 || !bytes.Equal(caBytes, ca.Cert.Raw) {
 			return true
 		}
 	}

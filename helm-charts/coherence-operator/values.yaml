@@ -1,11 +1,25 @@
-# Copyright 2020, 2020 Oracle Corporation and/or its affiliates.
+# Copyright 2020 Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
-# The name of the service account that the operator will use to
-# make requests to the Kubernetes API server.
-# The name must be lowercase.
-serviceAccount: coherence-operator
+# image is the Coherence Operator image
+image: "${OPERATOR_IMAGE}"
+
+# defaultCoherenceImage is the default application image that will be used if a Coherence
+# resource does not specify an image name.
+defaultCoherenceImage: "${COHERENCE_IMAGE}"
+
+# defaultCoherenceUtilsImage is the Coherence Operator utils image that will be used when running
+# Coherence Pods. This image version should typically match the Operator version.
+defaultCoherenceUtilsImage: "${UTILS_IMAGE}"
+
+# watchNamespaces is the comma delimited list of namespaces that the operator should
+# manage Coherence resources in. The default is to manage all namespaces.
+watchNamespaces: ""
+
+# imagePullPolicy controls the K8s container spec's pull policy
+# If not set the pull policy is "IfNotPresent".
+imagePullPolicy:
 
 # imagePullSecrets provides support pulling images from private registries, the value references
 #   one or more secrets to be used when pulling images. Secrets must be manually created in the
@@ -47,13 +61,19 @@ nodeSelector:
 #   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 tolerations:
 
-# coherenceOperator groups the values used to configure the Operator
-coherenceOperator:
-  # docker image pull the image from
-  image: "${OPERATOR_IMAGE}"
-  # imagePullPolicy controls the K8s container spec's pull policy
-  # If not set the pull policy is "IfNotPresent".
-  imagePullPolicy:
-  defaultCoherenceImage: "${COHERENCE_IMAGE}"
-  defaultCoherenceUtilsImage: "${UTILS_IMAGE}"
-  watchNamespace: ""
+# webhookCertType sets how webhook certificates will be managed.
+# Valid values are "self-signed" "cert-manager" or "manual"
+# The default is "self-signed" where the operator will create self-signed certs for the webhook.
+# If set to "cert-manager" it is expected that cert-manager is installed and configured to
+# manage the certificates. https://cert-manager.io/docs/installation/kubernetes/
+# If set to "manual" the certificates should be created and managed externally
+webhookCertType: self-signed
+
+# webhookCertSecret is the name of the Secret that will contain the certificates for the Coherence webhooks.
+webhookCertSecret: coherence-webhook-server-cert
+
+# siteLabel is the Kubernetes Node label used to set the site identity for Coherence Pods.
+siteLabel: topology.kubernetes.io/zone
+
+# rackLabel is the Kubernetes Node label used to set the rack identity for Coherence Pods.
+rackLabel: topology.kubernetes.io/zone
