@@ -4,7 +4,6 @@ metadata:
   name: controller-manager
   namespace: default
   labels:
-# +helm-gen:scaffold:labels
     control-plane: coherence
 spec:
   selector:
@@ -17,7 +16,6 @@ spec:
         control-plane: coherence
     spec:
       terminationGracePeriodSeconds: 10
-# +helm-gen:scaffold:spec
       containers:
       - name: manager
         image: controller:latest
@@ -46,7 +44,6 @@ spec:
             value: $(SERVICE_NAME)
           - name: WEBHOOK_SECRET
             value: coherence-webhook-server-cert
-# +helm-gen:scaffold:env
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert

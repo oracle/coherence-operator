@@ -21,7 +21,10 @@ func TestBasicHelmInstall(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ns := helper.GetTestNamespace()
-	cmd := exec.Command("helm", "install", "--namespace", ns, "--wait", "operator", chart)
+	cmd := exec.Command("helm", "install",
+		"--set", "image="+helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
+		"--namespace", ns, "--wait", "operator", chart)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -29,6 +32,10 @@ func TestBasicHelmInstall(t *testing.T) {
 
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
+
+	pods, err := helper.ListOperatorPods(testContext, ns)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(pods)).To(Equal(1))
 }
 
 func Cleanup(namespace, name string) {

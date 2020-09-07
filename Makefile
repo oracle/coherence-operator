@@ -221,7 +221,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
+$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -331,6 +331,17 @@ run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-e2e-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the end-to-end Helm chart tests.
+# ----------------------------------------------------------------------------------------------------------------------
+e2e-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Prometheus in the k8s cluster
@@ -493,22 +504,10 @@ cleanup-certification: undeploy uninstall-crds clean-namespace
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
 
 $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-# Copy the Helm charts from their source location to the distribution folder
+# Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
-	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/requirements.yaml coherence-operator/templates/deployment.yaml)
-# Create the deployment.yaml from the manifests
-	$(call prepare_deploy,--operator-image--:1.0,namespace--namespace)
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE="\"{{ .Values.watchNamespaces }}\""
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal CERT_TYPE="\"{{ .Values.webhookCertType }}\""
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal SITE_LABEL="\"{{ .Values.siteLabel }}\""
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal RACK_LABEL="\"{{ .Values.rackLabel }}\""
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default > $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/namespace--namespace/{{ .Release.Namespace }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/--operator-image--:1.0/{{ .Values.image }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	sed -i .old "s/coherence-webhook-server-cert/{{ .Values.webhookCertSecret }}/g" $(BUILD_HELM)/coherence-operator/templates/deployment.yaml
-	rm $(BUILD_HELM)/coherence-operator/templates/deployment.yaml.old
+	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/templates/deployment.yaml)
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
@@ -568,7 +567,7 @@ endif
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
-prepare-deploy: generate manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -635,17 +634,13 @@ config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $
 # Generate the config.json file used by the Operator for default configuration values
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: generate-config
-generate-config:  $(BUILD_PROPS)
+generate-config: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json
+
+$(BUILD_OUTPUT)/config.json:
 	@echo "Generating Operator config"
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
-	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > config/operator/new-config.json
-# If the new file is different to the old file replace the old with the new
-# This ensures that Git only thinks there is a file update if ghe contents have actually changed
-	@if ! diff config/operator/new-config.json config/operator/config.json; then \
-	  cp config/operator/new-config.json config/operator/config.json ; \
-	fi
-	rm config/operator/new-config.json
+	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate code, configuration and docs.
@@ -653,15 +648,15 @@ generate-config:  $(BUILD_PROPS)
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) generate-config api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="./hack/boilerplate.go.txt" paths="./api/..."
 
-pkg/data/zz_generated_assets.go: config/operator/config.json $(CRDV1_FILES) $(CRDV1BETA1_FILES) $(GOBIN)/kustomize
+pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(CRDV1BETA1_FILES) $(GOBIN)/kustomize
 	echo "Embedding configuration and CRD files"
-	cp config/operator/config.json $(BUILD_ASSETS)/config.json
+	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 	echo "Embedding v1 CRD files"
 	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 	echo "Embedding v1beat1 CRD files"
@@ -767,6 +762,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
 clean:
 	-rm -rf build/_output
 	-rm -f bin/*
+	rm pkg/data/zz_generated_assets.go
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 

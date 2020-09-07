@@ -3,9 +3,3 @@ resources:
 - role_binding.yaml
 - leader_election_role.yaml
 - leader_election_role_binding.yaml
-# Uncomment the following 4 lines and the corresponding lines in config/default/kustomization.yaml if you want to enable
-# the auth proxy (https://github.com/brancz/kube-rbac-proxy) which protects the operator /metrics endpoint.
-#- auth_proxy_service.yaml
-#- auth_proxy_role.yaml
-#- auth_proxy_role_binding.yaml
-#- auth_proxy_client_clusterrole.yaml

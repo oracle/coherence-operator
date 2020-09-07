@@ -4,9 +4,8 @@ kind: Kustomization
 # Adds namespace to all resources.
 namespace: default
 
-# Value of this field is prepended to the
-# names of all resources, e.g. a Deployment named
-# "manager-" becomes "coherence-operator-manager".
+# Value of this field is prepended to the names of all resources,
+# e.g. a Deployment named "manager" becomes "coherence-operator-manager".
 namePrefix: "coherence-operator-"
 
 configurations:
@@ -15,11 +14,6 @@ configurations:
 bases:
 - ../rbac
 - ../manager
-
-# Uncomment the following 2 lines and the corresponding lines in config/default/kustomization.yaml if you want to enable
-# the auth proxy (https://github.com/brancz/kube-rbac-proxy) which protects the operator /metrics endpoint.
-#patchesStrategicMerge:
-#- manager_auth_proxy_patch.yaml
 
 # the following config is for teaching kustomize how to do var substitution
 vars:

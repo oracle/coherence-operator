@@ -3,7 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   name: manager-rolebinding
   labels:
-# +helm-gen:scaffold:labels
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
