@@ -62,11 +62,12 @@ nodeSelector:
 tolerations:
 
 # webhookCertType sets how webhook certificates will be managed.
-# Valid values are "self-signed" "cert-manager" or "manual"
+# Valid values are "self-signed" "cert-manager" or "manual" the Operator will fail to start if
+# the value is invalid.
 # The default is "self-signed" where the operator will create self-signed certs for the webhook.
 # If set to "cert-manager" it is expected that cert-manager is installed and configured to
 # manage the certificates. https://cert-manager.io/docs/installation/kubernetes/
-# If set to "manual" the certificates should be created and managed externally
+# If set to "manual" the certificate Secret should be created and managed externally
 webhookCertType: self-signed
 
 # webhookCertSecret is the name of the Secret that will contain the certificates for the Coherence webhooks.

@@ -4,7 +4,6 @@ kind: ClusterRole
 metadata:
   name: coherence-editor-role
   labels:
-# +helm-gen:scaffold:labels
     control-plane: coherence
 rules:
 - apiGroups:

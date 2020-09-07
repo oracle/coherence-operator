@@ -27,21 +27,31 @@ import (
 )
 
 const (
-	TestNamespaceEnv       = "OPERATOR_NAMESPACE"
-	WatchNamespaceEnv      = "WATCH_NAMESPACE"
-	TestSslSecretEnv       = "TEST_SSL_SECRET"
-	ImagePullSecretsEnv    = "IMAGE_PULL_SECRETS"
-	CoherenceVersionEnv    = "COHERENCE_VERSION"
+	TestNamespaceEnv    = "OPERATOR_NAMESPACE"
+	OperatorImageEnv    = "OPERATOR_IMAGE"
+	UtilsImageEnv       = "UTILS_IMAGE"
+	WatchNamespaceEnv   = "WATCH_NAMESPACE"
+	TestSslSecretEnv    = "TEST_SSL_SECRET"
+	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
+	CoherenceVersionEnv = "COHERENCE_VERSION"
 
 	defaultNamespace = "operator-test"
 
-	buildDir           = "build"
-	outDir             = buildDir + string(os.PathSeparator) + "_output"
-	chartDir           = outDir + string(os.PathSeparator) + "helm-charts"
-	operatorChart      = chartDir + string(os.PathSeparator) + "coherence-operator"
-	testLogs           = outDir + string(os.PathSeparator) + "test-logs"
-	certs              = outDir + string(os.PathSeparator) + "certs"
+	buildDir      = "build"
+	outDir        = buildDir + string(os.PathSeparator) + "_output"
+	chartDir      = outDir + string(os.PathSeparator) + "helm-charts"
+	operatorChart = chartDir + string(os.PathSeparator) + "coherence-operator"
+	testLogs      = outDir + string(os.PathSeparator) + "test-logs"
+	certs         = outDir + string(os.PathSeparator) + "certs"
 )
+
+func GetOperatorImage() string {
+	return os.Getenv(OperatorImageEnv)
+}
+
+func GetUtilsImage() string {
+	return os.Getenv(UtilsImageEnv)
+}
 
 func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)

@@ -34,3 +34,6 @@ pkg/**/test-report.xml
 test/**/test-report.xml
 /temp/
 /hack/sdk/*
+
+# Generated file created by the build
+/pkg/data/zz_generated_assets.go

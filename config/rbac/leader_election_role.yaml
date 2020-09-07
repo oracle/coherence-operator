@@ -4,7 +4,6 @@ kind: Role
 metadata:
   name: leader-election-role
   labels:
-# +helm-gen:scaffold:labels
     control-plane: coherence
 rules:
 - apiGroups:
