@@ -30,7 +30,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 18,
-  "iteration": 1599208508064,
+  "iteration": 1599461208494,
   "links": [
     {
       "icon": "dashboard",
@@ -71,15 +71,538 @@
       "type": "text"
     },
     {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 2
+      },
+      "id": 101,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_size_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_clear_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_destroy_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_truncate_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_addIndex_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeIndex_total{cluster=~\"$ClusterName\"})",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Cache Wide Operations",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "decimals": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 2
+      },
+      "id": 102,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_put_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_get_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_total{cluster=~\"$ClusterName\"}  ) ",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Mutations",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 2
+      },
+      "id": 103,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_isEmpty_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_keySet_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_entrySet_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_values_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextEntrySetPage_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextKeySetPage_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsKey_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsValue_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsEntry_total{cluster=~\"$ClusterName\"} ) ",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Queries/ Data Access",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 2
+      },
+      "id": 104,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_aggregate_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invoke_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invokeAll_total{cluster=~\"$ClusterName\"} ) ",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Invocations/ Aggregations",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 2
+      },
+      "id": 120,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_events_total{cluster=~\"$ClusterName\"} ) ",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total events",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "description": "",
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 2
+      },
+      "id": 121,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.7.4",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_events_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_aggregate_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invoke_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invokeAll_total{cluster=~\"$ClusterName\"} + \napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_isEmpty_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_keySet_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_entrySet_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_values_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextEntrySetPage_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextKeySetPage_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsKey_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsValue_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsEntry_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_put_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_get_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_size_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_clear_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_destroy_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_truncate_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_addIndex_total{cluster=~\"$ClusterName\"} +\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeIndex_total{cluster=~\"$ClusterName\"}\n) ",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total gRPC Requests",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
       "columns": [],
       "datasource": null,
       "description": "Shows the total gRPC Requests for the various request categories.",
       "fontSize": "100%",
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 7
       },
       "id": 21,
       "links": [],
@@ -87,8 +610,8 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 2,
-        "desc": false
+        "col": 3,
+        "desc": true
       },
       "styles": [
         {
@@ -99,7 +622,7 @@
           "type": "hidden"
         },
         {
-          "alias": "Cache Operations",
+          "alias": "Cache Wide Operations",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -108,7 +631,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
@@ -162,7 +685,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "link": true,
           "linkTooltip": "Drill down to machines summary",
           "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
@@ -199,7 +722,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
@@ -207,7 +730,7 @@
           "unit": "short"
         },
         {
-          "alias": "Query/ Access",
+          "alias": "Queries/ Data Access",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -216,7 +739,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #C",
           "thresholds": [],
@@ -224,7 +747,7 @@
           "unit": "short"
         },
         {
-          "alias": "Invoke/ Aggr",
+          "alias": "Invocations/ Aggregations",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -233,7 +756,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #D",
           "thresholds": [],
@@ -250,7 +773,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #E",
           "thresholds": [],
@@ -305,9 +828,24 @@
           "refId": "E"
         }
       ],
-      "title": "gRPC Request Count - All Members",
+      "title": "gRPC Request Count by Category - All Members",
       "transform": "table",
       "type": "table"
+    },
+    {
+      "content": "<center><h3>Cache Wide Operations</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 106,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
     },
     {
       "aliasColors": {},
@@ -316,14 +854,14 @@
       "dashes": false,
       "datasource": null,
       "decimals": 0,
-      "description": "HTTP Requests for Microprofile based HTTP servers",
+      "description": "Shows the number of cache wide operations such as  size, clear, destroy, truncate, add index and remove index.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 16
       },
       "hiddenSeries": false,
       "id": 99,
@@ -337,8 +875,8 @@
         "min": false,
         "rightSide": false,
         "show": true,
-        "sort": "current",
-        "sortDesc": true,
+        "sort": null,
+        "sortDesc": null,
         "total": false,
         "values": false
       },
@@ -355,24 +893,69 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "stack": true,
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\"} - vendor_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) by(member)",
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_size_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_size_total{cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "Size",
           "refId": "A"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_clear_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_clear_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Clear",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_destroy_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_destroy_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Destroy",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_truncate_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_truncate_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Truncate",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_addIndex_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_addIndex_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Add Index",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_removeIndex_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeIndex_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove Index",
+          "refId": "F"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Requests",
+      "title": "Cache Wide Operations Count - All Members",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -411,560 +994,23 @@
       }
     },
     {
-      "columns": [],
-      "datasource": null,
-      "description": "The top  $TopLimit Members that have the highest Total GC Count over the current time range.",
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 97,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 2,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Total Collection Count",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 0,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Member Name",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "expr": "topk($TopLimit, sum(delta(vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Top $TopLimit Total GC Count  - Current Range",
-      "transform": "table",
-      "type": "table"
-    },
-    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "decimals": 2,
+      "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
-      },
-      "hiddenSeries": false,
-      "id": 66,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member: {{member}} ({{role}})",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Heap Memory Usage After GC",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "decbytes",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "columns": [],
-      "datasource": null,
-      "description": "The top  $TopLimit Members that have the highest Total GC Time over the current time range.",
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
         "y": 16
       },
-      "id": 96,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 2,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Total Collection Time",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Member Name",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "expr": "topk($TopLimit, sum(delta(vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}[$__range])) by (member))",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Top $TopLimit Total GC Time  - Current Range",
-      "transform": "table",
-      "type": "table"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "description": "",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 22
-      },
       "hiddenSeries": false,
-      "id": 65,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by(member) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member) * 100",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Memory Usage % After GC",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percent",
-          "label": null,
-          "logBase": 1,
-          "max": "100",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 22
-      },
-      "hiddenSeries": false,
-      "id": 24,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "vendor_Coherence_Node_ReceiverSuccessRate{cluster=~\"$ClusterName\"}",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Receiver Success Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": "1",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 30
-      },
-      "hiddenSeries": false,
-      "id": 23,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "vendor_Coherence_Node_PublisherSuccessRate{cluster=~\"$ClusterName\"}",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Publisher Success Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": "1",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "decimals": 0,
-      "description": "",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 31
-      },
-      "hiddenSeries": false,
-      "id": 98,
+      "id": 107,
       "interval": "",
       "legend": {
         "alignAsTable": false,
@@ -975,12 +1021,13 @@
         "min": false,
         "rightSide": false,
         "show": true,
-        "sort": "current",
-        "sortDesc": true,
+        "sideWidth": null,
+        "sort": null,
+        "sortDesc": null,
         "total": false,
         "values": false
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null as zero",
@@ -997,20 +1044,244 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "svendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} - vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval",
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_size_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}}",
+          "legendFormat": "Size",
           "refId": "A"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_clear_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Clear",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_destroy_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Destroy",
+          "refId": "C"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_truncate_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Truncate",
+          "refId": "D"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_addIndex_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Add Index",
+          "refId": "E"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_removeIndex_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove Index",
+          "refId": "F"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total gRPC Requests by Member",
+      "title": "Cache Wide Operations - Rate per Second - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "ops",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "content": "<center><h3>Mutations</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 108,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "Shows the number of mutations such as  put, get, remove, replace, getAll, putAll, removeMapping and replaceMapping.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "hiddenSeries": false,
+      "id": 109,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_put_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_put_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_get_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_get_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get All",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put All",
+          "refId": "F"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove Mapping",
+          "refId": "G"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace Mapping",
+          "refId": "H"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Mutation Count - All Members",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1031,7 +1302,997 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": "0",
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 2,
+      "description": "Shows the operation rate/ second over  the last minute.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "hiddenSeries": false,
+      "id": 110,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sideWidth": null,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_put_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_get_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove",
+          "refId": "C"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace",
+          "refId": "D"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put All",
+          "refId": "E"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get All",
+          "refId": "F"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove Mapping",
+          "refId": "G"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace Mapping",
+          "refId": "H"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Mutations - Rate per Second - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "ops",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "content": "<center><h3>Queries/ Data Access</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 111,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "Shows the number of query or access operations such as  isEmpty, keySet, entrySet, values, nextEntrySet, nextKeySet, containsKey, containsValue and containsEntry.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "hiddenSeries": false,
+      "id": 112,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_isEmpty_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_isEmpty_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Is Empty",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_keySet_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_keySet_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Key Set",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_entrySet_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_entrySet_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Entry Set",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_values_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_values_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Values",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_nextEntrySetPage_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextEntrySetPage_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Next Entry Set Page",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_nextKeySetPage_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_nextKeySetPage_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Next Key Set Page",
+          "refId": "F"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_containsKey_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsKey_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Contains Key",
+          "refId": "G"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_containsValue_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsValue_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Contains Value",
+          "refId": "H"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_containsEntry_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_containsEntry_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Contains Entry",
+          "refId": "I"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Queries/ Data Access Count - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 2,
+      "description": "Shows the operation rate/ second over  the last minute.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "hiddenSeries": false,
+      "id": 113,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sideWidth": null,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_put_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_get_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_remove_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove",
+          "refId": "C"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replace_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace",
+          "refId": "D"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_putAll_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Put All",
+          "refId": "E"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_getAll_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Get All",
+          "refId": "F"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_removeMapping_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Remove Mapping",
+          "refId": "G"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_replaceMapping_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Replace Mapping",
+          "refId": "H"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Queries/ Data Access Rate per Second - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "ops",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "content": "<center><h3>Invocations/ Aggregations</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 114,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "Shows the number of event based operations.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 46
+      },
+      "hiddenSeries": false,
+      "id": 115,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_aggregate_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_aggregate_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Aggregate",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_invoke_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invoke_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Invoke",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_invokeAll_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_invokeAll_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Invoke All",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Invocations/ Aggregations Count - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 2,
+      "description": "Shows the operation rate/ second over  the last minute.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 46
+      },
+      "hiddenSeries": false,
+      "id": 116,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sideWidth": null,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_aggregate_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Aggregate",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_invoke_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Invoke",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_invokeAll_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Invoke All",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Invocations/ Aggregations Rate per Second - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "ops",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "content": "<center><h3>Events</h3></center>",
+      "datasource": null,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "id": 117,
+      "links": [],
+      "mode": "html",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "Shows the number of event based operations.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "hiddenSeries": false,
+      "id": 118,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(application_com_oracle_coherence_grpc_proxy_NamedCacheService_events_total{cluster=~\"$ClusterName\"} -\napplication_com_oracle_coherence_grpc_proxy_NamedCacheService_events_total{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Events",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Event Count - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": 2,
+      "description": "Shows the operation rate/ second over  the last minute.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "hiddenSeries": false,
+      "id": 119,
+      "interval": "",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sideWidth": null,
+        "sort": null,
+        "sortDesc": null,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "avg(application_com_oracle_coherence_grpc_proxy_NamedCacheService_events_one_min_rate_per_second{cluster=~\"$ClusterName\"})",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Events",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Event Rate per Second - All Members",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "ops",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
           "show": true
         },
         {
@@ -1049,7 +2310,7 @@
       }
     }
   ],
-  "refresh": "30s",
+  "refresh": "10s",
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
@@ -1060,9 +2321,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "root's cluster",
-          "value": "root's cluster"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -1087,7 +2345,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "20.06.1",
           "value": "20.06.1"
         },
@@ -1114,7 +2371,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1207,7 +2464,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -1241,5 +2498,5 @@
   "variables": {
     "list": []
   },
-  "version": 7
+  "version": 1
 }
