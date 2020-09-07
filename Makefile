@@ -1247,7 +1247,7 @@ copyright:
 .PHONY: code-review
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
-code-review: golangci copyright
+code-review: generate golangci copyright
 	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
 	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
 
