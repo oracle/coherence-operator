@@ -27,7 +27,6 @@ func (in *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-
 // The path in this annotation MUST match the const below
 // +kubebuilder:webhook:path=/mutate-coherence-oracle-com-v1-coherence,mutating=true,failurePolicy=fail,groups=coherence.oracle.com,resources=coherences,verbs=create;update,versions=v1,name=mcoherence.kb.io
 
@@ -68,6 +67,9 @@ func (in *Coherence) ValidateCreate() error {
 	if err := in.validateReplicas(); err != nil {
 		return err
 	}
+	if err := in.validateNodePorts(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -84,6 +86,9 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	if err := in.validateVolumeClaimTemplates(prev); err != nil {
 		return err
 	}
+	if err := in.validateNodePorts(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -97,7 +102,7 @@ func (in *Coherence) ValidateDelete() error {
 func (in *Coherence) validateReplicas() error {
 	replicas := in.GetReplicas()
 	if replicas < 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: " +
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: "+
 			"must be greater than or equal to 0", in.Name, replicas)
 	}
 	return nil
@@ -111,8 +116,8 @@ func (in *Coherence) validatePersistence(previous *Coherence) error {
 
 	diff := deep.Equal(previous.Spec.GetCoherencePersistence(), in.Spec.GetCoherencePersistence())
 	if len(diff) != 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: " +
-			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous" +
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
+			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous"+
 			" instance of the resource has spec.replicas == 0", in.Name)
 	}
 	return nil
@@ -131,9 +136,28 @@ func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
 
 	diff := deep.Equal(previous.Spec.VolumeClaimTemplates, in.Spec.VolumeClaimTemplates)
 	if len(diff) != 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: " +
-			"changes cannot be made to spec.volumeclaimtemplates unless spec.replicas == 0 or the previous" +
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
+			"changes cannot be made to spec.volumeclaimtemplates unless spec.replicas == 0 or the previous"+
 			" instance of the resource has spec.replicas == 0", in.Name)
 	}
+	return nil
+}
+
+func (in *Coherence) validateNodePorts() error {
+	var badPorts []string
+
+	for _, port := range in.Spec.Ports {
+		if port.NodePort != nil {
+			p := *port.NodePort
+			if p < 30000 || p > 32767 {
+				badPorts = append(badPorts, port.Name)
+			}
+		}
+	}
+
+	if len(badPorts) > 0 {
+		return fmt.Errorf("the following NodePort values are invalid, valid port range is 30000-32767 - %v", badPorts)
+	}
+
 	return nil
 }

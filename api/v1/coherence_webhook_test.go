@@ -109,7 +109,7 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &cm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -125,7 +125,7 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &pm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -149,7 +149,7 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &cm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -165,7 +165,7 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &pm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -188,7 +188,7 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &cm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -205,7 +205,7 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 				Persistence: &coh.PersistenceSpec{
 					Mode:                  &pm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -226,14 +226,14 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				Persistence: &coh.PersistenceSpec{
-					Mode:                  &cm,
+					Mode: &cm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
 							VolumeName: "foo",
 						},
-						Volume:                &corev1.VolumeSource{},
+						Volume: &corev1.VolumeSource{},
 					},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -247,14 +247,14 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				Persistence: &coh.PersistenceSpec{
-					Mode:                  &pm,
+					Mode: &pm,
 					PersistentStorageSpec: coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
 							VolumeName: "bar",
 						},
-						Volume:                &corev1.VolumeSource{},
+						Volume: &corev1.VolumeSource{},
 					},
-					Snapshots:             &coh.PersistentStorageSpec{
+					Snapshots: &coh.PersistentStorageSpec{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
 						Volume:                &corev1.VolumeSource{},
 					},
@@ -390,12 +390,12 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -414,7 +414,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -430,7 +430,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-					Spec: corev1.PersistentVolumeClaimSpec{},
+					Spec:       corev1.PersistentVolumeClaimSpec{},
 				},
 			},
 		},
@@ -438,7 +438,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -450,8 +450,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-		},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	prev := &coh.Coherence{
@@ -460,10 +459,130 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-					Spec: corev1.PersistentVolumeClaimSpec{},
+					Spec:       corev1.PersistentVolumeClaimSpec{},
 				},
 			},
 		},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "p1",
+					Port:     1234,
+					NodePort: pointer.Int32Ptr(30000),
+				},
+				{
+					Name:     "p2",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(32767),
+				},
+			},
+		},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "p1",
+					Port:     1234,
+					NodePort: pointer.Int32Ptr(30000),
+				},
+				{
+					Name:     "p2",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(32767),
+				},
+				{
+					Name:     "p3",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(1234),
+				},
+			},
+		},
+	}
+
+	err := current.ValidateCreate()
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "p1",
+					Port:     1234,
+					NodePort: pointer.Int32Ptr(30000),
+				},
+				{
+					Name:     "p2",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(32767),
+				},
+			},
+		},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec:       coh.CoherenceResourceSpec{},
+	}
+
+	err := current.ValidateUpdate(prev)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	current := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "p1",
+					Port:     1234,
+					NodePort: pointer.Int32Ptr(30000),
+				},
+				{
+					Name:     "p2",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(32767),
+				},
+				{
+					Name:     "p3",
+					Port:     1235,
+					NodePort: pointer.Int32Ptr(1234),
+				},
+			},
+		},
+	}
+
+	prev := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+		Spec:       coh.CoherenceResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
