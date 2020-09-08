@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 19,
-  "iteration": 1599462114539,
+  "id": 6,
+  "iteration": 1599522881519,
   "links": [
     {
       "icon": "dashboard",
@@ -976,7 +976,7 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1302,7 +1302,7 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1655,7 +1655,7 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -2190,7 +2190,7 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -2345,8 +2345,6 @@
       {
         "allValue": null,
         "current": {
-          "text": "20.06.1",
-          "value": "20.06.1"
         },
         "datasource": "Prometheus",
         "definition": "",
@@ -2371,7 +2369,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2464,7 +2462,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
