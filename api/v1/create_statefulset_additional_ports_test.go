@@ -7,8 +7,10 @@
 package v1_test
 
 import (
+	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
 	"testing"
 )
 
@@ -105,4 +107,292 @@ func TestCreateStatefulSetWithPortsWithTwoAdditionalPorts(t *testing.T) {
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithMetricsPortWhenNoPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameMetrics,
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameMetrics,
+		ContainerPort: coh.DefaultMetricsPort,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(coh.DefaultMetricsPort))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(coh.DefaultMetricsPort))
+}
+
+func TestCreateStatefulSetWithMetricsPortWhenMetricsPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameMetrics,
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			Metrics: &coh.PortSpecWithSSL{
+				Port: pointer.Int32Ptr(1234),
+			},
+		},
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameMetrics,
+		ContainerPort: 1234,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(int32(1234)))
+}
+
+func TestCreateStatefulSetWithMetricsPortAndServicePortWhenNoPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameMetrics,
+		Service: &coh.ServiceSpec{
+			Port: pointer.Int32Ptr(1234),
+		},
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameMetrics,
+		ContainerPort: coh.DefaultMetricsPort,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(coh.DefaultMetricsPort))
+}
+
+func TestCreateStatefulSetWithMetricsPortAndServicePortWhenMetricsPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameMetrics,
+		Service: &coh.ServiceSpec{
+			Port: pointer.Int32Ptr(1234),
+		},
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			Metrics: &coh.PortSpecWithSSL{
+				Port: pointer.Int32Ptr(9876),
+			},
+		},
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameMetrics,
+		ContainerPort: 9876,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(int32(9876)))
+}
+
+func TestCreateStatefulSetWithManagementPortWhenNoPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameManagement,
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameManagement,
+		ContainerPort: coh.DefaultManagementPort,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(coh.DefaultManagementPort))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(coh.DefaultManagementPort))
+}
+
+func TestCreateStatefulSetWithManagementPortWhenManagementPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameManagement,
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			Management: &coh.PortSpecWithSSL{
+				Port: pointer.Int32Ptr(1234),
+			},
+		},
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameManagement,
+		ContainerPort: 1234,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(int32(1234)))
+}
+
+func TestCreateStatefulSetWithManagementPortAndServicePortWhenNoPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameManagement,
+		Service: &coh.ServiceSpec{
+			Port: pointer.Int32Ptr(1234),
+		},
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameManagement,
+		ContainerPort: coh.DefaultManagementPort,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(coh.DefaultManagementPort))
+}
+
+func TestCreateStatefulSetWithManagementPortAndServicePortWhenManagementPortValueSpecified(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	protocol := corev1.ProtocolTCP
+	np := coh.NamedPortSpec{
+		Name: coh.PortNameManagement,
+		Service: &coh.ServiceSpec{
+			Port: pointer.Int32Ptr(1234),
+		},
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			Management: &coh.PortSpecWithSSL{
+				Port: pointer.Int32Ptr(9876),
+			},
+		},
+		Ports: []coh.NamedPortSpec{np},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
+		Name:          coh.PortNameManagement,
+		ContainerPort: 9876,
+		Protocol:      protocol,
+	})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+
+	svc := np.CreateService(deployment)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(len(svc.Spec.Ports)).To(Equal(1))
+	g.Expect(svc.Spec.Ports[0].Port).To(Equal(int32(1234)))
+	g.Expect(svc.Spec.Ports[0].TargetPort.IntVal).To(Equal(int32(9876)))
 }

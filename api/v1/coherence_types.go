@@ -361,9 +361,7 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 
 func (in *CoherenceSpec) GetMetricsPort() int32 {
 	switch {
-	case in == nil:
-		return 0
-	case in.Metrics == nil || in.Metrics.Port == nil:
+	case in == nil || in.Metrics == nil || in.Metrics.Port == nil:
 		return DefaultMetricsPort
 	default:
 		return *in.Metrics.Port
@@ -372,9 +370,7 @@ func (in *CoherenceSpec) GetMetricsPort() int32 {
 
 func (in *CoherenceSpec) GetManagementPort() int32 {
 	switch {
-	case in == nil:
-		return 0
-	case in.Management == nil || in.Management.Port == nil:
+	case in == nil || in.Management == nil || in.Management.Port == nil:
 		return DefaultManagementPort
 	default:
 		return *in.Management.Port
@@ -905,8 +901,8 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 		{
 			Name:       in.Name,
 			Protocol:   in.GetProtocol(),
-			Port:       in.GetPort(deployment),
-			TargetPort: intstr.FromInt(int(in.Port)),
+			Port:       in.GetServicePort(deployment),
+			TargetPort: intstr.FromInt(int(in.GetPort(deployment))),
 			NodePort:   in.GetNodePort(),
 		},
 	}
@@ -989,6 +985,21 @@ func (in *NamedPortSpec) GetProtocol() corev1.Protocol {
 }
 
 func (in *NamedPortSpec) GetPort(d *Coherence) int32 {
+	switch {
+	case in == nil:
+		return 0
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
+		// special case for well known port - metrics
+		return d.Spec.GetMetricsPort()
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
+		// special case for well known port - management
+		return d.Spec.GetManagementPort()
+	default:
+		return in.Port
+	}
+}
+
+func (in *NamedPortSpec) GetServicePort(d *Coherence) int32 {
 	switch {
 	case in == nil:
 		return 0
@@ -2487,7 +2498,7 @@ func (in Resources) EnsureGVK(s *runtime.Scheme) {
 				r.Spec.GetObjectKind().SetGroupVersionKind(gvks[0])
 			}
 		}
-		
+
 	}
 }
 
