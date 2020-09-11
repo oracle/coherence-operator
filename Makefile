@@ -51,6 +51,7 @@ UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
 OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
+BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
 # The test application image used in integration tests
 TEST_APPLICATION_IMAGE := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION)
@@ -728,9 +729,9 @@ $(GOBIN)/yq:
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_TARGETS)/manifests
-	$(OPERATOR_SDK) generate $(GOBIN)/kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
+bundle: $(BUILD_PROPS) $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 

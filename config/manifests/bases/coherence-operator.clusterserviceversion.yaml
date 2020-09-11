@@ -16,6 +16,11 @@ spec:
       kind: Coherence
       name: coherences.coherence.oracle.com
       version: v1
+    - description: Coherence is the Schema for the Coherence API.
+      displayName: Coherence
+      kind: Coherence
+      name: coherences.coherence.oracle.com.oracle.com
+      version: v1
   description: Oracle Coherence Operator
   displayName: Coherence
   icon:
