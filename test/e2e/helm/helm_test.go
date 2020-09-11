@@ -9,10 +9,56 @@ package helm
 import (
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"os"
 	"os/exec"
 	"testing"
 )
+
+func TestCreateWebhookCertSecretByDefault(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall()
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	secret := &corev1.Secret{}
+	err = result.Get("coherence-webhook-server-cert", secret)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestCreateWebhookCertSecretWithName(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "webhookCertSecret=foo")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	secret := &corev1.Secret{}
+	err = result.Get("foo", secret)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator-controller-manager", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	senv := findEnvVar("WEBHOOK_SECRET", c)
+	g.Expect(senv).NotTo(BeNil())
+	g.Expect(senv.Value).To(Equal("foo"))
+}
+
+func TestNotCreateWebhookCertSecretIfNotSelfSigned(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "webhookCertType=cert-manager")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	secret := &corev1.Secret{}
+	err = result.Get("coherence-webhook-server-cert", secret)
+	g.Expect(err).To(HaveOccurred())
+}
 
 func TestBasicHelmInstall(t *testing.T) {
 	g := NewGomegaWithT(t)

@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ .Values.webhookCertSecret }}
+  name: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
   namespace: {{ .Release.Namespace }}
 {{- end }}
 ---
@@ -39,7 +39,8 @@ spec:
         control-plane: coherence
     spec:
       containers:
-      - args:
+      - name: manager
+        args:
         - --enable-leader-election
         command:
         - /manager
@@ -55,9 +56,9 @@ spec:
         - name: WEBHOOK_SERVICE
           value: coherence-operator-webhook-service
         - name: WEBHOOK_SECRET
-          value: {{ .Values.webhookCertSecret }}
+          value: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
         - name: CERT_TYPE
-          value: {{ .Values.webhookCertType | quote }}
+          value: {{ default "self-signed" .Values.webhookCertType | quote }}
         - name: COHERENCE_IMAGE
           value: {{ .Values.defaultCoherenceImage | quote }}
         - name: RACK_LABEL
@@ -69,7 +70,6 @@ spec:
         - name: WATCH_NAMESPACE
           value: {{ .Values.watchNamespaces | quote }}
         image: {{ .Values.image }}
-        name: manager
         ports:
         - name: webhook-server
           containerPort: 9443
