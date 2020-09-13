@@ -1310,6 +1310,7 @@ release-ghpages:  docs
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout gh-pages
+	git config pull.rebase true
 	git pull
 	mkdir -p dashboards || true
 	rm -rf dashboards/$(VERSION) || true

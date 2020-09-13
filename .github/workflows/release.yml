@@ -67,4 +67,4 @@ jobs:
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         make clean
         make build-all-images
-        make release RELEASE_DRY_RUN=true RELEASE_IMAGE_PREFIX="docker.pkg.github.com/thegridman/coherence-operator/"
+        make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="docker.pkg.github.com/thegridman/coherence-operator/"
