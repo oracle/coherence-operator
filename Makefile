@@ -763,7 +763,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
 clean:
 	-rm -rf build/_output
 	-rm -f bin/*
-	rm pkg/data/zz_generated_assets.go
+	rm pkg/data/zz_generated_assets.go || true
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
