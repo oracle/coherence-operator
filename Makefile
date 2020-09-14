@@ -763,7 +763,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
 clean:
 	-rm -rf build/_output
 	-rm -f bin/*
-	rm pkg/data/zz_generated_assets.go
+	rm pkg/data/zz_generated_assets.go || true
 	mvn $(USE_MAVEN_SETTINGS) -f java clean
 	mvn $(USE_MAVEN_SETTINGS) -f examples clean
 
@@ -1296,7 +1296,7 @@ release-dashboards:
 # Release the Coherence Operator to the gh-pages branch.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
-release-ghpages:  docs
+release-ghpages:  helm-chart docs
 	@echo "Releasing Dashboards $(VERSION)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
@@ -1310,6 +1310,7 @@ release-ghpages:  docs
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout gh-pages
+	git config pull.rebase true
 	git pull
 	mkdir -p dashboards || true
 	rm -rf dashboards/$(VERSION) || true
@@ -1322,6 +1323,11 @@ ifeq (true, $(PRE_RELEASE))
 	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
+	mkdir -p charts-unstable || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts-unstable/
+	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	ls -ls charts-unstable
+
 	git status
 	git add docs-unstable/*
 else
@@ -1329,6 +1335,11 @@ else
 	rm -rf docs/$(VERSION)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION)/
 	ls -ls docs
+
+	mkdir -p charts || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts/
+	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	ls -ls charts
 
 	git status
 	git add docs/*
