@@ -1,0 +1,70 @@
+# Copyright (c) 2020, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence Operator GitHub Actions Release build.
+# ---------------------------------------------------------------------------
+name: Operator Release
+
+on:
+  release:
+    types: [prereleased, released]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: '1.8'
+
+    - name: Cache Go Modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-mods-
+
+    - name: Cache Maven packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2-beta
+      with:
+        go-version: 1.14.x
+
+    - name: Login to GitHub Packages Docker Registry
+      uses: docker/login-action@v1
+      with:
+        registry: docker.pkg.github.com
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Start KinD Cluster
+      shell: bash
+      run: |
+        sh ./hack/kind.sh --image kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f
+        kubectl version
+        kubectl get nodes
+        docker pull gcr.io/distroless/java
+
+    - name: Release
+      shell: bash
+      run: |
+        git config --local user.name "Github Action"
+        git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        make clean
+        make build-all-images
+        make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="docker.pkg.github.com/thegridman/coherence-operator/"
