@@ -1296,7 +1296,7 @@ release-dashboards:
 # Release the Coherence Operator to the gh-pages branch.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
-release-ghpages:  docs
+release-ghpages:  helm-chart docs
 	@echo "Releasing Dashboards $(VERSION)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
@@ -1323,6 +1323,11 @@ ifeq (true, $(PRE_RELEASE))
 	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
+	mkdir -p charts-unstable || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts-unstable/
+	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	ls -ls charts-unstable
+
 	git status
 	git add docs-unstable/*
 else
@@ -1330,6 +1335,11 @@ else
 	rm -rf docs/$(VERSION)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION)/
 	ls -ls docs
+
+	mkdir -p charts || true
+	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts/
+	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	ls -ls charts
 
 	git status
 	git add docs/*
