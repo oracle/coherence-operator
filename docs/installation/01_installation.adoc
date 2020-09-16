@@ -13,10 +13,10 @@ easily be installed into a Kubernetes cluster.
 
 == Prerequisites
 
-* Access to a Kubernetes v1.12.0+ cluster.
-* Access to Oracle Coherence Docker images.
+* Access to Oracle Coherence Docker images, or self-built Coherence images.
+* Access to a Kubernetes v1.12.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.12 upto v1.19
 
-NOTE: OpenShift - the Coherence Operator works without modification on OpenShift but some versions
+NOTE: OpenShift - the Coherence Operator works without modification on OpenShift, but some versions
 of the Coherence images will not work out of the box.
 See the <<installation/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
@@ -24,7 +24,7 @@ run Coherence clusters with the Operator on OpenShift.
 == Installing With Helm
 
 The simplest way to install the Coherence Operator is to use the Helm chart.
-This will ensure that all of the correct resources are created in Kubernetes.
+This ensures that all the correct resources will be created in Kubernetes.
 
 === Add the Coherence Helm Repository
 
@@ -39,24 +39,120 @@ helm repo update
 
 === Install the Coherence Operator Helm chart
 
-Once the Coherence Helm repo is configured the Coherence Operator can be installed using a normal Helm install command:
+Once the Coherence Helm repo has been configured the Coherence Operator can be installed using a normal Helm 3
+install command:
 
 [source,bash]
 ----
 helm install  \
-    --namespace <namespace> \
-    --name coherence-operator \
+    --namespace <namespace> \      <1>
+    coherence \                    <2>
     coherence/coherence-operator
 ----
 
-where `<namespace>` is the namespace that the Coherence Operator will be installed into and the namespace where it will
-manage `Coherence` resources
+<1> where `<namespace>` is the namespace that the Coherence Operator will be installed into.
+<2> `coherence` is the name of this Helm installation.
+
 
 ==== Uninstall the Coherence Operator Helm chart
 
 To uninstall the operator:
 [source,bash]
 ----
-helm delete --purge coherence-operator
+helm delete coherence-operator --namespace <namespace>
 ----
+
+== Operator Scope
+
+The recommended way to install the Coherence Operator is to install a single instance of the operator into a namespace
+and where it will then control `Coherence` resources in all namespaces across the Kubernetes cluster.
+Alternatively it may be configured to watch a sub-set of namespaces by setting the `WATCH_NAMESPACE` environment variable.
+The watch namespace(s) does not have to include the installation namespace.
+
+In theory, it is possible to install multiple instances of the Coherence Operator into different namespaces, where
+each instances monitors a different set of namespaces. There are a number of potential issues with this approach, so
+it is not recommended.
+
+* Only one CRD can be installed - Different releases of the Operator may use slightly different CRD versions, for example
+v3.1.1 may introduce extra fields not in v3.1.0. As the CRD version is `v1` there is no guarantee which CRD version has
+actually installed, which could lead to subtle issues.
+* The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
+installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
+configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
+unable to contact the web-hook.
+
+To set the watch namespaces when installing with helm set the `watchNamespaces` value, for example:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set watchNamespaces=payments,catalog,customers <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> The `payments`, `catalog` and `customers` namespaces will be watched by the Operator.
+
+== Operator Image
+
+The Helm chart uses a default registry to pull the Operator image from.
+If the image needs to be pulled from a different location (for example an internal registry) then the `image` field
+in the values file can be set, for example:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set image=images.com/coherence/coherence-operator:3.1.0 <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> The image used to run the Operator will be `images.com/coherence/coherence-operator:3.1.0`.
+
+=== Image Pull Secrets
+
+If the image is to be pulled from a secure repository that requires credentials then the image pull secrets
+can be specified.
+See the Kubernetes documentation on https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/[Pulling from a Private Registry].
+
+==== Add Pull Secrets Using a Values File
+
+Create a values file that specifies the secrets, for example the `private-repo-values.yaml` file below:
+
+[source,yaml]
+.private-repo-values.yaml
+----
+imagePullSecrets:
+- name: registry-secrets
+----
+
+Now use that file in the Helm install command:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    -f private-repo-values.yaml <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+<1> the `private-repo-values.yaml` values fle will be used by Helm to inject the settings into the Operator deployment
+
+==== Add Pull Secrets Using --Set
+
+Although the `imagePullSecrets` field in the values file is an array of `name` to value pairs it is possible to set
+these values with the normal Helm `--set` parameter.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set imagePullSecrets[0].name=registry-secrets <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> this creates the same imagePullSecrets as the values file above.
 

@@ -54,3 +54,11 @@ image::../images/coherence-demo.png[Service Details,width="950",align="center"]
 Please see https://github.com/coherence-community/coherence-demo[The Coherence Demo GitHub project] for full instructions.
 
 
+=== 3. Autoscaling
+
+The Autoscaling example demonstrates how to use the Kubernetes
+https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Horizontal Pod Autoscaler]
+to scale a Coherence cluster based on metrics. The example scales based on heap usage after GC.
+
+Please see https://github.com/oracle/coherence-operator/tree/master/examples/autoscaler[GitHub] for full instructions.
+

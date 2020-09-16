@@ -8,10 +8,11 @@
 
 = Obtain Coherence Images
 
-The Coherence Operator uses the OSS Coherence CE image as the image to run when no image has been specified
-for a `Coherence` resource.
+For most use-cases we expect the developer to provide a suitable Coherence application image to be
+run by the operator. For POCs, demos and experimentation the Coherence Operator uses the OSS Coherence CE image as
+the image to run when no image has been specified for a `Coherence` resource.
 Commercial Coherence images are not available from public image registries and must be pulled from the
-Oracle Container Registry.
+middleware section of https://container-registry.oracle.com[Oracle Container Registry.]
 
 == Coherence Images from Oracle Container Registry
 
