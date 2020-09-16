@@ -46,6 +46,7 @@ type CoherenceResourceSpec struct {
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// If not specified a default value of 3 will be used.
 	// This field cannot be negative.
+	// +kubebuilder:default:=3
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
@@ -729,24 +730,24 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1
 	return []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: "spec.nodeName",
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "spec.nodeName",
+				},
 			},
-		},
 		},
 		{
 			Name: EnvVarCohMemberName, ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: "metadata.name",
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
 			},
-		},
 		},
 		{
 			Name: EnvVarCohPodUID, ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: "metadata.uid",
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.uid",
+				},
 			},
-		},
 		},
 		{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},

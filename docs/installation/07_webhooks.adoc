@@ -1,0 +1,92 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Operator Web-Hooks
+
+== Operator Web-Hooks
+
+The Coherence Operator uses Kubernetes
+https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/[dynamic admission control]
+commonly known as defaulting and validating web-hooks. As the name implies, these are used to provide default values
+for some fields in a `Coherence` resource and to also validate `Coherence` resources on creation and update.
+The operator creates and configures the two web-hooks when it starts.
+
+
+=== Webhook Scope
+
+Webhooks in Kubernetes are a cluster resource, not a namespaced scoped resource, so consequently there is typically only
+a single webhook installed for a given resource type. If the Coherence Operator has been installed as a cluster scoped
+operator then this is not a problem but if multiple Coherence Operators have been deployed then they could all attempt
+to install the webhooks and update or overwrite a previous configuration.
+This might not be an issue if all the operators deployed in a Kubernetes cluster are the same version but different
+versions could cause issues.
+This is one of the reasons that it is recommended to install a single cluster scoped Coherence Operator.
+
+== Manage Web-Hook Certificates
+
+A web-hook requires certificates to be able to work in Kubernetes.
+By default, the operator will create and manage self-signed certificates for this purpose.
+It is possible to use other certificates, either managed by the
+https://cert-manager.io/docs/installation/kubernetes/[Kubernetes cert-manager] or managed manually.
+
+The certificates should be stored in a `Secret` named `coherence-webhook-server-cert` in the same namespace that
+the operator has installed in. (although this name can be changed if required). This `Secret` must exist, or the operator
+wil fail to start. The Operator Helm chart will create this `Secret` when the Operator is managing its own self-signed
+certs, otherwise the `Secret` must be created manually or by an external certificate manager.
+
+=== Self-Signed Certificates
+
+This is the default option, the operator will create and manage a set of self-signed certificates.
+The Operator will update the `Secret` with its certificates and create the `MutatingWebhookConfiguration` and
+`ValidatingWebhookConfiguration` resources configured to use those certificates.
+
+=== Cert Manager (Self-Signed)
+
+Assuming Cert Manager has been installed in the Kubernetes cluster then to use it for managing the web-hook certificates,
+the Operator needs to be installed with the `CERT_TYPE` environment variable set to `cert-manager`.
+
+The Operator will then detect the version of Cert Manager and automatically create the required self-signed `Issuer`
+and `Certificate` resources. Cert Manager will detect these and create the `Secret`. This may cause the operator Pod to
+re-start until the `Secret` has been created.
+
+To set the certificate manager to use when installing the Helm chart, set the `webhookCertType` value:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set webhookCertType=cert-manager <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> The certificate manager will be set to `cert-manager`
+
+
+=== Manual Certificates
+
+If certificates will managed some other way (for example by Cert Manager managing real certificates) then the
+`CERT_TYPE` environment variable should be set to `manual`.
+
+Before the Operator starts the `Secret` must exist containing the valid certificates.
+The Operator will use the certificates that it finds in the `Secret` to create the web-hook resources.
+
+To set the certificate manager to use when installing the Helm chart, set the `webhookCertType` value:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set webhookCertType=manual <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> The certificate manager will be set to `manual`
+
+
