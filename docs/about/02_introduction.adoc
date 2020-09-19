@@ -42,3 +42,46 @@ a Coherence deployment using a `StatefulSet` with a replica count of three, whic
 enabled Coherence `Pods`.
 
 See the <<about/04_coherence_spec.adoc,Coherence CRD spec>> page for details of all the fields in the CRD.
+
+In the above example no `spec.image` field has been set, so the Operator will use a publicly pullable Coherence CE
+image as its default. These images are meant for demos, POCs and experimentation, but for a production application you
+should build your own image.
+
+
+== Using Commercial Coherence Versions
+
+NOTE: Whilst the Coherence CE version can be freely deployed anywhere, if your application image uses a commercial
+version of Oracle Coherence then you are responsible for making sure your deployment has been properly licensed.
+
+Oracle's current policy is that a license will be required for each Kubernetes Node that images are to be pulled to.
+While an image exists on a node it is effectively the same as having installed the software on that node.
+
+One way to ensure that the Pods of a Coherence deployment only get scheduled onto nodes that meet the
+license requirement is to configure Pod scheduling, for example a node selector. Node selectors, and other scheduling,
+is simple to configure in the `Coherence` CRD, see the <<other/090_pod_scheduling.adoc,scheduling documentation>>
+
+For example, if a commercial Coherence license exists such that a sub-set of nodes in a Kubernetes cluster
+have been covered by the license then those nodes could all be given a label, e.g. `coherenceLicense=true`
+
+When creating a `Coherence` deployment specify a node selector to match the label:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: my-app:1.0.0         # <1>
+  nodeSelector:
+    coherenceLicense: 'true'  # <2>
+----
+
+<1> The `my-app:1.0.0` image contains a commercial Coherence version.
+<2> The `nodeSelector` will ensure Pods only get scheduled to nodes with the `coherenceLicense=true` label.
+
+There are other ways to configure Pod scheduling supported by the Coherence Operator (such as taints and tolerations)
+and there are alternative ways to restrict nodes that Pods can be schedule to, for example a namespace in kubernetes
+can be restricted to a sub-set of the cluster's nodes. Using a node selector as described above is probably the
+simplest approach.
+

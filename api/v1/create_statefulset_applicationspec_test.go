@@ -25,7 +25,7 @@ func TestCreateStatefulSetWithApplicationType(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Add the expected environment variables
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "APP_TYPE", Value: "foo"})
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarAppType, Value: "foo"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

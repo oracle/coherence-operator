@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,9 +26,10 @@ import (
 // The code that actually starts the process in the Coherence container.
 
 const (
-	DCS         = "com.tangosol.net.DefaultCacheServer"
-	HelidonMain = "io.helidon.microprofile.server.Main"
-	ServerMain  = "com.oracle.coherence.k8s.Main"
+	DCS            = "com.tangosol.net.DefaultCacheServer"
+	HelidonMain    = "io.helidon.microprofile.server.Main"
+	ServerMain     = "com.oracle.coherence.k8s.Main"
+	SpringBootMain = "org.springframework.boot.loader.PropertiesLauncher"
 
 	CommandServer      = "server"
 	CommandConsole     = "console"
@@ -44,6 +46,7 @@ const (
 	AppTypeJava      = "java"
 	AppTypeCoherence = "coherence"
 	AppTypeHelidon   = "helidon"
+	AppTypeSpring    = "spring"
 )
 
 // Run the Coherence process using the specified args and environment variables.
@@ -55,6 +58,10 @@ func Run(args []string, env map[string]string) error {
 	if cmd != nil {
 		fmt.Printf("\nINFO: Starting the Coherence %s process using:\n", app)
 		fmt.Printf("INFO: %s %s\n\n", cmd.Path, strings.Join(cmd.Args, " "))
+		fmt.Println("INFO: Environment:")
+		for _, e := range cmd.Env {
+			fmt.Printf("INFO:     %s\n", e)
+		}
 		return cmd.Run()
 	}
 	return nil
@@ -111,15 +118,14 @@ func DryRun(args []string, env map[string]string) (string, *exec.Cmd, error) {
 func Initialise() error {
 	var err error
 
-	pathSep                 := string(os.PathSeparator)
-	filesDir                := pathSep + "files"
-	configSrc               := filesDir + pathSep + "config"
-	loggingSrc              := filesDir + pathSep + "logging"
-	libSrc                  := filesDir + pathSep + "lib"
-	snapshotDir             := v1.VolumeMountPathSnapshots
-	persistenceDir          := v1.VolumeMountPathPersistence
-	persistenceActiveDir    := persistenceDir + pathSep + "active"
-	persistenceTrashDir     := persistenceDir + pathSep + "trash"
+	pathSep := string(os.PathSeparator)
+	filesDir := pathSep + "files"
+	loggingSrc := filesDir + pathSep + "logging"
+	libSrc := filesDir + pathSep + "lib"
+	snapshotDir := v1.VolumeMountPathSnapshots
+	persistenceDir := v1.VolumeMountPathPersistence
+	persistenceActiveDir := persistenceDir + pathSep + "active"
+	persistenceTrashDir := persistenceDir + pathSep + "trash"
 	persistenceSnapshotsDir := persistenceDir + pathSep + "snapshots"
 
 	fmt.Println("Starting container initialisation")
@@ -129,16 +135,14 @@ func Initialise() error {
 		utilDir = v1.VolumeMountPathUtils
 	}
 
-	configDir := utilDir + pathSep + "config"
 	loggingDir := utilDir + pathSep + "logging"
-	libDir := utilDir + pathSep + "lib"
 
-	fmt.Printf("Creating target directories under %s\n", utilDir)
-	err = os.MkdirAll(configDir, os.ModePerm)
-	if err != nil {
-		return err
+	libDir := os.Getenv(v1.EnvVarCohUtilLibDir)
+	if libDir == "" {
+		libDir = utilDir + pathSep + "lib"
 	}
 
+	fmt.Printf("Creating target directories under %s\n", utilDir)
 	err = os.MkdirAll(loggingDir, os.ModePerm)
 	if err != nil {
 		return err
@@ -150,12 +154,6 @@ func Initialise() error {
 	}
 
 	fmt.Printf("Copying files to %s\n", utilDir)
-	fmt.Printf("Copying %s to %s\n", configSrc, configDir)
-	err = utils.CopyDir(configSrc, configDir, func(f string) bool { return true })
-	if err != nil {
-		return err
-	}
-
 	fmt.Printf("Copying %s to %s\n", loggingSrc, loggingDir)
 	err = utils.CopyDir(loggingSrc, loggingDir, func(f string) bool { return true })
 	if err != nil {
@@ -237,13 +235,26 @@ func server(details *RunDetails) {
 	// otherwise run Coherence DCS.
 	mc, found := details.LookupEnv(v1.EnvVarAppMainClass)
 	switch {
-	case found:
+	case found && details.AppType != AppTypeSpring:
+		// we have a main class specified and we're not a Spring Boot app
 		details.MainArgs = []string{mc}
+	case found && details.AppType == AppTypeSpring:
+		// we have a main class and the app is Spring Boot
+		// the main is PropertiesLauncher,
+		details.MainClass = SpringBootMain
+		// the specified main class is set as a Spring loader property
+		details.AddArg("-Dloader.main=" + mc)
+	case !found && details.AppType == AppTypeSpring:
+		// the app type is Spring Boot so main is PropertiesLauncher
+		details.MainClass = SpringBootMain
 	case !found && details.AppType == AppTypeCoherence:
+		// the app type is Coherence so main is DCS
 		details.MainArgs = []string{DCS}
 	case !found && details.AppType == AppTypeHelidon:
+		// the app type is Helidon so main is the Helidon CDI starter
 		details.MainArgs = []string{HelidonMain}
 	default:
+		// no main or app type specified, use DCS
 		details.MainArgs = []string{DCS}
 	}
 
@@ -313,7 +324,6 @@ func server(details *RunDetails) {
 		}
 	}
 
-	details.AddArg("-XshowSettings:all")
 	details.AddArg("-XX:+PrintCommandLineFlags")
 	details.AddArg("-XX:+PrintFlagsFinal")
 
@@ -373,6 +383,8 @@ func mbeanServer(details *RunDetails) {
 
 // Start the required process
 func start(details *RunDetails) (string, *exec.Cmd, error) {
+	var err error
+
 	// Set standard system properties
 	details.AddArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
 	details.AddArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
@@ -387,12 +399,14 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArg("-XX:+UnlockDiagnosticVMOptions")
 
 	// Configure the classpath to support images created with the JIB Maven plugin
-	// This is enabled by default.
-	if details.IsEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
-		details.AddClasspath("/app/resources")
-		details.AddClasspath("/app/classes")
-		details.AddClasspath("/app/classpath/*")
-		details.AddClasspath("/app/libs/*")
+	// This is enabled by default unless the image is a buildpacks image or we
+	// are running a Spring Boot application.
+	if !details.IsBuildPacks() && details.AppType != AppTypeSpring && details.IsEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
+		appDir := details.GetenvOrDefault(v1.EnvVarCohAppDir, "/app")
+		details.AddClasspathIfExists(appDir + "/resources")
+		details.AddClasspathIfExists(appDir + "/classes")
+		details.AddJarsToClasspath(appDir + "/classpath")
+		details.AddJarsToClasspath(appDir + "/libs")
 	}
 
 	// Add the Operator Utils jar to the classpath
@@ -420,11 +434,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	details.AddArgFromEnvVar(v1.EnvVarCohLogLevel, "-Dcoherence.log.level")
 
 	// Do the Coherence version specific configuration
-	ok, err := checkCoherenceVersion("12.2.1.4.0", details)
-	if err != nil {
-		return "", nil, err
-	}
-	if ok {
+	if ok := checkCoherenceVersion("12.2.1.4.0", details); ok {
 		// is at least 12.2.1.4
 		cohPost12214(details)
 	} else {
@@ -635,13 +645,16 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	switch {
 	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
 		app = "Java"
-		cmd, err = createJavaCommand(details.GetJava(), details)
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
+	case details.AppType == AppTypeSpring:
+		app = "SpringBoot"
+		cmd, err = createSpringBootCommand(details.GetJavaExecutable(), details)
 	case details.AppType == AppTypeHelidon:
 		app = "Java"
-		cmd, err = createJavaCommand(details.GetJava(), details)
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
-		cmd, err = createJavaCommand(details.GetJava(), details)
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = runGraal(details)
@@ -653,6 +666,18 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.GetCommand()
 	args = append(args, details.MainClass)
+	return _createJavaCommand(javaCmd, details, args)
+}
+
+func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
+	if details.IsBuildPacks() {
+		return _createBuildPackCommand(details, SpringBootMain, details.GetSpringBootArgs())
+	}
+	args := details.GetSpringBootCommand()
+	return _createJavaCommand(javaCmd, details, args)
+}
+
+func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*exec.Cmd, error) {
 	args = append(args, details.MainArgs...)
 	cmd := exec.Command(javaCmd, args...)
 	cmd.Stdout = os.Stdout
@@ -668,6 +693,44 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	}
 
 	return cmd, nil
+}
+
+func _createBuildPackCommand(details *RunDetails, className string, args []string) (*exec.Cmd, error) {
+	launcher := getBuildpackLauncher()
+
+	argsFile, err := ioutil.TempFile("", "jvm-args")
+	if err != nil {
+		return nil, err
+	}
+	defer argsFile.Close()
+
+	data := strings.Join(args, "\n")
+	if _, err := argsFile.WriteString(data); err != nil {
+		return nil, err
+	}
+	fmt.Printf("INFO: Created JVM Arguments file : %s\n", argsFile.Name())
+	fmt.Printf("INFO: \n%s\n\n", data)
+
+	opts := "@" + argsFile.Name()
+	if toolOpts, found := details.LookupEnv("JAVA_TOOL_OPTIONS"); found {
+		opts = opts + " " + toolOpts
+	}
+	env := append(os.Environ(), fmt.Sprintf(`JAVA_TOOL_OPTIONS=%s`, strings.TrimSpace(opts)))
+
+	cmd := exec.Command(launcher, "java", className)
+	cmd.Env = env
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	return cmd, nil
+}
+
+func getBuildpackLauncher() string {
+	if launcher, ok := os.LookupEnv(v1.EnvVarCnbpLauncher); ok {
+		return launcher
+	}
+	return v1.DefaultCnbpLauncher
 }
 
 func runGraal(details *RunDetails) (*exec.Cmd, error) {
@@ -798,39 +861,68 @@ func httpGet(url string, details *RunDetails) string {
 	return s
 }
 
-func checkCoherenceVersion(v string, details *RunDetails) (bool, error) {
+func checkCoherenceVersion(v string, details *RunDetails) bool {
 	fmt.Printf("INFO: Checking for Coherence version %s\n", v)
 
 	if details.IsEnvTrue(v1.EnvVarCohSkipVersionCheck) {
 		fmt.Printf("INFO: Skipping Coherence version check %s=%s\n", v1.EnvVarCohSkipVersionCheck, details.Getenv(v1.EnvVarCohSkipVersionCheck))
-		return true, nil
+		return true
 	}
 
 	// Get the classpath to use (we need Coherence jar)
-	cp := fmt.Sprintf("%s/lib/*:%s", details.UtilsDir, details.GetClasspath())
+	cp := details.UtilsDir + "/lib/coherence-utils.jar"
 
-	// Configure the os command
-	java := details.GetJava()
-	cmd := exec.Command(java, "-cp", cp, "com.oracle.coherence.k8s.CoherenceVersion", v)
+	var exe string
+	var cmd *exec.Cmd
+	var args []string
+
+	if details.IsBuildPacks() {
+		// This is a buildpacks image so use the Buildpacks launcher to run Java
+		exe = getBuildpackLauncher()
+		args = []string{"java"}
+	} else {
+		// this should be a normal image with Java available
+		exe = details.GetJavaExecutable()
+	}
+
+	if details.AppType == AppTypeSpring {
+		// This is a Spring Boot App so Coherence jar is embedded in the Spring Boot application
+		args = append(args, "-Dloader.path="+cp,
+			"-Dcoherence.operator.springboot.listener=false",
+			"-Dloader.main=com.oracle.coherence.k8s.CoherenceVersion",
+			"org.springframework.boot.loader.PropertiesLauncher", v)
+
+		if jar, _ := details.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
+			// This is a fat jar Spring boot app so put the fat jar on the classpath
+			args = append(args, "-cp", jar)
+		}
+	} else {
+		// We can use normal Java
+		args = append(args, "-cp", cp,
+			"-Dcoherence.operator.springboot.listener=false",
+			"com.oracle.coherence.k8s.CoherenceVersion", v)
+	}
+
+	cmd = exec.Command(exe, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	fmt.Printf("INFO: Command: %s %s\n", cmd.Path, strings.Join(cmd.Args, " "))
+	fmt.Printf("INFO: Command: %s\n", strings.Join(cmd.Args, " "))
 	// execute the command
 	err := cmd.Run()
 	if err == nil {
 		// command exited with exit code 0
 		fmt.Printf("INFO: Coherence version is at least %s\n", v)
-		return true, nil
+		return true
 	}
 	if _, ok := err.(*exec.ExitError); ok {
 		// The program has exited with an exit code != 0
 		fmt.Printf("INFO: Coherence version is lower than %s\n", v)
-		return false, nil
+		return false
 	}
 	// command exited with some other error
 	fmt.Printf("ERROR: Coherence version check failed %s\n", err.Error())
-	return false, err
+	return false
 }
 
 func cohPre12214(details *RunDetails) {
@@ -973,6 +1065,7 @@ type RunDetails struct {
 	Args          []string
 	MainClass     string
 	MainArgs      []string
+	BuildPacks    *bool
 }
 
 func (in *RunDetails) Getenv(name string) string {
@@ -1024,6 +1117,26 @@ func (in *RunDetails) GetCommand() []string {
 	return cmd
 }
 
+func (in *RunDetails) GetSpringBootCommand() []string {
+	return append(in.GetSpringBootArgs(), in.MainClass)
+}
+
+func (in *RunDetails) GetSpringBootArgs() []string {
+	var cmd []string
+	cp := strings.Replace(in.GetClasspath(), ":", ",", -1)
+	if cp != "" {
+		cmd = append(cmd, "-Dloader.path="+cp)
+	}
+
+	// Are we using a Spring Boot fat jar
+	if jar, _ := in.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
+		cmd = append(cmd, "-cp", jar)
+	}
+	cmd = append(cmd, in.Args...)
+
+	return cmd
+}
+
 func (in *RunDetails) GetGraalCommand() []string {
 	cmd := in.GetCommand()
 	for i, c := range cmd {
@@ -1068,6 +1181,31 @@ func (in *RunDetails) AddToFrontOfClasspath(path string) {
 	}
 }
 
+// Add all jars in the specified directory to the classpath
+func (in *RunDetails) AddJarsToClasspath(path string) {
+	if _, err := os.Stat(path); err == nil {
+		var jars []string
+		_ = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			name := info.Name()
+			if !info.IsDir() && (strings.HasSuffix(name, ".jar") || strings.HasSuffix(name, ".JAR")) {
+				jars = append(jars, path)
+			}
+			return nil
+		})
+
+		sort.Strings(jars)
+		for _, jar := range jars {
+			in.AddClasspath(jar)
+		}
+	}
+}
+
+func (in *RunDetails) AddClasspathIfExists(path string) {
+	if _, err := os.Stat(path); err == nil {
+		in.AddClasspath(path)
+	}
+}
+
 func (in *RunDetails) AddClasspath(path string) {
 	if path != "" {
 		if in.Classpath == "" {
@@ -1082,8 +1220,10 @@ func (in *RunDetails) GetClasspath() string {
 	cp := in.Classpath
 	// if ${COHERENCE_HOME} exists add coherence.jar to the classpath
 	if in.CoherenceHome != "" {
-		cp = cp + ":" + in.CoherenceHome + "/conf"
-		cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+		if _, err := os.Stat(in.CoherenceHome); err != nil {
+			cp = cp + ":" + in.CoherenceHome + "/conf"
+			cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+		}
 	}
 	return cp
 }
@@ -1107,9 +1247,38 @@ func (in *RunDetails) SetSystemPropertyFromEnvVarOrDefault(name, property, dflt 
 	in.Args = append(in.Args, s)
 }
 
-func (in *RunDetails) GetJava() string {
+func (in *RunDetails) GetJavaExecutable() string {
 	if in.JavaHome != "" {
 		return in.JavaHome + "/bin/java"
 	}
 	return "java"
+}
+
+// Determine whether to run the application with the Cloud Native Buildpack launcher
+func (in *RunDetails) IsBuildPacks() bool {
+	if in.BuildPacks == nil {
+		var bp bool
+		detect := strings.ToLower(in.Env[v1.EnvVarCnbpEnabled])
+		switch detect {
+		case "true":
+			fmt.Printf("INFO: Detecting Cloud Native Buildpacks: %s=true\n", v1.EnvVarCnbpEnabled)
+			bp = true
+		case "false":
+			fmt.Printf("INFO: Detecting Cloud Native Buildpacks: %s=false\n", v1.EnvVarCnbpEnabled)
+			bp = false
+		default:
+			fmt.Println("INFO: Auto-detecting Cloud Native Buildpacks")
+			// else auto detect
+			// look for the CNB API environment variable
+			_, ok := os.LookupEnv("CNB_PLATFORM_API")
+			fmt.Printf("INFO: Auto-detecting Cloud Native Buildpacks: CNB_PLATFORM_API found=%t\n", ok)
+			// look for the CNB launcher
+			launcher := getBuildpackLauncher()
+			_, err := os.Stat(launcher)
+			fmt.Printf("INFO: Auto-detecting Cloud Native Buildpacks: CNB Launcher '%s' found=%t\n", launcher, err == nil)
+			bp = ok && err == nil
+		}
+		in.BuildPacks = &bp
+	}
+	return *in.BuildPacks
 }

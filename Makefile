@@ -53,8 +53,11 @@ OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
 BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
-# The test application image used in integration tests
-TEST_APPLICATION_IMAGE := $(RELEASE_IMAGE_PREFIX)operator-test-jib:$(VERSION)
+# The test application images used in integration tests
+TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
+TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring
+TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
+TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
 
 # Default bundle image tag
 BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-bundle
@@ -75,8 +78,18 @@ PRE_RELEASE      ?= true
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
 #   make e2e-test GO_TEST_FLAGS_E2E=-run=^TestZone$
+ifeq ($(origin RUN_ONE), undefined)
 GO_TEST_FLAGS     ?= -timeout=20m
-GO_TEST_FLAGS_E2E := -timeout=100m
+GO_TEST_FLAGS_E2E ?= -timeout=100m
+else
+GO_TEST_FLAGS     ?= -timeout=20m -run=^$(RUN_ONE)$$
+GO_TEST_FLAGS_E2E ?= -timeout=100m -run=^$(RUN_ONE)$$
+endif
+
+.PHONY: jk
+jk:
+	echo "GO_TEST_FLAGS=$(GO_TEST_FLAGS)"
+	echo "GO_TEST_FLAGS_E2E=$(GO_TEST_FLAGS_E2E)"
 
 # default as in test/e2e/helper/proj_helpers.go
 OPERATOR_NAMESPACE ?= operator-test
@@ -283,6 +296,9 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -329,6 +345,9 @@ run-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 run-e2e-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
@@ -368,6 +387,9 @@ e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-o
 run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-prometheus-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-prometheus-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -408,6 +430,9 @@ e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operato
 run-elastic-test: export CGO_ENABLED = 0
 run-elastic-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-elastic-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -432,6 +457,9 @@ run-elastic-test: gotestsum
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -477,6 +505,9 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 run-certification: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-certification: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-certification: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -923,31 +954,40 @@ else
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator JIB Test image
+# Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-jib-image
-build-jib-image: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE)
+.PHONY: build-test-images
+build-test-images: build-mvn
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
+	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
+	cp java/operator-test-spring/target/operator-test-spring-$(VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(VERSION).jar
+	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(VERSION).jar && rm -f operator-test-spring-$(VERSION).jar
+	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: push-jib-image
-push-jib-image:
-	@echo "Pushing $(TEST_APPLICATION_IMAGE)"
+.PHONY: push-test-images
+push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
-build-all-images: $(BUILD_TARGETS)/build-operator build-utils-image build-jib-image
+build-all-images: $(BUILD_TARGETS)/build-operator build-utils-image build-test-images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
-push-all-images: push-operator-image push-utils-image push-jib-image
+push-all-images: push-operator-image push-utils-image push-test-images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images that are released
@@ -1052,6 +1092,9 @@ kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING)|| true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT)|| true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP)|| true
 	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
 
 # ----------------------------------------------------------------------------------------------------------------------

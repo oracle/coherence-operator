@@ -122,7 +122,7 @@ func TestRunDetailsGetJavaEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	r := RunDetails{}
-	g.Expect(r.GetJava()).To(Equal("java"))
+	g.Expect(r.GetJavaExecutable()).To(Equal("java"))
 }
 
 func TestRunDetailsGetJavaWhenJavaHomeSet(t *testing.T) {
@@ -131,7 +131,7 @@ func TestRunDetailsGetJavaWhenJavaHomeSet(t *testing.T) {
 	r := RunDetails{
 		JavaHome: "/local/bin/jdk11",
 	}
-	g.Expect(r.GetJava()).To(Equal("/local/bin/jdk11/bin/java"))
+	g.Expect(r.GetJavaExecutable()).To(Equal("/local/bin/jdk11/bin/java"))
 }
 
 func TestRunDetailsGetCommandWhenEmpty(t *testing.T) {

@@ -142,6 +142,17 @@ type ApplicationSpec struct {
 	// If not set the application directory default value is "/app".
 	// +optional
 	WorkingDir *string `json:"workingDir,omitempty"`
+	// Optional settings that may be configured if using a Cloud Native Buildpack Image.
+	// For example an image build with the Spring Boot Maven/Gradle plugin.
+	// See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
+	// +optional
+	CloudNativeBuildPack *CloudNativeBuildPackSpec `json:"cloudNativeBuildPack,omitempty"`
+	// SpringBootFatJar is the full path name to the Spring Boot fat jar if the application
+	// image has been built by just adding a Spring Boot fat jar to the image.
+	// If this field is set then the application will be run by executing this jar.
+	// For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"
+	// +optional
+	SpringBootFatJar *string `json:"springBootFatJar,omitempty"`
 }
 
 func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
@@ -162,6 +173,38 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 		args := strings.Join(in.Args, " ")
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
 	}
+	if in.CloudNativeBuildPack != nil {
+		if in.CloudNativeBuildPack.Enabled != nil {
+			if *in.CloudNativeBuildPack.Enabled {
+				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "true"})
+			} else {
+				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "false"})
+			}
+		}
+		if in.CloudNativeBuildPack.Launcher != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpLauncher, Value: *in.CloudNativeBuildPack.Launcher})
+		}
+	}
+	if in.SpringBootFatJar != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarSpringBootFatJar, Value: *in.SpringBootFatJar})
+	}
+}
+
+// ----- CloudNativeBuildPackSpec struct ------------------------------------
+
+// The configuration when using a Cloud Native Buildpack Image.
+// For example an image build with the Spring Boot Maven/Gradle plugin.
+// See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
+type CloudNativeBuildPackSpec struct {
+	// Enable or disable buildpack detection.
+	// The operator will automatically detect Cloud Native Buildpack images
+	// but if this auto-detection fails to work correctly for a specific image
+	// then this field can be set to true to signify that the image is a
+	// buildpack image or false to signify that it is not a buildpack image.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// +optional
+	Launcher *string `json:"launcher,omitempty"`
 }
 
 // ----- CoherenceSpec struct -----------------------------------------------

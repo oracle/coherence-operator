@@ -37,7 +37,7 @@ func TestApplicationArgsEmpty(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -64,7 +64,7 @@ func TestApplicationArgs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -91,7 +91,7 @@ func TestApplicationMain(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -115,7 +115,7 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	expectedArgs := GetMinimalExpectedArgsWithoutAppClasspath()
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())

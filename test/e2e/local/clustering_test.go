@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-// ----- tests --------------------------------------------------------------
-
 // Test that a deployment works using the minimal valid yaml for a Coherence
 func TestMinimalDeployment(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!

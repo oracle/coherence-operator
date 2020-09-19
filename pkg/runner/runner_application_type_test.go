@@ -36,7 +36,7 @@ func TestApplicationTypeNone(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -64,7 +64,7 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -91,7 +91,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -119,7 +119,7 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -146,7 +146,7 @@ func TestApplicationTypeJava(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -174,7 +174,7 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -201,7 +201,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -229,7 +229,7 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }

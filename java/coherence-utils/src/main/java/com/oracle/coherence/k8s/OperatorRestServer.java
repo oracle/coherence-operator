@@ -170,7 +170,7 @@ public class OperatorRestServer {
      */
     public synchronized void start() throws IOException {
         if (httpServer == null) {
-            int port = Integer.getInteger(PROP_HEALTH_PORT, 1002);
+            int port = Integer.getInteger(PROP_HEALTH_PORT, 6676);
             HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
             server.createContext(PATH_READY, this::ready);
@@ -183,7 +183,8 @@ public class OperatorRestServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            System.out.println("CoherenceOperator REST server is listening on http://localhost:" + server.getAddress().getPort());
+            CacheFactory.log("Coherence Operator REST server is listening on http://localhost:" +
+                                     server.getAddress().getPort(), CacheFactory.LOG_INFO);
 
             httpServer = server;
         }

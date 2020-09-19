@@ -36,7 +36,7 @@ func TestCoherenceClusterName(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -64,7 +64,7 @@ func TestCoherenceCacheConfig(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -92,7 +92,7 @@ func TestCoherenceOperationalConfig(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -120,7 +120,7 @@ func TestCoherenceStorageEnabledTrue(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -148,7 +148,7 @@ func TestCoherenceStorageEnabledFalse(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -175,7 +175,7 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -203,7 +203,7 @@ func TestCoherenceLogLevel(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -231,7 +231,7 @@ func TestCoherenceTracingRatio(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -258,7 +258,7 @@ func TestCoherenceAllowEndangeredEmptyList(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -285,7 +285,7 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -310,13 +310,13 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
-	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix + ".foo.svc.cluster.local")
+	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".foo.svc.cluster.local")
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -347,7 +347,7 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }

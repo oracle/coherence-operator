@@ -39,7 +39,7 @@ func TestServerWithPersistenceMode(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
