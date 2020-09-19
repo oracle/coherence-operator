@@ -1,0 +1,259 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Spring Boot Applications
+
+== Spring Boot Applications
+
+The Coherence Operator supports running images that contain Spring Boot applications.
+Exactly how easy this is depends on how the image has been built.
+
+When the operator runs an image it overrides the default image entrypoint and uses its own launcher.
+This allows the operator to properly configure various Coherence properties that the launcher then uses to build the
+command line to actually run your application. With some types of image this is not a straight forward Java command line
+so the Operator requires a bit more information adding to the `Coherence` deployment yaml.
+
+=== Using JIB Images
+
+The simplest way to build an application image to run with the Coherence Operator (including Spring Boot applications)
+is to use the https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] tool.
+JIB images will work out of the box with the operator, even for a Spring Boot application, as described in
+<<applications/020_build_application.adoc,Building Applications>> and
+<<applications/030_deploy_application.adoc,Deploying Applications>>.
+
+If you have used the Spring Maven or Gradle plugins to build the application into a fat jar, but you then build the image
+using the https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] plugin then JIB will detect the fat
+jar and package the image in an exploded form that will run out of the box with the operator.
+
+=== Using an Exploded Spring Boot Image
+
+Another way to build a Spring Boot image is to explode the Spring Boot jar into a directory structure in the image.
+
+For example, if a Spring Boot jar has been exploded into a directory called `/spring`, the image contents might look
+like the diagram below; where you can see the `/spring` directory contains the Spring Boot application.
+
+[source]
+----
+├── bin
+├── boot
+├── dev
+├─⊕ etc
+├─⊕ home
+├─⊕ lib
+├─⊕ lib64
+├── proc
+├── root
+├── run
+├── sbin
+├── spring
+│   ├── BOOT-INF
+│   │   ├─⊕ classes
+│   │   ├── classpath.idx
+│   │   └─⊕ lib
+│   ├── META-INF
+│   │   ├── MANIFEST.MF
+│   │   └─⊕ maven
+│   └── org
+│       └── springframework
+│           └─⊕ boot
+├── sys
+├── tmp
+├─⊕ usr
+└─⊕ var
+----
+
+This type of image can be run by the Coherence Operator by specifying an application type of `spring` in the
+`spec.application.type` field and by setting the working directory to the exploded directory, for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: my-spring-app:1.0.0
+  application:
+    type: spring         # <1>
+    workingDir: /spring  # <2>
+----
+
+<1> The `type` field set to `spring` tells the Operator that this is a Spring Boot application.
+<2> The working directory has been set to the directory containing the exploded Spring Boot application.
+
+When the Operator starts the application it will then run a command equivalent to:
+[source,bash]
+----
+cd /spring && java org.springframework.boot.loader.PropertiesLauncher
+----
+
+
+=== Using a Spring Boot Fat Jar
+
+It is not recommended to build images containing fat jars for various reasons which can easily be found on the internet.
+If you feel that you must build your application as a Spring Boot fat jar then this can still work with the Coherence Operator.
+
+The Java command line to run a Spring Boot fat jar needs to be something like `java -jar my-app.jar`
+where `my-app.jar` is the fat jar.
+This means that the Operator's launcher needs to know the location of the fat jar in the image, so this must
+be provided in the `Coherence` deployment yaml.
+
+For example, suppose that an application has been built into a fat jar names `catalogue-1.0.0.jar` which is in the
+`/app/libs` directory in the image, so the full path to the jar is `/app/libs/catalogue-1.0.0.jar`.
+This needs to be set in the `spec.applicaton.springBootFatJar` field of the `Coherence` yaml.
+
+The `spec.application.type` field also needs to be set to `spring` so that the Operator knows that this is a
+Spring Boot application
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    type: spring                                      # <1>
+    springBootFatJar: /app/libs/catalogue-1.0.0.jar   # <2>
+----
+
+<1> The `type` field set to `spring` tells the Operator that this is a Spring Boot application.
+<2> The location of the Spring Boot jar has been set.
+
+When the Operator starts the application it will then run a command equivalent to:
+[source,bash]
+----
+java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.PropertiesLauncher
+----
+
+NOTE: The Operator does not run the fat jar using the `java -jar` command because it needs to add various other
+JVM arguments and append to the classpath, so it has to run the `org.springframework.boot.loader.PropertiesLauncher`
+class as opposed to the `org.springframework.boot.loader.JarLauncher` that `java -jar` would run.
+
+
+=== Using Could Native Buildpacks
+
+If the Spring Boot Maven or Gradle plugin has been used to produce an image using
+https://spring.io/blog/2020/01/27/creating-docker-images-with-spring-boot-2-3-0-m1[Cloud Native Buildpacks]
+these images can work with the Coherence Operator.
+
+[WARNING]
+====
+Due to limitation on the way that arguments can be passed to the JVM when using Buildpacks images the Coherence
+operator will only work with images containing a JVM greater than Java 11.
+Although the Buildpacks launcher will honour the `JAVA_OPTS` or `JAVA_TOOL_OPTIONS` environment variables there appear
+to be size limitations for thse that make it impractical for the Operator to use them.
+The Operator therefore creates an JVM arguments file that along with the JVM option `@jvm-args-file` to pass the name
+of the argument file to the JVM.
+The use of JVM arguments files is not supported in Java 8 - which is at the time of writing the default version
+used by the Spring Boot Maven plugin to build images.
+
+It is simple to configure the version of the JVM used, for example in Maven:
+[source,xml]
+----
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <version>2.3.4.RELEASE</version>
+  <configuration>
+    <image>
+      <env>
+        <BP_JVM_VERSION>11.*</BP_JVM_VERSION>
+      </env>
+    </image>
+  </configuration>
+</plugin>
+----
+====
+
+
+The application type must be set to `spring`, and the Operator's launcher will automatically detect that the image
+is a Buildpacks image and launch the application using the Buildpacks launcher.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    type: spring # <1>
+----
+
+<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application,
+and the fact that the image is a Buildpacks image will be auto-discovered.
+
+When the Operator starts the application it will then run the buildpacks launcher with a command equivalent
+to this:
+[source,bash]
+----
+/cnb/lifecycle/launcher java org.springframework.boot.loader.PropertiesLauncher
+----
+
+==== Buildpacks Detection
+
+If for some reason buildpacks auto-detection does not work properly the `Coherence`
+CRD contains a filed to force buildpacks to be enabled or disabled.
+
+The `boolean` field `spec.application.cloudNativeBuildPack.enabled` can be set to `true` to enable buildpacks or false
+to disable buildpack.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    type: spring            # <1>
+    cloudNativeBuildPack:
+      enabled: true         # <2>
+----
+
+<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application
+<2> The `cloudNativeBuildPack.enabled` field has been set to `true` to force the Operator to use the Buildpacks launcher.
+
+==== Specify the Buildpacks Launcher
+
+A Cloud Native Buildpacks image uses a launcher mechanism to run the executable(s) in the image. The Coherence Operator
+launcher will configure the application and then invoke the same buildpacks launcher.
+The Coherence Operator assumes that the buildpacks launcher is in the image in the location `/cnb/lifecycle/launcher`.
+If a buildpacks image has been built with the launcher in a different location then the `Coherence` CRD contains
+a field to set the new location.
+
+The `spec.application.cloudNativeBuildPack.enabled` field.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    type: spring                    # <1>
+    cloudNativeBuildPack:
+      launcher: /buildpack/launcher # <2>
+----
+
+<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application
+<2> The buildpacks launcher that the Operator will invoke is located at `/buildpack/launcher`.
+
+
+==== Buildpack JVM Arguments
+
+A typical Spring Boot buildpack launcher will attempt to configure options such as heap size based on the container
+resource limits configured, so this must be taken into account if using any of the memory options available in the
+`Coherence` CRD as there may be conflicting configurations.
+

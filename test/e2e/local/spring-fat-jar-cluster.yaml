@@ -1,0 +1,16 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: spring-fat-test
+spec:
+  replicas: 3
+  image: ${TEST_APPLICATION_IMAGE_SPRING_FAT}
+  application:
+    type: spring
+    springBootFatJar: /app/libs/operator-test-spring-${VERSION}.jar
+  jvm:
+    args:
+      - -Dcoherence.log=jdk
+  ports:
+    - name: web
+      port: 8080

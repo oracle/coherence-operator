@@ -7,6 +7,7 @@
 package runner
 
 import (
+	"fmt"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -34,7 +35,7 @@ func TestMinimalDeployment(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -62,7 +63,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
 	g.Expect(cmd.Path).To(Equal(expectedCommand))
 	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
 }
@@ -81,12 +82,35 @@ func ReplaceArg(args []string, toReplace, replaceWith string) []string {
 }
 
 func GetMinimalExpectedArgs() []string {
-	return []string{
+	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
+		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
+
+	args := []string{
 		"java",
 		"-cp",
-		"/app/resources:/app/classes:/app/classpath/*:/app/libs/*:/coherence-operator/utils/lib/coherence-utils.jar:/coherence-operator/utils/config",
+		cp + ":/coherence-operator/utils/lib/coherence-utils.jar:/coherence-operator/utils/config",
+	}
+
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		"com.tangosol.net.DefaultCacheServer")
+}
+
+func GetMinimalExpectedArgsWithoutAppClasspath() []string {
+	args := []string{
+		"java",
+		"-cp",
+		"/coherence-operator/utils/lib/coherence-utils.jar:/coherence-operator/utils/config",
+	}
+
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		"com.tangosol.net.DefaultCacheServer")
+}
+
+func AppendCommonExpectedArgs(args []string) []string {
+	return append(args,
 		"-Dcoherence.role=test",
-		"-XshowSettings:all",
 		"-XX:+PrintCommandLineFlags",
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka..svc.cluster.local",
@@ -107,9 +131,7 @@ func GetMinimalExpectedArgs() []string {
 		"-XX:+ExitOnOutOfMemoryError",
 		"-XX:NativeMemoryTracking=summary",
 		"-XX:+PrintNMTStatistics",
-		"com.oracle.coherence.k8s.Main",
-		"com.tangosol.net.DefaultCacheServer",
-	}
+	)
 }
 
 func RemoveArgWithPrefix(args []string, prefix string) []string {
@@ -138,6 +160,8 @@ func GetJavaCommand() string {
 
 func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 	envVars := make(map[string]string)
+	envVars[coh.EnvVarCohAppDir] = TestAppDir
+	envVars[coh.EnvVarCohSkipSite] = "true"
 
 	if d.Spec.JVM == nil {
 		d.Spec.JVM = &coh.JVMSpec{}
@@ -151,8 +175,6 @@ func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 			envVars[ev.Name] = ev.Value
 		}
 	}
-
-	envVars[coh.EnvVarCohSkipSite] = "true"
 
 	return envVars
 }

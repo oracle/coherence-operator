@@ -58,8 +58,8 @@ const (
 	VolumeNameManagementSSL = "management-ssl-config"
 	VolumeNameMetricsSSL    = "metrics-ssl-config"
 
-	VolumePathAttributes = "attributes";
-	VolumePathLabels     = "labels";
+	VolumePathAttributes = "attributes"
+	VolumePathLabels     = "labels"
 
 	// Volume mount paths
 	VolumeMountRoot                = "/coherence-operator"
@@ -104,7 +104,10 @@ const (
 	DefaultReadinessPath = "/ready"
 	DefaultLivenessPath  = "/healthz"
 
-	EnvVarAppType                     = "APP_TYPE"
+	// Cloud Native Build Pack
+	DefaultCnbpLauncher = "/cnb/lifecycle/launcher"
+
+	EnvVarAppType                     = "COH_APP_TYPE"
 	EnvVarAppMainClass                = "COH_MAIN_CLASS"
 	EnvVarAppMainArgs                 = "COH_MAIN_ARGS"
 	EnvVarOperatorHost                = "OPERATOR_HOST"
@@ -124,6 +127,7 @@ const (
 	EnvVarCohRack                     = "COH_RACK_INFO_LOCATION"
 	EnvVarCohRole                     = "COH_ROLE"
 	EnvVarCohUtilDir                  = "COH_UTIL_DIR"
+	EnvVarCohUtilLibDir               = "COH_UTIL_LIB_DIR"
 	EnvVarCohHealthPort               = "COH_HEALTH_PORT"
 	EnvVarCohCacheConfig              = "COH_CACHE_CONFIG"
 	EnvVarCohOverride                 = "COH_OVERRIDE_CONFIG"
@@ -182,4 +186,8 @@ const (
 	EnvVarJvmOomHeapDump              = "JVM_OOM_HEAP_DUMP"
 	EnvVarJvmJmxmpEnabled             = "JVM_JMXMP_ENABLED"
 	EnvVarJvmJmxmpPort                = "JVM_JMXMP_PORT"
+	EnvVarJvmDiagnosticOptions        = "JVM_UNLOCK_DIAGNOSTIC_OPTIONS"
+	EnvVarSpringBootFatJar            = "COH_SPRING_BOOT_FAT_JAR"
+	EnvVarCnbpEnabled                 = "COH_CNBP_ENABLED"
+	EnvVarCnbpLauncher                = "COH_CNBP_LAUNCHER"
 )

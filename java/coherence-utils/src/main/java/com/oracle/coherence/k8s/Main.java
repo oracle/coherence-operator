@@ -6,6 +6,7 @@
 
 package com.oracle.coherence.k8s;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import com.tangosol.net.CacheFactory;
@@ -17,6 +18,8 @@ import com.tangosol.run.xml.XmlElement;
  * running another main class.
  */
 public class Main {
+
+    private static boolean initialised = false;
 
     /**
      * Private constructor for utility class.
@@ -35,6 +38,22 @@ public class Main {
             args = new String[] {DefaultCacheServer.class.getCanonicalName()};
         }
 
+        init();
+
+        String sMainClass = args[0];
+        String[] asArgsReal = new String[args.length - 1];
+        System.arraycopy(args, 1, asArgsReal, 0, asArgsReal.length);
+
+        Class<?> clsMain = Class.forName(sMainClass);
+        Method method = clsMain.getMethod("main", asArgsReal.getClass());
+        method.invoke(null, (Object) asArgsReal);
+    }
+
+    public synchronized static void init() throws IOException {
+        if (initialised) {
+            return;
+        }
+        initialised = true;
         // ensure that we add the operator MBean to the management configuration
         XmlElement xml    = CacheFactory.getManagementConfig();
         XmlElement mbeans = xml.getSafeElement("mbeans");
@@ -47,13 +66,5 @@ public class Main {
 
         OperatorRestServer server = new OperatorRestServer();
         server.start();
-
-        String sMainClass = args[0];
-        String[] asArgsReal = new String[args.length - 1];
-        System.arraycopy(args, 1, asArgsReal, 0, asArgsReal.length);
-
-        Class<?> clsMain = Class.forName(sMainClass);
-        Method method = clsMain.getMethod("main", asArgsReal.getClass());
-        method.invoke(null, (Object) asArgsReal);
     }
 }

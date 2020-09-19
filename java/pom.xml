@@ -24,6 +24,7 @@
   <modules>
     <module>coherence-utils</module>
     <module>operator-test</module>
+    <module>operator-test-spring</module>
   </modules>
 
   <properties>
@@ -33,31 +34,33 @@
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
 
-    <!-- library dependency versions -->
-    <bedrock.version>5.0.16</bedrock.version>
-    <commonjava.directory.version>0.3.1</commonjava.directory.version>
-    <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
-    <glassfish.copyright.version>2.1</glassfish.copyright.version>
-    <helidon.version>1.2.0</helidon.version>
-    <hamcrest.version>1.3</hamcrest.version>
-    <junit.version>4.12</junit.version>
-    <maven.assembly.plugin.version>3.1.1</maven.assembly.plugin.version>
-    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
-    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
-    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
-    <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
-    <maven.surefire.plugin.version>2.21.0</maven.surefire.plugin.version>
-    <mockito.version>2.18.3</mockito.version>
-    <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
-    <version.lib.checkstyle>8.18</version.lib.checkstyle>
-    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
-    <version.plugin.jib>2.5.2</version.plugin.jib>
-    <version.plugin.deploy>2.8.2</version.plugin.deploy>
-    <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
-    <version.plugin.project-info-reports>3.0.1</version.plugin.project-info-reports>
-
     <!--  The Coherence jar version (compile time dependency) -->
     <coherence.version>14.1.1-0-1</coherence.version>
+
+    <!-- library dependency versions -->
+    <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
+    <version.lib.bedrock>5.0.16</version.lib.bedrock>
+    <version.lib.checkstyle>8.18</version.lib.checkstyle>
+    <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
+    <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
+    <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
+    <version.lib.hamcrest>1.3</version.lib.hamcrest>
+    <version.lib.helidon>1.2.0</version.lib.helidon>
+    <version.lib.junit>4.12</version.lib.junit>
+    <version.lib.mockito>2.18.3</version.lib.mockito>
+    <version.lib.spring>2.3.3.RELEASE</version.lib.spring>
+
+    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
+    <version.plugin.exec>3.0.0</version.plugin.exec>
+    <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
+    <version.plugin.jib>2.5.2</version.plugin.jib>
+    <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
+    <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
+    <version.plugin.maven.dependency>3.1.1</version.plugin.maven.dependency>
+    <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
+    <version.plugin.maven.failsafe>2.21.0</version.plugin.maven.failsafe>
+    <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
+    <version.plugin.maven.surefire>2.21.0</version.plugin.maven.surefire>
   </properties>
 
   <dependencyManagement>
@@ -81,7 +84,18 @@
       <dependency>
         <groupId>org.glassfish.external</groupId>
         <artifactId>opendmk_jmxremote_optional_jar</artifactId>
-        <version>${glassfish.jmxmp.version}</version>
+        <version>${version.lib.glassfish.jmxmp}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot</artifactId>
+        <version>${version.lib.spring}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <version>${version.lib.spring}</version>
       </dependency>
 
       <!-- test dependencies -->
@@ -89,20 +103,20 @@
       <dependency>
         <groupId>com.oracle.bedrock</groupId>
         <artifactId>bedrock-runtime</artifactId>
-        <version>${bedrock.version}</version>
+        <version>${version.lib.bedrock}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.oracle.bedrock.coherence</groupId>
         <artifactId>coherence-12.2.1-testing-support</artifactId>
-        <version>${bedrock.version}</version>
+        <version>${version.lib.bedrock}</version>
         <scope>test</scope>
       </dependency>
 
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
+        <version>${version.lib.junit}</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -115,14 +129,14 @@
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-all</artifactId>
-        <version>${hamcrest.version}</version>
+        <version>${version.lib.hamcrest}</version>
         <scope>test</scope>
       </dependency>
 
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>${mockito.version}</version>
+        <version>${version.lib.mockito}</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -140,19 +154,19 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven.compiler.plugin.version}</version>
+          <version>${version.plugin.maven.compiler}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>${maven.assembly.plugin.version}</version>
+          <version>${version.plugin.maven.assembly}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven.failsafe.plugin.version}</version>
+          <version>${version.plugin.maven.failsafe}</version>
         </plugin>
 
         <plugin>
@@ -163,13 +177,16 @@
             <from>
               <image>docker://gcr.io/distroless/java</image>
             </from>
+            <container>
+              <format>OCI</format>
+            </container>
           </configuration>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven.surefire.plugin.version}</version>
+          <version>${version.plugin.maven.surefire}</version>
           <executions>
             <execution>
               <goals>
@@ -182,13 +199,13 @@
         <plugin>
           <groupId>org.commonjava.maven.plugins</groupId>
           <artifactId>directory-maven-plugin</artifactId>
-          <version>${commonjava.directory.version}</version>
+          <version>${version.lib.commonjava.directory}</version>
         </plugin>
 
         <plugin>
           <groupId>org.glassfish.copyright</groupId>
           <artifactId>glassfish-copyright-maven-plugin</artifactId>
-          <version>${glassfish.copyright.version}</version>
+          <version>${version.lib.glassfish.copyright}</version>
         </plugin>
 
         <plugin>
@@ -210,6 +227,12 @@
               <version>${version.lib.asciidoctor.diagram}</version>
             </dependency>
           </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${version.lib.spring}</version>
         </plugin>
 
         <plugin>

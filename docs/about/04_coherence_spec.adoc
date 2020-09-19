@@ -27,6 +27,7 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 === Table of Contents
 * <<CoherenceResourceSpec,CoherenceResourceSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
+* <<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>>
 * <<CoherenceSpec,CoherenceSpec>>
 * <<CoherenceTracingSpec,CoherenceTracingSpec>>
 * <<CoherenceWKASpec,CoherenceWKASpec>>
@@ -149,6 +150,21 @@ m| type | The application type to execute. This field would be set if using the 
 m| main | Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is \"node\" the main may be a Javascript file. m| &#42;string | false
 m| args | Args is the optional arguments to pass to the main class. m| []string | false
 m| workingDir | The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is \"/app\". m| &#42;string | false
+m| cloudNativeBuildPack | Optional settings that may be configured if using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/ m| &#42;<<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>> | false
+m| springBootFatJar | SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is \"/app/libs/foo.jar\" the command line will be \"java -jar app/libs/foo.jar\" m| &#42;string | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CloudNativeBuildPackSpec
+
+The configuration when using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| enabled | Enable or disable buildpack detection. The operator will automatically detect Cloud Native Buildpack images but if this auto-detection fails to work correctly for a specific image then this field can be set to true to signify that the image is a buildpack image or false to signify that it is not a buildpack image. m| &#42;bool | false
+m| launcher | &#160; m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
