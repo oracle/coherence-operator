@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
@@ -24,84 +23,133 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * A test Spring controller.
+ *
  * @author Jonathan Knight  2020.09.15
  */
 @RestController
 public class ApplicationController {
 
-	public static final String CACHE_NAME_CANARY = "canary";
+    /**
+     * The name of the canary cache.
+     */
+    public static final String CACHE_NAME_CANARY = "canary";
 
-	@Autowired
-	private Session session;
+    @Autowired
+    private Session session;
 
-	@Autowired
-	@Qualifier("commandLineArguments")
-	private String[] commandLineArguments;
+    @Autowired
+    @Qualifier("commandLineArguments")
+    private String[] commandLineArguments;
 
-	@RequestMapping("/")
-	public String index() {
-		return "Greetings from Spring Boot!";
-	}
+    /**
+     * Obtain the program arguments.
+     *
+     * @return the program arguments
+     */
+    @RequestMapping("/args")
+    public String[] args() {
+        return commandLineArguments;
+    }
 
-	@RequestMapping("/args")
-	public String[] args() {
-		return commandLineArguments;
-	}
+    /**
+     * Perform the canary test.
+     *
+     * @return the test results.
+     */
+    @RequestMapping("/canaryCheck")
+    public String canaryCheck() {
+        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
+        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+        int nPart = service.getPartitionCount();
+        int nSize = cache.size();
 
-	@RequestMapping("/env")
-	public Map<String, String> env() {
-		return new TreeMap<>(System.getenv());
-	}
+        if (nSize != nPart) {
+            throw new CanaryFailure(nSize, nPart);
+        }
+        return "OK " + nSize + " entries";
+    }
 
-	@RequestMapping("/props")
-	public Map<String, String> props() {
-		Map<String, String> map = new TreeMap<>();
-		Properties props = System.getProperties();
-		for (String name : props.stringPropertyNames()) {
-			map.put(name, props.getProperty(name));
-		}
-		return map;
-	}
+    /**
+     * Clear the canary cache.
+     *
+     * @return  the request response
+     */
+    @RequestMapping("/canaryClear")
+    public String canaryClear() {
+        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
+        cache.truncate();
+        return "OK";
+    }
 
-	@RequestMapping("/canaryStart")
-	public String canaryStart() {
-		NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-		DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
-		int nPart = service.getPartitionCount();
+    /**
+     * Initialise the canary cache.
+     *
+     * @return the request response
+     */
+    @RequestMapping("/canaryStart")
+    public String canaryStart() {
+        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
+        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+        int nPart = service.getPartitionCount();
 
-		for (int i = 0; i < nPart; i++) {
-			SimplePartitionKey key = SimplePartitionKey.getPartitionKey(i);
-			cache.put(key, "data");
-		}
+        for (int i = 0; i < nPart; i++) {
+            SimplePartitionKey key = SimplePartitionKey.getPartitionKey(i);
+            cache.put(key, "data");
+        }
 
-		return "OK";
-	}
+        return "OK";
+    }
 
-	@RequestMapping("/canaryCheck")
-	public String canaryCheck() {
-		NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-		DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
-		int nPart = service.getPartitionCount();
-		int nSize = cache.size();
+    /**
+     * Obtain the environment variables.
+     *
+     * @return the environment variables
+     */
+    @RequestMapping("/env")
+    public Map<String, String> env() {
+        return new TreeMap<>(System.getenv());
+    }
 
-		if (nSize != nPart) {
-			throw new CanaryFailure(nSize, nPart);
-		}
-		return "OK " + nSize + " entries";
-	}
+    /**
+     * Obtain the Spring Boot message.
+     *
+     * @return the Spring Boot message
+     */
+    @RequestMapping("/")
+    public String index() {
+        return "Greetings from Spring Boot!";
+    }
 
-	@RequestMapping("/canaryClear")
-	public String canaryClear() {
-		NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-		cache.truncate();
-		return "OK";
-	}
+    /**
+     * Obtain the system properties.
+     *
+     * @return the system properties
+     */
+    @RequestMapping("/props")
+    public Map<String, String> props() {
+        Map<String, String> map = new TreeMap<>();
+        Properties props = System.getProperties();
+        for (String name : props.stringPropertyNames()) {
+            map.put(name, props.getProperty(name));
+        }
+        return map;
+    }
 
-	@ResponseStatus(value= HttpStatus.BAD_REQUEST)
-	public static class CanaryFailure
-			extends RuntimeException {
-		public CanaryFailure(int actual, int expected) {
-			super("Canary check failed. Expected " + expected + " entries but there are only " + actual);
-		}
-	}
+    /**
+     * A canary test failure exception.
+     */
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public static class CanaryFailure
+            extends RuntimeException {
+        /**
+         * Create a canary test failure exception.
+         *
+         * @param actual   the actual cache size
+         * @param expected the expected cache size
+         */
+        public CanaryFailure(int actual, int expected) {
+            super("Canary check failed. Expected " + expected + " entries but there are only " + actual);
+        }
+    }
 }
