@@ -1251,8 +1251,10 @@ copyright:
 	  -X dashboards/grafana/ \
 	  -X dashboards/kibana/ \
 	  -X /Dockerfile \
+	  -X .Dockerfile \
 	  -X docs/ \
 	  -X examples/.mvn/ \
+	  -X .factories \
 	  -X hack/copyright.txt \
 	  -X hack/intellij-codestyle.xml \
 	  -X hack/sdk/ \
