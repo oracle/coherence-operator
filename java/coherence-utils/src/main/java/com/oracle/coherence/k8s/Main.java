@@ -49,7 +49,12 @@ public class Main {
         method.invoke(null, (Object) asArgsReal);
     }
 
-    public synchronized static void init() throws IOException {
+    /**
+     * Initialise the application.
+     *
+     * @throws IOException if there is an error starting the REST server.
+     */
+    public static synchronized void init() throws IOException {
         if (initialised) {
             return;
         }
