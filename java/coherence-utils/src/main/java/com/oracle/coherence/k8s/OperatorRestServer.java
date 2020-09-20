@@ -183,8 +183,8 @@ public class OperatorRestServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            CacheFactory.log("Coherence Operator REST server is listening on http://localhost:" +
-                                     server.getAddress().getPort(), CacheFactory.LOG_INFO);
+            CacheFactory.log("Coherence Operator REST server is listening on http://localhost:"
+                                     + server.getAddress().getPort(), CacheFactory.LOG_INFO);
 
             httpServer = server;
         }

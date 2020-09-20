@@ -24,17 +24,17 @@ import org.springframework.context.ApplicationListener;
 public class SpringBootListener
         implements ApplicationListener<ApplicationPreparedEvent> {
 
-    private static final Log logger = LogFactory.getLog(SpringBootListener.class);
+    private static final Log LOGGER = LogFactory.getLog(SpringBootListener.class);
 
     @Override
     public void onApplicationEvent(ApplicationPreparedEvent event) {
         if (Boolean.parseBoolean(System.getProperty("coherence.operator.springboot.listener", "true").toLowerCase())) {
             try {
-                logger.info("Initialising Coherence Operator REST endpoint");
+                LOGGER.info("Initialising Coherence Operator REST endpoint");
                 Main.init();
             }
             catch (Throwable t) {
-                logger.error("Failed to initialise the Coherence Operator", t);
+                LOGGER.error("Failed to initialise the Coherence Operator", t);
             }
         }
     }
