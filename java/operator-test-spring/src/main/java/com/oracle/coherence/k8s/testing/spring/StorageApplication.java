@@ -19,35 +19,57 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 
 /**
+ * The test Spring storage application.
+ *
  * @author Jonathan Knight  2020.09.10
  */
 @SpringBootApplication
 public class StorageApplication {
-	public static final Logger logger = Logger.getLogger(StorageApplication.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(StorageApplication.class.getName());
 
-	private static String[] arguments;
+    private static String[] arguments;
 
+    /**
+     * Run the application.
+     *
+     * @param args the application arguments
+     */
     public static void main(String[] args) {
-    	arguments = args;
-   		SpringApplication.run(StorageApplication.class, args);
-   	}
+        arguments = args;
+        SpringApplication.run(StorageApplication.class, args);
+    }
 
-   	@Bean(name = "commandLineArguments")
-	public String[] commandLineArguments() {
-    	return arguments;
-	}
+    /**
+     * Obtain the application arguments.
+     *
+     * @return the application arguments
+     */
+    @Bean(name = "commandLineArguments")
+    public String[] commandLineArguments() {
+        return arguments;
+    }
 
-	@Bean
-	@Order(1)
- 	public ApplicationRunner runCoherence() {
-		return (args) -> {
-			logger.info("Starting DefaultCacheServer with args " + Arrays.toString(args.getSourceArgs()));
-			DefaultCacheServer.main(args.getSourceArgs());
-		};
-	}
+    /**
+     * Obtain the Coherence {@link DefaultCacheServer} starter.
+     *
+     * @return the Coherence {@link DefaultCacheServer} starter
+     */
+    @Bean
+    @Order(1)
+    public ApplicationRunner runCoherence() {
+        return (args) -> {
+            LOGGER.info("Starting DefaultCacheServer with args " + Arrays.toString(args.getSourceArgs()));
+            DefaultCacheServer.main(args.getSourceArgs());
+        };
+    }
 
-	@Bean
-	 public Session createCoherenceSession() {
-		 return Session.create();
-	 }
+    /**
+     * Obtain a Coherence {@link Session}.
+     *
+     * @return a Coherence {@link Session}
+     */
+    @Bean
+    public Session createCoherenceSession() {
+        return Session.create();
+    }
 }
