@@ -1367,7 +1367,7 @@ ifeq (true, $(PRE_RELEASE))
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts-unstable/
+	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
 
@@ -1380,7 +1380,7 @@ else
 	ls -ls docs
 
 	mkdir -p charts || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts/
+	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
 
