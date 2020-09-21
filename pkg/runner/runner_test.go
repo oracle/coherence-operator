@@ -111,6 +111,7 @@ func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 func AppendCommonExpectedArgs(args []string) []string {
 	return append(args,
 		"-Dcoherence.role=test",
+		"-XshowSettings:all",
 		"-XX:+PrintCommandLineFlags",
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka..svc.cluster.local",
