@@ -56,7 +56,7 @@ jobs:
     - name: Release
       shell: bash
       run: |
-        docker login ghcr.io/$GITHUB_REPOSITORY/ --user ${{ secrets.IMAGE_REGISTRY_USER }} --password ${{ secrets.IMAGE_REGISTRY_TOKEN }}
+        docker login ghcr.io/$GITHUB_REPOSITORY/ --username ${{ secrets.IMAGE_REGISTRY_USER }} --password ${{ secrets.IMAGE_REGISTRY_TOKEN }}
         git config --local user.name "Github Action"
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         make clean
