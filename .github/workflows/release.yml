@@ -45,13 +45,6 @@ jobs:
       with:
         go-version: 1.14.x
 
-    - name: Login to GitHub Packages Docker Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io/$GITHUB_REPOSITORY
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Start KinD Cluster
       shell: bash
       run: |
@@ -63,6 +56,7 @@ jobs:
     - name: Release
       shell: bash
       run: |
+        docker login ghcr.io/$GITHUB_REPOSITORY/ --user ${{ secrets.IMAGE_REGISTRY_USER }} --password ${{ secrets.IMAGE_REGISTRY_TOKEN }}
         git config --local user.name "Github Action"
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         make clean
