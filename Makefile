@@ -1365,7 +1365,6 @@ ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	rm -rf docs-unstable/$(VERSION)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION)/
-	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
