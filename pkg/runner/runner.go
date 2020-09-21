@@ -324,8 +324,11 @@ func server(details *RunDetails) {
 		}
 	}
 
-	details.AddArg("-XX:+PrintCommandLineFlags")
-	details.AddArg("-XX:+PrintFlagsFinal")
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmShowSettings) {
+		details.AddArg("-XshowSettings:all")
+		details.AddArg("-XX:+PrintCommandLineFlags")
+		details.AddArg("-XX:+PrintFlagsFinal")
+	}
 
 	// Add GC logging parameters if required
 	if details.IsEnvTrue(v1.EnvVarJvmGcLogging) {
@@ -698,12 +701,13 @@ func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*ex
 func _createBuildPackCommand(details *RunDetails, className string, args []string) (*exec.Cmd, error) {
 	launcher := getBuildpackLauncher()
 
+	// Create the JVM arguments file
 	argsFile, err := ioutil.TempFile("", "jvm-args")
 	if err != nil {
 		return nil, err
 	}
 	defer argsFile.Close()
-
+	// write the JVM args to the file
 	data := strings.Join(args, "\n")
 	if _, err := argsFile.WriteString(data); err != nil {
 		return nil, err
@@ -711,14 +715,7 @@ func _createBuildPackCommand(details *RunDetails, className string, args []strin
 	fmt.Printf("INFO: Created JVM Arguments file : %s\n", argsFile.Name())
 	fmt.Printf("INFO: \n%s\n\n", data)
 
-	opts := "@" + argsFile.Name()
-	if toolOpts, found := details.LookupEnv("JAVA_TOOL_OPTIONS"); found {
-		opts = opts + " " + toolOpts
-	}
-	env := append(os.Environ(), fmt.Sprintf(`JAVA_TOOL_OPTIONS=%s`, strings.TrimSpace(opts)))
-
-	cmd := exec.Command(launcher, "java", className)
-	cmd.Env = env
+	cmd := exec.Command(launcher, "java", "@"+argsFile.Name(), className)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

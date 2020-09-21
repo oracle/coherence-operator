@@ -148,13 +148,12 @@ these images can work with the Coherence Operator.
 Due to limitation on the way that arguments can be passed to the JVM when using Buildpacks images the Coherence
 operator will only work with images containing a JVM greater than Java 11.
 Although the Buildpacks launcher will honour the `JAVA_OPTS` or `JAVA_TOOL_OPTIONS` environment variables there appear
-to be size limitations for thse that make it impractical for the Operator to use them.
-The Operator therefore creates an JVM arguments file that along with the JVM option `@jvm-args-file` to pass the name
-of the argument file to the JVM.
-The use of JVM arguments files is not supported in Java 8 - which is at the time of writing the default version
-used by the Spring Boot Maven plugin to build images.
+to be size limitations for the values of these variables that make it impractical for the Operator to use them.
+The Operator therefore creates a JVM arguments file to pass the arguments to the JVM.
+At the time of writing these docs, Java 8 (which is the default version of Java used by the Spring Boot plugin) does not
+support the use of argument files for the JVM.
 
-It is simple to configure the version of the JVM used, for example in Maven:
+It is simple to configure the version of the JVM used by the Spring Boot plugin, for example in Maven:
 [source,xml]
 ----
 <plugin>
@@ -173,8 +172,9 @@ It is simple to configure the version of the JVM used, for example in Maven:
 ====
 
 
-The application type must be set to `spring`, and the Operator's launcher will automatically detect that the image
-is a Buildpacks image and launch the application using the Buildpacks launcher.
+When creating a `Coherence` deployment for a Spring Boot Buildpacks image The application type must be set to `spring`.
+The Operator's launcher will automatically detect that the image is a Buildpacks image and launch the application using
+the Buildpacks launcher.
 
 [source,yaml]
 ----
@@ -195,7 +195,7 @@ When the Operator starts the application it will then run the buildpacks launche
 to this:
 [source,bash]
 ----
-/cnb/lifecycle/launcher java org.springframework.boot.loader.PropertiesLauncher
+/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.PropertiesLauncher
 ----
 
 ==== Buildpacks Detection
