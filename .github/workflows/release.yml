@@ -48,7 +48,7 @@ jobs:
     - name: Login to GitHub Packages Docker Registry
       uses: docker/login-action@v1
       with:
-        registry: docker.pkg.github.com
+        registry: ghcr.io/$GITHUB_REPOSITORY
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,4 +67,8 @@ jobs:
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         make clean
         make build-all-images
-        make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="docker.pkg.github.com/thegridman/coherence-operator/"
+        if [["$GITHUB_EVENT_NAME" == "released"]]; then
+          make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        else
+          make release RELEASE_DRY_RUN=true PRE_RELEASE=true RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        fi
