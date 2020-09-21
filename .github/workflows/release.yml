@@ -62,4 +62,8 @@ jobs:
         echo "GitHub event: $GITHUB_EVENT_NAME"
         make clean
         make build-all-images
-        make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        if [["$GITHUB_EVENT_NAME" == "release"]]; then
+          make release RELEASE_DRY_RUN=true PRE_RELEASE=false RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        else
+          make release RELEASE_DRY_RUN=true PRE_RELEASE=true RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        fi
