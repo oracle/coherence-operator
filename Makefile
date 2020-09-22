@@ -43,7 +43,7 @@ COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:20.06.1
 TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 
 # Operator image names
-RELEASE_IMAGE_PREFIX   ?= container-registry.oracle.com/middleware/
+RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/coherence-operator/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
@@ -1353,7 +1353,7 @@ release-ghpages:  helm-chart docs
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
-	git checkout gh-pages
+	git checkout --track origin/gh-pages
 	git config pull.rebase true
 	git pull
 	mkdir -p dashboards || true
@@ -1399,29 +1399,15 @@ endif
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Tag Git for the release.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-tag
-release-tag:
-ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have created release tag v$(VERSION)"
-else
-	@echo "creating release tag v$(VERSION)"
-	git push origin :refs/tags/v$(VERSION)
-	git tag -f -a -m "built $(VERSION)" v$(VERSION)
-	git push origin --tags
-endif
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
 release:
 ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-tag release-ghpages
+release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images release-tag release-ghpages push-release-images
+release: build-all-images release-ghpages push-release-images
 endif
 
 
