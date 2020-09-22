@@ -43,7 +43,7 @@ COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:20.06.1
 TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 
 # Operator image names
-RELEASE_IMAGE_PREFIX   ?= container-registry.oracle.com/middleware/
+RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/coherence-operator/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
@@ -1351,10 +1351,9 @@ release-ghpages:  helm-chart docs
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-legacy-dashboards.yaml
 	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
-	cp hack/docs-unstable-index.sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
-	git checkout gh-pages
+	git checkout --track origin/gh-pages
 	git config pull.rebase true
 	git pull
 	mkdir -p dashboards || true
@@ -1365,11 +1364,10 @@ ifeq (true, $(PRE_RELEASE))
 	mkdir -p docs-unstable || true
 	rm -rf docs-unstable/$(VERSION)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION)/
-	sh $(BUILD_OUTPUT)/docs-unstable-index.sh
 	ls -ls docs-unstable
 
 	mkdir -p charts-unstable || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts-unstable/
+	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
 	ls -ls charts-unstable
 
@@ -1382,7 +1380,7 @@ else
 	ls -ls docs
 
 	mkdir -p charts || true
-	cp $(CHART_DIR)/coherence-operator-$(VERSION).tgz charts/
+	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
 	ls -ls charts
 
@@ -1401,29 +1399,15 @@ endif
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Tag Git for the release.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-tag
-release-tag:
-ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have created release tag v$(VERSION)"
-else
-	@echo "creating release tag v$(VERSION)"
-	git push origin :refs/tags/v$(VERSION)
-	git tag -f -a -m "built $(VERSION)" v$(VERSION)
-	git push origin --tags
-endif
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
 release:
 ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-tag release-ghpages
+release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images release-tag release-ghpages push-release-images
+release: build-all-images release-ghpages push-release-images
 endif
 
 
