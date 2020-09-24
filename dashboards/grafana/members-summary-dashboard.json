@@ -628,7 +628,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}} ({{role}})",
+          "legendFormat": "Member: {{member}}",
           "refId": "A"
         }
       ],
