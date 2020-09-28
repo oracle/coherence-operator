@@ -6,7 +6,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.0.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: coherence-operator.v3.1.0
+  name: coherence-operator.v3.1.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -43,9 +43,9 @@ spec:
   - coherence
   links:
   - name: Coherence Operator
-    url: https://oracle.github.io/coherence-operator/docs/3.1.0
+    url: https://oracle.github.io/coherence-operator/docs/3.1.1
   maturity: alpha
   provider:
     name: Oracle
-    url: https://oracle.github.io/coherence-operator/docs/3.1.0
-  version: 3.1.0
+    url: https://oracle.github.io/coherence-operator/docs/3.1.1
+  version: 3.1.1

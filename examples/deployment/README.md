@@ -48,8 +48,8 @@ Ensure you have the following software installed:
 * Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
 * [Maven](https://maven.apache.org) version 3.6.0+
 * [Docker](https://docs.docker.com/install/) version 17.03+.
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.12.0+ .
-* Access to a Kubernetes v1.12.0+ cluster.
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.13.0+ but ideally the latest version .
+* Access to a Kubernetes v1.13.0+ cluster.
 * [Helm](https://helm.sh/docs/intro/install/) version 3.2.4+ (2.14.3+ supported, see notes) 
 
 > Note: Ensure that your local Kubernetes is enabled. If you are running Docker using Docker Desktop, select Enable Kubernetes in the Settings menu.
@@ -108,7 +108,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.1.0
+deployment-example:3.1.1
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and 
@@ -281,7 +281,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.1.0
+  image: deployment-example:3.1.1
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -393,7 +393,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.1.0
+  image: deployment-example:3.1.1
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
@@ -683,7 +683,7 @@ install any of the examples above.
    
     kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1  
 
-    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.0/coherence-grafana-dashboards.yaml
+    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.1/coherence-grafana-dashboards.yaml
 
     kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
     ```        
