@@ -62,4 +62,4 @@ jobs:
         make clean
         make build-all-images RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
         if echo $GITHUB_EVENT_NAME -eq "release"; then PRE_RELEASE=false; else PRE_RELEASE=true; fi
-        make release RELEASE_DRY_RUN=true PRE_RELEASE=$PRE_RELEASE RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        make release PRE_RELEASE=$PRE_RELEASE RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
