@@ -14,7 +14,7 @@ This chart install a coherence-operator deployment on a
 package manager.
 
 ## Prerequisites
-* Kubernetes 1.12 or above
+* Kubernetes 1.13 or above
 * Helm 3 or above
 
 ## Installing the Chart

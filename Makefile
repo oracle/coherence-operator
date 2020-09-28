@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.1.0
+VERSION ?= 3.1.1
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -1053,16 +1053,6 @@ kind:
 	./hack/kind.sh
 	docker pull $(COHERENCE_IMAGE)
 	kind load docker-image --name operator $(COHERENCE_IMAGE)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.12 cluster
-# ----------------------------------------------------------------------------------------------------------------------
-kind-12: kind-12-start kind-load
-
-kind-12-start:
-	./hack/kind.sh --image "kindest/node:v1.12.10@sha256:faeb82453af2f9373447bb63f50bae02b8020968e0889c7fa308e19b348916cb"
-	docker pull $(COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind 1.16 cluster

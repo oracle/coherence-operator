@@ -16,7 +16,7 @@
   <groupId>com.oracle.coherence.kubernetes</groupId>
   <artifactId>operator-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.1.0</version>
+  <version>3.1.1</version>
 
   <description>Oracle Coherence Kubernetes Operator Project</description>
   <name>coherence-operator parent</name>

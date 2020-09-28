@@ -14,7 +14,7 @@ easily be installed into a Kubernetes cluster.
 == Prerequisites
 
 * Access to Oracle Coherence Docker images, or self-built Coherence images.
-* Access to a Kubernetes v1.12.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.12 upto v1.19
+* Access to a Kubernetes v1.13.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.13 upto v1.19
 
 NOTE: OpenShift - the Coherence Operator works without modification on OpenShift, but some versions
 of the Coherence images will not work out of the box.
@@ -104,12 +104,12 @@ in the values file can be set, for example:
 ----
 helm install  \
     --namespace <namespace> \
-    --set image=images.com/coherence/coherence-operator:3.1.0 <1>
+    --set image=images.com/coherence/coherence-operator:3.1.1 <1>
     coherence-operator \
     coherence/coherence-operator
 ----
 
-<1> The image used to run the Operator will be `images.com/coherence/coherence-operator:3.1.0`.
+<1> The image used to run the Operator will be `images.com/coherence/coherence-operator:3.1.1`.
 
 === Image Pull Secrets
 
