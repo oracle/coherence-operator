@@ -56,10 +56,10 @@ jobs:
     - name: Release
       shell: bash
       run: |
-        docker login ghcr.io/$GITHUB_REPOSITORY/ --username ${{ secrets.IMAGE_REGISTRY_USER }} --password ${{ secrets.IMAGE_REGISTRY_TOKEN }}
+        docker login ghcr.io/oracle/ --username ${{ secrets.IMAGE_REGISTRY_USER }} --password ${{ secrets.IMAGE_REGISTRY_TOKEN }}
         git config --local user.name "Github Action"
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         make clean
-        make build-all-images RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        make build-all-images
         if echo $GITHUB_EVENT_NAME -eq "release"; then PRE_RELEASE=false; else PRE_RELEASE=true; fi
-        make release RELEASE_DRY_RUN=false PRE_RELEASE=$PRE_RELEASE RELEASE_IMAGE_PREFIX="ghcr.io/$GITHUB_REPOSITORY/"
+        make release RELEASE_DRY_RUN=false PRE_RELEASE=$PRE_RELEASE

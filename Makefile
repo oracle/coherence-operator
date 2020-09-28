@@ -43,7 +43,7 @@ COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:20.06.1
 TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 
 # Operator image names
-RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/coherence-operator/
+RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
