@@ -412,20 +412,31 @@ four metrics in the `custom/metrics.k8s.io` API:
 * `heap_memory_usage_after_gc_max`
 
 The autoscaler example has a Prometheus Adapter Helm chart values file that contains the configuration for the
-four metrics. This can be used to install the adapter:
+four metrics. This can be used to install the adapter
+https://hub.helm.sh/charts/prometheus-com/prometheus-adapter[Helm chart]:
+
+NOTE: In the command below the `--set prometheus.url=http://prometheus-prometheus-oper-prometheus.default.svc`
+parameter tells the adapter how to connect to Prometheus.
+The Prometheus Operator creates a `Service` named `prometheus-prometheus-oper-prometheus` to expose Prometheus.
+In this case the command assumes Prometheus is installed in the `default` namespace.
+If you installed Prometheus into a different namespace change the `default` part of
+`prometheus-prometheus-oper-prometheus.*default*.svc` to the actual namespace name.
+
+NOTE: The `manifests/prometheus-adapter-values.yaml` contains the configurations for metrics that the adapter
+will publish. These work with Coherence Operator 3.1.0 and above. If using an earlier 3.0.x version the values
+file must first be edited to change all occurrences of `resource: "coherences"` to `resource: "coherence"` (to
+make the resource name singular).
 
 [source,bash]
 ----
-helm install --atomic --version 2.5.0 --wait \
-    --set prometheus.url=http://prometheus-prometheus-oper-prometheus.default.svc \
-    --values manifests/prometheus-adapter-values.yaml prometheus-adapter stable/prometheus-adapter
-----
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
 
-NOTE: The `--set prometheus.url=http://prometheus-prometheus-oper-prometheus.default.svc` parameter tells the adapter
-how to connect to Prometheus.
-The Prometheus Operator creates a `Service` named `prometheus-prometheus-oper-prometheus` to expose Prometheus.
-In this case it assumes Prometheus is in the `default` namespace. If you installed Prometheus into a different
-namespace change the `default` part of `prometheus-prometheus-oper-prometheus.default.svc` to the actual namespace name.
+helm install --atomic --wait \
+    --set prometheus.url=http://prometheus-prometheus-oper-prometheus.default.svc \
+    --values manifests/prometheus-adapter-values.yaml \
+    prometheus-adapter prometheus-community/prometheus-adapter
+----
 
 
 ==== Query Custom Metrics
@@ -487,7 +498,7 @@ NOTE: The format of the `value` field above might look a little strange. This is
 format, in this case it is `1300m` where the `m` stand for millis. So in this case 1300 millis is 1.3% heap usage.
 This is to get around the poor support in yaml and json for accurate floating-point numbers.
 
-In our case for autoscaling we are interested in the maximum heap for a specific `Coherence` resource.
+In our case for auto-scaling we are interested in the maximum heap for a specific `Coherence` resource.
 Remember in the Prometheus Adapter configuration we configured the `role` metric tag to map to
 `coherences.coherence.oracle.com` resources.
 We also configured a query that will give back the maximum heap usage value for a query.
@@ -582,10 +593,17 @@ The `describedObject` section describes the resource to query, in this case kind
 
 <5> The `target` section describes the target value for the metric, in this case 80 thousand millis - which is 80%.
 
-<6> The `behavior` section sets a window of 120 seconds so that the HAP will wait at least 120 seconds after scaling up or down before re-evaluating the metric. This gives Coherence enough time to scale the deployment and for the data to redistribute
+<6> The `behavior` section sets a window of 120 seconds so that the HAP will wait at least 120 seconds after scaling up
+or down before re-evaluating the metric. This gives Coherence enough time to scale the deployment and for the data to redistribute
 and gc to occur. In real life this value would need to be adjusted to work correctly on your actual cluster.
 
 The autoscaler example contains yaml to create the `HorizontalPodAutoscaler` resource in the `manifests/` directory.
+
+WARNING: If using a version of Kubernetes prior to 1.18 the `behaviour` secion of the yaml above is invalid and should be
+removed. This could cause the HPA not to work the way we want it to as there will be no cool-down period specified
+between scaling operations, and the HPA could thrash or suddenly scale up or down by a lot of Pods.
+The only way to set these values prior to 1.18 was for the HPA as a whole
+(see the documentation https://v1-17.docs.kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-cooldown-delay[support for cooldown delay]).
 
 [source,bash]
 ----
