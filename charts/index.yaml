@@ -2,8 +2,21 @@ apiVersion: v1
 entries:
   coherence-operator:
   - apiVersion: v1
+    appVersion: 3.1.0
+    created: "2020-10-05T13:52:43.684339+03:00"
+    description: A Kubernetes Operator for Coherence
+    digest: 8a2907c0c019f5c42053422361bdaf606a74ab544720c4d376a0ae60d011720c
+    home: https://github.com/oracle/coherence-operator
+    icon: https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png
+    name: coherence-operator
+    sources:
+    - https://github.com/oracle/coherence-operator
+    urls:
+    - https://oracle.github.io/coherence-operator/charts/coherence-operator-3.1.0.tgz
+    version: 3.1.0
+  - apiVersion: v1
     appVersion: 3.0.2
-    created: "2020-09-22T11:55:56.55489+03:00"
+    created: "2020-10-05T13:52:43.683846+03:00"
     description: A Kubernetes Operator for Coherence
     digest: fc436c601886c71145b56cdb04f64326827562bd551b51328a53f491a1bfda3e
     home: https://github.com/oracle/coherence-operator
@@ -16,7 +29,7 @@ entries:
     version: 3.0.2
   - apiVersion: v1
     appVersion: 3.0.1
-    created: "2020-09-22T11:55:56.554429+03:00"
+    created: "2020-10-05T13:52:43.683175+03:00"
     description: A Kubernetes Operator for Coherence
     digest: b150c3a565178a5736d1b29f1c43e0a19106160f275166d21eee2eb48df2e67b
     home: https://github.com/oracle/coherence-operator
@@ -29,7 +42,7 @@ entries:
     version: 3.0.1
   - apiVersion: v1
     appVersion: 3.0.0
-    created: "2020-09-22T11:55:56.55394+03:00"
+    created: "2020-10-05T13:52:43.682546+03:00"
     description: A Kubernetes Operator for Coherence
     digest: 9acd77ebb7e0fbfe720a6f24885c546ea2306dd96f0c0f4a93eab8454167983f
     home: https://github.com/oracle/coherence-operator
@@ -42,7 +55,7 @@ entries:
     version: 3.0.0
   - apiVersion: v1
     appVersion: 2.1.1
-    created: "2020-09-22T11:55:56.553369+03:00"
+    created: "2020-10-05T13:52:43.681806+03:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -61,7 +74,7 @@ entries:
     version: 2.1.1
   - apiVersion: v1
     appVersion: 2.1.0
-    created: "2020-09-22T11:55:56.537267+03:00"
+    created: "2020-10-05T13:52:43.663712+03:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -80,7 +93,7 @@ entries:
     version: 2.1.0
   - apiVersion: v1
     appVersion: 2.0.5
-    created: "2020-09-22T11:55:56.521414+03:00"
+    created: "2020-10-05T13:52:43.645839+03:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -99,7 +112,7 @@ entries:
     version: 2.0.5
   - apiVersion: v1
     appVersion: 2.0.4
-    created: "2020-09-22T11:55:56.505412+03:00"
+    created: "2020-10-05T13:52:43.629227+03:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -118,7 +131,7 @@ entries:
     version: 2.0.4
   - apiVersion: v1
     appVersion: 2.0.3
-    created: "2020-09-22T11:55:56.488934+03:00"
+    created: "2020-10-05T13:52:43.611064+03:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -135,4 +148,4 @@ entries:
     urls:
     - https://oracle.github.io/coherence-operator/charts/coherence-operator-2.0.3.tgz
     version: 2.0.3
-generated: "2020-09-22T11:55:56.471376+03:00"
+generated: "2020-10-05T13:52:43.583887+03:00"
