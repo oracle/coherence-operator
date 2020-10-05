@@ -1359,10 +1359,12 @@ ifeq (true, $(PRE_RELEASE))
 	mkdir -p charts-unstable || true
 	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts-unstable/
 	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
+	git add charts-unstable/coherence-operator-$(VERSION).tgz
+	git add charts-unstable/index.yaml
 	ls -ls charts-unstable
 
-	git status
 	git add docs-unstable/*
+	git status
 else
 	mkdir docs/$(VERSION) || true
 	rm -rf docs/$(VERSION)/ || true
@@ -1372,17 +1374,19 @@ else
 	mkdir -p charts || true
 	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts/
 	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
+	git add charts/coherence-operator-$(VERSION).tgz
+	git add charts/index.yaml
 	ls -ls charts
 
-	git status
 	git add docs/*
+	git status
 endif
 	git clean -d -f
 	git status
-	git commit -m "adding Coherence Operator docs version: $(VERSION)"
+	git commit -m "adding Coherence Operator Helm chart and docs version: $(VERSION)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed docs $(VERSION) to gh-pages"
+	@echo "release dry-run - would have pushed Helm chart and docs $(VERSION) to gh-pages"
 else
 	git push origin gh-pages
 endif
