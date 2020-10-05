@@ -93,6 +93,26 @@
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
           <systemProperties>
             <systemProperty>
+              <key>coherence.cluster</key>
+              <value>autoscaler-test</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.ttl</key>
+              <value>0</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.localhost</key>
+              <value>127.0.0.1</value>
+            </systemProperty>
+            <systemProperty>
+              <key>coherence.wka</key>
+              <value>127.0.0.1</value>
+            </systemProperty>
+            <systemProperty>
+              <key>java.net.preferIPv4Stack</key>
+              <value>true</value>
+            </systemProperty>
+            <systemProperty>
               <key>coherence.distributed.localstorage</key>
               <value>false</value>
             </systemProperty>
