@@ -37,6 +37,13 @@ of the Coherence images will not work out of the box.
 See the <router-link to="/installation/06_openshift">OpensShift</router-link> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.</p>
 </div>
+
+<div class="admonition note">
+<p class="admonition-inline">Due to a CRD incompatibility that was initially un-noticed in version 3.1.0 if you are upgrading from a 
+previous 3.0.x version of the Operator you must manually uninstall the <code>coherence.coherence.oracle.com</code> CRD from
+your Kubernetes cluster before installing the new Operator version.</p>
+</div>
+
 </div>
 
 <h2 id="_installing_with_helm">Installing With Helm</h2>
