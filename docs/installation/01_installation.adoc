@@ -21,6 +21,10 @@ of the Coherence images will not work out of the box.
 See the <<installation/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
 
+WARNING: Due to a CRD incompatibility that was initially un-noticed in version 3.1.0 if you are upgrading from a
+previous 3.0.x version of the Operator you must manually uninstall the `coherence.coherence.oracle.com` CRD from
+your Kubernetes cluster before installing the new Operator version.
+
 == Installing With Helm
 
 The simplest way to install the Coherence Operator is to use the Helm chart.
