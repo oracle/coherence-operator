@@ -773,7 +773,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
 	)
 
-	if deployment.Annotations[ANNOTATION_FEATURE_SUSPEND] == "true" {
+	if deployment.Annotations[AnnotationFeatureSuspend] == "true" {
 		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace})
 	}
 

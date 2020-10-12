@@ -39,3 +39,4 @@ test/**/test-report.xml
 
 # Generated file created by the build
 /pkg/data/zz_generated_assets.go
+/__debug_bin
