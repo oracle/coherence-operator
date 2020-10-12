@@ -74,14 +74,14 @@ func TestCompatibility(t *testing.T) {
 
 func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) {
 	cmd := exec.Command("helm", "install", "--version", version,
-		"--namespace", ns, "--wait", name, "coherence/coherence-operator")
+		"--namespace", ns, name, "coherence/coherence-operator")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	pods, err := helper.ListPodsWithLabelSelector(testContext, ns, selector)
+	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
 }
@@ -99,7 +99,7 @@ func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	pods, err := helper.ListOperatorPods(testContext, ns)
+	pods, err := helper.WaitForOperatorPods(testContext, ns, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
 }
