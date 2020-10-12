@@ -116,7 +116,7 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka..svc.cluster.local",
 		"-Dcoherence.cluster=test",
-		"-Dcoherence.k8s.operator.identity=test@",
+		//"-Dcoherence.k8s.operator.identity=test@",
 		"-Dcoherence.k8s.operator.health.port=6676",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",

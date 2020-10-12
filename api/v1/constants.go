@@ -73,8 +73,6 @@ const (
 	VolumeMountPathManagementCerts = VolumeMountRoot + "/coherence/certs/management"
 	VolumeMountPathMetricsCerts    = VolumeMountRoot + "/coherence/certs/metrics"
 
-	AnnotationIdentity = "coherence.k8s.operator.identity"
-
 	// Start command for the runner
 	RunnerCommand = VolumeMountPathUtils + "/runner"
 
