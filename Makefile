@@ -13,8 +13,10 @@ VERSION ?= 3.1.1
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
-# A SPACE delimited list of previous Operator versions that are used to run the compatibility tests.
-COMPATIBLE_VERSIONS = 3.0.0
+# The previous Operator version used to run the compatibility tests.
+COMPATIBLE_VERSION  = 3.0.2
+# The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
+COMPATIBLE_SELECTOR = component=coherence-operator
 
 # Capture the Git commit to add to the build information
 GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
@@ -466,14 +468,17 @@ compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 compatibility-test: export VERSION := $(VERSION)
-compatibility-test: export COMPATIBLE_VERSIONS := $(COMPATIBLE_VERSIONS)
+compatibility-test: export COMPATIBLE_VERSION := $(COMPATIBLE_VERSION)
+compatibility-test: export COMPATIBLE_SELECTOR := $(COMPATIBLE_SELECTOR)
 compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: $(BUILD_TARGETS)/build-operator clean-namespace reset-namespace create-ssl-secrets gotestsum
+compatibility-test: $(BUILD_TARGETS)/build-operator undeploy clean-namespace reset-namespace gotestsum
+	helm repo add coherence https://oracle.github.io/coherence-operator/charts
+	helm repo update
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/compatibility/...
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/compatibility/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -623,8 +628,11 @@ endef
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl delete -f -
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
+	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
+	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.
@@ -648,15 +656,15 @@ $(BUILD_MANIFESTS_PKG):
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
 	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherences.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml docs/about/04_coherence_spec.adoc
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
 
-config/crd-v1beta1/bases/coherence.oracle.com_coherences.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
+config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
 	@echo "Generating CRD v1beta1"
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1beta1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
@@ -1028,7 +1036,9 @@ run-clean: reset-namespace run
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-debug:
-	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
+	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
+		-- --skip-service-suspend=true --coherence-dev-mode=true \
+		--cert-type=self-signed --webhook-service=host.docker.internal
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally in debug mode after deleting and recreating

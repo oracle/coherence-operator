@@ -10,7 +10,7 @@ rules:
             resource: "pod"
           role:
             group: "coherence.oracle.com"
-            resource: "coherences"
+            resource: "coherence"
       name:
         matches: ""
         as: "heap_memory_usage_after_gc_pct"
@@ -24,7 +24,7 @@ rules:
             resource: "pod"
           role:
             group: "coherence.oracle.com"
-            resource: "coherences"
+            resource: "coherence"
       name:
         matches: ""
         as: "heap_memory_usage_after_gc_max_pct"
@@ -38,7 +38,7 @@ rules:
             resource: "pod"
           role:
             group: "coherence.oracle.com"
-            resource: "coherences"
+            resource: "coherence"
       name:
         matches: ""
         as: "heap_memory_usage_after_gc"
@@ -52,7 +52,7 @@ rules:
             resource: "pod"
           role:
             group: "coherence.oracle.com"
-            resource: "coherences"
+            resource: "coherence"
       name:
         matches: ""
         as: "heap_memory_usage_after_gc_max"

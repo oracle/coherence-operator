@@ -3,9 +3,9 @@
 # http://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
-# Coherence Operator GitHub Actions CI build.
+# Coherence Operator GitHub Actions Backwards Compatibility Tests.
 # ---------------------------------------------------------------------------
-name: Operator CI
+name: Backwards Compatibility Tests
 
 on:
   push:
@@ -29,8 +29,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-#   Checkout the source, we need a depth of zero to fetch all of the history otherwise
-#   the copyright check cannot work out the date of the files from Git.
+    strategy:
+      fail-fast: false
+      matrix:
+        compatibilityVersion:
+        - 3.0.2
+      include:
+      - compatibilityVersion: 3.0.2
+        compatibilitySelector: component=coherence-operator
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -86,32 +93,10 @@ jobs:
         make push-all-images
         make kind-load
 
-    - name: Unit Tests
-      shell: bash
-      run: make test-all
-
-    - name: E2E Local Tests
-      shell: bash
-      run: make e2e-local-test
-
-    - name: E2E Remote Tests
-      shell: bash
-      run: make e2e-test
-
-    - name: E2E Elasticsearch Tests
+    - name: Compatibility Tests
       shell: bash
       run: |
-        make e2e-elastic-test
-
-    - name: E2E Prometheus Tests
-      shell: bash
-      run: |
-        make e2e-prometheus-test
-
-    - name: Helm Chart Tests
-      shell: bash
-      run: |
-        make e2e-helm-test
+        make compatibility-test COMPATIBLE_VERSION=${{ matrix.compatibilityVersion }} COMPATIBLE_SELECTOR=${{ matrix.compatibilitySelector }}
 
     - uses: actions/upload-artifact@v1
       if: failure()

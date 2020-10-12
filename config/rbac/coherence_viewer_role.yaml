@@ -1,4 +1,4 @@
-# permissions for end users to view coherences.
+# permissions for end users to view coherence.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - coherence.oracle.com
   resources:
-  - coherences
+  - coherence
   verbs:
   - get
   - list
@@ -17,6 +17,6 @@ rules:
 - apiGroups:
   - coherence.oracle.com
   resources:
-  - coherences/status
+  - coherence/status
   verbs:
   - get

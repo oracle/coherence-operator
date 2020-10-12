@@ -261,7 +261,7 @@ const (
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:resource:path=coherences,scope=Namespaced,shortName=coh,categories=coherence
+// +kubebuilder:resource:path=coherence,scope=Namespaced,shortName=coh,categories=coherence
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".status.coherenceCluster",description="The name of the Coherence cluster that this deployment belongs to"
 // +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".status.role",description="The role of this deployment in a Coherence cluster"
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
@@ -418,13 +418,13 @@ func ensureV1CRDs(logger logr.Logger, crdClient v1client.CustomResourceDefinitio
 func ensureV1CRD(logger logr.Logger, crdClient v1client.CustomResourceDefinitionInterface, fileName string) error {
 	f, err := data.Assets.Open(fileName)
 	if err != nil {
-		return errors.Wrap(err, "opening embedded CRD asset " + fileName)
+		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
 	}
 	defer f.Close()
 
 	yml, err := ioutil.ReadAll(f)
 	if err != nil {
-		return errors.Wrap(err, "reading embedded CRD asset " + fileName)
+		return errors.Wrap(err, "reading embedded CRD asset "+fileName)
 	}
 
 	u := unstructured.Unstructured{}
@@ -488,13 +488,13 @@ func ensureV1Beta1CRDs(logger logr.Logger, crdClient v1beta1client.CustomResourc
 func ensureV1Beta1CRD(logger logr.Logger, crdClient v1beta1client.CustomResourceDefinitionInterface, fileName string) error {
 	f, err := data.Assets.Open(fileName)
 	if err != nil {
-		return errors.Wrap(err, "opening embedded CRD asset " + fileName)
+		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
 	}
 	defer f.Close()
 
 	yml, err := ioutil.ReadAll(f)
 	if err != nil {
-		return errors.Wrap(err, "reading embedded CRD asset " + fileName)
+		return errors.Wrap(err, "reading embedded CRD asset "+fileName)
 	}
 
 	u := unstructured.Unstructured{}

@@ -755,7 +755,7 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1
 
 // Create the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
-	return append(in.CreateCommonEnv(deployment),
+	env := append(in.CreateCommonEnv(deployment),
 		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.Spec.Coherence.GetWKA(deployment)},
 		corev1.EnvVar{
 			Name: EnvVarOperatorHost, ValueFrom: &corev1.EnvVarSource{
@@ -771,8 +771,13 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
-		corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace},
 	)
+
+	if deployment.Annotations[ANNOTATION_FEATURE_SUSPEND] == "true" {
+		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace})
+	}
+
+	return env
 }
 
 // Create the default Container resources.

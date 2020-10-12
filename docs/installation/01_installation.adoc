@@ -11,6 +11,13 @@
 The Coherence Operator is available as a Docker image `oracle/coherence-operator:{operator-version}` that can
 easily be installed into a Kubernetes cluster.
 
+There are two ways to install the Coherence Operator documented below.
+
+* <<helm,Helm>>
+* <<kubectl,Kubectl / Kustomize>>
+
+The prerequisites apply to both methods
+
 == Prerequisites
 
 * Access to Oracle Coherence Docker images, or self-built Coherence images.
@@ -21,15 +28,30 @@ of the Coherence images will not work out of the box.
 See the <<installation/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
 
-WARNING: Due to a CRD incompatibility that was initially un-noticed in version 3.1.0 if you are upgrading from a
-previous 3.0.x version of the Operator you must manually uninstall the `coherence.coherence.oracle.com` CRD from
-your Kubernetes cluster before installing the new Operator version.
+[WARNING]
+====
+*Upgrading from version 3.1.0*
+
+Due to a CRD incompatibility that was initially un-noticed in v3.1.0 we deprecated v3.1.0 and recommended that
+it not be used.
+If you did install v3.1.0 and are upgrading to the latest version you must manually uninstall the
+`coherences.coherence.oracle.com` CRD from your Kubernetes cluster before installing the new Operator version.
+
+[source,bash]
+----
+kubectl delete crd coherences.coherence.oracle.com
+----
+
+Note that the CRD name in the 3.1.0 CRD being uninstalled has a plural `coherences` for the first part of the name.
+====
+
 
 == Installing With Helm
 
 The simplest way to install the Coherence Operator is to use the Helm chart.
 This ensures that all the correct resources will be created in Kubernetes.
 
+[#helm]
 === Add the Coherence Helm Repository
 
 Add the `coherence` helm repository using the following commands:
@@ -78,8 +100,8 @@ each instances monitors a different set of namespaces. There are a number of pot
 it is not recommended.
 
 * Only one CRD can be installed - Different releases of the Operator may use slightly different CRD versions, for example
-v3.1.1 may introduce extra fields not in v3.1.0. As the CRD version is `v1` there is no guarantee which CRD version has
-actually installed, which could lead to subtle issues.
+a new version may introduce extra fields not in the previous version. As the CRD version is `v1` there is no guarantee
+which CRD version has actually installed, which could lead to subtle issues.
 * The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
 installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
 configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
@@ -160,3 +182,116 @@ helm install  \
 
 <1> this creates the same imagePullSecrets as the values file above.
 
+[#kubectl]
+== Install with Kubectl and Kustomize
+
+If you want to use yaml directly to install the operator, with something like `kubectl`, you can use the manifest files
+published with the GitHub release at this link:
+https://github.com/oracle/coherence-operator/releases/download/v3.1.0/coherence-operator-manifests-3.1.0.tar.gz[3.1.0 Manifests]
+
+These manifest files are for use with a tool called Kustomize, which is built into `kubectl`
+see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+
+Download the
+https://github.com/oracle/coherence-operator/releases/download/v3.1.0/coherence-operator-manifests-3.1.0.tar.gz[3.1.0 Manifests]
+from the release page and unpack the file, which should produce a directory called `manifests` with a structure like this:
+
+[source]
+----
+manifests
+    default
+        config.yaml
+        kustomization.yaml
+    manager
+        kustomization.yaml
+        manager.yaml
+        service.yaml
+    rbac
+        coherence_editor_role.yaml
+        coherence_viewer_role.yaml
+        kustomization.yaml
+        leader_election_role.yaml
+        leader_election_role_binding.yaml
+        role.yaml
+        role_binding.yaml
+----
+
+There are two ways to use these manifest files, either install using `kustomize` or generate the yaml and manually
+install with `kubectl`.
+
+NOTE: All of the commands below are run from a console in the `manifests/` directory from the extracted file above.
+
+=== Install with Kustomize
+
+If you have Kustomize installed (or can install it from https://github.com/kubernetes-sigs/kustomize) you can use
+Kustomize to configure the yaml and install.
+
+==== Set Image Names
+If you need to use different iamge names from the defaults `kustomize` can be used to specify different names:
+
+Change the name of the Operator image by running the command below, changing the image name to the registry and image name
+that you are using for the Operator
+[source,bash]
+----
+cd ./manager && kustomize edit set image controller=container-registry.oracle.com/middleware/coherence-operator:3.1.0
+----
+
+Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
+that you are using for the Operator utilities image
+[source,bash]
+----
+cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.1.0-utils
+----
+
+Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
+does not need to change.
+[source,bash]
+----
+cd ./manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+----
+
+Set the namespace to install into, the example below sets the namespace to `coherence-test`:
+[source,bash]
+----
+cd ./default && /kustomize edit set namespace coherence-test
+----
+
+==== Install
+
+The Operator requires a `Secret` for its web-hook certificates. This `Secret` needs to exist but can be empty.
+The `Secret` must be in the same namespace that the Operator will be deployed to.
+For example, if the Operator namespace is `coherence-test`, then the `Secret` can be created with this command:
+
+[source,bash]
+----
+kubectl -n coherence-test create secret generic coherence-webhook-server-cert
+----
+
+The Operator can now be installed by running the following command from the `manifests` directory:
+[source,bash]
+----
+kustomize build ./default | kubectl apply -f -
+----
+
+=== Generate Yaml - Install with Kubectl
+
+Instead of using Kustomize to modify and install the Operator we can use `kubectl` to generate the yaml from the manifests.
+You can then edit this yaml and manually deploy it with `kubectl`.
+
+Run the following command from the `manifests` directory:
+[source,bash]
+----
+kubectl create --dry-run -k default/ -o yaml > operator.yaml
+----
+
+This will create a file in the `manifests` directory called `operator.yaml` that contains all the yaml required
+to install the Operator. You can then edit this yaml to change image names or add other settings.
+
+The Operator can be installed using the generated yaml.
+
+For example if the Operator is to be deployed to the `coherence-test` namespace:
+[source,bash]
+----
+kubectl -n coherence-test create secret generic coherence-webhook-server-cert
+kubectl -n coherence-test create -f operator.yaml
+----

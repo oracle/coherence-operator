@@ -351,7 +351,7 @@ The basic format for configuring a metric in the adapter is as follows:
         resource: "pod"
       role:  # <5>
         group: "coherence.oracle.com"
-        resource: "coherences"
+        resource: "coherence"
   name:
     matches: ""
     as: "heap_memory_usage_after_gc_pct"  # <6>
@@ -364,13 +364,13 @@ The name can be qualified further with tags/labels but in our case just the metr
 <3> The metrics have a `namespace` label (as can be seen in the UI above) and this maps to a Kubernetes `Namespace` resource.
 <4> The metrics have a `pod` label (as can be seen in the UI above) and this maps to a Kubernetes `Pod` resource.
 <5> The metrics have a `role` label (as can be seen in the UI above) and this maps to a Kubernetes
-`coherences.coherence.oracle.com` resource.
+`coherence.coherence.oracle.com` resource.
 <6> The `name.as` field gives the name of the metric in the metrics API.
 <7> The `metricsQuery` determines how a specific metric will be fetched, in this case we are summing the values.
 
 The configuration above will create a metric in the `custom/metrics.k8s.io` API named heap_memory_usage_after_gc_pct.
 This metric can be retrieved from the API for a namespace, for a Pod or for a Coherence deployment
-(the `coherences.coherence.oracle.com` resource). This is why the `metricsQuery` uses `sum`, so that when querying for
+(the `coherence.coherence.oracle.com` resource). This is why the `metricsQuery` uses `sum`, so that when querying for
 a metric at the namespace level we see the total summed up for the namespace.
 
 Summing up the metric might not be the best approach. Imagine that we want to scale when the heap after gc usage exceeds 80%.
@@ -379,7 +379,7 @@ Whilst Coherence will distribute data evenly across the cluster so that each mem
 similar heap usage, there could be an occasion where one member for whatever reason is processing extra load and exceeds 80%
 before other members.
 
-One way to approach this issue is instead of summing the metric value for a namespace or `coherences.coherence.oracle.com`
+One way to approach this issue is instead of summing the metric value for a namespace or `coherence.coherence.oracle.com`
 resource we can fetch the maximum value. We do this by changing the `metricsQuery` to use `max` as shown below:
 
 [source,yaml]
@@ -393,7 +393,7 @@ resource we can fetch the maximum value. We do this by changing the `metricsQuer
         resource: "pod"
       role:
         group: "coherence.oracle.com"
-        resource: "coherences"
+        resource: "coherence"
   name:
     matches: ""
     as: "heap_memory_usage_after_gc_max_pct"
@@ -424,7 +424,7 @@ If you installed Prometheus into a different namespace change the `default` part
 
 NOTE: The `manifests/prometheus-adapter-values.yaml` contains the configurations for metrics that the adapter
 will publish. These work with Coherence Operator 3.1.0 and above. If using an earlier 3.0.x version the values
-file must first be edited to change all occurrences of `resource: "coherences"` to `resource: "coherence"` (to
+file must first be edited to change all occurrences of `resource: "coherence"` to `resource: "coherence"` (to
 make the resource name singular).
 
 [source,bash]
@@ -500,7 +500,7 @@ This is to get around the poor support in yaml and json for accurate floating-po
 
 In our case for auto-scaling we are interested in the maximum heap for a specific `Coherence` resource.
 Remember in the Prometheus Adapter configuration we configured the `role` metric tag to map to
-`coherences.coherence.oracle.com` resources.
+`coherence.coherence.oracle.com` resources.
 We also configured a query that will give back the maximum heap usage value for a query.
 
 The example yaml used to deploy the `Coherence` resource above will create a resource named `test-cluster`.
@@ -509,7 +509,7 @@ for the `Pods` in that `Coherence` deployment as follows:
 
 [source,bash]
 ----
-kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/coherences.coherence.oracle.com/test-cluster/heap_memory_usage_after_gc_max_pct
+kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/coherence.coherence.oracle.com/test-cluster/heap_memory_usage_after_gc_max_pct
 ----
 
 which might display something like:
@@ -519,7 +519,7 @@ which might display something like:
   "kind": "MetricValueList",
   "apiVersion": "custom.metrics.k8s.io/v1beta1",
   "metadata": {
-    "selfLink": "/apis/custom.metrics.k8s.io/v1beta1/namespaces/operator-test/coherences.coherence.oracle.com/test-cluster/heap_memory_usage_after_gc_max_pct"
+    "selfLink": "/apis/custom.metrics.k8s.io/v1beta1/namespaces/operator-test/coherence.coherence.oracle.com/test-cluster/heap_memory_usage_after_gc_max_pct"
   },
   "items": [
     {

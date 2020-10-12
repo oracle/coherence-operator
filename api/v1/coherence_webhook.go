@@ -28,7 +28,7 @@ func (in *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
 }
 
 // The path in this annotation MUST match the const below
-// +kubebuilder:webhook:path=/mutate-coherence-oracle-com-v1-coherence,mutating=true,failurePolicy=fail,groups=coherence.oracle.com,resources=coherences,verbs=create;update,versions=v1,name=mcoherence.kb.io
+// +kubebuilder:webhook:path=/mutate-coherence-oracle-com-v1-coherence,mutating=true,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,verbs=create;update,versions=v1,name=mcoherence.kb.io
 
 // This const MUST match the path in the kubebuilder annotation above
 const MutatingWebHookPath = "/mutate-coherence-oracle-com-v1-coherence"
@@ -39,20 +39,29 @@ var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *Coherence) Default() {
-	webhookLogger.Info("default", "name", in.Name)
+	logger := webhookLogger.WithValues("namespace", in.Namespace, "name", in.Name)
+	if in.Status.Phase == "" {
+		logger.Info("setting defaults for resource")
 
-	if in.Spec.Replicas == nil {
-		in.Spec.SetReplicas(3)
+		if in.Spec.Replicas == nil {
+			in.Spec.SetReplicas(3)
+		}
+
+		// only set defaults for image names new Coherence instances
+		coherenceImage := operator.GetDefaultCoherenceImage()
+		in.Spec.EnsureCoherenceImage(&coherenceImage)
+		utilsImage := operator.GetDefaultUtilsImage()
+		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
+
+		// Set the features supported by this version
+		in.Annotations[ANNOTATION_FEATURE_SUSPEND] = "true"
+	} else {
+		logger.Info("skipping defaulting for existing resource")
 	}
-
-	coherenceImage := operator.GetDefaultCoherenceImage()
-	in.Spec.EnsureCoherenceImage(&coherenceImage)
-	utilsImage := operator.GetDefaultUtilsImage()
-	in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 }
 
 // The path in this annotation MUST match the const below
-// +kubebuilder:webhook:verbs=create;update,path=/validate-coherence-oracle-com-v1-coherence,mutating=false,failurePolicy=fail,groups=coherence.oracle.com,resources=coherences,versions=v1,name=vcoherence.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-coherence-oracle-com-v1-coherence,mutating=false,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,versions=v1,name=vcoherence.kb.io
 
 // This const MUST match the path in the kubebuilder annotation above
 const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
