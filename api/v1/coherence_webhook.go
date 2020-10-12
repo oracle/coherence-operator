@@ -54,6 +54,9 @@ func (in *Coherence) Default() {
 		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 
 		// Set the features supported by this version
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
 		in.Annotations[AnnotationFeatureSuspend] = "true"
 	} else {
 		logger.Info("skipping defaulting for existing resource")

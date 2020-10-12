@@ -359,7 +359,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 
 	// ensure the utils image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	if deployment.Spec.CoherenceUtils.Image == nil {
+	if deployment.Spec.CoherenceUtils == nil || deployment.Spec.CoherenceUtils.Image == nil {
 		utilsImage := in.getUtilsImage(desired)
 		in.setUtilsImage(original, utilsImage)
 		in.setUtilsImage(current, utilsImage)

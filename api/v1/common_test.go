@@ -265,10 +265,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				Name:  "OPERATOR_REQUEST_TIMEOUT",
 				Value: "120",
 			},
-			{
-				Name:  coh.EnvVarCohIdentity,
-				Value: deployment.Name + "@" + deployment.Namespace,
-			},
 		},
 	}
 
