@@ -67,7 +67,7 @@ func (in *CoherenceProbe) TranslatePort(name string, port int) int {
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
 func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
-	log.Info("Checking StatefulSet " + sts.Name + " for StatusHA",
+	log.Info("Checking StatefulSet "+sts.Name+" for StatusHA",
 		"Namespace", deployment.Namespace, "Name", deployment.Name)
 	p := deployment.Spec.GetScalingProbe()
 	return in.ExecuteProbe(deployment, sts, p)
@@ -80,18 +80,27 @@ func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Stat
 // All Pods must pass the StatusHA check
 func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
-		log.Info("Skipping suspension of Coherence services in StatefulSet " + sts.Name +
-			operator.FlagSkipServiceSuspend + " is set to true",
+		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
+			operator.FlagSkipServiceSuspend+" is set to true",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
 		return true
 	}
+
+	// check whether the Coherence deployment supports service suspension
+	if deployment.Annotations[coh.ANNOTATION_FEATURE_SUSPEND] != "true" {
+		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
+			coh.ANNOTATION_FEATURE_SUSPEND+" annotation is missing or not set to true",
+			"Namespace", deployment.Namespace, "Name", deployment.Name)
+		return true
+	}
+
 	if deployment.Spec.SuspendServicesOnShutdown != nil && !*deployment.Spec.SuspendServicesOnShutdown {
-		log.Info("Skipping suspension of Coherence services in StatefulSet " + sts.Name +
+		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			" spec.SuspendServicesOnShutdown is set to false",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
 		return true
 	}
-	log.Info("Suspending Coherence services in StatefulSet " + sts.Name,
+	log.Info("Suspending Coherence services in StatefulSet "+sts.Name,
 		"Namespace", deployment.Namespace, "Name", deployment.Name)
 	p := deployment.Spec.GetSuspendProbe()
 	return in.ExecuteProbe(deployment, sts, p)

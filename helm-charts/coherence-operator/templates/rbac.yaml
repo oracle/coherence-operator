@@ -93,7 +93,7 @@ rules:
 - apiGroups:
   - coherence.oracle.com
   resources:
-  - coherences
+  - coherence
   verbs:
   - create
   - delete
@@ -105,7 +105,7 @@ rules:
 - apiGroups:
   - coherence.oracle.com
   resources:
-  - coherences/status
+  - coherence/status
   verbs:
   - get
   - patch

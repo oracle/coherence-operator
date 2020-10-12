@@ -40,9 +40,9 @@ type certManagerVersion struct {
 }
 
 const (
-	certManagerCertName = "coherence-webhook-server-certificate"
+	certManagerCertName   = "coherence-webhook-server-certificate"
 	certManagerIssuerName = "coherence-webhook-server-issuer"
-	certTypeAnnotation = "operator.coherence.oracle.com/cert-type"
+	certTypeAnnotation    = "operator.coherence.oracle.com/cert-type"
 )
 
 var (
@@ -66,13 +66,13 @@ func (k *HookInstaller) uninstallWebHook(client client.Client) error {
 	if k.certificate != nil {
 		log.Info("deleting cert-manager certificate " + k.certificate.GetName())
 		if err := k.uninstallUnstructured(k.certificate); err != nil {
-			log.Error(err, "error deleting cert-manager Certificate " + k.certificate.GetName())
+			log.Error(err, "error deleting cert-manager Certificate "+k.certificate.GetName())
 		}
 	}
 	if k.issuer != nil {
 		log.Info("deleting cert-manager issuer " + k.issuer.GetName())
 		if err := k.uninstallUnstructured(k.issuer); err != nil {
-			log.Error(err, "error deleting cert-manager Issuer " + k.issuer.GetName())
+			log.Error(err, "error deleting cert-manager Issuer "+k.issuer.GetName())
 		}
 	}
 
@@ -321,7 +321,7 @@ func createMutatingWebhookConfiguration(ns string) admissionv1beta1.MutatingWebh
 
 	return admissionv1beta1.MutatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        viper.GetString(operator.FlagMutatingWebhookName),
+			Name: viper.GetString(operator.FlagMutatingWebhookName),
 			Annotations: map[string]string{
 				certTypeAnnotation: viper.GetString(operator.FlagCertType),
 			},
@@ -339,7 +339,7 @@ func createMutatingWebhookConfiguration(ns string) admissionv1beta1.MutatingWebh
 						Rule: admissionv1beta1.Rule{
 							APIGroups:   []string{"coherence.oracle.com"},
 							APIVersions: []string{"v1"},
-							Resources:   []string{"coherences"},
+							Resources:   []string{"coherence"},
 							Scope:       &namespacedScope,
 						},
 					},
@@ -363,7 +363,7 @@ func createValidatingWebhookConfiguration(ns string) admissionv1beta1.Validating
 
 	return admissionv1beta1.ValidatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        viper.GetString(operator.FlagValidatingWebhookName),
+			Name: viper.GetString(operator.FlagValidatingWebhookName),
 			Annotations: map[string]string{
 				certTypeAnnotation: viper.GetString(operator.FlagCertType),
 			},
@@ -381,7 +381,7 @@ func createValidatingWebhookConfiguration(ns string) admissionv1beta1.Validating
 						Rule: admissionv1beta1.Rule{
 							APIGroups:   []string{"coherence.oracle.com"},
 							APIVersions: []string{"v1"},
-							Resources:   []string{"coherences"},
+							Resources:   []string{"coherence"},
 							Scope:       &namespacedScope,
 						},
 					},

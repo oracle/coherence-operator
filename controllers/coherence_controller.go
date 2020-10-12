@@ -55,8 +55,8 @@ type CoherenceReconciler struct {
 // There will be a compile time error here if this breaks
 var _ reconcile.Reconciler = &CoherenceReconciler{}
 
-// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherences,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherences/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs="*"
 // +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;persistentvolumeclaims;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -283,17 +283,17 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
-    in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
-    controllerutil.AddFinalizer(c, coh.Finalizer)
+	in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
+	controllerutil.AddFinalizer(c, coh.Finalizer)
 
-    // Update CR
-    err := in.GetClient().Update(context.TODO(), c)
-    if err != nil {
-        in.Log.Error(err, "Failed to update Coherence resource with finalizer",
-        	"Namespace", c.Namespace, "Name", c.Name)
-        return err
-    }
-    return nil
+	// Update CR
+	err := in.GetClient().Update(context.TODO(), c)
+	if err != nil {
+		in.Log.Error(err, "Failed to update Coherence resource with finalizer",
+			"Namespace", c.Namespace, "Name", c.Name)
+		return err
+	}
+	return nil
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
@@ -314,7 +314,7 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 		return nil
 	}
 
-    in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
+	in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
 	// Get the StatefulSet
 	sts, stsExists, err := in.MaybeFindStatefulSet(c.Namespace, c.Name)
 	if err != nil {
@@ -322,7 +322,7 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 	}
 	if stsExists {
 		// Do service suspension...
-	    probe := statefulset.CoherenceProbe{
+		probe := statefulset.CoherenceProbe{
 			Client: in.GetClient(),
 			Config: in.GetManager().GetConfig(),
 		}
@@ -330,5 +330,5 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 			return fmt.Errorf("failed to suspend services")
 		}
 	}
-    return nil
+	return nil
 }

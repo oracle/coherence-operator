@@ -38,6 +38,9 @@ const (
 
 	StatusSelectorTemplate = LabelCoherenceCluster + "=%s," + LabelCoherenceDeployment + "=%s"
 
+	// Feature annotations
+	ANNOTATION_FEATURE_SUSPEND = "com.oracle.coherence.operator/feature.suspend"
+
 	// The default k8s service account name.
 	DefaultServiceAccount = "default"
 
