@@ -87,9 +87,9 @@ func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1
 	}
 
 	// check whether the Coherence deployment supports service suspension
-	if deployment.Annotations[coh.ANNOTATION_FEATURE_SUSPEND] != "true" {
+	if deployment.Annotations[coh.AnnotationFeatureSuspend] != "true" {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
-			coh.ANNOTATION_FEATURE_SUSPEND+" annotation is missing or not set to true",
+			coh.AnnotationFeatureSuspend+" annotation is missing or not set to true",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
 		return true
 	}
