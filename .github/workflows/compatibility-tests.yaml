@@ -34,9 +34,9 @@ jobs:
       matrix:
         compatibilityVersion:
         - 3.0.2
-      include:
-      - compatibilityVersion: 3.0.2
-        compatibilitySelector: component=coherence-operator
+        include:
+        - compatibilityVersion: 3.0.2
+          compatibilitySelector: component=coherence-operator
 
     steps:
     - uses: actions/checkout@v2
