@@ -8,10 +8,10 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.1.1
+VERSION ?= 3.1.2
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.1.0
+PREV_VERSION ?= 3.1.2
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -1337,15 +1337,26 @@ pre-release:
 # ----------------------------------------------------------------------------------------------------------------------
 # Post-Release Tasks
 # Update the version numbers
+#post-release: check-new-version new-version manifests generate build-all-images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: post-release
-post-release: new-version manifests generate build-all-images
+post-release: check-new-version new-version
+
+.PHONY: check-new-version
+check-new-version:
+ifeq (, $(NEW_VERSION))
+	@echo "You must specify the NEW_VERSION parameter"
+	exit 1
+else
+	@echo "Updating version from $(VERSION) to $(NEW_VERSION)"
+endif
 
 .PHONY: new-version
 new-version:
-	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' config/operator/config.json
-	find config \( -name '*.yaml' \) -exec sed -i '' 's/<version>$(subst .,\.,$(PREV_VERSION))</version>/<version>$(VERSION)</version>/g' {} +
-	find java \( -name '*.pom' \) -exec sed -i '' 's/<version>$(subst .,\.,$(PREV_VERSION))</version>/<version>$(VERSION)</version>/g' {} +
+	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
+	sed -i '' 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' MAKEFILE
+	find config \( -name '*.yaml' -o -name '*.json' \) -exec sed -i '' 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' {} +
+	find java \( -name 'pom.xml' \) -exec sed -i '' 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEW_VERSION)<\/version>/g' {} +
 
 
 # ----------------------------------------------------------------------------------------------------------------------
