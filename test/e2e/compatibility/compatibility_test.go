@@ -24,7 +24,7 @@ func TestCompatibility(t *testing.T) {
 
 	ns := helper.GetTestNamespace()
 	name := "operator"
-	defer CleanupBlind(ns, name)
+	defer CleanupBlind(t, ns, name)
 
 	version := os.Getenv("COMPATIBLE_VERSION")
 	g.Expect(version).NotTo(BeEmpty(), "COMPATIBLE_VERSION environment variable has not been set")
@@ -104,11 +104,12 @@ func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
 	g.Expect(len(pods)).To(Equal(1))
 }
 
-func CleanupBlind(namespace, name string) {
-	_ = Cleanup(namespace, name)
+func CleanupBlind(t *testing.T, namespace, name string) {
+	_ = Cleanup(t, namespace, name)
 }
 
-func Cleanup(namespace, name string) error {
+func Cleanup(t *testing.T, namespace, name string) error {
+	helper.DumpOperatorLogs(t, testContext)
 	_ = helper.WaitForCoherenceCleanup(testContext, namespace)
 	return UninstallOperator(namespace, name)
 }
