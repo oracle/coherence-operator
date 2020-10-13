@@ -38,7 +38,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 
 ## Coherence Operator Quick Start
 
-Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.1.0/#/about/03_quickstart) including the
+Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.1.1/#/about/03_quickstart) including the
 prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
 
 ## Software Versions
@@ -683,7 +683,7 @@ install any of the examples above.
    
     kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1  
 
-    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.0/coherence-grafana-dashboards.yaml
+    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.1/coherence-grafana-dashboards.yaml
 
     kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
     ```        

@@ -10,6 +10,9 @@
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 3.1.1
 
+# The version number to be replaced by this release
+PREV_VERSION ?= 3.1.0
+
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
@@ -194,7 +197,7 @@ CRD_V1           ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v
 TEST_SSL_SECRET := coherence-ssl-secret
 
 .PHONY: all
-all: build-all-images
+all: build-all-images helm-chart
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
@@ -1319,6 +1322,31 @@ serve-docs:
 	@echo "Serving documentation on http://localhost:8080"
 	cd $(BUILD_OUTPUT)/docs; \
 	python -m SimpleHTTPServer 8080
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Pre-Release Tasks
+# Update the version numbers in the documentation to be the version about to be released
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: pre-release
+pre-release:
+	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' README.md
+	find docs \( -name '*.adoc' -o -name '*.md' \) -exec sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
+	find examples \( -name '*.adoc' -o -name '*.md' -o -name '*.yaml' \) -exec sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Post-Release Tasks
+# Update the version numbers
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: post-release
+post-release: new-version manifests generate build-all-images
+
+.PHONY: new-version
+new-version:
+	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' config/operator/config.json
+	find config \( -name '*.yaml' \) -exec sed -i '' 's/<version>$(subst .,\.,$(PREV_VERSION))</version>/<version>$(VERSION)</version>/g' {} +
+	find java \( -name '*.pom' \) -exec sed -i '' 's/<version>$(subst .,\.,$(PREV_VERSION))</version>/<version>$(VERSION)</version>/g' {} +
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator dashboards
