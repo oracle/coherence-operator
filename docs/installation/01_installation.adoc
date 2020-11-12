@@ -28,6 +28,11 @@ of the Coherence images will not work out of the box.
 See the <<installation/06_openshift.adoc,OpensShift>> section of the documentation that explains how to
 run Coherence clusters with the Operator on OpenShift.
 
+NOTE: Whilst Coherence works out of the box on many Kubernetes installations, some Kubernetes
+installations may configure iptables in a way that causes Coherence to fail to create clusters.
+See the <<installation/08_networking.adoc,O/S Network Configuration>> section of the documentation
+for more details if you have well-known-address issues when Pods attempt to form a cluster.
+
 [WARNING]
 ====
 *Upgrading from version 3.1.0*
