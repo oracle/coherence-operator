@@ -169,6 +169,19 @@ function createRoutes(){
             component: loadPage('installation-07_webhooks', '/installation/07_webhooks', {})
         },
         {
+            path: '/installation/08_networking',
+            meta: {
+                h1: 'O/S Networking Configuration',
+                title: 'O/S Networking Configuration',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('installation-08_networking', '/installation/08_networking', {})
+        },
+        {
             path: '/applications/010_overview',
             meta: {
                 h1: 'Overview',
@@ -904,7 +917,8 @@ function createNav(){
                 { href: '/installation/04_obtain_coherence_images', title: 'Obtain Coherence Images' },
                 { href: '/installation/05_private_repos', title: 'Using Private Image Registries' },
                 { href: '/installation/06_openshift', title: 'Coherence Clusters on OpenShift' },
-                { href: '/installation/07_webhooks', title: 'Operator Web-Hooks' }
+                { href: '/installation/07_webhooks', title: 'Operator Web-Hooks' },
+                { href: '/installation/08_networking', title: 'O/S Networking Configuration' }
             ]
         },
         {
