@@ -533,7 +533,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Endanered Services",
+          "legendFormat": "Endangered Services",
           "refId": "A"
         }
       ],
@@ -671,7 +671,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Endanered Services",
+          "legendFormat": "Endangered Services",
           "refId": "A"
         }
       ],
