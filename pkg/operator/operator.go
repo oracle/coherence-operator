@@ -22,8 +22,6 @@ import (
 const (
 	zoneLabel = "topology.kubernetes.io/zone"
 	//	regionLabel            = "topology.kubernetes.io/region"
-	DefaultSiteLabel       = zoneLabel
-	DefaultRackLabel       = zoneLabel
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
 
@@ -68,6 +66,11 @@ const (
 )
 
 var setupLog = ctrl.Log.WithName("setup")
+
+var (
+	DefaultSiteLabel = []string{"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+	DefaultRackLabel = []string{"topology.kubernetes.io/region", "failure-domain.beta.kubernetes.io/region", "topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+)
 
 func SetupFlags(cmd *cobra.Command) {
 	f, err := data.Assets.Open("config.json")
@@ -124,7 +127,7 @@ func SetupFlags(cmd *cobra.Command) {
 		"operator-test",
 		"The K8s namespace the operator is running in",
 	)
-	cmd.Flags().String(
+	cmd.Flags().StringSlice(
 		FlagRackLabel,
 		DefaultRackLabel,
 		"The node label to use when obtaining a value for a Pod's Coherence rack.",
@@ -150,7 +153,7 @@ func SetupFlags(cmd *cobra.Command) {
 		"The service port that operator clients use in the host name to make REST calls back to the operator. "+
 			"If not set defaults to the same as the REST port",
 	)
-	cmd.Flags().String(
+	cmd.Flags().StringSlice(
 		FlagSiteLabel,
 		DefaultSiteLabel,
 		"The node label to use when obtaining a value for a Pod's Coherence site.",
@@ -240,12 +243,12 @@ func GetRestServiceName() string {
 func GetRestServicePort() int32 {
 	return viper.GetInt32(FlagServicePort)
 }
-func GetSiteLabel() string {
-	return viper.GetString(FlagSiteLabel)
+func GetSiteLabel() []string {
+	return viper.GetStringSlice(FlagSiteLabel)
 }
 
-func GetRackLabel() string {
-	return viper.GetString(FlagRackLabel)
+func GetRackLabel() []string {
+	return viper.GetStringSlice(FlagRackLabel)
 }
 
 func ShouldEnableWebhooks() bool {

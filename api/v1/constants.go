@@ -44,9 +44,6 @@ const (
 	// The default k8s service account name.
 	DefaultServiceAccount = "default"
 
-	// The affinity topology key for fault domains.
-	AffinityTopologyKey = operator.DefaultSiteLabel
-
 	// Container Names
 	ContainerNameCoherence = "coherence"
 	ContainerNameUtils     = "coherence-k8s-utils"
@@ -192,4 +189,9 @@ const (
 	EnvVarSpringBootFatJar            = "COH_SPRING_BOOT_FAT_JAR"
 	EnvVarCnbpEnabled                 = "COH_CNBP_ENABLED"
 	EnvVarCnbpLauncher                = "COH_CNBP_LAUNCHER"
+)
+
+var (
+	// The affinity topology key for fault domains.
+	AffinityTopologyKey = operator.DefaultSiteLabel[0]
 )
