@@ -27,14 +27,17 @@
     <dependency>
       <groupId>com.oracle.coherence.ce</groupId>
       <artifactId>coherence</artifactId>
+      <version>${coherence.test.version}</version>
     </dependency>
     <dependency>
       <groupId>com.oracle.coherence.ce</groupId>
       <artifactId>coherence-management</artifactId>
+      <version>${coherence.test.version}</version>
     </dependency>
     <dependency>
       <groupId>com.oracle.coherence.ce</groupId>
       <artifactId>coherence-metrics</artifactId>
+      <version>${coherence.test.version}</version>
     </dependency>
   </dependencies>
 </project>

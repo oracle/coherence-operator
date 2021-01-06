@@ -40,8 +40,11 @@ UNAME_M               = $(shell uname -m)
 OPERATOR_SDK_VERSION := v1.0.0
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
+# Options to append to the Maven command
+MAVEN_OPTIONS ?=
+
 # The Coherence image to use for deployments that do not specify an image
-COHERENCE_IMAGE   ?= oraclecoherence/coherence-ce:20.06.1
+COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:20.12
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -806,8 +809,8 @@ clean:
 	-rm -rf build/_output
 	-rm -f bin/*
 	rm pkg/data/zz_generated_assets.go || true
-	mvn $(USE_MAVEN_SETTINGS) -f java clean
-	mvn $(USE_MAVEN_SETTINGS) -f examples clean
+	mvn $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
+	mvn $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
@@ -897,28 +900,28 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
-	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests
+	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java verify
+	mvn $(USE_MAVEN_SETTINGS) -B -f java verify $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples verify
+	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples verify $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
@@ -969,9 +972,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
 build-test-images: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE)
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING)
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
 	cp java/operator-test-spring/target/operator-test-spring-$(VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(VERSION).jar
@@ -1073,7 +1076,7 @@ kind:
 kind-16: kind-16-start kind-load
 
 kind-16-start:
-	./hack/kind.sh --image "kindest/node:v1.16.9@sha256:7175872357bc85847ec4b1aba46ed1d12fa054c83ac7a8a11f5c268957fd5765"
+	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:a89c771f7de234e6547d43695c7ab047809ffc71a0c3b65aa54eda051c45ed20"
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
@@ -1084,7 +1087,7 @@ kind-16-start:
 kind-18: kind-18-start kind-load
 
 kind-18-start:
-	./hack/kind.sh --image "kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f"
+	./hack/kind.sh --image "kindest/node:v1.18.8@sha256:f4bcc97a0ad6e7abaf3f643d890add7efe6ee4ab90baeb374b4f41a4c95567eb"
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
@@ -1297,8 +1300,8 @@ copyright:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: generate golangci copyright
-	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle
+	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
+	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -1312,7 +1315,7 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	mvn $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION)
+	mvn $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.

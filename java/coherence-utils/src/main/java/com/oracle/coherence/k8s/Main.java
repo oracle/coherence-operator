@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.run.xml.XmlElement;
 
@@ -35,7 +36,7 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            args = new String[] {DefaultCacheServer.class.getCanonicalName()};
+            args = new String[] {getMainClass()};
         }
 
         init();
@@ -71,5 +72,14 @@ public class Main {
 
         OperatorRestServer server = new OperatorRestServer();
         server.start();
+    }
+
+    private static String getMainClass() {
+        try {
+            return Coherence.class.getCanonicalName();
+        }
+        catch (Exception e) {
+            return DefaultCacheServer.class.getCanonicalName();
+        }
     }
 }
