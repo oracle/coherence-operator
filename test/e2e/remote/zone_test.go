@@ -39,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", operator.DefaultSiteLabel, fn, dfn)
+	assertLabel(t, "zone", operator.DefaultSiteLabel[0], fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -58,7 +58,7 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", operator.DefaultRackLabel, fn, dfn)
+	assertLabel(t, "rack", operator.DefaultRackLabel[0], fn, dfn)
 }
 
 func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {
