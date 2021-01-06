@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	zoneLabel = "topology.kubernetes.io/zone"
+	//  zoneLabel = "topology.kubernetes.io/zone"
 	//	regionLabel            = "topology.kubernetes.io/region"
 	DefaultRestHost        = "0.0.0.0"
 	DefaultRestPort  int32 = 8000
