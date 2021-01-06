@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -24,6 +24,7 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
+import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.Filters;
@@ -445,9 +446,11 @@ public class OperatorRestServer {
         Set<String> allowEndangered = null;
         if (exclusions != null) {
             allowEndangered = Arrays.stream(exclusions.split(","))
+                .map(this::quoteMBeanName)
                 .map(s -> ",service=" + s + ",")
                 .collect(Collectors.toSet());
         }
+System.err.println("****** allowEndangered \"" + allowEndangered + "\" exclusions=\"" + exclusions + "\"");
 
         Cluster cluster = clusterSupplier.get();
         if (cluster != null && cluster.isRunning()) {
@@ -457,6 +460,7 @@ public class OperatorRestServer {
                     continue;
                 }
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
+System.err.println("****** Attributes for " + mBean + " " + attributes);
                 if (!isServiceStatusHA(attributes)) {
                     CacheFactory.log("CoherenceOperator: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
                     return false;
@@ -468,6 +472,13 @@ public class OperatorRestServer {
             CacheFactory.log("CoherenceOperator: StatusHA check failed - cluster is null", CacheFactory.LOG_ERR);
             return false;
         }
+    }
+
+    private String quoteMBeanName(String sMBean) {
+        if (MBeanHelper.isQuoteRequired(sMBean)) {
+            return MBeanHelper.quote(sMBean);
+        }
+        return sMBean;
     }
 
     /**
@@ -499,7 +510,7 @@ public class OperatorRestServer {
     }
 
     private static void waitForDCS() {
-        String s = System.getProperty(PROP_WAIT_FOR_DCS, "true");
+        String s = System.getProperty(PROP_WAIT_FOR_DCS, "false");
         if (Boolean.parseBoolean(s)) {
             DefaultCacheServer dcs = DefaultCacheServer.getInstance();
             // Wait for service start to ensure that we will get back any partition cache MBeans

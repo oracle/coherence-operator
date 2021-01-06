@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -176,12 +176,12 @@ public class OperatorRestServerIT {
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                    SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne"),
+                                                    SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
-                                                        SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));

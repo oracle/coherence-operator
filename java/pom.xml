@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+    Copyright (c) 2019, 2021, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -35,7 +35,9 @@
     <maven.compiler.target>8</maven.compiler.target>
 
     <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>14.1.1-0-1</coherence.version>
+    <coherence.version>20.12</coherence.version>
+    <!-- The version of Coherence to use in the test images -->
+    <coherence.test.version>${coherence.version}</coherence.test.version>
 
     <!-- library dependency versions -->
     <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
