@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -192,6 +192,6 @@ const (
 )
 
 var (
-	// AffinityTopologyKey - affinity topology key for fault domains.
+	// AffinityTopologyKey is the affinity topology key for fault domains.
 	AffinityTopologyKey = operator.DefaultSiteLabel[0]
 )
