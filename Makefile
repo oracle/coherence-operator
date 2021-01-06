@@ -1107,7 +1107,7 @@ kind-load:
 install-prometheus:
 	kubectl create ns $(OPERATOR_NAMESPACE) || true
 	kubectl create -f hack/prometheus-rbac.yaml
-	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
+	helm repo add stable https://charts.helm.sh/stable || true
 	@echo "Create Grafana Dashboards ConfigMap:"
 	kubectl -n $(OPERATOR_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
 	kubectl -n $(OPERATOR_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
