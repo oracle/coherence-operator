@@ -193,5 +193,5 @@ const (
 
 var (
 	// AffinityTopologyKey is the affinity topology key for fault domains.
-	AffinityTopologyKey = operator.DefaultSiteLabel[0]
+	AffinityTopologyKey = operator.DefaultSiteLabels[0]
 )

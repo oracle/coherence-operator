@@ -39,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", operator.DefaultSiteLabel[0], fn, dfn)
+	assertLabel(t, "zone", operator.DefaultSiteLabels, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -58,10 +58,10 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", operator.DefaultRackLabel[0], fn, dfn)
+	assertLabel(t, "rack", operator.DefaultRackLabels, fn, dfn)
 }
 
-func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {
+func assertLabel(t *testing.T, name string, labels []string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 	namespace := helper.GetTestNamespace()
 
@@ -105,12 +105,20 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 		// The member's machine name is the k8s Node name
 		node, err := testContext.KubeClient.CoreV1().Nodes().Get(context.TODO(), member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
-		zone := node.GetLabels()[label]
 
 		actual := fn(member)
-		if zone != "" {
-			t.Logf("Expecting label value to be: %s", zone)
-			g.Expect(actual).To(Equal(zone))
+		expected := ""
+
+		for _, label := range labels {
+			labelValue := node.GetLabels()[label]
+			if labelValue != "" {
+				expected = labelValue
+			}
+		}
+
+		if expected != "" {
+			t.Logf("Expecting label value to be: %s", expected)
+			g.Expect(actual).To(Equal(expected))
 		} else {
 			// when running locally (for example in Docker on MacOS) the node might not
 			// have a zone unless one has been explicitly set by the developer.
