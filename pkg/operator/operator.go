@@ -66,8 +66,9 @@ const (
 var setupLog = ctrl.Log.WithName("setup")
 
 var (
-	DefaultSiteLabel = []string{"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
-	DefaultRackLabel = []string{"topology.kubernetes.io/region", "failure-domain.beta.kubernetes.io/region", "topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+	DefaultSiteLabels = []string{"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+	DefaultRackLabels = []string{"topology.kubernetes.io/region", "failure-domain.beta.kubernetes.io/region",
+								  "topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
 )
 
 func SetupFlags(cmd *cobra.Command) {
@@ -127,7 +128,7 @@ func SetupFlags(cmd *cobra.Command) {
 	)
 	cmd.Flags().StringSlice(
 		FlagRackLabel,
-		DefaultRackLabel,
+		DefaultRackLabels,
 		"The node label to use when obtaining a value for a Pod's Coherence rack.",
 	)
 	cmd.Flags().String(
@@ -153,7 +154,7 @@ func SetupFlags(cmd *cobra.Command) {
 	)
 	cmd.Flags().StringSlice(
 		FlagSiteLabel,
-		DefaultSiteLabel,
+		DefaultSiteLabels,
 		"The node label to use when obtaining a value for a Pod's Coherence site.",
 	)
 	cmd.Flags().Bool(
