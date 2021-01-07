@@ -99,7 +99,7 @@ func assertLabel(t *testing.T, name string, labels []string, fn func(management.
 	members, _, err := management.GetMembers(cl, "127.0.0.1", ports[coh.PortNameManagement])
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// assert that the site for each member matches the Node's zone label
+	// assert that the site or rack for each member matches the Node's zone label
 	for _, member := range members.Items {
 		g.Expect(member.MachineName).NotTo(BeEmpty())
 		// The member's machine name is the k8s Node name
@@ -109,10 +109,13 @@ func assertLabel(t *testing.T, name string, labels []string, fn func(management.
 		actual := fn(member)
 		expected := ""
 
+		// find the first non-blank label as that is the label that should have been used
 		for _, label := range labels {
 			labelValue := node.GetLabels()[label]
 			if labelValue != "" {
+				t.Logf("Node %s found label '%s' value '%s'", node.Name, labelValue, expected)
 				expected = labelValue
+				break
 			}
 		}
 
