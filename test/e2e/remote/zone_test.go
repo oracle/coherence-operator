@@ -112,21 +112,21 @@ func assertLabel(t *testing.T, name string, labels []string, fn func(management.
 		// find the first non-blank label as that is the label that should have been used
 		for _, label := range labels {
 			labelValue := node.GetLabels()[label]
+			t.Logf("Node %s label '%s' value '%s'", node.Name, label, labelValue)
 			if labelValue != "" {
-				t.Logf("Node %s found label '%s' value '%s'", node.Name, labelValue, expected)
 				expected = labelValue
 				break
 			}
 		}
 
-		if expected != "" {
-			t.Logf("Expecting label value to be: %s", expected)
-			g.Expect(actual).To(Equal(expected))
-		} else {
+		if expected == "" {
 			// when running locally (for example in Docker on MacOS) the node might not
-			// have a zone unless one has been explicitly set by the developer.
-			t.Logf("Expecting label value to be: %s", dfn(namespace))
-			g.Expect(actual).To(Equal(dfn(namespace)))
+			// have labels unless they have been explicitly set by the developer.
+			expected = dfn(namespace)
+			t.Logf("Node %s found zero non-blank labels, using default expected '%s'", node.Name, expected)
 		}
+
+		t.Logf("Expecting label value to be: %s", expected)
+		g.Expect(actual).To(Equal(expected))
 	}
 }
