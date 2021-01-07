@@ -39,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", operator.DefaultSiteLabel[0], fn, dfn)
+	assertLabel(t, "zone", operator.DefaultSiteLabels, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -58,10 +58,10 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", operator.DefaultRackLabel[0], fn, dfn)
+	assertLabel(t, "rack", operator.DefaultRackLabels, fn, dfn)
 }
 
-func assertLabel(t *testing.T, name string, label string, fn func(management.MemberData) string, dfn func(string) string) {
+func assertLabel(t *testing.T, name string, labels []string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 	namespace := helper.GetTestNamespace()
 
@@ -99,23 +99,34 @@ func assertLabel(t *testing.T, name string, label string, fn func(management.Mem
 	members, _, err := management.GetMembers(cl, "127.0.0.1", ports[coh.PortNameManagement])
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// assert that the site for each member matches the Node's zone label
+	// assert that the site or rack for each member matches the Node's zone label
 	for _, member := range members.Items {
 		g.Expect(member.MachineName).NotTo(BeEmpty())
 		// The member's machine name is the k8s Node name
 		node, err := testContext.KubeClient.CoreV1().Nodes().Get(context.TODO(), member.MachineName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
-		zone := node.GetLabels()[label]
 
 		actual := fn(member)
-		if zone != "" {
-			t.Logf("Expecting label value to be: %s", zone)
-			g.Expect(actual).To(Equal(zone))
-		} else {
-			// when running locally (for example in Docker on MacOS) the node might not
-			// have a zone unless one has been explicitly set by the developer.
-			t.Logf("Expecting label value to be: %s", dfn(namespace))
-			g.Expect(actual).To(Equal(dfn(namespace)))
+		expected := ""
+
+		// find the first non-blank label as that is the label that should have been used
+		for _, label := range labels {
+			labelValue := node.GetLabels()[label]
+			t.Logf("Node %s label '%s' value '%s'", node.Name, label, labelValue)
+			if labelValue != "" {
+				expected = labelValue
+				break
+			}
 		}
+
+		if expected == "" {
+			// when running locally (for example in Docker on MacOS) the node might not
+			// have labels unless they have been explicitly set by the developer.
+			expected = dfn(namespace)
+			t.Logf("Node %s found zero non-blank labels, using default expected '%s'", node.Name, expected)
+		}
+
+		t.Logf("Expecting label value to be: %s", expected)
+		g.Expect(actual).To(Equal(expected))
 	}
 }

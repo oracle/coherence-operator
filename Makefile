@@ -1067,6 +1067,7 @@ stop:
 kind: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 kind:
 	./hack/kind.sh
+	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE)
 	kind load docker-image --name operator $(COHERENCE_IMAGE)
 
@@ -1077,6 +1078,7 @@ kind-16: kind-16-start kind-load
 
 kind-16-start:
 	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:a89c771f7de234e6547d43695c7ab047809ffc71a0c3b65aa54eda051c45ed20"
+	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
@@ -1088,6 +1090,7 @@ kind-18: kind-18-start kind-load
 
 kind-18-start:
 	./hack/kind.sh --image "kindest/node:v1.18.8@sha256:f4bcc97a0ad6e7abaf3f643d890add7efe6ee4ab90baeb374b4f41a4c95567eb"
+	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
