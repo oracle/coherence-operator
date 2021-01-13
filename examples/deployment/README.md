@@ -665,7 +665,7 @@ install any of the examples above.
 1. Add the `stable` helm repository
 
     ```bash
-   helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+   helm repo add stable https://charts.helm.sh/stable
    
    helm repo update 
    ```
