@@ -1,0 +1,121 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Member Identity
+
+== Member Identity
+
+Each JVM in a Coherence cluster has an identity. This is made up of a number of values for `site`, `rack`, `member`,
+`machine` and `node-id`.
+The `node-id` is assigned by Coherence when a node joins a cluster.
+The other values can be assigned using system properties, or will have defaults assigned by Coherence if not set.
+The Coherence Operator will configure properties for these values.
+
+* The member name is set to the Pod name.
+* The machine name is set to the name of the Node that the Pod has been scheduled onto.
+* The rack name is taken from the `topology.kubernetes.io/zone` label on the Node that the Pod has been scheduled onto.
+If the `topology.kubernetes.io/region` label is not set then the deprecated `failure-domain.beta.kubernetes.io/region`
+label will be tried.
+If neither of these labels are set then the site will be set to the same value as the site name.
+* The site name is taken from the `topology.kubernetes.io/zone` label on the Node that the Pod has been scheduled onto.
+If the `topology.kubernetes.io/zone` label is not set then the deprecated `failure-domain.beta.kubernetes.io/zone` label
+will be tried.
+If neither of these labels are set then the site will be unset.
+
+== Status HA Values
+
+As well as identifying cluster members, these values are also used by the partitioned cache service to distribute data
+as widely (safely) as possible in the cluster. The backup owner will be as far away as possible from the primary owner.
+Ideally this would be on a member with a different site; failing that, a different rack, machine and finally member.
+
+== Changing Site and Rack Values
+
+You should not usually need to change the default values applied for the `member` and `machine` names, but you may need
+to change the values used for the site, or rack. The labels used for the `site` and `rack` are standard k8s labels but
+the k8s cluster being used may not have these labels set
+
+=== Apply Node Labels
+
+One solution to missing site and rack values is to apply the required labels to the Nodes in the k8s cluster.
+
+For example the command below labels the node in Docker dDesktop on MacOS to "twighlight-zone".
+[source,bash]
+----
+kubectl label node docker-desktop topology.kubernetes.io/zone=twighlight-zone
+----
+
+=== Specify Site and Rack Using System Properties
+
+The site and rack values can be specified as system properties as part of the Coherence deployment yaml.
+
+For example:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: my-cluster
+spec:
+  jvm:
+    args:
+      - "-Dcoherence.site=foo"
+      - "-Dcoherence.rack=fbar"
+----
+
+In the deployment above the site name is set to "foo" using the `coherence.site` system property.
+The rack name is set to "bar" using the `coherence.rack` system property.
+
+=== Configure the Operator to Use Different Labels
+
+The Operator can be configured to use different labels to obtain values for the site and rack names.
+This will obviously apply to all Coherence deployments managed by the Operator, but is useful if the Nodes in the
+k8s cluster do not have the normal k8s labels.
+The `SITE_LABEL` and `RACK_LABEL` environment variables are used to specify different labels to use.
+How these environment variables are set depends on how you are installing the Operator.
+
+==== Using Helm
+
+If the Operator is installed using the Helm chart then the site and rack labels can be set using the
+`siteLabel` and `rackLabel` values;
+for example:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set siteLabel=identity/site \
+    --set siteLabel=identity/rack \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+In the example above the Node label used by the Operator to get the value for the site will be `identity/site`,
+and the Node label used to get the value for the rack will be `identity/rack`.
+
+==== Using Kubectl or Kustomize
+
+If using `kubectl` or `kustomize` as described in the <<installation/01_installation.adoc,Installation Guide>>
+the additional environment variables can be applied using `kustomize` commands.
+
+[source,bash]
+----
+cd ./manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal SITE_LABEL='identity/site'
+----
+
+[source,bash]
+----
+cd ./manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal RACK_LABEL='identity/rack'
+----
+
+
+
+
+
+
+
+

@@ -147,6 +147,14 @@ backend:
               items:
                 - includes:
                     - "examples/*.adoc"
+            - title: "Troubleshooting"
+              pathprefix: "/troubleshooting"
+              glyph:
+                type: "icon"
+                value: "fa-question-circle"
+              items:
+                - includes:
+                    - "troubleshooting/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Slack"
