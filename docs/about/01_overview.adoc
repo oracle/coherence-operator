@@ -35,6 +35,13 @@ Installing and running the Coherence Operator.
 Deploying Coherence Applications using the Coherence Operator.
 --
 
+[CARD]
+.Troubleshooting
+[icon=fa-question-circle,link=troubleshooting/01_trouble-shooting.adoc]
+--
+Hints and tips to troubleshoot common issues.
+--
+
 ====
 
 
