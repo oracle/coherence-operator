@@ -224,7 +224,7 @@ manifests
 There are two ways to use these manifest files, either install using `kustomize` or generate the yaml and manually
 install with `kubectl`.
 
-NOTE: All of the commands below are run from a console in the `manifests/` directory from the extracted file above.
+NOTE: All the commands below are run from a console in the `manifests/` directory from the extracted file above.
 
 === Install with Kustomize
 
