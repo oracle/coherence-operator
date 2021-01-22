@@ -1,4 +1,4 @@
- xcz  # Coherence Operator Deployment Example
+# Coherence Operator Deployment Example
 
 This example showcases how to deploy Coherence applications using the Coherence Operator.
 
