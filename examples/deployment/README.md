@@ -765,7 +765,31 @@ in the `examples/bin/` directory.
     Open the following URL: http://127.0.0.1:5601/
     Forwarding from 127.0.0.1:5601 -> 5601
     Forwarding from [::1]:5601 -> 5601
-    ```            
+    ```    
+
+*   Port-forward Prometheus (for troubleshooting only)
+
+    ```bash
+    ./port-forward-prometheus.sh coherence-example
+    Port-forwarding prometheus-prometheus-prometheus-oper-prometheus-0 in coherence-example
+    Open the following URL: http://127.0.0.1:9090/targets
+    Forwarding from 127.0.0.1:9090 -> 9090
+    Forwarding from [::1]:9090 -> 9090
+    ```                  
+
+*   Open the URLS described above.
+
+## Troubleshooting
+
+*   It may take up to 5 minutes for data to start appearing in Grafana.
+
+*   If you are not seeing data after 5 minutes, access the Prometheus endpoint as described above.
+    Ensure that the endpoints named `coherence-example/example-cluster-storage-metrics/0 (3/3 up)` are up.
+
+    If the endpoints are not up then wait 60 seconds and refresh the browser.
+
+*   If you do not see any values in the `Cluster Name` dropdown in Grafana, ensure the endpoints are up as  described above and click on `Manage Alerts` and then `Back to Main Dashboard`. This will re-query the data and load the list of clusters.    
+
 
 # Cleaning Up
 
@@ -811,7 +835,7 @@ in the `examples/bin/` directory.
 
    ```bash
    helm delete prometheus --purge
-   ```                                                                                                                                                                                                                                                                                                                                                                 
+   ```                                                     
 
    > Note: You can optionally delete the Prometheus Operator Custom Resource Definitions
    > (CRD's) if you are not going to install Prometheus Operator again.
