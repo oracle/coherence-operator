@@ -16,6 +16,7 @@ spec:
       heapSize: 512m
     args:
       - "-Dcoherence.metrics.legacy.names=false"
+      - "-Dcoherence.metrics.mp.names=true"
   ports:
     - name: metrics
       port: 9612
@@ -48,6 +49,7 @@ spec:
       heapSize: 512m
     args:
       - "-Dcoherence.metrics.legacy.names=false"
+      - "-Dcoherence.metrics.mp.names=true"
   ports:
     - name: metrics
       port: 9612
@@ -75,6 +77,7 @@ spec:
       heapSize: 512m
     args:
       - "-Dcoherence.metrics.legacy.names=false"
+      - "-Dcoherence.metrics.mp.names=true"
   ports:
     - name: metrics
       port: 9612
