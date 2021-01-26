@@ -9,14 +9,28 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      },
+      {
+        "datasource": "Prometheus",
+        "enable": true,
+        "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
+        "hide": false,
+        "iconColor": "rgba(255, 96, 96, 1)",
+        "limit": 100,
+        "name": "Show Cluster Size Changes",
+        "showIn": 0,
+        "tagKeys": "cluster",
+        "tags": [],
+        "titleFormat": "Cluster Size Changed.",
+        "type": "tags"
       }
     ]
   },
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 33,
-  "iteration": 1592182512663,
+  "id": 8,
+  "iteration": 1564640113413,
   "links": [
     {
       "icon": "dashboard",
@@ -41,15 +55,14 @@
   ],
   "panels": [
     {
-      "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
-      "datasource": null,
+      "content": "<center><h3>Kubernetes Summary - $ClusterName</h3></center>",
       "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 35,
+      "id": 2,
       "links": [],
       "mode": "html",
       "title": "",
@@ -57,51 +70,31 @@
     },
     {
       "columns": [],
-      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 2
       },
-      "id": 33,
+      "id": 4,
       "links": [],
       "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 1,
-        "desc": false
+        "col": 0,
+        "desc": true
       },
       "styles": [
         {
           "alias": "Time",
-          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
-          "alias": "Member Count",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Service",
-          "align": "auto",
+          "alias": "Pod Name",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -111,54 +104,16 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell}&var-ClusterName=$ClusterName",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
-          "pattern": "name",
+          "pattern": "pod",
           "thresholds": [],
           "type": "string",
           "unit": "short"
         },
         {
-          "alias": "Total Requests",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Error Count",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "2"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Avg Request Time",
-          "align": "auto",
+          "alias": "",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -168,34 +123,45 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "Value #D",
+          "pattern": "Value",
           "thresholds": [],
-          "type": "number",
-          "unit": "ms"
+          "type": "hidden",
+          "unit": "short"
         },
         {
-          "alias": "Unauth Connection Attemps",
-          "align": "auto",
+          "alias": "Kubernetes Namespace",
           "colorMode": null,
           "colors": [
-            "rgba(50, 172, 45, 0.97)",
+            "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
+            "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [
-            "0",
-            "1"
-          ],
-          "type": "number",
-          "unit": "none"
+          "pattern": "namespace",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
         },
         {
           "alias": "",
-          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Coherence Version",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -203,67 +169,39 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "decimals": 2,
-          "pattern": "/.*/",
+          "pattern": "version",
           "thresholds": [],
-          "type": "number",
+          "type": "string",
           "unit": "short"
         }
       ],
       "targets": [
         {
-          "expr": "count(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "avg(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}) by (pod, version, namespace)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_total_error_count{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_average_request_time{cluster=~\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
-      "title": "HTTP Servers List",
+      "title": "Kubernetes Pod List",
       "transform": "table",
       "type": "table"
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "decimals": 0,
       "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 9
       },
-      "hiddenSeries": false,
-      "id": 37,
+      "id": 6,
       "legend": {
         "avg": false,
         "current": true,
@@ -273,13 +211,10 @@
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -290,11 +225,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
+          "expr": "avg(vendor_Coherence_OS_ProcessCpuLoad{cluster=~\"$ClusterName\"}) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}}",
+          "legendFormat": "Pod: {{pod}}",
           "refId": "A"
         }
       ],
@@ -302,7 +237,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Requests/ sec",
+      "title": "Pod Process CPU Load",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -318,11 +253,11 @@
       },
       "yaxes": [
         {
-          "decimals": 0,
-          "format": "reqps",
-          "label": "",
+          "decimals": null,
+          "format": "percentunit",
+          "label": null,
           "logBase": 1,
-          "max": null,
+          "max": "1",
           "min": "0",
           "show": true
         },
@@ -342,38 +277,30 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "decimals": 0,
       "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 9
       },
-      "hiddenSeries": false,
-      "id": 39,
+      "id": 7,
       "legend": {
         "avg": false,
         "current": true,
-        "hideZero": true,
-        "max": false,
+        "max": true,
         "min": false,
         "show": true,
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -384,51 +311,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
+          "expr": "vendor_Coherence_Memory_HeapMemoryUsage_used{cluster=~\"$ClusterName\"} ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}} 100-199",
+          "legendFormat": "Pod: {{pod}}",
           "refId": "A"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 200-299",
-          "refId": "B"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 300-399",
-          "refId": "C"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 400-499",
-          "refId": "D"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=~\"$ClusterName\",protocol=~\"http\"} offset $__interval",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 500-599",
-          "refId": "E"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Response Codes",
+      "title": "Pod Heap Memory Usage",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -444,9 +339,9 @@
       },
       "yaxes": [
         {
-          "decimals": 0,
-          "format": "short",
-          "label": "",
+          "decimals": null,
+          "format": "decbytes",
+          "label": null,
           "logBase": 1,
           "max": null,
           "min": "0",
@@ -468,7 +363,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 22,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -483,12 +378,11 @@
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -507,12 +401,11 @@
         "definition": "",
         "hide": 2,
         "includeAll": false,
-        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -526,7 +419,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -555,10 +448,7 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence HTTP Servers Summary Dashboard",
-  "uid": "coh-http-servers-summary",
-  "variables": {
-    "list": []
-  },
-  "version": 2
+  "title": "Coherence Kubernetes Summary Dashboard",
+  "uid": "coh-kubernetes-summary",
+  "version": 1
 }

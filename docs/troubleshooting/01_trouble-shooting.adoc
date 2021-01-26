@@ -19,7 +19,7 @@ This paged will be updated and maintained over time to include common issues we 
 
 * <<#site-safe,My cache services will not reach Site Safe>>
 
-
+* <<dashboards,My Grafana Dashboards do not display any metrics>>
 
 == Issues
 
@@ -76,4 +76,20 @@ will not be able to reach rack or site safe.
 
 There are a few possible solutions to this, see the explanation in the
 documentation explaining <<coherence/021_member_identity.adoc,Member Identity>>
+
+[#dashboards]
+=== My Grafana Dashboards do not display any metrics
+
+If you have imported the Grafana dashboards provided by the Operator into Grafana but they are not displaying any metric
+values, it may be that you have imported the wrong format dashboards. The Operator has two sets of dashboards,
+one for the default Coherence metric name format and one for Microprofile metric name format.
+
+The simplest way to find out which version corresponds to your Coherence cluster
+is to query the metrics endpoint with something like `curl`.
+If the metric names are in the format `vendor:coherence_cluster_size`, i.e. prefixed with `vendor:` then this is
+the default Coherence format.
+If metric names are in the format `vendor_Coherence_Cluster_Size`, i.e. prefixed with `vendor_` then this is
+Microprofile format.
+
+See: the <<metrics/030_importing.adoc,Importing Grafana Dashboards>> documentation.
 

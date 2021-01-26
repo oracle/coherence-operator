@@ -110,7 +110,7 @@ CREATE_OPERATOR_NAMESPACE ?= true
 PROMETHEUS_INCLUDE_GRAFANA   ?= true
 PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
-GRAFANA_DASHBOARDS           ?= dashboards/grafana-legacy/
+GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 
 # Elasticsearch & Kibana settings (used in integration tests)
 ELASTIC_VERSION ?= 7.6.2
@@ -502,7 +502,7 @@ certification-test: install-certification
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Install the Operator prior to running compatability tests.
+# Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
 install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy
@@ -1258,6 +1258,7 @@ copyright:
 	  -X build/_output/ \
 	  -X clientset/ \
 	  -X dashboards/grafana/ \
+	  -X dashboards/grafana-microprofile/ \
 	  -X dashboards/kibana/ \
 	  -X /Dockerfile \
 	  -X .Dockerfile \
@@ -1375,27 +1376,16 @@ release-dashboards:
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
 	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-legacy-dashboards.yaml
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-microprofile \
+		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-microprofile-dashboards.yaml
 	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
-	mkdir -p dashboards || true
-	mv $(BUILD_OUTPUT)/dashboards/$(VERSION)/ dashboards/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator to the gh-pages branch.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
-release-ghpages:  helm-chart docs
-	@echo "Releasing Dashboards $(VERSION)"
-	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
-	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-legacy \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-legacy-dashboards.yaml
-	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
+release-ghpages:  helm-chart docs release-dashboards
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout --track origin/gh-pages
@@ -1421,9 +1411,16 @@ ifeq (true, $(PRE_RELEASE))
 	git add docs-unstable/*
 	git status
 else
+	rm -rf dashboards/latest || true
+	cp -R dashboards/$(VERSION) dashboards/latest
+	git add -A dashboards/latest/*
 	mkdir docs/$(VERSION) || true
 	rm -rf docs/$(VERSION)/ || true
 	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION)/
+	rm -rf docs/latest
+	cp -R docs/$(VERSION) docs/latest
+	git add -A docs/*
+
 	ls -ls docs
 
 	mkdir -p charts || true
@@ -1433,12 +1430,11 @@ else
 	git add charts/index.yaml
 	ls -ls charts
 
-	git add docs/*
 	git status
 endif
 	git clean -d -f
 	git status
-	git commit -m "adding Coherence Operator Helm chart and docs version: $(VERSION)"
+	git commit -A -m "Release Coherence Operator version: $(VERSION)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
 	@echo "release dry-run - would have pushed Helm chart and docs $(VERSION) to gh-pages"
