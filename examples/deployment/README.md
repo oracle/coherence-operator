@@ -11,9 +11,9 @@ The following scenarios are covered:
 1. Enabling Active Persistence
 1. Viewing Metrics via Grafana
 
-After the initial install of the Coherence cluster, the following examples
+After the initial installation of the Coherence cluster, the following examples
 build on the previous ones by issuing a `kubectl apply` to modify
-the install adding additional roles.
+the installation adding additional roles.
 
 You can use `kubectl create` for any of the examples to install that one directly.
 
@@ -39,7 +39,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 ## Coherence Operator Quick Start
 
 Ensure you have followed all the [Quick Start Guide](https://oracle.github.io/coherence-operator/docs/3.1.1/#/about/03_quickstart) including the
-prerequisites and have been able to successfully install the Coherence Operator and a Coherence Cluster.
+prerequisites and have been able to successfully install the Coherence Operator, and a Coherence Cluster.
 
 ## Software Versions
 
@@ -516,7 +516,7 @@ The additional yaml added to the storage role below shows:
 
 > Note: By default, when you enable Coherence Persistence, the required infrastructure in terms
 > of persistent volumes (PV) and persistent volume claims (PVC) is set up automatically. Also, the persistence-mode
-> is set to `active`. This allows the Coherence cluster to be restarted and the data to be retained.
+> is set to `active`. This allows the Coherence cluster to be restarted, and the data to be retained.
 
 1.  Delete the existing deployment
 
@@ -640,7 +640,7 @@ The additional yaml added to the storage role below shows:
     ...
     ```    
 
-    Finally you should see the following indicating active recovery has completed.
+    Finally, you should see the following indicating active recovery has completed.
 
     ```console
     2019-10-10 08:18:04.870/59.565 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=1):

@@ -56,7 +56,7 @@ Allows for selection of information to be displayed where there is more than one
 . Top N Limit - Limits the display of `Top` values for tables that support it
 . Service Name, Member Name, Cache Name - These will appear on various dashboards
 
-See the https://grafana.com/docs/reference/templating/[Grafana Documetation] for more information on Variables.
+See the https://grafana.com/docs/reference/templating/[Grafana Documentation] for more information on Variables.
 
 === Annotations
 
@@ -67,7 +67,7 @@ Vertical red lines on a graph to indicate a change in a key markers such as:
 . Show Cluster Size Changes - Displays when the cluster size has changed
 . Show Partition Transfers - Displays when partition transfers have occurred
 
-See the https://grafana.com/docs/reference/annotations/[Grafana Documetation] for more information on Annotations.
+See the https://grafana.com/docs/reference/annotations/[Grafana Documentation] for more information on Annotations.
 
 === Navigation
 

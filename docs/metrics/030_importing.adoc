@@ -26,7 +26,7 @@ then obtain the dashboards from the `dashboards/` directory.
 [source,bash]
 ----
 VERSION=3.1.1
-curl https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-dashboards.tar.gz \
+curl https://oracle.github.io/coherence-operator/dashboards/latest/coherence-dashboards.tar.gz \
     -o coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz
 ----
@@ -62,14 +62,24 @@ Then continue below.
 ----
 git clone https://github.com/oracle/coherence-operator.git
 ----
+
 [NOTE]
 ====
 There are two sets of dashboards available
 
-* Legacy - these are dashboards under the `dashboards/grafana-legacy/` directory that are compatible with
+* Default - these are dashboards under the `dashboards/grafana/` directory that are compatible with
 the metric names produced by the Coherence metrics publisher
-* Microprofile - these are dashboards under the `dashboards/grafana/` directory that are compatible with
+* Microprofile - these are dashboards under the `dashboards/grafana-microprofile/` directory that are compatible with
 the metric names produced by the Coherence MP Metrics module.
+
+If you do not see metrics on the dashboards as expected you might be using the wrong dashboards version for how
+Coherence has been configured.
+The simplest way to find out which version corresponds to your Coherence cluster
+is to query the metrics endpoint with something like `curl`.
+If the metric names are in the format `vendor:coherence_cluster_size`, i.e. prefixed with `vendor:` then this is
+the default Coherence format.
+If metric names are in the format `vendor_Coherence_Cluster_Size`, i.e. prefixed with `vendor_` then this is
+Microprofile format.
 ====
 
 * Decide which dashboards you will import, depending on how metrics are being published (see the note above).
@@ -79,6 +89,7 @@ following to upload to Grafana:
 ** Highlight the '+' (plus) icons and click on import
 ** Click `Upload Json file' button to select a dashboard
 ** Leave all the default values and click on `Import`
+
 
 [#different]
 === Manually Importing With a Different Datasource
