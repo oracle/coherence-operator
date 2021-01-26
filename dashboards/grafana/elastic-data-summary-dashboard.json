@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 26,
-  "iteration": 1591580498252,
+  "id": 30,
+  "iteration": 1592182757430,
   "links": [
     {
       "icon": "dashboard",
@@ -118,7 +118,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_FileCount{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_file_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -200,7 +200,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_TotalDataSize{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -282,7 +282,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_FileCount{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_file_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -364,7 +364,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_TotalDataSize{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -426,7 +426,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_TotalDataSize{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -517,7 +517,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Journal_TotalDataSize{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -607,10 +607,10 @@
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
-      "steppedLine": false,
+      "steppedLine": true,
       "targets": [
         {
-          "expr": "vendor_Coherence_Journal_CompactionCount{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} - vendor_Coherence_Journal_CompactionCount{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -618,7 +618,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor_Coherence_Journal_ExhaustiveCompactionCount{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}  - vendor_Coherence_Journal_ExhaustiveCompactionCount{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -709,10 +709,10 @@
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
-      "steppedLine": false,
+      "steppedLine": true,
       "targets": [
         {
-          "expr": "vendor_Coherence_Journal_CompactionCount{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}  - vendor_Coherence_Journal_CompactionCount{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -720,7 +720,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor_Coherence_Journal_ExhaustiveCompactionCount{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} - vendor_Coherence_Journal_ExhaustiveCompactionCount{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=~\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -792,7 +792,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -816,7 +816,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -864,5 +864,5 @@
   "variables": {
     "list": []
   },
-  "version": 1
+  "version": 2
 }

@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": true,
-        "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
+        "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -29,8 +29,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1591858417253,
+  "id": 37,
+  "iteration": 1592180836542,
   "links": [
     {
       "icon": "dashboard",
@@ -163,7 +163,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "node_id",
+          "pattern": "nodeId",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -206,7 +206,7 @@
           "unit": "short"
         },
         {
-          "alias": "Heap Usage After GC",
+          "alias": "Heap Usage",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -294,28 +294,25 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
-          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "B"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role)",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
-          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "C"
         },
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member, node_id, site, machine, role) / sum(vendor_Coherence_Memory_HeapAfterGC_Max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
+          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
           "format": "table",
           "instant": true,
-          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
@@ -391,7 +388,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(delta(vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}[$__range])) by (member))",
+          "expr": "topk($TopLimit, sum(delta(vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"}[$__range])) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -472,7 +469,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(delta(vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
+          "expr": "topk($TopLimit, sum(delta(vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"}[$__range] )) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -493,7 +490,6 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
-      "description": "",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -531,11 +527,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by(member) / sum(vendor_Coherence_Memory_HeapMemoryUsage_max{cluster=~\"$ClusterName\"}) by (member) * 100",
+          "expr": "(vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) / vendor:coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"} * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "Member: {{member}} ({{role}})",
           "refId": "A"
         }
       ],
@@ -543,7 +539,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Memory Usage % After GC",
+      "title": "Memory Usage %",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -624,11 +620,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Memory_HeapAfterGC_Used{cluster=~\"$ClusterName\"}) by (member)",
+          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
+          "legendFormat": "Member: {{member}} ({{role}})",
           "refId": "A"
         }
       ],
@@ -636,7 +632,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap Memory Usage After GC",
+      "title": "Heap Memory Usage",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -724,7 +720,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"} - vendor_Coherence_GC_CollectionCount{cluster=~\"$ClusterName\"} offset $__interval ",
+          "expr": "vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"} - vendor:coherence_gc_collection_count{cluster=~\"$ClusterName\"} offset  $__interval ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -758,7 +754,7 @@
           "label": "",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -824,7 +820,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"} - vendor_Coherence_GC_CollectionTime{cluster=~\"$ClusterName\"}  offset $__interval ",
+          "expr": "vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"} - vendor:coherence_gc_collection_time{cluster=~\"$ClusterName\"} offset $__interval  ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -857,7 +853,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -917,7 +913,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Node_PublisherSuccessRate{cluster=~\"$ClusterName\"}",
+          "expr": "vendor:coherence_node_publisher_success_rate{cluster=~\"$ClusterName\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1011,7 +1007,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor_Coherence_Node_ReceiverSuccessRate{cluster=~\"$ClusterName\"}",
+          "expr": "vendor:coherence_node_receiver_success_rate{cluster=~\"$ClusterName\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1061,208 +1057,6 @@
         "align": false,
         "alignLevel": null
       }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "decimals": 0,
-      "description": "HTTP Requests for Microprofile based HTTP servers",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 39
-      },
-      "hiddenSeries": false,
-      "id": 99,
-      "interval": "",
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "sort": "current",
-        "sortDesc": true,
-        "total": false,
-        "values": false
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(vendor_requests_count_total{cluster=~\"$ClusterName\"} - vendor_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval) by(member)",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member: {{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "HTTP Requests",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "decimals": 0,
-      "description": "",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 39
-      },
-      "hiddenSeries": false,
-      "id": 98,
-      "interval": "",
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "sort": "current",
-        "sortDesc": true,
-        "total": false,
-        "values": false
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} - vendor_grpc_requests_count_total{cluster=~\"$ClusterName\"} offset $__interval",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Total gRPC Requests by Member",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
     }
   ],
   "refresh": "30s",
@@ -1286,7 +1080,7 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size, cluster)",
+        "query": "label_values(vendor:coherence_cluster_size, cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1310,7 +1104,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1337,7 +1131,7 @@
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(vendor_Coherence_Service_RequestMaxDuration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1365,7 +1159,7 @@
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(vendor_Coherence_Cache_Size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
