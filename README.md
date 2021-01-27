@@ -1,5 +1,5 @@
 <!--
-Copyright 2019, 2020 Oracle Corporation and/or its affiliates.
+Copyright 2019, 2021 Oracle Corporation and/or its affiliates.
 All rights reserved.  Licensed under the Universal
 Permissive License v 1.0 as shown at
 http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ http://oss.oracle.com/licenses/upl.
 ![Operator CI](https://github.com/oracle/coherence-operator/workflows/Operator%20CI/badge.svg?branch=master)
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/oracle/coherence-operator)](https://goreportcard.com/report/github.com/oracle/coherence-operator)
-[![Docker Pulls](https://img.shields.io/docker/pulls/oracle/coherence-operator)](https://hub.docker.com/r/oracle/coherence-operator)
 
 # Coherence Operator
 
