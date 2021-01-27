@@ -691,7 +691,7 @@ install any of the examples above.
 
     kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1  
 
-    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/3.1.1/coherence-grafana-dashboards.yaml
+    kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-dashboards.yaml
 
     kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
     ```        

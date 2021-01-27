@@ -136,23 +136,32 @@ the following commands can be used:
 
 [source,bash]
 ----
-VERSION=3.1.1
 kubectl -n monitoring create \
-    -f https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-grafana-dashboards.yaml
+    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-dashboards.yaml
 ----
-The `VERSION` variable has been set to the version of the dashboards to be used (this corresponds to an
-Operator release version but dashboards can be used independently of the Operator). +
 In this example the dashboards will be installed into the `monitoring` namespace.
 
-The example above installs the dashboards configured to use Coherence MP metrics, to use dashboards for
-metrics produced with Coherence legacy metric names change the yaml file name in the
-URL to `coherence-grafana-legacy-dashboards.yaml`, for example:
+The example above installs the dashboards configured to use the default Coherence metrics format.
+Coherence provides integrations with Microprofile metrics and https://micrometer.io[Micrometer] metrics, which
+produce metrics with slightly different name formats.
+The operator provides dashboards compatible with both of these formats.
+
+* Microprofile change the URL to `coherence-grafana-microprofile-dashboards.yaml`, for example:
 
 [source,bash]
 ----
 VERSION=3.1.1
 kubectl -n monitoring create \
-    -f https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-grafana-legacy-dashboards.yaml
+    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-microprofile-dashboards.yaml
+----
+
+* Micrometer change the URL to `coherence-grafana-micrometer-dashboards.yaml`, for example:
+
+[source,bash]
+----
+VERSION=3.1.1
+kubectl -n monitoring create \
+    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-micrometer-dashboards.yaml
 ----
 
 
