@@ -40,10 +40,10 @@ to the kubernetes zone label on the associated pod.
 Kibana (EFK) stack), and Prometheus to monitor the performance, logs, and health of your clusters.
 
 -------
-Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/3.1.1)
+Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/latest)
 
 The fastest way to experience the operator is to follow the 
-[Quick Start guide](https://oracle.github.io/coherence-operator/docs/3.1.1/#/about/03_quickstart).
+[Quick Start guide](https://oracle.github.io/coherence-operator/docs/latest/#/about/03_quickstart).
 -------
 
 # Need more help? Have a suggestion? Come and say "Hello!"
