@@ -1378,6 +1378,8 @@ release-dashboards:
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
 	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-microprofile \
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-microprofile-dashboards.yaml
+	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana-micrometer \
+		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-micrometer-dashboards.yaml
 	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
 

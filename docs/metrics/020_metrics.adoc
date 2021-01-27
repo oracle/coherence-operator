@@ -16,12 +16,15 @@ This would typically be used to expose metrics to something like Prometheus.
 
 NOTE: The description below is only applicable if metrics will be served by Coherence using the
 `coherence-metrics` module. If Coherence metrics will be served from a different endpoint, for
-example from a Helidon web-server using `coherence-mp-metrics` then the documentation below does
-not apply.
+example from a Helidon web-server using `coherence-mp-metrics` or using Coherence Micrometer integration,
+then the documentation below does not apply.
 
 
-NOTE: The metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
-setting the relevant fields in the `Coherence` CRD.
+NOTE: The default metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
+setting the relevant fields in the `Coherence` CRD. This assumes that your application has included the
+`coherence-metrics` module as a dependency. See the Coherence product documentation for more details on enabling metrics
+in your application.
+
 
 The example below shows how to enable and access Coherence metrics when served by the endpoint provided by the
 `coherence-metrics` module. For the example below to work the application deployed must have the `coherence-metrics`
@@ -59,6 +62,9 @@ spec:
 The `metrics` port is a special case where the `port` number is optional so in this case metrics
 will bind to the default port `9612`.
 (see <<ports/020_container_ports.adoc,Exposing Ports>> for details)
+
+
+==== Expose Metrics on a Different Port
 
 To expose metrics on a different port the alternative port value can be set in the `coherence.metrics`
 section, for example:
