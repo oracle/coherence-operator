@@ -1436,7 +1436,7 @@ else
 endif
 	git clean -d -f
 	git status
-	git commit -A -m "Release Coherence Operator version: $(VERSION)"
+	git commit -m "Release Coherence Operator version: $(VERSION)"
 	git log -1
 ifeq (true, $(RELEASE_DRY_RUN))
 	@echo "release dry-run - would have pushed Helm chart and docs $(VERSION) to gh-pages"
