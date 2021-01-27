@@ -50,7 +50,7 @@
     <version.lib.helidon>1.2.0</version.lib.helidon>
     <version.lib.junit>4.13.1</version.lib.junit>
     <version.lib.mockito>2.18.3</version.lib.mockito>
-    <version.lib.spring>2.3.3.RELEASE</version.lib.spring>
+    <version.lib.spring>2.4.2</version.lib.spring>
 
     <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
     <version.plugin.exec>3.0.0</version.plugin.exec>
