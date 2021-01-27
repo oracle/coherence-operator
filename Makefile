@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.1.2
+VERSION ?= 3.1.3
 
 # The version number to be replaced by this release
 PREV_VERSION ?= 3.1.2

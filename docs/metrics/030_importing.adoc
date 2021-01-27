@@ -25,7 +25,6 @@ then obtain the dashboards from the `dashboards/` directory.
 
 [source,bash]
 ----
-VERSION=3.1.1
 curl https://oracle.github.io/coherence-operator/dashboards/latest/coherence-dashboards.tar.gz \
     -o coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz
@@ -150,7 +149,6 @@ The operator provides dashboards compatible with both of these formats.
 
 [source,bash]
 ----
-VERSION=3.1.1
 kubectl -n monitoring create \
     -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-microprofile-dashboards.yaml
 ----
@@ -159,7 +157,6 @@ kubectl -n monitoring create \
 
 [source,bash]
 ----
-VERSION=3.1.1
 kubectl -n monitoring create \
     -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-micrometer-dashboards.yaml
 ----
@@ -172,8 +169,7 @@ Operator release the following commands can be used:
 
 [source,bash]
 ----
-VERSION=3.1.1
-curl https://oracle.github.io/coherence-operator/dashboards/${VERSION}/coherence-dashboards.tar.gz \
+curl https://oracle.github.io/coherence-operator/dashboards/latest/coherence-dashboards.tar.gz \
     -o coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz
 kubectl -n monitoring create configmap coherence-grafana-dashboards --from-file=dashboards/grafana
