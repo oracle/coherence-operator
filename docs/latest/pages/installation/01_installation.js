@@ -179,12 +179,12 @@ lang="bash"
 
 >helm install  \
     --namespace &lt;namespace&gt; \
-    --set image=images.com/coherence/coherence-operator:3.1.1 <span class="conum" data-value="1" />
+    --set image=images.com/coherence/coherence-operator:3.1.2 <span class="conum" data-value="1" />
     coherence-operator \
     coherence/coherence-operator</markup>
 
 <ul class="colist">
-<li data-value="1">The image used to run the Operator will be <code>images.com/coherence/coherence-operator:3.1.1</code>.</li>
+<li data-value="1">The image used to run the Operator will be <code>images.com/coherence/coherence-operator:3.1.2</code>.</li>
 </ul>
 
 <h3 id="_image_pull_secrets">Image Pull Secrets</h3>
@@ -245,13 +245,13 @@ lang="bash"
 <div class="section">
 <p>If you want to use yaml directly to install the operator, with something like <code>kubectl</code>, you can use the manifest files
 published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.1/coherence-operator-manifests-3.1.1.tar.gz">3.1.1 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.2/coherence-operator-manifests-3.1.2.tar.gz">3.1.2 Manifests</a></p>
 
 <p>These manifest files are for use with a tool called Kustomize, which is built into <code>kubectl</code>
 see the documentation here: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/</a></p>
 
 <p>Download the
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.1/coherence-operator-manifests-3.1.1.tar.gz">3.1.1 Manifests</a>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.2/coherence-operator-manifests-3.1.2.tar.gz">3.1.2 Manifests</a>
 from the release page and unpack the file, which should produce a directory called <code>manifests</code> with a structure like this:</p>
 
 <markup
@@ -297,7 +297,7 @@ that you are using for the Operator</p>
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit set image controller=container-registry.oracle.com/middleware/coherence-operator:3.1.1</markup>
+>cd ./manager &amp;&amp; kustomize edit set image controller=container-registry.oracle.com/middleware/coherence-operator:3.1.2</markup>
 
 <p>Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image</p>
@@ -305,7 +305,7 @@ that you are using for the Operator utilities image</p>
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.1.1-utils</markup>
+>cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.1.2-utils</markup>
 
 <p>Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
 does not need to change.</p>
