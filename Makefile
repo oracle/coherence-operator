@@ -1053,7 +1053,7 @@ push-test-images:
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
-build-compatibility-images: build-mvn
+build-compatibility-image: build-mvn
 	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_COMPATIBILITY_IMAGE) -Dcoherence.test.groupId=$(TEST_COHERENCE_GID) -Dcoherence.test.version=$(TEST_COHERENCE_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
