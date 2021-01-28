@@ -106,7 +106,7 @@ This will result in the following Docker image being created which contains the 
 artifacts to be use by all deployments.
 
 ```console
-deployment-example:3.1.2
+deployment-example:1.0.0
 ```   
 
 > Note: If you are running against a remote Kubernetes cluster, you need to tag and
@@ -140,7 +140,7 @@ coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1    
 helm ls -n coherence-example
 
 NAME              	NAMESPACE        	REVISION	UPDATED                                 	STATUS  	CHART                   	APP VERSION
-coherence-operator	coherence-example	1       	2021-01-22 09:01:26.463882195 +0800 AWST	deployed	coherence-operator-3.1.2	3.1.2      
+coherence-operator	coherence-example	1       	2021-01-22 09:01:26.463882195 +0800 AWST	deployed	coherence-operator-3.1.3	3.1.3      
 ```
 
 # Run the Examples
@@ -289,7 +289,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.1.2
+  image: deployment-example:1.0.0
   imagePullPolicy: Always
   replicas: 1
 ```
@@ -401,7 +401,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:3.1.2
+  image: deployment-example:1.0.0
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main

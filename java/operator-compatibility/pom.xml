@@ -18,26 +18,16 @@
     <version>3.1.3</version>
   </parent>
 
-  <artifactId>operator-test</artifactId>
+  <artifactId>operator-compatibility</artifactId>
 
-  <description>Oracle Coherence Kubernetes Operator Test</description>
-  <name>operator-test</name>
+  <description>Oracle Coherence Kubernetes Compatibility Test</description>
+  <name>operator-compatibility</name>
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.test.groupId}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${coherence.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
-      <artifactId>coherence-management</artifactId>
-      <version>${coherence.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
-      <artifactId>coherence-metrics</artifactId>
-      <version>${coherence.version}</version>
+      <version>${coherence.test.version}</version>
     </dependency>
   </dependencies>
 </project>
