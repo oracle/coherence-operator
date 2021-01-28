@@ -20,6 +20,11 @@ public class Main {
     private Main() {
     }
 
+    /**
+     * Program entry point.
+     *
+     * @param args the program command line arguments
+     */
     public static void main(String[] args) {
         DefaultCacheServer.main(args);
     }
