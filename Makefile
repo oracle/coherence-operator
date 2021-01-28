@@ -44,11 +44,14 @@ OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 MAVEN_OPTIONS ?=
 
 # The Coherence image to use for deployments that do not specify an image
+COHERENCE_VERSION ?= 20.12
 COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:20.12
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
 TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
+TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
+TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 
 # Operator image names
 RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
@@ -63,6 +66,7 @@ BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
 # The test application images used in integration tests
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
+TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-compatibility:$(VERSION)
 TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring
 TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
@@ -540,6 +544,60 @@ run-certification: gotestsum
 .PHONY: cleanup-certification
 cleanup-certification: undeploy uninstall-crds clean-namespace
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes the Go end-to-end Operator coherence compatibility tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: coherence-compatibility-test
+coherence-compatibility-test: export MF = $(MAKEFLAGS)
+coherence-compatibility-test: install-coherence-compatibility
+	$(MAKE) run-coherence-compatibility  $${MF} \
+	; rc=$$? \
+	; $(MAKE) cleanup-coherence-compatibility $${MF} \
+	; exit $$rc
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Operator prior to running coherence compatibility tests.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-coherence-compatibility
+install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes the Go end-to-end Operator coherence compatibility tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: run-coherence-compatibility
+run-coherence-compatibility: export CGO_ENABLED = 0
+run-coherence-compatibility: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+run-coherence-compatibility: export TEST_COMPATIBILITY_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
+run-coherence-compatibility: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+run-coherence-compatibility: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+run-coherence-compatibility: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+run-coherence-compatibility: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+run-coherence-compatibility: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+run-coherence-compatibility: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+run-coherence-compatibility: export VERSION := $(VERSION)
+run-coherence-compatibility: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
+run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
+run-coherence-compatibility: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-coherence-compatibility: gotestsum
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Clean up after to running compatability tests.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: cleanup-coherence-compatibility
+cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
+
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
 # ---------------------------------------------------------------------------
@@ -992,6 +1050,20 @@ push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator Test images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-compatibility-image
+build-compatibility-images: build-mvn
+	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_COMPATIBILITY_IMAGE) -Dcoherence.test.groupId=$(TEST_COHERENCE_GID) -Dcoherence.test.version=$(TEST_COHERENCE_VERSION) $(MAVEN_OPTIONS)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Push the Operator JIB Test Docker images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-compatibility-image
+push-compatibility-image:
+	docker push $(TEST_COMPATIBILITY_IMAGE)
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
@@ -1105,6 +1177,12 @@ kind-load:
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT)|| true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP)|| true
 	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Load images into Kind
+# ----------------------------------------------------------------------------------------------------------------------
+kind-load-compatibility:
+	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

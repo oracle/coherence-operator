@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,13 +27,14 @@ import (
 )
 
 const (
-	TestNamespaceEnv    = "OPERATOR_NAMESPACE"
-	OperatorImageEnv    = "OPERATOR_IMAGE"
-	UtilsImageEnv       = "UTILS_IMAGE"
-	WatchNamespaceEnv   = "WATCH_NAMESPACE"
-	TestSslSecretEnv    = "TEST_SSL_SECRET"
-	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
-	CoherenceVersionEnv = "COHERENCE_VERSION"
+	TestNamespaceEnv         = "OPERATOR_NAMESPACE"
+	OperatorImageEnv         = "OPERATOR_IMAGE"
+	CohCompatibilityImageEnv = "TEST_COMPATIBILITY_IMAGE"
+	UtilsImageEnv            = "UTILS_IMAGE"
+	WatchNamespaceEnv        = "WATCH_NAMESPACE"
+	TestSslSecretEnv         = "TEST_SSL_SECRET"
+	ImagePullSecretsEnv      = "IMAGE_PULL_SECRETS"
+	CoherenceVersionEnv      = "COHERENCE_VERSION"
 
 	defaultNamespace = "operator-test"
 
@@ -51,6 +52,10 @@ func GetOperatorImage() string {
 
 func GetUtilsImage() string {
 	return os.Getenv(UtilsImageEnv)
+}
+
+func GetCoherenceCompatibilityImage() string {
+	return os.Getenv(CohCompatibilityImageEnv)
 }
 
 func GetTestNamespace() string {

@@ -23,6 +23,7 @@
 
   <modules>
     <module>coherence-utils</module>
+    <module>operator-compatibility</module>
     <module>operator-test</module>
     <module>operator-test-spring</module>
   </modules>
@@ -37,6 +38,7 @@
     <!--  The Coherence jar version (compile time dependency) -->
     <coherence.version>20.12</coherence.version>
     <!-- The version of Coherence to use in the test images -->
+    <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
     <coherence.test.version>${coherence.version}</coherence.test.version>
 
     <!-- library dependency versions -->
