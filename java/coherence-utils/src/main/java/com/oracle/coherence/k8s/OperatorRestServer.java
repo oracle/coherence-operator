@@ -450,7 +450,6 @@ public class OperatorRestServer {
                 .map(s -> ",service=" + s + ",")
                 .collect(Collectors.toSet());
         }
-System.err.println("****** allowEndangered \"" + allowEndangered + "\" exclusions=\"" + exclusions + "\"");
 
         Cluster cluster = clusterSupplier.get();
         if (cluster != null && cluster.isRunning()) {
@@ -460,7 +459,6 @@ System.err.println("****** allowEndangered \"" + allowEndangered + "\" exclusion
                     continue;
                 }
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
-System.err.println("****** Attributes for " + mBean + " " + attributes);
                 if (!isServiceStatusHA(attributes)) {
                     CacheFactory.log("CoherenceOperator: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
                     return false;
