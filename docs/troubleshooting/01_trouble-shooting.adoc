@@ -10,12 +10,14 @@
 
 == Troubleshooting Guide
 
-The purpose of this page is to list troubleshooting guides and work arounds for issues that you may run into when using the Coherence Operator.
+The purpose of this page is to list troubleshooting guides and work-arounds for issues that you may run into when using the Coherence Operator.
 This paged will be updated and maintained over time to include common issues we see from customers
 
 == Contents
 
-* <<#stuck-pending,My Coherence cluster is stuck with pending Pods>>
+* <<#stuck-pending,My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down>>
+
+* <<#stuck-delete,My Coherence cluster is stuck with all pending/crashing Pods, I cannot delete the deployment>>
 
 * <<#site-safe,My cache services will not reach Site Safe>>
 
@@ -24,7 +26,7 @@ This paged will be updated and maintained over time to include common issues we 
 == Issues
 
 [#stuck-pending]
-=== My Coherence cluster is stuck with pending Pods
+=== My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down
 
 If you try to create a Coherence deployment that has a replica count that is greater than your k8s cluster can actually
 provision then one or more Pods will fail to be created or can be left in a pending state.
@@ -62,6 +64,32 @@ step 2 above must be 90. Because the scaling policy has been set to `Parallel` t
 Status HA values before scaling down Pods, so removing "ready" Pods that contain data will almost certainly result
 in data loss. To safely scale down lower, then first follow the three steps above then after changing the scaling policy
 back to the default further scaling down can be done as normal.
+
+[#stuck-delete]
+=== My Coherence cluster is stuck with all pending/crashing Pods, I cannot delete the deployment
+
+A Coherence deployment can become stuck where none of the Pods can start, for example the image used is incorrect
+and all Pods are stuck in ImagePullBackoff. It can then become impossible to delete the broken deployment.
+This is because the Operator has installed a finalizer but this finalizer cannot execute.
+
+For example, suppose we have deployed a Coherence deployment named `my-cluster` into namespace `coherence-test`.
+
+First try to delete the deployment as normal:
+[source,console]
+----
+kubectl -n coherence-test delete coherence/my-cluster
+----
+
+If this command hangs, then press `ctrl-c` to exit and then run the following patch command.
+
+[source,console]
+----
+kubectl -n coherence-test patch coherence/my-cluster -p '{"metadata”:{“finalizers":[]}}' --type=merge
+----
+This will remove the Operator's finalizer from the Coherence deployment.
+
+At this point the `my-cluster` Coherence deployment might already have been removed,
+if not try the delete command again.
 
 
 [#site-safe]

@@ -36,6 +36,7 @@ jobs:
         coherenceGid:
           - "com.oracle.coherence.ce:coherence:20.12"
           - "com.oracle.coherence.ce:coherence:20.06"
+          - "com.oracle.coherence.ce:coherence:14.1.1-0-3"
 
     steps:
     - uses: actions/checkout@v2
