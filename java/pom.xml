@@ -344,13 +344,13 @@
   <repositories>
     <repository>
       <id>ossrh-staging</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging/</url>
+      <name>OSS Sonatype Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
       <releases>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </releases>
     </repository>
   </repositories>
