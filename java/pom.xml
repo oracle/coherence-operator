@@ -340,4 +340,18 @@
         </build>
     </profile>
   </profiles>
+
+  <repositories>
+    <repository>
+      <id>ossrh-staging</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
 </project>
