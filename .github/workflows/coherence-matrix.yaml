@@ -38,6 +38,7 @@ jobs:
         coherenceGid:
           - "com.oracle.coherence.ce:coherence:21.06-SNAPSHOT"
           - "com.oracle.coherence.ce:coherence:20.12.1-SNAPSHOT"
+          - "com.oracle.coherence.ce:coherence:14.1.1-0-4-SNAPSHOT"
           - "com.oracle.coherence.ce:coherence:20.12"
           - "com.oracle.coherence.ce:coherence:20.06"
           - "com.oracle.coherence.ce:coherence:14.1.1-0-3"
