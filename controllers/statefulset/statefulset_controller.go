@@ -32,6 +32,7 @@ const (
 
 	CreateMessage        string = "successfully created StatefulSet for Coherence resource '%s'"
 	FailedToScaleMessage string = "failed to scale Coherence resource %s from %d to %d due to error\n%s"
+	FailedToPatchMessage string = "failed to patch Coherence resource %s due to error\n%s"
 
 	EventReasonScale string = "Scaling"
 
@@ -248,7 +249,6 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 
 	var err error
-	var patched bool
 
 	result := reconcile.Result{}
 
@@ -275,11 +275,8 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 		// scale up so we do not do a rolling upgrade of the bigger scaled up cluster
 
 		// try the patch first
-		patched, err = in.patchStatefulSet(deployment, current, desired, storage)
-		if patched {
-			// there was a patch applied so requeue the request so we can scale next time around
-			result.Requeue = true
-		} else {
+		result, err = in.patchStatefulSet(deployment, current, desired, storage)
+		if err == nil && !result.Requeue {
 			// there was nothing else to patch so we can do the scale up
 			result, err = in.scale(deployment, current, currentReplicas, desiredReplicas)
 		}
@@ -300,15 +297,29 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 }
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage) (bool, error) {
+func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
+
+	currentReplicas := in.getReplicas(current)
+	if current.Status.ReadyReplicas != currentReplicas {
+		logger.Info(fmt.Sprintf("deployment %s - re-queing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+	}
+
+	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+	ha := checker.IsStatusHA(deployment, current)
+	if !ha {
+		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - re-queing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+	}
+
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
 
 	if resource.IsPresent() {
 		err := resource.As(original)
 		if err != nil {
-			return false, err
+			return in.HandleErrAndRequeue(err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
 		}
 	} else {
 		// there was no previous
@@ -378,13 +389,15 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 	switch {
 	case err != nil:
 		logger.Info("Error patching StatefulSet " + err.Error())
+		return in.HandleErrAndRequeue(err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
 	case patched:
 		logger.Info("Applied patch to StatefulSet")
+		return reconcile.Result{Requeue: patched}, nil
 	case !patched:
 		logger.Info("No patch required for StatefulSet")
 	}
 
-	return patched, err
+	return reconcile.Result{}, nil
 }
 
 func (in *ReconcileStatefulSet) sortEnvForAllContainers(sts *appsv1.StatefulSet) {

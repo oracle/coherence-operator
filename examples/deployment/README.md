@@ -140,7 +140,7 @@ coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1    
 helm ls -n coherence-example
 
 NAME              	NAMESPACE        	REVISION	UPDATED                                 	STATUS  	CHART                   	APP VERSION
-coherence-operator	coherence-example	1       	2021-01-22 09:01:26.463882195 +0800 AWST	deployed	coherence-operator-3.1.3	3.1.3      
+coherence-operator	coherence-example	1       	2021-01-22 09:01:26.463882195 +0800 AWST	deployed	coherence-operator-3.1.4	3.1.4      
 ```
 
 # Run the Examples
