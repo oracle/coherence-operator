@@ -42,9 +42,9 @@ func TestScaling(t *testing.T) {
 		{"DownSafeScaling", 3, 1, cohv1.SafeScaling},
 	}
 
-	for id, tc := range testCases {
+	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			assertScale(t, id, tc.policy, tc.start, tc.end, deploymentScaler)
+			assertScale(t, tc.testName, tc.policy, tc.start, tc.end, deploymentScaler)
 		})
 	}
 }
@@ -53,14 +53,14 @@ func TestScaling(t *testing.T) {
 func TestScalingUpWithKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScale(t, 10, cohv1.ParallelUpSafeDownScaling, 1, 3, kubeCtlScaler)
+	assertScale(t, "UpWithKubectl", cohv1.ParallelUpSafeDownScaling, 1, 3, kubeCtlScaler)
 }
 
 // Test that a deployment can be scaled down using the kubectl scale command
 func TestScalingDownWithKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScale(t, 20, cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlScaler)
+	assertScale(t, "DownWithKubectl", cohv1.ParallelUpSafeDownScaling, 3, 1, kubeCtlScaler)
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -68,7 +68,7 @@ func TestScalingDownWithKubectl(t *testing.T) {
 func TestScaleDownToZero(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, 30, deploymentScaler)
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler)
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -76,7 +76,7 @@ func TestScaleDownToZero(t *testing.T) {
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, 40, kubeCtlScaler)
+	assertScaleDownToZero(t, "DownToZeroUsingKubectl", kubeCtlScaler)
 }
 
 // ----- helper methods ------------------------------------------------
@@ -119,8 +119,10 @@ var kubeCtlScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error
 }
 
 // Assert that a deployment can be created and scaled using the specified policy.
-func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
+func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
 	g := NewGomegaWithT(t)
+
+	testContext.CleanupAfterTest(t)
 
 	t.Log("assertScale() - Starting...")
 
@@ -130,7 +132,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	g.Expect(err).NotTo(HaveOccurred())
 
 	//Give the deployment a unique name based on the test name
-	deployment.SetName(fmt.Sprintf("%s-%d", deployment.GetName(), id))
+	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
 
 	// update the replica count and scaling policy
 	deployment.SetReplicas(replicasStart)
@@ -167,7 +169,7 @@ func assertScale(t *testing.T, id int, policy cohv1.ScalingPolicy, replicasStart
 	}
 }
 
-func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
+func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction) {
 	const (
 		zero int32 = 0
 	)
@@ -175,11 +177,13 @@ func assertScaleDownToZero(t *testing.T, uid int, scaler ScaleFunction) {
 	g := NewGomegaWithT(t)
 	namespace := helper.GetTestNamespace()
 
+	testContext.CleanupAfterTest(t)
+
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	//Give the deployment a unique name based on the test name
-	deployment.SetName(fmt.Sprintf("%s-%d", deployment.GetName(), uid))
+	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
 
 	installSimpleDeployment(t, deployment)
 

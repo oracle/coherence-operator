@@ -39,6 +39,13 @@ public class OperatorRestServer {
     // ----- constants ------------------------------------------------------
 
     /**
+     * The system property to use to set the health logging.
+     */
+    public static final String PROP_HEALTH_LOG = "coherence.k8s.operator.health.logs";
+
+    public static final boolean loggingEnabled = Boolean.getBoolean(PROP_HEALTH_LOG);
+
+    /**
      * The system property to use to set the health port.
      */
     public static final String PROP_HEALTH_PORT = "coherence.k8s.operator.health.port";
@@ -98,6 +105,17 @@ public class OperatorRestServer {
             };
 
     /**
+     * The MBean name of the Persistence Coordinator MBean.
+     */
+    public static final String MBEAN_PERSISTENCE_COORDINATOR = Registry.PERSISTENCE_SNAPSHOT_TYPE
+            + ",service=*,responsibility=PersistenceCoordinator";
+
+    /**
+     * The MBean attribute to check the idle state of the persistence coordinator.
+     */
+    public static final String[] PERSISTENCE_IDLE_ATTRIBUTES = new String[] {"Idle"};
+
+    /**
      * The value of the Status HA attribute to signify endangered.
      */
     public static final String STATUS_ENDANGERED = "ENDANGERED";
@@ -121,6 +139,11 @@ public class OperatorRestServer {
      * The name of the service node count MBean attribute.
      */
     public static final String ATTRIB_NODE_COUNT = "servicenodecount";
+
+    /**
+     * The name of the persistence coordinator idle state MBean attribute.
+     */
+    public static final String ATTRIB_IDLE = "idle";
 
     /**
      * The error message in an exception due to there being no management member in the cluster.
@@ -184,8 +207,7 @@ public class OperatorRestServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            CacheFactory.log("Coherence Operator REST server is listening on http://localhost:"
-                                     + server.getAddress().getPort(), CacheFactory.LOG_INFO);
+            log("CoherenceOperator REST server is listening on http://localhost:%d", server.getAddress().getPort());
 
             httpServer = server;
         }
@@ -238,7 +260,11 @@ public class OperatorRestServer {
      */
     void ready(HttpExchange exchange) {
         try {
-            int response = hasClusterMembers() && isStatusHA() ? 200 : 400;
+            boolean hasCluster = hasClusterMembers();
+            boolean isHA = isStatusHA();
+            boolean isIdle = isPersistenceIdle();
+            int response = hasCluster && isHA && isIdle ? 200 : 400;
+            logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b", response, hasCluster, isHA, isIdle);
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -253,7 +279,9 @@ public class OperatorRestServer {
      */
     void health(HttpExchange exchange) {
         try {
+            boolean hasCluster = hasClusterMembers();
             int response = hasClusterMembers() ? 200 : 400;
+            logDebug("CoherenceOperator: Health check response %d - cluster=%b", response, hasCluster);
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -268,9 +296,14 @@ public class OperatorRestServer {
      */
     void statusHA(HttpExchange exchange) {
         try {
-            CacheFactory.log("CoherenceOperator: StatusHA check request", CacheFactory.LOG_INFO);
-            int response = isStatusHA() ? 200 : 400;
-            CacheFactory.log("CoherenceOperator: StatusHA check response " + response, CacheFactory.LOG_INFO);
+            boolean isHA = isStatusHA();
+            boolean isIdle = isPersistenceIdle();
+            int response = isStatusHA() && isPersistenceIdle() ? 200 : 400;
+            if (response == 400) {
+                logDebug("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
+            } else {
+                log("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
+            }
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -326,11 +359,11 @@ public class OperatorRestServer {
                     send(exchange, 404);
                     return;
                 }
-                CacheFactory.log("CoherenceOperator: Suspending service " + name, CacheFactory.LOG_WARN);
+                warn("CoherenceOperator: Suspending service %s", name);
                 cluster.suspendService(name);
             }
             else {
-                CacheFactory.log("CoherenceOperator: Suspending all services", CacheFactory.LOG_WARN);
+                warn("CoherenceOperator: Suspending all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
@@ -342,13 +375,11 @@ public class OperatorRestServer {
                                         .distinct()
                                         .count();
                         if (count == 1) {
-                            CacheFactory.log("CoherenceOperator: Suspending service " + name, CacheFactory.LOG_INFO);
+                            log("CoherenceOperator: Suspending service %s", name);
                             cluster.suspendService(name);
                         }
                         else {
-                            CacheFactory.log("CoherenceOperator: Not suspending service "
-                                    + name + " - is storage enabled in other deployments",
-                                    CacheFactory.LOG_INFO);
+                            log("CoherenceOperator: Not suspending service %s - is storage enabled in other deployments", name);
                         }
                     }
                 }
@@ -366,7 +397,6 @@ public class OperatorRestServer {
      *
      * @param exchange the {@link HttpExchange} to send the response to
      */
-    @SuppressWarnings("unchecked")
     void resume(HttpExchange exchange) {
         try {
             String   path  = exchange.getRequestURI().getPath();
@@ -383,11 +413,11 @@ public class OperatorRestServer {
                     send(exchange, 404);
                     return;
                 }
-                CacheFactory.log("CoherenceOperator: Resuming service " + name, CacheFactory.LOG_WARN);
+                warn("CoherenceOperator: Resuming service %s", name);
                 cluster.resumeService(name);
             }
             else {
-                CacheFactory.log("CoherenceOperator: Resuming all services", CacheFactory.LOG_WARN);
+                warn("CoherenceOperator: Resuming all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     cluster.resumeService(names.nextElement());
@@ -403,7 +433,7 @@ public class OperatorRestServer {
 
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
-        CacheFactory.log("CoherenceOperator: " + action + " failed due to '" + thrown.getMessage() + "'", CacheFactory.LOG_ERR);
+        err("CoherenceOperator: %s failed due to '%s'", action, thrown.getMessage());
         if (msg != null && msg.contains(NO_MANAGED_NODES)) {
             send(t, 400);
         }
@@ -439,7 +469,7 @@ public class OperatorRestServer {
         }
         catch (IllegalStateException e) {
             // there is probably no DCS
-            CacheFactory.log("CoherenceOperator: StatusHA check failed, " + e.getMessage(), CacheFactory.LOG_ERR);
+            err("CoherenceOperator: StatusHA check failed, %s", e.getMessage());
             return false;
         }
 
@@ -460,16 +490,37 @@ public class OperatorRestServer {
                 }
                 Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
                 if (!isServiceStatusHA(attributes)) {
-                    CacheFactory.log("CoherenceOperator: StatusHA check failed for MBean " + mBean, CacheFactory.LOG_DEBUG);
+                    log("CoherenceOperator: StatusHA check failed for MBean %s", mBean);
                     return false;
                 }
             }
             return true;
         }
         else {
-            CacheFactory.log("CoherenceOperator: StatusHA check failed - cluster is null", CacheFactory.LOG_ERR);
+            err("CoherenceOperator: StatusHA check failed - cluster is null");
             return false;
         }
+    }
+
+    boolean isPersistenceIdle() {
+        boolean allIdle = true;
+
+        for (String mBean : getPersistenceCoordinatorMBeans()) {
+            Map<String, Object> attributes = getMBeanAttributes(mBean, PERSISTENCE_IDLE_ATTRIBUTES);
+
+            // convert the attribute case as MBeanProxy or REST return them with different cases
+            Map<String, Object> map = attributes.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
+
+            Boolean isIdle = (Boolean) map.get(ATTRIB_IDLE);
+            if (!isIdle) {
+                log("CoherenceOperator: Persistence not idle for MBean %s" + mBean);
+                allIdle = false;
+            }
+        }
+
+        return allIdle;
     }
 
     private String quoteMBeanName(String sMBean) {
@@ -557,6 +608,44 @@ public class OperatorRestServer {
 
     private Set<String> getPartitionAssignmentMBeans() {
         return getMBeanServerProxy().queryNames(MBEAN_PARTITION_ASSIGNMENT, null);
+    }
+
+    private Set<String> getPersistenceCoordinatorMBeans() {
+        return getMBeanServerProxy().queryNames(MBEAN_PERSISTENCE_COORDINATOR, null);
+    }
+
+    private void logDebug(String message, Object... args) {
+        logDebug(String.format(message, args));
+    }
+
+    private void logDebug(String message) {
+        if (loggingEnabled) {
+            CacheFactory.log(message, CacheFactory.LOG_DEBUG);
+        }
+    }
+
+    private void log(String message, Object... args) {
+        log(String.format(message, args));
+    }
+
+    private void log(String message) {
+        CacheFactory.log(message, CacheFactory.LOG_INFO);
+    }
+
+    private void warn(String message, Object... args) {
+        warn(String.format(message, args));
+    }
+
+    private void warn(String message) {
+        CacheFactory.log(message, CacheFactory.LOG_WARN);
+    }
+
+    private void err(String message, Object... args) {
+        err(String.format(message, args));
+    }
+
+    private void err(String message) {
+        CacheFactory.log(message, CacheFactory.LOG_ERR);
     }
 
     /**

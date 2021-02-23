@@ -33,7 +33,7 @@ const (
 	Delete
 )
 
-// Deploy a Coherence resource with persistence enabled (this should enable active persistence).
+// Deploy a Coherence resource with persistence enabled (this should enable active persistence).
 // A PVC should be created for the StatefulSet. Create data in some caches, delete the deployment,
 // re-deploy the deployment and assert that the data is recovered.
 func TestActivePersistence(t *testing.T) {

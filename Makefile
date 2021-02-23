@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.1.3
+VERSION ?= 3.1.4
 
 # The version number to be replaced by this release
 PREV_VERSION ?= 3.1.2
@@ -44,8 +44,8 @@ OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 MAVEN_OPTIONS ?=
 
 # The Coherence image to use for deployments that do not specify an image
-COHERENCE_VERSION ?= 20.12
-COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:20.12
+COHERENCE_VERSION ?= 20.12.1
+COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:20.12.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -1068,6 +1068,12 @@ push-compatibility-image:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
 build-all-images: $(BUILD_TARGETS)/build-operator build-utils-image build-test-images
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator images without the test images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-operator-images
+build-operator-images: $(BUILD_TARGETS)/build-operator build-utils-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
