@@ -43,7 +43,10 @@ public class OperatorRestServer {
      */
     public static final String PROP_HEALTH_LOG = "coherence.k8s.operator.health.logs";
 
-    public static final boolean loggingEnabled = Boolean.getBoolean(PROP_HEALTH_LOG);
+    /**
+     * A flag indicating whether debug logging is enabled.
+     */
+    public static final boolean LOGGING_ENABLED = Boolean.getBoolean(PROP_HEALTH_LOG);
 
     /**
      * The system property to use to set the health port.
@@ -301,7 +304,8 @@ public class OperatorRestServer {
             int response = isStatusHA() && isPersistenceIdle() ? 200 : 400;
             if (response == 400) {
                 logDebug("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
-            } else {
+            }
+            else {
                 log("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
             }
             send(exchange, response);
@@ -619,7 +623,7 @@ public class OperatorRestServer {
     }
 
     private void logDebug(String message) {
-        if (loggingEnabled) {
+        if (LOGGING_ENABLED) {
             CacheFactory.log(message, CacheFactory.LOG_DEBUG);
         }
     }
