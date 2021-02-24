@@ -222,7 +222,7 @@ func (in *CommonReconciler) MaybeFindStatefulSet(namespace, name string) (*appsv
 }
 
 // Perform a two-way merge patch on the resource.
-func (in *CommonReconciler) TwoWayPatch(name string, current, desired runtime.Object) (bool, error) {
+func (in *CommonReconciler) TwoWayPatch(name string, current, desired client.Object) (bool, error) {
 	patch, err := in.CreateTwoWayPatch(name, desired, current, patchIgnore)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
@@ -292,12 +292,12 @@ func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, n
 }
 
 // Perform a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatch(name string, current, original, desired runtime.Object) (bool, error) {
+func (in *CommonReconciler) ThreeWayPatch(name string, current, original, desired client.Object) (bool, error) {
 	return in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
 }
 
 // Perform a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired runtime.Object, callback func()) (bool, error) {
+func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func()) (bool, error) {
 	kind := current.GetObjectKind().GroupVersionKind().Kind
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
@@ -450,7 +450,7 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 // A reconciler for sub-resource.
 type SecondaryResourceReconciler interface {
 	BaseReconciler
-	GetTemplate() runtime.Object
+	GetTemplate() client.Object
 	ReconcileResources(reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
@@ -460,13 +460,13 @@ type SecondaryResourceReconciler interface {
 // ReconcileSecondaryResource reconciles a secondary resource for a Coherence resource
 type ReconcileSecondaryResource struct {
 	CommonReconciler
-	Template  runtime.Object
+	Template  client.Object
 	Kind      coh.ResourceType
 	SkipWatch bool
 }
 
-func (in *ReconcileSecondaryResource) GetTemplate() runtime.Object { return in.Template }
-func (in *ReconcileSecondaryResource) CanWatch() bool              { return !in.SkipWatch }
+func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Template }
+func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
 // ReconcileResources reconciles the state of the desired resources for the reconciler
 func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
@@ -521,20 +521,20 @@ func (in *ReconcileSecondaryResource) ReconcileResource(namespace, name string, 
 		err = in.Create(name, storage, logger)
 	default:
 		// Both the resource and deployment exists so this is maybe an update
-		err = in.Update(name, resource.(runtime.Object), storage, logger)
+		err = in.Update(name, resource.(client.Object), storage, logger)
 	}
 	return err
 }
 
 // Delete the resource
-func (in *ReconcileSecondaryResource) NewFromTemplate(namespace, name string) runtime.Object {
+func (in *ReconcileSecondaryResource) NewFromTemplate(namespace, name string) client.Object {
 	// create a new resource from copying the empty template
 	resource := in.Template.DeepCopyObject()
 	// set the resource's namespace and name
 	metaObj := resource.(metav1.Object)
 	metaObj.SetNamespace(namespace)
 	metaObj.SetName(name)
-	return resource
+	return resource.(client.Object)
 }
 
 // Create the specified resource
@@ -570,7 +570,7 @@ func (in *ReconcileSecondaryResource) Delete(namespace, name string, logger logr
 }
 
 // Maybe update the resource if the current state differs from the desired state.
-func (in *ReconcileSecondaryResource) Update(name string, current runtime.Object, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) Update(name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
@@ -583,7 +583,7 @@ func (in *ReconcileSecondaryResource) Update(name string, current runtime.Object
 
 func (in *ReconcileSecondaryResource) FindResource(namespace, name string) (metav1.Object, bool, error) {
 	object := in.NewFromTemplate(namespace, name).(metav1.Object)
-	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, object.(runtime.Object))
+	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, object.(client.Object))
 	var found bool
 	switch {
 	case err != nil && apierrors.IsNotFound(err):

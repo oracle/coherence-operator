@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strconv"
@@ -2391,8 +2392,8 @@ func ToResourceType(kind string) (ResourceType, error) {
 	return t, err
 }
 
-func (t ResourceType) toObject() (runtime.Object, error) {
-	var o runtime.Object
+func (t ResourceType) toObject() (client.Object, error) {
+	var o client.Object
 	var err error
 
 	switch t {
@@ -2418,9 +2419,9 @@ func (t ResourceType) toObject() (runtime.Object, error) {
 
 // +k8s:deepcopy-gen=false
 type Resource struct {
-	Kind ResourceType   `json:"kind"`
-	Name string         `json:"name"`
-	Spec runtime.Object `json:"spec"`
+	Kind ResourceType  `json:"kind"`
+	Name string        `json:"name"`
+	Spec client.Object `json:"spec"`
 }
 
 func (in *Resource) GetFullName() string {
@@ -2527,7 +2528,7 @@ func (in *Resources) UnmarshalJSON(b []byte) error {
 	}
 	in.Version = int32(v)
 	for _, u := range l.Items {
-		var o runtime.Object
+		var o client.Object
 		kind := u.GetObjectKind().GroupVersionKind().Kind
 		t, err := ToResourceType(kind)
 		if err != nil {

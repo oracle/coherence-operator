@@ -38,7 +38,7 @@ GOPROXY         ?= https://proxy.golang.org
 # Set the location of the Operator SDK executable
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v1.0.0
+OPERATOR_SDK_VERSION := v1.4.2
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # Options to append to the Maven command
@@ -75,16 +75,28 @@ TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VER
 TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
 
-# Default bundle image tag
-BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-bundle
-# Options for 'bundle-build'
+# CHANNELS define the bundle channels used in the bundle.
+# Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
+# To re-generate a bundle for other specific channels without changing the standard setup, you can:
+# - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=preview,fast,stable)
+# - use environment variables to overwrite this value (e.g export CHANNELS="preview,fast,stable")
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
+
+# DEFAULT_CHANNEL defines the default channel used in the bundle.
+# Add a new line here if you would like to change its default config. (E.g DEFAULT_CHANNEL = "stable")
+# To re-generate a bundle for any other default channel without changing the default setup, you can:
+# - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
+# - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
 ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+# BUNDLE_IMG defines the image:tag used for the bundle.
+# You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
+BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO)controller-bundle:$(VERSION)
 
 # Release build options
 RELEASE_DRY_RUN  ?= true
@@ -790,7 +802,7 @@ $(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
-	$(GOBIN)/controller-gen object:headerFile="./hack/boilerplate.go.txt" paths="./api/..."
+	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(CRDV1BETA1_FILES) $(GOBIN)/kustomize
 	echo "Embedding configuration and CRD files"
@@ -811,7 +823,7 @@ $(GOBIN)/controller-gen:
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 
@@ -862,11 +874,25 @@ $(GOBIN)/yq:
 	}
 	YQ=$(GOBIN)/yq
 
+# go-get-tool will 'go get' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_PROPS) $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
+bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)

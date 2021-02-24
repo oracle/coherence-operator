@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -115,7 +115,15 @@ func NewFakeClient(initObjs ...runtime.Object) ClientWithErrors {
 	return &c
 }
 
-func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+func (c *clientWithErrors) Scheme() *runtime.Scheme {
+	panic("implement me")
+}
+
+func (c *clientWithErrors) RESTMapper() meta.RESTMapper {
+	panic("implement me")
+}
+
+func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
 	if c.errorsOn {
 		if err := c.errors.IsGetError(key, obj); err != nil {
 			return err
@@ -136,11 +144,11 @@ func (c *clientWithErrors) GetService(namespace, name string) (*corev1.Service, 
 	return svc, err
 }
 
-func (c *clientWithErrors) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+func (c *clientWithErrors) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	return c.wrapped.List(ctx, list, opts...)
 }
 
-func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object, opts ...client.CreateOption) error {
+func (c *clientWithErrors) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -159,7 +167,7 @@ func (c *clientWithErrors) Create(ctx context.Context, obj runtime.Object, opts 
 	return err
 }
 
-func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts ...client.DeleteOption) error {
+func (c *clientWithErrors) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -179,7 +187,7 @@ func (c *clientWithErrors) Delete(ctx context.Context, obj runtime.Object, opts 
 	return err
 }
 
-func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object, opts ...client.UpdateOption) error {
+func (c *clientWithErrors) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
 	if c.errorsOn {
 		accessor, _ := meta.Accessor(obj)
 		key := types.NamespacedName{Namespace: accessor.GetNamespace(), Name: accessor.GetName()}
@@ -198,14 +206,14 @@ func (c *clientWithErrors) Update(ctx context.Context, obj runtime.Object, opts 
 	return err
 }
 
-func (c *clientWithErrors) Patch(ctx context.Context, obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
+func (c *clientWithErrors) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
 	err := c.wrapped.Patch(ctx, obj, patch, opts...)
 	if err == nil {
 		if _, ok := obj.(metav1.Object); ok {
 			mo := obj.(metav1.Object)
 			mo.SetGeneration(obj.(metav1.Object).GetGeneration() + 1)
 			cpy := obj.DeepCopyObject()
-			_ = c.wrapped.Get(context.TODO(), types.NamespacedName{Namespace: mo.GetNamespace(), Name: mo.GetName()}, cpy)
+			_ = c.wrapped.Get(context.TODO(), types.NamespacedName{Namespace: mo.GetNamespace(), Name: mo.GetName()}, cpy.(client.Object))
 			c.operations = append(c.operations, ClientOperation{Action: ClientActionPatch, Object: cpy, Patch: patch})
 		}
 	}
@@ -216,7 +224,8 @@ func (c *clientWithErrors) Status() client.StatusWriter {
 	return c.wrapped.Status()
 }
 
-func (c *clientWithErrors) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...client.DeleteAllOfOption) error {
+func (c *clientWithErrors) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
+
 	return c.wrapped.DeleteAllOf(ctx, obj, opts...)
 }
 

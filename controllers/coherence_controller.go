@@ -61,7 +61,7 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete
 
-func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
+func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	log := in.Log.WithValues("coherence", request.NamespacedName)
 
