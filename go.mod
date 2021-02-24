@@ -1,6 +1,6 @@
 module github.com/oracle/coherence-operator
 
-go 1.14
+go 1.15
 
 require (
 	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
