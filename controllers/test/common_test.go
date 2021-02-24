@@ -137,7 +137,7 @@ func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.Fa
 	err = chain.GetManager().Client.Get(context.TODO(), original.GetNamespacedName(), &created)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	copy := created.DeepCopy()
+	cpy := created.DeepCopy()
 	ts := created.GetCreationTimestamp()
 	j, err := json.Marshal(updated)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -145,7 +145,7 @@ func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.Fa
 	g.Expect(err).NotTo(HaveOccurred())
 	created.SetCreationTimestamp(ts)
 
-	fmt.Println(deep.Equal(copy, &created))
+	fmt.Println(deep.Equal(cpy, &created))
 
 	results, err = chain.ReconcileDeployments(created)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -180,7 +180,7 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 	viper.Set(operator.FlagUtilsImage, testUtilsImage)
 
 	r := &cc.CoherenceReconciler{
-		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
+		Log: ctrl.Log.WithName("controllers").WithName("Coherence"),
 	}
 	if err = r.SetupWithManager(mgr); err != nil {
 		return nil, err
