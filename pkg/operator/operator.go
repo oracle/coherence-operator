@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	DefaultRestHost        = "0.0.0.0"
-	DefaultRestPort  int32 = 8000
+	DefaultRestHost       = "0.0.0.0"
+	DefaultRestPort int32 = 8000
 
 	// DefaultCertValidity makes new certificates default to a 1 year expiration
 	DefaultCertValidity = 365 * 24 * time.Hour
@@ -68,7 +68,7 @@ var setupLog = ctrl.Log.WithName("setup")
 var (
 	DefaultSiteLabels = []string{"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
 	DefaultRackLabels = []string{"topology.kubernetes.io/region", "failure-domain.beta.kubernetes.io/region",
-								  "topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+		"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
 )
 
 func SetupFlags(cmd *cobra.Command) {

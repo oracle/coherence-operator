@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -852,6 +852,17 @@ func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) cor
 		Env: []corev1.EnvVar{
 			{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 			{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
+			{
+				Name: EnvVarOperatorHost, ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: OperatorConfigName},
+						Key:                  OperatorConfigKeyHost,
+						Optional:             pointer.BoolPtr(true),
+					},
+				},
+			},
+			{Name: EnvVarCohSite, Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"},
+			{Name: EnvVarCohRack, Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"},
 		},
 		VolumeMounts: vm,
 	}
