@@ -8,9 +8,7 @@ package controller_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	cc "github.com/oracle/coherence-operator/controllers"
@@ -116,48 +114,48 @@ func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeMana
 }
 
 // Run the original deployment through a fake reconciler then reconcile the updated deployment
-func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.FakeManager {
-	g := NewGomegaWithT(t)
-
-	// To test update the names must match
-	g.Expect(original.Name).To(Equal(updated.Name), "Deployments must have the same name")
-
-	chain, err := NewFakeReconcileChain()
-	g.Expect(err).NotTo(HaveOccurred())
-	results, err := chain.ReconcileDeployments(original)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// should be one result for the original deployment
-	result, found := results[original.Name]
-	g.Expect(found).To(BeTrue(), "No result found for original deployment "+original.Name)
-	// result should not be re-queued
-	g.Expect(result.Requeue).To(BeFalse(), "Result for original deployment "+original.Name+" was re-queued")
-
-	created := coh.Coherence{}
-	err = chain.GetManager().Client.Get(context.TODO(), original.GetNamespacedName(), &created)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cpy := created.DeepCopy()
-	ts := created.GetCreationTimestamp()
-	j, err := json.Marshal(updated)
-	g.Expect(err).NotTo(HaveOccurred())
-	err = json.Unmarshal(j, &created)
-	g.Expect(err).NotTo(HaveOccurred())
-	created.SetCreationTimestamp(ts)
-
-	fmt.Println(deep.Equal(cpy, &created))
-
-	results, err = chain.ReconcileDeployments(created)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	result, found = results[original.Name]
-	// should be one result for the updated deployment
-	g.Expect(found).To(BeTrue(), "No result found for updated deployment "+original.Name)
-	// result should not be re-queued
-	g.Expect(result.Requeue).To(BeFalse(), "Result for updated deployment "+original.Name+" was re-queued")
-
-	return chain.GetManager()
-}
+//func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.FakeManager {
+//	g := NewGomegaWithT(t)
+//
+//	// To test update the names must match
+//	g.Expect(original.Name).To(Equal(updated.Name), "Deployments must have the same name")
+//
+//	chain, err := NewFakeReconcileChain()
+//	g.Expect(err).NotTo(HaveOccurred())
+//	results, err := chain.ReconcileDeployments(original)
+//	g.Expect(err).NotTo(HaveOccurred())
+//
+//	// should be one result for the original deployment
+//	result, found := results[original.Name]
+//	g.Expect(found).To(BeTrue(), "No result found for original deployment "+original.Name)
+//	// result should not be re-queued
+//	g.Expect(result.Requeue).To(BeFalse(), "Result for original deployment "+original.Name+" was re-queued")
+//
+//	created := coh.Coherence{}
+//	err = chain.GetManager().Client.Get(context.TODO(), original.GetNamespacedName(), &created)
+//	g.Expect(err).NotTo(HaveOccurred())
+//
+//	cpy := created.DeepCopy()
+//	ts := created.GetCreationTimestamp()
+//	j, err := json.Marshal(updated)
+//	g.Expect(err).NotTo(HaveOccurred())
+//	err = json.Unmarshal(j, &created)
+//	g.Expect(err).NotTo(HaveOccurred())
+//	created.SetCreationTimestamp(ts)
+//
+//	fmt.Println(deep.Equal(cpy, &created))
+//
+//	results, err = chain.ReconcileDeployments(created)
+//	g.Expect(err).NotTo(HaveOccurred())
+//
+//	result, found = results[original.Name]
+//	// should be one result for the updated deployment
+//	g.Expect(found).To(BeTrue(), "No result found for updated deployment "+original.Name)
+//	// result should not be re-queued
+//	g.Expect(result.Requeue).To(BeFalse(), "Result for updated deployment "+original.Name+" was re-queued")
+//
+//	return chain.GetManager()
+//}
 
 type FakeReconcileChain interface {
 	ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.Coherence, map[string]reconcile.Result, error)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -321,13 +321,17 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 		return errors.Wrapf(err, "getting StatefulSet %s/%s", c.Namespace, c.Name)
 	}
 	if stsExists {
-		// Do service suspension...
-		probe := statefulset.CoherenceProbe{
-			Client: in.GetClient(),
-			Config: in.GetManager().GetConfig(),
-		}
-		if !probe.SuspendServices(c, sts) {
-			return fmt.Errorf("failed to suspend services")
+		if sts.Status.ReadyReplicas == 0 {
+			in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name + " - No Pods are ready")
+		} else {
+			// Do service suspension...
+			probe := statefulset.CoherenceProbe{
+				Client: in.GetClient(),
+				Config: in.GetManager().GetConfig(),
+			}
+			if !probe.SuspendServices(c, sts) {
+				return fmt.Errorf("failed to suspend services")
+			}
 		}
 	}
 	return nil
