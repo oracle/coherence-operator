@@ -23,7 +23,7 @@ spec:
     cacheConfig: storage-cache-config.xml
     metrics:
       enabled: true
-  image: deployment-example:coherence-compatibility1.0.0
+  image: deployment-example:1.0.0
   imagePullPolicy: Always
   replicas: 3
 ---
@@ -48,7 +48,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:coherence-compatibility1.0.0
+  image: deployment-example:1.0.0
   imagePullPolicy: Always
   replicas: 1
 ---
@@ -73,7 +73,7 @@ spec:
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:coherence-compatibility1.0.0
+  image: deployment-example:1.0.0
   imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
