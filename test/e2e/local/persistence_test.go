@@ -39,7 +39,7 @@ const (
 func TestActivePersistence(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	assertPersistence("persistence-active.yaml", "persistence-volume", false, false, true, t)
+	assertPersistence("rolling-upgrade.yaml", "persistence-volume", false, false, true, t)
 }
 
 // Deploy a Coherence resource with the minimal default configuration. Persistence will be on-demand.
