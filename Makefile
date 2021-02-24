@@ -1142,7 +1142,6 @@ stop:
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
-kind: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 kind:
 	./hack/kind.sh
 	./hack/kind-label-node.sh
@@ -1152,8 +1151,10 @@ kind:
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind 1.16 cluster
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-16
 kind-16: kind-16-start kind-load
 
+.PHONY: kind-16-start
 kind-16-start:
 	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:a89c771f7de234e6547d43695c7ab047809ffc71a0c3b65aa54eda051c45ed20"
 	./hack/kind-label-node.sh
@@ -1162,12 +1163,14 @@ kind-16-start:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.18 cluster
+# Start a Kind 1.19 cluster
 # ----------------------------------------------------------------------------------------------------------------------
-kind-18: kind-18-start kind-load
+.PHONY: kind-19
+kind-19: kind-19-start kind-load
 
-kind-18-start:
-	./hack/kind.sh --image "kindest/node:v1.18.8@sha256:f4bcc97a0ad6e7abaf3f643d890add7efe6ee4ab90baeb374b4f41a4c95567eb"
+.PHONY: kind-19-start
+kind-19-start:
+	./hack/kind.sh --image "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
 	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE) || true
 	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
@@ -1175,6 +1178,7 @@ kind-18-start:
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-load
 kind-load:
 	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
 	kind load docker-image --name operator $(UTILS_IMAGE)|| true
@@ -1187,6 +1191,7 @@ kind-load:
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-load-compatibility
 kind-load-compatibility:
 	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
 
