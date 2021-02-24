@@ -11,10 +11,12 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -301,7 +303,7 @@ public class OperatorRestServer {
         try {
             boolean isHA = isStatusHA();
             boolean isIdle = isPersistenceIdle();
-            int response = isStatusHA() && isPersistenceIdle() ? 200 : 400;
+            int response = isHA && isIdle ? 200 : 400;
             if (response == 400) {
                 logDebug("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
             }
@@ -603,19 +605,27 @@ public class OperatorRestServer {
      *
      * @return the {@link MBeanServerProxy} to use to query Coherence MBeans
      */
-    private MBeanServerProxy getMBeanServerProxy() {
+    private Optional<MBeanServerProxy> getMBeanServerProxy() {
         Cluster cluster = clusterSupplier.get();
-        Registry registry = cluster.getManagement();
-
-        return registry.getMBeanServerProxy();
+        if (cluster != null && cluster.isRunning()) {
+            Registry registry = cluster.getManagement();
+            if (registry != null) {
+                return Optional.ofNullable(registry.getMBeanServerProxy());
+            }
+        }
+        return Optional.empty();
     }
 
     private Set<String> getPartitionAssignmentMBeans() {
-        return getMBeanServerProxy().queryNames(MBEAN_PARTITION_ASSIGNMENT, null);
+        return getMBeanServerProxy()
+                .map(p -> p.queryNames(MBEAN_PARTITION_ASSIGNMENT, null))
+                .orElse(Collections.emptySet());
     }
 
     private Set<String> getPersistenceCoordinatorMBeans() {
-        return getMBeanServerProxy().queryNames(MBEAN_PERSISTENCE_COORDINATOR, null);
+        return getMBeanServerProxy()
+                .map(p -> p.queryNames(MBEAN_PERSISTENCE_COORDINATOR, null))
+                .orElse(Collections.emptySet());
     }
 
     private void logDebug(String message, Object... args) {
@@ -664,9 +674,12 @@ public class OperatorRestServer {
 
     private Map<String, Object> getMBeanAttributes(String sMBean, String[] asAttributes) {
         Map<String, Object> mapAttrValue = new HashMap<>();
-
-        for (String attribute : asAttributes) {
-            mapAttrValue.put(attribute, getMBeanServerProxy().getAttribute(sMBean, attribute));
+        Optional<MBeanServerProxy> optional = getMBeanServerProxy();
+        if (optional.isPresent()) {
+            MBeanServerProxy proxy = optional.get();
+            for (String attribute : asAttributes) {
+                mapAttrValue.put(attribute, proxy.getAttribute(sMBean, attribute));
+            }
         }
 
         return mapAttrValue;
