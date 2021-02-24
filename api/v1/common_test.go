@@ -286,24 +286,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				Name:  "COH_UTIL_DIR",
 				Value: coh.VolumeMountPathUtils,
 			},
-			{
-				Name:  "COH_RACK_INFO_LOCATION",
-				Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
-			},
-			{
-				Name:  "COH_SITE_INFO_LOCATION",
-				Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
-			},
-			{
-				Name: "OPERATOR_HOST",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
-						Key:                  coh.OperatorConfigKeyHost,
-						Optional:             pointer.BoolPtr(true),
-					},
-				},
-			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
