@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,10 +7,11 @@
 package reconciler
 
 import (
+	"context"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -32,7 +33,7 @@ func NewServiceReconciler(mgr manager.Manager) SecondaryResourceReconciler {
 }
 
 // NewSimpleReconciler returns a new SimpleReconciler.
-func NewSimpleReconciler(mgr manager.Manager, name string, kind coh.ResourceType, template runtime.Object) SecondaryResourceReconciler {
+func NewSimpleReconciler(mgr manager.Manager, name string, kind coh.ResourceType, template client.Object) SecondaryResourceReconciler {
 	r := &SimpleReconciler{
 		ReconcileSecondaryResource: ReconcileSecondaryResource{
 			Kind:     kind,
@@ -52,7 +53,7 @@ func (in *SimpleReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 // Reconcile reads that state of the secondary resource for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
-func (in *SimpleReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (in *SimpleReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {

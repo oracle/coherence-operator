@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -80,6 +80,10 @@ type FakeManager struct {
 	Config *rest.Config
 }
 
+func (f *FakeManager) Start(ctx context.Context) error {
+	panic("implement me")
+}
+
 func (f *FakeManager) GetLogger() logr.Logger {
 	return ctrl.Log.WithName("manager")
 }
@@ -129,10 +133,6 @@ func (f *FakeManager) Add(manager.Runnable) error {
 
 func (f *FakeManager) SetFields(interface{}) error {
 	return nil
-}
-
-func (f *FakeManager) Start(<-chan struct{}) error {
-	panic("fake method not implemented")
 }
 
 func (f *FakeManager) GetConfig() *rest.Config {
@@ -257,33 +257,40 @@ func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coheren
 }
 
 type fakeCache struct {
-
 }
 
-func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
 	panic("implement me")
 }
 
-func (f fakeCache) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
+func (f fakeCache) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	panic("implement me")
 }
 
-func (f fakeCache) GetInformer(ctx context.Context, obj runtime.Object) (cache.Informer, error) {
+func (f fakeCache) GetInformer(ctx context.Context, obj client.Object) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) Start(ctx context.Context) error {
+	panic("implement me")
+}
+
+func (f fakeCache) WaitForCacheSync(ctx context.Context) bool {
+	panic("implement me")
+}
+
+func (f fakeCache) IndexField(ctx context.Context, obj client.Object, field string, extractValue client.IndexerFunc) error {
+	panic("implement me")
+}
+
+func (f fakeCache) Set(key string, responseBytes []byte) {
+	panic("implement me")
+}
+
+func (f fakeCache) Delete(key string) {
 	panic("implement me")
 }
 
 func (f fakeCache) GetInformerForKind(ctx context.Context, gvk schema.GroupVersionKind) (cache.Informer, error) {
-	panic("implement me")
-}
-
-func (f fakeCache) Start(stopCh <-chan struct{}) error {
-	panic("implement me")
-}
-
-func (f fakeCache) WaitForCacheSync(stop <-chan struct{}) bool {
-	panic("implement me")
-}
-
-func (f fakeCache) IndexField(ctx context.Context, obj runtime.Object, field string, extractValue client.IndexerFunc) error {
 	panic("implement me")
 }

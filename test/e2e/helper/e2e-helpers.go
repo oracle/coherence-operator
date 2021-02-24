@@ -169,7 +169,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	testEnv := &envtest.Environment{
 		UseExistingCluster:       &useCluster,
 		AttachControlPlaneOutput: true,
-		CRDs:                     []runtime.Object{},
+		CRDs:                     []client.Object{},
 	}
 
 	var err error
@@ -246,7 +246,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	// Start the manager, which will start the controller
 	stop = make(chan struct{})
 	go func() {
-		err = k8sManager.Start(stop)
+		err = k8sManager.Start(context.TODO())
 	}()
 
 	if err != nil {
@@ -495,7 +495,7 @@ func WaitForDeleteOfPodsWithSelector(ctx TestContext, namespace, selector string
 }
 
 // WaitForDeletion waits for deletion of the specified resource.
-func WaitForDeletion(ctx TestContext, namespace, name string, resource runtime.Object, retryInterval, timeout time.Duration) error {
+func WaitForDeletion(ctx TestContext, namespace, name string, resource client.Object, retryInterval, timeout time.Duration) error {
 	gvk, _ := apiutil.GVKForObject(resource, ctx.Manager.GetScheme())
 	ctx.Logf("Waiting for deletion of %v %s/%s", gvk, namespace, name)
 
@@ -1447,13 +1447,13 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 }
 
 // WaitForDelete waits for the provided runtime object to be deleted from cluster
-func WaitForDelete(ctx TestContext, obj runtime.Object) error {
+func WaitForDelete(ctx TestContext, obj client.Object) error {
 	key := ObjectKey(obj)
 	ctx.Logf("Waiting for obj %s/%s to be finally deleted", key.Namespace, key.Name)
 
 	// Wait for resources to be deleted.
 	return wait.PollImmediate(1*time.Second, 30*time.Second, func() (done bool, err error) {
-		err = ctx.Client.Get(context.TODO(), key, obj.DeepCopyObject())
+		err = ctx.Client.Get(context.TODO(), key, obj.DeepCopyObject().(client.Object))
 		ctx.Logf("Fetched %s/%s to wait for delete: %v", key.Namespace, key.Name, err)
 
 		if err != nil && apierrors.IsNotFound(err) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -57,7 +57,7 @@ func (in *ReconcileServiceMonitor) GetReconciler() reconcile.Reconciler { return
 
 // Reconcile reads that state of the ServiceMonitors for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
-func (in *ReconcileServiceMonitor) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {

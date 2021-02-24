@@ -248,7 +248,7 @@ func (in *fakeReconcileChain) ReconcileExisting(names ...apitypes.NamespacedName
 
 	for _, name := range names {
 		request := reconcile.Request{NamespacedName: name}
-		result, err := in.r.Reconcile(request)
+		result, err := in.r.Reconcile(context.TODO(), request)
 		if err != nil {
 			return results, err
 		}
