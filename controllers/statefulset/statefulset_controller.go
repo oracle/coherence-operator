@@ -80,7 +80,7 @@ func (in *ReconcileStatefulSet) GetReconciler() reconcile.Reconciler { return in
 
 // Reconcile reads that state of the Services for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
-func (in *ReconcileStatefulSet) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -40,10 +40,7 @@ type Storage interface {
 }
 
 func NewStorageForDeployment(deployment *coh.Coherence, mgr manager.Manager) (Storage, error) {
-	key, err := client.ObjectKeyFromObject(deployment)
-	if err != nil {
-		return nil, err
-	}
+	key := client.ObjectKeyFromObject(deployment)
 
 	store, err := newStorage(key, mgr)
 	if err != nil {

@@ -7,6 +7,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/oracle/coherence-operator/controllers/webhook"
@@ -207,18 +208,16 @@ func execute() {
 	// +kubebuilder:scaffold:builder
 
 	// We intercept the signal handler here so that we can do clean-up before the Manager stops
-	signal := ctrl.SetupSignalHandler()
-	stop := make(chan struct{})
+	handler := ctrl.SetupSignalHandler()
 	go func() {
-		<-signal
+		<-handler.Done()
 		if cr != nil {
 			cr.Cleanup()
 		}
-		close(stop)
 	}()
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(stop); err != nil {
+	if err := mgr.Start(context.TODO()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

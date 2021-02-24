@@ -578,7 +578,7 @@ m| failureThreshold | Minimum consecutive failures for the probe to be considere
 | Field | Description | Type | Required
 m| kind | &#160; m| ResourceType | true
 m| name | &#160; m| string | true
-m| spec | &#160; m| runtime.Object | true
+m| spec | &#160; m| client.Object | true
 |===
 
 <<Table of Contents,Back to TOC>>

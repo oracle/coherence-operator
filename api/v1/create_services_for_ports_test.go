@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,8 +13,8 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"testing"
 )
@@ -520,7 +520,7 @@ func assertService(t *testing.T, deployment *coh.Coherence, servicesExpected ...
 		resExpected = append(resExpected, coh.Resource{
 			Kind: coh.ResourceTypeService,
 			Name: r.GetName(),
-			Spec: r.(runtime.Object),
+			Spec: r.(client.Object),
 		})
 	}
 	diffs := deep.Equal(res, resExpected)
