@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package local
+package remote
 
 import (
 	goctx "context"

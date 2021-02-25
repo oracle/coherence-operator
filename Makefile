@@ -41,7 +41,7 @@ OPERATOR_SDK_VERSION := v1.0.0
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # Options to append to the Maven command
-MAVEN_OPTIONS ?=
+MAVEN_OPTIONS ?= "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
 
 # The Coherence image to use for deployments that do not specify an image
 COHERENCE_VERSION ?= 20.12.1
