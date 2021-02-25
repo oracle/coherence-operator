@@ -7,7 +7,6 @@
 package helm
 
 import (
-	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -40,7 +39,7 @@ func TestCreateWebhookCertSecretWithName(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	dep := &appsv1.Deployment{}
-	err = result.Get("coherence-operator-controller-manager", dep)
+	err = result.Get("coherence-operator", dep)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	c := findContainer("manager", dep)
@@ -109,9 +108,6 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	pods, err := helper.ListOperatorPods(testContext, ns)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
-
-	fmt.Println("Sleeping...")
-	time.Sleep(10 * time.Second)
 }
 
 func Cleanup(namespace, name string) {
