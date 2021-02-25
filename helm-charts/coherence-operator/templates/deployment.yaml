@@ -27,7 +27,7 @@ kind: Deployment
 metadata:
   labels:
     control-plane: coherence
-  name: coherence-operator-controller-manager
+  name: coherence-operator
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
@@ -39,6 +39,7 @@ spec:
       labels:
         control-plane: coherence
     spec:
+      serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
       containers:
       - name: manager
         args:

@@ -157,7 +157,7 @@ func execute() {
 			Clientset: cl,
 		}
 		if err := cr.SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, " unable to create webhook certificate controller","controller", "Certs")
+			setupLog.Error(err, " unable to create webhook certificate controller", "controller", "Certs")
 			os.Exit(1)
 		}
 
@@ -169,10 +169,12 @@ func execute() {
 	}
 
 	//// ToDo: Make the ready check actually check stuff...
-	//if err = mgr.AddReadyzCheck("operator", func(req *http.Request) error {
-	//	return nil
-	//}); err != nil {
-	//	setupLog.Error(err, " unable to add operator readyz check")
+	//if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+	//	setupLog.Error(err, "unable to set up health check")
+	//	os.Exit(1)
+	//}
+	//if err := mgr.AddReadyzCheck("check", healthz.Ping); err != nil {
+	//	setupLog.Error(err, "unable to set up ready check")
 	//	os.Exit(1)
 	//}
 
@@ -182,7 +184,7 @@ func execute() {
 	signal := ctrl.SetupSignalHandler()
 	stop := make(chan struct{})
 	go func() {
-		<- signal
+		<-signal
 		if cr != nil {
 			cr.Cleanup()
 		}
@@ -209,19 +211,19 @@ func initialiseOperator(cl clients.ClientSet) {
 
 // getWatchNamespace returns the Namespace(s) the operator should be watching for changes
 func getWatchNamespace() []string {
-    // WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-    // which specifies the Namespace to watch.
-    // An empty value means the operator is running with cluster scope.
-    var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 	var watches []string
 
-    ns, found := os.LookupEnv(watchNamespaceEnvVar)
-    if !found || ns == "" || strings.TrimSpace(ns) == "" {
-        return watches
-    }
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found || ns == "" || strings.TrimSpace(ns) == "" {
+		return watches
+	}
 
-    for _, s := range strings.Split(ns, ",") {
-    	watches = append(watches, strings.TrimSpace(s))
+	for _, s := range strings.Split(ns, ",") {
+		watches = append(watches, strings.TrimSpace(s))
 	}
 	return watches
 }
@@ -239,7 +241,7 @@ func printVersion() {
 
 var (
 	// build information injected by the Go linker at build time.
-	Version   string
-	Commit    string
-	Date      string
+	Version string
+	Commit  string
+	Date    string
 )

@@ -1,0 +1,19 @@
+# -------------------------------------------------------------
+# This is the Cluster Roles required by the Coherence Operator
+# to obtain Node information.
+# Specifically the operator looks up Node labels to work out
+# the topology information used by Coherence for site safety.
+# -------------------------------------------------------------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-viewer-role
+  labels:
+    control-plane: coherence
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
