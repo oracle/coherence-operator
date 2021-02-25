@@ -11,6 +11,8 @@
 The Coherence Operator is available as a Docker image `oracle/coherence-operator:{operator-version}` that can
 easily be installed into a Kubernetes cluster.
 
+== Coherence Operator Installation
+
 There are two ways to install the Coherence Operator documented below.
 
 * <<helm,Helm>>
@@ -21,7 +23,7 @@ The prerequisites apply to both methods
 == Prerequisites
 
 * Access to Oracle Coherence Docker images, or self-built Coherence images.
-* Access to a Kubernetes v1.13.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.13 upto v1.19
+* Access to a Kubernetes v1.13.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.13 upto v1.20
 
 NOTE: OpenShift - the Coherence Operator works without modification on OpenShift, but some versions
 of the Coherence images will not work out of the box.

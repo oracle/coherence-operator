@@ -11,7 +11,6 @@ rules:
   resources:
   - configmaps
   - endpoints
-  - persistentvolumeclaims
   - pods
   - pods/exec
   - secrets
@@ -24,26 +23,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - admissionregistration.k8s.io
-  resources:
-  - mutatingwebhookconfigurations
-  - validatingwebhookconfigurations
-  verbs:
-  - '*'
-- apiGroups:
-  - apiextensions.k8s.io
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - '*'
 - apiGroups:
   - apps
   resources:

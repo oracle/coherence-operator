@@ -74,7 +74,11 @@ webhookCertType: self-signed
 webhookCertSecret: coherence-webhook-server-cert
 
 # siteLabel is the Kubernetes Node label used to set the site identity for Coherence Pods.
-siteLabel: topology.kubernetes.io/zone
+siteLabel:
 
 # rackLabel is the Kubernetes Node label used to set the rack identity for Coherence Pods.
-rackLabel: topology.kubernetes.io/zone
+rackLabel:
+
+# serviceAccountName is the name of the service account to create and assign RBAC roles to.
+# If not set the default name used is "coherence-operator".
+serviceAccountName: coherence-operator

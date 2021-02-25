@@ -57,12 +57,9 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 
 // +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs="*"
-// +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;persistentvolumeclaims;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations;validatingwebhookconfigurations,verbs="*"
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups="",resources=nodes,verbs=get;list
 
 func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()

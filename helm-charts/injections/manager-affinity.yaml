@@ -1,4 +1,0 @@
-{{- if .Values.affinity }}
-      affinity:
-{{ toYaml .Values.affinity | indent 8 }}
-{{- end }}
