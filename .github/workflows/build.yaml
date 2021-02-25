@@ -36,6 +36,8 @@ jobs:
       with:
         fetch-depth: 0
 
+#   This step will free up disc space on the runner by removing
+#   lots of things that we do not need.
     - name: disc
       shell: bash
       run: |
@@ -122,6 +124,10 @@ jobs:
     - name: E2E Elasticsearch Tests
       shell: bash
       run: |
+        docker pull docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+        docker pull docker.elastic.co/kibana/kibana:7.6.2
+        kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+        kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2
         make e2e-elastic-test
 
     - name: E2E Prometheus Tests

@@ -790,7 +790,7 @@ $(GOBIN)/kustomize:
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.10.0 ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 	KUSTOMIZE=$(GOBIN)/kustomize
@@ -1187,6 +1187,8 @@ kind-load:
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT)|| true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP)|| true
 	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
+	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
+	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
