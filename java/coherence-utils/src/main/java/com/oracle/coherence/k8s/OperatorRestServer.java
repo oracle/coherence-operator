@@ -179,6 +179,15 @@ public class OperatorRestServer {
 
     private final Runnable waitForServiceStart;
 
+    /**
+     * Flag indicating whether this application has ever been in a ready state.
+     * <p>
+     * Because k8s checks the readiness probe a number of time the conditions for the Pod
+     * first being ready are different to subsequent checks. This flag is used to determine
+     * which checks should be made.
+     */
+    private boolean hasBeenReady = false;
+
     // ----- constructors ---------------------------------------------------
 
     OperatorRestServer() {
@@ -266,10 +275,20 @@ public class OperatorRestServer {
     void ready(HttpExchange exchange) {
         try {
             boolean hasCluster = hasClusterMembers();
-            boolean isHA = isStatusHA();
-            boolean isIdle = isPersistenceIdle();
-            int response = hasCluster && isHA && isIdle ? 200 : 400;
-            logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b", response, hasCluster, isHA, isIdle);
+            int response = 400;
+            if (hasBeenReady) {
+                response = hasCluster ? 200 : 400;
+                logDebug("CoherenceOperator: Ready check response %d - cluster=%b", response, hasCluster);
+            }
+            else {
+                boolean isHA = isStatusHA();
+                boolean isIdle = isPersistenceIdle();
+                if (hasCluster && isHA && isIdle) {
+                    response = 200;
+                    hasBeenReady = true;
+                }
+                logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b", response, hasCluster, isHA, isIdle);
+            }
             send(exchange, response);
         }
         catch (Throwable thrown) {

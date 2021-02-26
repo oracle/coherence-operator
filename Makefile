@@ -41,7 +41,7 @@ OPERATOR_SDK_VERSION := v1.0.0
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # Options to append to the Maven command
-MAVEN_OPTIONS ?= "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
+MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
 
 # The Coherence image to use for deployments that do not specify an image
 COHERENCE_VERSION ?= 20.12.1
@@ -660,16 +660,25 @@ endif
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy
-deploy: prepare-deploy
+deploy: actual-deploy wait-for-deploy
+
+.PHONY: prepare-deploy
+prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+
+.PHONY: actual-deploy
+actual-deploy: prepare-deploy
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
-.PHONY: prepare-deploy
-prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+.PHONY: wait-for-deploy
+wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+wait-for-deploy:
+	echo "Waiting for Operator to be ready"
+	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare the deployment manifests - this is called by a number of other targets.
@@ -702,7 +711,7 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # Tail the deployed operator logs.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: tail-logs
-tail-logs: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l component=coherence-operator -o name)
+tail-logs: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 tail-logs:
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 

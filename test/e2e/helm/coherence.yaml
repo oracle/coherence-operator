@@ -4,3 +4,6 @@ metadata:
   name: test-cluster
 spec:
   replicas: 2
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10

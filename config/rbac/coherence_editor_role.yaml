@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coherence-editor
+  name: coherence-editor-role
   labels:
     control-plane: coherence
 rules:
