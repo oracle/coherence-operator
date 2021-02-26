@@ -38,6 +38,9 @@ jobs:
         coherence-image:
           - "ghcr.io/oracle/coherence-ce:20.12.1"
           - "ghcr.io/oracle/coherence-ce:14.1.1-0-3"
+          - "container-registry.oracle.com/middleware/coherence:14.1.1.0.0"
+          - "container-registry.oracle.com/middleware/coherence:12.2.1.4.0"
+          - "container-registry.oracle.com/middleware/coherence:12.2.1.3.2"
 
     steps:
     - uses: actions/checkout@v2
@@ -75,6 +78,7 @@ jobs:
         sh ./hack/kind.sh
         kubectl version
         kubectl get nodes
+        docker login container-registry.oracle.com -u ${{ secrets.OCR_DOCKER_USERNAME }} -p ${{ secrets.OCR_DOCKER_PASSWORD }}
         docker pull gcr.io/distroless/java
         docker pull ${{ matrix.coherence-image }}
 
