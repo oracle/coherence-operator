@@ -30,4 +30,41 @@
       <version>${coherence.test.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${version.plugin.maven.exec}</version>
+        <configuration>
+          <executable>docker</executable>
+          <arguments>
+            <argument>build</argument>
+            <argument>-t</argument>
+            <argument>${coherence.compatibility.image.name}</argument>
+            <argument>-f</argument>
+            <argument>${project.build.directory}/classes/Dockerfile</argument>
+            <argument>${project.basedir}</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${version.plugin.jib}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

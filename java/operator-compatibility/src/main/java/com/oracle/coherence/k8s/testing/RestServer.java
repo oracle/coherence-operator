@@ -8,6 +8,7 @@ package com.oracle.coherence.k8s.testing;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.stream.Collectors;
 
@@ -39,8 +40,10 @@ public class RestServer {
      * Program entry point.
      *
      * @param args the program command line arguments
+     *
+     * @throws java.lang.Exception if the process fails to run
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
@@ -63,7 +66,10 @@ public class RestServer {
             thrown.printStackTrace();
         }
 
-        DefaultCacheServer.main(args);
+        String main = System.getProperty("coherence.k8s.testing.main", DefaultCacheServer.class.getName());
+        Class<?> cls = Class.forName(main);
+        Method method = cls.getMethod("main", String[].class);
+        method.invoke(method, (Object) args);
     }
 
     private static void send(HttpExchange t, int status, String body) throws IOException {
