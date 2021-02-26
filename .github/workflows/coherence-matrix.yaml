@@ -78,7 +78,7 @@ jobs:
         sh ./hack/kind.sh
         kubectl version
         kubectl get nodes
-        docker login container-registry.oracle.com -u ${{ secrets.OCR_DOCKER_USERNAME }} -p ${{ secrets.OCR_DOCKER_PASSWORD }}
+        docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" -p "${{ secrets.OCR_DOCKER_PASSWORD }}"
         docker pull gcr.io/distroless/java
         docker pull ${{ matrix.coherence-image }}
 
