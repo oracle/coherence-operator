@@ -287,7 +287,8 @@ public class OperatorRestServer {
                     response = 200;
                     hasBeenReady = true;
                 }
-                logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b", response, hasCluster, isHA, isIdle);
+                logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b",
+                         response, hasCluster, isHA, isIdle);
             }
             send(exchange, response);
         }
