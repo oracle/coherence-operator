@@ -79,7 +79,7 @@ func TestBasicHelmInstall(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstall(t, cmd, g, ns)
+	AssertHelmInstall("basic", cmd, g, ns)
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
@@ -101,10 +101,10 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstall(t, cmd, g, ns)
+	AssertHelmInstall("account", cmd, g, ns)
 }
 
-func AssertHelmInstall(t *testing.T, cmd *exec.Cmd, g *GomegaWithT, ns string) {
+func AssertHelmInstall(id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
 	err := cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -114,6 +114,9 @@ func AssertHelmInstall(t *testing.T, cmd *exec.Cmd, g *GomegaWithT, ns string) {
 
 	deployment, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
+
+	name := deployment.GetName()
+	deployment.SetName(name + "-" + id)
 
 	defer testContext.Client.Delete(goctx.TODO(), &deployment)
 
