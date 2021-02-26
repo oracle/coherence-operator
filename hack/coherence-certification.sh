@@ -22,26 +22,21 @@
 #
 # --------------------------------------------------------------------------------
 
-COHERENCE_GROUP=$(cut -d':' -f1 <<< ${COHERENCE_GID})
-COHERENCE_VERSION="$(cut -d':' -f3 <<< ${COHERENCE_GID})"
-
-echo COHERENCE_GROUP=${COHERENCE_GROUP}
-echo COHERENCE_VERSION=${COHERENCE_VERSION}
-
 echo "Building Operator"
-make all
+make clean
+make build-operator-images
 if [[ $? != 0 ]]; then
   exit 1
 fi
 
 echo "Building Coherence Compatibility Image"
-make build-compatibility-image TEST_COHERENCE_GID=${COHERENCE_GROUP} TEST_COHERENCE_VERSION=${COHERENCE_VERSION}
+make build-compatibility-image
 if [[ $? != 0 ]]; then
   exit 1
 fi
 
 echo "Pushing Images"
-make push-all-images
+make push-release-images
 if [[ $? != 0 ]]; then
   exit 1
 fi

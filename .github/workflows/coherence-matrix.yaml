@@ -35,13 +35,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        coherenceGid:
-          - "com.oracle.coherence.ce:coherence:21.06-SNAPSHOT"
-          - "com.oracle.coherence.ce:coherence:20.12.2-SNAPSHOT"
-          - "com.oracle.coherence.ce:coherence:14.1.1-0-4-SNAPSHOT"
-          - "com.oracle.coherence.ce:coherence:20.12.1"
-          - "com.oracle.coherence.ce:coherence:20.06"
-          - "com.oracle.coherence.ce:coherence:14.1.1-0-3"
+        coherence-image:
+          - "ghcr.io/oracle/coherence-ce:20.12.1"
+          - "ghcr.io/oracle/coherence-ce:14.1.1-0-3"
 
     steps:
     - uses: actions/checkout@v2
@@ -80,12 +76,25 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
+        docker pull ${{ matrix.coherence-image }}
 
     - name: Coherence Certification Tests
       shell: bash
       run: |
-        export COHERENCE_GID=${{ matrix.coherenceGid }}
-        ./hack/coherence-certification.sh
+        export COHERENCE_IMAGE=${{ matrix.coherence-image }}
+        make clean
+        echo "Building Operator Image"
+        make build-operator-images
+        echo "Building Coherence Compatibility Image"
+        make build-compatibility-image
+        echo "Pushing Images"
+        make push-release-images
+        make push-compatibility-image
+        echo "Loading Images to Kind"
+        make kind-load
+        make kind-load-compatibility
+        echo "Running Coherence Compatibility Tests"
+        make coherence-compatibility-test
 
     - uses: actions/upload-artifact@v1
       if: failure()

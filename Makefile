@@ -342,7 +342,7 @@ e2e-test: prepare-e2e-test
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -387,7 +387,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
+e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -430,7 +430,7 @@ run-prometheus-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-elastic-test
 e2e-elastic-test: export MF = $(MAKEFLAGS)
-e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy
+e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait
 	$(MAKE) run-elastic-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-elastic $${MF} \
@@ -509,7 +509,7 @@ certification-test: install-certification
 # Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy
+install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -539,7 +539,7 @@ run-certification: gotestsum
 	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Clean up after to running compatability tests.
+# Clean up after to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
 cleanup-certification: undeploy uninstall-crds clean-namespace
@@ -562,7 +562,7 @@ coherence-compatibility-test: install-coherence-compatibility
 # Install the Operator prior to running coherence compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-coherence-compatibility
-install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy
+install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator coherence compatibility tests.
@@ -659,20 +659,20 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: deploy-and-wait
+deploy-and-wait: deploy wait-for-deploy
+
 .PHONY: deploy
-deploy: actual-deploy wait-for-deploy
-
-.PHONY: prepare-deploy
-prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-
-.PHONY: actual-deploy
-actual-deploy: prepare-deploy
+deploy: prepare-deploy
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+
+.PHONY: prepare-deploy
+prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
@@ -876,8 +876,8 @@ clean:
 	-rm -rf build/_output
 	-rm -f bin/*
 	rm pkg/data/zz_generated_assets.go || true
-	mvn $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
-	mvn $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the keys and certs used in tests.
@@ -967,28 +967,28 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
-	mvn $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java verify $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	mvn $(USE_MAVEN_SETTINGS) -B -f ./examples verify $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f ./examples verify $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run all unit tests (both Go and Java)
@@ -1039,9 +1039,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
 build-test-images: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
 	cp java/operator-test-spring/target/operator-test-spring-$(VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(VERSION).jar
@@ -1063,7 +1063,10 @@ push-test-images:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: build-mvn
-	mvn $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_COMPATIBILITY_IMAGE) -Dcoherence.test.groupId=$(TEST_COHERENCE_GID) -Dcoherence.test.version=$(TEST_COHERENCE_VERSION) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility exec:exec \
+	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -1200,7 +1203,7 @@ kind-load:
 	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Load images into Kind
+# Load compatibility images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load-compatibility
 kind-load-compatibility:
@@ -1381,6 +1384,7 @@ copyright:
 	  -X LICENSE.txt \
 	  -X Makefile \
 	  -X .md \
+	  -X .mvn/ \
 	  -X mvnw \
 	  -X mvnw.cmd \
 	  -X .png \
@@ -1404,8 +1408,8 @@ copyright:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: generate golangci copyright
-	mvn $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
-	mvn $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -1419,7 +1423,7 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	mvn $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.
