@@ -5,7 +5,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: crd-webhook-install
+  name: crd-webhook-install-role
   labels:
     control-plane: coherence
 rules:

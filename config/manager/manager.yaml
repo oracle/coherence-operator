@@ -55,6 +55,12 @@ spec:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
           readOnly: true
+        readinessProbe:
+          tcpSocket:
+            port: webhook-server
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
       volumes:
       - name: cert
         secret:

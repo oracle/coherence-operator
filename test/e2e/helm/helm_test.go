@@ -7,6 +7,7 @@
 package helm
 
 import (
+	goctx "context"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,7 +15,6 @@ import (
 	"os"
 	"os/exec"
 	"testing"
-	"time"
 )
 
 func TestCreateWebhookCertSecretByDefault(t *testing.T) {
@@ -63,11 +63,15 @@ func TestNotCreateWebhookCertSecretIfNotSelfSigned(t *testing.T) {
 
 func TestBasicHelmInstall(t *testing.T) {
 	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		Cleanup(ns, "operator")
+	})
 
 	chart, err := helper.FindOperatorHelmChartDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ns := helper.GetTestNamespace()
 	cmd := exec.Command("helm", "install",
 		"--set", "image="+helper.GetOperatorImage(),
 		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
@@ -75,23 +79,20 @@ func TestBasicHelmInstall(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	defer Cleanup(ns, "operator")
-
-	err = cmd.Run()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	pods, err := helper.ListOperatorPods(testContext, ns)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(1))
+	AssertHelmInstall(t, cmd, g, ns)
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		Cleanup(ns, "operator")
+	})
 
 	chart, err := helper.FindOperatorHelmChartDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ns := helper.GetTestNamespace()
 	cmd := exec.Command("helm", "install",
 		"--set", "serviceAccountName=test-operator-account",
 		"--set", "image="+helper.GetOperatorImage(),
@@ -100,14 +101,27 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	defer Cleanup(ns, "operator")
+	AssertHelmInstall(t, cmd, g, ns)
+}
 
-	err = cmd.Run()
+func AssertHelmInstall(t *testing.T, cmd *exec.Cmd, g *GomegaWithT, ns string) {
+	err := cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
 	pods, err := helper.ListOperatorPods(testContext, ns)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
+
+	deployment, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	defer testContext.Client.Delete(goctx.TODO(), &deployment)
+
+	err = testContext.Client.Create(goctx.TODO(), &deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func Cleanup(namespace, name string) {
@@ -115,5 +129,5 @@ func Cleanup(namespace, name string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run()
-	_ = helper.WaitForDeleteOfPodsWithSelector(testContext, namespace, "control-plane=coherence", 5*time.Second, 5*time.Minute)
+	_ = helper.WaitForDeleteOfPodsWithSelector(testContext, namespace, "control-plane=coherence", helper.RetryInterval, helper.Timeout)
 }

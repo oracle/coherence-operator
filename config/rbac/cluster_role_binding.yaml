@@ -5,13 +5,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: install
+  name: crd-webhook-install-rolebinding
   labels:
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: crd-webhook-install
+  name: crd-webhook-install-role
 subjects:
 - kind: ServiceAccount
   name: coherence-operator

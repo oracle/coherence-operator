@@ -82,3 +82,15 @@ rackLabel:
 # serviceAccountName is the name of the service account to create and assign RBAC roles to.
 # If not set the default name used is "coherence-operator".
 serviceAccountName: coherence-operator
+
+# The optional settings to adjust the readiness probe timings for the Operator
+readinessProbe:
+  # initialDelaySeconds is the number of seconds after the container has started before liveness probes are initiated.
+  # More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+  initialDelaySeconds: 10
+  # periodSeconds is how often (in seconds) to perform the probe.
+  # Default to 10 seconds. Minimum value is 1.
+  periodSeconds: 10
+  # failureThreshold is the minimum consecutive failures for the probe to be considered failed after having succeeded.
+  # Defaults to 3. Minimum value is 1.
+  failureThreshold: 3
