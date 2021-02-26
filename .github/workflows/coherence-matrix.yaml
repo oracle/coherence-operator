@@ -103,11 +103,6 @@ jobs:
       run: |
         export COHERENCE_IMAGE=${{ matrix.coherence-image }}
         echo "COHERENCE_IMAGE=${COHERENCE_IMAGE}"
-#        export COHERENCE_GID=${{ matrix.coherenceGid }}
-#        export COHERENCE_GROUP=$(cut -d':' -f1 <<< ${COHERENCE_GID})
-#        echo "COHERENCE_GROUP=${COHERENCE_GROUP}"
-#        export COHERENCE_VERSION="$(cut -d':' -f3 <<< ${COHERENCE_GID})"
-#        echo "COHERENCE_VERSION=${COHERENCE_VERSION}"
         make clean
         echo "Building Operator Image"
         make build-operator-images
