@@ -1063,7 +1063,9 @@ push-test-images:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests \
+	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility exec:exec \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
