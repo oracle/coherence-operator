@@ -16,7 +16,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coherence-operator-role
+  name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
@@ -49,14 +49,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: coherence-operator-role-binding
+  name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: coherence-operator-role
+  name: coherence-operator-crd-webhook-install
 subjects:
 - kind: ServiceAccount
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
@@ -71,7 +71,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coherence-operator-node-viewer-role
+  name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
@@ -92,14 +92,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: coherence-operator-node-viewer-rolebinding
+  name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: coherence-operator-node-viewer-role
+  name: coherence-operator-node-viewer
 subjects:
 - kind: ServiceAccount
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
@@ -112,7 +112,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coherence-operator-role
+  name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
@@ -186,14 +186,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: coherence-operator-rolebinding
+  name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: coherence-operator-role
+  name: coherence-operator
 subjects:
 - kind: ServiceAccount
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
