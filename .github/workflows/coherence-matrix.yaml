@@ -37,15 +37,17 @@ jobs:
       matrix:
         coherenceVersion:
           - "20.12.1"
+          - "14.1.2-0-0-SNAPSHOT"
           - "14.1.1-0-4-SNAPSHOT"
           - "14.1.1-0-3"
           - "14.1.1.0.0"
           - "12.2.1.4.0"
           - "12.2.1-4-8-SNAPSHOT"
-          - "20.12.1"
         include:
           - coherenceVersion: "20.12.1"
             coherence-image: "ghcr.io/oracle/coherence-ce:20.12.1"
+          - coherenceVersion: "14.1.2-0-0-SNAPSHOT"
+            coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:14.1.2-0-0-SNAPSHOT"
           - coherenceVersion: "14.1.1-0-4-SNAPSHOT"
             coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-4-SNAPSHOT"
           - coherenceVersion: "14.1.1-0-3"
