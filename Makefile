@@ -370,7 +370,7 @@ run-e2e-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 e2e-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -670,6 +670,11 @@ endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
+.PHONY: just-deploy
+just-deploy:
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+
 .PHONY: prepare-deploy
 prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
@@ -724,6 +729,8 @@ manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG)
 $(BUILD_MANIFESTS_PKG):
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)
+	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
+	cp -R config/crd-v1beta1/bases $(BUILD_MANIFESTS)/crd-v1beta1
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
@@ -1194,12 +1201,12 @@ kind-19-start:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load
 kind-load:
-	kind load docker-image --name operator $(OPERATOR_IMAGE)|| true
-	kind load docker-image --name operator $(UTILS_IMAGE)|| true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE)|| true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING)|| true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT)|| true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP)|| true
+	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
+	kind load docker-image --name operator $(UTILS_IMAGE) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
 	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
 	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
 	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true

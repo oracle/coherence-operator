@@ -94,3 +94,16 @@ readinessProbe:
   # failureThreshold is the minimum consecutive failures for the probe to be considered failed after having succeeded.
   # Defaults to 3. Minimum value is 1.
   failureThreshold: 3
+
+# clusterRoles controls whether the Helm chart will create RBAC ClusterRole and bindings for the Operator
+# These are required if the Operator will watch multiple namespaces.
+# If set to false then the Operator will only watch the namespace it is deployed into.
+# If this value is false the Operator will not create CRDs, these MUST be manually installed.
+# The default is true.
+clusterRoles: true
+# nodeRoles controls whether the Helm chart will create RBAC ClusterRole and bindings for the Operator to
+# lookup cluster-wide Node information.
+# Setting this value clusterRoles and to false will mean that the Operator cannot look up Node labels that will be used
+# to set theCoherence site and rack values so Coherence cluster will be unable to automatically achieve site-safety.
+# The default is true.
+nodeRoles: false

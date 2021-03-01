@@ -44,6 +44,10 @@ spec:
       - name: manager
         args:
         - --enable-leader-election
+{{- if (eq .Values.clusterRoles false) }}
+        - --enable-webhook=false
+        - --install-crd=false
+{{- end }}
         command:
         - /manager
         env:
@@ -70,7 +74,11 @@ spec:
         - name: UTILS_IMAGE
           value: {{ .Values.defaultCoherenceUtilsImage | quote }}
         - name: WATCH_NAMESPACE
+{{- if .Values.clusterRoles }}
           value: {{ .Values.watchNamespaces | quote }}
+{{- else }}
+          value: {{ .Release.Namespace | quote }}
+{{- end }}
         image: {{ .Values.image }}
         ports:
         - name: webhook-server
@@ -88,7 +96,7 @@ spec:
           readOnly: true
         readinessProbe:
           tcpSocket:
-            port: webhook-server
+            port: metrics-server
           initialDelaySeconds: {{ default 10 .Values.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ default 10 .Values.readinessProbe.periodSeconds }}
           failureThreshold: {{ default 3 .Values.readinessProbe.failureThreshold }}

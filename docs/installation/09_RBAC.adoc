@@ -1,0 +1,240 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= RBAC Roles
+
+== RBAC Roles
+
+When installing the Coherence Operator into Kubernetes clusters with RBAC enabled, the Operator will require certain roles to work properly. Both the Operator Helm chart, and the Operator k8s manifest files will install all the required roles, role bindings and create a service account.
+
+== Cluster Roles
+
+By default, both install methods will create ClusterRole resources and ClusterRoleBinding resources to bind those roles to the Operator ServiceAccount. Some Kubernetes administrators are wary of letting arbitrary installations have ClusterRole permissions and try to discourage it. The Coherence Operator can run without ClusterRole permissions, but it is important to understand what this means from an operational point of view.
+
+Cluster roles are used for a number of operator features:
+
+* Installing the CRDs - the Operator automatically ensures that the CRDs it requires are installed when it starts.
+* Installing the Web-Hook - the Operator automatically installs the defaulting and validating web-hooks for the `Coherence` resource when it starts. Without the validating web-hook a lot more care must be taken to ensure that only valid `Coherence` resource yaml is added to k8s. In the worst case, invalid yaml may ultimately cause the Operator to panic where invalid yaml would normally have been disallowed by the web-hook.
+* Coherence CLuster site and rack information - the Operator is used to supply site and rack values for the Coherence clusters that it manages. These values come from `Node` labels that the Operator must be able to look up. Without this information a Coherence cluster will have empty values for the `coherence.site` and `coherence.rack` system properties, meaning that Coherence will be unable to make data site-safe in k8s clusters that have multiple availability zones.
+* Monitoring multiple namespaces - if the Operator is to monitor multiple namespaces it must have cluster wide roles to do this
+
+Assuming that all the above reductions in features are acceptable then the Operator can be installed without creating cluster roles.
+
+== Install the Operator Without ClusterRoles
+
+The two methods of installing the Operator discussed in the <<installation/01_installation.adoc,Install Guide>> can be used to install the Operator without ClusterRoles.
+
+=== Manually Install CRDs
+
+[IMPORTANT]
+====
+Before installing the Operator, with either method described below, the CRDs MUST be manually installed from the Operator manifest files.
+
+The manifest files are published with the GitHub release at this link:
+https://github.com/oracle/coherence-operator/releases/download/v3.1.4/coherence-operator-manifests-3.1.4.tar.gz[3.1.4 Manifests]
+
+You MUST ensure that the CRD manifests match the version of the Operator being installed.
+
+* Download the manifests and unpack them.
+
+* In the directory that the .tar.gz file was unpacked to will be two versions of the CRDs.
+The directory `crd/` contains the `apiextensions.k8s.io/v1` version, which must be installed into Kubernetes cluster from k8s v1.16.x and above. The `crd-v1beta1/` directory contains the `apiextensions.k8s.io/v1beta1` version, which must be installed into Kubernetes cluster of k8s v1.15.x and below.
+
+The required CRD can be installed with kubectl
+For example, to install the CRD into a k8s v1.16.x or above cluster:
+[source,bash]
+----
+kubectl create -f crd/coherence.oracle.com_coherence.yaml
+----
+
+or to install the CRD into a k8s v1.15.x or below cluster:
+[source,bash]
+----
+kubectl create -f crd-v1beta1/coherence.oracle.com_coherence.yaml
+----
+====
+
+=== Install Using Helm
+
+The Operator can be installed from the Helm chart, as described in the <<installation/01_installation.adoc,Install Guide>>.
+The Helm chart contains values that control whether cluster roles are created when installing the chart. To install the chart without any cluster roles set the `clusterRoles` value to `false`.
+
+[source,bash]
+----
+helm install  \
+    --set clusterRoles=false       <1>
+    --namespace <namespace> \      <2>
+    coherence \
+    coherence/coherence-operator
+----
+
+<1> The `clusterRoles` value is set to false.
+<2> The `<namespace>` value is the namespace that the Coherence Operator will be installed into
+and without cluster roles will be the _only_ namespace that the Operator monitors.
+
+==== Allow Node Lookup
+
+The Helm chart allows the Operator to be installed with a single `ClusterRole` allowing it to read k8s `Node` information. This is used to provide site, and rack labels, for Coherence cluster members. In environments where Kubernetes administrators are happy to allow the Operator read-only access to `Node` information the `nodeRoles` value can be set to `true`.
+
+[source,bash]
+----
+helm install  \
+    --set clusterRoles=false       <1>
+    --set nodeRoles=true           <2>
+    --namespace <namespace> \
+    coherence \
+    coherence/coherence-operator
+----
+
+<1> The `clusterRoles` value is set to `false`.
+<2> The `nodeRoles` value is set to `true`, so a single ClusterRole will be applied to the Operator's service account
+
+
+=== Install Using Kustomize
+
+The Operator can be installed using Kustomize with the manifest files, as described in the <<installation/01_installation.adoc,Install Guide>>.
+
+==== Exclude the ClusterRole Manifests
+
+To install without cluster roles, after unpacking the manifests `.tar.gz` edit the `config/kustomization.yaml` file to comment out the inclusion of the cluster role bindings.
+
+For example:
+[source,yaml]
+.kustomization.yaml
+----
+resources:
+- service_account.yaml
+- role.yaml
+- role_binding.yaml
+#- node_viewer_role.yaml
+#- node_viewer_role_binding.yaml
+#- cluster_role.yaml
+#- cluster_role_binding.yaml
+----
+
+==== Disable Web-Hooks and CRD Installation
+
+The Operator would normally install validating and defaulting web-hooks as well as ensuring that the Coherence CRDs are installed. Without cluster roles this must be disabled by editing the `manager/manager.yaml` file in the manifests.
+
+Edit the Operator container `args` section of the deployment yaml to add command line arguments to `--enable-webhook=false` to disable web-hook creation and `--install-crd=false` to disable CRD installation.
+
+For example, change the section of the `manager/manager.yaml` file that looks like this:
+[source, yaml]
+.manager/manager.yaml
+----
+        command:
+          - /manager
+        args:
+          - --enable-leader-election
+        envFrom:
+----
+to be:
+[source, yaml]
+.manager/manager.yaml
+----
+        command:
+          - /manager
+        args:
+          - --enable-leader-election
+          - --enable-webhook=false
+          - --install-crd=false
+        envFrom:
+----
+
+
+==== Edit the Operator ClusterRole & ClusterRoleBinding
+
+The Operator will require a role and role binding to work in a single namespace.
+Edit the `config/role.yaml` to change its type from `ClusterRole` to `Role`.
+
+For example, change:
+[source,yaml]
+.role.yaml
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+----
+to be:
+[source,yaml]
+.role.yaml
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role  # <1>
+metadata:
+  creationTimestamp: null
+  name: manager-role
+----
+<1> `ClusterRole` has been changed to `Role`
+
+
+Edit the `config/role_binding.yaml` to change its type from `ClusterRoleBinding` to `RoleBinding`.
+
+For example change:
+[source,yaml]
+.role_binding.yaml
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: manager-rolebinding
+  labels:
+    control-plane: coherence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: manager-role
+subjects:
+- kind: ServiceAccount
+  name: coherence-operator
+  namespace: default
+----
+to be:
+[source,yaml]
+.role_binding.yaml
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding  # <1>
+metadata:
+  name: manager-rolebinding
+  labels:
+    control-plane: coherence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role # <2>
+  name: manager-role
+subjects:
+- kind: ServiceAccount
+  name: coherence-operator
+  namespace: default
+----
+<1> The type has been changed from `ClusterRoleBinding` to `RoleBinding`
+<2> The role being bound has been changed from `ClusterRole` to `Role`.
+
+
+==== Allow Node Lookup
+
+In environments where Kubernetes administrators are happy to allow the Operator read-only access to `Node` information, the required `ClusterRole` can be created by leaving the relevant lines uncommented in the `config/kustomization.yaml` file.
+
+For example:
+[source,yaml]
+.kustomization.yaml
+----
+resources:
+- service_account.yaml
+- role.yaml
+- role_binding.yaml
+- node_viewer_role.yaml         # <1>
+- node_viewer_role_binding.yaml
+#- cluster_role.yaml
+#- cluster_role_binding.yaml
+----
+<1> The `node_viewer_role.yaml` and `node_viewer_role_binding.yaml` will now be left in the installation.
+

@@ -8,12 +8,15 @@ package helm
 
 import (
 	goctx "context"
+	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -104,7 +107,101 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	AssertHelmInstall("account", cmd, g, ns)
 }
 
+func TestHelmInstallWithoutClusterRoles(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		Cleanup(ns, "operator")
+	})
+
+	chart, err := helper.FindOperatorHelmChartDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd := exec.Command("helm", "install",
+		"--set", "clusterRoles=false",
+		"--set", "image="+helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
+		"--namespace", ns, "--wait", "operator", chart)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	AssertHelmInstall("account", cmd, g, ns)
+}
+
+func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		Cleanup(ns, "operator")
+	})
+
+	chart, err := helper.FindOperatorHelmChartDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd := exec.Command("helm", "install",
+		"--set", "clusterRoles=false",
+		"--set", "nodeRoles=true",
+		"--set", "image="+helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
+		"--namespace", ns, "--wait", "operator", chart)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	var test = func() error {
+		rbacClient := testContext.KubeClient.RbacV1()
+
+		crList, err := rbacClient.ClusterRoles().List(goctx.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return err
+		}
+
+		for _, cr := range crList.Items {
+			if strings.Contains(strings.ToLower(cr.Name), "coherence") {
+				return fmt.Errorf("no Coherence ClusterRole shoudl exist but found %s", cr.Name)
+			}
+		}
+
+		crbList, err := rbacClient.ClusterRoleBindings().List(goctx.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return err
+		}
+
+		for _, crb := range crbList.Items {
+			if strings.Contains(strings.ToLower(crb.Name), "coherence") {
+				return fmt.Errorf("no Coherence ClusterRoleBinding shoudl exist but found %s", crb.Name)
+			}
+		}
+
+		ns := helper.GetTestNamespace()
+		_, err = rbacClient.Roles(ns).Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		_, err = rbacClient.RoleBindings(ns).Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	AssertHelmInstallWithSubTest("account", cmd, g, ns, test)
+}
+
+type SubTest func() error
+
+var emptySubTest = func() error {
+	return nil
+}
+
 func AssertHelmInstall(id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
+	AssertHelmInstallWithSubTest(id, cmd, g, ns, emptySubTest)
+}
+
+func AssertHelmInstallWithSubTest(id string, cmd *exec.Cmd, g *GomegaWithT, ns string, test SubTest) {
 	err := cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -124,6 +221,9 @@ func AssertHelmInstall(id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = test()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
