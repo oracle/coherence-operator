@@ -9,6 +9,7 @@ metadata:
   labels:
     control-plane: coherence
 ---
+{{- if .Values.clusterRoles }}
 # -------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator
 # to self-manage its CRDs and Web-Hooks.
@@ -62,6 +63,8 @@ subjects:
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
 ---
+{{- end }}
+{{- if or (eq .Values.clusterRoles true) (eq .Values.nodeRoles true) }}
 # -------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator
 # to obtain Node information.
@@ -105,12 +108,17 @@ subjects:
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
 ---
+{{- end }}
 # ---------------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator during
 # normal operation to manage Coherence clusters.
 # ---------------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.clusterRoles }}
 kind: ClusterRole
+{{- else }}
+kind: Role
+{{- end }}
 metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
@@ -122,6 +130,7 @@ rules:
   resources:
   - configmaps
   - endpoints
+  - events
   - pods
   - pods/exec
   - secrets
@@ -184,7 +193,11 @@ rules:
 # during normal operation to manage Coherence clusters.
 # ---------------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.clusterRoles }}
 kind: ClusterRoleBinding
+{{- else }}
+kind: RoleBinding
+{{- end }}
 metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
@@ -192,7 +205,11 @@ metadata:
     control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
+{{- if .Values.clusterRoles }}
   kind: ClusterRole
+{{- else }}
+  kind: Role
+{{- end }}
   name: coherence-operator
 subjects:
 - kind: ServiceAccount

@@ -46,6 +46,7 @@ const (
 	FlagCertType              = "cert-type"
 	FlagCoherenceImage        = "coherence-image"
 	FlagDevMode               = "coherence-dev-mode"
+	FlagCRD                   = "install-crd"
 	FlagEnableWebhook         = "enable-webhook"
 	FlagMutatingWebhookName   = "mutating-webhook-name"
 	FlagOperatorNamespace     = "operator-namespace"
@@ -110,6 +111,11 @@ func SetupFlags(cmd *cobra.Command) {
 		FlagDevMode,
 		false,
 		"Run in dev mode. This should only be used during testing outside of a k8s cluster",
+	)
+	cmd.Flags().Bool(
+		FlagCRD,
+		true,
+		"Enables automatic installation/update of Coherence CRDs",
 	)
 	cmd.Flags().Bool(
 		FlagEnableWebhook,
@@ -248,6 +254,10 @@ func GetSiteLabel() []string {
 
 func GetRackLabel() []string {
 	return viper.GetStringSlice(FlagRackLabel)
+}
+
+func ShouldInstallCRDs() bool {
+	return viper.GetBool(FlagCRD)
 }
 
 func ShouldEnableWebhooks() bool {

@@ -143,12 +143,6 @@ func execute() {
 		os.Exit(1)
 	}
 
-	// Create the REST server
-	if err := rest.NewServer(cl).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, " unable to start REST server")
-		os.Exit(1)
-	}
-
 	// Set-up webhooks if required
 	var cr *webhook.CertReconciler
 	if operator.ShouldEnableWebhooks() {
@@ -166,6 +160,12 @@ func execute() {
 			setupLog.Error(err, " unable to create webhook", "webhook", "Coherence")
 			os.Exit(1)
 		}
+	}
+
+	// Create the REST server
+	if err := rest.NewServer(cl).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, " unable to start REST server")
+		os.Exit(1)
 	}
 
 	//// ToDo: Make the ready check actually check stuff...
@@ -202,10 +202,12 @@ func initialiseOperator(cl clients.ClientSet) {
 	opLog := ctrl.Log.WithName("operator")
 
 	// Ensure that the CRDs exist
-	err := coh.EnsureCRDs(cl)
-	if err != nil {
-		opLog.Error(err, "")
-		os.Exit(1)
+	if operator.ShouldInstallCRDs() {
+		err := coh.EnsureCRDs(cl)
+		if err != nil {
+			opLog.Error(err, "")
+			os.Exit(1)
+		}
 	}
 }
 
