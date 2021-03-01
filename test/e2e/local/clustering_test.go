@@ -44,6 +44,7 @@ func TestTwoDeploymentsOneCluster(t *testing.T) {
 func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
+	var err error
 	g := NewWithT(t)
 
 	// Start the two deployments
@@ -53,8 +54,10 @@ func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 	test, ok := deployments["test"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'test' deployment")
 
-	g.Expect(data.Status.Phase).To(Equal(coh.ConditionTypeReady))
-	g.Expect(test.Status.Phase).To(Equal(coh.ConditionTypeReady))
+	_, err = helper.WaitForDeploymentReady(testContext, data.Namespace, data.Name, time.Second*5, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForDeploymentReady(testContext, test.Namespace, test.Name, time.Second*5, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	ready := data.Status.Conditions.GetCondition(coh.ConditionTypeReady)
 	g.Expect(ready).NotTo(BeNil())
@@ -73,6 +76,7 @@ func TestStartQuorumRequireAllPodsReady(t *testing.T) {
 func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
+	var err error
 	g := NewWithT(t)
 
 	// Start the two deployments
@@ -82,8 +86,10 @@ func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	test, ok := deployments["test"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'test' deployment")
 
-	g.Expect(data.Status.Phase).To(Equal(coh.ConditionTypeReady))
-	g.Expect(test.Status.Phase).To(Equal(coh.ConditionTypeReady))
+	_, err = helper.WaitForDeploymentReady(testContext, data.Namespace, data.Name, time.Second*5, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForDeploymentReady(testContext, test.Namespace, test.Name, time.Second*5, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	// Get the time the first data Pod was ready
 	dataPodReady := helper.GetFirstPodReadyTime(pods, "data")

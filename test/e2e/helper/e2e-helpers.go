@@ -254,6 +254,38 @@ func WaitForStatefulSetForDeployment(ctx TestContext, namespace string, deployme
 	return WaitForStatefulSet(ctx, namespace, deployment.Name, deployment.Spec.GetReplicas(), retryInterval, timeout)
 }
 
+// WaitForDeploymentReady waits for a Coherence deployment to be ready.
+func WaitForDeploymentReady(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
+	var d = &coh.Coherence{}
+	var key = types.NamespacedName{Namespace: namespace, Name: name}
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		err = ctx.Client.Get(context.TODO(), key, d)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for availability of Coherence deployment %s/%s - NotFound", namespace, name)
+				return false, nil
+			}
+			ctx.Logf("Waiting for availability of Coherence deployment %s/%s - %s", namespace, name, err.Error())
+			return false, err
+		}
+
+		if d.Status.Phase == coh.ConditionTypeReady {
+			return true, nil
+		}
+
+		ctx.Logf("Waiting for Coherence deployment %s/%s to be Ready - %s (%d/%d)",
+			namespace, name, d.Status.Phase, d.Status.ReadyReplicas, d.Status.Replicas)
+		return false, nil
+	})
+
+	if err != nil && d != nil {
+		d, _ := json.MarshalIndent(d, "", "    ")
+		ctx.Logf("Error waiting for StatefulSet%s", string(d))
+	}
+	return d, err
+}
+
 // WaitForStatefulSet waits for a StatefulSet to be created with the specified number of replicas.
 func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
