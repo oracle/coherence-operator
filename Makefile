@@ -176,7 +176,7 @@ override BUILD_BIN           := ./bin
 override BUILD_DEPLOY        := $(BUILD_OUTPUT)/config
 override BUILD_HELM          := $(BUILD_OUTPUT)/helm-charts
 override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
-override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests-$(VERSION).tar.gz
+override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar.gz
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
@@ -735,6 +735,9 @@ $(BUILD_MANIFESTS_PKG):
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
 	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
+	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
+	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
