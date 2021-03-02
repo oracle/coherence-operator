@@ -84,7 +84,7 @@ If this command hangs, then press `ctrl-c` to exit and then run the following pa
 
 [source,console]
 ----
-kubectl -n coherence-test patch coherence/my-cluster -p '{"metadata”:{“finalizers":[]}}' --type=merge
+kubectl -n coherence-test patch coherence/my-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
 ----
 This will remove the Operator's finalizer from the Coherence deployment.
 
