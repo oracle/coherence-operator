@@ -43,6 +43,7 @@ jobs:
           - "14.1.1.0.0"
           - "12.2.1.4.0"
           - "12.2.1-4-8-SNAPSHOT"
+          - "12.2.1-3-13-SNAPSHOT"
         include:
           - coherenceVersion: "20.12.1"
             coherence-image: "ghcr.io/oracle/coherence-ce:20.12.1"
@@ -58,6 +59,8 @@ jobs:
             coherence-image: "container-registry.oracle.com/middleware/coherence:12.2.1.4.0"
           - coherenceVersion: "12.2.1-4-8-SNAPSHOT"
             coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1-4-8-SNAPSHOT"
+          - coherenceVersion: "12.2.1-3-13-SNAPSHOT"
+            coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1-3-13-SNAPSHOT"
 
     steps:
     - uses: actions/checkout@v2
