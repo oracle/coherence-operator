@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -44,3 +44,27 @@ The example would be equivalent to the Coherence container running:
 ----
 $ java com.acme.Catalogue --name=Books --language=en_GB
 ----
+
+
+== Environment Variable Expansion
+
+The Operator supports environment variable expansion in program arguments.
+The runner in the Coherence container will replace `${var}` or `$var` in the program arguments with the corresponding environment variable name.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: catalogue:1.0.0
+  application:
+    main: com.acme.Catalogue
+    args:
+      - "${HOSTNAME}"  # <1>
+----
+
+<1> The argument passed to the `com.acme.Catalogue` main method will resolve to the value of the `HOSTNAME` environment variable.
+
+Any environment variable that is present when the Coherence container starts can be used, this would include variables created as part of the image and variables specified in the Coherence yaml.

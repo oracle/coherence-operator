@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -68,7 +68,7 @@ spec:
   jvm:
     useJibClasspath: false  # <1>
 ----
-<1> The `useJibClasspath` is set to `false`. Even if any of the the `/app/resources`, `/app/classes` or `/app/libs/`
+<1> The `useJibClasspath` is set to `false`. Even if any of the `/app/resources`, `/app/classes` or `/app/libs/`
 directories exist in the image they will not be added to the classpath.
 
 
@@ -98,4 +98,27 @@ In an image without the `CLASSPATH` or `COHERENCE_HOME` environment variables th
 
 
 NOTE: There is no validation of the elements of the classpath. The elements will not be verified to ensure that the locations
-exist. As long as they are valid values to be uased in a JVM classpath they will be accepted.
+exist. As long as they are valid values to be used in a JVM classpath they will be accepted.
+
+== Environment Variable Expansion
+
+The Operator supports environment variable expansion in classpath entries.
+The runner in the Coherence container will replace `${var}` or `$var` in classpath entries with the corresponding environment variable name.
+
+For example if a container has an environment variable of `APP_HOME` set to `/myapp` then it could be used in the classpath like this:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    classpath:
+      - "${APP_HOME}/lib/*"  # <1>
+----
+
+<1> The actual classpath entry at runtime will resolve to `/myapp/lib/*`
+
+Any environment variable that is present when the Coherence container starts can be used, this would include variables created as part of the image and variables specified in the Coherence yaml.
