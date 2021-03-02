@@ -262,7 +262,9 @@ func server(details *RunDetails) {
 	ma, found := details.LookupEnv(v1.EnvVarAppMainArgs)
 	if found {
 		if ma != "" {
-			details.MainArgs = append(details.MainArgs, strings.Split(ma, " ")...)
+			for _, arg := range strings.Split(ma, " ") {
+				details.MainArgs = append(details.MainArgs, details.ExpandEnv(arg))
+			}
 		}
 	}
 
@@ -1069,6 +1071,10 @@ func (in *RunDetails) Getenv(name string) string {
 	return in.Env[name]
 }
 
+func (in *RunDetails) ExpandEnv(s string) string {
+	return os.Expand(s, in.Getenv)
+}
+
 func (in *RunDetails) GetenvOrDefault(name string, defaultValue string) string {
 	v, ok := in.Env[name]
 	if ok && v != "" {
@@ -1164,22 +1170,23 @@ func (in *RunDetails) AddArgs(args ...string) {
 
 func (in *RunDetails) AddArg(arg string) {
 	if arg != "" {
-		in.Args = append(in.Args, arg)
+		in.Args = append(in.Args, in.ExpandEnv(arg))
 	}
 }
 
 func (in *RunDetails) AddToFrontOfClasspath(path string) {
 	if path != "" {
 		if in.Classpath == "" {
-			in.Classpath = path
+			in.Classpath = in.ExpandEnv(path)
 		} else {
-			in.Classpath = path + ":" + in.Classpath
+			in.Classpath = in.ExpandEnv(path) + ":" + in.Classpath
 		}
 	}
 }
 
 // Add all jars in the specified directory to the classpath
-func (in *RunDetails) AddJarsToClasspath(path string) {
+func (in *RunDetails) AddJarsToClasspath(dir string) {
+	path := in.ExpandEnv(dir)
 	if _, err := os.Stat(path); err == nil {
 		var jars []string
 		_ = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
@@ -1206,9 +1213,9 @@ func (in *RunDetails) AddClasspathIfExists(path string) {
 func (in *RunDetails) AddClasspath(path string) {
 	if path != "" {
 		if in.Classpath == "" {
-			in.Classpath = path
+			in.Classpath = in.ExpandEnv(path)
 		} else {
-			in.Classpath += ":" + path
+			in.Classpath += ":" + in.ExpandEnv(path)
 		}
 	}
 }

@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -55,7 +55,7 @@ spec:
 <2> Adding `-Dcoherence.cache.config=test-config.xml` to the `jvm.args` field will make the Operator add
 `-Dcoherence.cache.config=test-config.xml` to the end of the JVM arguments in the command line.
 
-When duplicate system properties are present on a command line the last one wins so in the example above the cache
+When duplicate system properties are present on a command line, the last one wins so in the example above the cache
 configuration used would be  `test-config.xml`.
 
 
@@ -90,4 +90,13 @@ The Coherence Operator will add the following JVM arguments by default:
 -XX:+PrintNMTStatistics
 ----
 
-Some of the arguments and system properties above can be overridden or changed by setting values in the `Coherence` CDR spec.
+Some arguments and system properties above can be overridden or changed by setting values in the `Coherence` CDR spec.
+
+== Environment Variable Expansion
+
+The Operator supports environment variable expansion in JVM arguments.
+The runner in the Coherence container will replace `${var}` or `$var` in the JVM arguments with the corresponding environment variable name.
+
+For example a JVM argument of `"-Dmy.host.name=${HOSTNAME}"` when run on a Pod with a host name of `COH-1` will resolve to `"-Dmy.host.name=COH-1"`.
+
+Any environment variable that is present when the Coherence container starts can be used, this would include variables created as part of the image and variables specified in the Coherence yaml.
