@@ -18,8 +18,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
-	"os"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -141,76 +139,6 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	err = scale(t, ns, deployment.Name, 3)
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = helper.WaitForStatefulSet(testContext, ns, deployment.Name, 3, time.Second*10, time.Minute*5)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// assert that the data is recovered
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// cleanup the data
-	_ = helper.ClearCanary(testContext, ns, deployment.GetName())
-}
-
-// Deploy a Coherence resource with persistence enabled (this should enable active persistence).
-// A PVC should be created for the StatefulSet. Create data in some caches, scale down to 0 the deployment,
-// re-deploy the deployment and assert that the data is recovered.
-func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
-	var yamlFile = "persistence-snapshot.yaml"
-	var pVolName = "snapshot-volume"
-
-	// Ensure that everything is cleaned up after the test!
-	testContext.CleanupAfterTest(t)
-	g := NewGomegaWithT(t)
-
-	ns := helper.GetTestNamespace()
-
-	deployment, pods := ensurePods(g, yamlFile, ns)
-
-	// check the pvc is created for the given volume
-	pvcName := ""
-	for _, vol := range pods[0].Spec.Volumes {
-		if vol.Name == pVolName {
-			if vol.PersistentVolumeClaim != nil {
-				pvcName = vol.PersistentVolumeClaim.ClaimName
-			}
-			break
-		}
-	}
-
-	// check the pvc is created
-	g.Expect(pvcName).NotTo(Equal(""))
-	pvc := testContext.KubeClient.CoreV1().PersistentVolumeClaims(pvcName)
-	g.Expect(pvc).ShouldNot(BeNil())
-
-	// create data in some caches
-	err := helper.StartCanary(testContext, ns, deployment.GetName())
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// take a snapshot
-	snapshotName := "snapshotOne"
-	err = processSnapshotRequest(pods[0], createSnapshot, snapshotName)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	localStorageRestartEnv := os.Getenv("LOCAL_STORAGE_RESTART")
-	localStorageRestart, err := strconv.ParseBool(localStorageRestartEnv)
-	if err != nil {
-		localStorageRestart = false
-	}
-	// restart Coherence may be on a different instance, local storage will not work
-	if !localStorageRestart {
-		fmt.Println("Restarting...")
-		// dump the pod logs before deleting
-		helper.DumpPodsForTest(testContext, t)
-		// delete the deployment
-		err = helper.WaitForCoherenceCleanup(testContext, ns)
-		g.Expect(err).NotTo(HaveOccurred())
-
-		// re-deploy the deployment
-		deployment, pods = ensurePods(g, yamlFile, ns)
-	}
-
-	// recover the snapshot
-	err = processSnapshotRequest(pods[0], recoverSnapshot, snapshotName)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
