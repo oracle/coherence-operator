@@ -573,11 +573,8 @@ install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace
 run-coherence-compatibility: export CGO_ENABLED = 0
 run-coherence-compatibility: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-coherence-compatibility: export TEST_COMPATIBILITY_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
-run-coherence-compatibility: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
-run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
-run-coherence-compatibility: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-run-coherence-compatibility: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+run-coherence-compatibility: export TEST_APPLICATION_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
+run-coherence-compatibility: export TEST_COHERENCE_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
 run-coherence-compatibility: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-coherence-compatibility: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 run-coherence-compatibility: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
