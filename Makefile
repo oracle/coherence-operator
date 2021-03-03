@@ -573,8 +573,6 @@ install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace
 run-coherence-compatibility: export CGO_ENABLED = 0
 run-coherence-compatibility: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-coherence-compatibility: export TEST_COMPATIBILITY_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
-run-coherence-compatibility: export TEST_APPLICATION_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
-run-coherence-compatibility: export TEST_COHERENCE_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
 run-coherence-compatibility: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-coherence-compatibility: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 run-coherence-compatibility: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -587,10 +585,11 @@ run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-coherence-compatibility: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
+	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Clean up after to running compatability tests.
+# ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-coherence-compatibility
 cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
@@ -646,7 +645,8 @@ endif
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
-uninstall-crds: prepare-deploy
+uninstall-crds: manifests
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 else
@@ -660,7 +660,7 @@ endif
 deploy-and-wait: deploy wait-for-deploy
 
 .PHONY: deploy
-deploy: prepare-deploy
+deploy: prepare-deploy $(GOBIN)/kustomize
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
