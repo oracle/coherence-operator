@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -42,4 +44,12 @@ func TestMain(m *testing.M) {
 	testContext.Logf("Tests completed with return code %d", exitCode)
 	testContext.Close()
 	os.Exit(exitCode)
+}
+
+func scale(t *testing.T, namespace, name string, replicas int32) error {
+	cmd := exec.Command("kubectl", "-n", namespace, "scale", fmt.Sprintf("--replicas=%d", replicas), "coherence/"+name)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	t.Log("Executing Scale Command: " + strings.Join(cmd.Args, " "))
+	return cmd.Run()
 }
