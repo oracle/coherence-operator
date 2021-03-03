@@ -590,7 +590,7 @@ run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-coherence-compatibility: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
+	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Clean up after to running compatability tests.
