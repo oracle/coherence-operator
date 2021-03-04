@@ -45,7 +45,8 @@ public class RestServer {
      */
     public static void main(String[] args) throws Exception {
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+            int port = Integer.parseInt(System.getProperty("test.rest.port", "8080"));
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
             server.createContext("/ready", RestServer::ready);
             server.createContext("/env", RestServer::env);

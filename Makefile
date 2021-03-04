@@ -1100,13 +1100,13 @@ build-operator-images: $(BUILD_TARGETS)/build-operator build-utils-image
 # Push all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
-push-all-images: push-operator-image push-utils-image push-test-images
+push-all-images: push-test-images push-utils-image push-operator-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image push-utils-image
+push-release-images: push-utils-image push-operator-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally.
