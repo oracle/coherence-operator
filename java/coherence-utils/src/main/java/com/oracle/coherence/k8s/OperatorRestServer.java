@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -102,7 +103,12 @@ public class OperatorRestServer {
     /**
      * The MBean name of the Service MBean.
      */
-    public static final String MBEAN_SERVICE = "%s:" + Registry.SERVICE_TYPE
+    public static final String MBEAN_SERVICE = Registry.SERVICE_TYPE + ",name=*,nodeId=*";
+
+    /**
+     * The MBean name of the Service MBean pattern.
+     */
+    public static final String MBEAN_SERVICE_PATTERN = "%s:" + Registry.SERVICE_TYPE
             + ",name=%s,nodeId=%d";
 
     /**
@@ -133,8 +139,8 @@ public class OperatorRestServer {
     /**
      * The MBean attribute to check the state of a partitioned cache service.
      */
-    public static final String[] CACHE_SERVICE_ATTRIBUTES = new String[] {"StorageEnabled", "MemberCount",
-            "OwnedPartitionsPrimary", "PartitionsAll"};
+    public static final String[] CACHE_SERVICE_ATTRIBUTES = new String[] {"Type", "StorageEnabled", "MemberCount",
+            "OwnedPartitionsPrimary", "PartitionsAll", "StorageEnabledCount"};
 
     /**
      * The value of the Status HA attribute to signify endangered.
@@ -545,6 +551,29 @@ public class OperatorRestServer {
             Cluster cluster = clusterSupplier.get();
             if (cluster != null && cluster.isRunning()) {
                 int id = cluster.getLocalMember().getId();
+
+                Set<String> cacheServices = getDistributedCacheServiceNames();
+                Set<String> distributionCoordinators = getPartitionAssignmentMBeans();
+
+                // Ensure we have a DistributionCoordinator for all cache services
+                // If the senior just died we might not have one
+                if (cacheServices.size() != distributionCoordinators.size()) {
+                    Set<String> coords = new HashSet<>();
+                    for (String s : distributionCoordinators) {
+                        ObjectName objectName = ObjectName.getInstance(s);
+                        coords.add(objectName.getKeyProperty("service"));
+                    }
+                    for (String name : cacheServices) {
+                        if (!coords.contains(name)) {
+                            err("CoherenceOperator: StatusHA check failed - No DistributionCoordinator "
+                                        + "for DistributedCache service " + name);
+                        }
+                    }
+                    err("CoherenceOperator: StatusHA check failed - DistributedCache service count " + cacheServices.size()
+                                + " does not match DistributionCoordinator count " + distributionCoordinators.size());
+                    return false;
+                }
+
                 for (String mBean : getPartitionAssignmentMBeans()) {
                     if (allowEndangered != null && allowEndangered.stream().anyMatch(mBean::contains)) {
                         // this service is allowed to be endangered so skip it.
@@ -605,7 +634,7 @@ public class OperatorRestServer {
         ObjectName objectName = ObjectName.getInstance(mBean);
         String domain = objectName.getDomain();
         String serviceName = objectName.getKeyProperty("service");
-        String serviceMBean = String.format(MBEAN_SERVICE, domain, serviceName, memberId);
+        String serviceMBean = String.format(MBEAN_SERVICE_PATTERN, domain, serviceName, memberId);
         Map<String, Object> attributes = getMBeanAttributes(serviceMBean, CACHE_SERVICE_ATTRIBUTES);
         Boolean storageEnabled = (Boolean) attributes.get(ATTRIB_STORAGE_ENABLED);
         Integer memberCount = (Integer) attributes.get(ATTRIB_MEMBER_COUNT);
@@ -727,6 +756,23 @@ public class OperatorRestServer {
         return getMBeanServerProxy()
                 .map(p -> p.queryNames(MBEAN_PARTITION_ASSIGNMENT, null))
                 .orElse(Collections.emptySet());
+    }
+
+    private Set<String> getDistributedCacheServiceNames() throws MalformedObjectNameException {
+        Set<String> cacheServices = new HashSet<>();
+        Set<String> set = getMBeanServerProxy()
+                .map(p -> p.queryNames(MBEAN_SERVICE, null))
+                .orElse(Collections.emptySet());
+
+        for (String mBean : set) {
+            Map<String, Object> attributes = getMBeanAttributes(mBean, new String[]{"Type"});
+            String type = (String) attributes.get("type");
+            if ("DistributedCache".equals(type)) {
+                ObjectName objectName = new ObjectName(mBean);
+                cacheServices.add(objectName.getKeyProperty("name"));
+            }
+        }
+        return cacheServices;
     }
 
     private Set<String> getPersistenceCoordinatorMBeans() {
