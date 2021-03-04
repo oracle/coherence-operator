@@ -342,7 +342,7 @@ e2e-test: prepare-e2e-test
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy-and-wait
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -666,6 +666,7 @@ ifneq (,$(WATCH_NAMESPACE))
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	sleep 5
 
 .PHONY: just-deploy
 just-deploy:
