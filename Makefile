@@ -342,7 +342,7 @@ e2e-test: prepare-e2e-test
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
