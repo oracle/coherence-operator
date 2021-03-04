@@ -63,3 +63,15 @@ jobs:
         make build-all-images
         if echo $GITHUB_EVENT_NAME -eq "release"; then PRE_RELEASE=false; else PRE_RELEASE=true; fi
         make release RELEASE_DRY_RUN=false PRE_RELEASE=$PRE_RELEASE
+
+    - name: Upload Manifests
+      uses: actions/upload-artifact@v1
+      with:
+        name: coherence-operator-manifests.tar.gz
+        path: build/_output/coherence-operator-manifests.tar.gz
+
+    - name: Upload Yaml
+      uses: actions/upload-artifact@v1
+      with:
+        name: coherence-operator.yaml
+        path: build/_output/coherence-operator.yaml
