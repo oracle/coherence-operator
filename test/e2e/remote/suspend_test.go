@@ -96,7 +96,7 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	// assert that the cache service is suspended
 	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
+	g.Expect(svc["quorumStatus"]).To(ContainElement("Suspended"))
 
 	// remove the test finalizer which should then let everything be deleted
 	err = removeAllFinalizers(&c)
@@ -144,7 +144,7 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	// assert that the cache service is suspended
 	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(svc["quorumStatus"]).To(BeEquivalentTo([]interface{}{"Suspended"}))
+	g.Expect(svc["quorumStatus"]).To(ContainElement("Suspended"))
 
 	// remove the test finalizer from the StatefulSet and Coherence deployment which should then let everything be deleted
 	err = removeAllFinalizers(sts)
@@ -198,7 +198,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	// assert that the cache service is suspended
 	svc, err := ManagementOverRestRequest(&c, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
+	g.Expect(svc["quorumStatus"]).To(ContainElement("Suspended"))
 
 	// remove the test finalizer from the StatefulSet and Coherence deployment which should then let everything be deleted
 	err = removeAllFinalizers(sts)
@@ -247,7 +247,7 @@ func TestNotSuspendServicesInMultipleDeployments(t *testing.T) {
 	// assert that the cache service is NOT suspended
 	svc, err := ManagementOverRestRequest(&cOne, "/management/coherence/cluster/services/PartitionedCache")
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(svc["quorumStatus"]).NotTo(BeEquivalentTo([]interface{}{"Suspended"}))
+	g.Expect(svc["quorumStatus"]).To(ContainElement("Suspended"))
 }
 
 func waitForFinalizerTasks(n types.NamespacedName) error {
