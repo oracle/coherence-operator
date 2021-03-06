@@ -1,0 +1,948 @@
+= Coherence Operator Deployment Example
+
+This example showcases how to deploy Coherence applications using the Coherence Operator.
+
+The following scenarios are covered:
+
+1. Installing the Coherence Operator
+2. Installing a Coherence cluster
+3. Deploying a Proxy tier
+4. Deploying a storage-disabled application
+5. Enabling Active Persistence
+6. Viewing Metrics via Grafana
+
+After the initial installation of the Coherence cluster, the following examples
+build on the previous ones by issuing a `kubectl apply` to modify
+the installation adding additional roles.
+
+You can use `kubectl create` for any of the examples to install that one directly.
+
+
+* [Prerequisites](#prerequisites)
+  * [Coherence Operator Quick Start](#coherence-operator-quick-start)
+  * [Software Versions](#software-versions)
+  * [Create the example namespace](#create-the-example-namespace)
+  * [Clone the GitHub repository](#clone-the-github-repository)
+  * [Install the Coherence Operator](#install-the-coherence-operator)
+  * [Port Forward and Access Grafana](#port-forward-and-access-grafana)
+* [Run the Examples](#run-the-examples)
+  * [Example 1 - Coherence cluster only](#example-1---coherence-cluster-only)
+  * [Example 2 - Adding a Proxy role ](#example-2---adding-a-proxy-role)
+  * [Example 3 - Adding a User application role](#example-3---adding-a-user-application-role)
+  * [Example 4 - Enabling Persistence](#example-4---enabling-persistence)
+* [View Cluster Metrics via Grafana](#view-cluster-metrics-via-grafana)  
+* [Cleaning Up](#cleaning-up)  
+
+== Prerequisites
+
+Ensure you have the following software installed:
+
+* Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
+* [Docker](https://docs.docker.com/install/) version 17.03+.
+* Access to a Kubernetes v1.14.0+ cluster.
+* https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version matching your Kubernetes cluster.
+
+== Create the example namespace
+
+You need to create the namespace for the first time to run any of the examples. Create your target namespace:
+
+[source,bash]
+----
+kubectl create namespace coherence-example
+
+namespace/coherence-example created
+----
+
+[NOTE]
+====
+In the examples, a Kubernetes namespace called `coherence-example` is used.
+If you want to change this namespace, ensure that you change any references to this namespace
+to match your selected namespace when running the examples.
+====
+
+== Clone the GitHub repository
+
+The examples exist in the `examples` directory in the Coherence Operator GitHub repository - https://github.com/oracle/coherence-operator.
+
+Clone the repository:
+
+[source,bash]
+----
+git clone https://github.com/oracle/coherence-operator
+
+cd coherence-operator/examples
+----
+
+Ensure you have Docker running and JDK 11+ build environment set and use the
+following command from the deployment example directory to build the project and associated Docker image:
+
+[source,bash]
+----
+./mvnw package jib:dockerBuild
+----
+
+[NOTE]
+====
+If you are running behind a corporate proxy and receive the following message building the Docker image:
+`Connect to gcr.io:443 [gcr.io/172.217.212.82] failed: connect timed out` you must modify the build command
+to add the proxy hosts and ports to be used by the `jib-maven-plugin` as shown below:
+
+[source,bash]
+----
+mvn clean install -P docker -Dhttps.proxyHost=host -Dhttps.proxyPort=80 -Dhttp.proxyHost=host -Dhttp.proxyPort=80
+----
+====
+
+
+This will result in the following Docker image being created which contains the configuration and server-side
+artifacts to be use by all deployments.
+
+[source]
+----
+deployment-example:1.0.0
+----
+
+[NOTE]
+====
+If you are running against a remote Kubernetes cluster, you need to tag and
+push the Docker image to your repository accessible to that cluster.
+You also need to prefix the image name in the `yaml` files below.
+====
+
+== Install the Coherence Operator
+
+Install the Coherence Operator using your preferred method in the Operator
+https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide]
+
+Confirm the operator is running, for example:
+[source,bash]
+----
+kubectl get pods -n coherence-example
+
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1          27s
+----
+
+== Run the Examples
+
+Ensure you are in the `examples/deployment` directory to run the following commands.
+
+=== Example 1 - Coherence cluster only
+
+The first example uses the yaml file `src/main/yaml/example-cluster.yaml`, which
+defines a single role `storage` which will store cluster data.
+
+NOTE: If you have pushed your Docker image to a remote repository, ensure you update the above file to prefix the image.
+
+=== 1. Install the Coherence cluster `storage` role
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/example-cluster.yaml
+
+coherence.coherence.oracle.com/example-cluster-storage created
+----
+
+=== 2. List the created Coherence cluster
+
+[source,bash]
+----
+kubectl -n coherence-example get coherence
+
+NAME                      CLUSTER           ROLE                      REPLICAS   READY   PHASE
+example-cluster-storage   example-cluster   example-cluster-storage   3                  Created
+
+NAME                                                         AGE
+coherencerole.coherence.oracle.com/example-cluster-storage   18s
+----
+
+=== 3. View the running pods
+
+Run the following command to view the Pods:
+[source,bash]
+----
+kubectl -n coherence-example get pods
+----
+
+[source,bash]
+----
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1          6m46s
+example-cluster-storage-0                                0/1     Running   0          119s
+example-cluster-storage-1                                1/1     Running   0          119s
+example-cluster-storage-2                                0/1     Running   0          118s
+----
+
+=== Connect to the Coherence Console inside the cluster to add data
+
+Since we cannot yet access the cluster via Coherence*Extend, we will connect via Coherence console to add data.
+[source,bash]
+----
+kubectl exec -it -n coherence-example example-cluster-storage-0 /coherence-operator/utils/runner console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Lastly issue the command `size` to verify the cache entry count.
+
+Type `bye` to exit the console.
+
+=== Scale the `storage` role to 6 members
+
+To scale up the cluster the `kubectl scale` command can be used:
+[source,bash]
+----
+kubectl -n coherence-example scale coherence/example-cluster-storage --replicas=6
+----
+
+Use the following to verify all 6 nodes are Running and READY before continuing.
+
+[source,bash]
+----
+kubectl -n coherence-example get pods
+----
+
+[source,bash]
+----
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1          53m
+example-cluster-storage-0                                1/1     Running   0          49m
+example-cluster-storage-1                                1/1     Running   0          49m
+example-cluster-storage-2                                1/1     Running   0          49m
+example-cluster-storage-3                                1/1     Running   0          54s
+example-cluster-storage-4                                1/1     Running   0          54s
+example-cluster-storage-5                                1/1     Running   0          54s
+----
+
+
+=== Confirm the cache count
+
+Re-run step 3 above and just use the `cache test` and `size` commands to confirm the number of entries is still 10,000.
+
+This confirms that the scale-out was done in a `safe` manner ensuring no data loss.
+
+=== Scale the `storage` role back to 3 members
+
+To scale back doewn to three members run the following command:
+[source,bash]
+----
+kubectl -n coherence-example scale coherence/example-cluster-storage --replicas=3
+----
+
+By using the following, you will see that the number of members will gradually scale back to
+3 during which the is done in a `safe` manner ensuring no data loss.
+
+[source,bash]
+----
+kubectl -n coherence-example get pods  
+----
+
+[source,bash]
+----
+NAME                        READY   STATUS        RESTARTS   AGE
+example-cluster-storage-0   1/1     Running       0          19m
+example-cluster-storage-1   1/1     Running       0          19m
+example-cluster-storage-2   1/1     Running       0          19m
+example-cluster-storage-3   1/1     Running       0          3m41s
+example-cluster-storage-4   0/1     Terminating   0          3m41s                             
+----
+
+== Example 2 - Adding a Proxy role
+
+The second example uses the yaml file `src/main/yaml/example-cluster-proxy.yaml`, which
+adds a proxy server `example-cluster-proxy` to allow for Coherence*Extend connections via a Proxy server.
+
+The additional yaml added below shows:
+
+* A port called `proxy` being exposed on 20000
+* The role being set as storage-disabled
+* A different cache config being used which will start a Proxy Server. See [here](src/main/resources/proxy-cache-config.xml) for details
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: example-cluster-proxy
+spec:
+  cluster: example-cluster
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      port: 9612
+      serviceMonitor:
+        enabled: true
+    - name: proxy
+      port: 20000
+  coherence:
+    cacheConfig: proxy-cache-config.xml
+    storageEnabled: false
+    metrics:
+      enabled: true
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
+  replicas: 1
+----
+
+=== Install the `proxy` role
+
+[source,bash]
+----
+  kubectl -n coherence-example apply -f src/main/yaml/example-cluster-proxy.yaml
+
+  kubectl get coherence -n coherence-example
+
+  NAME                      CLUSTER           ROLE                      REPLICAS   READY   PHASE
+  example-cluster-proxy     example-cluster   example-cluster-proxy     1          1       Ready
+  example-cluster-storage   example-cluster   example-cluster-storage   3          3       Ready
+----      
+
+=== View the running pods
+
+[source,bash]
+----  
+kubectl -n coherence-example get pods
+
+NAME                                  READY   STATUS    RESTARTS   AGE
+coherence-operator-578497bb5b-w89kt   1/1     Running   0          68m
+example-cluster-proxy-0               1/1     Running   0          2m41s
+example-cluster-storage-0             1/1     Running   0          29m
+example-cluster-storage-1             1/1     Running   0          29m
+example-cluster-storage-2             1/1     Running   0          2m43s
+----    
+
+Ensure the `example-cluster-proxy-0` pod is Running and READY before continuing.
+
+=== Port forward the proxy port
+
+    In a separate terminal, run the following:
+
+[source,bash]
+----
+    kubectl port-forward -n coherence-example example-cluster-proxy-0 20000:20000
+----
+
+=== Connect via CohQL and add data
+
+In a separate terminal, change to the `examples/deployments` directory and run the following to
+start Coherence Query Language (CohQL):
+
+[source,bash]
+----
+    mvn exec:java       
+
+    Coherence Command Line Tool
+
+    CohQL>
+----
+
+Run the following `CohQL` commands to view and insert data into the cluster.
+
+[source]
+----
+CohQL> select count() from 'test';
+
+Results
+10000
+
+CohQL> insert into 'test' key('key-1') value('value-1');
+
+CohQL> select key(), value() from 'test' where key() = 'key-1';
+Results
+["key-1", "value-1"]
+
+CohQL> select count() from 'test';
+Results
+10001
+
+CohQL> quit
+----
+
+The above results will show that you can see the data previously inserted and
+can add new data into the cluster using Coherence*Extend.
+
+== Example 3 - Adding a User application role
+
+The third example uses the yaml file `src/main/yaml/example-cluster-app.yaml`, which
+adds a new role `rest`. This role defines a user application which uses https://helidon.io/[Helidon] to create a `/query` endpoint allowing the user to send CohQL commands via this endpoint.
+
+The additional yaml added below shows:
+
+* A port called `http` being exposed on 8080 for the application
+* The role being set as storage-disabled
+* Using the storage-cache-config.xml but as storage-disabled
+* An alternate main class to run - `com.oracle.coherence.examples.Main`
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: example-cluster-rest
+spec:
+  cluster: example-cluster
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      port: 9612
+      serviceMonitor:
+        enabled: true
+    - name: http
+      port: 8080
+  coherence:
+    cacheConfig: storage-cache-config.xml
+    storageEnabled: false
+    metrics:
+      enabled: true
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
+  application:
+    main: com.oracle.coherence.examples.Main
+----
+
+=== Install the `rest` role
+
+Install the yaml with the following command:
+[source,bash]
+----
+kubectl -n coherence-example apply -f src/main/yaml/example-cluster-app.yaml
+
+kubectl get coherence -n coherence-example
+
+NAME                      CLUSTER           ROLE                      REPLICAS   READY   PHASE
+example-cluster-proxy     example-cluster   example-cluster-proxy     1          1       Ready
+example-cluster-rest      example-cluster   example-cluster-rest      1          1       Ready
+example-cluster-storage   example-cluster   example-cluster-storage   3          3       Ready
+----      
+
+=== View the running pods
+
+[source,bash]
+----  
+kubectl -n coherence-example get pods
+
+NAME                              READY   STATUS    RESTARTS   AGE
+coherence-operator-578497bb5b-w89kt   1/1     Running   0          90m
+example-cluster-proxy-0               1/1     Running   0          3m57s
+example-cluster-rest-0                1/1     Running   0          3m57s
+example-cluster-storage-0             1/1     Running   0          3m59s
+example-cluster-storage-1             1/1     Running   0          3m58s
+example-cluster-storage-2             1/1     Running   0          3m58s
+----    
+
+=== Port forward the application port
+
+In a separate terminal, run the following:
+
+[source,bash]
+----
+kubectl port-forward -n coherence-example example-cluster-rest-0 8080:8080
+----
+
+=== Access the custom `/query` endpoint
+
+Use the various `CohQL` commands via the `/query` endpoint to access, and mutate data in the Coherence cluster.
+
+[source,bash]
+----
+curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"create cache foo"}'
+----
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Fri, 19 Jun 2020 06:29:40 GMT
+transfer-encoding: chunked
+connection: keep-alive
+----
+
+[source,bash]
+----
+curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"insert into foo key(\"foo\") value(\"bar\")"}'
+----
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Fri, 19 Jun 2020 06:29:44 GMT
+transfer-encoding: chunked
+connection: keep-alive
+----
+
+[source,bash]
+----
+curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"select key(),value() from foo"}'
+----
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 19 Jun 2020 06:29:55 GMT
+transfer-encoding: chunked
+connection: keep-alive
+
+{"result":"{foo=[foo, bar]}"}
+----
+
+[source,bash]
+----
+curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"create cache test"}'
+----
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Fri, 19 Jun 2020 06:30:00 GMT
+transfer-encoding: chunked
+connection: keep-alive
+----
+
+[source,bash]
+----
+curl -i -w '\n' -X PUT http://127.0.0.1:8080/query -d '{"query":"select count() from test"}'
+----
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 19 Jun 2020 06:30:20 GMT
+transfer-encoding: chunked
+connection: keep-alive
+
+{"result":"10001"}
+----                    
+
+== Example 4 - Enabling Persistence
+
+The fourth example uses the yaml file `src/main/yaml/example-cluster-persistence.yaml`, which
+enabled Active Persistence for the `storage` role by adding a `persistence:` element.
+
+The additional yaml added to the storage role below shows:
+
+* Active Persistence being enabled via `persistence.enabled=true`
+* Various Persistence Volume Claim (PVC) values being set under `persistentVolumeClaim`
+
+[source,yaml]
+----
+  coherence:
+    cacheConfig: storage-cache-config.xml
+    metrics:
+      enabled: true
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+----
+
+NOTE:By default, when you enable Coherence Persistence, the required infrastructure in terms of persistent volumes (PV) and persistent volume claims (PVC) is set up automatically. Also, the persistence-mode is set to `active`. This allows the Coherence cluster to be restarted, and the data to be retained.
+
+=== Delete the existing deployment
+
+We must first delete the existing deployment as we need to redeploy to enable Active Persistence.
+
+[source,bash]
+----
+kubectl -n coherence-example delete -f src/main/yaml/example-cluster-app.yaml
+----                                   
+
+Ensure all the pods have terminated before you continue.
+
+=== Install the cluster with Persistence enabled
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/example-cluster-persistence.yaml
+----                                                                      
+
+=== View the running pods and PVC's
+
+[source,bash]
+----  
+kubectl -n coherence-example get pods
+----
+
+[source,bash]
+----
+NAME                            READY   STATUS    RESTARTS   AGE
+example-cluster-rest-0          1/1     Running   0          5s
+example-cluster-proxy-0         1/1     Running   0          5m1s
+example-cluster-storage-0       1/1     Running   0          5m3s
+example-cluster-storage-1       1/1     Running   0          5m3s
+example-cluster-storage-2       1/1     Running   0          5m3s
+----       
+
+Check the Persistent Volumes and PVC are automatically created.
+
+[source,bash]
+----
+kubectl get pvc -n coherence-example
+----
+
+[source,bash]
+----
+NAME                                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistence-volume-example-cluster-storage-0   Bound    pvc-15b46996-eb35-11e9-9b4b-025000000001   1Gi        RWO            hostpath       55s
+persistence-volume-example-cluster-storage-1   Bound    pvc-15bd99e9-eb35-11e9-9b4b-025000000001   1Gi        RWO            hostpath       55s
+persistence-volume-example-cluster-storage-2   Bound    pvc-15e55b6b-eb35-11e9-9b4b-025000000001   1Gi        RWO            hostpath       55s
+----                                                                                                                                             
+
+Wait until all  nodes are Running and READY before continuing.
+
+=== Check Active Persistence is enabled
+
+Use the following to view the logs of the `example-cluster-storage-0` pod and validate that Active Persistence is enabled.
+
+[source,bash]
+----
+kubectl logs example-cluster-storage-0 -c coherence -n coherence-example | grep 'Created persistent'
+----
+
+[source,bash]
+----
+...
+019-10-10 04:52:00.179/77.023 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=4): Created persistent store /persistence/active/example-cluster/PartitionedCache/126-2-16db40199bc-4
+2019-10-10 04:52:00.247/77.091 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=4): Created persistent store /persistence/active/example-cluster/PartitionedCache/127-2-16db40199bc-4
+...
+----   
+
+If you see output similar to above then Active Persistence is enabled.
+
+=== Connect to the Coherence Console to add data
+
+[source,bash]
+----
+kubectl exec -it -n coherence-example example-cluster-storage-0 /coherence-operator/utils/runner console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+
+[source,bash]
+----
+bulkput 10000 100 0 100
+----        
+
+Lastly issue the command `size` to verify the cache entry count.
+
+Type `bye` to exit the console.
+
+=== Delete the cluster
+
+NOTE: This will not delete the PVC's.
+
+[source,bash]
+----
+kubectl -n coherence-example delete -f src/main/yaml/example-cluster-persistence.yaml
+----       
+
+Use `kubectl get pods -n coherence-example` to confirm the pods have terminated.
+
+=== Confirm the PVC's are still present
+
+[source,bash]
+----
+kubectl get pvc -n coherence-example
+----
+
+[source,bash]
+----
+NAME                                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistence-volume-example-cluster-storage-0   Bound    pvc-730f86fe-eb19-11e9-9b4b-025000000001   1Gi        RWO            hostpath       116s
+persistence-volume-example-cluster-storage-1   Bound    pvc-73191751-eb19-11e9-9b4b-025000000001   1Gi        RWO            hostpath       116s
+persistence-volume-example-cluster-storage-2   Bound    pvc-73230889-eb19-11e9-9b4b-025000000001   1Gi        RWO            hostpath       116s
+----       
+
+=== Re-install the cluster
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/example-cluster-persistence.yaml
+----               
+
+=== Follow the logs for Persistence messages
+
+[source,bash]
+----
+kubectl logs example-cluster-storage-0 -c coherence -n coherence-example -f
+----
+
+You should see a message regarding recovering partitions, similar to the following:
+
+[source,bash]
+----
+2019-10-10 05:00:14.255/32.206 Oracle Coherence GE 12.2.1.4.0 <D5> (thread=DistributedCache:PartitionedCache, member=1): Recovering 86 partitions
+...
+2019-10-10 05:00:17.417/35.368 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=1): Created persistent store /persistence/active/example-cluster/PartitionedCache/50-3-16db409d035-1 from SafeBerkeleyDBStore(50-2-16db40199bc-4, /persistence/active/example-cluster/PartitionedCache/50-2-16db40199bc-4)
+...
+----
+
+Finally, you should see the following indicating active recovery has completed.
+
+[source,bash]
+----
+2019-10-10 08:18:04.870/59.565 Oracle Coherence GE 12.2.1.4.0 <Info> (thread=DistributedCache:PartitionedCache, member=1):
+   Recovered PartitionSet{172..256} from active persistent store
+----
+
+=== Confirm the data has been recovered
+
+[source,bash]
+----
+kubectl exec -it -n coherence-example example-cluster-storage-0 /coherence-operator/utils/runner console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Lastly issue the command `size` to verify the cache entry count is 10,000 meaning the data has been recovered.
+
+Type `bye` to exit the console.
+
+== View Cluster Metrics via Grafana
+
+If you wish to view metrics via Grafana, you must carry out the following steps **before** you
+install any of the examples above.
+
+=== Install Prometheus Operator
+
+Add the `stable` helm repository
+
+[source,bash]
+----
+helm repo add stable https://charts.helm.sh/stable
+
+helm repo update
+----
+
+=== Create Prometheus pre-requisites
+
+[source,bash]
+----
+    kubectl apply -f src/main/yaml/prometheus-rbac.yaml  
+----
+
+=== Create Config Maps for datasource and dashboards
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/grafana-datasource-config.yaml
+
+kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1
+
+kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-dashboards.yaml
+
+kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
+----        
+
+=== Install Prometheus Operator
+
+NOTE: If you have already installed Prometheus Operator before on this Kubernetes Cluster then set `--set prometheusOperator.createCustomResource=false`.
+
+Issue the following command to install the Prometheus Operator using Helm:
+
+[source,bash]
+----
+helm install --namespace coherence-example --version 8.13.9 \
+    --set grafana.enabled=true \
+    --set prometheusOperator.createCustomResource=true \
+    --values src/main/yaml/prometheus-values.yaml prometheus stable/prometheus-operator
+----        
+
+[TIP]
+====
+Note: for Helm version 2, use the following:
+
+[source,bash]
+----
+helm install --namespace coherence-example --version 8.13.9 \
+    --set grafana.enabled=true --name prometheus \
+    --set prometheusOperator.createCustomResource=true \
+    --values src/main/yaml/prometheus-values.yaml stable/prometheus-operator
+----
+====
+
+Use the following to view the installed pods:
+
+[source,bash]
+----
+kubectl get pods -n coherence-example
+----
+
+[source,bash]
+----
+NAME                                                   READY   STATUS    RESTARTS   AGE
+coherence-operator-578497bb5b-w89kt                    1/1     Running   0          136m
+prometheus-grafana-6bb6d86f86-rgsm6                    2/2     Running   0          85s
+prometheus-kube-state-metrics-5496457bd-vjqgd          1/1     Running   0          85s
+prometheus-prometheus-node-exporter-29lrp              1/1     Running   0          85s
+prometheus-prometheus-node-exporter-82b5w              1/1     Running   0          85s
+prometheus-prometheus-node-exporter-mbj2k              1/1     Running   0          85s
+prometheus-prometheus-oper-operator-6bc97bc4d7-67qjp   2/2     Running   0          85s
+prometheus-prometheus-prometheus-oper-prometheus-0     3/3     Running   1          68s
+----
+
+Remember to now install one of the examples above.  If you have already had the examples installed,
+you must delete and re-install once you have installed Prometheus operator.
+
+=== Port Forward and Access Grafana
+
+Port-forward the ports for these components using the scripts
+in the `examples/deployment/scripts/` directory.
+
+*   Port-forward Grafana for viewing metrics
+
+[source,bash]
+----
+./port-forward-grafana.sh coherence-example
+----
+
+[source,bash]
+----
+Port-forwarding coherence-operator-grafana-8454698bcf-5dqvm in coherence-example
+Open the following URL: http://127.0.0.1:3000/d/coh-main/coherence-dashboard-main
+Forwarding from 127.0.0.1:3000 -> 3000
+Forwarding from [::1]:3000 -> 3000
+----      
+
+The default username is `admin` and the password is `prom-operator`.
+
+*   Port-forward Kibana for viewing log messages
+
+[source,bash]
+----
+./port-forward-kibana.sh coherence-example
+----
+
+[source,bash]
+----
+Port-forwarding kibana-67c4f74ffb-nspwz in coherence-example
+Open the following URL: http://127.0.0.1:5601/
+Forwarding from 127.0.0.1:5601 -> 5601
+Forwarding from [::1]:5601 -> 5601
+----    
+
+*   Port-forward Prometheus (for troubleshooting only)
+
+[source,bash]
+----
+./port-forward-prometheus.sh coherence-example
+----
+
+[source,bash]
+----
+Port-forwarding prometheus-prometheus-prometheus-oper-prometheus-0 in coherence-example
+Open the following URL: http://127.0.0.1:9090/targets
+Forwarding from 127.0.0.1:9090 -> 9090
+Forwarding from [::1]:9090 -> 9090
+----                  
+
+*   Open the URLS described above.
+
+=== Troubleshooting
+
+*   It may take up to 5 minutes for data to start appearing in Grafana.
+
+*   If you are not seeing data after 5 minutes, access the Prometheus endpoint as described above.
+    Ensure that the endpoints named `coherence-example/example-cluster-storage-metrics/0 (3/3 up)` are up.
+
+    If the endpoints are not up then wait 60 seconds and refresh the browser.
+
+*   If you do not see any values in the `Cluster Name` dropdown in Grafana, ensure the endpoints are up as  described above and click on `Manage Alerts` and then `Back to Main Dashboard`. This will re-query the data and load the list of clusters.    
+
+
+== Cleaning Up
+
+=== Delete the cluster
+
+[source,bash]
+----
+kubectl -n coherence-example delete -f src/main/yaml/example-cluster-persistence.yaml
+----     
+
+=== Delete the PVC's
+
+Ensure all the pods have all terminated before you delete the PVC's.
+
+[source,bash]
+----
+kubectl get pvc -n coherence-example | sed 1d | awk '{print $1}' | xargs kubectl delete pvc -n coherence-example
+----
+
+=== Remove the Coherence Operator
+
+Uninstall the Coherence operator using the undeploy commands for whichever method you chose to install it.
+
+=== Delete Prometheus Operator
+
+
+[source,bash]
+----
+ helm delete prometheus --namespace coherence-example
+
+ kubectl -n coherence-example delete -f src/main/yaml/grafana-datasource-config.yaml
+
+ kubectl -n coherence-example delete configmap coherence-grafana-dashboards
+
+ kubectl delete -f src/main/yaml/prometheus-rbac.yaml
+----
+
+[TIP]
+====
+For Helm version 2 use the following:
+[source,bash]
+----
+helm delete prometheus --purge
+----
+====
+
+NOTE: You can optionally delete the Prometheus Operator Custom Resource Definitions (CRD's) if you are not going to install Prometheus Operator again.
+
+
+[source,bash]
+----
+$ kubectl delete crd alertmanagers.monitoring.coreos.com
+$ kubectl delete crd podmonitors.monitoring.coreos.com
+$ kubectl delete crd prometheuses.monitoring.coreos.com
+$ kubectl delete crd prometheusrules.monitoring.coreos.com
+$ kubectl delete crd prometheusrules.monitoring.coreos.com
+$ kubectl delete crd servicemonitors.monitoring.coreos.com
+$ kubectl delete crd thanosrulers.monitoring.coreos.com
+----
+
+A shorthand way of doing this if you are running Linux/Mac is:
+[source,bash]
+----
+kubectl get crds -n coherence-example | grep monitoring.coreos.com | awk '{print $1}' | xargs kubectl delete crd
+----

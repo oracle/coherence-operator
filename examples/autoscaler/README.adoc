@@ -1,8 +1,8 @@
-= Kubernetes Horizontal Pod Autoscaler Example
+= Kubernetes Horizontal Pod autoscaler Example
 
-== Kubernetes Horizontal Pod Autoscaler Example
+== Kubernetes Horizontal Pod autoscaler Example
 
-== How Does the Horizontal Pod Autoscaler Work
+== How Does the Horizontal Pod autoscaler Work
 
 There is a lot of good documentation on the HPA, particularly the https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Kubernetes documentation].
 
@@ -97,7 +97,7 @@ cd coherence-operator/examples
 * Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
 * [Docker](https://docs.docker.com/install/) version 17.03+.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.13.0+ .
-* Access to a Kubernetes v1.13.0+ cluster.
+* Access to a Kubernetes v1.14.0+ cluster.
 * [Helm](https://helm.sh/docs/intro/install/) version 3.2.4+
 
 Building the project requires [Maven](https://maven.apache.org) version 3.6.0+.
@@ -117,16 +117,11 @@ replacing `host` with the required proxy hostname and `80` with the proxy's port
 
 ==== Build Instructions
 
-To build all the examples run the following command from the `examples/` directory:
+The autoscaler example uses the https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin#build-your-image[JIB Maven plugin] to build the example image. 
+To build the image run the following command from the `examples/autoscaler` directory:
 [source,bash]
 ----
-./mvnw clean install -P docker
-----
-
-Alternatively to just build the autoscaler example:
-[source,bash]
-----
-./mvnw clean install -P docker -pl autoscaler
+./mvnw package jib:dockerBuild
 ----
 
 The build will produce various example images, for the autoscaler example we will be using the `autoscaler-example:latest` image.
@@ -539,20 +534,20 @@ which might display something like:
 ----
 
 
-=== Configure The Horizontal Pod Autoscaler
+=== Configure The Horizontal Pod autoscaler
 
 Now that we have custom metrics in the Kubernets `custom.metrics.k8s.io` API, the final piece is to add the HPA
 configuration for the Coherence deployment that we want to scale.
-To configure the HPA we need to create a `HorizontalPodAutoscaler` resource for each Coherence deployment in the same namespace
+To configure the HPA we need to create a `HorizontalPodautoscaler` resource for each Coherence deployment in the same namespace
 as we deployed the Coherence deployment to.
 
-Below is an example `HorizontalPodAutoscaler` resource that will scale our example Coherence deployment:
+Below is an example `HorizontalPodautoscaler` resource that will scale our example Coherence deployment:
 
 [source,yaml]
 .hpa.yaml
 ----
 apiVersion: autoscaling/v2beta2
-kind: HorizontalPodAutoscaler
+kind: HorizontalPodautoscaler
 metadata:
   name: test-cluster-hpa
 spec:
@@ -597,7 +592,7 @@ The `describedObject` section describes the resource to query, in this case kind
 or down before re-evaluating the metric. This gives Coherence enough time to scale the deployment and for the data to redistribute
 and gc to occur. In real life this value would need to be adjusted to work correctly on your actual cluster.
 
-The autoscaler example contains yaml to create the `HorizontalPodAutoscaler` resource in the `manifests/` directory.
+The autoscaler example contains yaml to create the `HorizontalPodautoscaler` resource in the `manifests/` directory.
 
 WARNING: If using a version of Kubernetes prior to 1.18 the `behaviour` secion of the yaml above is invalid and should be
 removed. This could cause the HPA not to work the way we want it to as there will be no cool-down period specified
@@ -610,8 +605,8 @@ The only way to set these values prior to 1.18 was for the HPA as a whole
 kubectl create -f manifests/hpa.yaml
 ----
 
-The `hpa.yaml` file will create a `HorizontalPodAutoscaler` resource named `test-cluster-hpa`.
-After waiting a minute or two for the HPA to get around to polling our new `HorizontalPodAutoscaler` resource
+The `hpa.yaml` file will create a `HorizontalPodautoscaler` resource named `test-cluster-hpa`.
+After waiting a minute or two for the HPA to get around to polling our new `HorizontalPodautoscaler` resource
 we can check its status.
 
 [source,bash]
@@ -691,7 +686,7 @@ the `bulkput 20000 10000 1 1000` command at the map prompt:
 Map (test): bulkput 20000 10000 1 1000
 ----
 
-We can now look at the `HorizontalPodAutoscaler` resource we create earlier with the command:
+We can now look at the `HorizontalPodautoscaler` resource we create earlier with the command:
 [source,bash]
 ----
 kubectl get horizontalpodautoscaler.autoscaling/test-cluster-hpa
@@ -716,7 +711,7 @@ previous entries, not really adding to the heap.
 Map (test): bulkput 20000 10000 20000 1000
 ----
 
-Now run the `kubectl describe` command on the `HorizontalPodAutoscaler` resource again, and we should see that it has scaled
+Now run the `kubectl describe` command on the `HorizontalPodautoscaler` resource again, and we should see that it has scaled
 our cluster. If another 20,000 entries does not cause the heap to exceed 80% then you may need to run the `bulkput` command
 once or twice more with a smaller number of entries to push the heap over 80%.
 
@@ -773,7 +768,7 @@ test-cluster-2   1/1     Running   0          1m10s
 NOTE: At this point Coherence will redistribute data to balance it over the three members of the cluster.
 It may be that it takes considerable time for this to affect the heap usage as a lot of the cache data will be in the old generation of
 the heap and not be immediately collected. This may then trigger another scale after the 120 second stabilization period that
-we configured in the `HorizontalPodAutoscaler`.
+we configured in the `HorizontalPodautoscaler`.
 
 
 === Clean-Up

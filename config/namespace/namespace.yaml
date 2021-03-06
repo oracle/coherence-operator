@@ -7,3 +7,9 @@ kind: Namespace
 metadata:
   name: coherence
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: coherence-webhook-server-cert
+  namespace: coherence
+---
