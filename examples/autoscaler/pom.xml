@@ -9,19 +9,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.oracle.coherence.kubernetes</groupId>
-    <artifactId>examples-parent</artifactId>
-    <version>1.0.0</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-
+  <groupId>com.oracle.coherence.examples.kubernetes</groupId>
   <artifactId>autoscaler-example</artifactId>
   <name>Coherence Operator Autoscaler Example</name>
   <version>1.0.0</version>
 
   <properties>
-    <docker.version>${project.version}</docker.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
+    <coherence.version>20.12.1</coherence.version>
+
+    <jib.version>2.8.0</jib.version>
+
+    <image.version>${project.version}</image.version>
     <test.extend.port>20000</test.extend.port>
   </properties>
 
@@ -29,160 +32,42 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
+      <version>${coherence.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
+      <version>${coherence.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-metrics</artifactId>
+      <version>${coherence.version}</version>
     </dependency>
   </dependencies>
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${maven.enforcer.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>enforce</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>[${maven.version},)</version>
-                </requireMavenVersion>
-                <requireJavaVersion>
-                  <version>${java.version}</version>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven.compiler.plugin.version}</version>
-        <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>${maven.exec.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>com.tangosol.net.CacheFactory</mainClass>
-          <cleanupDaemonThreads>false</cleanupDaemonThreads>
-          <systemProperties>
-            <systemProperty>
-              <key>coherence.cluster</key>
-              <value>autoscaler-test</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.ttl</key>
-              <value>0</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.localhost</key>
-              <value>127.0.0.1</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.wka</key>
-              <value>127.0.0.1</value>
-            </systemProperty>
-            <systemProperty>
-              <key>java.net.preferIPv4Stack</key>
-              <value>true</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.distributed.localstorage</key>
-              <value>false</value>
-            </systemProperty>
-            <systemProperty>
-              <key>coherence.cacheconfig</key>
-              <value>client-cache-config.xml</value>
-            </systemProperty>
-            <systemProperty>
-              <key>test.extend.port</key>
-              <value>${test.extend.port}</value>
-            </systemProperty>
-          </systemProperties>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>docker</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-        <property>
-          <name>docker</name>
-        </property>
-      </activation>
-       <build>
-        <plugins>
-          <plugin>
-            <groupId>com.google.cloud.tools</groupId>
-            <artifactId>jib-maven-plugin</artifactId>
-            <version>${jib.version}</version>
-            <configuration>
-              <from>
-                <image>gcr.io/distroless/java:11</image>
-              </from>
-              <to>
-                <image>${project.artifactId}</image>
-                <tags>
-                  <tag>${docker.version}</tag>
-                </tags>
-              </to>
-              <container>
-                <!-- good defaults intended for containers -->
-                <jvmFlags>
-                  <jmxFlag>-server</jmxFlag>
-                  <jmxFlag>-Djava.awt.headless=true</jmxFlag>
-                  <jmxFlag>-XX:+UnlockExperimentalVMOptions</jmxFlag>
-                  <jmxFlag>-XX:+UseCGroupMemoryLimitForHeap</jmxFlag>
-                  <jmxFlag>-XX:InitialRAMFraction=2</jmxFlag>
-                  <jmxFlag>-XX:MinRAMFraction=2</jmxFlag>
-                  <jmxFlag>-XX:MaxRAMFraction=2</jmxFlag>
-                  <jmxFlag>-XX:+UseG1GC</jmxFlag>
-                </jvmFlags>
-                <mainClass>com.tangosol.net.DefaultCacheServer</mainClass>
-                <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-              </container>
-              <containerizingMode>packaged</containerizingMode>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>${jib.goal}</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+   <plugins>
+     <plugin>
+       <groupId>com.google.cloud.tools</groupId>
+       <artifactId>jib-maven-plugin</artifactId>
+       <version>${jib.version}</version>
+       <configuration>
+         <from>
+           <image>gcr.io/distroless/java:11</image>
+         </from>
+         <to>
+           <image>${project.artifactId}</image>
+           <tags>
+             <tag>${image.version}</tag>
+           </tags>
+         </to>
+         <container>
+           <mainClass>com.tangosol.net.Coherence</mainClass>
+         </container>
+         <containerizingMode>packaged</containerizingMode>
+       </configuration>
+     </plugin>
+   </plugins>
+ </build>
 </project>

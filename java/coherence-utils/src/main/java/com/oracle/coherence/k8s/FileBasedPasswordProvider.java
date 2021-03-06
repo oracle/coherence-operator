@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,7 +10,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.PasswordProvider;
 import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
@@ -19,19 +21,16 @@ import com.tangosol.util.Resources;
  * A file based Coherence {@link PasswordProvider}.
  * <p>
  * If the file name passed to the constructor is {@code null} then
- * a {@code null} password value is returned from the {@link #get()}
+ * an empty password value is returned from the {@link #get()}
  * method.
  */
 public class FileBasedPasswordProvider
         implements PasswordProvider {
-    // ----- data members ------------------------------------------------
 
     /**
      * The name of the file containing the password.
      */
     private String fileName;
-
-    // ----- constructors ---------------------------------------------------
 
     /**
      * Create a {@link FileBasedPasswordProvider}.
@@ -42,18 +41,21 @@ public class FileBasedPasswordProvider
         fileName = file;
     }
 
-    // ----- PasswordProvider methods ---------------------------------------
-
     @Override
     public char[] get() {
-
         if (fileName == null || fileName.trim().length() == 0) {
-            return null;
+            return new char[0];
         }
 
-        try (InputStream in = Resources.findFileOrResource(fileName, getClass().getClassLoader()).openStream()) {
+        URL url = Resources.findFileOrResource(fileName, getClass().getClassLoader());
+        if (url == null) {
+            throw new IllegalStateException("Could not find password file " + fileName);
+        }
+
+        try (InputStream in = url.openStream()) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            return reader.readLine().toCharArray();
+            String line = reader.readLine();
+            return line == null ? new char[0] : line.toCharArray();
         }
         catch (IOException e) {
             throw Base.ensureRuntimeException(e);
