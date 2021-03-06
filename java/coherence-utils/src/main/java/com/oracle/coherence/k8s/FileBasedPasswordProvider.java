@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.PasswordProvider;
 import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
