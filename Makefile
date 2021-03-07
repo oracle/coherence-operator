@@ -1201,9 +1201,7 @@ kind-19-start:
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load
-kind-load:
-	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
-	kind load docker-image --name operator $(UTILS_IMAGE) || true
+kind-load: kind-load-operator
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
@@ -1211,6 +1209,11 @@ kind-load:
 	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
 	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
 	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
+
+.PHONY: kind-load-operator
+kind-load-operator:
+	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
+	kind load docker-image --name operator $(UTILS_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load compatibility images into Kind

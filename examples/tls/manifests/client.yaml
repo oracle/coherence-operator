@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+spec:
+  containers:
+    - name: client
+      image: tls-example-client:1.0.0
+      env:
+        - name: COHERENCE_CACHECONFIG
+          value: client-cache-config.xml
+        - name: COHERENCE_EXTEND_ADDRESS
+          value: tls-cluster-extend
+        - name: COHERENCE_OVERRIDE
+          value: tls-coherence-override.xml                 # <1>
+        - name: COHERENCE_EXTEND_SOCKET_PROVIDER
+          value: tls
+        - name: COHERENCE_TLS_KEYSTORE
+          value: file:/coherence/certs/keystore.jks
+        - name: COHERENCE_TLS_KEYSTORE_PASSWORD
+          value: /coherence/certs/credentials/password-key
+        - name: COHERENCE_TLS_KEY_PASSWORD
+          value: /coherence/certs/credentials/password-key
+        - name: COHERENCE_TLS_TRUSTSTORE
+          value: file:/coherence/certs/truststore.jks
+        - name: COHERENCE_TLS_TRUSTSTORE_PASSWORD
+          value: /coherence/certs/credentials/password-key
+      volumeMounts:                                         # <2>
+        - name: coherence-client-certs
+          mountPath: coherence/certs
+        - name: keystore-credentials
+          mountPath: coherence/certs/credentials
+  volumes:                                                  # <3>
+    - name: coherence-client-certs
+      secret:
+        defaultMode: 420
+        secretName: coherence-client-certs
+    - name: keystore-credentials
+      secret:
+        defaultMode: 420
+        secretName: client-keystore-secret
