@@ -1422,7 +1422,6 @@ code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: generate golangci copyright
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f examples validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
