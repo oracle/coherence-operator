@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-certificate
+spec:
+  secretName: ca-cert
+  duration: 2880h # 120d
+  renewBefore: 360h # 15d
+  commonName: Cert Admin
+  isCA: true
+  privateKey:
+    size: 2048
+  usages:
+    - digital signature
+    - key encipherment
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

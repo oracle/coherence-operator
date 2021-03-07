@@ -1,0 +1,19 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: no-tls-cluster
+spec:
+  replicas: 3
+  image: tls-example-server:1.0.0
+  cluster: test-cluster
+  coherence:
+    cacheConfig: server-cache-config.xml
+    management:
+      enabled: true
+  ports:
+    - name: extend
+      port: 20000
+    - name: grpc
+      port: 1408
+    - name: management
+      port: 30000
