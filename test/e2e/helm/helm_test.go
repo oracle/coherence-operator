@@ -128,7 +128,7 @@ func TestHelmInstallWithoutClusterRoles(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstallWithSubTest("account", cmd, g, ns, AssertNoClusterRoles)
+	AssertHelmInstallWithSubTest("no-roles", cmd, g, ns, AssertNoClusterRoles)
 }
 
 func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
@@ -151,7 +151,7 @@ func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstallWithSubTest("account", cmd, g, ns, AssertOnlyNodeClusterRoles)
+	AssertHelmInstallWithSubTest("node-role", cmd, g, ns, AssertOnlyNodeClusterRoles)
 }
 
 type SubTest func() error
