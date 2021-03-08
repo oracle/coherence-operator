@@ -1,6 +1,9 @@
-= Coherence Operator Deployment Example
+== Coherence Operator Deployment Example
 
 This example showcases how to deploy Coherence applications using the Coherence Operator.
+
+This example shows how to use the Kubernetes Horizontal Pod Autoscaler to scale Coherence clusters.
+You can find the source code in the https://github.com/oracle/coherence-operator/tree/master/examples/deployment[Operator GitHub Repo]
 
 The following scenarios are covered:
 

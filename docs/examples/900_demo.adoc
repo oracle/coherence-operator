@@ -1,0 +1,23 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= The Coherence Demo App
+
+The Coherence Demonstration application is an application which demonstrates various Coherence
+related features such include Persistence, Federation and Lambda support.  This demonstration
+can run stand alone but can also be installed on the Coherence Operator.
+
+When installed using the Coherence Operator, the setup includes two Coherence Clusters, in the same Kubernetes cluster,
+which are configured with Active/Active Federation.
+
+image::../images/coherence-demo.png[Service Details,width="950",align="center"]
+
+
+image::../images/GitHub-Mark-64px.png[GitHub,width="32"]
+Please see https://github.com/coherence-community/coherence-demo[The Coherence Demo GitHub project] for full instructions.
+
+
