@@ -23,11 +23,11 @@
     <jib.version>2.8.0</jib.version>
     <image.version>${project.version}</image.version>
 
-    <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
     <maven.version>3.6.0</maven.version>
   </properties>
 
