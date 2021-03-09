@@ -13,17 +13,22 @@ easily be installed into a Kubernetes cluster.
 
 == Coherence Operator Installation
 
-There are two ways to install the Coherence Operator documented below.
+=== Prerequisites
+The prerequisites apply to all installation methods.
 
-* <<helm,Helm>>
-* <<kubectl,Kubectl / Kustomize>>
-
-The prerequisites apply to both methods
-
-== Prerequisites
-
-* Access to Oracle Coherence Docker images, or self-built Coherence images.
+* Access to Oracle Coherence Operator images.
 * Access to a Kubernetes v1.13.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.13 upto v1.20
+
+There are a few ways to install the Coherence Operator documented below:
+
+* <<manifest,Simple installation using Kubectl>>
+* <<helm,Install the Helm chart>>
+* <<kubectl,Kubectl with Kustomize>>
+
+NOTE: Installing the Coherence Operator using the methods above will create a number of `ClusterRole` RBAC resources.
+Some corporate security policies do not like to give cluster wide roles to third-party products.
+To help in this situation the operator can be installed without cluster roles, but with caveats
+(see the <<installation/09_RBAC.adoc,RBAC>> documentation) for more details.
 
 NOTE: OpenShift - the Coherence Operator works without modification on OpenShift, but some versions
 of the Coherence images will not work out of the box.
@@ -52,18 +57,37 @@ kubectl delete crd coherences.coherence.oracle.com
 Note that the CRD name in the 3.1.0 CRD being uninstalled has a plural `coherences` for the first part of the name.
 ====
 
+[#manifest]
 == Default Install with Kubectl
 
-If you want the default Coherence Operator installation then the simplest solution is
+If you want the default Coherence Operator installation then the simplest solution is use `kubectl` to apply the manifests from the Operator release.
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.1.4/coherence-operator.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.1.5/coherence-operator.yaml
 ----
 
-This will create a namespace called `coherence` and install the Operator into it along with all the required `ClusterRole` and `RoleBinding` resources.
+This will create a namespace called `coherence` and install the Operator into it along with all the required `ClusterRole` and `RoleBinding` resources. The `coherence` namespace can be changed by downloading and editing the yaml file.
 
-The `coherence` namespace can be changed by editing the yaml file.
+NOTE: Because the `coherence-operator.yaml` manifest also creates the namespace, the corresponding `kubectl delete` command will _remove the namespace and everything deployed to it_! If you do not want this behaviour you should edit the `coherence-operator.yaml` to remove the namespace section from the start of the file.
+
+Instead of using a hard coded version in the command above you can find the latest Operator version using `curl`:
+
+[source,bash]
+----
+export VERSION=$(curl -s \
+  https://api.github.com/repos/oracle/coherence-operator/releases/latest \
+  | grep '"name": "v' \
+  | cut -d '"' -f 4 \
+  | cut -b 2-10)
+----
+
+Then download with:
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/${VERSION}/coherence-operator.yaml
+----
+
 
 
 == Installing With Helm

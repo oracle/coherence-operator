@@ -59,6 +59,9 @@
 
   <build>
     <plugins>
+      <!--
+      The JIB plugin builds the Docker image for the application.
+      -->
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
@@ -83,7 +86,10 @@
         </configuration>
       </plugin>
 
-      <!-- run com.tangosol.coherence.dslquery.QueryPlus via mvn exec:java -->
+      <!--
+      The exec plugin is used to run com.tangosol.coherence.dslquery.QueryPlus
+      This is used in the demo as a console application to access caches.
+      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
