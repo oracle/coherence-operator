@@ -21,27 +21,14 @@ easily be installed into a Kubernetes cluster.</p>
 
 <h2 id="_coherence_operator_installation">Coherence Operator Installation</h2>
 <div class="section">
-<p>There are two ways to install the Coherence Operator documented below.</p>
 
-<ul class="ulist">
-<li>
-<p><router-link to="#helm" @click.native="this.scrollFix('#helm')">Helm</router-link></p>
-
-</li>
-<li>
-<p><router-link to="#kubectl" @click.native="this.scrollFix('#kubectl')">Kubectl / Kustomize</router-link></p>
-
-</li>
-</ul>
-<p>The prerequisites apply to both methods</p>
-
-</div>
-
-<h2 id="_prerequisites">Prerequisites</h2>
+<h3 id="_prerequisites">Prerequisites</h3>
 <div class="section">
+<p>The prerequisites apply to all installation methods.</p>
+
 <ul class="ulist">
 <li>
-<p>Access to Oracle Coherence Docker images, or self-built Coherence images.</p>
+<p>Access to Oracle Coherence Operator images.</p>
 
 </li>
 <li>
@@ -49,6 +36,28 @@ easily be installed into a Kubernetes cluster.</p>
 
 </li>
 </ul>
+<p>There are a few ways to install the Coherence Operator documented below:</p>
+
+<ul class="ulist">
+<li>
+<p><router-link to="#manifest" @click.native="this.scrollFix('#manifest')">Simple installation using Kubectl</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm" @click.native="this.scrollFix('#helm')">Install the Helm chart</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#kubectl" @click.native="this.scrollFix('#kubectl')">Kubectl with Kustomize</router-link></p>
+
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-inline">Installing the Coherence Operator using the methods above will create a number of <code>ClusterRole</code> RBAC resources.
+Some corporate security policies do not like to give cluster wide roles to third-party products.
+To help in this situation the operator can be installed without cluster roles, but with caveats
+(see the <router-link to="/installation/09_RBAC">RBAC</router-link> documentation) for more details.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-inline">OpenShift - the Coherence Operator works without modification on OpenShift, but some versions
 of the Coherence images will not work out of the box.
@@ -79,19 +88,39 @@ lang="bash"
 </p>
 </div>
 </div>
+</div>
 
-<h2 id="_default_install_with_kubectl">Default Install with Kubectl</h2>
+<h2 id="manifest">Default Install with Kubectl</h2>
 <div class="section">
-<p>If you want the default Coherence Operator installation then the simplest solution is</p>
+<p>If you want the default Coherence Operator installation then the simplest solution is use <code>kubectl</code> to apply the manifests from the Operator release.</p>
 
 <markup
 lang="bash"
 
 >kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.1.4/coherence-operator.yaml</markup>
 
-<p>This will create a namespace called <code>coherence</code> and install the Operator into it along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources.</p>
+<p>This will create a namespace called <code>coherence</code> and install the Operator into it along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by downloading and editing the yaml file.</p>
 
-<p>The <code>coherence</code> namespace can be changed by editing the yaml file.</p>
+<div class="admonition note">
+<p class="admonition-inline">Because the <code>coherence-operator.yaml</code> manifest also creates the namespace, the corresponding <code>kubectl delete</code> command will <em>remove the namespace and everything deployed to it</em>! If you do not want this behaviour you should edit the <code>coherence-operator.yaml</code> to remove the namespace section from the start of the file.</p>
+</div>
+<p>Instead of using a hard coded version in the command above you can find the latest Operator version using <code>curl</code>:</p>
+
+<markup
+lang="bash"
+
+>export VERSION=$(curl -s \
+  https://api.github.com/repos/oracle/coherence-operator/releases/latest \
+  | grep '"name": "v' \
+  | cut -d '"' -f 4 \
+  | cut -b 2-10)</markup>
+
+<p>Then download with:</p>
+
+<markup
+lang="bash"
+
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/${VERSION}/coherence-operator.yaml</markup>
 
 </div>
 
@@ -264,13 +293,13 @@ lang="bash"
 <div class="section">
 <p>If you want to use yaml directly to install the operator, with something like <code>kubectl</code>, you can use the manifest files
 published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.3/coherence-operator-manifests.tar.gz">3.1.4 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.4/coherence-operator-manifests.tar.gz">3.1.4 Manifests</a></p>
 
 <p>These manifest files are for use with a tool called Kustomize, which is built into <code>kubectl</code>
 see the documentation here: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/</a></p>
 
 <p>Download the
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.3/coherence-operator-manifests.tar.gz">3.1.4 Manifests</a>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.1.4/coherence-operator-manifests.tar.gz">3.1.4 Manifests</a>
 from the release page and unpack the file, which should produce a directory called <code>manifests</code> with a structure like this:</p>
 
 <markup

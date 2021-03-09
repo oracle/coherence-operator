@@ -910,6 +910,58 @@ function createRoutes(){
             component: loadPage('examples-010_overview', '/examples/010_overview', {})
         },
         {
+            path: '/examples/020_deployment',
+            meta: {
+                h1: 'Coherence Deployment Example',
+                title: 'Coherence Deployment Example',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-020_deployment', '/examples/020_deployment', {})
+        },
+        {
+            path: '/examples/100_tls',
+            meta: {
+                h1: 'Secure Coherence Using TLS',
+                title: 'Secure Coherence Using TLS',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-100_tls', '/examples/100_tls', {})
+        },
+        {
+            path: '/examples/500_autoscaler',
+            meta: {
+                h1: 'Autoscaling Coherence Cluster',
+                title: 'Autoscaling Coherence Cluster',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-500_autoscaler', '/examples/500_autoscaler', {})
+        },
+        {
+            path: '/examples/900_demo',
+            meta: {
+                h1: 'The Coherence Demo App',
+                title: 'The Coherence Demo App',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-900_demo', '/examples/900_demo', {})
+        },
+        {
             path: '/troubleshooting/01_trouble-shooting',
             meta: {
                 h1: 'Troubleshooting Guide',
@@ -921,6 +973,45 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('troubleshooting-01_trouble-shooting', '/troubleshooting/01_trouble-shooting', {})
+        },
+        {
+            path: '/development/02_introduction',
+            meta: {
+                h1: 'Coherence Operator Development Introduction',
+                title: 'Coherence Operator Development Introduction',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('development-02_introduction', '/development/02_introduction', {})
+        },
+        {
+            path: '/development/01_overview',
+            meta: {
+                h1: 'Overview',
+                title: 'Overview',
+                h1Prefix: null,
+                description: 'Coherence Operator documentation',
+                keywords: 'oracle coherence, kubernetes, operator, documentation',
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('development-01_overview', '/development/01_overview', {})
+        },
+        {
+            path: '/development/04_release',
+            meta: {
+                h1: 'Releasing the Coherence Operator',
+                title: 'Releasing the Coherence Operator',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('development-04_release', '/development/04_release', {})
         },
         {
             path: '/webhooks/01_introduction',
@@ -1103,7 +1194,11 @@ function createNav(){
             action: 'explore',
             group: '/examples',
             items: [
-                { href: '/examples/010_overview', title: 'Overview' }
+                { href: '/examples/010_overview', title: 'Overview' },
+                { href: '/examples/020_deployment', title: 'Coherence Deployment Example' },
+                { href: '/examples/100_tls', title: 'Secure Coherence Using TLS' },
+                { href: '/examples/500_autoscaler', title: 'Autoscaling Coherence Cluster' },
+                { href: '/examples/900_demo', title: 'The Coherence Demo App' }
             ]
         },
         {
