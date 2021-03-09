@@ -32,7 +32,50 @@ spec:
 
 The example above would assume that the `catalogue:1.0.0` has a JVM on the `PATH` and all the required `.jar` files,
 or Java classes, in the default classpath locations used by the Operator.
-When this is not the case additional configuration can be added to specify additional application settings, these include:
+
+=== Image Pull Secrets
+
+If your image needs to be pulled from a private registry you may need to provide
+https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/[image pull secrets] for this.
+
+For example, supposing the application image is `repo.acme.com/catalogue:1.0.0` and that `repo.acme.com` is a private registry; we might a `Secret` to the k8s namespace named `repo-acme-com-secrets`. We can then specify that these secrets are used in the `Coherence` resource by setting the `imagePullSecrets` fields. The `imagePullSecrets` field is a list of secret names, the same format as that used when specifying secrets for a Pod spec.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: repo.acme.com/catalogue:1.0.0  # <1>
+  imagePullSecrets:
+    - name: repo-acme-com-secrets       # <2>
+----
+
+<1> The `repo.acme.com/catalogue:1.0.0` image will be used for the application image
+<2> The `Secret` named `repo-acme-com-secrets` will be used to pull images.
+
+Multiple secrets can be specified in the case where different images used by different containers are pulled from different registries.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: repo.acme.com/catalogue:1.0.0
+  imagePullSecrets:
+    - name: repo-acme-com-secrets               # <1>
+    - name: oracle-container-registry-secrets
+----
+
+<1> The example above has two image pull secrets, `repo-acme-com-secrets` and `oracle-container-registry-secrets`
+
+
+=== More Application Configuration
+
+Additional configuration can be added to specify other application settings, these include:
 
 * setting the <<jvm/020_classpath.adoc,classpath>>
 * specifying the <<applications/040_application_main.adoc,application main>>

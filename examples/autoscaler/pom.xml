@@ -48,6 +48,9 @@
 
   <build>
    <plugins>
+     <!--
+     The JIB plugin builds the Docker image for the application.
+     -->
      <plugin>
        <groupId>com.google.cloud.tools</groupId>
        <artifactId>jib-maven-plugin</artifactId>
@@ -66,6 +69,62 @@
            <mainClass>com.tangosol.net.Coherence</mainClass>
          </container>
          <containerizingMode>packaged</containerizingMode>
+       </configuration>
+     </plugin>
+
+
+     <!--
+     The exec plugin is used to run com.tangosol.net.CacheFactory
+     This is used in the demo as a console application to access caches.
+     -->
+     <plugin>
+       <groupId>org.codehaus.mojo</groupId>
+       <artifactId>exec-maven-plugin</artifactId>
+       <version>${maven.exec.plugin.version}</version>
+       <executions>
+         <execution>
+           <goals>
+             <goal>java</goal>
+           </goals>
+         </execution>
+       </executions>
+       <configuration>
+         <mainClass>com.tangosol.net.CacheFactory</mainClass>
+         <cleanupDaemonThreads>false</cleanupDaemonThreads>
+         <systemProperties>
+           <systemProperty>
+             <key>coherence.cluster</key>
+             <value>autoscaler-test</value>
+           </systemProperty>
+           <systemProperty>
+             <key>coherence.ttl</key>
+             <value>0</value>
+           </systemProperty>
+           <systemProperty>
+             <key>coherence.localhost</key>
+             <value>127.0.0.1</value>
+           </systemProperty>
+           <systemProperty>
+             <key>coherence.wka</key>
+             <value>127.0.0.1</value>
+           </systemProperty>
+           <systemProperty>
+             <key>java.net.preferIPv4Stack</key>
+             <value>true</value>
+           </systemProperty>
+           <systemProperty>
+             <key>coherence.distributed.localstorage</key>
+             <value>false</value>
+           </systemProperty>
+           <systemProperty>
+             <key>coherence.cacheconfig</key>
+             <value>client-cache-config.xml</value>
+           </systemProperty>
+           <systemProperty>
+             <key>test.extend.port</key>
+             <value>${test.extend.port}</value>
+           </systemProperty>
+         </systemProperties>
        </configuration>
      </plugin>
    </plugins>
