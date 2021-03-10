@@ -21,6 +21,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.options.ClassName;
@@ -41,6 +42,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
@@ -57,10 +59,12 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
@@ -78,6 +82,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
             Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HEALTH), is(200));
@@ -93,10 +98,12 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
@@ -114,6 +121,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
             Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HA), is(200));
@@ -129,10 +137,12 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
@@ -151,11 +161,13 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
@@ -175,12 +187,14 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
                                                     SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
@@ -200,6 +214,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config-two.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
@@ -223,6 +238,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config-two.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
@@ -247,6 +263,7 @@ public class OperatorRestServerIT {
         try (JavaApplication app = platform.launch(JavaApplication.class,
                                                    ClassName.of(Main.class),
                                                    CacheConfig.of("test-cache-config-two.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
@@ -272,10 +289,12 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config-two.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
@@ -306,11 +325,13 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config-two.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "foo"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "bar"),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
@@ -336,11 +357,13 @@ public class OperatorRestServerIT {
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
                                                     ClassName.of(Main.class),
                                                     CacheConfig.of("test-cache-config-two.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
                                                     LocalStorage.disabled(),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
                                                         CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
                                                         LocalStorage.disabled(),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
