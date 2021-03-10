@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <!--
-  ~ Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+  ~ Copyright (c) 2019, 2021, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -117,4 +117,14 @@
       </socket-provider>
     </socket-providers>
   </cluster-config>
+
+  <management-config>
+    <mbeans>
+      <mbean id="coherence.operator">
+        <mbean-class>com.oracle.coherence.k8s.CoherenceOperator</mbean-class>
+        <mbean-name>type=KubernetesOperator</mbean-name>
+        <enabled>true</enabled>
+      </mbean>
+    </mbeans>
+  </management-config>
 </coherence>

@@ -268,8 +268,6 @@ public class OperatorRestServer {
             server.setExecutor(null); // creates a default executor
             server.start();
 
-            log("CoherenceOperator REST server is listening on http://localhost:%d", server.getAddress().getPort());
-
             httpServer = server;
         }
     }

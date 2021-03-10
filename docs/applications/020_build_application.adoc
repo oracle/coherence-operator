@@ -50,7 +50,7 @@ If the image does have an `EntryPoint`, it will just be ignored.
 
 The Coherence Operator actually injects its own `runner` executable into the container which the container runs and which
 in turn builds the Java command line to execute. The `runner` process looks at arguments and environment variables configured
-for the Coherence container and from these constructs a Java comamnd line that it then executes.
+for the Coherence container and from these constructs a Java command line that it then executes.
 
 The default command might look something like this:
 [source,bash]
