@@ -97,7 +97,8 @@ func (in *CoherenceReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
 			if err := in.finalizeDeployment(deployment); err != nil {
-				return ctrl.Result{}, err
+				log.Error(err, "Failed to remove finalizer")
+				return ctrl.Result{Requeue: true}, nil
 			}
 			// Remove the finalizer. Once all finalizers have been
 			// removed, the object will be deleted.

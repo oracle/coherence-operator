@@ -8984,6 +8984,10 @@ spec:
                     Minimum value is 1.
                   type: integer
               type: object
+            suspendServiceTimeout:
+              description: SuspendServiceTimeout sets the number of seconds to wait
+                for the service suspend call to return (the default is 60 seconds)
+              type: integer
             suspendServicesOnShutdown:
               description: A flag controlling whether storage enabled cache services
                 in this deployment will be suspended before the deployment is shutdown

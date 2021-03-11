@@ -89,6 +89,10 @@ type CoherenceResourceSpec struct {
 	// The default value if not specified is true.
 	// +optional
 	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
+	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
+	// call to return (the default is 60 seconds)
+	// +optional
+	SuspendServiceTimeout *int `json:"suspendServiceTimeout,omitempty"`
 	// StartQuorum controls the start-up order of this Coherence resource
 	// in relation to other Coherence resources.
 	// +listType=map
@@ -366,10 +370,14 @@ func (in *CoherenceResourceSpec) GetSuspendProbe() *Probe {
 
 // Obtain a default Suspend probe
 func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
-	timeout := 10
+	timeout := in.SuspendServiceTimeout
+	if timeout == nil {
+		oneMinute := 60
+		timeout = &oneMinute
+	}
 
 	probe := Probe{
-		TimeoutSeconds: &timeout,
+		TimeoutSeconds: timeout,
 		Handler: corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path: "/suspend",
