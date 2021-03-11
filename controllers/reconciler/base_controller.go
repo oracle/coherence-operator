@@ -400,7 +400,7 @@ func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg str
 	if err == nil {
 		logger.V(0).Info(msg)
 	} else {
-		logger.Error(err, msg)
+		logger.V(0).Info(msg + ": " + err.Error())
 	}
 
 	if deployment != nil {
@@ -408,7 +408,7 @@ func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg str
 		deployment.Status.Phase = coh.ConditionTypeFailed
 		if e := in.GetClient().Status().Update(context.TODO(), deployment); e != nil {
 			// There isn't much we can do, we're already handling an error
-			logger.Error(err, "failed to update deployment status")
+			logger.V(0).Info("failed to update deployment status due to: " + e.Error())
 		}
 
 		// send a failure event

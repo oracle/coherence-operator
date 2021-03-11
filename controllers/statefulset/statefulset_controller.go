@@ -299,7 +299,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 		result.Requeue = true
 	default:
 		// just an update
-		_, err = in.patchStatefulSet(deployment, current, desired, storage)
+		result, err = in.patchStatefulSet(deployment, current, desired, storage)
 	}
 
 	return result, err
@@ -311,14 +311,14 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 
 	currentReplicas := in.getReplicas(current)
 	if current.Status.ReadyReplicas != currentReplicas {
-		logger.Info(fmt.Sprintf("deployment %s - re-queing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		logger.Info(fmt.Sprintf("deployment %s - requing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 
 	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 	ha := checker.IsStatusHA(deployment, current)
 	if !ha {
-		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - re-queing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 
@@ -562,7 +562,7 @@ func (in *ReconcileStatefulSet) safeScale(deployment *coh.Coherence, sts *appsv1
 	logger.Info(fmt.Sprintf("Safe scaling from %d to %d", current, desired))
 
 	if sts.Status.ReadyReplicas != current {
-		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - re-queing scaling request. Stateful set ready replicas is %d", deployment.Name, sts.Status.ReadyReplicas))
+		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing scaling request. Stateful set ready replicas is %d", deployment.Name, sts.Status.ReadyReplicas))
 	}
 
 	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
@@ -594,7 +594,7 @@ func (in *ReconcileStatefulSet) safeScale(deployment *coh.Coherence, sts *appsv1
 	}
 
 	// Not StatusHA - wait one minute
-	logger.Info(fmt.Sprintf("deployment %s is not StatusHA - re-queing scaling request", deployment.Name))
+	logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing scaling request", deployment.Name))
 	return reconcile.Result{Requeue: true, RequeueAfter: in.statusHARetry}, nil
 }
 
