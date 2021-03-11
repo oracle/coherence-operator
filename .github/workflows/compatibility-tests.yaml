@@ -85,11 +85,6 @@ jobs:
         docker pull oraclecoherence/coherence-ce:14.1.1-0-1
         kind load docker-image --name operator oraclecoherence/coherence-ce:14.1.1-0-1
 
-    - name: Code Review
-      shell: bash
-      run: |
-        make code-review
-
     - name: Build
       shell: bash
       run: make all

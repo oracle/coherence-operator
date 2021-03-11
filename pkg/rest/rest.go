@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-// The rest package provides a ReST server for the Coherence Operator.
+// Package rest provides a ReST server for the Coherence Operator.
 package rest
 
 import (
@@ -25,18 +25,20 @@ import (
 
 // The logger to use to log messages
 var (
-	log   = logf.Log.WithName("rest-server")
-	svr   *server
+	log = logf.Log.WithName("rest-server")
+	svr *server
 )
 
 type handler struct {
 	fn func(w http.ResponseWriter, r *http.Request)
 }
 
+// ServeHTTP handles the http request
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.fn(w, r)
 }
 
+// Server is the Operator REST server.
 type Server interface {
 	// GetAddress returns the address that this server is listening on.
 	GetAddress() net.Addr
@@ -48,6 +50,7 @@ type Server interface {
 	GetHostAndPort() string
 	// Start the REST server
 	Start(stop <-chan struct{}) error
+	// SetupWithManager will configure the server to run when the manager starts
 	SetupWithManager(mgr ctrl.Manager) error
 }
 
@@ -60,6 +63,7 @@ func GetServerHostAndPort() string {
 	return svr.GetHostAndPort()
 }
 
+// NewServer will create a new REST server
 func NewServer(c clients.ClientSet) Server {
 	if svr == nil {
 		svr = &server{

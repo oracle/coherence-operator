@@ -9,10 +9,8 @@ package com.oracle.coherence.k8s;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
-import com.tangosol.run.xml.XmlElement;
 
 /**
  * A main class that is used to run some initialisation code before

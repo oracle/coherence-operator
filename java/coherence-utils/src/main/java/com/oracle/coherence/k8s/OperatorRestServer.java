@@ -369,10 +369,7 @@ public class OperatorRestServer {
             boolean isHA = isStatusHA();
             boolean isIdle = isPersistenceIdle();
             int response = isHA && isIdle ? 200 : 400;
-            if (response == 400) {
-                logDebug("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
-            }
-            else {
+            if (response == 400 || LOGGING_ENABLED) {
                 log("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
             }
             send(exchange, response);
@@ -402,7 +399,6 @@ public class OperatorRestServer {
      *
      * @param exchange the {@link HttpExchange} to send the response to
      */
-    @SuppressWarnings("unchecked")
     void suspend(HttpExchange exchange) {
         try {
             String   path  = exchange.getRequestURI().getPath();
@@ -606,7 +602,7 @@ public class OperatorRestServer {
             Map<String, Object> attributes = getMBeanAttributes(mBean, PERSISTENCE_IDLE_ATTRIBUTES);
             Boolean isIdle = (Boolean) attributes.get(ATTRIB_IDLE);
             if (!isIdle) {
-                log("CoherenceOperator: Persistence not idle for MBean %s" + mBean);
+                logDebug("CoherenceOperator: Persistence not idle for MBean %s" + mBean);
                 allIdle = false;
             }
         }
@@ -643,14 +639,9 @@ public class OperatorRestServer {
         if (storageEnabled != null && storageEnabled && memberCount != null && memberCount == 1) {
             // storage enabled and only one member, check we own all partitions
             safe = ownedPartitions != null && partitionCount != null && ownedPartitions.intValue() == partitionCount.intValue();
-            if (!safe) {
-                log("CoherenceOperator: Partitioned Cache Service MBean %s is not safe - %s", serviceMBean, attributes);
-            }
         }
 
-        if (safe) {
-            logDebug("CoherenceOperator: Partitioned Cache Service MBean %s is safe - %s", serviceMBean, attributes);
-        }
+        logDebug("CoherenceOperator: Partitioned Cache Service MBean %s is safe=%b - %s", serviceMBean, safe, attributes);
         return safe;
     }
 

@@ -103,6 +103,8 @@ func (in *ReconcileStatefulSet) Reconcile(request reconcile.Request) (reconcile.
 	return in.ReconcileResources(request, deployment, storage)
 }
 
+// ReconcileResources will process the specified reconcile request for the specified deployment.
+// The previous state being reconciled can be obtained from the storage parameter.
 func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
@@ -123,19 +125,26 @@ func (in *ReconcileStatefulSet) ReconcileResources(request reconcile.Request, de
 
 	switch {
 	case deployment == nil || deployment.GetReplicas() == 0:
+		// The Coherence resource does not exist or it exists and is scaling down to zero replicas
 		if stsExists {
-			// The deployment does not exist, or is scaling down to zero.
-			// Do service suspension if there is more than one replica...
+			// The StatefulSet does exist though, so it needs to be deleted.
 			if deployment != nil {
-				// If we get here we must be scaling down to zero
+				// If we get here we must be scaling down to zero as the Coherence resource exists
+				// If the Coherence resource did not exist then service suspension already happened
+				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
-				// we must be scaling down to zero so suspend services
-				probe := CoherenceProbe{
-					Client: in.GetClient(),
-					Config: in.GetManager().GetConfig(),
-				}
-				if !probe.SuspendServices(deployment, stsCurrent) {
-					return result, fmt.Errorf("failed to suspend services prior to scaling down to zero")
+				if deployment.Spec.SuspendServicesOnShutdown == nil || *deployment.Spec.SuspendServicesOnShutdown {
+					// we are scaling down to zero and suspend services flag is true, so suspend services
+					probe := CoherenceProbe{
+						Client: in.GetClient(),
+						Config: in.GetManager().GetConfig(),
+					}
+					if !probe.SuspendServices(deployment, stsCurrent) {
+						return result, fmt.Errorf("failed to suspend services prior to scaling down to zero")
+					}
+				} else {
+					logger.Info("Skipping suspension of Coherence services in deployment " + deployment.Name +
+						" prior to deletion of StatefulSet, Spec.SuspendServicesOnShutdown is set to false")
 				}
 			}
 			// delete the StatefulSet

@@ -60,6 +60,15 @@ func TestSnapshotPersistence(t *testing.T) {
 	assertPersistence("persistence-snapshot.yaml", "snapshot-volume", true, false, true, t)
 }
 
+// Deploy a Coherence resource with both persistence and snapshot configured. Persistence will be active,
+// a PVC will be created for the StatefulSet. Put data in a cache, take a snapshot,
+// delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
+func TestSnapshotWithActivePersistence(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	assertPersistence("persistence-active-snapshot.yaml", "snapshot-volume", true, true, true, t)
+}
+
 func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isRestart bool, t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
@@ -68,6 +77,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 	// check the pvc is created for the given volume
 	if pVolName != "" {
+		fmt.Printf("Checking existence of PVC %s\n", pVolName)
 		pvcName := ""
 		for _, vol := range pods[0].Spec.Volumes {
 			if vol.Name == pVolName {
@@ -85,18 +95,21 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 	}
 
 	// create data in some caches
+	fmt.Println("Initialise Canary Cache")
 	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	if isSnapshot {
 		// take a snapshot
+		fmt.Println("Creating Snapshot")
 		err = processSnapshotRequest(pods[0], Create)
 		g.Expect(err).NotTo(HaveOccurred())
 
-		defer processSnapshotRequest(pods[0], Delete)
+		defer processSnapshotRequestBlind(pods[0], Delete)
 	}
 
 	if isClearCanary {
+		fmt.Println("Clearing Canary Cache")
 		// delete the data
 		err = helper.ClearCanary(testContext, ns, deployment.GetName())
 		g.Expect(err).NotTo(HaveOccurred())
@@ -112,20 +125,24 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 		// dump the pod logs before deleting
 		helper.DumpPodsForTest(testContext, t)
 		// delete the deployment
+		fmt.Println("Deleting Coherence deployment")
 		err = helper.WaitForCoherenceCleanup(testContext, ns)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		// re-deploy the deployment
+		fmt.Println("Re-starting Coherence deployment")
 		deployment, pods = ensurePods(g, yamlFile, ns)
 	}
 
 	if isSnapshot {
 		// recover the snapshot
+		fmt.Println("Recovering Snapshot")
 		err = processSnapshotRequest(pods[0], Recover)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
 	// assert that the data is recovered
+	fmt.Println("Checking Canary cache")
 	err = helper.CheckCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -152,6 +169,13 @@ func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod
 	g.Expect(len(pods)).Should(BeNumerically(">", 0))
 
 	return deployment, pods
+}
+
+func processSnapshotRequestBlind(pod corev1.Pod, actionType snapshotActionType) {
+	err := processSnapshotRequest(pod, actionType)
+	if err != nil {
+		fmt.Printf("Failed to process snapshot request (type=%d) due to %s\n", actionType, err.Error())
+	}
 }
 
 func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error {

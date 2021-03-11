@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/testing_frameworks/integration"
 	"strings"
 	"testing"
@@ -68,7 +69,25 @@ func TestScalingDownWithKubectl(t *testing.T) {
 func TestScaleDownToZero(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZero", deploymentScaler)
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, nil)
+}
+
+// If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
+// This test scales down by directly updating the replica count in the deployment to zero.
+// it also sets the SuspendServicesOnShutdown flag specifically to true (the default is true if not set).
+func TestScaleDownToZeroWithSuspendTrue(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.BoolPtr(true))
+}
+
+// If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
+// This test scales down by directly updating the replica count in the deployment to zero,
+// it also sets the SuspendServicesOnShutdown flag specifically to false.
+func TestScaleDownToZeroWithSuspendFalse(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.BoolPtr(false))
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -76,7 +95,7 @@ func TestScaleDownToZero(t *testing.T) {
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZeroUsingKubectl", kubeCtlScaler)
+	assertScaleDownToZero(t, "DownToZeroUsingKubectl", kubeCtlScaler, nil)
 }
 
 // ----- helper methods ------------------------------------------------
@@ -169,7 +188,7 @@ func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasSt
 	}
 }
 
-func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction) {
+func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction, suspend *bool) {
 	const (
 		zero int32 = 0
 	)
@@ -184,6 +203,7 @@ func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction) {
 
 	//Give the deployment a unique name based on the test name
 	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
+	deployment.Spec.SuspendServicesOnShutdown = suspend
 
 	installSimpleDeployment(t, deployment)
 
