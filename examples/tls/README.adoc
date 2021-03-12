@@ -2,7 +2,7 @@
 
 This example is going to show how to use TLS (or SSL) to secure communication between different parts of a Coherence cluster and applications. This is quite a long guide as there are a number of things that can be secured wth TLS.
 
-This example shows how to use the Kubernetes Horizontal Pod Autoscaler to scale Coherence clusters.
+This example shows how to secure various parts of Coherence clusters using TLS.
 You can find the source code in the https://github.com/oracle/coherence-operator/tree/master/examples/tls[Operator GitHub Repo]
 
 In this example we are going to use https://cert-manager.io[Cert Manager] to manage the keys and certs for our Coherence server and clients. Cert Manage makes managing certificates in Kubernetes very simple, but it isn't the only solution.
@@ -34,6 +34,7 @@ If you do not want to use Cert Manager to try this example then a long as you ha
 ** <<socket_provider,Configure a Socket Provider>>
 * <<tcmp,Secure Cluster Membership>>
 * <<extend,Secure Extend>>
+* <<grpc,Secure gRPC>>
 
 
 [#install_operator]
