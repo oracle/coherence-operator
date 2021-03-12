@@ -325,8 +325,9 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					InitContainers: []corev1.Container{utilsContainer},
-					Containers:     []corev1.Container{cohContainer},
+					InitContainers:        []corev1.Container{utilsContainer},
+					Containers:            []corev1.Container{cohContainer},
+					ShareProcessNamespace: boolPtr(true),
 					Volumes: []corev1.Volume{
 						{
 							Name:         coh.VolumeNameJVM,

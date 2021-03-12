@@ -1,0 +1,226 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Capture Heap Dumps
+
+== Capture Heap Dumps
+
+Heap dumps can be very useful when debugging but generating and downloading a heap dump from a container in Kubernetes can be tricky. When you are running minimal images without an O/S or full JDK (such as the distroless images used by JIB) this becomes even more tricky.
+
+== Ephemeral Containers
+
+Ephemeral containers were introduced in k8s v1.16 and at the time of writing are still in alpha.
+Ephemeral containers is a feature gate that must be enabled for your cluster.
+If you have the `EphemeralContainers` feature gate enabled, then obtaining a heap dump is not so difficult.
+
+==== Enable EphemeralContainers in KinD
+
+We use https://kind.sigs.k8s.io[KinD] for a lot of our CI builds and testing, enabling the `EphemeralContainers` feature gate in KinD is very easy.
+
+For example, this KinD configuration enables the `EphemeralContainers` feature gate
+[source,yaml]
+----
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+featureGates:
+  EphemeralContainers: true # <1>
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+----
+<1> The `EphemeralContainers` feature gate is set to `true`
+
+=== Share Process Namespace
+
+In this example we are going to use the `jps` and `jcmd` tools to generate the heap dump from an ephemeral container.
+For this to work the ephemeral container must be able to see the processes running in the `coherence` container.
+The `Coherence` CRD spec has a field named `ShareProcessNamespace`, which sets the corresponding field in the Coherence Pods that will be created for the deployment. As of Operator v3.1.5, the value of this field defaults to `true`, for this specific reason.
+If using the Operator prior to v3.1.4, or if the `Coherence` deployment has had the `ShareProcessNamespace` field specifically set to `false` then the technique described below will not work.
+
+If you have some other way to trigger a heap dump to a specific location without requiring the ephemeral container to see the Coherence container processes then the technique below can still be used.
+
+=== Create an Ephemeral Container
+
+Let's say we have a Coherence cluster deployed named `test-cluster` in a namespace named `coherence-test`.
+There will be a number of Pods created for this deployment, named `test-cluster-0`, `test-cluster-1` and so on.
+For this example we will obtain a heap dump from Pod `test-cluster-1`.
+
+The purpose of using an ephemeral container is because the Coherence container we are running does not contain any of the tools and programs we require for debugging, e.g. `jps`, `jcmd` etc.
+The ephemeral container we run obviously needs to have all the required tools. You could create a custom image with what you need in it, but for this example we will use the `openjdk:11` image, as it has a full JDK and other tools we need in it.
+You should obviously use a JDK version that matches the version in the Coherence container.
+
+We can use the `kubectl debug` command that can be used to create an ephemeral containers.
+For our purposes we cannot use this command as we will require volume mounts to share storage between the ephemeral container and the Coherence container so that the ephemeral container can see the heap dump file.
+
+Instead of the `kubectl debug` command we can create ephemeral containers using the `kubectl --raw` API.
+Ephemeral containers are a sub-resource of the Pod API.
+
+* First obtain the current ephemeral containers sub-resource for the Pod.
+We do this using the `kubectl get --raw` command with the URL path in the format `/api/v1/namespaces/<namespace>>/pods/<pod>/ephemeralcontainers`, where `<namespace>` is the namespace that the Pod is deployed into and `<pod>` is the name of the Pod.
+
+So in our example the command would be:
+[source,bash]
+----
+kubectl get --raw /api/v1/namespaces/coherence-test/pods/test-cluster-1/ephemeralcontainers
+----
+
+Which will output json similar to this, which we will save to a file named `ec.json`:
+[source,json]
+.ec.json
+----
+{
+  "kind": "EphemeralContainers",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "test-cluster-1",
+    "namespace": "coherence-test",
+    "selfLink": "/api/v1/namespaces/coherence-test/pods/test-cluster-1/ephemeralcontainers",
+    "uid": "731ca9a9-332f-4999-821d-adfea2e1d2d4",
+    "resourceVersion": "24921",
+    "creationTimestamp": "2021-03-12T10:41:35Z"
+  },
+  "ephemeralContainers": []
+}
+----
+
+The `"ephemeralContainers"` field is an empty array as we have not created any previous containers.
+
+We now need to edit this yaml to define the ephemeral container we want to create.
+The Pod created by the Operator contains an empty directory volume with a volume mount at `/coherence-operator/jvm`, which is where the JVM is configured to dump debug information, such as heap dumps.
+We will create an ephemeral container with the same mount so that the `/coherence-operator/jvm` directory will be shared between the Coherence container and the ephemeral container.
+
+Another thing to note is that the default entrypoint in the `openjdk:11` image we are using in this example is JShell.
+This is obviously not what we want, so we will make sure we specify `/bin/sh` as the entry point as we want a command line shell.
+
+Our edited `ec.json` file looks like this:
+[source,json]
+.ec.json
+----
+{
+  "kind": "EphemeralContainers",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "test-cluster-1",
+    "namespace": "coherence-test",
+    "selfLink": "/api/v1/namespaces/coherence-test/pods/test-cluster-1/ephemeralcontainers",
+    "uid": "731ca9a9-332f-4999-821d-adfea2e1d2d4",
+    "resourceVersion": "24921",
+    "creationTimestamp": "2021-03-12T10:41:35Z"
+  },
+  "ephemeralContainers": [
+    {
+      "name": "debug",                                 <1>
+      "image": "openjdk:11",                           <2>
+      "command": [
+          "bin/sh"                                     <3>
+      ],
+      "imagePullPolicy": "IfNotPresent",               <4>
+      "terminationMessagePolicy":"File",
+      "stdin": true,                                   <5>
+      "tty": true,
+      "volumeMounts": [
+          {
+              "mountPath": "/coherence-operator/jvm",  <6>
+              "name": "jvm"
+          }
+      ]
+    }
+  ]
+}
+----
+
+<1> We add an ephemeral container named `debug`. The name can be anything as long as it is unique in the Pod.
+
+<2> We specify that the image used for the container is `openjdk:11`
+
+<3> Specify `/bin/sh` as the container entry point so that we get a command line shell
+
+<4> We must specify an image pull policy
+
+<5> We want an interactive container, so we specify `stdin` and `tty`
+
+<6> We create the same volume mount to `/coherence-operator/jvm` that the Coherence container has.
+
+
+We can now re-apply the json to add the new ephemeral container using the `kubectl replace --raw` command to the same URL path we used for the `get` command above, this time using `-f ec.json` to specify the json we want to replace.
+
+[source,bash]
+----
+kubectl replace --raw /api/v1/namespaces/coherence-test/pods/test-cluster-1/ephemeralcontainers -f ec.json
+----
+
+After executing the above command the ephemeral container should have been created, we can now attach to it.
+
+=== Attach to the Ephemeral Container
+
+We now have an ephemeral container named `debug` in the Pod `test-cluster-1`.
+We need to attach to the container so that we can create the heap dump.
+
+[source,bash]
+----
+kubectl attach test-cluster-1 -c debug -it -n coherence-test
+----
+
+The command above will attach an interactive (`-it`) session to the `debug` container (specified with `-c debug`) in Pod `test-cluster-1`, in the namespace `coherence-test`.
+Displaying something like this:
+
+[source,bash]
+----
+If you don't see a command prompt, try pressing enter.
+
+#
+----
+
+=== Trigger the Heap Dump
+
+We can now generate the heap dump for the Coherence process using `jcmd`, but first we need to find its PID using `jps`.
+
+[source,bash]
+----
+jps -l
+----
+
+Which will display something like this:
+[source,bash]
+----
+117 jdk.jcmd/sun.tools.jps.Jps
+55 com.oracle.coherence.k8s.Main
+----
+
+The main class run by the Operator is `com.oracle.coherence.k8s.Main` so the PID of the Coherence process is `55`.
+We can now use `jcmd` to generate the heap dump. We need to make sure that the heap dump is created in the `/coherence-operator/jvm/` directory, as this is shared between both containers.
+
+[source,bash]
+----
+jcmd 55 GC.heap_dump /coherence-operator/jvm/heap-dump.hprof
+----
+
+After running the command above, we will have a heap dump file that we can access from the ephemeral `Pod`.
+We have a number of choices about how to get the file out of the Pod and somewhere that we can analyze it.
+We could use `sftp` to ship it somewhere, or some tools to copy it to cloud storage or just simply use `kubectl cp` to copy it.
+
+NOTE: Do not exit out of the ephemeral container session until you have copied the heap dump.
+
+The `kubectl cp` command is in the form `kubectl cp <namespace>/<pod>/<file> <local-file> -c <container>`.
+So to use `kubectl cp` we can execute a command like the following:
+
+[source,bash]
+----
+kubectl cp coherence-test/test-cluster-1:/coherence-operator/jvm/heap-dump.hprof \
+    $(pwd)/heap-dump.hprof -c debug
+----
+
+We will now have a file called `heap-dump.hprof` in the current directory.
+We can now exit out of the ephemeral container.
+
+
+
+
+
+

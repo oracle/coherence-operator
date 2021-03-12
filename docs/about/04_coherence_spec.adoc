@@ -129,7 +129,7 @@ For example: +
  +
   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#toleration-v1-core[corev1.Toleration] | false
 m| securityContext | SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#podsecuritycontext-v1-core[corev1.PodSecurityContext] | false
-m| shareProcessNamespace | Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
+m| shareProcessNamespace | Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to true. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false
 m| network | Configure various networks and DNS settings for Pods in this rolw. m| &#42;<<NetworkSpec,NetworkSpec>> | false
 m| coherenceUtils | The configuration for the Coherence utils image m| &#42;<<ImageSpec,ImageSpec>> | false
