@@ -38,13 +38,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.oracle.coherence.kubernetes</groupId>
-            <artifactId>coherence-utils</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>io.helidon.microprofile.bundles</groupId>
             <artifactId>helidon-microprofile</artifactId>
         </dependency>
