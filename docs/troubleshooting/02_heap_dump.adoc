@@ -36,14 +36,25 @@ nodes:
 ----
 <1> The `EphemeralContainers` feature gate is set to `true`
 
-=== Share Process Namespace
+=== Shared Process Namespace
 
 In this example we are going to use the `jps` and `jcmd` tools to generate the heap dump from an ephemeral container.
 For this to work the ephemeral container must be able to see the processes running in the `coherence` container.
-The `Coherence` CRD spec has a field named `ShareProcessNamespace`, which sets the corresponding field in the Coherence Pods that will be created for the deployment. As of Operator v3.1.5, the value of this field defaults to `true`, for this specific reason.
-If using the Operator prior to v3.1.4, or if the `Coherence` deployment has had the `ShareProcessNamespace` field specifically set to `false` then the technique described below will not work.
+The `Coherence` CRD spec has a field named `ShareProcessNamespace`, which sets the corresponding field in the Coherence Pods that will be created for the deployment.
 
-If you have some other way to trigger a heap dump to a specific location without requiring the ephemeral container to see the Coherence container processes then the technique below can still be used.
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  shareProcessNamespace: true   # <1>
+----
+
+<1> The `shareProcessNamespace` must be set to `true`.
+
+If you have some other way to trigger a heap dump to a specific location without requiring the ephemeral container to see the Coherence container processes then the technique below can still be used without setting `shareProcessNamespace` to `true`.
 
 === Create an Ephemeral Container
 

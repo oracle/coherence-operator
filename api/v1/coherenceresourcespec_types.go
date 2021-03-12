@@ -217,7 +217,7 @@ type CoherenceResourceSpec struct {
 	// Share a single process namespace between all of the containers in a pod. When this is set containers will
 	// be able to view and signal processes from other containers in the same pod, and the first process in each
 	// container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set.
-	// Optional: Default to true.
+	// Optional: Default to false.
 	// +optional
 	ShareProcessNamespace *bool `json:"shareProcessNamespace,omitempty"`
 	// Use the host's ipc namespace. Optional: Default to false.
@@ -330,15 +330,6 @@ func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 		return DefaultHealthPort
 	}
 	return *in.HealthPort
-}
-
-// ShareProcessNamespace returns the ShareProcessNamespace field, or a "true" bool pointer
-// if the ShareProcessNamespace field is not set.
-func (in *CoherenceResourceSpec) GetShareProcessNamespace() *bool {
-	if in == nil || in.ShareProcessNamespace == nil {
-		return pointer.BoolPtr(true)
-	}
-	return in.ShareProcessNamespace
 }
 
 // Returns the Probe to use for checking Phase HA for the deployment.
@@ -607,7 +598,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				ServiceAccountName:           in.GetServiceAccountName(),
 				AutomountServiceAccountToken: in.AutomountServiceAccountToken,
 				SecurityContext:              in.SecurityContext,
-				ShareProcessNamespace:        in.GetShareProcessNamespace(),
+				ShareProcessNamespace:        in.ShareProcessNamespace,
 				HostIPC:                      notNilBool(in.HostIPC),
 				Tolerations:                  in.Tolerations,
 				Affinity:                     in.EnsurePodAffinity(deployment),

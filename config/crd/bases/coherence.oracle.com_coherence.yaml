@@ -7955,7 +7955,7 @@ spec:
                   view and signal processes from other containers in the same pod,
                   and the first process in each container will not be assigned PID
                   1. HostPID and ShareProcessNamespace cannot both be set. Optional:
-                  Default to true.'
+                  Default to false.'
                 type: boolean
               sideCars:
                 description: List of additional side-car containers to add to the
