@@ -52,6 +52,7 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
+        docker pull gcr.io/distroless/java:11
 
     - name: Release
       shell: bash
