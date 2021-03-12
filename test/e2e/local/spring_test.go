@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -18,23 +18,23 @@ import (
 func TestStartSpringCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "spring-cluster.yaml")
-	AssertEndpoint(t, pods)
+	AssertSpringEndpoint(t, pods)
 }
 
 func TestStartSpringFatJarCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "spring-fat-jar-cluster.yaml")
-	AssertEndpoint(t, pods)
+	AssertSpringEndpoint(t, pods)
 }
 
 func TestStartSpringBuildpacksCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
-	AssertEndpoint(t, pods)
+	AssertSpringEndpoint(t, pods)
 }
 
 // Assert that we can hit the Spring Boot web-app endpoint
-func AssertEndpoint(t *testing.T, pods []corev1.Pod) {
+func AssertSpringEndpoint(t *testing.T, pods []corev1.Pod) {
 	g := NewGomegaWithT(t)
 
 	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])

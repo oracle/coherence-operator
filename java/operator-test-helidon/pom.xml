@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.oracle.coherence.kubernetes</groupId>
+        <artifactId>operator-parent</artifactId>
+        <version>3.1.5</version>
+    </parent>
+
+    <artifactId>operator-test-helidon</artifactId>
+
+    <description>Oracle Coherence Kubernetes Operator Test (Helidon)</description>
+    <name>operator-test-helidon</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-cdi-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-management</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle.coherence.kubernetes</groupId>
+            <artifactId>coherence-utils</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.helidon.microprofile.bundles</groupId>
+            <artifactId>helidon-microprofile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jandex</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${version.plugin.jib}</version>
+                <configuration>
+                    <container>
+                      <mainClass>io.helidon.microprofile.cdi.Main</mainClass>
+                    </container>
+                    <!-- MUST use packaged mode for Helidon CDI application -->
+                    <containerizingMode>packaged</containerizingMode>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
