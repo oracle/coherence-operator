@@ -76,6 +76,7 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
+        docker pull gcr.io/distroless/java:11
         docker pull ghcr.io/oracle/coherence-operator:3.0.2
         docker tag ghcr.io/oracle/coherence-operator:3.0.2 container-registry.oracle.com/middleware/coherence-operator:3.0.2
         kind load docker-image --name operator container-registry.oracle.com/middleware/coherence-operator:3.0.2
