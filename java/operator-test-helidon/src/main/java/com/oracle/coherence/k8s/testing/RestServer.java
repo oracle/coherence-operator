@@ -38,6 +38,9 @@ public class RestServer {
 
     private static final JsonBuilderFactory JSON = Json.createBuilderFactory(Collections.emptyMap());
 
+    /**
+     * @return always returns {@code "ok"}
+     */
     @GET
     @Path("ready")
     @Produces(MediaType.TEXT_PLAIN)
@@ -45,6 +48,11 @@ public class RestServer {
         return "ok";
     }
 
+    /**
+     * Returns the JVM environment variables.
+     *
+     * @return the JVM environment variables
+     */
     @GET
     @Path("env")
     @Produces(MediaType.APPLICATION_JSON)
@@ -61,6 +69,11 @@ public class RestServer {
                 .build();
     }
 
+    /**
+     * Returns the JVM system properties.
+     *
+     * @return the JVM system properties
+     */
     @GET
     @Path("props")
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,7 +90,11 @@ public class RestServer {
                 .build();
     }
 
-
+    /**
+     * Suspend the canary cache service.
+     *
+     * @return always returns {@code "ok"}
+     */
     @PUT
     @Path("suspend")
     @Produces(MediaType.TEXT_PLAIN)
@@ -87,6 +104,11 @@ public class RestServer {
         return "ok";
     }
 
+    /**
+     * Resume the canary cache service.
+     *
+     * @return always returns {@code "ok"}
+     */
     @PUT
     @Path("resume")
     @Produces(MediaType.TEXT_PLAIN)
@@ -96,6 +118,11 @@ public class RestServer {
         return "ok";
     }
 
+    /**
+     * Initialise the canary cache.
+     *
+     * @return always returns {@code "ok"}
+     */
     @PUT
     @Path("canaryStart")
     @Produces(MediaType.TEXT_PLAIN)
@@ -111,6 +138,11 @@ public class RestServer {
         return "ok";
     }
 
+    /**
+     * Check the canary cache.
+     *
+     * @return the number of entries in the canary cache
+     */
     @GET
     @Path("canaryCheck")
     @Produces(MediaType.APPLICATION_JSON)
@@ -130,6 +162,11 @@ public class RestServer {
         }
     }
 
+    /**
+     * Clear the canary cache.
+     *
+     * @return always returns {@code "ok"}
+     */
     @POST
     @Path("canaryClear")
     @Produces(MediaType.TEXT_PLAIN)
