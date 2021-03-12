@@ -67,6 +67,7 @@ BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 # The test application images used in integration tests
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
 TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-compatibility:$(VERSION)
+TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-helidon
 TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring
 TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
@@ -308,6 +309,7 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -357,6 +359,7 @@ run-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -399,6 +402,7 @@ e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-o
 run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -442,6 +446,7 @@ e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operato
 run-elastic-test: export CGO_ENABLED = 0
 run-elastic-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-elastic-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -469,6 +474,7 @@ run-elastic-test: gotestsum
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -520,6 +526,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -1048,6 +1055,7 @@ endif
 .PHONY: build-test-images
 build-test-images: build-mvn
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
@@ -1062,6 +1070,7 @@ build-test-images: build-mvn
 .PHONY: push-test-images
 push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE)
+	docker push $(TEST_APPLICATION_IMAGE_HELIDON)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
@@ -1203,6 +1212,7 @@ kind-19-start:
 .PHONY: kind-load
 kind-load: kind-load-operator
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_HELIDON) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
