@@ -988,7 +988,7 @@ build-mvn:
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
-test-mvn: build-mvn
+test-mvn: $(BUILD_OUTPUT)/certs build-mvn
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
