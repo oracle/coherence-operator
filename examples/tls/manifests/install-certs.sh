@@ -29,20 +29,20 @@ kubectl -n ${CM_NAMESPACE} wait --for=condition=Ready ${POD}
 kubectl apply -f ${BASEDIR}/selfsigned-issuer.yaml
 kubectl wait --for=condition=Ready clusterissuer/selfsigned-issuer
 
-kubectl -n ${CM_NAMESPACE} apply -f manifests/ca-cert.yaml
+kubectl -n ${CM_NAMESPACE} apply -f ${BASEDIR}/ca-cert.yaml
 kubectl -n ${CM_NAMESPACE} wait --for=condition=Ready certificate/ca-certificate
 
-kubectl apply -f manifests/ca-issuer.yaml
+kubectl apply -f ${BASEDIR}/ca-issuer.yaml
 kubectl wait --for=condition=Ready clusterissuer/ca-issuer
 
 
 kubectl create ns ${COH_NAMESPACE}
 
 kubectl -n ${COH_NAMESPACE} create secret generic server-keystore-secret --from-literal=password-key=password
-kubectl -n ${COH_NAMESPACE} apply -f manifests/server-keystore.yaml
+kubectl -n ${COH_NAMESPACE} apply -f ${BASEDIR}/server-keystore.yaml
 kubectl -n ${COH_NAMESPACE} wait --for=condition=Ready certificate/server-keystore
 
 kubectl -n ${COH_NAMESPACE} create secret generic client-keystore-secret --from-literal=password-key=secret
-kubectl -n ${COH_NAMESPACE} apply -f manifests/client-keystore.yaml
+kubectl -n ${COH_NAMESPACE} apply -f ${BASEDIR}/client-keystore.yaml
 kubectl -n ${COH_NAMESPACE} wait --for=condition=Ready certificate/client-keystore
 
