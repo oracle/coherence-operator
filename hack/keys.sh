@@ -13,7 +13,7 @@ fi
 mkdir -p build/_output/certs
 
 echo Generate Guardians CA key:
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/guardians-ca.key 4096
 
 echo Generate Guardians CA certificate:
@@ -23,7 +23,7 @@ openssl req -passin pass:1111 -new -x509 -days 3650 \
     -subj "/CN=${COMPUTERNAME}" # guardians-ca.crt is a trustCertCollectionFile
 
 echo Generate Ravagers CA key:
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/ravagers-ca.key 4096
 
 echo Generate Ravagers CA certificate:
@@ -34,7 +34,7 @@ openssl req -passin pass:1111 -new -x509 -days 3650 \
 
 
 echo Generate Icarus key:
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/icarus.key 4096
 
 echo Generate Icarus signing request:
@@ -58,7 +58,7 @@ openssl rsa -passin pass:1111 \
 
 
 echo Generate client Star-Lord key
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/star-lord.key 4096
 
 echo Generate client Star-Lord signing request:
@@ -80,7 +80,7 @@ openssl rsa -passin pass:1111 \
     -out build/_output/certs/star-lord.key
 
 echo Generate client Groot key
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/groot.key 4096
 
 echo Generate client Groot signing request:
@@ -103,7 +103,7 @@ openssl rsa -passin pass:1111 \
 
 
 echo Generate client Yondu key
-openssl genrsa -passout pass:1111 -des3 \
+openssl genrsa -passout pass:1111 -aes256 \
     -out build/_output/certs/yondu.key 4096
 
 echo Generate client Yondu signing request:
@@ -145,25 +145,26 @@ openssl pkcs8 -topk8 -nocrypt \
 # Create the Java trust store
 rm build/_output/certs/*.jks
 
-KEYPASS="password"
-STOREPASS="secret"
+KEYPASS="p455w0rd"
+STOREPASS="p455w0rd"
+TRUSTPASS="secret"
 
-keytool -import -storepass ${STOREPASS} -noprompt -trustcacerts \
+keytool -import -storepass ${TRUSTPASS} -noprompt -trustcacerts \
     -alias guardians -file build/_output/certs/guardians-ca.crt \
     -keystore build/_output/certs/truststore-guardians.jks \
     -deststoretype JKS
 
-keytool -import -storepass ${STOREPASS} -noprompt -trustcacerts \
+keytool -import -storepass ${TRUSTPASS} -noprompt -trustcacerts \
     -alias ravagers -file build/_output/certs/ravagers-ca.crt \
     -keystore build/_output/certs/truststore-ravagers.jks \
     -deststoretype JKS
 
-keytool -import -storepass ${STOREPASS} -noprompt -trustcacerts \
+keytool -import -storepass ${TRUSTPASS} -noprompt -trustcacerts \
     -alias guardians -file build/_output/certs/guardians-ca.crt \
     -keystore build/_output/certs/truststore-all.jks \
     -deststoretype JKS
 
-keytool -import -storepass ${STOREPASS} -noprompt -trustcacerts \
+keytool -import -storepass ${TRUSTPASS} -noprompt -trustcacerts \
     -alias ravagers -file build/_output/certs/ravagers-ca.crt \
     -keystore build/_output/certs/truststore-all.jks \
     -deststoretype JKS
@@ -173,7 +174,7 @@ openssl pkcs12 -export -passout pass:${KEYPASS} \
     -name test -in build/_output/certs/icarus.crt \
     -out build/_output/certs/icarus.p12
 
-keytool -importkeystore -storepass password -noprompt \
+keytool -importkeystore -storepass ${STOREPASS} -noprompt \
     -srcstorepass ${KEYPASS} \
     -srckeystore build/_output/certs/icarus.p12 \
     -srcstoretype pkcs12 \
@@ -185,7 +186,7 @@ openssl pkcs12 -export -passout pass:${KEYPASS} \
     -name test -in build/_output/certs/star-lord.crt \
     -out build/_output/certs/star-lord.p12
 
-keytool -importkeystore -storepass password -noprompt \
+keytool -importkeystore -storepass ${STOREPASS} -noprompt \
     -srcstorepass ${KEYPASS} \
     -srckeystore build/_output/certs/star-lord.p12 \
     -srcstoretype pkcs12 \
@@ -197,7 +198,7 @@ openssl pkcs12 -export -passout pass:${KEYPASS} \
     -name test -in build/_output/certs/groot.crt \
     -out build/_output/certs/groot.p12
 
-keytool -importkeystore -storepass password -noprompt \
+keytool -importkeystore -storepass ${STOREPASS} -noprompt \
     -srcstorepass ${KEYPASS} \
     -srckeystore build/_output/certs/groot.p12 \
     -srcstoretype pkcs12 \
@@ -209,7 +210,7 @@ openssl pkcs12 -export -passout pass:${KEYPASS} \
     -name test -in build/_output/certs/yondu.crt \
     -out build/_output/certs/yondu.p12
 
-keytool -importkeystore -storepass password -noprompt \
+keytool -importkeystore -storepass ${STOREPASS} -noprompt \
     -srcstorepass ${KEYPASS} \
     -srckeystore build/_output/certs/yondu.p12 \
     -srcstoretype pkcs12 \
@@ -218,4 +219,4 @@ keytool -importkeystore -storepass password -noprompt \
 
 echo ${KEYPASS} > build/_output/certs/keypassword.txt
 echo ${KEYPASS} > build/_output/certs/storepassword.txt
-echo ${STOREPASS} > build/_output/certs/trustpassword.txt
+echo ${TRUSTPASS} > build/_output/certs/trustpassword.txt

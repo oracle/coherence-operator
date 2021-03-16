@@ -14,7 +14,6 @@ import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
 
 import com.oracle.bedrock.runtime.LocalPlatform;

@@ -6,7 +6,6 @@
 
 package com.oracle.coherence.k8s;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 import com.tangosol.net.Coherence;
@@ -51,14 +50,14 @@ public class Main {
     /**
      * Initialise the application.
      *
-     * @throws IOException if there is an error starting the REST server.
+     * @throws Exception if there is an error starting the REST server.
      */
-    public static synchronized void init() throws IOException {
+    public static synchronized void init() throws Exception {
         if (initialised) {
             return;
         }
         initialised = true;
-        OperatorRestServer server = new OperatorRestServer();
+        OperatorRestServer server = new OperatorRestServer(System.getProperties());
         server.start();
     }
 

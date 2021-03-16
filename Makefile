@@ -171,7 +171,7 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
-override BUILD_OUTPUT        := ./build/_output
+override BUILD_OUTPUT        := $(CURRDIR)/build/_output
 override BUILD_ASSETS        := $(BUILD_OUTPUT)/assets
 override BUILD_BIN           := ./bin
 override BUILD_DEPLOY        := $(BUILD_OUTPUT)/config
@@ -989,7 +989,7 @@ build-mvn:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples

@@ -45,11 +45,13 @@
     <coherence.test.base.image>gcr.io/distroless/java:11</coherence.test.base.image>
     <coherence.compatibility.coherence.image>oraclecoherence/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
     <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}</coherence.compatibility.image.name>
-    
+
+    <test.certs.location>../build/_output/certs</test.certs.location>
+
     <!-- library dependency versions -->
     <version.lib.activation-api>1.2.2</version.lib.activation-api>
     <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
-    <version.lib.bedrock>5.0.16</version.lib.bedrock>
+    <version.lib.bedrock>5.1.1</version.lib.bedrock>
     <version.lib.checkstyle>8.18</version.lib.checkstyle>
     <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
     <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
@@ -142,7 +144,7 @@
       </dependency>
       <dependency>
         <groupId>com.oracle.bedrock.coherence</groupId>
-        <artifactId>coherence-12.2.1-testing-support</artifactId>
+        <artifactId>coherence-14.1.1-testing-support</artifactId>
         <version>${version.lib.bedrock}</version>
         <scope>test</scope>
       </dependency>

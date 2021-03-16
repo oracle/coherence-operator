@@ -9,7 +9,10 @@ package com.oracle.coherence.k8s;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -18,12 +21,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -37,11 +46,14 @@ import com.tangosol.util.Filters;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 
 /**
  * Simple http endpoint for heath checking.
  */
-public class OperatorRestServer {
+public class OperatorRestServer implements AutoCloseable {
     // ----- constants ------------------------------------------------------
 
     /**
@@ -63,6 +75,81 @@ public class OperatorRestServer {
      * The system property to use to determine whether to wait for DCS to start.
      */
     public static final String PROP_WAIT_FOR_DCS = "coherence.k8s.operator.health.wait.dcs";
+
+    /**
+     * The system property for the TLS keystore file name.
+     */
+    public static final String PROP_TLS_KEYSTORE = "coherence.k8s.operator.health.tls.keystore.file";
+
+    /**
+     * The system property for the TLS keystore type.
+     */
+    public static final String PROP_TLS_KEYSTORE_TYPE = "coherence.k8s.operator.health.tls.keystore.type";
+
+    /**
+     * The system property for the TLS keystore algorithm.
+     */
+    public static final String PROP_TLS_KEYSTORE_ALGORITHM = "coherence.k8s.operator.health.tls.keystore.algorithm";
+
+    /**
+     * The system property for the TLS keystore password.
+     */
+    public static final String PROP_TLS_KEYSTORE_PASSWORD = "coherence.k8s.operator.health.tls.keystore.password.plain";
+
+    /**
+     * The system property for the TLS keystore password file name.
+     */
+    public static final String PROP_TLS_KEYSTORE_PASSWORD_FILE = "coherence.k8s.operator.health.tls.keystore.password.file";
+
+    /**
+     * The system property for the TLS keystore key password.
+     */
+    public static final String PROP_TLS_KEY_PASSWORD = "coherence.k8s.operator.health.tls.key.password.plain";
+
+    /**
+     * The system property for the TLS keystore key password file name.
+     */
+    public static final String PROP_TLS_KEY_PASSWORD_FILE = "coherence.k8s.operator.health.tls.key.password.file";
+
+    /**
+     * The system property for the TLS trust store file name.
+     */
+    public static final String PROP_TLS_TRUSTSTORE = "coherence.k8s.operator.health.tls.truststore.file";
+
+    /**
+     * The system property for the TLS trust store type.
+     */
+    public static final String PROP_TLS_TRUSTSTORE_TYPE = "coherence.k8s.operator.health.tls.truststore.type";
+
+    /**
+     * The system property for the TLS trust store algorithm.
+     */
+    public static final String PROP_TLS_TRUSTSTORE_ALGORITHM = "coherence.k8s.operator.health.tls.truststore.algorithm";
+
+    /**
+     * The system property for the TLS trust store password.
+     */
+    public static final String PROP_TLS_TRUSTSTORE_PASSWORD = "coherence.k8s.operator.health.tls.truststore.password.plain";
+
+    /**
+     * The system property for the TLS trust store password file name.
+     */
+    public static final String PROP_TLS_TRUSTSTORE_PASSWORD_FILE = "coherence.k8s.operator.health.tls.truststore.password.file";
+
+    /**
+     * The system property for the TLS protocol.
+     */
+    public static final String PROP_TLS_PROTOCOL = "coherence.k8s.operator.health.tls.protocol";
+
+    /**
+     * The system property to indicate whether TLS is 2-way.
+     */
+    public static final String PROP_TLS_TWO_WAY = "coherence.k8s.operator.health.tls.twoway";
+
+    /**
+     * The system property to enable or disable TLS.
+     */
+    public static final String PROP_INSECURE = "coherence.k8s.operator.health.insecure";
 
     /**
      * The path to the ready endpoint.
@@ -227,6 +314,16 @@ public class OperatorRestServer {
     private final Runnable waitForServiceStart;
 
     /**
+     * The {@link java.util.Properties} used to configure the server.
+     */
+    private final Properties properties;
+
+    /**
+     * Flag indicating whether to use TLS.
+     */
+    private final boolean secure;
+
+    /**
      * Flag indicating whether this application has ever been in a ready state.
      * <p>
      * Because k8s checks the readiness probe a number of time the conditions for the Pod
@@ -237,13 +334,19 @@ public class OperatorRestServer {
 
     // ----- constructors ---------------------------------------------------
 
-    OperatorRestServer() {
-        this(CacheFactory::getCluster, OperatorRestServer::waitForDCS);
+    OperatorRestServer(Properties properties) {
+        this(CacheFactory::getCluster, OperatorRestServer::waitForDCS, properties);
     }
 
     OperatorRestServer(Supplier<Cluster> supplier, Runnable waitForServiceStart) {
+        this(supplier, waitForServiceStart, System.getProperties());
+    }
+
+    OperatorRestServer(Supplier<Cluster> supplier, Runnable waitForServiceStart, Properties properties) {
         this.clusterSupplier = supplier;
         this.waitForServiceStart = waitForServiceStart;
+        this.properties = properties;
+        this.secure = !Boolean.parseBoolean(properties.getProperty(PROP_INSECURE, "true"));
     }
 
     // ----- HealthServer methods ------------------------------------------------
@@ -251,12 +354,12 @@ public class OperatorRestServer {
     /**
      * Start a http server.
      *
-     * @throws IOException if an error occurs
+     * @throws Exception if an error occurs
      */
-    public synchronized void start() throws IOException {
+    public synchronized void start() throws Exception {
         if (httpServer == null) {
-            int port = Integer.getInteger(PROP_HEALTH_PORT, 6676);
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+            int port = Integer.parseInt(properties.getProperty(PROP_HEALTH_PORT, "6676"));
+            HttpServer server = secure ? tlsServer(port) : plainServer(port);
 
             server.createContext(PATH_READY, this::ready);
             server.createContext(PATH_HEALTH, this::health);
@@ -272,7 +375,118 @@ public class OperatorRestServer {
         }
     }
 
+    @Override
+    public synchronized void close() {
+        if (httpServer != null) {
+            httpServer.stop(0);
+            httpServer = null;
+        }
+    }
+
+    public int getPort() {
+        return httpServer == null ? -1 : httpServer.getAddress().getPort();
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
     // ----- helper methods -------------------------------------------------
+
+    private HttpServer plainServer(int port) throws Exception {
+        return HttpServer.create(new InetSocketAddress(port), 0);
+    }
+
+    private HttpServer tlsServer(int port) throws Exception {
+        boolean twoWay = Boolean.parseBoolean(properties.getProperty(PROP_TLS_TWO_WAY, "true"));
+        HttpsServer server = HttpsServer.create(new InetSocketAddress(port), 0);
+        SSLContext sslContext = createSSLContext(properties);
+
+        server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+            public void configure(HttpsParameters params) {
+                try {
+                    // initialise the SSL context
+                    params.setSSLParameters(getSSLParameters(twoWay));
+                    SSLEngine engine = sslContext.createSSLEngine();
+                    params.setCipherSuites(engine.getEnabledCipherSuites());
+                    params.setProtocols(engine.getEnabledProtocols());
+                    params.setWantClientAuth(twoWay);
+                }
+                catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+        return server;
+    }
+
+    static SSLContext createSSLContext(Properties properties) throws Exception {
+        String protocol = properties.getProperty(PROP_TLS_PROTOCOL, "TLS");
+        String keystoreFilename = properties.getProperty(PROP_TLS_KEYSTORE);
+        char[] keystorePassword = properties.getProperty(PROP_TLS_KEYSTORE_PASSWORD, "").toCharArray();
+        String keystorePasswordFile = properties.getProperty(PROP_TLS_KEYSTORE_PASSWORD_FILE);
+        char[] keyPassword = properties.getProperty(PROP_TLS_KEY_PASSWORD, "").toCharArray();
+        String keyPasswordFile = properties.getProperty(PROP_TLS_KEY_PASSWORD_FILE);
+        String keystoreType = properties.getProperty(PROP_TLS_KEYSTORE_TYPE, "JKS");
+        String keystoreAlgo = properties.getProperty(PROP_TLS_KEYSTORE_ALGORITHM, "SunX509");
+        String truststoreFilename = properties.getProperty(PROP_TLS_TRUSTSTORE);
+        char[] truststorePassword = properties.getProperty(PROP_TLS_TRUSTSTORE_PASSWORD, "").toCharArray();
+        String truststorePasswordFile = properties.getProperty(PROP_TLS_TRUSTSTORE_PASSWORD_FILE);
+        String truststoreType = properties.getProperty(PROP_TLS_TRUSTSTORE_TYPE, "JKS");
+        String truststoreAlgo = properties.getProperty(PROP_TLS_TRUSTSTORE_ALGORITHM, "SunX509");
+
+        char[] storepass = FileBasedPasswordProvider.readPassword(keystorePasswordFile, keystorePassword);
+        char[] keypass = FileBasedPasswordProvider.readPassword(keyPasswordFile, keyPassword);
+        char[] trustpass = FileBasedPasswordProvider.readPassword(truststorePasswordFile, truststorePassword);
+
+        // setup the key manager factory
+        URL ksURL = new URL(keystoreFilename);
+        KeyStore keystore = KeyStore.getInstance(keystoreType);
+        keystore.load(ksURL.openStream(), storepass);
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(keystoreAlgo);
+        kmf.init(keystore, keypass);
+
+        // setup the trust manager factory
+        URL tsURL = new URL(truststoreFilename);
+        KeyStore truststore = KeyStore.getInstance(truststoreType);
+        truststore.load(tsURL.openStream(), trustpass);
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(truststoreAlgo);
+        tmf.init(truststore);
+
+        // create ssl context
+        SSLContext sslContext = SSLContext.getInstance(protocol);
+
+        // setup the HTTPS context and parameters
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        // empty the password arrays
+        Arrays.fill(storepass, ' ');
+        Arrays.fill(keypass, ' ');
+        Arrays.fill(trustpass, ' ');
+
+        return sslContext;
+    }
+
+    private SSLParameters getSSLParameters(boolean twoWay) throws NoSuchAlgorithmException {
+        SSLContext    ctx         = SSLContext.getDefault();
+        SSLEngine     engine = ctx.createSSLEngine();
+        SSLParameters params      = ctx.getDefaultSSLParameters();
+        String[]      asCiphers   = engine.getEnabledCipherSuites();
+        String[]      asProtocols = engine.getEnabledProtocols();
+
+        if (asCiphers != null) {
+            params.setCipherSuites(asCiphers);
+        }
+
+        if (asProtocols != null) {
+            params.setProtocols(asProtocols);
+        }
+
+        params.setNeedClientAuth(twoWay);
+
+        return params;
+        }
 
     /**
      * Send a http response.
@@ -401,8 +615,8 @@ public class OperatorRestServer {
      */
     void suspend(HttpExchange exchange) {
         try {
-            String   path  = exchange.getRequestURI().getPath();
-            String   name  = "";
+            String path = exchange.getRequestURI().getPath();
+            String name = "";
             String[] parts = path.split("/");
             if (parts.length > 2) {
                 name = parts[2].trim();
@@ -438,9 +652,9 @@ public class OperatorRestServer {
                     if (svc instanceof DistributedCacheService && ((DistributedCacheService) svc).isLocalStorageEnabled()) {
                         DistributedCacheService dcs = (DistributedCacheService) svc;
                         long count = dcs.getOwnershipEnabledMembers().stream()
-                                        .map(m -> identityMap.get(m.getId()))
-                                        .distinct()
-                                        .count();
+                                .map(m -> identityMap.get(m.getId()))
+                                .distinct()
+                                .count();
                         if (count == 1) {
                             log("CoherenceOperator: Suspending service %s", name);
                             cluster.suspendService(name);
@@ -466,8 +680,8 @@ public class OperatorRestServer {
      */
     void resume(HttpExchange exchange) {
         try {
-            String   path  = exchange.getRequestURI().getPath();
-            String   name  = "";
+            String path = exchange.getRequestURI().getPath();
+            String name = "";
             String[] parts = path.split("/");
             if (parts.length > 2) {
                 name = parts[2].trim();
@@ -526,7 +740,7 @@ public class OperatorRestServer {
      * @return {@code true} if the JVM is StatusHA
      */
     boolean isStatusHA() {
-        String exclusions = System.getProperty(PROP_ALLOW_ENDANGERED);
+        String exclusions = properties.getProperty(PROP_ALLOW_ENDANGERED);
         return isStatusHA(exclusions);
     }
 
@@ -537,9 +751,9 @@ public class OperatorRestServer {
             Set<String> allowEndangered = null;
             if (exclusions != null) {
                 allowEndangered = Arrays.stream(exclusions.split(","))
-                    .map(this::quoteMBeanName)
-                    .map(s -> ",service=" + s + ",")
-                    .collect(Collectors.toSet());
+                        .map(this::quoteMBeanName)
+                        .map(s -> ",service=" + s + ",")
+                        .collect(Collectors.toSet());
             }
 
             Cluster cluster = clusterSupplier.get();
@@ -618,9 +832,8 @@ public class OperatorRestServer {
      * owns all of the partitions. This ensures that when using active persistence the
      * member is not still creating stores.
      *
-     * @param mBean     the name of the paersistence manager MBean
-     * @param memberId  this member Id
-     *
+     * @param mBean    the name of the paersistence manager MBean
+     * @param memberId this member Id
      * @return true if the service is safe
      * @throws MalformedObjectNameException if there is an error creating the MBean name
      */
@@ -695,8 +908,8 @@ public class OperatorRestServer {
      * If the service only has a single member then it will always be endangered but
      * this method will return {@code false}.
      *
-     * @param mBean         the name of the MBean being checked
-     * @param attributes    the MBean attributes to use to determine whether the service is HA
+     * @param mBean      the name of the MBean being checked
+     * @param attributes the MBean attributes to use to determine whether the service is HA
      * @return {@code true} if the service is endangered
      */
     private boolean isServiceStatusHA(String mBean, Map<String, Object> attributes) {
@@ -754,7 +967,7 @@ public class OperatorRestServer {
                 .orElse(Collections.emptySet());
 
         for (String mBean : set) {
-            Map<String, Object> attributes = getMBeanAttributes(mBean, new String[]{"Type"});
+            Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type"});
             String type = (String) attributes.get("type");
             if ("DistributedCache".equals(type)) {
                 ObjectName objectName = new ObjectName(mBean);
