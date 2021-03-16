@@ -969,7 +969,7 @@ public class OperatorRestServer implements AutoCloseable {
         for (String mBean : set) {
             Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type"});
             String type = (String) attributes.get("type");
-            if ("DistributedCache".equals(type)) {
+            if ("DistributedCache".equals(type) || "FederatedCache".equals(type)) {
                 ObjectName objectName = new ObjectName(mBean);
                 cacheServices.add(objectName.getKeyProperty("name"));
             }
