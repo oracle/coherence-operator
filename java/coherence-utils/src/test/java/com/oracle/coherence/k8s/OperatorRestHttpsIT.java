@@ -108,7 +108,7 @@ public class OperatorRestHttpsIT {
         properties.setProperty(PROP_TLS_KEYSTORE, "file:" + CERTS + "/icarus.jks");
         properties.setProperty(PROP_TLS_KEYSTORE_PASSWORD_FILE, "file:" + CERTS + "/storepassword.txt");
         properties.setProperty(PROP_TLS_KEY_PASSWORD_FILE, "file:" + CERTS + "/keypassword.txt");
-        properties.setProperty(PROP_TLS_TRUSTSTORE, "file:" + CERTS + "/truststore-all.jks");
+        properties.setProperty(PROP_TLS_TRUSTSTORE, "file:" + CERTS + "/truststore-guardians.jks");
         properties.setProperty(PROP_TLS_TRUSTSTORE_PASSWORD_FILE, "file:" + CERTS + "/trustpassword.txt");
         properties.setProperty(PROP_TLS_TWO_WAY, "true");
         properties.setProperty(PROP_HEALTH_LOG, "true");
@@ -122,7 +122,7 @@ public class OperatorRestHttpsIT {
         properties.setProperty(PROP_TLS_KEYSTORE, "file:" + CERTS + "/groot.jks");
         properties.setProperty(PROP_TLS_KEYSTORE_PASSWORD_FILE, "file:" + CERTS + "/storepassword.txt");
         properties.setProperty(PROP_TLS_KEY_PASSWORD_FILE, "file:" + CERTS + "/keypassword.txt");
-        properties.setProperty(PROP_TLS_TRUSTSTORE, "file:" + CERTS + "/truststore-all.jks");
+        properties.setProperty(PROP_TLS_TRUSTSTORE, "file:" + CERTS + "/truststore-guardians.jks");
         properties.setProperty(PROP_TLS_TRUSTSTORE_PASSWORD_FILE, "file:" + CERTS + "/trustpassword.txt");
         properties.setProperty(PROP_TLS_TWO_WAY, "true");
         properties.setProperty(PROP_HEALTH_LOG, "true");
