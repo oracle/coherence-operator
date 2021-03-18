@@ -1585,6 +1585,30 @@ endif
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Create the third-party license file
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: license
+license: $(BUILD_BIN)/licensed
+	mkdir .licenses || true
+	touch .licenses/NOTICE
+	$(BUILD_BIN)/licensed cache
+	$(BUILD_BIN)/licensed notice
+	cp .licenses/NOTICE THIRD_PARTY_LICENSES.txt
+
+
+$(BUILD_BIN)/licensed:
+ifeq (Darwin, $(UNAME_S))
+	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-darwin-x64.tar.gz > licensed.tar.gz
+else
+	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-linux-x64.tar.gz > licensed.tar.gz
+endif
+	tar -xzf licensed.tar.gz
+	rm -f licensed.tar.gz
+	mv ./licensed $(BUILD_BIN)/licensed
+	chmod +x $(BUILD_BIN)/licensed
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # List all of the targets in the Makefile
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: list
