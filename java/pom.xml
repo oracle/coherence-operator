@@ -73,6 +73,7 @@
     <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
     <version.plugin.maven.exec>3.0.0</version.plugin.maven.exec>
     <version.plugin.maven.failsafe>2.21.0</version.plugin.maven.failsafe>
+    <version.plugin.maven.license>2.0.0</version.plugin.maven.license>
     <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
     <version.plugin.maven.surefire>2.21.0</version.plugin.maven.surefire>
   </properties>
@@ -292,6 +293,12 @@
                 </dependency>
             </dependencies>
         </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>${version.plugin.maven.license}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     
@@ -336,6 +343,14 @@
               <configLocation>/hack/checkstyle.xml</configLocation>
               <suppressionsLocation>/hack/checkstyle-suppressions.xml</suppressionsLocation>
           </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <sortArtifactByName>true</sortArtifactByName>
+        </configuration>
       </plugin>
     </plugins>
   </build>
