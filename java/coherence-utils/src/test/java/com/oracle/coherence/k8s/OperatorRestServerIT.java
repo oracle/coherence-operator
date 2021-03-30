@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class OperatorRestServerIT {
     @Test
-    public void shouldBeReadySingleMember() throws Exception {
+    public void shouldBeReadySingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -50,7 +50,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeReadyMultipleMember() throws Exception {
+    public void shouldBeReadyMultipleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -74,7 +74,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeLiveSingleMember() throws Exception {
+    public void shouldBeLiveSingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -89,7 +89,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeLiveMultipleMember() throws Exception {
+    public void shouldBeLiveMultipleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -113,7 +113,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeStatusHASingleMember() throws Exception {
+    public void shouldBeStatusHASingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -128,7 +128,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeStatusHAMultipleMember() throws Exception {
+    public void shouldBeStatusHAMultipleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -152,7 +152,33 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwo() throws Exception {
+    public void shouldBeStatusHAMultipleMemberDifferentServices() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app1 = platform.launch(JavaApplication.class,
+                                                    ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
+            try (JavaApplication app2 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
+
+                Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
+                Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> this.isServiceTwoRunning(app2), is(true));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort1, OperatorRestServer.PATH_HA), is(200));
+                Eventually.assertDeferred(() -> this.httpRequest(httpPort2, OperatorRestServer.PATH_HA), is(200));
+            }
+        }
+    }
+
+    @Test
+    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwo() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -178,7 +204,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwoIgnoringService() throws Exception {
+    public void shouldNotBeStatusHAMultipleMemberWithBackupCountTwoIgnoringService() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -206,7 +232,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldSuspendAllServicesSingleMember() throws Exception {
+    public void shouldSuspendAllServicesSingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -230,7 +256,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldSuspendSpecifiedServicesSingleMember() throws Exception {
+    public void shouldSuspendSpecifiedServicesSingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -255,7 +281,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldResumeSpecifiedServicesSingleMember() throws Exception {
+    public void shouldResumeSpecifiedServicesSingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
 
@@ -280,7 +306,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldSuspendAllServicesMultipleMembers() throws Exception {
+    public void shouldSuspendAllServicesMultipleMembers() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -316,7 +342,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldNotSuspendServicesWithDifferentIdentities() throws Exception {
+    public void shouldNotSuspendServicesWithDifferentIdentities() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
@@ -348,7 +374,7 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldNotSuspendStorageDisabledServices() throws Exception {
+    public void shouldNotSuspendStorageDisabledServices() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
