@@ -787,12 +787,17 @@ public class OperatorRestServer implements AutoCloseable {
                         // this service is allowed to be endangered so skip it.
                         continue;
                     }
-                    Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
-                    if (!isServiceStatusHA(mBean, attributes)) {
-                        return false;
-                    }
-                    if (!isCacheServiceSafe(mBean, id)) {
-                        return false;
+                    ObjectName objectName = new ObjectName(mBean);
+                    String     sService   = objectName.getKeyProperty("service");
+                    // check the service is actually present on this member
+                    if (cluster.getService(sService) != null) {
+                        Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
+                        if (!isServiceStatusHA(mBean, attributes)) {
+                            return false;
+                        }
+                        if (!isCacheServiceSafe(mBean, id)) {
+                            return false;
+                        }
                     }
                 }
                 return true;
