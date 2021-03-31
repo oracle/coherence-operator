@@ -1632,9 +1632,7 @@ $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
 	  crd-model-gen:v1.0.3 \
 	  /generate.sh \
 	  -u $(LOCAL_MANIFEST_FILE) -n com.oracle.coherence -p com.oracle.coherence.k8s.client -o "$(BUILD_OUTPUT)/java-client/java"
-	rm $(BUILD_OUTPUT)/java-client/java/generate.sh
 	kind delete cluster || true
-	rm -rf $(BUILD_OUTPUT)/java-client/java/src
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build Java client
