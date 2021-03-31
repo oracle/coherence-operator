@@ -731,7 +731,7 @@ tail-logs:
 .PHONY: manifests
 manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG)
 
-$(BUILD_MANIFESTS_PKG):
+$(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)
 	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
@@ -1407,6 +1407,7 @@ copyright:
 	  -X LICENSE.txt \
 	  -X Makefile \
 	  -X .md \
+	  -X meta/ \
 	  -X .mvn/ \
 	  -X mvnw \
 	  -X mvnw.cmd \
