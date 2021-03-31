@@ -1625,7 +1625,7 @@ $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
 	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile
 	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:v1.0.3 $(BUILD_OUTPUT)/java-client/java
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
-	docker run -it --rm --network host \
+	docker run --rm --network host \
 	  -v "$(LOCAL_MANIFEST_FILE)":"$(LOCAL_MANIFEST_FILE)" \
 	  -v /var/run/docker.sock:/var/run/docker.sock \
 	  -v "$(BUILD_OUTPUT)/java-client/java":"$(BUILD_OUTPUT)/java-client/java" \
