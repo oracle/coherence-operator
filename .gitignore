@@ -14,9 +14,15 @@ settings.xml
 target/
 
 # Operator-SDK build output
+build/
 _output/
 bin/
 bundle/
+temp/
+
+# licensed
+.licenses/
+meta/
 
 # Binaries for programs and plugins
 *.exe
