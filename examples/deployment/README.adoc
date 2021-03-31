@@ -44,6 +44,8 @@ Ensure you have the following software installed:
 * Access to a Kubernetes v1.14.0+ cluster.
 * https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version matching your Kubernetes cluster.
 
+NOTE: This example requires Java 11+ because it creates a Helidon web application and Helidon requires Java 11+. Coherence and running Coherence in Kubernetes only requires Java 8+.
+
 [#create-the-example-namespace]
 == Create the example namespace
 

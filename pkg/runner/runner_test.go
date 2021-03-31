@@ -88,7 +88,7 @@ func GetMinimalExpectedArgs() []string {
 	args := []string{
 		"java",
 		"-cp",
-		cp + ":/coherence-operator/utils/lib/coherence-utils.jar:/coherence-operator/utils/config",
+		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
 
 	return append(AppendCommonExpectedArgs(args),
@@ -100,7 +100,7 @@ func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	args := []string{
 		"java",
 		"-cp",
-		"/coherence-operator/utils/lib/coherence-utils.jar:/coherence-operator/utils/config",
+		"/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
 
 	return append(AppendCommonExpectedArgs(args),
