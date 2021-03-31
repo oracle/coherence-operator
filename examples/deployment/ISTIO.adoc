@@ -1,0 +1,100 @@
+== Coherence Operator Deployment Example with Istio
+
+This example shows how to deploy Coherence applications using Coherence Operator in the Istio environment.
+
+This document is a supplement to the README and should be used with the README.  The following sections in the README are affected by this example:
+
+* <<pre,Prerequisites>>
+** <<install-operator,Install the Coherence Operator>>
+* <<examples,Run the Examples>>
+** <<ex1,Example 1 - Coherence cluster only>>
+
+[#pre]
+== Prerequisites
+
+In addition to the prerequisites stated in the README, this example requires Istio.
+
+* Istio 1.9.1
+
+Istio 1.9.1 is used for this example.  First, download Istio and configure the path for istioctl:
+
+[source,bash]
+----
+curl -L https://istio.io/downloadIstio | sh -
+export PATH=`pwd`/`ls | grep istio`/bin:$PATH
+----
+
+* Install Istio CRDs:
+
+After the kebuernetes cluster is created, install Istio CRDs:
+
+[source,bash]
+----
+istioctl install --set profile=demo --skip-confirmation
+----
+
+Verify both istioctl client and control plane has the same version:
+
+[source,bash]
+----
+$ istioctl version
+
+client version: 1.9.1
+control plane version: 1.9.1
+data plane version: 1.9.1 (2 proxies)
+----
+
+* Apply RBAC. RBAC is needed by coherence-operator discovery.
+
+[source,bash]
+----
+kubectl apply -f src/main/yaml/istio-rbac.yaml
+----
+
+Istio Sidecar AutoInjection is done automatically if you label coherence-example namespace with istio-injection. If you want to implement manual injection with the deployments then you need to use istioctl kube-inject.
+
+[source,bash]
+----
+kubectl label namespace coherence-example istio-injection=enabled
+----
+
+[#install-operator]
+== Install the Coherence Operator
+
+After installed operator, confirm the operator is running, for example: 
+
+[source,bash]
+----
+kubectl get pods -n coherence-example
+
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-56b4486d5f-fgvwk   2/2     Running   2          47m
+----
+
+You can see the Coherence operator is running. 2/2 in READY column means that there are 2 containers running in each Pod. One is Coherence operator and the other is Envoy Proxy.
+
+[#examples]
+== Run the Examples
+
+Only Example 1 was tried with Istio.  
+
+[#ex1]
+=== Example 1 - Coherence cluster only
+
+After you installed the Coherence cluster, run the following command to view the pods:
+
+[source,bash]
+----
+$ kubectl -n coherence-example get pods
+
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-56b4486d5f-fgvwk   2/2     Running   2          47m
+example-cluster-storage-0                                2/2     Running   0          45m
+example-cluster-storage-1                                2/2     Running   0          45m
+example-cluster-storage-2                                2/2     Running   0          45m
+----
+
+Again, along with the operator, you can see that 3 members in the cluster are running with 3 pods. 2/2 in READY column means that there are 2 containers running in each Pod. One is Coherence member and the other is Envoy Proxy.
+
+You can follow the rest of the instructions in README to complete the example.
+
