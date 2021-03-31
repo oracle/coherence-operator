@@ -415,7 +415,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	// Add the Operator Utils jar to the classpath
-	details.AddClasspath(details.UtilsDir + "/lib/coherence-utils.jar")
+	details.AddClasspath(details.UtilsDir + "/lib/coherence-operator.jar")
 	details.AddClasspath(details.UtilsDir + "/config")
 
 	// Configure Coherence persistence
@@ -869,7 +869,7 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 	}
 
 	// Get the classpath to use (we need Coherence jar)
-	cp := details.UtilsDir + "/lib/coherence-utils.jar" + ":" + details.GetClasspath()
+	cp := details.UtilsDir + "/lib/coherence-operator.jar" + ":" + details.GetClasspath()
 
 	var exe string
 	var cmd *exec.Cmd

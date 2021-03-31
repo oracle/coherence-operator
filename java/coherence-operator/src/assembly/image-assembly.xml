@@ -19,7 +19,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>com.oracle.coherence.kubernetes:coherence-utils</include>
+        <include>com.oracle.coherence.kubernetes:coherence-operator</include>
       </includes>
       <binaries>
         <outputDirectory>lib</outputDirectory>

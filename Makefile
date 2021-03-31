@@ -205,7 +205,7 @@ CRD_V1           ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v
 TEST_SSL_SECRET := coherence-ssl-secret
 
 .PHONY: all
-all: build-all-images helm-chart
+all: java-client build-all-images helm-chart
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
@@ -1031,8 +1031,8 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-utils-image
 build-utils-image: build-mvn $(BUILD_BIN)/runner
-	cp $(BUILD_BIN)/runner  java/coherence-utils/target/docker/runner
-	docker build -t $(UTILS_IMAGE) java/coherence-utils/target/docker
+	cp $(BUILD_BIN)/runner  java/coherence-operator/target/docker/runner
+	docker build -t $(UTILS_IMAGE) java/coherence-operator/target/docker
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Utils Docker image
@@ -1514,6 +1514,8 @@ release-dashboards:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release-ghpages
 release-ghpages:  helm-chart docs release-dashboards
+	mkdir -p /tmp/coherence-operator || true
+	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout --track origin/gh-pages
@@ -1606,6 +1608,38 @@ endif
 	rm -f licensed.tar.gz
 	mv ./licensed $(BUILD_BIN)/licensed
 	chmod +x $(BUILD_BIN)/licensed
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate Java client
+# ----------------------------------------------------------------------------------------------------------------------
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
+	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3
+	rm -rf $(BUILD_OUTPUT)/java-client || true
+	mkdir -p $(BUILD_OUTPUT)/java-client/crds
+	mkdir -p $(BUILD_OUTPUT)/java-client/java
+	cp $(CURRDIR)/client/generate.sh $(BUILD_OUTPUT)/java-client/java/generate.sh
+	chmod +x $(BUILD_OUTPUT)/java-client/java/generate.sh
+	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile
+	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:v1.0.3 $(BUILD_OUTPUT)/java-client/java
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
+	docker run -it --rm --network host \
+	  -v "$(LOCAL_MANIFEST_FILE)":"$(LOCAL_MANIFEST_FILE)" \
+	  -v /var/run/docker.sock:/var/run/docker.sock \
+	  -v "$(BUILD_OUTPUT)/java-client/java":"$(BUILD_OUTPUT)/java-client/java" \
+	  crd-model-gen:v1.0.3 \
+	  /generate.sh \
+	  -u $(LOCAL_MANIFEST_FILE) -n com.oracle.coherence -p com.oracle.coherence.k8s.client -o "$(BUILD_OUTPUT)/java-client/java"
+	rm $(BUILD_OUTPUT)/java-client/java/generate.sh
+	kind delete cluster || true
+	rm -rf $(BUILD_OUTPUT)/java-client/java/src
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build Java client
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: java-client
+java-client: $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -140,14 +140,14 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	actualOpts := strings.Split(string(data), "\n")
-	expectedOpts := AppendCommonExpectedArgs([]string{"-Dloader.path=/coherence-operator/utils/lib/coherence-utils.jar,/coherence-operator/utils/config"})
+	expectedOpts := AppendCommonExpectedArgs([]string{"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config"})
 	g.Expect(actualOpts).To(ConsistOf(expectedOpts))
 }
 
 func GetMinimalExpectedSpringBootArgs() []string {
 	args := []string{
 		"java",
-		"-Dloader.path=/coherence-operator/utils/lib/coherence-utils.jar,/coherence-operator/utils/config",
+		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
 	args = append(AppendCommonExpectedArgs(args), SpringBootMain)
 	return args
@@ -158,7 +158,7 @@ func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
 		"java",
 		"-cp",
 		jar,
-		"-Dloader.path=/coherence-operator/utils/lib/coherence-utils.jar,/coherence-operator/utils/config",
+		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
 
 	return append(AppendCommonExpectedArgs(args), SpringBootMain)

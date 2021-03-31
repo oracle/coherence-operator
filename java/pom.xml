@@ -9,396 +9,609 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.oracle.coherence.kubernetes</groupId>
-  <artifactId>operator-parent</artifactId>
-  <packaging>pom</packaging>
-  <version>3.1.5</version>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>operator-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>3.1.5</version>
 
-  <description>Oracle Coherence Kubernetes Operator Project</description>
-  <name>coherence-operator parent</name>
+    <description>Oracle Coherence Kubernetes Operator Project</description>
+    <name>coherence-operator parent</name>
 
-  <modules>
-    <module>coherence-utils</module>
-    <module>operator-compatibility</module>
-    <module>operator-test</module>
-    <module>operator-test-helidon</module>
-    <module>operator-test-spring</module>
-  </modules>
+    <modules>
+        <module>coherence-operator</module>
+        <module>coherence-operator-client</module>
+        <module>operator-compatibility</module>
+        <module>operator-test</module>
+        <module>operator-test-helidon</module>
+        <module>operator-test-spring</module>
+    </modules>
 
-  <properties>
-    <operator.version>${project.version}</operator.version>
+    <properties>
+        <operator.version>${project.version}</operator.version>
 
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
 
-    <!--  The Coherence jar version (compile time dependency) -->
-    <coherence.version>20.12.1</coherence.version>
-    <!-- The version of Coherence to use in the test images -->
-    <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
-    <coherence.test.version>${coherence.version}</coherence.test.version>
+        <!--  The Coherence jar version (compile time dependency) -->
+        <coherence.version>20.12.1</coherence.version>
+        <!-- The version of Coherence to use in the test images -->
+        <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
+        <coherence.test.version>${coherence.version}</coherence.test.version>
 
-    <coherence.test.base.image>gcr.io/distroless/java:11</coherence.test.base.image>
-    <coherence.compatibility.coherence.image>oraclecoherence/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
-    <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}</coherence.compatibility.image.name>
+        <coherence.test.base.image>gcr.io/distroless/java:11</coherence.test.base.image>
+        <coherence.compatibility.coherence.image>oraclecoherence/coherence-ce:${coherence.version}
+        </coherence.compatibility.coherence.image>
+        <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
+        </coherence.compatibility.image.name>
 
-    <test.certs.location>../build/_output/certs</test.certs.location>
+        <test.certs.location>../build/_output/certs</test.certs.location>
 
-    <!-- library dependency versions -->
-    <version.lib.activation-api>1.2.2</version.lib.activation-api>
-    <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
-    <version.lib.bedrock>5.1.1</version.lib.bedrock>
-    <version.lib.checkstyle>8.18</version.lib.checkstyle>
-    <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
-    <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
-    <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
-    <version.lib.hamcrest>1.3</version.lib.hamcrest>
-    <version.lib.helidon>2.2.1</version.lib.helidon>
-    <version.lib.jandex>2.1.1.Final</version.lib.jandex>
-    <version.lib.junit>4.13.1</version.lib.junit>
-    <version.lib.mockito>2.18.3</version.lib.mockito>
-    <version.lib.spring>2.4.2</version.lib.spring>
+        <!-- library dependency versions -->
+        <version.lib.activation-api>1.2.2</version.lib.activation-api>
+        <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
+        <version.lib.bedrock>5.1.1</version.lib.bedrock>
+        <version.lib.checkstyle>8.18</version.lib.checkstyle>
+        <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
+        <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
+        <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
+        <version.lib.hamcrest>1.3</version.lib.hamcrest>
+        <version.lib.helidon>2.2.1</version.lib.helidon>
+        <version.lib.jandex>2.1.1.Final</version.lib.jandex>
+        <version.lib.junit>4.13.1</version.lib.junit>
+        <version.lib.mockito>2.18.3</version.lib.mockito>
+        <version.lib.spring>2.4.2</version.lib.spring>
 
-    <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
-    <version.plugin.exec>3.0.0</version.plugin.exec>
-    <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
-    <version.plugin.jib>2.8.0</version.plugin.jib>
-    <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
-    <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
-    <version.plugin.maven.dependency>3.1.1</version.plugin.maven.dependency>
-    <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
-    <version.plugin.maven.exec>3.0.0</version.plugin.maven.exec>
-    <version.plugin.maven.failsafe>2.21.0</version.plugin.maven.failsafe>
-    <version.plugin.maven.license>2.0.0</version.plugin.maven.license>
-    <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
-    <version.plugin.maven.surefire>2.21.0</version.plugin.maven.surefire>
-  </properties>
+        <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
+        <version.lib.gson>2.8.6</version.lib.gson>
+        <version.lib.okhttp>3.14.7</version.lib.okhttp>
+        <version.lib.swagger.core>1.5.24</version.lib.swagger.core>
+        <version.lib.commons.lang3>3.10</version.lib.commons.lang3>
+        <version.lib.jodatime>2.9.9</version.lib.jodatime>
+        <version.lib.javax.annotation>1.3.2</version.lib.javax.annotation>
+        <version.lib.k8s>11.0.0</version.lib.k8s>
+        <version.lib.findbugs>3.0.2</version.lib.findbugs>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
-        <artifactId>coherence</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
-        <artifactId>coherence-management</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
-        <artifactId>coherence-metrics</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
-        <artifactId>coherence-cdi-server</artifactId>
-        <version>${coherence.version}</version>
-      </dependency>
+        <version.plugin.build.helper>1.10</version.plugin.build.helper>
+        <version.plugin.checkstyle>2.17</version.plugin.checkstyle>
+        <version.plugin.exec>3.0.0</version.plugin.exec>
+        <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
+        <version.plugin.javadoc>3.1.1</version.plugin.javadoc>
+        <version.plugin.jib>2.8.0</version.plugin.jib>
+        <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
+        <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
+        <version.plugin.maven.dependency>3.1.1</version.plugin.maven.dependency>
+        <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
+        <version.plugin.maven.exec>3.0.0</version.plugin.maven.exec>
+        <version.plugin.maven.failsafe>2.21.0</version.plugin.maven.failsafe>
+        <version.plugin.maven.gpg>1.6</version.plugin.maven.gpg>
+        <version.plugin.maven.license>2.0.0</version.plugin.maven.license>
+        <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
+        <version.plugin.maven.source>2.2.1</version.plugin.maven.source>
+        <version.plugin.maven.surefire>2.21.0</version.plugin.maven.surefire>
+        <version.plugin.nexus.staging>1.6.7</version.plugin.nexus.staging>
+    </properties>
 
-      <dependency>
-        <groupId>org.glassfish.external</groupId>
-        <artifactId>opendmk_jmxremote_optional_jar</artifactId>
-        <version>${version.lib.glassfish.jmxmp}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot</artifactId>
-        <version>${version.lib.spring}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-        <version>${version.lib.spring}</version>
-      </dependency>
-
-      <!-- Helidon -->
-      <dependency>
-        <groupId>io.helidon.microprofile.bundles</groupId>
-        <artifactId>helidon-microprofile</artifactId>
-        <version>${version.lib.helidon}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss</groupId>
-        <artifactId>jandex</artifactId>
-        <version>${version.lib.jandex}</version>
-      </dependency>
-      <dependency>
-        <groupId>jakarta.activation</groupId>
-        <artifactId>jakarta.activation-api</artifactId>
-        <version>${version.lib.activation-api}</version>
-      </dependency>
-
-      <!-- test dependencies -->
-
-      <dependency>
-        <groupId>com.oracle.bedrock</groupId>
-        <artifactId>bedrock-runtime</artifactId>
-        <version>${version.lib.bedrock}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.oracle.bedrock.coherence</groupId>
-        <artifactId>coherence-14.1.1-testing-support</artifactId>
-        <version>${version.lib.bedrock}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.lib.junit}</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>${version.lib.hamcrest}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <version>${version.lib.mockito}</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${version.plugin.maven.compiler}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>${version.plugin.maven.assembly}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${version.plugin.maven.failsafe}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>com.google.cloud.tools</groupId>
-          <artifactId>jib-maven-plugin</artifactId>
-          <version>${version.plugin.jib}</version>
-          <configuration>
-            <from>
-              <image>docker://${coherence.test.base.image}</image>
-            </from>
-            <container>
-              <format>OCI</format>
-            </container>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${version.plugin.maven.surefire}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>test</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
-          <groupId>org.commonjava.maven.plugins</groupId>
-          <artifactId>directory-maven-plugin</artifactId>
-          <version>${version.lib.commonjava.directory}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.glassfish.copyright</groupId>
-          <artifactId>glassfish-copyright-maven-plugin</artifactId>
-          <version>${version.lib.glassfish.copyright}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>io.helidon.build-tools</groupId>
-          <artifactId>sitegen-maven-plugin</artifactId>
-          <version>${version.plugin.helidon-build-tools}</version>
-          <configuration>
-            <siteConfigFile>${top.parent.basedir}/../docs/sitegen.yaml</siteConfigFile>
-            <siteSourceDirectory>${top.parent.basedir}/../docs</siteSourceDirectory>
-            <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
-            <siteArchiveExcludes>
-              <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
-            </siteArchiveExcludes>
-          </configuration>
-          <dependencies>
+    <dependencyManagement>
+        <dependencies>
             <dependency>
-              <groupId>org.asciidoctor</groupId>
-              <artifactId>asciidoctorj-diagram</artifactId>
-              <version>${version.lib.asciidoctor.diagram}</version>
+                <groupId>com.oracle.coherence.ce</groupId>
+                <artifactId>coherence</artifactId>
+                <version>${coherence.version}</version>
             </dependency>
-          </dependencies>
-        </plugin>
+            <dependency>
+                <groupId>com.oracle.coherence.ce</groupId>
+                <artifactId>coherence-management</artifactId>
+                <version>${coherence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.coherence.ce</groupId>
+                <artifactId>coherence-metrics</artifactId>
+                <version>${coherence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.coherence.ce</groupId>
+                <artifactId>coherence-cdi-server</artifactId>
+                <version>${coherence.version}</version>
+            </dependency>
 
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${version.lib.spring}</version>
-        </plugin>
+            <dependency>
+                <groupId>org.glassfish.external</groupId>
+                <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+                <version>${version.lib.glassfish.jmxmp}</version>
+            </dependency>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>${version.plugin.checkstyle}</version>
-            <configuration>
-                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-            </configuration>
-            <dependencies>
-                <dependency>
-                    <groupId>com.puppycrawl.tools</groupId>
-                    <artifactId>checkstyle</artifactId>
-                    <version>${version.lib.checkstyle}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.sun</groupId>
-                            <artifactId>tools</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-            </dependencies>
-        </plugin>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>${version.lib.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${version.lib.spring}</version>
+            </dependency>
 
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <version>${version.plugin.maven.license}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    
-    <plugins>
-      <plugin>
-        <groupId>org.commonjava.maven.plugins</groupId>
-        <artifactId>directory-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-top-parent-basedir</id>
-            <goals>
-              <goal>highest-basedir</goal>
-            </goals>
-            <phase>validate</phase>
-            <configuration>
-              <property>top.parent.basedir</property>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+            <!-- Helidon -->
+            <dependency>
+                <groupId>io.helidon.microprofile.bundles</groupId>
+                <artifactId>helidon-microprofile</artifactId>
+                <version>${version.lib.helidon}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss</groupId>
+                <artifactId>jandex</artifactId>
+                <version>${version.lib.jandex}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>${version.lib.activation-api}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
+            <!-- Generated client dependencies -->
+            <dependency>
+                <groupId>io.kubernetes</groupId>
+                <artifactId>client-java</artifactId>
+                <version>${version.lib.k8s}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-       </plugin>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${version.lib.swagger.core}</version>
+            </dependency>
+            <!-- @Nullable annotation -->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${version.lib.findbugs}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${version.lib.okhttp}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>logging-interceptor</artifactId>
+                <version>${version.lib.okhttp}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${version.lib.gson}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gsonfire</groupId>
+                <artifactId>gson-fire</artifactId>
+                <version>${version.lib.gson.fire}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${version.lib.commons.lang3}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${version.lib.jodatime}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${version.lib.javax.annotation}</version>
+                <scope>provided</scope>
+            </dependency>
 
-      <plugin>
-          <groupId>io.helidon.build-tools</groupId>
-          <artifactId>sitegen-maven-plugin</artifactId>
-          <extensions>true</extensions>
-      </plugin>
+            <!-- test dependencies -->
 
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <configuration>
-              <configLocation>/hack/checkstyle.xml</configLocation>
-              <suppressionsLocation>/hack/checkstyle-suppressions.xml</suppressionsLocation>
-          </configuration>
-      </plugin>
+            <dependency>
+                <groupId>com.oracle.bedrock</groupId>
+                <artifactId>bedrock-runtime</artifactId>
+                <version>${version.lib.bedrock}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.bedrock.coherence</groupId>
+                <artifactId>coherence-14.1.1-testing-support</artifactId>
+                <version>${version.lib.bedrock}</version>
+                <scope>test</scope>
+            </dependency>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-          <sortArtifactByName>true</sortArtifactByName>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.lib.junit}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
-  <profiles>
-    <profile>
-      <id>docs</id>
-      <modules>
-        <module>docs</module>
-      </modules>
-    </profile>
-    <profile>
-        <id>checkstyle</id>
-        <build>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>${version.lib.hamcrest}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${version.lib.mockito}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${version.plugin.maven.compiler}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${version.plugin.maven.assembly}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${version.plugin.maven.deploy}</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${version.plugin.maven.failsafe}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${version.plugin.jib}</version>
+                    <configuration>
+                        <from>
+                            <image>docker://${coherence.test.base.image}</image>
+                        </from>
+                        <container>
+                            <format>OCI</format>
+                        </container>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${version.plugin.maven.surefire}</version>
                     <executions>
                         <execution>
-                            <id>run-checkstyle</id>
                             <goals>
-                                <goal>check</goal>
+                                <goal>test</goal>
                             </goals>
-                            <phase>validate</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>${version.lib.commonjava.directory}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.glassfish.copyright</groupId>
+                    <artifactId>glassfish-copyright-maven-plugin</artifactId>
+                    <version>${version.lib.glassfish.copyright}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>io.helidon.build-tools</groupId>
+                    <artifactId>sitegen-maven-plugin</artifactId>
+                    <version>${version.plugin.helidon-build-tools}</version>
+                    <configuration>
+                        <siteConfigFile>${top.parent.basedir}/../docs/sitegen.yaml</siteConfigFile>
+                        <siteSourceDirectory>${top.parent.basedir}/../docs</siteSourceDirectory>
+                        <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
+                        <siteArchiveExcludes>
+                            <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+                        </siteArchiveExcludes>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.asciidoctor</groupId>
+                            <artifactId>asciidoctorj-diagram</artifactId>
+                            <version>${version.lib.asciidoctor.diagram}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${version.lib.spring}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${version.plugin.checkstyle}</version>
+                    <configuration>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${version.lib.checkstyle}</version>
+                            <exclusions>
+                                <exclusion>
+                                    <groupId>com.sun</groupId>
+                                    <artifactId>tools</artifactId>
+                                </exclusion>
+                            </exclusions>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${version.plugin.maven.license}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${version.plugin.build.helper}</version>
+                    <executions>
+                        <execution>
+                            <id>add_sources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                            </goals>
                             <configuration>
-                                <configLocation>${top.parent.basedir}/../hack/checkstyle.xml</configLocation>
-                                <suppressionsLocation>${top.parent.basedir}/../hack/checkstyle-suppressions.xml</suppressionsLocation>
+                                <sources>
+                                    <source>src/main/java</source>
+                                </sources>
                             </configuration>
                         </execution>
                     </executions>
                 </plugin>
-            </plugins>
-        </build>
-    </profile>
-  </profiles>
 
-  <repositories>
-    <repository>
-      <id>ossrh-staging</id>
-      <name>OSS Sonatype Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>
-  </repositories>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${version.plugin.javadoc}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <doclint>none</doclint>
+                        <tags>
+                            <tag>
+                                <name>http.response.details</name>
+                                <placement>a</placement>
+                                <head>Http Response Details:</head>
+                            </tag>
+                        </tags>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${version.plugin.maven.source}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${version.plugin.nexus.staging}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                        <skipLocalStaging>true</skipLocalStaging>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven.gpg.plugin.version}</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-top-parent-basedir</id>
+                        <goals>
+                            <goal>highest-basedir</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <property>top.parent.basedir</property>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>io.helidon.build-tools</groupId>
+                <artifactId>sitegen-maven-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>/hack/checkstyle.xml</configLocation>
+                    <suppressionsLocation>/hack/checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <sortArtifactByName>true</sortArtifactByName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>docs</id>
+            <modules>
+                <module>docs</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>checkstyle</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>run-checkstyle</id>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <configLocation>${top.parent.basedir}/../hack/checkstyle.xml</configLocation>
+                                    <suppressionsLocation>${top.parent.basedir}/../hack/checkstyle-suppressions.xml
+                                    </suppressionsLocation>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${version.plugin.maven.gpg}</version>
+                        <configuration>
+                            <skip>false</skip>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>${version.plugin.nexus.staging}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                            <skipLocalStaging>true</skipLocalStaging>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Coherence Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <name>Coherence Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>ossrh-staging</id>
+            <name>OSS Sonatype Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 </project>
