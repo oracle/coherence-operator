@@ -23,7 +23,12 @@
 # --------------------------------------------------------------------------------
 
 echo "Building Operator"
-make all
+make build-all-images
+if [[ $? != 0 ]]; then
+  exit 1
+fi
+
+make helm-chart
 if [[ $? != 0 ]]; then
   exit 1
 fi
