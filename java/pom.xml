@@ -16,7 +16,7 @@
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>operator-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.1.5</version>
+    <version>${revision}</version>
 
     <description>Oracle Coherence Kubernetes Operator Project</description>
     <name>coherence-operator parent</name>
@@ -31,6 +31,7 @@
     </modules>
 
     <properties>
+        <revision>3.1.5</revision>
         <operator.version>${project.version}</operator.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -558,6 +559,10 @@
                         <version>${version.plugin.maven.gpg}</version>
                         <configuration>
                             <skip>false</skip>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
                         </configuration>
                         <executions>
                             <execution>
@@ -590,13 +595,11 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>ossrh</id>
-            <name>Coherence Snapshot Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <name>Coherence Release Repository</name>
+            <id>sonatype</id>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>

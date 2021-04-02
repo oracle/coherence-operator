@@ -9,6 +9,7 @@
 
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 3.1.5
+MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
 PREV_VERSION ?= 3.1.2
@@ -63,6 +64,8 @@ OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)
 UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
 BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
+
+GPG_PASSPHRASE :=
 
 # The test application images used in integration tests
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
@@ -982,14 +985,21 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(VERSION)-SNAPSHOT $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: $(BUILD_OUTPUT)/certs build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(VERSION)-SNAPSHOT -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Deploy the Java artifacts
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: mvn-deploy
+mvn-deploy: java-client
+	./mvnw $(USE_MAVEN_SETTINGS) $(MAVEN_OPTIONS) -s ./.mvn/settings.xml -B -f java clean install -Drevision=$(MVN_VERSION) -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples

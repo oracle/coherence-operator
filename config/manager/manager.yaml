@@ -21,6 +21,9 @@ spec:
       - name: manager
         image: controller:latest
         ports:
+        - containerPort: 8000
+          name: operator
+          protocol: TCP
         - containerPort: 9443
           name: webhook-server
           protocol: TCP

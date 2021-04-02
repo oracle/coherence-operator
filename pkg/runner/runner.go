@@ -49,6 +49,17 @@ const (
 	AppTypeSpring    = "spring"
 )
 
+var backoffSchedule = []time.Duration{
+	1 * time.Second,
+	3 * time.Second,
+	5 * time.Second,
+	5 * time.Second,
+	10 * time.Second,
+	20 * time.Second,
+	30 * time.Second,
+	60 * time.Second,
+}
+
 // Run the Coherence process using the specified args and environment variables.
 func Run(args []string, env map[string]string) error {
 	app, cmd, err := DryRun(args, env)
@@ -775,7 +786,7 @@ func configureSiteAndRack(details *RunDetails) {
 			site = ""
 		case strings.HasPrefix(siteLocation, "http://"):
 			// do http get
-			site = httpGet(siteLocation, details)
+			site = httpGetWithBackoff(siteLocation, details)
 		default:
 			st, err := os.Stat(siteLocation)
 			if err == nil && !st.IsDir() {
@@ -793,7 +804,7 @@ func configureSiteAndRack(details *RunDetails) {
 			rack = ""
 		case strings.HasPrefix(rackLocation, "http://"):
 			// do http get
-			rack = httpGet(rackLocation, details)
+			rack = httpGetWithBackoff(rackLocation, details)
 		default:
 			st, err := os.Stat(rackLocation)
 			if err == nil && !st.IsDir() {
@@ -816,9 +827,32 @@ func configureSiteAndRack(details *RunDetails) {
 	}
 }
 
+// httpGetWithBackoff does a http get for the specified url with retry back-off for errors.
+func httpGetWithBackoff(url string, details *RunDetails) string {
+	var backoff time.Duration
+	for _, backoff = range backoffSchedule {
+		s, err := httpGet(url, details)
+		if err == nil {
+			return s
+		}
+		fmt.Printf("INFO: Retry http get in '%v' for url %s\n", backoff, url)
+		time.Sleep(backoff)
+	}
+
+	// now just retry using the final back-off value forever...
+	for {
+		s, err := httpGet(url, details)
+		if err == nil {
+			return s
+		}
+		fmt.Printf("INFO: Retry http get in '%v'\n", backoff)
+		time.Sleep(backoff)
+	}
+}
+
 // Do a http get for the specified url and return the response body for
 // a 200 response or empty string for a non-200 response or error.
-func httpGet(url string, details *RunDetails) string {
+func httpGet(url string, details *RunDetails) (string, error) {
 	fmt.Printf("INFO: Performing http get from '%s'\n", url)
 	timeout := 120
 
@@ -839,25 +873,25 @@ func httpGet(url string, details *RunDetails) string {
 	resp, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("ERROR: failed to get url %s - %s\n", url, err.Error())
-		return ""
+		return "", err
 	}
 	//noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		fmt.Printf("ERROR: filed to get 200 response from %s - %s\n", url, resp.Status)
-		return ""
+		return "", nil
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("ERROR: filed to read response body from %s - %s\n", url, resp.Status)
-		return ""
+		return "", nil
 	}
 
 	s := string(body)
 	fmt.Printf("INFO: Get response from '%s' was '%s'\n", url, s)
-	return s
+	return s, nil
 }
 
 func checkCoherenceVersion(v string, details *RunDetails) bool {
