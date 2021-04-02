@@ -1,6 +1,3 @@
-operator/src/main/helm/coherence-k8s-operator/requirements.yaml
-operator/src/main/helm/coherence-k8s-operator/charts/prometheus-operator*.tgz
-
 # IntelliJ project files
 .idea/
 *.iml
@@ -10,7 +7,6 @@ operator/src/main/helm/coherence-k8s-operator/charts/prometheus-operator*.tgz
 .DS_Store
 
 # Maven files
-settings.xml
 target/
 
 # Operator-SDK build output

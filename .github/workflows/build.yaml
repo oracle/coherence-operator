@@ -141,14 +141,25 @@ jobs:
       run: |
         make e2e-helm-test
 
+    - name: Deploy Snapshots
+      if: success()
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      shell: bash
+      run: |
+        sh ./hack/maven-gpg.sh
+        make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
+
     - name: Upload Manifests
       uses: actions/upload-artifact@v1
+      if: success()
       with:
         name: coherence-operator-manifests.tar.gz
         path: build/_output/coherence-operator-manifests.tar.gz
 
     - name: Upload Yaml
       uses: actions/upload-artifact@v1
+      if: success()
       with:
         name: coherence-operator.yaml
         path: build/_output/coherence-operator.yaml

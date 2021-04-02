@@ -13,7 +13,8 @@
   <parent>
     <groupId>com.oracle.coherence.kubernetes</groupId>
     <artifactId>operator-parent</artifactId>
-    <version>3.1.5</version>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>operator-test-spring</artifactId>
