@@ -985,14 +985,14 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(VERSION)-SNAPSHOT $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: $(BUILD_OUTPUT)/certs build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(VERSION)-SNAPSHOT -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(MVN_VERSION) -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy the Java artifacts
@@ -1064,10 +1064,10 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
 build-test-images: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Drevision=$(MVN_VERSION) -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
 	cp java/operator-test-spring/target/operator-test-spring-$(VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(VERSION).jar
@@ -1090,10 +1090,10 @@ push-test-images:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests \
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests -Drevision=$(MVN_VERSION) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility exec:exec \
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility exec:exec -Drevision=$(MVN_VERSION) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
 
@@ -1456,7 +1456,7 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.
