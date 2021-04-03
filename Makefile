@@ -1070,8 +1070,8 @@ build-test-images: build-mvn
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Drevision=$(MVN_VERSION) -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
-	cp java/operator-test-spring/target/operator-test-spring-$(VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(VERSION).jar
-	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(VERSION).jar && rm -f operator-test-spring-$(VERSION).jar
+	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
+	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
 
 # ----------------------------------------------------------------------------------------------------------------------
