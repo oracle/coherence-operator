@@ -207,8 +207,6 @@ func (in *CoherenceLoader) loadYaml(namespace, file string) ([]coh.Coherence, er
 			d.Spec.AddEnvVarIfAbsent(corev1.EnvVar{Name: coh.EnvVarCohSkipSite, Value: "true"})
 			deployments[i] = d
 		}
-	} else {
-		return deployments, fmt.Errorf("env var " + coh.EnvVarCohSkipSite + " is " + skipSite)
 	}
 
 	return deployments, err
