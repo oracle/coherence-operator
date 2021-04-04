@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -189,7 +190,7 @@ func (in *CoherenceLoader) loadYaml(namespace, file string) ([]coh.Coherence, er
 		template.SetNamespace(namespace)
 	}
 
-	// Append any
+	// Append any pull secrets
 	secrets := GetImagePullSecrets()
 	template.Spec.ImagePullSecrets = append(template.Spec.ImagePullSecrets, secrets...)
 
@@ -197,6 +198,17 @@ func (in *CoherenceLoader) loadYaml(namespace, file string) ([]coh.Coherence, er
 		deployments, err = in.loadYamlFromFile(template, file)
 	} else {
 		deployments = append(deployments, template)
+	}
+
+	// add environment variables
+	skipSite := os.Getenv(coh.EnvVarCohSkipSite)
+	if skipSite == "true" {
+		for i, d := range deployments {
+			d.Spec.AddEnvVarIfAbsent(corev1.EnvVar{Name: coh.EnvVarCohSkipSite, Value: "true"})
+			deployments[i] = d
+		}
+	} else {
+		return deployments, fmt.Errorf("env var " + coh.EnvVarCohSkipSite + " is " + skipSite)
 	}
 
 	return deployments, err

@@ -774,12 +774,9 @@ func configureSiteAndRack(details *RunDetails) {
 	}
 
 	var site string
-	var rack string
+
 	siteLocation := details.Getenv(v1.EnvVarCohSite)
 	fmt.Printf("INFO: Configuring Coherence site from '%s'\n", siteLocation)
-	rackLocation := details.Getenv(v1.EnvVarCohRack)
-	fmt.Printf("INFO: Configuring Coherence rack from '%s'\n", rackLocation)
-
 	if siteLocation != "" {
 		switch {
 		case strings.ToLower(siteLocation) == "http://":
@@ -798,6 +795,14 @@ func configureSiteAndRack(details *RunDetails) {
 		}
 	}
 
+	if site != "" {
+		details.AddArg("-Dcoherence.site=" + site)
+	}
+
+	var rack string
+
+	rackLocation := details.Getenv(v1.EnvVarCohRack)
+	fmt.Printf("INFO: Configuring Coherence rack from '%s'\n", rackLocation)
 	if rackLocation != "" {
 		switch {
 		case strings.ToLower(rackLocation) == "http://":
@@ -814,10 +819,6 @@ func configureSiteAndRack(details *RunDetails) {
 				}
 			}
 		}
-	}
-
-	if site != "" {
-		details.AddArg("-Dcoherence.site=" + site)
 	}
 
 	if rack != "" {
@@ -839,8 +840,8 @@ func httpGetWithBackoff(url string, details *RunDetails) string {
 		time.Sleep(backoff)
 	}
 
-	// now just retry using the final back-off value forever...
-	for {
+	// now just retry using the final back-off value for a maximum of five more attempts...
+	for i := 0; i < 5; i++ {
 		s, err := httpGet(url, details)
 		if err == nil {
 			return s
@@ -848,6 +849,9 @@ func httpGetWithBackoff(url string, details *RunDetails) string {
 		fmt.Printf("INFO: Retry http get in '%v'\n", backoff)
 		time.Sleep(backoff)
 	}
+
+	fmt.Printf("ERROR: Unable to request from url %s\n", url)
+	return ""
 }
 
 // Do a http get for the specified url and return the response body for

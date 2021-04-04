@@ -761,6 +761,16 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1
 	}
 }
 
+// AddEnvVarIfAbsent adds the specified EnvVar if one with the same name does not already exist.
+func (in *CoherenceResourceSpec) AddEnvVarIfAbsent(envVar corev1.EnvVar) {
+	for _, e := range in.Env {
+		if e.Name == envVar.Name {
+			return
+		}
+	}
+	in.Env = append(in.Env, envVar)
+}
+
 // Create the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
 	env := append(in.CreateCommonEnv(deployment),
