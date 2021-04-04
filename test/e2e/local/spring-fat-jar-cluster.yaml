@@ -7,7 +7,7 @@ spec:
   image: ${TEST_APPLICATION_IMAGE_SPRING_FAT}
   application:
     type: spring
-    springBootFatJar: /app/libs/operator-test-spring-${VERSION}.jar
+    springBootFatJar: /app/libs/operator-test-spring-${MVN_VERSION}.jar
   jvm:
     args:
       - -Dcoherence.log=jdk
