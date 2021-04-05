@@ -174,6 +174,16 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.AppLabel != nil {
+		in, out := &in.AppLabel, &out.AppLabel
+		*out = new(string)
+		**out = **in
+	}
+	if in.VersionLabel != nil {
+		in, out := &in.VersionLabel, &out.VersionLabel
+		*out = new(string)
+		**out = **in
+	}
 	if in.Coherence != nil {
 		in, out := &in.Coherence, &out.Coherence
 		*out = new(CoherenceSpec)

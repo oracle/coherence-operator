@@ -59,6 +59,16 @@ type CoherenceResourceSpec struct {
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
 	Role string `json:"role,omitempty"`
+	// An optional app label to apply to resources created for this deployment.
+	// This is useful for example to apply an app label for use by Istio.
+	// This field follows standard Kubernetes label syntax.
+	// +optional
+	AppLabel *string `json:"appLabel,omitempty"`
+	// An optional version label to apply to resources created for this deployment.
+	// This is useful for example to apply an version label for use by Istio.
+	// This field follows standard Kubernetes label syntax.
+	// +optional
+	VersionLabel *string `json:"versionLabel,omitempty"`
 	// The optional settings specific to Coherence functionality.
 	// +optional
 	Coherence *CoherenceSpec `json:"coherence,omitempty"`

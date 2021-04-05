@@ -75,6 +75,8 @@ m| imagePullSecrets | ImagePullSecrets is an optional list of references to secr
 m| replicas | The desired number of cluster members of this deployment. This is a pointer to distinguish between explicit zero and not specified. If not specified a default value of 3 will be used. This field cannot be negative. m| &#42;int32 | false
 m| cluster | The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource's name will be used as the cluster name. m| &#42;string | false
 m| role | The name of the role that this deployment represents in a Coherence cluster. This value will be used to set the Coherence role property for all members of this role m| string | false
+m| appLabel | An optional app label to apply to resources created for this deployment. This is useful for example to apply an app label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
+m| versionLabel | An optional version label to apply to resources created for this deployment. This is useful for example to apply an version label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
 m| coherence | The optional settings specific to Coherence functionality. m| &#42;<<CoherenceSpec,CoherenceSpec>> | false
 m| application | The optional application specific settings. m| &#42;<<ApplicationSpec,ApplicationSpec>> | false
 m| jvm | The JVM specific options m| &#42;<<JVMSpec,JVMSpec>> | false

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -330,6 +330,15 @@ func (in *Coherence) CreateCommonLabels() map[string]string {
 	labels[LabelCoherenceDeployment] = in.Name
 	labels[LabelCoherenceCluster] = in.GetCoherenceClusterName()
 	labels[LabelCoherenceRole] = in.GetRoleName()
+
+	if in.Spec.AppLabel != nil {
+		labels[LabelApp] = *in.Spec.AppLabel
+	}
+
+	if in.Spec.VersionLabel != nil {
+		labels[LabelVersion] = *in.Spec.VersionLabel
+	}
+
 	return labels
 }
 

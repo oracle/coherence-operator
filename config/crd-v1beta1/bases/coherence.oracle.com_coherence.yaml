@@ -648,6 +648,11 @@ spec:
                 for Prometheus it would look like this: \n annotations:   prometheus.io/scrape:
                 \"true\"   prometheus.io/port: \"2408\""
               type: object
+            appLabel:
+              description: An optional app label to apply to resources created for
+                this deployment. This is useful for example to apply an app label
+                for use by Istio. This field follows standard Kubernetes label syntax.
+              type: string
             application:
               description: The optional application specific settings.
               properties:
@@ -9054,6 +9059,12 @@ spec:
               x-kubernetes-list-map-keys:
               - key
               x-kubernetes-list-type: map
+            versionLabel:
+              description: An optional version label to apply to resources created
+                for this deployment. This is useful for example to apply an version
+                label for use by Istio. This field follows standard Kubernetes label
+                syntax.
+              type: string
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines extra PVC mappings that will
                 be added to the Coherence Pod.   The content of this yaml should match
