@@ -775,7 +775,7 @@ func configureSiteAndRack(details *RunDetails) {
 
 	var site string
 
-	siteLocation := details.Getenv(v1.EnvVarCohSite)
+	siteLocation := os.ExpandEnv(details.Getenv(v1.EnvVarCohSite))
 	fmt.Printf("INFO: Configuring Coherence site from '%s'\n", siteLocation)
 	if siteLocation != "" {
 		switch {
@@ -801,7 +801,7 @@ func configureSiteAndRack(details *RunDetails) {
 
 	var rack string
 
-	rackLocation := details.Getenv(v1.EnvVarCohRack)
+	rackLocation := os.ExpandEnv(details.Getenv(v1.EnvVarCohRack))
 	fmt.Printf("INFO: Configuring Coherence rack from '%s'\n", rackLocation)
 	if rackLocation != "" {
 		switch {
