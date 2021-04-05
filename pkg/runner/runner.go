@@ -1129,14 +1129,16 @@ func (in *RunDetails) Expand(s string, mapping func(string) string) string {
 			}
 			buf = append(buf, s[i:j]...)
 			name, w := in.getShellName(s[j+1:])
-			if name == "" && w > 0 {
+			switch {
+			case name == "" && w > 0:
 				// Encountered invalid syntax; eat the
 				// characters.
-			} else if name == "" {
+				break
+			case name == "":
 				// Valid syntax, but $ was not followed by a
 				// name. Leave the dollar character untouched.
 				buf = append(buf, s[j])
-			} else {
+			default:
 				buf = append(buf, mapping(name)...)
 			}
 			j += w

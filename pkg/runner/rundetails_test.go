@@ -155,3 +155,19 @@ func TestRunDetailsGetCommandWhenEmpty(t *testing.T) {
 	var expected []string
 	g.Expect(r.GetCommand()).To(Equal(expected))
 }
+
+func TestExpandEnv(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	env := make(map[string]string)
+	env["A"] = "value-a"
+	env["B"] = "value-b"
+	env["C"] = "value-c"
+
+	r := RunDetails{}
+	result := r.Expand("$(A) ${B} $C", func(s string) string {
+		return env[s]
+	})
+
+	g.Expect(result).To(Equal("value-a value-b value-c"))
+}
