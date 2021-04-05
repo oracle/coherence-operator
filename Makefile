@@ -1001,7 +1001,7 @@ test-mvn: $(BUILD_OUTPUT)/certs build-mvn
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: mvn-deploy
 mvn-deploy: java-client
-	./mvnw $(USE_MAVEN_SETTINGS) $(MAVEN_OPTIONS) -s ./.mvn/settings.xml -B -f java clean install -Drevision=$(MVN_VERSION) -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
+	./mvnw $(USE_MAVEN_SETTINGS) $(MAVEN_OPTIONS) -s ./.mvn/settings.xml -B -f java clean deploy -DskipTests -Drevision=$(MVN_VERSION) -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
@@ -1631,7 +1631,7 @@ $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
-	mkdir -p $(BUILD_OUTPUT)/java-client/java
+	mkdir -p $(BUILD_OUTPUT)/java-client/java/gen
 	cp $(CURRDIR)/client/generate.sh $(BUILD_OUTPUT)/java-client/java/generate.sh
 	chmod +x $(BUILD_OUTPUT)/java-client/java/generate.sh
 	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile

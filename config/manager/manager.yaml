@@ -5,6 +5,8 @@ metadata:
   namespace: default
   labels:
     control-plane: coherence
+    app: coherence-operator
+    version: v3.1.5
 spec:
   selector:
     matchLabels:
@@ -14,6 +16,8 @@ spec:
     metadata:
       labels:
         control-plane: coherence
+        app: coherence-operator
+        version: v3.1.5
     spec:
       serviceAccountName: coherence-operator
       terminationGracePeriodSeconds: 10

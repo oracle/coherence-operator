@@ -6776,6 +6776,13 @@ spec:
                 description: '----- NamedPortSpec struct ----------------------------------------------------
                   NamedPortSpec defines a named port for a Coherence component'
                 properties:
+                  appProtocol:
+                    description: The application protocol for this port. This field
+                      follows standard Kubernetes label syntax. Un-prefixed names
+                      are reserved for IANA standard service names (as per RFC-6335
+                      and http://www.iana.org/assignments/service-names). Non-standard
+                      protocols should use prefixed names such as mycompany.com/my-custom-protocol.
+                    type: string
                   hostIP:
                     description: What host IP to bind the external port to.
                     type: string
@@ -6913,6 +6920,10 @@ spec:
                         description: The service port value
                         format: int32
                         type: integer
+                      portName:
+                        description: An optional name to use to override the port
+                          name.
+                        type: string
                       publishNotReadyAddresses:
                         description: publishNotReadyAddresses, when set to true, indicates
                           that DNS implementations must publish the notReadyAddresses

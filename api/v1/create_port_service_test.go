@@ -77,6 +77,51 @@ func TestNamedPortSpec_CreateServiceWithProtocol(t *testing.T) {
 	g.Expect(svc.Spec.Ports[0].Protocol).To(Equal(udp))
 }
 
+func TestNamedPortSpec_CreateServiceWithAppProtocol(t *testing.T) {
+	g := NewGomegaWithT(t)
+	d := coh.Coherence{}
+	d.Name = "test-deployment"
+	d.Spec.Role = "storage"
+
+	udp := corev1.ProtocolUDP
+
+	np := coh.NamedPortSpec{
+		Name:        "foo",
+		Port:        19,
+		Protocol:    &udp,
+		AppProtocol: stringPtr("http2"),
+	}
+
+	svc := np.CreateService(&d)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(svc.Spec.Ports[0].AppProtocol).NotTo(BeNil())
+	g.Expect(*svc.Spec.Ports[0].AppProtocol).To(Equal("http2"))
+}
+
+func TestNamedPortSpec_CreateServiceWithPortNameOverride(t *testing.T) {
+	g := NewGomegaWithT(t)
+	d := coh.Coherence{}
+	d.Name = "test-deployment"
+	d.Spec.Role = "storage"
+
+	udp := corev1.ProtocolUDP
+
+	spec := coh.ServiceSpec{
+		PortName: stringPtr("http2-foo"),
+	}
+
+	np := coh.NamedPortSpec{
+		Name:     "foo",
+		Port:     19,
+		Protocol: &udp,
+		Service:  &spec,
+	}
+
+	svc := np.CreateService(&d)
+	g.Expect(svc).NotTo(BeNil())
+	g.Expect(svc.Spec.Ports[0].Name).To(Equal("http2-foo"))
+}
+
 func TestNamedPortSpec_CreateServiceWithNodePort(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d := coh.Coherence{}
