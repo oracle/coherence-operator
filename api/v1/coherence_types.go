@@ -881,6 +881,14 @@ type NamedPortSpec struct {
 	// Protocol for container port. Must be UDP or TCP. Defaults to "TCP"
 	// +optional
 	Protocol *corev1.Protocol `json:"protocol,omitempty"`
+	// The application protocol for this port.
+	// This field follows standard Kubernetes label syntax.
+	// Un-prefixed names are reserved for IANA standard service names (as per
+	// RFC-6335 and http://www.iana.org/assignments/service-names).
+	// Non-standard protocols should use prefixed names such as
+	// mycompany.com/my-custom-protocol.
+	// +optional
+	AppProtocol *string `json:"appProtocol,omitempty"`
 	// The port on each node on which this service is exposed when type=NodePort or LoadBalancer.
 	// Usually assigned by the system. If specified, it will be allocated to the service
 	// if unused or else creation of the service will fail.
@@ -923,6 +931,13 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
 	}
 
+	var portName string
+	if in.Service != nil && in.Service.PortName != nil {
+		portName = *in.Service.PortName
+	} else {
+		portName = in.Name
+	}
+
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentPortService
@@ -945,12 +960,16 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 	// Add the port
 	spec.Ports = []corev1.ServicePort{
 		{
-			Name:       in.Name,
+			Name:       portName,
 			Protocol:   in.GetProtocol(),
 			Port:       in.GetServicePort(deployment),
 			TargetPort: intstr.FromInt(int(in.GetPort(deployment))),
 			NodePort:   in.GetNodePort(),
 		},
+	}
+
+	if in.AppProtocol != nil {
+		spec.Ports[0].AppProtocol = in.AppProtocol
 	}
 
 	// Add the service selector
@@ -1658,6 +1677,9 @@ type ServiceSpec struct {
 	// An optional name to use to override the generated service name.
 	// +optional
 	Name *string `json:"name,omitempty"`
+	// An optional name to use to override the port name.
+	// +optional
+	PortName *string `json:"portName,omitempty"`
 	// The service port value
 	// +optional
 	Port *int32 `json:"port,omitempty"`

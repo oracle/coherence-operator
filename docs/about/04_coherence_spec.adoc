@@ -440,6 +440,7 @@ m| name | Name of the referent. More info: https://kubernetes.io/docs/concepts/o
 m| name | Name specifies the name of the port. m| string | true
 m| port | Port specifies the port used. m| int32 | false
 m| protocol | Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\" m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#protocol-v1-core[corev1.Protocol] | false
+m| appProtocol | The application protocol for this port. This field follows standard Kubernetes label syntax. Un-prefixed names are reserved for IANA standard service names (as per RFC-6335 and http://www.iana.org/assignments/service-names). Non-standard protocols should use prefixed names such as mycompany.com/my-custom-protocol. m| &#42;string | false
 m| nodePort | The port on each node on which this service is exposed when type=NodePort or LoadBalancer. Usually assigned by the system. If specified, it will be allocated to the service if unused or else creation of the service will fail. If set, this field must be in the range 30000 - 32767 inclusive. Default is to auto-allocate a port if the ServiceType of this Service requires one. More info: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport m| &#42;int32 | false
 m| hostPort | Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this. m| &#42;int32 | false
 m| hostIP | What host IP to bind the external port to. m| &#42;string | false
@@ -707,6 +708,7 @@ m| proxyURL | ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy throu
 | Field | Description | Type | Required
 m| enabled | Enabled controls whether to create the service yaml or not m| &#42;bool | false
 m| name | An optional name to use to override the generated service name. m| &#42;string | false
+m| portName | An optional name to use to override the port name. m| &#42;string | false
 m| port | The service port value m| &#42;int32 | false
 m| type | Kind is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\". m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#servicetype-v1-core[corev1.ServiceType] | false
 m| externalIPs | externalIPs is a list of IP addresses for which nodes in the cluster will also accept traffic for this service.  These IPs are not managed by Kubernetes.  The user is responsible for ensuring that traffic arrives at a node with this IP.  A common example is external load-balancers that are not part of the Kubernetes system. m| []string | false

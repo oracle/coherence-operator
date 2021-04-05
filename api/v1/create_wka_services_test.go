@@ -52,7 +52,7 @@ func TestCreateWKAServiceForMinimalDeployment(t *testing.T) {
 			PublishNotReadyAddresses: true,
 			Ports: []corev1.ServicePort{
 				{
-					Name:       coh.PortNameCoherence,
+					Name:       "tcp-" + coh.PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
 					TargetPort: intstr.FromInt(7),
@@ -104,7 +104,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			PublishNotReadyAddresses: true,
 			Ports: []corev1.ServicePort{
 				{
-					Name:       coh.PortNameCoherence,
+					Name:       "tcp-" + coh.PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
 					TargetPort: intstr.FromInt(7),

@@ -849,6 +849,11 @@ func (in *NamedPortSpec) DeepCopyInto(out *NamedPortSpec) {
 		*out = new(corev1.Protocol)
 		**out = **in
 	}
+	if in.AppProtocol != nil {
+		in, out := &in.AppProtocol, &out.AppProtocol
+		*out = new(string)
+		**out = **in
+	}
 	if in.NodePort != nil {
 		in, out := &in.NodePort, &out.NodePort
 		*out = new(int32)
@@ -1385,6 +1390,11 @@ func (in *ServiceSpec) DeepCopyInto(out *ServiceSpec) {
 	}
 	if in.Name != nil {
 		in, out := &in.Name, &out.Name
+		*out = new(string)
+		**out = **in
+	}
+	if in.PortName != nil {
+		in, out := &in.PortName, &out.PortName
 		*out = new(string)
 		**out = **in
 	}

@@ -490,7 +490,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resourc
 			PublishNotReadyAddresses: true,
 			Ports: []corev1.ServicePort{
 				{
-					Name:       PortNameCoherence,
+					Name:       "tcp-" + PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
 					TargetPort: intstr.FromInt(7),
@@ -529,7 +529,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 			Selector:                 selector,
 			Ports: []corev1.ServicePort{
 				{
-					Name:       PortNameCoherence,
+					Name:       "tcp-" + PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
 					TargetPort: intstr.FromInt(7),
