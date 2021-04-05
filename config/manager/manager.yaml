@@ -74,3 +74,20 @@ spec:
           defaultMode: 420
           secretName: coherence-webhook-server-cert
           optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest
+  namespace: default
+  labels:
+    control-plane: coherence
+    app: coherence-operator
+    version: v3.1.5
+spec:
+  ports:
+    - name: http-rest
+      port: 8000
+      targetPort: 8000
+  selector:
+    control-plane: coherence

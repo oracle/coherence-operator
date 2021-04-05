@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -331,6 +331,22 @@ func TestCreateStatefulSetWithHostIPCNamespaceTrue(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.HostIPC = true
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithAppLabel(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		AppLabel: stringPtr("foo"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Labels["app"] = "foo"
+	stsExpected.Spec.Template.Labels["app"] = "foo"
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

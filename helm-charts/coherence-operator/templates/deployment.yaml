@@ -13,6 +13,8 @@ metadata:
   labels:
     name: coherence-operator
     control-plane: coherence
+    app: coherence-operator
+    version: v${VERSION}
   name: coherence-operator-webhook-service
   namespace: {{ .Release.Namespace }}
 spec:
@@ -22,11 +24,30 @@ spec:
   selector:
     control-plane: coherence
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest
+  namespace: default
+  labels:
+    control-plane: coherence
+    app: coherence-operator
+    version: v${VERSION}
+spec:
+  ports:
+    - name: http-rest
+      port: 8000
+      targetPort: 8000
+  selector:
+    control-plane: coherence
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     control-plane: coherence
+    app: coherence-operator
+    version: v${VERSION}
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
 spec:
@@ -38,6 +59,8 @@ spec:
     metadata:
       labels:
         control-plane: coherence
+        app: coherence-operator
+        version: v${VERSION}
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
       containers:
@@ -81,6 +104,9 @@ spec:
 {{- end }}
         image: {{ .Values.image }}
         ports:
+        - containerPort: 8000
+          name: operator
+          protocol: TCP
         - name: webhook-server
           containerPort: 9443
           protocol: TCP

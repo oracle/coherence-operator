@@ -26,6 +26,8 @@ const (
 	LabelComponent           = "coherenceComponent"
 	LabelPort                = "coherencePort"
 	LabelCoherenceWKAMember  = "coherenceWKAMember"
+	LabelApp                 = "app"
+	LabelVersion             = "version"
 
 	// Values used for the component label in k8s resources
 	LabelComponentCoherenceStatefulSet = "coherence"
