@@ -144,6 +144,8 @@ jobs:
     - name: Deploy Snapshots
       if: success()
       env:
+        MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
+        MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       shell: bash
       run: |
