@@ -225,7 +225,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			},
 			{
 				Name:  "COH_RACK_INFO_LOCATION",
-				Value: "http://${OPERATOR_HOST}/rack/${COH_MACHINE_NAME}",
+				Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
 			},
 			{
 				Name:  "COH_ROLE",
@@ -233,7 +233,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			},
 			{
 				Name:  "COH_SITE_INFO_LOCATION",
-				Value: "http://${OPERATOR_HOST}/site/${COH_MACHINE_NAME}",
+				Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
 			},
 			{
 				Name:  "COH_UTIL_DIR",
