@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,7 +7,6 @@
 package fakes
 
 import (
-	"fmt"
 	"github.com/go-logr/logr"
 	"testing"
 )
@@ -20,7 +19,7 @@ type TestLogger struct {
 var _ logr.Logger = TestLogger{}
 
 func (log TestLogger) Info(msg string, keysAndValues ...interface{}) {
-	log.T.Log(fmt.Sprintf("%s %v", msg, keysAndValues))
+	log.T.Logf("%s %v", msg, keysAndValues)
 }
 
 func (_ TestLogger) Enabled() bool {

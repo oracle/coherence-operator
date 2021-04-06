@@ -187,7 +187,17 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		return TestContext{}, err
 	}
 
-	options := ctrl.Options{Scheme: scheme.Scheme}
+	cl, err := client.New(k8sCfg, client.Options{Scheme: scheme.Scheme})
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	options := ctrl.Options{
+		Scheme: scheme.Scheme,
+		NewClient: func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
+			return cl, nil
+		},
+	}
 
 	if len(watchNamespaces) == 1 {
 		// Watch a single namespace
@@ -204,13 +214,13 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	k8sClient := k8sManager.GetClient()
 
-	cl, err := clients.NewForConfig(k8sCfg)
+	cs, err := clients.NewForConfig(k8sCfg)
 	if err != nil {
 		return TestContext{}, err
 	}
 
 	// Ensure CRDs exist
-	err = coh.EnsureCRDs(cl)
+	err = coh.EnsureCRDs(cs, k8sManager)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -241,7 +251,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	return TestContext{
 		Config:     k8sCfg,
 		Client:     k8sClient,
-		KubeClient: cl.KubeClient,
+		KubeClient: cs.KubeClient,
 		Manager:    k8sManager,
 		Logger:     testLogger.WithName("test"),
 		testEnv:    testEnv,

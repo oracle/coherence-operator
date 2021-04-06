@@ -16,10 +16,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	clientrest "k8s.io/client-go/rest"
 	"os"
 	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
 
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -94,13 +97,18 @@ func execute() {
 	printVersion()
 
 	cfg := ctrl.GetConfigOrDie()
-	cl, err := clients.NewForConfig(cfg)
+	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
-		setupLog.Error(err, "unable to create client set")
+		setupLog.Error(err, "unable to create clientset")
 		os.Exit(1)
 	}
 
-	initialiseOperator(cl)
+	// create the client here as we use it to install CRDs then inject it into the Manager
+	cl, err := client.New(cfg, client.Options{Scheme: scheme})
+	if err != nil {
+		setupLog.Error(err, "unable to create client")
+		os.Exit(1)
+	}
 
 	options := ctrl.Options{
 		Scheme:                 scheme,
@@ -109,6 +117,9 @@ func execute() {
 		Port:                   9443,
 		LeaderElection:         viper.GetBool(flagLeaderElection),
 		LeaderElectionID:       "ca804aa8.oracle.com",
+		NewClient: func(cache.Cache, *clientrest.Config, client.Options) (client.Client, error) {
+			return cl, nil
+		},
 	}
 
 	// Determine the Operator scope...
@@ -133,6 +144,8 @@ func execute() {
 		os.Exit(1)
 	}
 
+	initialiseOperator(cs, mgr)
+
 	// Set-up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
 		Client: mgr.GetClient(),
@@ -148,7 +161,7 @@ func execute() {
 	if operator.ShouldEnableWebhooks() {
 		// Set-up the webhook certificate reconciler
 		cr = &webhook.CertReconciler{
-			Clientset: cl,
+			Clientset: cs,
 		}
 		if err := cr.SetupWithManager(mgr); err != nil {
 			setupLog.Error(err, " unable to create webhook certificate controller", "controller", "Certs")
@@ -163,7 +176,7 @@ func execute() {
 	}
 
 	// Create the REST server
-	if err := rest.NewServer(cl).SetupWithManager(mgr); err != nil {
+	if err := rest.NewServer(cs).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, " unable to start REST server")
 		os.Exit(1)
 	}
@@ -198,12 +211,12 @@ func execute() {
 	}
 }
 
-func initialiseOperator(cl clients.ClientSet) {
+func initialiseOperator(cl clients.ClientSet, mgr manager.Manager) {
 	opLog := ctrl.Log.WithName("operator")
 
 	// Ensure that the CRDs exist
 	if operator.ShouldInstallCRDs() {
-		err := coh.EnsureCRDs(cl)
+		err := coh.EnsureCRDs(cl, mgr)
 		if err != nil {
 			opLog.Error(err, "")
 			os.Exit(1)
