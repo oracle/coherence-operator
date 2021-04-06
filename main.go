@@ -117,8 +117,15 @@ func execute() {
 		Port:                   9443,
 		LeaderElection:         viper.GetBool(flagLeaderElection),
 		LeaderElectionID:       "ca804aa8.oracle.com",
-		NewClient: func(cache.Cache, *clientrest.Config, client.Options) (client.Client, error) {
-			return cl, nil
+		NewClient: func(cache cache.Cache, cfg *clientrest.Config, o client.Options) (client.Client, error) {
+			return &client.DelegatingClient{
+				Reader: &client.DelegatingReader{
+					CacheReader:  cache,
+					ClientReader: cl,
+				},
+				Writer:       cl,
+				StatusClient: cl,
+			}, nil
 		},
 	}
 
