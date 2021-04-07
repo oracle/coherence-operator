@@ -219,8 +219,13 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		return TestContext{}, err
 	}
 
+	v, err := operator.DetectKubernetesVersion(cs)
+	if err != nil {
+		return TestContext{}, err
+	}
+
 	// Ensure CRDs exist
-	err = coh.EnsureCRDs(cs, k8sManager)
+	err = coh.EnsureCRDs(v, scheme.Scheme, cl)
 	if err != nil {
 		return TestContext{}, err
 	}

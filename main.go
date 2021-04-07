@@ -151,7 +151,7 @@ func execute() {
 		os.Exit(1)
 	}
 
-	v, err := detectKubernetesVersion(cs)
+	v, err := operator.DetectKubernetesVersion(cs)
 	if err != nil {
 		setupLog.Error(err, "unable to detect Kubernetes version")
 		os.Exit(1)
@@ -235,14 +235,6 @@ func initialiseOperator(v *version.Version, cl client.Client) {
 			os.Exit(1)
 		}
 	}
-}
-
-func detectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
-	sv, err := cs.DiscoveryClient.ServerVersion()
-	if err != nil {
-		return nil, err
-	}
-	return version.ParseSemantic(sv.GitVersion)
 }
 
 // getWatchNamespace returns the Namespace(s) the operator should be watching for changes

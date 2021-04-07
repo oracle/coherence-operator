@@ -9,9 +9,11 @@ package operator
 
 import (
 	"fmt"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/util/version"
 	"os"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -298,4 +300,12 @@ func GetWebhookServiceDNSNames() []string {
 		}
 	}
 	return dns
+}
+
+func DetectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
+	sv, err := cs.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return nil, err
+	}
+	return version.ParseSemantic(sv.GitVersion)
 }
