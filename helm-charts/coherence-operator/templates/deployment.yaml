@@ -27,7 +27,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rest
+  name: coherence-operator-rest
   namespace: default
   labels:
     control-plane: coherence
@@ -86,6 +86,8 @@ spec:
           value: coherence-operator-webhook-service
         - name: WEBHOOK_SECRET
           value: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
+        - name: SERVICE_NAME
+          value: coherence-operator-rest
         - name: CERT_TYPE
           value: {{ default "self-signed" .Values.webhookCertType | quote }}
         - name: COHERENCE_IMAGE
