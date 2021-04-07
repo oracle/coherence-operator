@@ -55,9 +55,11 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: WEBHOOK_SERVICE
-            value: $(SERVICE_NAME)
+            value: $(WEBHOOK_SERVICE_NAME)
           - name: WEBHOOK_SECRET
             value: coherence-webhook-server-cert
+          - name: SERVICE_NAME
+            value: $(REST_SERVICE_NAME)
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
@@ -88,6 +90,8 @@ spec:
   ports:
     - name: http-rest
       port: 8000
-      targetPort: 8000
+      targetPort: operator
   selector:
+    app: coherence-operator
     control-plane: coherence
+    version: v3.1.5

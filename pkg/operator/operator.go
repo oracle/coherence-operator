@@ -244,7 +244,12 @@ func GetRestPort() int32 {
 }
 
 func GetRestServiceName() string {
-	return viper.GetString(FlagServiceName)
+	s := viper.GetString(FlagServiceName)
+	if s != "" {
+		ns := GetNamespace()
+		return s + "." + ns + ".svc"
+	}
+	return ""
 }
 
 func GetRestServicePort() int32 {

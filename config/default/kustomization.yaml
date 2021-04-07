@@ -17,7 +17,12 @@ bases:
 
 # the following config is for teaching kustomize how to do var substitution
 vars:
-  - name: SERVICE_NAME
+  - name: REST_SERVICE_NAME
+    objref:
+      kind: Service
+      version: v1
+      name: rest
+  - name: WEBHOOK_SERVICE_NAME
     objref:
       kind: Service
       version: v1
