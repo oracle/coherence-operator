@@ -28,7 +28,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1CRDs(log, mgr)
+	err = v1.EnsureV1CRDs(log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -75,7 +75,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1CRDs(log, mgr)
+	err = v1.EnsureV1CRDs(log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
@@ -103,7 +103,7 @@ func TestShouldCreateV1beta1CRDs(t *testing.T) {
 
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1Beta1CRDs(log, mgr)
+	err = v1.EnsureV1Beta1CRDs(log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
@@ -149,7 +149,7 @@ func TestShouldUpdateV1beta1CRDs(t *testing.T) {
 
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1Beta1CRDs(log, mgr)
+	err = v1.EnsureV1Beta1CRDs(log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := v1beta1.CustomResourceDefinitionList{}
