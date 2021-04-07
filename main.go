@@ -16,13 +16,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/util/version"
 	clientrest "k8s.io/client-go/rest"
 	"os"
 	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
 
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -147,11 +147,17 @@ func execute() {
 
 	mgr, err := ctrl.NewManager(cfg, options)
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		setupLog.Error(err, "unable to create controller manager")
 		os.Exit(1)
 	}
 
-	initialiseOperator(cs, mgr)
+	v, err := detectKubernetesVersion(cs)
+	if err != nil {
+		setupLog.Error(err, "unable to detect Kubernetes version")
+		os.Exit(1)
+	}
+
+	initialiseOperator(v, cl)
 
 	// Set-up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
@@ -218,17 +224,25 @@ func execute() {
 	}
 }
 
-func initialiseOperator(cl clients.ClientSet, mgr manager.Manager) {
+func initialiseOperator(v *version.Version, cl client.Client) {
 	opLog := ctrl.Log.WithName("operator")
 
 	// Ensure that the CRDs exist
 	if operator.ShouldInstallCRDs() {
-		err := coh.EnsureCRDs(cl, mgr)
+		err := coh.EnsureCRDs(v, scheme, cl)
 		if err != nil {
 			opLog.Error(err, "")
 			os.Exit(1)
 		}
 	}
+}
+
+func detectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
+	sv, err := cs.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return nil, err
+	}
+	return version.ParseSemantic(sv.GitVersion)
 }
 
 // getWatchNamespace returns the Namespace(s) the operator should be watching for changes
