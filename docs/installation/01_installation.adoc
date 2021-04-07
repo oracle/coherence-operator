@@ -107,6 +107,8 @@ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 helm repo update
 ----
 
+NOTE: To avoid confusion, the URL `https://oracle.github.io/coherence-operator/charts` is a Helm repo, it is not a web site you open in a browser. You may think we shouldn't have to say this, but you'd be surprised.
+
 === Install the Coherence Operator Helm chart
 
 Once the Coherence Helm repo has been configured the Coherence Operator can be installed using a normal Helm 3

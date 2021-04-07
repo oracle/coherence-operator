@@ -17,7 +17,25 @@ Ensure that the <<installation/01_installation.adoc,Coherence Operator prerequis
 
 == 1. Install the Coherence Operator
 
-=== 1.1 Add the Coherence Operator Helm repository
+If you want the default Coherence Operator installation then the simplest solution is use `kubectl` to apply the manifests from the Operator release.
+
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.1.5/coherence-operator.yaml
+----
+
+This will create a namespace called `coherence` and install the Operator into it along with all the required `ClusterRole` and `RoleBinding` resources. The `coherence` namespace can be changed by downloading and editing the yaml file.
+
+NOTE: Because the `coherence-operator.yaml` manifest also creates the namespace, the corresponding `kubectl delete` command will _remove the namespace and everything deployed to it_! If you do not want this behaviour you should edit the `coherence-operator.yaml` to remove the namespace section from the start of the file.
+
+
+=== Alternatively Install Using Helm
+
+Alternatively you can install the Operator using the Helm chart.
+
+==== Add the Coherence Operator Helm repository
+
+Add the Coherence Operator Helm repo to your local Helm.
 
 [source,bash]
 ----
@@ -26,7 +44,9 @@ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 helm repo update
 ----
 
-=== 1.2. Install the Coherence Operator Helm chart
+NOTE: To avoid confusion, the URL `https://oracle.github.io/coherence-operator/charts` is a Helm repo, it is not a web site you open in a browser. You may think we shouldn't have to say this, but you'd be surprised.
+
+==== Install the Coherence Operator Helm chart
 
 [source,bash]
 .helm v3 install command
@@ -49,9 +69,8 @@ or with Helm v2
 helm install --namespace coherence-test  --name operator coherence/coherence-operator
 ----
 
-
-
 See the <<installation/01_installation.adoc, full install guide>> for more details.
+
 
 == 2. Install a Coherence Deployment
 
