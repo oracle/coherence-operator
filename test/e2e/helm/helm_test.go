@@ -247,6 +247,8 @@ func AssertHelmInstallWithSubTest(id string, cmd *exec.Cmd, g *GomegaWithT, ns s
 }
 
 func Cleanup(namespace, name string) {
+	_ = helper.WaitForCoherenceCleanup(testContext, namespace)
+
 	cmd := exec.Command("helm", "uninstall", "--namespace", namespace, name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

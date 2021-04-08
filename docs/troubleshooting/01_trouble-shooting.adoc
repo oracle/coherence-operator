@@ -15,6 +15,8 @@ This paged will be updated and maintained over time to include common issues we 
 
 == Contents
 
+* <<#restart,Why Does the Operator Pod Restart>>
+
 * <<#stuck-pending,My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down>>
 
 * <<#stuck-delete,My Coherence cluster is stuck with all pending/crashing Pods, I cannot delete the deployment>>
@@ -24,6 +26,16 @@ This paged will be updated and maintained over time to include common issues we 
 * <<dashboards,My Grafana Dashboards do not display any metrics>>
 
 == Issues
+
+[#restart]
+=== Why Does the Operator Pod Restart After Installation
+
+You might notice that when the Operator is installed that the Operator Pod starts, dies and is then restarted.
+This is expected behaviour. The Operator uses a K8s web-hook for defaulting and validation of the Coherence resources.
+A web-hook requires certificates to be present in a `Secret` mounted to the Operator Pod as a volume.
+If this Secret is not present the Operator creates it and populates it with self-signed certs.
+In order for the Secret to then be mounted correctly the Pod must be restarted.
+See the <<webhooks/01_introduction.adoc,the WebHooks>> documentation.
 
 [#stuck-pending]
 === My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down
