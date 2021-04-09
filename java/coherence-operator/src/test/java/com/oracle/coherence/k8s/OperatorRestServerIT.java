@@ -74,6 +74,57 @@ public class OperatorRestServerIT {
     }
 
     @Test
+    public void shouldBeReadyWhenStorageDisabled() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app = platform.launch(JavaApplication.class,
+                                                   ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
+                                                   LocalStorage.disabled(),
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
+
+            Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_READY), is(200));
+        }
+    }
+
+    @Test
+    public void shouldBeLiveWhenStorageDisabled() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app = platform.launch(JavaApplication.class,
+                                                   ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
+                                                   LocalStorage.disabled(),
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
+
+            Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HEALTH), is(200));
+        }
+    }
+
+    @Test
+    public void shouldBeHAWhenStorageDisabled() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app = platform.launch(JavaApplication.class,
+                                                   ClassName.of(Main.class),
+                                                   CacheConfig.of("test-cache-config.xml"),
+                                                   OperationalOverride.of("k8s-coherence-override.xml"),
+                                                   LocalStorage.disabled(),
+                                                   SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
+
+            Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_HA), is(200));
+        }
+    }
+
+    @Test
     public void shouldBeLiveSingleMember() {
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
