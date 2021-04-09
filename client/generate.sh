@@ -1,18 +1,10 @@
 #!/bin/bash
 
-# Copyright 2020 The Kubernetes Authors.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright (c) 2021, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 # This script orchestrates the code generation procedure. It is executed inside a crdgen
 # container in order to minimize the environment dependencies on the host, being Docker only.
@@ -82,4 +74,5 @@ bash java-crd-cmd.sh -n "${KUBERNETES_CRD_GROUP_PREFIX}" -p "${PACKAGE_NAME}" -l
 # only keep the model classes
 mkdir -p "${OUTPUT_DIR}/src/main/java/${PACKAGE_NAME//.//}"
 cp -r "${OUTPUT_DIR}/gen/src/main/java/${PACKAGE_NAME//.//}/models" "${OUTPUT_DIR}/src/main/java/${PACKAGE_NAME//.//}"
+chmod 777 -R "${OUTPUT_DIR}/src"
 rm -rf "${OUTPUT_DIR}/gen"/gen/openapi
