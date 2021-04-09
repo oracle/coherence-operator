@@ -748,6 +748,7 @@ $(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
+	sed -i '' -e  's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
