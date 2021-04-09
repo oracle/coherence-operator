@@ -74,5 +74,5 @@ bash java-crd-cmd.sh -n "${KUBERNETES_CRD_GROUP_PREFIX}" -p "${PACKAGE_NAME}" -l
 # only keep the model classes
 mkdir -p "${OUTPUT_DIR}/src/main/java/${PACKAGE_NAME//.//}"
 cp -r "${OUTPUT_DIR}/gen/src/main/java/${PACKAGE_NAME//.//}/models" "${OUTPUT_DIR}/src/main/java/${PACKAGE_NAME//.//}"
+rm -rf "${OUTPUT_DIR}/gen"
 chmod 777 -R "${OUTPUT_DIR}/src"
-rm -rf "${OUTPUT_DIR}/gen"/gen/openapi
