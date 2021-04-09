@@ -190,7 +190,7 @@ public class OperatorRestServer implements AutoCloseable {
     /**
      * The MBean name of the Service MBean.
      */
-    public static final String MBEAN_SERVICE = Registry.SERVICE_TYPE + ",name=*,nodeId=*";
+    public static final String MBEAN_SERVICE = Registry.SERVICE_TYPE + ",name=*,nodeId=%d";
 
     /**
      * The MBean name of the Service MBean pattern.
@@ -760,23 +760,26 @@ public class OperatorRestServer implements AutoCloseable {
             if (cluster != null && cluster.isRunning()) {
                 int id = cluster.getLocalMember().getId();
 
-                Set<String> cacheServices = getDistributedCacheServiceNames();
+                Set<String> cacheServices = getDistributedCacheServiceNames(id);
                 Set<String> distributionCoordinators = getPartitionAssignmentMBeans();
 
                 // Ensure we have a DistributionCoordinator for all cache services
                 // If the senior just died we might not have one
-                if (cacheServices.size() != distributionCoordinators.size()) {
-                    Set<String> coords = new HashSet<>();
-                    for (String s : distributionCoordinators) {
-                        ObjectName objectName = ObjectName.getInstance(s);
-                        coords.add(objectName.getKeyProperty("service"));
+                Set<String> coords = new HashSet<>();
+                for (String s : distributionCoordinators) {
+                    ObjectName objectName = ObjectName.getInstance(s);
+                    coords.add(objectName.getKeyProperty("service"));
+                }
+                boolean missing = false;
+                for (String name : cacheServices) {
+                    if (!coords.contains(name)) {
+                        missing = true;
+                        err("CoherenceOperator: StatusHA check failed - No DistributionCoordinator "
+                                    + "for DistributedCache service " + name);
                     }
-                    for (String name : cacheServices) {
-                        if (!coords.contains(name)) {
-                            err("CoherenceOperator: StatusHA check failed - No DistributionCoordinator "
-                                        + "for DistributedCache service " + name);
-                        }
-                    }
+                }
+
+                if (missing) {
                     err("CoherenceOperator: StatusHA check failed - DistributedCache service count " + cacheServices.size()
                                 + " does not match DistributionCoordinator count " + distributionCoordinators.size());
                     return false;
@@ -965,21 +968,36 @@ public class OperatorRestServer implements AutoCloseable {
                 .orElse(Collections.emptySet());
     }
 
-    private Set<String> getDistributedCacheServiceNames() throws MalformedObjectNameException {
-        Set<String> cacheServices = new HashSet<>();
-        Set<String> set = getMBeanServerProxy()
-                .map(p -> p.queryNames(MBEAN_SERVICE, null))
-                .orElse(Collections.emptySet());
+    /**
+     * Returns the names of the distributed cache service MBeans for services that are
+     * storage enabled on this local member.
+     *
+     * @param memberId  the local member id
+     *
+     * @return the names of the storage enabled cache services
+     */
+    private Set<String> getDistributedCacheServiceNames(int memberId) {
+        try {
+            Set<String> cacheServices = new HashSet<>();
+            String mBeanPattern = String.format(MBEAN_SERVICE, memberId);
+            Set<String> set = getMBeanServerProxy()
+                    .map(p -> p.queryNames(mBeanPattern, null))
+                    .orElse(Collections.emptySet());
 
-        for (String mBean : set) {
-            Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type"});
-            String type = (String) attributes.get("type");
-            if ("DistributedCache".equals(type) || "FederatedCache".equals(type)) {
-                ObjectName objectName = new ObjectName(mBean);
-                cacheServices.add(objectName.getKeyProperty("name"));
+            for (String mBean : set) {
+                Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type", "StorageEnabled"});
+                String type = (String) attributes.get("type");
+                Boolean storageEnabled = (Boolean) attributes.get("storageenabled");
+                if (storageEnabled != null && storageEnabled && "DistributedCache".equals(type) || "FederatedCache".equals(type)) {
+                    ObjectName objectName = new ObjectName(mBean);
+                    cacheServices.add(objectName.getKeyProperty("name"));
+                }
             }
+            return cacheServices;
         }
-        return cacheServices;
+        catch (MalformedObjectNameException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     private Set<String> getPersistenceCoordinatorMBeans() {
