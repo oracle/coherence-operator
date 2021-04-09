@@ -6,7 +6,7 @@ metadata:
   labels:
     control-plane: coherence
     app: coherence-operator
-    version: v3.1.5
+    version: v3.1.6
 spec:
   selector:
     matchLabels:
@@ -17,7 +17,7 @@ spec:
       labels:
         control-plane: coherence
         app: coherence-operator
-        version: v3.1.5
+        version: v3.1.6
     spec:
       serviceAccountName: coherence-operator
       terminationGracePeriodSeconds: 10
@@ -85,7 +85,7 @@ metadata:
   labels:
     control-plane: coherence
     app: coherence-operator
-    version: v3.1.5
+    version: v3.1.6
 spec:
   ports:
     - name: http-rest
@@ -94,4 +94,4 @@ spec:
   selector:
     app: coherence-operator
     control-plane: coherence
-    version: v3.1.5
+    version: v3.1.6
