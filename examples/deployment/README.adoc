@@ -40,7 +40,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 Ensure you have the following software installed:
 
 * Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
-* [Docker](https://docs.docker.com/install/) version 17.03+.
+* https://docs.docker.com/install/[Docker] version 17.03+.
 * Access to a Kubernetes v1.14.0+ cluster.
 * https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version matching your Kubernetes cluster.
 
