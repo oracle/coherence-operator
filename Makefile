@@ -595,7 +595,7 @@ run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO
 run-coherence-compatibility: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-coherence-compatibility: gotestsum
+run-coherence-compatibility: gotestsum generate
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
 
