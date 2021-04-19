@@ -32,7 +32,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 ** <<ex4,Example 4 - Enabling Persistence>>
 ** <<metrics,View Cluster Metrics via Grafana>>
 ** <<grafana,Port Forward and Access Grafana>>
-* [Cleaning Up](#cleaning-up)
+* <<cleaning-up,Cleaning Up>>
 
 [#pre]
 == Prerequisites
@@ -897,6 +897,7 @@ Forwarding from [::1]:9090 -> 9090
 *   If you do not see any values in the `Cluster Name` dropdown in Grafana, ensure the endpoints are up as  described above and click on `Manage Alerts` and then `Back to Main Dashboard`. This will re-query the data and load the list of clusters.    
 
 
+[#cleaning-up]
 === Cleaning Up
 
 ==== Delete the cluster

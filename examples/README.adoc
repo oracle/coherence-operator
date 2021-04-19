@@ -6,8 +6,8 @@ to be depended upon to create production environments.
 
 == Table of Contents
 
-* <<deployment/README.adoc,Coherence Operator Deployment Example>>
+* <<deployment/README.adoc#,Coherence Operator Deployment Example>>
 
-* <<autoscaler/README.adoc,Kubernetes Horizontal Pod Autoscaler Example>>
+* <<autoscaler/README.adoc#,Kubernetes Horizontal Pod Autoscaler Example>>
 
-* <<tls/README.adoc,Secure Coherence Clusters with TLS>>
+* <<tls/README.adoc#,Secure Coherence Clusters with TLS>>
