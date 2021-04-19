@@ -947,13 +947,13 @@ NOTE: You can optionally delete the Prometheus Operator Custom Resource Definiti
 
 [source,bash]
 ----
-$ kubectl delete crd alertmanagers.monitoring.coreos.com
-$ kubectl delete crd podmonitors.monitoring.coreos.com
-$ kubectl delete crd prometheuses.monitoring.coreos.com
-$ kubectl delete crd prometheusrules.monitoring.coreos.com
-$ kubectl delete crd prometheusrules.monitoring.coreos.com
-$ kubectl delete crd servicemonitors.monitoring.coreos.com
-$ kubectl delete crd thanosrulers.monitoring.coreos.com
+kubectl delete crd alertmanagers.monitoring.coreos.com
+kubectl delete crd podmonitors.monitoring.coreos.com
+kubectl delete crd prometheuses.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd servicemonitors.monitoring.coreos.com
+kubectl delete crd thanosrulers.monitoring.coreos.com
 ----
 
 A shorthand way of doing this if you are running Linux/Mac is:
