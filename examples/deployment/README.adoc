@@ -31,8 +31,8 @@ You can use `kubectl create` for any of the examples to install that one directl
 ** <<ex3,Example 3 - Adding a User application role>>
 ** <<ex4,Example 4 - Enabling Persistence>>
 ** <<metrics,View Cluster Metrics via Grafana>>
-** [Port Forward and Access Grafana](#port-forward-and-access-grafana)
-* [Cleaning Up](#cleaning-up)
+** <<grafana,Port Forward and Access Grafana>>
+* <<cleaning-up,Cleaning Up>>
 
 [#pre]
 == Prerequisites
@@ -40,7 +40,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 Ensure you have the following software installed:
 
 * Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
-* [Docker](https://docs.docker.com/install/) version 17.03+.
+* https://docs.docker.com/install/[Docker] version 17.03+.
 * Access to a Kubernetes v1.14.0+ cluster.
 * https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version matching your Kubernetes cluster.
 
@@ -830,6 +830,7 @@ prometheus-prometheus-prometheus-oper-prometheus-0     3/3     Running   1      
 Remember to now install one of the examples above.  If you have already had the examples installed,
 you must delete and re-install once you have installed Prometheus operator.
 
+[#grafana]
 ==== Port Forward and Access Grafana
 
 Port-forward the ports for these components using the scripts
@@ -896,6 +897,7 @@ Forwarding from [::1]:9090 -> 9090
 *   If you do not see any values in the `Cluster Name` dropdown in Grafana, ensure the endpoints are up as  described above and click on `Manage Alerts` and then `Back to Main Dashboard`. This will re-query the data and load the list of clusters.    
 
 
+[#cleaning-up]
 === Cleaning Up
 
 ==== Delete the cluster
@@ -945,13 +947,13 @@ NOTE: You can optionally delete the Prometheus Operator Custom Resource Definiti
 
 [source,bash]
 ----
-$ kubectl delete crd alertmanagers.monitoring.coreos.com
-$ kubectl delete crd podmonitors.monitoring.coreos.com
-$ kubectl delete crd prometheuses.monitoring.coreos.com
-$ kubectl delete crd prometheusrules.monitoring.coreos.com
-$ kubectl delete crd prometheusrules.monitoring.coreos.com
-$ kubectl delete crd servicemonitors.monitoring.coreos.com
-$ kubectl delete crd thanosrulers.monitoring.coreos.com
+kubectl delete crd alertmanagers.monitoring.coreos.com
+kubectl delete crd podmonitors.monitoring.coreos.com
+kubectl delete crd prometheuses.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd servicemonitors.monitoring.coreos.com
+kubectl delete crd thanosrulers.monitoring.coreos.com
 ----
 
 A shorthand way of doing this if you are running Linux/Mac is:
