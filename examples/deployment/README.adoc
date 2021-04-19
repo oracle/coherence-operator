@@ -31,7 +31,7 @@ You can use `kubectl create` for any of the examples to install that one directl
 ** <<ex3,Example 3 - Adding a User application role>>
 ** <<ex4,Example 4 - Enabling Persistence>>
 ** <<metrics,View Cluster Metrics via Grafana>>
-** [Port Forward and Access Grafana](#port-forward-and-access-grafana)
+** <<grafana,Port Forward and Access Grafana>>
 * [Cleaning Up](#cleaning-up)
 
 [#pre]
@@ -830,6 +830,7 @@ prometheus-prometheus-prometheus-oper-prometheus-0     3/3     Running   1      
 Remember to now install one of the examples above.  If you have already had the examples installed,
 you must delete and re-install once you have installed Prometheus operator.
 
+[#grafana]
 ==== Port Forward and Access Grafana
 
 Port-forward the ports for these components using the scripts
