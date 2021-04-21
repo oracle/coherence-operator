@@ -310,7 +310,7 @@ kubectl -n coherence-test create secret generic \
 Create the client certificate and keystore.
 
 [source,yaml]
-.manifests/server-keystore.yaml
+.manifests/client-keystore.yaml
 ----
 apiVersion: cert-manager.io/v1
 kind: Certificate

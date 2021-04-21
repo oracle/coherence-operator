@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!--
+    Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.examples.kubernetes</groupId>
+  <artifactId>federation-example</artifactId>
+  <name>Coherence Operator Federation Example</name>
+  <version>1.0.0</version>
+
+  <properties>
+    <coherence.group.id>com.oracle.coherence</coherence.group.id>
+    <coherence.version>14.1.1-0-3</coherence.version>
+
+    <helidon.version>1.3.1</helidon.version>
+
+    <jib.version>2.8.0</jib.version>
+    <image.version>${project.version}</image.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
+    <maven.version>3.6.0</maven.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-management</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-metrics</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!--
+      The JIB plugin builds the Docker image for the application.
+      -->
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${jib.version}</version>
+        <configuration>
+          <from>
+            <image>gcr.io/distroless/java:11</image>
+          </from>
+          <to>
+            <image>${project.artifactId}</image>
+            <tags>
+              <tag>${image.version}</tag>
+            </tags>
+          </to>
+          <container>
+            <mainClass>com.tangosol.net.Coherence</mainClass>
+            <ports>
+              <port>8080</port>
+            </ports>
+          </container>
+          <containerizingMode>packaged</containerizingMode>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
