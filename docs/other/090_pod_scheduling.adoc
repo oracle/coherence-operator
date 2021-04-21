@@ -22,7 +22,7 @@ The following settings can be configured:
 
 |`nodeSelector`
 |`nodeSelector` is the simplest recommended form of node selection constraint.
-`nodeSelector` is a field of role spec, it specifies a map of key-value pairs.
+`nodeSelector` is a field of role spec, it specifies an array of key-value pairs.
 For the `Pod` to be eligible to run on a node, the node must have each of the indicated key-value pairs as labels
 (it can have additional labels as well).
 See https://kubernetes.io/docs/concepts/configuration/assign-pod-node/[Assigning Pods to Nodes] in the
