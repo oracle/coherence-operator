@@ -1358,9 +1358,13 @@ func (in *RunDetails) GetClasspath() string {
 	cp := in.Classpath
 	// if ${COHERENCE_HOME} exists add coherence.jar to the classpath
 	if in.CoherenceHome != "" {
-		if _, err := os.Stat(in.CoherenceHome); err != nil {
-			cp = cp + ":" + in.CoherenceHome + "/conf"
-			cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+		if _, err := os.Stat(in.CoherenceHome); err == nil {
+			if _, err := os.Stat(in.CoherenceHome + "/conf"); err == nil {
+				cp = cp + ":" + in.CoherenceHome + "/conf"
+			}
+			if _, err := os.Stat(in.CoherenceHome + "/lib/coherence.jar"); err == nil {
+				cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+			}
 		}
 	}
 	return cp
