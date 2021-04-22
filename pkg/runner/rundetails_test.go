@@ -122,16 +122,6 @@ func TestRunDetailsGetClasspath(t *testing.T) {
 	g.Expect(r.GetClasspath()).To(Equal("foo"))
 }
 
-func TestRunDetailsGetClasspathWithCoherenceHome(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	r := RunDetails{
-		CoherenceHome: "/u01/oracle/coherence",
-	}
-	r.AddClasspath("foo")
-	g.Expect(r.GetClasspath()).To(Equal("foo:/u01/oracle/coherence/conf:/u01/oracle/coherence/lib/coherence.jar"))
-}
-
 func TestRunDetailsGetJavaEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
