@@ -1,48 +1,37 @@
 #
-# Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+# Copyright (c) 2021 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
 # Federation Example
-# Primary cluster with 'storage' role in an Active/Active topology
+# Primary cluster in an Active/Active topology
 apiVersion: coherence.oracle.com/v1
 kind: Coherence
 metadata:
-  name: primary-cluster-storage
+  name: primary-cluster
 spec:
-  cluster: primary-cluster
-  role: storage
   jvm:
     classpath:
       - /config
-    memory:
-      heapSize: 512m
+      - /u01/oracle/oracle_home/coherence/lib/coherence.jar
     args:
-      - "-Dwith.http=false"
-      - "-Dcoherence.clusterport=40000"
       - "-Dprimary.cluster=primary-cluster"
       - "-Dprimary.cluster.port=40000"
-      - "-Dprimary.cluster.host=primary-cluster-storage-wka"
+      - "-Dprimary.cluster.host=primary-cluster-federation"
       - "-Dsecondary.cluster=secondary-cluster"
       - "-Dsecondary.cluster.port=40000"
-      - "-Dsecondary.cluster.host=secondary-cluster-storage-wka"
+      - "-Dsecondary.cluster.host=secondary-cluster-federation"
   secretVolumes:
     - mountPath: /config
       name: storage-config
   ports:
     - name: federation
       port: 40000
-    - name: metrics
-      port: 9612
-      serviceMonitor:
-        enabled: true
   coherence:
     cacheConfig: storage-cache-config.xml
     overrideConfig: tangosol-coherence-override.xml
     logLevel: 9
-    metrics:
-      enabled: true
-      port: 9612
-  image: lsho/federation-example:1.0.0
-  imagePullPolicy: Always
+  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  imagePullSecrets:
+    - name: ocr-pull-secret
   replicas: 2

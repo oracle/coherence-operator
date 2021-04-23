@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -11,11 +11,6 @@
 <coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
-
-  <!-- To enable jmx connections -->
-  <management-config>
-    <managed-nodes system-property="coherence.management">all</managed-nodes>
-  </management-config>
 
   <license-config>
     <edition-name system-property="coherence.edition">GE</edition-name>
@@ -32,7 +27,7 @@
         <initial-action>start</initial-action>
         <remote-addresses>
           <socket-address>
-            <address system-property="primary.cluster.host">127.0.0.1</address>
+            <address system-property="primary.cluster.host">primary-cluster-federation</address>
             <port    system-property="primary.cluster.port">7574</port>
           </socket-address>
         </remote-addresses>
@@ -42,7 +37,7 @@
         <initial-action>start</initial-action>
         <remote-addresses>
           <socket-address>
-            <address system-property="secondary.cluster.host">127.0.0.1</address>
+            <address system-property="secondary.cluster.host">secondary-cluster-federation</address>
             <port    system-property="secondary.cluster.port">7574</port>
           </socket-address>
         </remote-addresses>

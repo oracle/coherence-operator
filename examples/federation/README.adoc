@@ -1,117 +1,118 @@
 == Coherence Operator Federation Example
 
-This simple example demostrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition.
+This simple example demostrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
 
 You can find the source code in the https://github.com/oracle/coherence-operator/tree/master/examples/federation[Operator GitHub Repo].
 
-* <<pre,Prerequisites>>
-* <<build, Build the Example>>
+==== What the Example will Cover
+
+* <<install-operator,Install the Coherence Operator>>
+* <<create-the-example-namespace,Create the example namespace>>
+* <<create-secret,Create image pull and config store secrets>>
 * <<example, Run the Example>>
 * <<cleanup, Cleaning Up>>
 
-[#pre]
-== Prerequisites
+[#install-operator]
+== Install the Coherence Operator
 
-Following the instructions in https://github.com/oracle/coherence-operator/tree/master/examples/deployment[Coherence Operator Deployment Example] for all the prerequisites and installing the Coherence Operator. 
+To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
 
-Confirm the operator is running, for example:
+Once you complete, confirm the operator is running, for example:
 [source,bash]
 ----
-kubectl get pods -n coherence-example
+kubectl get pods -n coherence
 
 NAME                                                     READY   STATUS    RESTARTS   AGE
 coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1          27s
 ----
 
-[#build]
-== Build the Example
+[#create-the-example-namespace]
+== Create the example namespace
 
-This example exists in the `examples/federation` directory in the
-https://github.com/oracle/coherence-operator[Coherence Operator GitHub repository].  It depends on Coherence version 14.1.1-0-3, but any Coherence version 12.2.1.4 or above will work. To change the Coherence version, just modify the <coherence.version> in the pom.xml. It also demonstrates how to use a secret to store Coherence configuration files, map the secret to a volumn, and add it to the classpath. However, it is not necessary for this example since the configuration files are in the federation-example docker image.  
-
-To build the example, 
+First, run the following command to create the namespace, coherence-example, for the example:
 
 [source,bash]
 ----
-cd coherence-operator/examples/federation
+kubectl create namespace coherence-example
 
-./mvnw package jib:dockerBuild
+namespace/coherence-example created
 ----
 
-This will result in the following Docker image being created which contains the configuration and server-side artifacts, including Coherence jar files, to be use by the deployment.
+[#create-secret]
+== Create image pull and configure store secrets
 
-[source]
+This example reqires two secrets:
+
+* An image pull secret named ocr-pull-secret containing your OCR credentials to be used by the example.
+
+Use a command similar to the following to create the image pull secret:
+
+[source,bash]
 ----
-federation-example:1.0.0
+kubectl create secret docker-registry ocr-pull-secret \
+    --docker-server=container-registry.oracle.com \
+    --docker-username="<username>" --docker-password="<password>" \
+    --docker-email="<email>" -n coherence-example
 ----
 
-[NOTE]
-====
-If you are running against a remote Kubernetes cluster, you need to tag and
-push the Docker image to your repository accessible to that cluster.
-You also need to prefix the image name in the `yaml` files below.
-====
+* A configure store secret named storage-config to store the Coherence configuration files.
 
-[#example]
-== Run the Example
-
-Ensure you are in the `examples/federation` directory to run the example. This example uses the yaml files `src/main/yaml/primary-cluster.yaml` and `src/main/yaml/secondary-cluster.yaml`, which
-define a primary cluster and a secondary cluster with a single role `storage` to store cluster data.
-
-NOTE: If you have pushed your Docker image to a remote repository, ensure you update the above file to prefix the image.
-
-==== 1. Create a secret for Coherence configuration files 
-
-Run the following command to create a secret named storage-config to store the Coherence configuration files:
+Run the following command to create the configure store secret:
 
 [source,bash]
 ----
 kubectl create secret generic storage-config -n coherence-example \
     --from-file=src/main/resources/tangosol-coherence-override.xml \
-    --from-file=src/main/resources/storage-cache-config.xml \
-    --from-file=src/main/resources/storage-pof-config.xml
+    --from-file=src/main/resources/storage-cache-config.xml
 ----
 
-==== 2. Install the Coherence clusters `storage` role
+[#example]
+== Run the Example
+
+Ensure you are in the `examples/federation` directory to run the example. This example uses the yaml files `src/main/yaml/primary-cluster.yaml` and `src/main/yaml/secondary-cluster.yaml`, which
+define a primary cluster and a secondary cluster.
+
+==== 1. Install the Coherence clusters
+
 Run the following commands to create the primary and secondary clusters:
 
 [source,bash]
 ----
 kubectl -n coherence-example create -f src/main/yaml/primary-cluster.yaml
 
-coherence.coherence.oracle.com/primary-cluster-storage created
+coherence.coherence.oracle.com/primary-cluster created
 ----
 
 [source,bash]
 ----
 kubectl -n coherence-example create -f src/main/yaml/secondary-cluster.yaml
 
-coherence.coherence.oracle.com/secondary-cluster-storage created
+coherence.coherence.oracle.com/secondary-cluster created
 ----
 
 
-==== 3. List the created Coherence clusters
+==== 2. List the created Coherence clusters
 Run the following command to list the clusters:
 
 [source,bash]
 ----
 kubectl -n coherence-example get coherence
 
-NAME                        CLUSTER             ROLE      REPLICAS   READY   PHASE
-primary-cluster-storage     primary-cluster     storage   2          2       Ready
-secondary-cluster-storage   secondary-cluster   storage   2          2       Ready
+NAME                CLUSTER             ROLE                REPLICAS   READY   PHASE
+primary-cluster     primary-cluster     primary-cluster     2          2       Ready
+secondary-cluster   secondary-cluster   secondary-cluster   2          2       Ready
 ----
 
 To see the Coherence cache configuration file loaded from the secret volumn we defined, run the following command:
 
 [source,bash]
 ----
-kubectl logs -n coherence-example primary-cluster-storage-0 | grep "Loaded cache"
+kubectl logs -n coherence-example primary-cluster-0 | grep "Loaded cache"
 
-... Oracle Coherence GE 14.1.1.0.3 <Info> (thread=main, member=n/a): Loaded cache configuration from "file:/config/storage-cache-config.xml"
+... Oracle Coherence GE 14.1.1.0.0 <Info> (thread=main, member=n/a): Loaded cache configuration from "file:/config/storage-cache-config.xml"
 ----
 
-==== 4. View the running pods
+==== 3. View the running pods
 
 Run the following command to view the Pods:
 [source,bash]
@@ -121,21 +122,20 @@ kubectl -n coherence-example get pods
 
 [source,bash]
 ----
-NAME                                                    READY   STATUS    RESTARTS   AGE
-coherence-operator-controller-manager-bfcd76786-bzm6h   1/1     Running   6          1h
-primary-cluster-storage-0                               1/1     Running   0          1h
-primary-cluster-storage-1                               1/1     Running   0          1h
-secondary-cluster-storage-0                             1/1     Running   0          1h
-secondary-cluster-storage-1                             1/1     Running   0          1h
+NAME                  READY   STATUS    RESTARTS   AGE
+primary-cluster-0     1/1     Running   0          83s
+primary-cluster-1     1/1     Running   0          83s
+secondary-cluster-0   1/1     Running   0          74s
+secondary-cluster-1   1/1     Running   0          73s
 ----
 
-==== 5. Connect to the Coherence Console inside the primary cluster to add data
+==== 4. Connect to the Coherence Console inside the primary cluster to add data
 
 We will connect via Coherence console to add some data using the following commands:
 
 [source,bash]
 ----
-kubectl exec -it -n coherence-example primary-cluster-storage-0 /coherence-operator/utils/runner console
+kubectl exec -it -n coherence-example primary-cluster-0 /coherence-operator/utils/runner console
 ----
 
 At the prompt type the following to create a cache called `test`:
@@ -150,7 +150,6 @@ Use the following to add an entry with "primarykey" and "primaryvalue":
 [source,bash]
 ----
 put "primarykey" "primaryvalue"
-null
 ----
 
 Use the following to create 10,000 entries of 100 bytes:
@@ -169,7 +168,7 @@ We will connect via Coherence console to confirm that the data we added to the p
 
 [source,bash]
 ----
-kubectl exec -it -n coherence-example secondary-cluster-storage-0 /coherence-operator/utils/runner console
+kubectl exec -it -n coherence-example secondary-cluster-0 /coherence-operator/utils/runner console
 ----
 
 At the prompt type the following to set the cache to `test`:
@@ -193,7 +192,6 @@ Our federation has Active/Active topology. So, the data changes in both primary 
 [source,bash]
 ----
 put "secondarykey" "secondaryvalue"
-null
 ----
 
 ==== 7. Confirm the primary cluster also received "secondarykey", "secondaryvalue" entry 
@@ -220,3 +218,4 @@ kubectl -n coherence-example delete -f src/main/yaml/primary-cluster.yaml
 kubectl -n coherence-example delete -f src/main/yaml/secondary-cluster.yaml
 ----
 
+Uninstall the Coherence operator using the undeploy commands for whichever method you chose to install it.
