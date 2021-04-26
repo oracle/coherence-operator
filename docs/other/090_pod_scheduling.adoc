@@ -65,7 +65,7 @@ spec:
       operator: "Exists"
       effect: "NoSchedule"
   nodeSelector:
-    - disktype: ssd
+    disktype: ssd
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
