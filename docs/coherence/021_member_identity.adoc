@@ -18,14 +18,14 @@ The Coherence Operator will configure properties for these values.
 
 * The member name is set to the Pod name.
 * The machine name is set to the name of the Node that the Pod has been scheduled onto.
-* The rack name is taken from the `topology.kubernetes.io/zone` label on the Node that the Pod has been scheduled onto.
+* The rack name is taken from the `topology.kubernetes.io/region` label on the Node that the Pod has been scheduled onto.
 If the `topology.kubernetes.io/region` label is not set then the deprecated `failure-domain.beta.kubernetes.io/region`
 label will be tried.
 If neither of these labels are set then the site will be set to the same value as the site name.
 * The site name is taken from the `topology.kubernetes.io/zone` label on the Node that the Pod has been scheduled onto.
 If the `topology.kubernetes.io/zone` label is not set then the deprecated `failure-domain.beta.kubernetes.io/zone` label
 will be tried.
-If neither of these labels are set then the site will be unset.
+If neither of these labels are set then the site and rack will be unset, and the cache services may not reach site safe.
 
 == Status HA Values
 

@@ -15,6 +15,13 @@ readiness and liveness check for the `Pods` deployed by the operator.
 This endpoint is suitable for most use-cases, but it is possible to configure a different readiness and liveness probe,
 or just change the timings of the probes if required.
 
+The readiness/liveness probe used by the Operator in the Coherence Pods checks a number of things to determine whether the Pods is ready, one of these is whether the JVM is a cluster member.
+If your application uses a custom main class and is not properly bootstrapping Coherence then the Pod will not be ready until your application code actually touches a Coherence resource causing Coherence to start and join the cluster.
+
+When running in clusters with the Operator using custom main classes it is advisable to properly bootstrap Coherence
+from within your `main` method. This can be done using the new Coherence bootstrap API available from CE release 20.12
+or by calling `com.tangosol.net.DefaultCacheServer.startServerDaemon().waitForServiceStart();`
+
 === Coherence Readiness
 
 The default endpoint used by the Operator for readiness checks that the `Pod` is a member of the Coherence cluster and

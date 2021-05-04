@@ -17,6 +17,8 @@ This paged will be updated and maintained over time to include common issues we 
 
 * <<#restart,Why Does the Operator Pod Restart>>
 
+* <<#ready,Why are the Coherence Pods not reaching ready>>
+
 * <<#stuck-pending,My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down>>
 
 * <<#stuck-delete,My Coherence cluster is stuck with all pending/crashing Pods, I cannot delete the deployment>>
@@ -36,6 +38,15 @@ A web-hook requires certificates to be present in a `Secret` mounted to the Oper
 If this Secret is not present the Operator creates it and populates it with self-signed certs.
 In order for the Secret to then be mounted correctly the Pod must be restarted.
 See the <<webhooks/01_introduction.adoc,the WebHooks>> documentation.
+
+[#ready]
+=== Why are the Coherence Pods not reaching ready
+The readiness/liveness probe used by the Operator in the Coherence Pods checks a number of things to determine whether the Pods is ready, one of these is whether the JVM is a cluster member.
+If your application uses a custom main class and is not properly bootstrapping Coherence then the Pod will not be ready until your application code actually touches a Coherence resource causing Coherence to start and join the cluster.
+
+When running in clusters with the Operator using custom main classes it is advisable to properly bootstrap Coherence
+from within your `main` method. This can be done using the new Coherence bootstrap API available from CE release 20.12
+or by calling `com.tangosol.net.DefaultCacheServer.startServerDaemon().waitForServiceStart();`
 
 [#stuck-pending]
 === My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down
