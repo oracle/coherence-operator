@@ -11,14 +11,13 @@ import java.net.SocketException;
 import java.net.URI;
 import java.util.Properties;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_HEALTH_LOG;
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_HEALTH_PORT;
@@ -29,15 +28,17 @@ import static com.oracle.coherence.k8s.OperatorRestServer.PROP_TLS_KEY_PASSWORD_
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_TLS_TRUSTSTORE;
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_TLS_TRUSTSTORE_PASSWORD_FILE;
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_TLS_TWO_WAY;
+
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class OperatorRestHttpsIT {
 
     public static final String CERTS = System.getProperty("test.certs.location", "../build/_output/certs");
 
-    private LocalPlatform platform = LocalPlatform.get();
+    private final LocalPlatform platform = LocalPlatform.get();
 
     @Test
     public void shouldBeInsecure() throws Exception {
@@ -83,12 +84,7 @@ public class OperatorRestHttpsIT {
         URI uri = URI.create("https://127.0.0.1:" + port + "/ready");
         HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
         connection.setSSLSocketFactory(getFactory());
-        connection.setHostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(String s, SSLSession sslSession) {
-                return true;
-            }
-        });
+        connection.setHostnameVerifier((s, sslSession) -> true);
         return connection;
     }
 

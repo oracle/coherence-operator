@@ -17,8 +17,9 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -31,9 +32,9 @@ public class OperatorRestServerTest {
     private Supplier<Cluster> clusterSupplier;
     private HttpExchange exchange;
 
-    private Runnable waitForDCS = () -> {};
+    private final Runnable waitForDCS = () -> {};
 
-    @Before
+    @BeforeEach
     public void setup() {
         Set<Member> memberSet = Collections.singleton(mock(Member.class));
         cluster = mock(Cluster.class);

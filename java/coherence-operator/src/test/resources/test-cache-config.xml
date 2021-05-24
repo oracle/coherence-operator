@@ -29,6 +29,9 @@
       <backing-map-scheme>
         <local-scheme/>
       </backing-map-scheme>
+<!--      <persistence>-->
+<!--        <environment system-property="test.persistence.mode">default-on-demand</environment>-->
+<!--      </persistence>-->
       <autostart>true</autostart>
     </distributed-scheme>
   </caching-schemes>
