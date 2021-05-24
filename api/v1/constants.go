@@ -9,14 +9,14 @@ package v1
 import "github.com/oracle/coherence-operator/pkg/operator"
 
 const (
-	// The default number of replicas that will be created for a deployment if no value is specified in the spec
+	// DefaultReplicas is the default number of replicas that will be created for a deployment if no value is specified in the spec
 	DefaultReplicas int32 = 3
-	// The suffix appended to a deployment name to give the WKA service name
+	// WKAServiceNameSuffix is the suffix appended to a deployment name to give the WKA service name
 	WKAServiceNameSuffix = "-wka"
-	// The suffix appended to a deployment name to give the StatefulSet headless-service name
+	// HeadlessServiceNameSuffix is the suffix appended to a deployment name to give the StatefulSet headless-service name
 	HeadlessServiceNameSuffix = "-sts"
 
-	// The finalizer that the Operator adds to Coherence deployments
+	// Finalizer is the name of the finalizer that the Operator adds to Coherence deployments
 	Finalizer = "coherence.oracle.com/operator"
 
 	// Label keys used to label k8s resources
