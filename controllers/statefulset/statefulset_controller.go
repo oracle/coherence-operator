@@ -311,14 +311,14 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 
 	currentReplicas := in.getReplicas(current)
 	if current.Status.ReadyReplicas != currentReplicas {
-		logger.Info(fmt.Sprintf("deployment %s - requing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		logger.Info(fmt.Sprintf("deployment %s - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 
 	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 	ha := checker.IsStatusHA(deployment, current)
 	if !ha {
-		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing update request. Stateful set ready replicas is %d", deployment.Name, current.Status.ReadyReplicas))
+		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 

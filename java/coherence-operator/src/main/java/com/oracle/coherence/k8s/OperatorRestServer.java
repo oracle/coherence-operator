@@ -761,6 +761,12 @@ public class OperatorRestServer implements AutoCloseable {
                 int id = cluster.getLocalMember().getId();
 
                 Set<String> cacheServices = getDistributedCacheServiceNames(id);
+                if (cacheServices.isEmpty()) {
+                    // no storage  enabled services in this member so we're HA
+                    logDebug("No storage enabled cache services found, inferring HA is OK for this member");
+                    return true;
+                }
+
                 Set<String> distributionCoordinators = getPartitionAssignmentMBeans();
 
                 // Ensure we have a DistributionCoordinator for all cache services

@@ -55,7 +55,7 @@
         <!-- library dependency versions -->
         <version.lib.activation-api>1.2.2</version.lib.activation-api>
         <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
-        <version.lib.bedrock>5.1.1</version.lib.bedrock>
+        <version.lib.bedrock>5.1.2</version.lib.bedrock>
         <version.lib.checkstyle>8.18</version.lib.checkstyle>
         <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
         <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
@@ -64,7 +64,8 @@
         <version.lib.helidon>2.2.1</version.lib.helidon>
         <version.lib.jandex>2.1.1.Final</version.lib.jandex>
         <version.lib.junit>4.13.1</version.lib.junit>
-        <version.lib.mockito>2.18.3</version.lib.mockito>
+        <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
+        <version.lib.mockito>3.10.0</version.lib.mockito>
         <version.lib.spring>2.4.2</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
@@ -88,12 +89,12 @@
         <version.plugin.maven.dependency>3.1.1</version.plugin.maven.dependency>
         <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
         <version.plugin.maven.exec>3.0.0</version.plugin.maven.exec>
-        <version.plugin.maven.failsafe>2.21.0</version.plugin.maven.failsafe>
+        <version.plugin.maven.failsafe>3.0.0-M5</version.plugin.maven.failsafe>
         <version.plugin.maven.gpg>1.6</version.plugin.maven.gpg>
         <version.plugin.maven.license>2.0.0</version.plugin.maven.license>
         <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
         <version.plugin.maven.source>2.2.1</version.plugin.maven.source>
-        <version.plugin.maven.surefire>2.21.0</version.plugin.maven.surefire>
+        <version.plugin.maven.surefire>3.0.0-M5</version.plugin.maven.surefire>
         <version.plugin.nexus.staging>1.6.7</version.plugin.nexus.staging>
     </properties>
 
@@ -225,17 +226,23 @@
             </dependency>
 
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${version.lib.junit}</version>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${version.lib.junit.jupiter}</version>
                 <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.junit.jupiter</groupId>-->
+<!--                <artifactId>junit-jupiter-params</artifactId>-->
+<!--                <version>${version.lib.junit.jupiter}</version>-->
+<!--                <scope>test</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.junit.jupiter</groupId>-->
+<!--                <artifactId>junit-jupiter-engine</artifactId>-->
+<!--                <version>${version.lib.junit.jupiter}</version>-->
+<!--                <scope>test</scope>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.hamcrest</groupId>
@@ -287,6 +294,32 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${version.plugin.maven.failsafe}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <useModulePath>false</useModulePath>
+                        <systemProperties>
+                            <test.certs.location>${test.certs.location}</test.certs.location>
+                        </systemProperties>
+                    </configuration>
+<!--                    <dependencies>-->
+<!--                        <dependency>-->
+<!--                            <groupId>org.junit.jupiter</groupId>-->
+<!--                            <artifactId>junit-jupiter-engine</artifactId>-->
+<!--                            <version>${version.lib.junit.jupiter}</version>-->
+<!--                        </dependency>-->
+<!--                        <dependency>-->
+<!--                            <groupId>org.junit.vintage</groupId>-->
+<!--                            <artifactId>junit-vintage-engine</artifactId>-->
+<!--                            <version>${version.lib.junit.jupiter}</version>-->
+<!--                        </dependency>-->
+<!--                    </dependencies>-->
                 </plugin>
 
                 <plugin>
@@ -307,13 +340,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${version.plugin.maven.surefire}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>test</goal>
-                            </goals>
-                        </execution>
-                    </executions>
+                    <configuration>
+                        <useModulePath>false</useModulePath>
+                        <systemProperties>
+                            <test.certs.location>${test.certs.location}</test.certs.location>
+                        </systemProperties>
+                    </configuration>
                 </plugin>
 
                 <plugin>
