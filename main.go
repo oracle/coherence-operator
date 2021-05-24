@@ -18,7 +18,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/util/version"
-	clientrest "k8s.io/client-go/rest"
 	"os"
 	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -118,16 +117,6 @@ func execute() {
 		Port:                   9443,
 		LeaderElection:         viper.GetBool(flagLeaderElection),
 		LeaderElectionID:       "ca804aa8.oracle.com",
-		NewClient: func(cache cache.Cache, cfg *clientrest.Config, o client.Options) (client.Client, error) {
-			return &client.DelegatingClient{
-				Reader: &client.DelegatingReader{
-					CacheReader:  cache,
-					ClientReader: cl,
-				},
-				Writer:       cl,
-				StatusClient: cl,
-			}, nil
-		},
 	}
 
 	// Determine the Operator scope...
