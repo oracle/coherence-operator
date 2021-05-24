@@ -1707,6 +1707,35 @@ type ServiceSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
 	// +optional
 	ClusterIP *string `json:"clusterIP,omitempty"`
+	// ClusterIPs is a list of IP addresses assigned to this service, and are
+	// usually assigned randomly.  If an address is specified manually, is
+	// in-range (as per system configuration), and is not in use, it will be
+	// allocated to the service; otherwise creation of the service will fail.
+	// This field may not be changed through updates unless the type field is
+	// also being changed to ExternalName (which requires this field to be
+	// empty) or the type field is being changed from ExternalName (in which
+	// case this field may optionally be specified, as describe above).  Valid
+	// values are "None", empty string (""), or a valid IP address.  Setting
+	// this to "None" makes a "headless service" (no virtual IP), which is
+	// useful when direct endpoint connections are preferred and proxying is
+	// not required.  Only applies to types ClusterIP, NodePort, and
+	// LoadBalancer. If this field is specified when creating a Service of type
+	// ExternalName, creation will fail. This field will be wiped when updating
+	// a Service to type ExternalName.  If this field is not specified, it will
+	// be initialized from the clusterIP field.  If this field is specified,
+	// clients must ensure that clusterIPs[0] and clusterIP have the same
+	// value.
+	//
+	// Unless the "IPv6DualStack" feature gate is enabled, this field is
+	// limited to one value, which must be the same as the clusterIP field.  If
+	// the feature gate is enabled, this field may hold a maximum of two
+	// entries (dual-stack IPs, in either order).  These IPs must correspond to
+	// the values of the ipFamilies field. Both clusterIPs and ipFamilies are
+	// governed by the ipFamilyPolicy field.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// +listType=atomic
+	// +optional
+	ClusterIPs []string `json:"clusterIPs,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
@@ -1763,15 +1792,45 @@ type ServiceSpec struct {
 	// sessionAffinityConfig contains the configurations of session affinity.
 	// +optional
 	SessionAffinityConfig *corev1.SessionAffinityConfig `json:"sessionAffinityConfig,omitempty"`
-	// ipFamily specifies whether this Service has a preference for a particular IP family (e.g. IPv4 vs.
-	// IPv6).  If a specific IP family is requested, the clusterIP field will be allocated from that family, if it is
-	// available in the cluster.  If no IP family is requested, the cluster's primary IP family will be used.
-	// Other IP fields (loadBalancerIP, loadBalancerSourceRanges, externalIPs) and controllers which
-	// allocate external load-balancers should use the same IP family.  Endpoints for this Service will be of
-	// this family.  This field is immutable after creation. Assigning a ServiceIPFamily not available in the
-	// cluster (e.g. IPv6 in IPv4 only cluster) is an error condition and will fail during clusterIP assignment.
+	// IPFamilies is a list of IP families (e.g. IPv4, IPv6) assigned to this
+	// service, and is gated by the "IPv6DualStack" feature gate.  This field
+	// is usually assigned automatically based on cluster configuration and the
+	// ipFamilyPolicy field. If this field is specified manually, the requested
+	// family is available in the cluster, and ipFamilyPolicy allows it, it
+	// will be used; otherwise creation of the service will fail.  This field
+	// is conditionally mutable: it allows for adding or removing a secondary
+	// IP family, but it does not allow changing the primary IP family of the
+	// Service.  Valid values are "IPv4" and "IPv6".  This field only applies
+	// to Services of types ClusterIP, NodePort, and LoadBalancer, and does
+	// apply to "headless" services.  This field will be wiped when updating a
+	// Service to type ExternalName.
+	//
+	// This field may hold a maximum of two entries (dual-stack families, in
+	// either order).  These families must correspond to the values of the
+	// clusterIPs field, if specified. Both clusterIPs and ipFamilies are
+	// governed by the ipFamilyPolicy field.
+	// +listType=atomic
 	// +optional
-	IPFamily *corev1.IPFamily `json:"ipFamily,omitempty"`
+	IPFamilies []corev1.IPFamily `json:"ipFamilies,omitempty"`
+	// IPFamilyPolicy represents the dual-stack-ness requested or required by
+	// this Service, and is gated by the "IPv6DualStack" feature gate.  If
+	// there is no value provided, then this field will be set to SingleStack.
+	// Services can be "SingleStack" (a single IP family), "PreferDualStack"
+	// (two IP families on dual-stack configured clusters or a single IP family
+	// on single-stack clusters), or "RequireDualStack" (two IP families on
+	// dual-stack configured clusters, otherwise fail). The ipFamilies and
+	// clusterIPs fields depend on the value of this field.  This field will be
+	// wiped when updating a service to type ExternalName.
+	// +optional
+	IPFamilyPolicy *corev1.IPFamilyPolicyType `json:"ipFamilyPolicy,omitempty"`
+	// allocateLoadBalancerNodePorts defines if NodePorts will be automatically
+	// allocated for services with type LoadBalancer.  Default is "true". It may be
+	// set to "false" if the cluster load-balancer does not rely on NodePorts.
+	// allocateLoadBalancerNodePorts may only be set for services with type LoadBalancer
+	// and will be cleared if the type is changed to any other type.
+	// This field is alpha-level and is only honored by servers that enable the ServiceLBNodePortControl feature.
+	// +optional
+	AllocateLoadBalancerNodePorts *bool `json:"allocateLoadBalancerNodePorts,omitempty"`
 }
 
 // Set the Kind of the service.
@@ -1826,9 +1885,14 @@ func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
 		if in.ClusterIP != nil {
 			spec.ClusterIP = *in.ClusterIP
 		}
-		spec.SessionAffinityConfig = in.SessionAffinityConfig
-		spec.IPFamily = in.IPFamily
+		if in.ClusterIPs != nil {
+			spec.ClusterIPs = in.ClusterIPs
+		}
+		spec.AllocateLoadBalancerNodePorts = in.AllocateLoadBalancerNodePorts
 		spec.ExternalIPs = in.ExternalIPs
+		spec.IPFamilyPolicy = in.IPFamilyPolicy
+		spec.IPFamilies = in.IPFamilies
+		spec.SessionAffinityConfig = in.SessionAffinityConfig
 	}
 	return spec
 }

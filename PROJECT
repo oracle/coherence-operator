@@ -3,10 +3,14 @@ layout: go.kubebuilder.io/v3
 projectName: coherence-operator
 repo: github.com/oracle/coherence-operator
 resources:
-- group: coherence.oracle.com
+-
+  controller: true
+  domain: oracle.com
+  group: coherence.oracle.com
   kind: Coherence
+  path: github.com/oracle/coherence-operator/api/v1
   version: v1
-version: 3-alpha
+version: "3"
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}

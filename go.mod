@@ -15,16 +15,16 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381
-	k8s.io/api v0.19.2
-	k8s.io/apiextensions-apiserver v0.19.2
-	k8s.io/apimachinery v0.19.2
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver v0.20.2
+	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubernetes v1.13.0
-	k8s.io/utils v0.0.0-20200912215256-4140de9c8800
-	sigs.k8s.io/controller-runtime v0.7.0
+	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009
+	sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.2.0
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.19.2
+replace k8s.io/client-go => k8s.io/client-go v0.20.2
