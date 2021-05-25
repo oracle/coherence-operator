@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-// helper package contains various helpers for use in end-to-end testing.
+// Package helper contains various helpers for use in end-to-end testing.
 package helper
 
 import (
@@ -31,7 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/deprecated/scheme"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -59,7 +59,7 @@ var (
 	Timeout       = time.Minute * 3
 )
 
-// A context for end-to-end tests
+// TestContext is a context for end-to-end tests
 type TestContext struct {
 	Config     *rest.Config
 	Client     client.Client
@@ -143,7 +143,7 @@ func (in TestContext) Close() {
 	}
 }
 
-// Create a new TestContext.
+// NewContext creates a new TestContext.
 func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
 	logf.SetLogger(testLogger)
@@ -194,9 +194,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	options := ctrl.Options{
 		Scheme: scheme.Scheme,
-		NewClient: func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
-			return cl, nil
-		},
 	}
 
 	if len(watchNamespaces) == 1 {
@@ -331,6 +328,7 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 }
 
 // WaitForEndpoints waits for Enpoints for a Service to be created.
+//goland:noinspection GoUnusedExportedFunction
 func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval, timeout time.Duration) (*corev1.Endpoints, error) {
 	var ep *corev1.Endpoints
 
@@ -354,7 +352,7 @@ func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval,
 	return ep, err
 }
 
-// A function that takes a deployment and determines whether it meets a condition
+// DeploymentStateCondition is a function that takes a deployment and determines whether it meets a condition
 type DeploymentStateCondition interface {
 	Test(*coh.Coherence) bool
 	String() string
@@ -404,11 +402,12 @@ func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
+//goland:noinspection GoUnusedExportedFunction
 func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	return WaitForCoherenceCondition(ctx, namespace, name, alwaysCondition{}, retryInterval, timeout)
 }
 
-// WaitForCoherence waits for a Coherence resource to be created.
+// WaitForCoherenceCondition waits for a Coherence resource to be created.
 func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
@@ -455,7 +454,7 @@ func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeo
 	return WaitForPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
 }
 
-// WaitForOperatorPods waits for a Coherence Operator Pods to be created.
+// WaitForPodsWithSelector waits for a Coherence Operator Pods to be created.
 func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
@@ -470,6 +469,7 @@ func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryI
 }
 
 // WaitForOperatorDeletion waits for deletion of the Operator Pods.
+//goland:noinspection GoUnusedExportedFunction
 func WaitForOperatorDeletion(ctx TestContext, namespace string, retryInterval, timeout time.Duration) error {
 	return WaitForDeleteOfPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
 }
@@ -519,12 +519,12 @@ func WaitForDeletion(ctx TestContext, namespace, name string, resource client.Ob
 	return err
 }
 
-// List the Operator Pods that exist - this is Pods with the label "name=coh-operator"
+// ListOperatorPods lists the Operator Pods that exist - this is Pods with the label "name=coh-operator"
 func ListOperatorPods(ctx TestContext, namespace string) ([]corev1.Pod, error) {
 	return ListPodsWithLabelSelector(ctx, namespace, operatorPodSelector)
 }
 
-// List the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
+// ListCoherencePodsForCluster lists the Coherence Cluster Pods that exist for a cluster - this is Pods with the label "coherenceCluster=<cluster>"
 func ListCoherencePodsForCluster(ctx TestContext, namespace, cluster string) ([]corev1.Pod, error) {
 	return ListPodsWithLabelSelector(ctx, namespace, fmt.Sprintf("%s=%s", coh.LabelCoherenceCluster, cluster))
 }
@@ -549,19 +549,19 @@ func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int
 	return pods, err
 }
 
-// List the Pods that exist for a deployment - this is Pods with the label "coherenceDeployment=<deployment>"
+// ListCoherencePodsForDeployment lists the Pods that exist for a deployment - this is Pods with the label "coherenceDeployment=<deployment>"
 func ListCoherencePodsForDeployment(ctx TestContext, namespace, deployment string) ([]corev1.Pod, error) {
 	selector := fmt.Sprintf("%s=%s", coh.LabelCoherenceDeployment, deployment)
 	return ListPodsWithLabelSelector(ctx, namespace, selector)
 }
 
-// List the all Coherence deployment Pods in a namespace
+// ListCoherencePods lists the all Coherence deployment Pods in a namespace
 func ListCoherencePods(ctx TestContext, namespace string) ([]corev1.Pod, error) {
 	selector := fmt.Sprintf("%s=%s", coh.LabelComponent, coh.LabelComponentCoherencePod)
 	return ListPodsWithLabelSelector(ctx, namespace, selector)
 }
 
-// List the Coherence Cluster Pods that exist for a given label selector.
+// ListPodsWithLabelSelector lists the Coherence Cluster Pods that exist for a given label selector.
 func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
 
@@ -574,6 +574,7 @@ func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]c
 }
 
 // WaitForPodReady waits for a Pods to be ready.
+//goland:noinspection GoUnusedExportedFunction
 func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		p, err := k8s.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
@@ -607,7 +608,22 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 		return err
 	}
 
-	// Delete all of the Coherence resources
+	// Do a plain delete first
+	for _, r := range list.Items {
+		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &r)
+		if err != nil {
+			ctx.Logf("Error deleting Coherence resource %s - %s", r.Name, err.Error())
+		}
+	}
+
+	// Obtain any remaining Coherence resources
+	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Delete all of the Coherence resources - patching out any finalizer
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
 	for _, r := range list.Items {
 		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", r.Name, r.Namespace)
@@ -680,7 +696,7 @@ func WaitForOperatorCleanup(ctx TestContext, namespace string) error {
 	return err
 }
 
-// Dump the Operator Pod log to a file.
+// DumpOperatorLog dumps the Operator Pod log to a file.
 func DumpOperatorLog(ctx TestContext, namespace, directory string) {
 	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=coherence-operator"})
 	if err == nil {
@@ -697,7 +713,7 @@ func DumpOperatorLog(ctx TestContext, namespace, directory string) {
 	}
 }
 
-// Dump the Pod log to a file.
+// DumpPodLog dumps the Pod log to a file.
 func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	logs, err := FindTestLogsDir()
 	if err != nil {
@@ -739,12 +755,12 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	}
 }
 
-// Get the test k8s secret that can be used for SSL testing.
+// GetTestSslSecret gets the test k8s secret that can be used for SSL testing.
 func GetTestSslSecret() (*OperatorSSL, *coh.SSLSpec, error) {
 	return CreateSslSecret(nil, GetTestNamespace(), GetTestSSLSecretName())
 }
 
-// Create a k8s secret that can be used for SSL testing.
+// CreateSslSecret creates a k8s secret that can be used for SSL testing.
 func CreateSslSecret(kubeClient kubernetes.Interface, namespace, name string) (*OperatorSSL, *coh.SSLSpec, error) {
 	certs, err := FindTestCertsDir()
 	if err != nil {
@@ -848,7 +864,7 @@ func readCertFile(name string) ([]byte, error) {
 	return ioutil.ReadAll(f)
 }
 
-// Dump the operator logs
+// DumpOperatorLogs dumps the operator logs
 func DumpOperatorLogs(t *testing.T, ctx TestContext) {
 	namespace := GetTestNamespace()
 	DumpOperatorLog(ctx, namespace, t.Name())
@@ -1280,7 +1296,7 @@ func EnsureLogsDir(subDir string) (string, error) {
 	return dir, err
 }
 
-// Obtain the latest ready time from all of the specified Pods for a given deployment
+// GetLastPodReadyTime returns the latest ready time from all of the specified Pods for a given deployment
 func GetLastPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Time{})
 	for _, p := range pods {
@@ -1295,7 +1311,7 @@ func GetLastPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	return t
 }
 
-// Obtain the first ready time from all of the specified Pods for a given deployment
+// GetFirstPodReadyTime returns the first ready time from all of the specified Pods for a given deployment
 func GetFirstPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Now())
 	for _, p := range pods {
@@ -1310,7 +1326,7 @@ func GetFirstPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	return t
 }
 
-// Obtain the earliest scheduled time from all of the specified Pods for a given deployment
+// GetFirstPodScheduledTime returns the earliest scheduled time from all of the specified Pods for a given deployment
 func GetFirstPodScheduledTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Now())
 	for _, p := range pods {
@@ -1325,12 +1341,12 @@ func GetFirstPodScheduledTime(pods []corev1.Pod, deployment string) metav1.Time 
 	return t
 }
 
-// Test that a cluster can be created using the specified yaml.
+// AssertDeployments tests that a cluster can be created using the specified yaml.
 func AssertDeployments(ctx TestContext, t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	return AssertDeploymentsInNamespace(ctx, t, yamlFile, GetTestNamespace())
 }
 
-// Test that a cluster can be created using the specified yaml.
+// AssertDeploymentsInNamespace tests that a cluster can be created using the specified yaml.
 func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, namespace string) (map[string]coh.Coherence, []corev1.Pod) {
 	// initialise Gomega so we can use matchers
 	g := NewGomegaWithT(t)

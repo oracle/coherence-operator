@@ -235,6 +235,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 	svcType := corev1.ServiceTypeNodePort
 	trafficPolicy := corev1.ServiceExternalTrafficPolicyTypeLocal
 	ipFamily := corev1.IPv4Protocol
+	ipfPolicy := corev1.IPFamilyPolicySingleStack
 	affinity := corev1.ServiceAffinityNone
 	cfg := corev1.SessionAffinityConfig{
 		ClientIP: &corev1.ClientIPConfig{
@@ -264,7 +265,8 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 					ExternalTrafficPolicy:    &trafficPolicy,
 					SessionAffinity:          &affinity,
 					SessionAffinityConfig:    &cfg,
-					IPFamily:                 &ipFamily,
+					IPFamilies:               []corev1.IPFamily{ipFamily},
+					IPFamilyPolicy:           &ipfPolicy,
 				},
 			},
 		},
@@ -310,7 +312,8 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 			ExternalTrafficPolicy:    trafficPolicy,
 			SessionAffinity:          affinity,
 			SessionAffinityConfig:    &cfg,
-			IPFamily:                 &ipFamily,
+			IPFamilies:               []corev1.IPFamily{ipFamily},
+			IPFamilyPolicy:           &ipfPolicy,
 		},
 	}
 

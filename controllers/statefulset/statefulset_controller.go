@@ -309,19 +309,6 @@ func (in *ReconcileStatefulSet) updateStatefulSet(deployment *coh.Coherence, cur
 func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 
-	currentReplicas := in.getReplicas(current)
-	if current.Status.ReadyReplicas != currentReplicas {
-		logger.Info(fmt.Sprintf("deployment %s - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
-	}
-
-	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
-	ha := checker.IsStatusHA(deployment, current)
-	if !ha {
-		logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
-	}
-
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
 
@@ -386,16 +373,38 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 	}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch
-	callback := func() {
-		// ensure that the deployment has a Upgrading status
+	// if there is any patch to apply, this will check StatusHA if required and update the deployment status
+	callback := func() *reconcile.Result {
+		if deployment.Spec.CheckHABeforeUpdate() {
+			currentReplicas := in.getReplicas(current)
+			if current.Status.ReadyReplicas != currentReplicas {
+				logger.Info(fmt.Sprintf("deployment %s - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
+				return &reconcile.Result{Requeue: true, RequeueAfter: time.Minute}
+			}
+
+			checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+			ha := checker.IsStatusHA(deployment, current)
+			if !ha {
+				logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requing update request. Stateful set ready replicas is %d out of %d", deployment.Name, current.Status.ReadyReplicas, currentReplicas))
+				return &reconcile.Result{Requeue: true, RequeueAfter: time.Minute}
+			}
+		} else {
+			logger.V(0).Info(fmt.Sprintf("WARNING - Updating deployment %s without a StatusHA test", deployment.Name))
+		}
+
+		// ensure that the deployment has an "Upgrading" status
 		if err := in.UpdateDeploymentStatusPhase(deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
 			logger.Error(err, "Error updating deployment status to Upgrading")
 		}
+		return nil
 	}
 
-	patched, err := in.ThreeWayPatchWithCallback(current.GetName(), current, original, desired, callback)
+	patched, err, result := in.ThreeWayPatchWithCallback(current.GetName(), current, original, desired, callback)
+
 	// log the result of patching
 	switch {
+	case result != nil:
+		return *result, nil
 	case err != nil:
 		logger.Info("Error patching StatefulSet " + err.Error())
 		return in.HandleErrAndRequeue(err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)

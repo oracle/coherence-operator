@@ -251,9 +251,15 @@ type CoherenceResourceSpec struct {
 	// These requests are typically to obtain site and rack information for the Pod.
 	// +optional
 	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
+	// Whether or not to perform a StatusHA test on the cluster before performing an update or deletion.
+	// This field can be set to false to force through an update even when a Coherence deployment is in
+	// an unstable state.
+	// The default is true, to always check for StatusHA before updating a Coherence deployment.
+	// +optional
+	HABeforeUpdate *bool `json:"haBeforeUpdate,omitempty"`
 }
 
-// Obtain the number of replicas required for a deployment.
+// GetReplicas returns the number of replicas required for a deployment.
 // The Replicas field is a pointer and may be nil so this method will
 // return either the actual Replica value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
@@ -267,13 +273,14 @@ func (in *CoherenceResourceSpec) GetReplicas() int32 {
 	return *in.Replicas
 }
 
-// Set the number of replicas required for a deployment.
+// SetReplicas sets the number of replicas required for a deployment.
 func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Replicas = &replicas
 	}
 }
 
+// GetCoherenceImage returns the name of the application image to use
 func (in *CoherenceResourceSpec) GetCoherenceImage() *string {
 	if in != nil {
 		return in.Image
@@ -281,7 +288,7 @@ func (in *CoherenceResourceSpec) GetCoherenceImage() *string {
 	return nil
 }
 
-// Ensure that the Coherence image is set for the deployment.
+// EnsureCoherenceImage ensures that the Coherence image is set for the deployment.
 // This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 // and means that the Helm controller does not upgrade the images if the Operator is upgraded.
 func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bool {
@@ -292,6 +299,7 @@ func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bo
 	return false
 }
 
+// GetCoherenceUtilsImage returns the name of the Operator utils image to use.
 func (in *CoherenceResourceSpec) GetCoherenceUtilsImage() *string {
 	if in != nil && in.CoherenceUtils != nil {
 		return in.CoherenceUtils.Image
@@ -299,7 +307,7 @@ func (in *CoherenceResourceSpec) GetCoherenceUtilsImage() *string {
 	return nil
 }
 
-// Ensure that the Coherence Utils image is set for the deployment.
+// EnsureCoherenceUtilsImage ensures that the Coherence Utils image is set for the deployment.
 // This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 // and means that the Helm controller does not upgrade the images if the Operator is upgraded.
 func (in *CoherenceResourceSpec) EnsureCoherenceUtilsImage(utilsImage *string) bool {
@@ -310,6 +318,12 @@ func (in *CoherenceResourceSpec) EnsureCoherenceUtilsImage(utilsImage *string) b
 	return in.CoherenceUtils.EnsureImage(utilsImage)
 }
 
+// CheckHABeforeUpdate returns true if a StatusHA check should be made before updating a deployment.
+func (in *CoherenceResourceSpec) CheckHABeforeUpdate() bool {
+	return in.HABeforeUpdate == nil || *in.HABeforeUpdate
+}
+
+// GetEffectiveScalingPolicy returns the scaling policy to be used.
 func (in *CoherenceResourceSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	if in == nil {
 		return SafeScaling
@@ -334,7 +348,7 @@ func (in *CoherenceResourceSpec) GetEffectiveScalingPolicy() ScalingPolicy {
 	return policy
 }
 
-// Returns the port that the health check endpoint will bind to.
+// GetHealthPort returns the port that the health check endpoint will bind to.
 func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 	if in == nil || in.HealthPort == nil || *in.HealthPort <= 0 {
 		return DefaultHealthPort
@@ -342,7 +356,7 @@ func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 	return *in.HealthPort
 }
 
-// Returns the Probe to use for checking Phase HA for the deployment.
+// GetScalingProbe returns the Probe to use for checking Phase HA for the deployment.
 // This method will not return nil.
 func (in *CoherenceResourceSpec) GetScalingProbe() *Probe {
 	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
@@ -351,7 +365,7 @@ func (in *CoherenceResourceSpec) GetScalingProbe() *Probe {
 	return in.Scaling.Probe
 }
 
-// Obtain a default Scaling probe
+// GetDefaultScalingProbe returns a default Scaling probe
 func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 	timeout := 10
 
@@ -368,7 +382,7 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 	return probe.DeepCopy()
 }
 
-// Returns the Probe to use for signaling to a deployment that services should be suspended
+// GetSuspendProbe returns the Probe to use for signaling to a deployment that services should be suspended
 // prior to the deployment being stopped.
 // This method will not return nil.
 func (in *CoherenceResourceSpec) GetSuspendProbe() *Probe {
@@ -378,7 +392,7 @@ func (in *CoherenceResourceSpec) GetSuspendProbe() *Probe {
 	return in.SuspendProbe
 }
 
-// Obtain a default Suspend probe
+// GetDefaultSuspendProbe returns the default Suspend probe
 func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
 	timeout := in.SuspendServiceTimeout
 	if timeout == nil {
@@ -408,7 +422,7 @@ func (in *CoherenceResourceSpec) GetCoherencePersistence() *PersistenceSpec {
 	return in.Coherence.GetPersistenceSpec()
 }
 
-// Create the Kubernetes resources that should be deployed for this deployment.
+// CreateKubernetesResources creates the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.
 func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resources, error) {
@@ -436,7 +450,7 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resour
 	return Resources{Items: res}, nil
 }
 
-// Create the Services for each port (and optionally ServiceMonitors)
+// CreateServicesForPort creates the Services for each port (and optionally ServiceMonitors)
 func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []Resource {
 	var resources []Resource
 
@@ -467,14 +481,14 @@ func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []
 	return resources
 }
 
-// Create the selector that can be used to match this deployments Pods, for example by Services or StatefulSets.
+// CreatePodSelectorLabels creates the selector that can be used to match this deployments Pods, for example by Services or StatefulSets.
 func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment *Coherence) map[string]string {
 	selector := deployment.CreateCommonLabels()
 	selector[LabelComponent] = LabelComponentCoherencePod
 	return selector
 }
 
-// Create the headless WKA Service
+// CreateWKAService creates the headless WKA Service
 func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resource {
 	labels := deployment.CreateCommonLabels()
 	labels[LabelComponent] = LabelComponentWKA
@@ -517,7 +531,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resourc
 	}
 }
 
-// Create the headless Service for the deployment's StatefulSet.
+// CreateHeadlessService creates the headless Service for the deployment's StatefulSet.
 func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Resource {
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
@@ -555,7 +569,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 	}
 }
 
-// Create the deployment's StatefulSet.
+// CreateStatefulSet creates the deployment's StatefulSet.
 func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resource {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -668,7 +682,7 @@ func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectRefer
 	return secrets
 }
 
-// Get the service account name for the cluster.
+// GetServiceAccountName returns the service account name for the cluster.
 func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 	if in != nil && in.ServiceAccountName != DefaultServiceAccount {
 		return in.ServiceAccountName
@@ -676,7 +690,7 @@ func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 	return ""
 }
 
-// Create the Coherence container spec.
+// CreateCoherenceContainer creates the Coherence container spec.
 func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence) corev1.Container {
 	var cohImage string
 
@@ -734,7 +748,7 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence)
 	return c
 }
 
-// Create the common VolumeMounts added all containers.
+// CreateCommonVolumeMounts creates the common VolumeMounts added all containers.
 func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{Name: VolumeNameUtils, MountPath: VolumeMountPathUtils},
@@ -742,7 +756,7 @@ func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount
 	}
 }
 
-// Create the common environment variables added all.
+// CreateCommonEnv creates the common environment variables added all.
 func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
@@ -781,7 +795,7 @@ func (in *CoherenceResourceSpec) AddEnvVarIfAbsent(envVar corev1.EnvVar) {
 	in.Env = append(in.Env, envVar)
 }
 
-// Create the default environment variables for the Coherence container.
+// CreateDefaultEnv creates the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
 	env := append(in.CreateCommonEnv(deployment),
 		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.Spec.Coherence.GetWKA(deployment)},
@@ -808,7 +822,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 	return env
 }
 
-// Create the default Container resources.
+// CreateDefaultResources creates the default Container resources.
 func (in *CoherenceResourceSpec) CreateDefaultResources() corev1.ResourceRequirements {
 	return corev1.ResourceRequirements{
 		Limits: map[corev1.ResourceName]resource.Quantity{
@@ -820,7 +834,7 @@ func (in *CoherenceResourceSpec) CreateDefaultResources() corev1.ResourceRequire
 	}
 }
 
-// Create the default readiness probe.
+// CreateDefaultReadinessProbe creates the default readiness probe.
 func (in *CoherenceResourceSpec) CreateDefaultReadinessProbe() *corev1.Probe {
 	return &corev1.Probe{
 		InitialDelaySeconds: 30,
@@ -831,7 +845,7 @@ func (in *CoherenceResourceSpec) CreateDefaultReadinessProbe() *corev1.Probe {
 	}
 }
 
-// Update the probe with the default readiness probe action.
+// UpdateDefaultReadinessProbeAction updates the probe with the default readiness probe action.
 func (in *CoherenceResourceSpec) UpdateDefaultReadinessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultReadinessPath,
@@ -841,7 +855,7 @@ func (in *CoherenceResourceSpec) UpdateDefaultReadinessProbeAction(probe *corev1
 	return probe
 }
 
-// Create the default liveness probe.
+// CreateDefaultLivenessProbe creates the default liveness probe.
 func (in *CoherenceResourceSpec) CreateDefaultLivenessProbe() *corev1.Probe {
 	return &corev1.Probe{
 		InitialDelaySeconds: 60,
@@ -852,7 +866,7 @@ func (in *CoherenceResourceSpec) CreateDefaultLivenessProbe() *corev1.Probe {
 	}
 }
 
-// Update the probe with the default liveness probe action.
+// UpdateDefaultLivenessProbeAction updates the probe with the default liveness probe action.
 func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultLivenessPath,
@@ -862,7 +876,7 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 	return probe
 }
 
-// Get the Utils init-container spec.
+// CreateUtilsContainer creates the Utils init-container spec.
 func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) corev1.Container {
 	var utilsImage string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
@@ -895,7 +909,7 @@ func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) cor
 	return c
 }
 
-// Get the Pod Affinity either from that configured for the cluster or the default affinity.
+// EnsurePodAffinity creates the Pod Affinity either from that configured for the cluster or the default affinity.
 func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev1.Affinity {
 	if in != nil && in.Affinity != nil {
 		return in.Affinity
@@ -904,7 +918,7 @@ func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev
 	return in.CreateDefaultPodAffinity(deployment)
 }
 
-// Create the default Pod Affinity to use in a deployment's StatefulSet.
+// CreateDefaultPodAffinity creates the default Pod Affinity to use in a deployment's StatefulSet.
 func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence) *corev1.Affinity {
 	return &corev1.Affinity{
 		PodAntiAffinity: &corev1.PodAntiAffinity{
@@ -948,7 +962,7 @@ func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 	return in.Coherence.GetManagementPort()
 }
 
-// Add any additional init-containers or additional containers to the StatefulSet.
+// ProcessSideCars adds any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
 func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
