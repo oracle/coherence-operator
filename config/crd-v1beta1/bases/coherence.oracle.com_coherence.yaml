@@ -4539,6 +4539,13 @@ spec:
               x-kubernetes-list-map-keys:
               - name
               x-kubernetes-list-type: map
+            haBeforeUpdate:
+              description: Whether or not to perform a StatusHA test on the cluster
+                before performing an update or deletion. This field can be set to
+                false to force through an update even when a Coherence deployment
+                is in an unstable state. The default is true, to always check for
+                StatusHA before updating a Coherence deployment.
+              type: boolean
             healthPort:
               description: The port that the health check endpoint will bind to.
               format: int32

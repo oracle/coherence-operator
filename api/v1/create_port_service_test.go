@@ -187,6 +187,7 @@ func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 
 	tp := corev1.ServiceTypeClusterIP
 	ipf := corev1.IPv4Protocol
+	ipfPolicy := corev1.IPFamilyPolicySingleStack
 	etpt := corev1.ServiceExternalTrafficPolicyTypeLocal
 	sa := corev1.ServiceAffinityClientIP
 	sac := corev1.SessionAffinityConfig{
@@ -212,7 +213,8 @@ func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 			HealthCheckNodePort:      int32Ptr(1234),
 			PublishNotReadyAddresses: boolPtr(true),
 			SessionAffinityConfig:    &sac,
-			IPFamily:                 &ipf,
+			IPFamilies:               []corev1.IPFamily{ipf},
+			IPFamilyPolicy:           &ipfPolicy,
 		},
 	}
 
@@ -249,7 +251,8 @@ func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 			HealthCheckNodePort:      1234,
 			PublishNotReadyAddresses: true,
 			SessionAffinityConfig:    &sac,
-			IPFamily:                 &ipf,
+			IPFamilies:               []corev1.IPFamily{ipf},
+			IPFamilyPolicy:           &ipfPolicy,
 		},
 	}
 
