@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 var testContext helper.TestContext
@@ -37,6 +38,13 @@ func TestMain(m *testing.M) {
 	if len(pods) == 0 {
 		fmt.Printf("Cannot find any Operator Pods in namespace %s. "+
 			"This test suite requires an Operator is already deployed", namespace)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Waiting for Operator Pod %s to be ready in namespace %s.", pods[0].Name, namespace)
+	err = helper.WaitForPodReady(testContext.KubeClient, namespace, pods[0].Name, 10*time.Second, 5*time.Minute)
+	if err != nil {
+		fmt.Printf("Failed waiting for Operator Pod %s to be ready in namespace %s.", pods[0].Name, namespace)
 		os.Exit(1)
 	}
 
