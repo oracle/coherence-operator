@@ -399,7 +399,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(deployment *coh.Coherence, curr
 		return nil
 	}
 
-	patched, err, result := in.ThreeWayPatchWithCallback(current.GetName(), current, original, desired, callback)
+	patched, result, err := in.ThreeWayPatchWithCallback(current.GetName(), current, original, desired, callback)
 
 	// log the result of patching
 	switch {

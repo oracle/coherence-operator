@@ -293,19 +293,19 @@ func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, n
 
 // ThreeWayPatch performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
 func (in *CommonReconciler) ThreeWayPatch(name string, current, original, desired client.Object) (bool, error) {
-	patched, err, _ := in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
+	patched, _, err := in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
 	return patched, err
 }
 
 // ThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func() *reconcile.Result) (bool, error, *reconcile.Result) {
+func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func() *reconcile.Result) (bool, *reconcile.Result, error) {
 	kind := current.GetObjectKind().GroupVersionKind().Kind
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
 	// create the patch
 	patch, err := in.CreateThreeWayPatch(name, original, desired, current, patchIgnore)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name), nil
+		return false, nil, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
 	}
 
 	if patch == nil {
@@ -322,10 +322,10 @@ func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, orig
 	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name))
 	err = in.GetManager().GetClient().Patch(context.TODO(), current, patch)
 	if err != nil {
-		return false, errors.Wrapf(err, "cannot patch  %s/%s", kind, name), result
+		return false, result, errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
 	}
 
-	return true, nil, result
+	return true, result, nil
 }
 
 // Create a three-way patch between the original state, the current state and the desired state of a k8s resource.
