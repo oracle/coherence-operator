@@ -291,39 +291,41 @@ func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, n
 	return client.RawPatch(patchType, data), nil
 }
 
-// Perform a three-way merge patch on the resource returning true if a patch was required otherwise false.
+// ThreeWayPatch performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
 func (in *CommonReconciler) ThreeWayPatch(name string, current, original, desired client.Object) (bool, error) {
-	return in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
+	patched, err, _ := in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
+	return patched, err
 }
 
-// Perform a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func()) (bool, error) {
+// ThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
+func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func() *reconcile.Result) (bool, error, *reconcile.Result) {
 	kind := current.GetObjectKind().GroupVersionKind().Kind
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
 	// create the patch
 	patch, err := in.CreateThreeWayPatch(name, original, desired, current, patchIgnore)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
+		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name), nil
 	}
 
 	if patch == nil {
 		// nothing to patch so just return
-		return false, nil
+		return false, nil, nil
 	}
 
 	// execute any callback
+	var result *reconcile.Result = nil
 	if callback != nil {
-		callback()
+		result = callback()
 	}
 
 	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name))
 	err = in.GetManager().GetClient().Patch(context.TODO(), current, patch)
 	if err != nil {
-		return false, errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
+		return false, errors.Wrapf(err, "cannot patch  %s/%s", kind, name), result
 	}
 
-	return true, nil
+	return true, nil, result
 }
 
 // Create a three-way patch between the original state, the current state and the desired state of a k8s resource.

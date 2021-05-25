@@ -786,8 +786,7 @@ public class OperatorRestServer implements AutoCloseable {
                 }
 
                 if (missing) {
-                    err("CoherenceOperator: StatusHA check failed - DistributedCache service count " + cacheServices.size()
-                                + " does not match DistributionCoordinator count " + distributionCoordinators.size());
+                    err("CoherenceOperator: StatusHA check failed - Missing DistributionCoordinators MBeans");
                     return false;
                 }
 

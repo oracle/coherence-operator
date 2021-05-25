@@ -1833,7 +1833,7 @@ type ServiceSpec struct {
 	AllocateLoadBalancerNodePorts *bool `json:"allocateLoadBalancerNodePorts,omitempty"`
 }
 
-// Set the Kind of the service.
+// GetName returns the name of the service.
 func (in *ServiceSpec) GetName() string {
 	if in == nil || in.Name == nil {
 		return ""
@@ -1841,7 +1841,7 @@ func (in *ServiceSpec) GetName() string {
 	return *in.Name
 }
 
-// Set the Kind of the service.
+// IsEnabled returns true if a Service should be created.
 func (in *ServiceSpec) IsEnabled() bool {
 	if in == nil || in.Enabled == nil {
 		return true
