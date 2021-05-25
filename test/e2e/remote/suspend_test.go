@@ -272,7 +272,7 @@ func waitForStatefulSetDeletionTimestamp(n types.NamespacedName) error {
 	})
 }
 
-func addTestFinalizer(o controllerutil.Object) error {
+func addTestFinalizer(o client.Object) error {
 	k := helper.ObjectKey(o)
 	if err := testContext.Client.Get(context.TODO(), k, o); err != nil {
 		return err
@@ -281,14 +281,14 @@ func addTestFinalizer(o controllerutil.Object) error {
 	return testContext.Client.Update(context.TODO(), o)
 }
 
-func removeAllFinalizers(o controllerutil.Object) error {
+func removeAllFinalizers(o client.Object) error {
 	k := helper.ObjectKey(o)
-	cpy := o.DeepCopyObject()
-	if err := testContext.Client.Get(context.TODO(), k, cpy); err != nil {
+	o.DeepCopyObject()
+	if err := testContext.Client.Get(context.TODO(), k, o); err != nil {
 		return err
 	}
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
-	return testContext.Client.Patch(context.TODO(), cpy, patch)
+	return testContext.Client.Patch(context.TODO(), o, patch)
 }
 
 func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]interface{}, error) {
