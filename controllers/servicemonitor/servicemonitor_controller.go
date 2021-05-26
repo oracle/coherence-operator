@@ -33,7 +33,7 @@ const (
 // If the reconcile.Reconciler API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileServiceMonitor{}
 
-// NewServiceReconciler returns a new Service reconciler.
+// NewServiceMonitorReconciler returns a new Service reconciler.
 func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileServiceMonitor{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
@@ -67,7 +67,7 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 	defer in.Unlock(request)
 
 	// Obtain the parent Coherence resource
-	deployment, err := in.FindDeployment(request)
+	deployment, err := in.FindDeployment(ctx, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -77,11 +77,11 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, err
 	}
 
-	return in.ReconcileResources(request, deployment, storage)
+	return in.ReconcileResources(ctx, request, deployment, storage)
 }
 
 // ReconcileResources reconciles the state of the desired ServiceMonitors for the reconciler
-func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *coh.Coherence, store utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileServiceMonitor) ReconcileResources(ctx context.Context, req reconcile.Request, d *coh.Coherence, store utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", req.Namespace, "Name", req.Name)
 
 	var err error
@@ -93,7 +93,7 @@ func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileResource(req.Namespace, res.Name, d, store); err != nil {
+			if err = in.ReconcileResource(ctx, req.Namespace, res.Name, d, store); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for d with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -102,7 +102,7 @@ func (in *ReconcileServiceMonitor) ReconcileResources(req reconcile.Request, d *
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileServiceMonitor) ReconcileResource(namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
+func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
 	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
 
 	// See whether it is even possible to handle Prometheus ServiceMonitor resources
@@ -151,12 +151,12 @@ func (in *ReconcileServiceMonitor) ReconcileResource(namespace, name string, dep
 		}
 	default:
 		// Both the sm and deployment exists so this is maybe an update
-		err = in.Update(name, sm, storage, logger)
+		err = in.Update(ctx, name, sm, storage)
 	}
 	return err
 }
 
-// Create the ServiceMonitor
+// CreateServiceMonitor creates a ServiceMonitor spec.
 func (in *ReconcileServiceMonitor) CreateServiceMonitor(namespace, name string, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Creating ServiceMonitor/%s for deployment", name))
 	// Get the ServiceMonitor desired state
@@ -174,7 +174,7 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(namespace, name string, 
 	return nil
 }
 
-// Maybe update the ServiceMonitor if the current state differs from the desired state.
+// UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
 func (in *ReconcileServiceMonitor) UpdateServiceMonitor(namespace, name string, current runtime.Object, storage utils.Storage) error {
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
@@ -219,7 +219,7 @@ func (in *ReconcileServiceMonitor) hasServiceMonitor() bool {
 }
 
 // ResourceExists returns true if the given resource kind exists
-// in the given api groupversion
+// in the given api group/version
 func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
 
 	_, apiLists, err := dc.ServerGroupsAndResources()

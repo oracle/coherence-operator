@@ -63,7 +63,7 @@ func (in *SimpleReconciler) Reconcile(ctx context.Context, request reconcile.Req
 	defer in.Unlock(request)
 
 	// Obtain the parent Coherence resource
-	deployment, err := in.FindDeployment(request)
+	deployment, err := in.FindDeployment(ctx, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -73,5 +73,5 @@ func (in *SimpleReconciler) Reconcile(ctx context.Context, request reconcile.Req
 		return reconcile.Result{}, err
 	}
 
-	return in.ReconcileResources(request, deployment, storage)
+	return in.ReconcileResources(ctx, request, deployment, storage)
 }

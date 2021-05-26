@@ -543,37 +543,38 @@ func ensureV1Beta1CRD(logger logr.Logger, cl client.Client, fileName string) err
 }
 
 // EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func EnsureOperatorSecret(namespace string, c client.Client, log logr.Logger) error {
-	log.Info("Ensuring configuration secret")
-
+func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
 	secret := &coreV1.Secret{}
 
-	err := c.Get(context.TODO(), types.NamespacedName{Name: OperatorConfigName, Namespace: namespace}, secret)
+	err := c.Get(ctx, types.NamespacedName{Name: OperatorConfigName, Namespace: namespace}, secret)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
 
 	restHostAndPort := rest.GetServerHostAndPort()
 
-	log.Info(fmt.Sprintf("Operator Configuration: '%s' value set to %s", OperatorConfigKeyHost, restHostAndPort))
-
 	secret.SetNamespace(namespace)
 	secret.SetName(OperatorConfigName)
 
-	if secret.StringData == nil {
-		secret.StringData = make(map[string]string)
-	}
+	oldValue := secret.Data[OperatorConfigKeyHost]
+	if oldValue == nil || string(oldValue) != restHostAndPort {
+		// data is different so create/update
 
-	secret.StringData[OperatorConfigKeyHost] = restHostAndPort
+		if secret.StringData == nil {
+			secret.StringData = make(map[string]string)
+		}
+		secret.StringData[OperatorConfigKeyHost] = restHostAndPort
 
-	if apierrors.IsNotFound(err) {
-		// for some reason we're getting here even if the secret exists so delete it!!
-		_ = c.Delete(context.TODO(), secret)
-		log.Info("Creating secret " + OperatorConfigName + " in namespace " + namespace)
-		err = c.Create(context.TODO(), secret)
-	} else {
-		log.Info("Updating secret " + OperatorConfigName + " in namespace " + namespace)
-		err = c.Update(context.TODO(), secret)
+		log.Info(fmt.Sprintf("Operator Configuration: '%s' value was '%s', set to '%s'", OperatorConfigKeyHost, string(oldValue), restHostAndPort))
+		if apierrors.IsNotFound(err) {
+			// for some reason we're getting here even if the secret exists so delete it!!
+			_ = c.Delete(ctx, secret)
+			log.Info("Creating configuration secret " + OperatorConfigName + " in namespace " + namespace)
+			err = c.Create(ctx, secret)
+		} else {
+			log.Info("Updating configuration secret " + OperatorConfigName + " in namespace " + namespace)
+			err = c.Update(ctx, secret)
+		}
 	}
 
 	return err

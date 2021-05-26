@@ -13,6 +13,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/version"
 	"os"
 	"path/filepath"
@@ -69,9 +70,9 @@ const (
 var setupLog = ctrl.Log.WithName("setup")
 
 var (
-	DefaultSiteLabels = []string{"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
-	DefaultRackLabels = []string{"topology.kubernetes.io/region", "failure-domain.beta.kubernetes.io/region",
-		"topology.kubernetes.io/zone", "failure-domain.beta.kubernetes.io/zone"}
+	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
+	DefaultRackLabels = []string{corev1.LabelTopologyRegion, corev1.LabelFailureDomainBetaRegion,
+		corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )
 
 func SetupFlags(cmd *cobra.Command) {

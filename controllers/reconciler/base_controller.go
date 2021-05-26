@@ -32,19 +32,25 @@ import (
 	"sync"
 )
 
+//goland:noinspection GoUnusedConst
 const (
-	// If the patch json is this we can skip the patch
-	patchIgnore = "{\"metadata\":{\"creationTimestamp\":null},\"status\":{\"replicas\":0}}"
+	// PatchIgnore - If the patch json is this we can skip the patch.
+	PatchIgnore = "{\"metadata\":{\"creationTimestamp\":null},\"status\":{\"replicas\":0}}"
 
+	// EventReasonCreated is the reason description for a created event.
 	EventReasonCreated string = "Created"
+	// EventReasonUpdated is the reason description for an updated event.
 	EventReasonUpdated string = "Updated"
-	EventReasonFailed  string = "Failed"
+	// EventReasonFailed is the reason description for a failed event.
+	EventReasonFailed string = "Failed"
+	// EventReasonDeleted is the reason description for a deleted event.
 	EventReasonDeleted string = "Deleted"
 )
 
 var (
-	// the common lock mutex used by the reconcilers.
+	// commonMutex is the common lock mutex used by the reconcilers.
 	commonMutex = &sync.Mutex{}
+	// commonLocks is the map of locked namespace names.
 	commonLocks = make(map[types.NamespacedName]bool)
 )
 
@@ -60,7 +66,7 @@ type BaseReconciler interface {
 	SetPatchType(patchType types.PatchType)
 }
 
-// A base controller structure.
+// CommonReconciler is a base controller structure.
 type CommonReconciler struct {
 	name      string
 	mgr       manager.Manager
@@ -94,7 +100,7 @@ func (in *CommonReconciler) SetCommonReconciler(name string, mgr manager.Manager
 	in.patchType = types.StrategicMergePatchType
 }
 
-// Attempt to lock the requested resource.
+// Lock attempts to lock the requested resource.
 func (in *CommonReconciler) Lock(request reconcile.Request) bool {
 	if in == nil {
 		return false
@@ -117,7 +123,7 @@ func (in *CommonReconciler) Lock(request reconcile.Request) bool {
 	return true
 }
 
-// Unlock the requested resource
+// Unlock unlocks the requested resource
 func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	if in != nil {
 		in.mutex.Lock()
@@ -128,11 +134,11 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	}
 }
 
-// Update the Coherence resource's status
-func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) error {
+// UpdateDeploymentStatus updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request reconcile.Request) error {
 	var err error
 	var sts *appsv1.StatefulSet
-	sts, _, err = in.MaybeFindStatefulSet(request.Namespace, request.Name)
+	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
 		// an error occurred
 		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
@@ -140,7 +146,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 	}
 
 	deployment := &coh.Coherence{}
-	err = in.GetClient().Get(context.TODO(), request.NamespacedName, deployment)
+	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
 		// deployment not found - possibly deleted
@@ -159,7 +165,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
 			if patch != nil {
-				err = in.GetClient().Status().Patch(context.TODO(), deployment, patch)
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
 				if err != nil {
 					return errors.Wrap(err, "updating Coherence resource status")
 				}
@@ -169,16 +175,16 @@ func (in *CommonReconciler) UpdateDeploymentStatus(request reconcile.Request) er
 	return err
 }
 
-// Update the Coherence resource's status
-func (in *CommonReconciler) UpdateDeploymentStatusPhase(key types.NamespacedName, phase status.ConditionType) error {
-	return in.UpdateDeploymentStatusCondition(key, status.Condition{Type: phase, Status: corev1.ConditionTrue})
+// UpdateDeploymentStatusPhase updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase status.ConditionType) error {
+	return in.UpdateDeploymentStatusCondition(ctx, key, status.Condition{Type: phase, Status: corev1.ConditionTrue})
 }
 
-// Update the Coherence resource's status
-func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.NamespacedName, c status.Condition) error {
+// UpdateDeploymentStatusCondition updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c status.Condition) error {
 	var err error
 	deployment := &coh.Coherence{}
-	err = in.GetClient().Get(context.TODO(), key, deployment)
+	err = in.GetClient().Get(ctx, key, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
 		// deployment not found - possibly deleted
@@ -197,7 +203,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.Namespaced
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
 			if patch != nil {
-				err = in.GetClient().Status().Patch(context.TODO(), deployment, patch)
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
 				if err != nil {
 					return errors.Wrap(err, "updating Coherence resource status")
 				}
@@ -207,10 +213,10 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(key types.Namespaced
 	return err
 }
 
-// Find the required StatefulSet, returning the StatefulSet and a flag indicating whether it was found.
-func (in *CommonReconciler) MaybeFindStatefulSet(namespace, name string) (*appsv1.StatefulSet, bool, error) {
+// MaybeFindStatefulSet finds the required StatefulSet, returning the StatefulSet and a flag indicating whether it was found.
+func (in *CommonReconciler) MaybeFindStatefulSet(ctx context.Context, namespace, name string) (*appsv1.StatefulSet, bool, error) {
 	sts := &appsv1.StatefulSet{}
-	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, sts)
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, sts)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
 		return sts, false, nil
@@ -221,9 +227,9 @@ func (in *CommonReconciler) MaybeFindStatefulSet(namespace, name string) (*appsv
 	}
 }
 
-// Perform a two-way merge patch on the resource.
-func (in *CommonReconciler) TwoWayPatch(name string, current, desired client.Object) (bool, error) {
-	patch, err := in.CreateTwoWayPatch(name, desired, current, patchIgnore)
+// TwoWayPatch performs a two-way merge patch on the resource.
+func (in *CommonReconciler) TwoWayPatch(ctx context.Context, name string, current, desired client.Object) (bool, error) {
+	patch, err := in.CreateTwoWayPatch(name, desired, current, PatchIgnore)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
 		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
@@ -234,7 +240,7 @@ func (in *CommonReconciler) TwoWayPatch(name string, current, desired client.Obj
 		return false, nil
 	}
 
-	err = in.GetManager().GetClient().Patch(context.TODO(), current, patch)
+	err = in.GetManager().GetClient().Patch(ctx, current, patch)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
 		return false, errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
@@ -243,12 +249,12 @@ func (in *CommonReconciler) TwoWayPatch(name string, current, desired client.Obj
 	return true, nil
 }
 
-// Create a two-way patch between the original state, the current state and the desired state of a k8s resource.
+// CreateTwoWayPatch creates a two-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatch(name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
 	return in.CreateTwoWayPatchOfType(in.patchType, name, desired, current, ignore...)
 }
 
-// Create a two-way patch between the original state, the current state and the desired state of a k8s resource.
+// CreateTwoWayPatchOfType creates a two-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
 	currentData, err := json.Marshal(current)
 	if err != nil {
@@ -292,47 +298,52 @@ func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, n
 }
 
 // ThreeWayPatch performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatch(name string, current, original, desired client.Object) (bool, error) {
-	patched, _, err := in.ThreeWayPatchWithCallback(name, current, original, desired, nil)
-	return patched, err
+func (in *CommonReconciler) ThreeWayPatch(ctx context.Context, name string, current, original, desired client.Object) (bool, error) {
+	return in.ThreeWayPatchWithCallback(ctx, name, current, original, desired, nil)
 }
 
 // ThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
-func (in *CommonReconciler) ThreeWayPatchWithCallback(name string, current, original, desired client.Object, callback func() *reconcile.Result) (bool, *reconcile.Result, error) {
+func (in *CommonReconciler) ThreeWayPatchWithCallback(ctx context.Context, name string, current, original, desired client.Object, callback func()) (bool, error) {
 	kind := current.GetObjectKind().GroupVersionKind().Kind
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
 	// create the patch
-	patch, err := in.CreateThreeWayPatch(name, original, desired, current, patchIgnore)
+	patch, data, err := in.CreateThreeWayPatch(name, original, desired, current, PatchIgnore)
 	if err != nil {
-		return false, nil, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
+		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
 	}
 
 	if patch == nil {
 		// nothing to patch so just return
-		return false, nil, nil
+		return false, nil
 	}
 
-	// execute any callback
-	var result *reconcile.Result = nil
-	if callback != nil {
-		result = callback()
-	}
-
-	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name))
-	err = in.GetManager().GetClient().Patch(context.TODO(), current, patch)
-	if err != nil {
-		return false, result, errors.Wrapf(err, "cannot patch  %s/%s", kind, name)
-	}
-
-	return true, result, nil
+	return in.ApplyThreeWayPatchWithCallback(ctx, name, current, patch, data, callback)
 }
 
-// Create a three-way patch between the original state, the current state and the desired state of a k8s resource.
-func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
-	data, err := in.CreateThreeWayPatchData(original, desired, current, ignore...)
+// ApplyThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
+func (in *CommonReconciler) ApplyThreeWayPatchWithCallback(ctx context.Context, name string, current client.Object, patch client.Patch, data []byte, callback func()) (bool, error) {
+	kind := current.GetObjectKind().GroupVersionKind().Kind
+
+	// execute any callback
+	if callback != nil {
+		callback()
+	}
+
+	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s with %s", kind, name, string(data)))
+	err := in.GetManager().GetClient().Patch(ctx, current, patch)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating three-way patch")
+		return false, errors.Wrapf(err, "failed to patch  %s/%s with %s", kind, name, string(data))
+	}
+
+	return true, nil
+}
+
+// CreateThreeWayPatch creates a three-way patch between the original state, the current state and the desired state of a k8s resource.
+func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, current runtime.Object, ignore ...string) (client.Patch, []byte, error) {
+	data, err := in.CreateThreeWayPatchData(original, desired, current)
+	if err != nil {
+		return nil, data, errors.Wrap(err, "creating three-way patch")
 	}
 
 	// check whether the patch counts as no-patch
@@ -340,7 +351,7 @@ func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, 
 	for _, s := range ignore {
 		if string(data) == s {
 			// empty patch
-			return nil, err
+			return nil, data, err
 		}
 	}
 
@@ -348,11 +359,11 @@ func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, 
 	kind := current.GetObjectKind().GroupVersionKind().Kind
 	in.GetLog().Info(fmt.Sprintf("Created patch for %s/%s %s", kind, name, string(data)))
 
-	return client.RawPatch(in.patchType, data), nil
+	return client.RawPatch(in.patchType, data), data, nil
 }
 
-// Create a three-way patch between the original state, the current state and the desired state of a k8s resource.
-func (in *CommonReconciler) CreateThreeWayPatchData(original, desired, current runtime.Object, ignore ...string) ([]byte, error) {
+// CreateThreeWayPatchData creates a three-way patch between the original state, the current state and the desired state of a k8s resource.
+func (in *CommonReconciler) CreateThreeWayPatchData(original, desired, current runtime.Object) ([]byte, error) {
 	originalData, err := json.Marshal(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "serializing original configuration")
@@ -387,18 +398,18 @@ func (in *CommonReconciler) asVersioned(obj runtime.Object) runtime.Object {
 }
 
 // HandleErrAndRequeue is the common error handler
-func (in *CommonReconciler) HandleErrAndRequeue(err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
-	return in.Failed(err, deployment, msg, true, logger)
+func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
+	return in.Failed(ctx, err, deployment, msg, true, logger)
 }
 
-// handleErrAndFinish is the common error handler
-func (in *CommonReconciler) HandleErrAndFinish(err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
-	return in.Failed(err, deployment, msg, false, logger)
+// HandleErrAndFinish is the common error handler
+func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
+	return in.Failed(ctx, err, deployment, msg, false, logger)
 }
 
-// failed is the common error handler
-// ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
-func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+// Failed is a common error handler
+// ToDo: we need to be able to add some form of back-off so that failures are requeued with a growing back-off time
+func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *coh.Coherence, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
 	} else {
@@ -408,7 +419,7 @@ func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg str
 	if deployment != nil {
 		// update the status to failed.
 		deployment.Status.Phase = coh.ConditionTypeFailed
-		if e := in.GetClient().Status().Update(context.TODO(), deployment); e != nil {
+		if e := in.GetClient().Status().Update(ctx, deployment); e != nil {
 			// There isn't much we can do, we're already handling an error
 			logger.V(0).Info("failed to update deployment status due to: " + e.Error())
 		}
@@ -423,16 +434,16 @@ func (in *CommonReconciler) Failed(err error, deployment *coh.Coherence, msg str
 	return reconcile.Result{Requeue: false}, nil
 }
 
-// Find the Coherence resource for a given request.
-func (in *CommonReconciler) FindDeployment(request reconcile.Request) (*coh.Coherence, error) {
-	deployment, _, err := in.MaybeFindDeployment(request.Namespace, request.Name)
+// FindDeployment finds the Coherence resource for a given request.
+func (in *CommonReconciler) FindDeployment(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
+	deployment, _, err := in.MaybeFindDeployment(ctx, request.Namespace, request.Name)
 	return deployment, err
 }
 
-// Maybe find a Coherence resource.
-func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Coherence, bool, error) {
+// MaybeFindDeployment possibly finds a Coherence resource.
+func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, name string) (*coh.Coherence, bool, error) {
 	deployment := &coh.Coherence{}
-	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, deployment)
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, deployment)
 
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
@@ -449,11 +460,11 @@ func (in *CommonReconciler) MaybeFindDeployment(namespace, name string) (*coh.Co
 
 // ----- SecondaryResourceReconciler ----------------------------------------------
 
-// A reconciler for sub-resource.
+// SecondaryResourceReconciler is a reconciler for sub-resources.
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() client.Object
-	ReconcileResources(reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
+	ReconcileResources(context.Context, reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
 
@@ -471,19 +482,19 @@ func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Te
 func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
 // ReconcileResources reconciles the state of the desired resources for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileSecondaryResource) ReconcileResources(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 
 	var err error
 	diff := storage.GetLatest().DiffForKind(in.Kind, storage.GetPrevious())
 	for _, res := range diff {
 		if res.IsDelete() {
-			if err = in.Delete(request.Namespace, res.Name, logger); err != nil {
+			if err = in.Delete(ctx, request.Namespace, res.Name, logger); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for deployment with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileResource(request.Namespace, res.Name, deployment, storage); err != nil {
+			if err = in.ReconcileResource(ctx, request.Namespace, res.Name, deployment, storage); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for deployment with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -492,11 +503,11 @@ func (in *ReconcileSecondaryResource) ReconcileResources(request reconcile.Reque
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileSecondaryResource) ReconcileResource(namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
+func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
 	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
 
 	// Fetch the resource's current state
-	resource, exists, err := in.FindResource(namespace, name)
+	resource, exists, err := in.FindResource(ctx, namespace, name)
 	if err != nil {
 		// Error reading the object - requeue the request.
 		// We can't call the error handler as we do not even have a deployment.
@@ -516,19 +527,19 @@ func (in *ReconcileSecondaryResource) ReconcileResource(namespace, name string, 
 			// ensure that the resource is deleted.
 			// This should not actually be required as everything is owned by the deployment
 			// and there should be a cascaded delete by k8s so it's belt and braces.
-			err = in.Delete(namespace, name, logger)
+			err = in.Delete(ctx, namespace, name, logger)
 		}
 	case !exists:
 		// Resource does not exist but deployment does so create it
-		err = in.Create(name, storage, logger)
+		err = in.Create(ctx, name, storage, logger)
 	default:
 		// Both the resource and deployment exists so this is maybe an update
-		err = in.Update(name, resource.(client.Object), storage, logger)
+		err = in.Update(ctx, name, resource.(client.Object), storage)
 	}
 	return err
 }
 
-// Delete the resource
+// NewFromTemplate creates a resource from a template resource.
 func (in *ReconcileSecondaryResource) NewFromTemplate(namespace, name string) client.Object {
 	// create a new resource from copying the empty template
 	resource := in.Template.DeepCopyObject()
@@ -540,7 +551,7 @@ func (in *ReconcileSecondaryResource) NewFromTemplate(namespace, name string) cl
 }
 
 // Create the specified resource
-func (in *ReconcileSecondaryResource) Create(name string, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) Create(ctx context.Context, name string, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Creating %v/%s for deployment", in.Kind, name))
 	// Get the resource state
 	resource, found := storage.GetLatest().GetResource(in.Kind, name)
@@ -548,7 +559,7 @@ func (in *ReconcileSecondaryResource) Create(name string, storage utils.Storage,
 		return fmt.Errorf("cannot create %v/%s for deployment as latest state not present in store", in.Kind, name)
 	}
 	// create the resource
-	if err := in.GetClient().Create(context.TODO(), resource.Spec); err != nil {
+	if err := in.GetClient().Create(ctx, resource.Spec); err != nil {
 		logger.Info(fmt.Sprintf("Failed creating %v for deployment - %s", in.Kind, err.Error()))
 		return errors.Wrapf(err, "failed to create %v/%s", in.Kind, name)
 	}
@@ -556,13 +567,13 @@ func (in *ReconcileSecondaryResource) Create(name string, storage utils.Storage,
 }
 
 // Delete the resource
-func (in *ReconcileSecondaryResource) Delete(namespace, name string, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, name string, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Deleting %v/%s for deployment", in.Kind, name))
 	// create a new resource from copying the empty template
 	resource := in.NewFromTemplate(namespace, name)
 
 	// Do the delete
-	err := in.GetClient().Delete(context.TODO(), resource, client.PropagationPolicy(metav1.DeletePropagationBackground))
+	err := in.GetClient().Delete(ctx, resource, client.PropagationPolicy(metav1.DeletePropagationBackground))
 	// check for an error (we ignore not-found as this means k8s has already done the delete for us)
 	if err != nil && !apierrors.IsNotFound(err) {
 		err = errors.Wrapf(err, "failed to delete %s/%s", in.Kind, name)
@@ -571,21 +582,21 @@ func (in *ReconcileSecondaryResource) Delete(namespace, name string, logger logr
 	return nil
 }
 
-// Maybe update the resource if the current state differs from the desired state.
-func (in *ReconcileSecondaryResource) Update(name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
+// Update possibly updates the resource if the current state differs from the desired state.
+func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage) error {
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
 		return fmt.Errorf("cannot update %s/%s as latest state not present in store", in.Kind, name)
 	}
 
-	_, err := in.ThreeWayPatch(name, current, original.Spec, desired.Spec)
+	_, err := in.ThreeWayPatch(ctx, name, current, original.Spec, desired.Spec)
 	return err
 }
 
-func (in *ReconcileSecondaryResource) FindResource(namespace, name string) (metav1.Object, bool, error) {
+func (in *ReconcileSecondaryResource) FindResource(ctx context.Context, namespace, name string) (metav1.Object, bool, error) {
 	object := in.NewFromTemplate(namespace, name).(metav1.Object)
-	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, object.(client.Object))
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, object.(client.Object))
 	var found bool
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
