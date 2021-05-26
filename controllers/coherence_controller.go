@@ -39,7 +39,7 @@ const (
 	controllerName = "controller_coherence"
 
 	reconcileFailedMessage       string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
-	createResourcesFailedMessage string = "create resources for Coherence resource '%s' in namesapce '%s' failed\n%s"
+	createResourcesFailedMessage string = "create resources for Coherence resource '%s' in namespace '%s' failed\n%s"
 )
 
 // CoherenceReconciler reconciles a Coherence object
@@ -68,7 +68,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		log.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, re-queuing request")
+		log.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, requeue request")
 		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
@@ -76,7 +76,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// Fetch the Coherence resource instance
 	deployment := &coh.Coherence{}
-	err := in.GetClient().Get(context.TODO(), types.NamespacedName{Namespace: request.Namespace, Name: request.Name}, deployment)
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: request.Name}, deployment)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -96,7 +96,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
-			if err := in.finalizeDeployment(deployment); err != nil {
+			if err := in.finalizeDeployment(ctx, deployment); err != nil {
 				log.Error(err, "Failed to remove finalizer")
 				return ctrl.Result{Requeue: true}, nil
 			}
@@ -123,7 +123,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// ensure that the deployment has an initial status
 	if deployment.Status.Phase == "" {
-		err := in.UpdateDeploymentStatusPhase(request.NamespacedName, coh.ConditionTypeInitialized)
+		err := in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -139,23 +139,23 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		deployment.DeepCopyInto(patch)
 		replicas := deployment.GetReplicas()
 		patch.Spec.Replicas = &replicas
-		_, err = in.ThreeWayPatch(deployment.Name, deployment, deployment, patch)
+		_, err = in.ThreeWayPatch(ctx, deployment.Name, deployment, deployment, patch)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = coh.EnsureOperatorSecret(request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = coh.EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
-		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
+		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	// ensure that the state store exists
 	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
 	if err != nil {
 		err = errors.Wrap(err, "obtaining desired state store")
-		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
+		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	// obtain the original resources from the state store
@@ -163,7 +163,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Create the desired resources the deployment
 	desiredResources, err := deployment.Spec.CreateKubernetesResources(deployment)
 	if err != nil {
-		return in.HandleErrAndRequeue(err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
+		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	// compare the original with the desired to determine whether there is anything to update
@@ -198,7 +198,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 		// process the secondary resources in the order they should be created
 		for _, rec := range in.reconcilers {
-			r, err := rec.ReconcileResources(request, deployment, storage)
+			r, err := rec.ReconcileResources(ctx, request, deployment, storage)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -211,7 +211,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
-		if err = in.UpdateDeploymentStatusPhase(request.NamespacedName, coh.ConditionTypeStopped); err != nil {
+		if err = in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
 			err = errors.Wrap(err, "error updating deployment status")
 		}
 	}
@@ -294,14 +294,14 @@ func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
 	return nil
 }
 
-func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
+func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
 	// determine whether we can skip service suspension
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
 		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
 			operator.FlagSkipServiceSuspend + " is set to true")
 		return nil
 	}
-	if c.Spec.SuspendServicesOnShutdown != nil && !*c.Spec.SuspendServicesOnShutdown {
+	if !c.Spec.IsSuspendServicesOnShutdown() {
 		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
 			" Spec.SuspendServicesOnShutdown is set to false")
 		return nil
@@ -314,7 +314,7 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 
 	in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
 	// Get the StatefulSet
-	sts, stsExists, err := in.MaybeFindStatefulSet(c.Namespace, c.Name)
+	sts, stsExists, err := in.MaybeFindStatefulSet(ctx, c.Namespace, c.Name)
 	if err != nil {
 		return errors.Wrapf(err, "getting StatefulSet %s/%s", c.Namespace, c.Name)
 	}
@@ -327,7 +327,7 @@ func (in *CoherenceReconciler) finalizeDeployment(c *coh.Coherence) error {
 				Client: in.GetClient(),
 				Config: in.GetManager().GetConfig(),
 			}
-			if !probe.SuspendServices(c, sts) {
+			if probe.SuspendServices(c, sts) == statefulset.ServiceSuspendFailed {
 				return fmt.Errorf("failed to suspend services")
 			}
 		}

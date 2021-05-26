@@ -7303,7 +7303,7 @@ spec:
                 type: string
               description: 'The extra labels to add to the all of the Pods in this
                 deployments. Labels here will add to or override those defined for
-                the cluster. More info: http://kubernetes.io/docs/user-guide/labels'
+                the cluster. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/'
               type: object
             livenessProbe:
               description: 'The liveness probe config to be used for the Pods in this

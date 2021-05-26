@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -28,7 +28,7 @@ var _ predicate.Predicate = SecondaryPredicate{}
 //   - Generic events are ignored.
 //
 // SecondaryPredicate is most often used in conjunction with
-// controller-runtime's handler.EnqueueRequestForOwner
+// controller-runtime handler.EnqueueRequestForOwner
 type SecondaryPredicate struct {
 	predicate.Funcs
 }
@@ -56,4 +56,3 @@ func (SecondaryPredicate) Delete(event.DeleteEvent) bool {
 func (SecondaryPredicate) Generic(event.GenericEvent) bool {
 	return false
 }
-

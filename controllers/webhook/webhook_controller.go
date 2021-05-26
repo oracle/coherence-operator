@@ -56,7 +56,7 @@ func (r *CertReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return errors.Wrap(err, " unable to install cert-manager resources")
 		}
 		// if in dev-mode write the certs to local cert files
-		if err := r.writeLocalCerts(); err != nil {
+		if err := r.writeLocalCerts(context.TODO()); err != nil {
 			return err
 		}
 	case operator.ShouldUseSelfSignedCerts():
@@ -66,7 +66,7 @@ func (r *CertReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		}
 	default:
 		// certificates are manually managed
-		if err := r.writeLocalCerts(); err != nil {
+		if err := r.writeLocalCerts(context.TODO()); err != nil {
 			return err
 		}
 		// don't use this controller for manual certs so just return
@@ -173,7 +173,7 @@ func (r *CertReconciler) ReconcileResources(ctx context.Context) error {
 		}
 	}
 
-	if r.shouldRenewWebhookConfigs(serverCA) {
+	if r.shouldRenewWebhookConfigs(ctx, serverCA) {
 		m := createMutatingWebhookWithCABundle(operator.GetNamespace(), secret.Data[operator.CertFileName])
 		if err = installMutatingWebhook(r.Clientset, m); err != nil {
 			return err
@@ -187,13 +187,13 @@ func (r *CertReconciler) ReconcileResources(ctx context.Context) error {
 	return nil
 }
 
-func (r *CertReconciler) writeLocalCerts() error {
+func (r *CertReconciler) writeLocalCerts(ctx context.Context) error {
 	if !operator.IsDevMode() {
 		return nil
 	}
 	secretName := viper.GetString(operator.FlagWebhookSecret)
 	namespace := operator.GetNamespace()
-	secret, err := r.Clientset.KubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+	secret, err := r.Clientset.KubeClient.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to get secret %s", secretName))
 	}
@@ -218,9 +218,8 @@ func (r *CertReconciler) writeLocalCertsFromSecret(secret *corev1.Secret) error 
 	return nil
 }
 
-func (r *CertReconciler) shouldRenewWebhookConfigs(ca *certs.CA) bool {
+func (r *CertReconciler) shouldRenewWebhookConfigs(ctx context.Context, ca *certs.CA) bool {
 	// Read the current certificate used by the server
-	ctx := context.TODO()
 	mCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1beta1().
 		MutatingWebhookConfigurations().Get(ctx, viper.GetString(operator.FlagMutatingWebhookName), metav1.GetOptions{})
 	if err != nil {
@@ -268,7 +267,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ca *certs.CA) bool {
 func (r *CertReconciler) Cleanup() {
 	r.GetLog().Info("cleaning up")
 	if r.hookInstaller != nil {
-		if err := r.hookInstaller.uninstallWebHook(r.GetManager().GetClient()); err != nil {
+		if err := r.hookInstaller.uninstallWebHook(); err != nil {
 			r.GetLog().Error(err, "error cleaning up")
 		}
 	}

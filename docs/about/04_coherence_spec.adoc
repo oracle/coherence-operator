@@ -87,7 +87,7 @@ m| suspendServicesOnShutdown | A flag controlling whether storage enabled cache 
 m| suspendServiceTimeout | SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds) m| &#42;int | false
 m| startQuorum | StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources. m| []<<StartQuorum,StartQuorum>> | false
 m| env | Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvar-v1-core[corev1.EnvVar] | false
-m| labels | The extra labels to add to the all of the Pods in this deployments. Labels here will add to or override those defined for the cluster. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
+m| labels | The extra labels to add to the all of the Pods in this deployments. Labels here will add to or override those defined for the cluster. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
 m| annotations | Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this: +
  +
 annotations: +
