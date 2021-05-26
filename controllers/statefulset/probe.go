@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -73,17 +73,25 @@ func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.Stat
 	return in.ExecuteProbe(deployment, sts, p)
 }
 
+type ServiceSuspendStatus int
+
+const ( // iota is reset to 0
+	ServiceSuspendSkipped    ServiceSuspendStatus = iota // == 0
+	ServiceSuspendSuccessful ServiceSuspendStatus = iota // == 1
+	ServiceSuspendFailed     ServiceSuspendStatus = iota // == 2
+)
+
 // SuspendServices will request services be suspended in the Coherence cluster.
 // This is called prior to stopping a StatefulSet to then have a graceful shutdown.
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) ServiceSuspendStatus {
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			operator.FlagSkipServiceSuspend+" is set to true",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
-		return true
+		return ServiceSuspendSkipped
 	}
 
 	// check whether the Coherence deployment supports service suspension
@@ -91,19 +99,21 @@ func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			coh.AnnotationFeatureSuspend+" annotation is missing or not set to true",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
-		return true
+		return ServiceSuspendSkipped
 	}
 
-	if deployment.Spec.SuspendServicesOnShutdown != nil && !*deployment.Spec.SuspendServicesOnShutdown {
+	if !deployment.Spec.IsSuspendServicesOnShutdown() {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			" spec.SuspendServicesOnShutdown is set to false",
 			"Namespace", deployment.Namespace, "Name", deployment.Name)
-		return true
+		return ServiceSuspendSkipped
 	}
-	log.Info("Suspending Coherence services in StatefulSet "+sts.Name,
-		"Namespace", deployment.Namespace, "Name", deployment.Name)
-	p := deployment.Spec.GetSuspendProbe()
-	return in.ExecuteProbe(deployment, sts, p)
+
+	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", deployment.Namespace, "Name", deployment.Name)
+	if in.ExecuteProbe(deployment, sts, deployment.Spec.GetSuspendProbe()) {
+		return ServiceSuspendSuccessful
+	}
+	return ServiceSuspendFailed
 }
 
 func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
@@ -123,8 +133,8 @@ func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.St
 
 	// All Pods must be in the Running Phase
 	for _, pod := range list.Items {
-		if !in.IsPodReady(pod) {
-			logger.Info("Cannot execute probe, one or more Pods is not in a ready state")
+		if ready, phase := in.IsPodReady(pod); !ready {
+			logger.Info(fmt.Sprintf("Cannot execute probe, one or more Pods is not in a ready state - %s (%v) ", pod.Name, phase))
 			return false
 		}
 	}
@@ -162,18 +172,18 @@ func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.St
 	return false
 }
 
-// Determine whether the specified Pods are in the Ready state.
-func (in *CoherenceProbe) IsPodReady(pod corev1.Pod) bool {
+// IsPodReady determines whether the specified Pods are in the Ready state.
+func (in *CoherenceProbe) IsPodReady(pod corev1.Pod) (bool, string) {
 	if pod.DeletionTimestamp != nil || pod.Status.Phase != corev1.PodRunning {
-		return false
+		return false, "Terminating"
 	}
 
 	for _, c := range pod.Status.Conditions {
 		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
-			return true
+			return true, string(pod.Status.Phase)
 		}
 	}
-	return false
+	return false, string(pod.Status.Phase)
 }
 
 func (in *CoherenceProbe) RunProbe(pod corev1.Pod, handler *coh.Probe) (bool, error) {

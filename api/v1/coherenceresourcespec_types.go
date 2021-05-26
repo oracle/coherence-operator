@@ -119,7 +119,7 @@ type CoherenceResourceSpec struct {
 	Env []corev1.EnvVar `json:"env,omitempty"`
 	// The extra labels to add to the all of the Pods in this deployments.
 	// Labels here will add to or override those defined for the cluster.
-	// More info: http://kubernetes.io/docs/user-guide/labels
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
@@ -321,6 +321,11 @@ func (in *CoherenceResourceSpec) EnsureCoherenceUtilsImage(utilsImage *string) b
 // CheckHABeforeUpdate returns true if a StatusHA check should be made before updating a deployment.
 func (in *CoherenceResourceSpec) CheckHABeforeUpdate() bool {
 	return in.HABeforeUpdate == nil || *in.HABeforeUpdate
+}
+
+// IsSuspendServicesOnShutdown returns true if services should be suspended before a cluster is shutdown.
+func (in *CoherenceResourceSpec) IsSuspendServicesOnShutdown() bool {
+	return in.SuspendServicesOnShutdown == nil || *in.SuspendServicesOnShutdown
 }
 
 // GetEffectiveScalingPolicy returns the scaling policy to be used.

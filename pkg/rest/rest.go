@@ -167,10 +167,14 @@ func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
 // getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
 func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.Request) {
 	var value string
+	labelUsed := "<None>"
 	pos := strings.LastIndex(r.URL.Path, "/")
 	name := r.URL.Path[1+pos:]
 
-	log.Info(fmt.Sprintf("Querying for node name='%s' URL: %s", name, r.URL.Path))
+	// strip off any trailing slash
+	if last := len(name) - 1; last >= 0 && name[last] == '/' {
+		name = name[:last]
+	}
 
 	node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
 
@@ -178,16 +182,20 @@ func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.
 		var ok bool
 		for _, label := range labels {
 			if value, ok = node.Labels[label]; ok && value != "" {
+				labelUsed = label
 				break
 			}
 		}
 	} else {
 		log.Error(err, "Error getting node "+name+" from k8s")
 		value = ""
+		labelUsed = ""
 	}
 
 	w.WriteHeader(200)
 	if _, err = fmt.Fprint(w, value); err != nil {
 		log.Error(err, "Error writing value response for node "+name)
+	} else {
+		log.Info(fmt.Sprintf("GET query for node labels node='%s' label:'%s' response:'%s'", name, labelUsed, value))
 	}
 }

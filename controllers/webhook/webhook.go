@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 )
@@ -55,7 +54,7 @@ var (
 	}
 )
 
-func (k *HookInstaller) uninstallWebHook(client client.Client) error {
+func (k *HookInstaller) uninstallWebHook() error {
 	log.Info("Uninstall webhook resources")
 
 	// We only clean up cert-manager resource here.

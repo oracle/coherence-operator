@@ -104,7 +104,7 @@ const (
 	DefaultReadinessPath = "/ready"
 	DefaultLivenessPath  = "/healthz"
 
-	// Cloud Native Build Pack
+	// DefaultCnbpLauncher is the Cloud Native Build Pack launcher executable
 	DefaultCnbpLauncher = "/cnb/lifecycle/launcher"
 
 	EnvVarAppType                     = "COH_APP_TYPE"
