@@ -156,6 +156,7 @@ type ApplicationSpec struct {
 	SpringBootFatJar *string `json:"springBootFatJar,omitempty"`
 }
 
+// UpdateCoherenceContainer updates the Coherence container with the relevant settings.
 func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	if in == nil {
 		return
@@ -403,6 +404,7 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 	in.AddPersistencePVCs(deployment, sts)
 }
 
+// GetMetricsPort returns the metrics port number.
 func (in *CoherenceSpec) GetMetricsPort() int32 {
 	switch {
 	case in == nil || in.Metrics == nil || in.Metrics.Port == nil:
@@ -412,6 +414,7 @@ func (in *CoherenceSpec) GetMetricsPort() int32 {
 	}
 }
 
+// GetManagementPort returns the management over REST port number.
 func (in *CoherenceSpec) GetManagementPort() int32 {
 	switch {
 	case in == nil || in.Management == nil || in.Management.Port == nil:
@@ -421,6 +424,7 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	}
 }
 
+// GetPersistenceSpec returns the Coherence persistence spcification.
 func (in *CoherenceSpec) GetPersistenceSpec() *PersistenceSpec {
 	if in == nil {
 		return nil
@@ -547,9 +551,8 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 		}
 	}
 
-	if gc != nil {
-		c.Env = append(c.Env, gc.CreateEnvVars()...)
-	}
+	//goland:noinspection GoNilness
+	c.Env = append(c.Env, gc.CreateEnvVars()...)
 
 	// Configure the JVM to use container limits (true by default)
 	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits
