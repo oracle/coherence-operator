@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -32,6 +32,7 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(selector).NotTo(BeEmpty(), "COMPATIBLE_SELECTOR environment variable has not been set")
 
 	// Install Previous version
+	t.Logf("Installing previous Operator version: %s\n", version)
 	InstallPreviousVersion(g, ns, name, version, selector)
 
 	// Install a Coherence deployment
@@ -42,6 +43,7 @@ func TestCompatibility(t *testing.T) {
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 
 	// delete the previous Operator version
+	t.Logf("Unnstalling previous Operator version: %s\n", version)
 	err = UninstallOperator(ns, name)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -50,9 +52,11 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Install this version
+	t.Logf("Installing current Operator version\n")
 	InstallCurrentVersion(g, ns, name)
 
 	// wait a few minutes to allow the new Operator to reconcile the existing Coherence cluster
+	t.Logf("Installed current Operator version - waiting for reconcile...\n")
 	time.Sleep(2 * time.Minute)
 
 	// Get the current state fo the StatefulSet

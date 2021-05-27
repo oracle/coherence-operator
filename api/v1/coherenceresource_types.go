@@ -89,12 +89,12 @@ type CoherenceResourceStatus struct {
 	Conditions status.Conditions `json:"conditions,omitempty"`
 }
 
-// Update the current Phase
+// UpdatePhase updates the current Phase
 func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase status.ConditionType) bool {
 	return in.SetCondition(deployment, status.Condition{Type: phase, Status: coreV1.ConditionTrue})
 }
 
-// Set the current Status Condition
+// SetCondition sets the current Status Condition
 func (in *CoherenceResourceStatus) SetCondition(deployment *Coherence, c status.Condition) bool {
 	deployment.Status.DeepCopyInto(in)
 	updated := in.ensureInitialized(deployment)
@@ -285,7 +285,7 @@ func (in *Coherence) GetCoherenceClusterName() string {
 	return *in.Spec.Cluster
 }
 
-// Obtain the name of the headless Service used for Coherence WKA.
+// GetWkaServiceName returns the name of the headless Service used for Coherence WKA.
 func (in *Coherence) GetWkaServiceName() string {
 	if in == nil {
 		return ""
@@ -293,7 +293,7 @@ func (in *Coherence) GetWkaServiceName() string {
 	return in.Name + WKAServiceNameSuffix
 }
 
-// Obtain the name of the headless Service used for the StatefulSet.
+// GetHeadlessServiceName returns the name of the headless Service used for the StatefulSet.
 func (in *Coherence) GetHeadlessServiceName() string {
 	if in == nil {
 		return ""
@@ -301,7 +301,7 @@ func (in *Coherence) GetHeadlessServiceName() string {
 	return in.Name + HeadlessServiceNameSuffix
 }
 
-// Obtain the number of replicas required for a deployment.
+// GetReplicas returns the number of replicas required for a deployment.
 // The Replicas field is a pointer and may be nil so this method will
 // return either the actual Replicas value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
@@ -315,14 +315,14 @@ func (in *Coherence) GetReplicas() int32 {
 	return *in.Spec.Replicas
 }
 
-// Set the number of replicas required for a deployment.
+// SetReplicas sets the number of replicas required for a deployment.
 func (in *Coherence) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Spec.Replicas = &replicas
 	}
 }
 
-// Create the deployment's common label set.
+// CreateCommonLabels creates the deployment's common label set.
 func (in *Coherence) CreateCommonLabels() map[string]string {
 	labels := make(map[string]string)
 	labels[LabelCoherenceDeployment] = in.Name
@@ -340,6 +340,7 @@ func (in *Coherence) CreateCommonLabels() map[string]string {
 	return labels
 }
 
+// GetNamespacedName returns the namespace/name key to lookup this resource.
 func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Namespace: in.Namespace,
@@ -347,7 +348,7 @@ func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	}
 }
 
-// Obtain the role name for a deployment.
+// GetRoleName returns the role name for a deployment.
 // If the Spec.Role field is set that is used for the role name
 // otherwise the deployment name is used as the role name.
 func (in *Coherence) GetRoleName() string {
@@ -394,7 +395,7 @@ func EnsureCRDs(v *version.Version, scheme *runtime.Scheme, cl client.Client) er
 	return EnsureV1Beta1CRDs(logger, scheme, cl)
 }
 
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
+// EnsureV1CRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client) error {
 	return ensureV1CRDs(logger, scheme, cl, "crd_v1.yaml")
 }
@@ -419,6 +420,7 @@ func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
 	if err != nil {
 		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer f.Close()
 
 	yml, err := ioutil.ReadAll(f)
@@ -468,7 +470,7 @@ func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
 	return nil
 }
 
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
+// EnsureV1Beta1CRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureV1Beta1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client) error {
 	return ensureV1Beta1CRDs(logger, scheme, cl, "crd_v1beta1.yaml")
 }
@@ -493,6 +495,7 @@ func ensureV1Beta1CRD(logger logr.Logger, cl client.Client, fileName string) err
 	if err != nil {
 		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer f.Close()
 
 	yml, err := ioutil.ReadAll(f)
