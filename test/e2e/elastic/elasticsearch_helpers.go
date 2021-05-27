@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// Determine whether Elasticsearch and Kibana are installed returning
+// AssertElasticsearchInstalled determines whether Elasticsearch and Kibana are installed returning
 // the installed Elasticsearch and Kibana Pods
 func AssertElasticsearchInstalled(ctx helper.TestContext, t *testing.T) (*corev1.Pod, *corev1.Pod) {
 	g := NewGomegaWithT(t)
@@ -72,20 +72,20 @@ func assertCoherenceClusterIndexInKibana(t *testing.T, kPod *corev1.Pod) {
 
 	// Do the query in a loop as it might take time to appear
 	err = wait.Poll(time.Second*5, time.Minute*2, func() (done bool, err error) {
-		res, err := http.Get(url)
-		if err != nil {
-			return false, err
+		res, err2 := http.Get(url)
+		if err2 != nil {
+			return false, err2
 		}
 		return res.StatusCode == http.StatusOK, nil
 	})
 }
 
-// An elastic search client associated to an Elasticsearch Pod
+// ESClient is an elastic search client associated to an Elasticsearch Pod
 type ESClient struct {
 	Pod *corev1.Pod
 }
 
-// A function that takes an Elasticsearch client and executes an API call
+// ESFunction is a function that takes an Elasticsearch client and executes an API call
 type ESFunction func(es *es.Client) (*esapi.Response, error)
 
 func NewESSearchFunction(index, query string) ESFunction {
@@ -133,7 +133,7 @@ func (c *ESClient) WaitForCoherenceIndices(t *testing.T, retryInterval, timeout 
 	return err
 }
 
-// Perform an Elasticsearch API call
+// Query performs an Elasticsearch API call
 func (c *ESClient) Query(fn ESFunction) (*esapi.Response, error) {
 	if c == nil {
 		return nil, fmt.Errorf("this ESClient is nil")
@@ -159,7 +159,7 @@ func (c *ESClient) Query(fn ESFunction) (*esapi.Response, error) {
 	return fn(cl)
 }
 
-// Perform an Elasticsearch API call and parse the response
+// QueryAndParse performs an Elasticsearch API call and parse the response
 func (c *ESClient) QueryAndParse(o interface{}, fn ESFunction) error {
 	if c == nil {
 		return fmt.Errorf("this ESClient is nil")
@@ -177,7 +177,7 @@ func (c *ESClient) QueryAndParse(o interface{}, fn ESFunction) error {
 	return json.NewDecoder(res.Body).Decode(o)
 }
 
-// SearchResult represents the result of an Elasticsearch search operation
+// ESSearchResult represents the result of an Elasticsearch search operation
 type ESSearchResult struct {
 	Took         uint64          `json:"took"`
 	TimedOut     bool            `json:"timed_out"`
@@ -186,7 +186,7 @@ type ESSearchResult struct {
 	Aggregations json.RawMessage `json:"aggregations"`
 }
 
-// Return the number of hits in the search results
+// Size returns the number of hits in the search results
 func (r *ESSearchResult) Size() int {
 	if r == nil {
 		return 0
@@ -194,7 +194,7 @@ func (r *ESSearchResult) Size() int {
 	return len(r.Hits.Hits)
 }
 
-// An Elasticsearch shard
+// ESShard is an Elasticsearch shard
 type ESShard struct {
 	Total      int `json:"total"`
 	Successful int `json:"successful"`
@@ -223,7 +223,7 @@ type ESSearchHit struct {
 	Highlight map[string][]string `json:"highlight,omitempty"`
 }
 
-// Obtain the raw json of the Hit Source as a map
+// GetSource returns the raw json of the Hit Source as a map
 func (h *ESSearchHit) GetSource() (*map[string]interface{}, error) {
 	m := make(map[string]interface{})
 

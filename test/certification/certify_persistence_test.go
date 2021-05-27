@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -185,7 +185,6 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 	// create data in some caches
 	err := helper.StartCanary(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
-
 
 	// take a snapshot
 	snapshotName := "snapshotOne"
