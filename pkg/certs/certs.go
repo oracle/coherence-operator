@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -71,10 +71,9 @@ func (c *CA) hasCorrectDNS() bool {
 	return false
 }
 
-
 // WebhookCertificates holds the artifacts used by the webhook server and the webhook configuration.
 type WebhookCertificates struct {
-	CaCert []byte
+	CaCert     []byte
 	ServerKey  []byte
 	ServerCert []byte
 }
@@ -91,7 +90,7 @@ func CreateSelfSignedCA() (*CA, error) {
 		return nil, errors.Wrap(err, "unable to generate the private key")
 	}
 
-	expireIn :=  viper.GetDuration(operator.FlagCACertValidity)
+	expireIn := viper.GetDuration(operator.FlagCACertValidity)
 	notAfter := time.Now().Add(expireIn)
 
 	subject := pkix.Name{
@@ -279,4 +278,3 @@ func privateMatchesPublicKey(publicKey interface{}, privateKey rsa.PrivateKey) b
 	}
 	return true
 }
-

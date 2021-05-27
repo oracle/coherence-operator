@@ -64,7 +64,7 @@ func notNilInt32OrDefault(i *int32, dflt int32) int32 {
 	return *i
 }
 
-// Ensure that the StatefulSet has a container with the specified name
+// EnsureContainer ensures that the StatefulSet has a container with the specified name
 func EnsureContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	c := FindContainer(name, sts)
 	if c == nil {
@@ -74,7 +74,7 @@ func EnsureContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	return c
 }
 
-// Ensure that the StatefulSet has a container with the specified name
+// ReplaceContainer ensures that the StatefulSet has a container with the specified name
 func ReplaceContainer(sts *appsv1.StatefulSet, cNew *corev1.Container) {
 	for i, c := range sts.Spec.Template.Spec.Containers {
 		if c.Name == cNew.Name {
@@ -85,7 +85,7 @@ func ReplaceContainer(sts *appsv1.StatefulSet, cNew *corev1.Container) {
 	sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, *cNew)
 }
 
-// Find the StatefulSet container with the specified name.
+// FindContainer finds the StatefulSet container with the specified name.
 func FindContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	for _, c := range sts.Spec.Template.Spec.Containers {
 		if c.Name == name {
@@ -95,7 +95,7 @@ func FindContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	return nil
 }
 
-// Find the StatefulSet init-container with the specified name.
+// FindInitContainer finds the StatefulSet init-container with the specified name.
 func FindInitContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	for _, c := range sts.Spec.Template.Spec.InitContainers {
 		if c.Name == name {
@@ -105,7 +105,7 @@ func FindInitContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	return nil
 }
 
-// Ensure that the StatefulSet has a volume with the specified name
+// ReplaceVolume ensures that the StatefulSet has a volume with the specified name
 func ReplaceVolume(sts *appsv1.StatefulSet, volNew corev1.Volume) {
 	for i, v := range sts.Spec.Template.Spec.Volumes {
 		if v.Name == volNew.Name {
@@ -118,7 +118,7 @@ func ReplaceVolume(sts *appsv1.StatefulSet, volNew corev1.Volume) {
 
 // ----- ApplicationSpec struct ---------------------------------------------
 
-// The specification of the application deployed into the Coherence.
+// ApplicationSpec is the specification of the application deployed into the Coherence.
 // +k8s:openapi-gen=true
 type ApplicationSpec struct {
 	// The application type to execute.
@@ -193,7 +193,7 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 
 // ----- CloudNativeBuildPackSpec struct ------------------------------------
 
-// The configuration when using a Cloud Native Buildpack Image.
+// CloudNativeBuildPackSpec is the configuration when using a Cloud Native Buildpack Image.
 // For example an image build with the Spring Boot Maven/Gradle plugin.
 // See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
 type CloudNativeBuildPackSpec struct {
@@ -210,7 +210,7 @@ type CloudNativeBuildPackSpec struct {
 
 // ----- CoherenceSpec struct -----------------------------------------------
 
-// This section of the CRD configures settings specific to Coherence.
+// CoherenceSpec is the section of the CRD configures settings specific to Coherence.
 // +coh:doc=coherence_settings/010_overview.adoc,Coherence Configuration
 // +k8s:openapi-gen=true
 type CoherenceSpec struct {
@@ -325,28 +325,28 @@ func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
 	return fmt.Sprintf("%s.%s.svc.cluster.local", svc, ns)
 }
 
-// Add the persistence and snapshot volume mounts to the specified container
+// AddPersistenceVolumeMounts adds the persistence and snapshot volume mounts to the specified container
 func (in *CoherenceSpec) AddPersistenceVolumeMounts(c *corev1.Container) {
 	if in != nil {
 		in.Persistence.AddVolumeMounts(c)
 	}
 }
 
-// Add the persistence and snapshot persistent volume claims
+// AddPersistencePVCs adds the persistence and snapshot persistent volume claims
 func (in *CoherenceSpec) AddPersistencePVCs(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Add the persistence PVC if required
 	pvcs := in.Persistence.CreatePersistentVolumeClaims(deployment)
 	sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, pvcs...)
 }
 
-// Add the persistence and snapshot volumes
+// AddPersistenceVolumes adds the persistence and snapshot volumes
 func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 	// Add the persistence volume if required
 	vols := in.Persistence.CreatePersistenceVolumes()
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vols...)
 }
 
-// Apply Coherence settings to the StatefulSet.
+// UpdateStatefulSet applies Coherence settings to the StatefulSet.
 func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Get the Coherence container
 	c := EnsureContainer(ContainerNameCoherence, sts)
@@ -429,6 +429,7 @@ func (in *CoherenceSpec) GetPersistenceSpec() *PersistenceSpec {
 }
 
 // ----- CoherenceWKASpec struct --------------------------------------------
+
 // CoherenceWKASpec configures Coherence well-known-addressing to use an
 // existing Coherence deployment for WKA.
 // +k8s:openapi-gen=true
@@ -470,7 +471,7 @@ type CoherenceTracingSpec struct {
 
 // ----- JVMSpec struct -----------------------------------------------------
 
-// The JVM configuration.
+// JVMSpec is the JVM configuration.
 // +k8s:openapi-gen=true
 type JVMSpec struct {
 	// Classpath specifies additional items to add to the classpath of the JVM.
@@ -509,7 +510,7 @@ type JVMSpec struct {
 	UseJibClasspath *bool `json:"useJibClasspath,omitempty"`
 }
 
-// Update the StatefulSet with any JVM specific settings
+// UpdateStatefulSet updates the StatefulSet with any JVM specific settings
 func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	c := EnsureContainer(ContainerNameCoherence, sts)
 	defer ReplaceContainer(sts, c)
@@ -546,7 +547,9 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 		}
 	}
 
-	c.Env = append(c.Env, gc.CreateEnvVars()...)
+	if gc != nil {
+		c.Env = append(c.Env, gc.CreateEnvVars()...)
+	}
 
 	// Configure the JVM to use container limits (true by default)
 	useContainerLimits := in == nil || in.UseContainerLimits == nil || *in.UseContainerLimits
@@ -587,7 +590,7 @@ type ImageSpec struct {
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
-// Ensure that the image value is set.
+// EnsureImage ensures that the image value is set.
 func (in *ImageSpec) EnsureImage(image *string) bool {
 	if in != nil && in.Image == nil {
 		in.Image = image
@@ -598,7 +601,7 @@ func (in *ImageSpec) EnsureImage(image *string) bool {
 
 // ----- PersistenceSpec struct ---------------------------------------------
 
-// The spec for Coherence persistence.
+// PersistenceSpec is the spec for Coherence persistence.
 // +k8s:openapi-gen=true
 type PersistenceSpec struct {
 	// The persistence mode to use.
@@ -617,7 +620,7 @@ type PersistenceSpec struct {
 	Snapshots *PersistentStorageSpec `json:"snapshots,omitempty"`
 }
 
-// Obtain the persistence mode to be used.
+// GetMode returns the persistence mode to be used.
 func (in *PersistenceSpec) GetMode() *string {
 	if in == nil || in.Mode == nil {
 		return nil
@@ -625,6 +628,7 @@ func (in *PersistenceSpec) GetMode() *string {
 	return in.Mode
 }
 
+// CreatePersistentVolumeClaims creates any PVCs required.
 func (in *PersistenceSpec) CreatePersistentVolumeClaims(deployment *Coherence) []corev1.PersistentVolumeClaim {
 	var pvcs []corev1.PersistentVolumeClaim
 	if in != nil {
@@ -641,7 +645,7 @@ func (in *PersistenceSpec) CreatePersistentVolumeClaims(deployment *Coherence) [
 	return pvcs
 }
 
-// Add the persistence and snapshot volumes
+// CreatePersistenceVolumes adds the persistence and snapshot volumes.
 func (in *PersistenceSpec) CreatePersistenceVolumes() []corev1.Volume {
 	var vols []corev1.Volume
 
@@ -659,7 +663,7 @@ func (in *PersistenceSpec) CreatePersistenceVolumes() []corev1.Volume {
 	return vols
 }
 
-// Add the persistence and snapshot volume mounts to the specified container
+// AddVolumeMounts adds the persistence and snapshot volume mounts to the specified container
 func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 	if in == nil {
 		return
@@ -689,7 +693,7 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 
 // ----- PersistentStorageSpec struct ---------------------------------------
 
-// PersistenceStorageSpec defines the persistence settings for the Coherence
+// PersistentStorageSpec defines the persistence settings for the Coherence
 // +k8s:openapi-gen=true
 type PersistentStorageSpec struct {
 	// PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim
@@ -706,7 +710,7 @@ type PersistentStorageSpec struct {
 	Volume *corev1.VolumeSource `json:"volume,omitempty"` // from k8s.io/api/core/v1
 }
 
-// Create a PersistentVolumeClaim if required
+// CreatePersistentVolumeClaim creates a PersistentVolumeClaim if required
 func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *Coherence, name string) *corev1.PersistentVolumeClaim {
 	if in == nil || in.Volume != nil || in.PersistentVolumeClaim == nil {
 		// no pv required
@@ -730,7 +734,7 @@ func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *Coheren
 	}
 }
 
-// Create any persistence volumes required.
+// CreatePersistenceVolume creates any persistence volumes required.
 func (in *PersistentStorageSpec) CreatePersistenceVolume(name string) corev1.Volume {
 	source := corev1.VolumeSource{}
 	if in.Volume != nil {
@@ -803,7 +807,7 @@ type SSLSpec struct {
 	RequireClientCert *bool `json:"requireClientCert,omitempty"`
 }
 
-// Create the SSL environment variables
+// CreateEnvVars creates the SSL environment variables
 func (in *SSLSpec) CreateEnvVars(prefix, secretMount string) []corev1.EnvVar {
 	var envVars []corev1.EnvVar
 
@@ -871,6 +875,7 @@ func (in *SSLSpec) CreateEnvVars(prefix, secretMount string) []corev1.EnvVar {
 }
 
 // ----- NamedPortSpec struct ----------------------------------------------------
+
 // NamedPortSpec defines a named port for a Coherence component
 // +k8s:openapi-gen=true
 type NamedPortSpec struct {
@@ -919,7 +924,7 @@ type NamedPortSpec struct {
 	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty"`
 }
 
-// Create the Kubernetes service to expose this port.
+// CreateService creates the Kubernetes service to expose this port.
 func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 	if in == nil || !in.IsEnabled() {
 		return nil
@@ -989,7 +994,7 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 	return &svc
 }
 
-// Create the Prometheus ServiceMonitor to expose this port if enabled.
+// CreateServiceMonitor creates the Prometheus ServiceMonitor to expose this port if enabled.
 func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoringv1.ServiceMonitor {
 	if in == nil || !in.IsEnabled() {
 		return nil
@@ -1101,7 +1106,7 @@ func (in *NamedPortSpec) CreatePort(d *Coherence) corev1.ContainerPort {
 
 // ----- ServiceMonitorSpec struct ---------------------------------------------
 
-// The ServiceMonitor spec for a port service.
+// ServiceMonitorSpec the ServiceMonitor spec for a port service.
 // +k8s:openapi-gen=true
 type ServiceMonitorSpec struct {
 	// Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port.
@@ -1165,7 +1170,7 @@ type ServiceMonitorSpec struct {
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
 	BearerTokenSecret corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
-	// HonorLabels chooses the metric's labels on collisions with target labels.
+	// HonorLabels chooses the metric labels on collisions with target labels.
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
 	HonorLabels bool `json:"honorLabels,omitempty"`
@@ -1233,7 +1238,7 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 
 // ----- JvmDebugSpec struct ---------------------------------------------------
 
-// The JVM Debug specific configuration.
+// JvmDebugSpec the JVM Debug specific configuration.
 // +k8s:openapi-gen=true
 type JvmDebugSpec struct {
 	// Enabled is a flag to enable or disable running the JVM in debug mode. Default is disabled.
@@ -1252,7 +1257,7 @@ type JvmDebugSpec struct {
 	Port *int32 `json:"port,omitempty"`
 }
 
-// Update the Coherence Container with any JVM specific settings
+// UpdateCoherenceContainer updates the Coherence Container with any JVM specific settings
 func (in *JvmDebugSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	if in == nil || in.Enabled == nil || !*in.Enabled {
 		// nothing to do, debug is either nil or disabled
@@ -1267,7 +1272,7 @@ func (in *JvmDebugSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	c.Env = append(c.Env, in.CreateEnvVars()...)
 }
 
-// Create the JVM debugger environment variables for the Coherence container.
+// CreateEnvVars creates the JVM debugger environment variables for the Coherence container.
 func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 	var envVars []corev1.EnvVar
 
@@ -1300,7 +1305,7 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 
 // ----- JVM GC struct ------------------------------------------------------
 
-// Options for managing the JVM garbage collector.
+// JvmGarbageCollectorSpec is options for managing the JVM garbage collector.
 // +k8s:openapi-gen=true
 type JvmGarbageCollectorSpec struct {
 	// The name of the JVM garbage collector to use.
@@ -1326,7 +1331,7 @@ type JvmGarbageCollectorSpec struct {
 	Logging *bool `json:"logging,omitempty"`
 }
 
-// Create the GC environment variables for the Coherence container.
+// CreateEnvVars creates the GC environment variables for the Coherence container.
 func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 	var envVars []corev1.EnvVar
 
@@ -1353,7 +1358,7 @@ func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 
 // ----- JVM MemoryGC struct ------------------------------------------------
 
-// Options for managing the JVM memory.
+// JvmMemorySpec is options for managing the JVM memory.
 // +k8s:openapi-gen=true
 type JvmMemorySpec struct {
 	// HeapSize sets both the initial and max heap size values for the JVM.
@@ -1479,7 +1484,7 @@ type JvmMemorySpec struct {
 	OnOutOfMemory *JvmOutOfMemorySpec `json:"onOutOfMemory,omitempty"`
 }
 
-// Create the environment variables to add to the Coherence container
+// CreateEnvVars creates the environment variables to add to the Coherence container
 func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 	var envVars []corev1.EnvVar
 
@@ -1545,7 +1550,7 @@ func (in *JvmMemorySpec) CreateEnvVars() []corev1.EnvVar {
 
 // ----- JVM Out Of Memory struct -------------------------------------------
 
-// Options for managing the JVM behaviour when an OutOfMemoryError occurs.
+// JvmOutOfMemorySpec is options for managing the JVM behaviour when an OutOfMemoryError occurs.
 // +k8s:openapi-gen=true
 type JvmOutOfMemorySpec struct {
 	// If set to true the JVM will exit when an OOM error occurs.
@@ -1559,7 +1564,7 @@ type JvmOutOfMemorySpec struct {
 	HeapDump *bool `json:"heapDump,omitempty"`
 }
 
-// Create the environment variables for the out of memory actions
+// CreateEnvVars creates the environment variables for the out of memory actions
 func (in *JvmOutOfMemorySpec) CreateEnvVars() []corev1.EnvVar {
 	var envVars []corev1.EnvVar
 
@@ -1577,7 +1582,7 @@ func (in *JvmOutOfMemorySpec) CreateEnvVars() []corev1.EnvVar {
 
 // ----- JvmJmxmpSpec struct -------------------------------------------------------
 
-// Options for configuring JMX using JMXMP.
+// JvmJmxmpSpec is options for configuring JMX using JMXMP.
 // +k8s:openapi-gen=true
 type JvmJmxmpSpec struct {
 	// If set to true the JMXMP support will be enabled.
@@ -1590,7 +1595,7 @@ type JvmJmxmpSpec struct {
 	Port *int32 `json:"port,omitempty"`
 }
 
-// Create any required environment variables for the Coherence container
+// CreateEnvVars creates any required environment variables for the Coherence container
 func (in *JvmJmxmpSpec) CreateEnvVars() []corev1.EnvVar {
 	enabled := in != nil && in.Enabled != nil && *in.Enabled
 
@@ -1624,7 +1629,7 @@ func (in *PortSpecWithSSL) IsSSLEnabled() bool {
 	return in.SSL.Enabled != nil && *in.SSL.Enabled
 }
 
-// Create environment variables for the Coherence container
+// CreateEnvVars creates environment variables for the Coherence container
 func (in *PortSpecWithSSL) CreateEnvVars(prefix, secretMount string, defaultPort int32) []corev1.EnvVar {
 	if in == nil || !notNilBool(in.Enabled) {
 		// disabled
@@ -1641,7 +1646,7 @@ func (in *PortSpecWithSSL) CreateEnvVars(prefix, secretMount string, defaultPort
 	return envVars
 }
 
-// Add the SSL secret volume and volume mount if required
+// AddSSLVolumes adds the SSL secret volume and volume mount if required
 func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Container, volName, path string) {
 	if in == nil || !notNilBool(in.Enabled) || in.SSL == nil || !notNilBool(in.SSL.Enabled) {
 		// the port spec is nil or disabled or SSL is nil or disabled
@@ -1669,6 +1674,7 @@ func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Cont
 }
 
 // ----- ServiceSpec struct -------------------------------------------------
+
 // ServiceSpec defines the settings for a Service
 // +k8s:openapi-gen=true
 type ServiceSpec struct {
@@ -1849,14 +1855,14 @@ func (in *ServiceSpec) IsEnabled() bool {
 	return *in.Enabled
 }
 
-// Set the Kind of the service.
+// SetServiceType sets the Kind of the service.
 func (in *ServiceSpec) SetServiceType(t corev1.ServiceType) {
 	if in != nil {
 		in.Type = &t
 	}
 }
 
-// Create the service spec for the port.
+// createServiceSpec Create the service spec for the port.
 func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
 	spec := corev1.ServiceSpec{}
 	if in != nil {
@@ -1899,7 +1905,7 @@ func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
 
 // ----- ScalingSpec -----------------------------------------------------
 
-// The configuration to control safe scaling.
+// ScalingSpec is the configuration to control safe scaling.
 // +k8s:openapi-gen=true
 type ScalingSpec struct {
 	// ScalingPolicy describes how the replicas of the deployment will be scaled.
@@ -1934,7 +1940,7 @@ type Probe struct {
 	TimeoutSeconds *int `json:"timeoutSeconds,omitempty"`
 }
 
-// Returns the timeout value in seconds.
+// GetTimeout returns the timeout value in seconds.
 func (in *Probe) GetTimeout() time.Duration {
 	if in == nil || in.TimeoutSeconds == nil || *in.TimeoutSeconds <= 0 {
 		return time.Second
@@ -1969,7 +1975,7 @@ type ReadinessProbeSpec struct {
 	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
 }
 
-// The definition of a probe handler.
+// ProbeHandler is the definition of a probe handler.
 // +k8s:openapi-gen=true
 type ProbeHandler struct {
 	// One and only one of the following should be specified.
@@ -1985,7 +1991,7 @@ type ProbeHandler struct {
 	TCPSocket *corev1.TCPSocketAction `json:"tcpSocket,omitempty"`
 }
 
-// Update the specified probe spec with the required configuration
+// UpdateProbeSpec updates the specified probe spec with the required configuration
 func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *corev1.Probe) {
 	switch {
 	case in != nil && in.Exec != nil:
@@ -2028,12 +2034,12 @@ type ScalingPolicy string
 
 // Scaling policy constants
 const (
-	// Safe means that a deployment will be scaled up or down in a safe manner to ensure no data loss.
+	// SafeScaling means that a deployment will be scaled up or down in a safe manner to ensure no data loss.
 	SafeScaling ScalingPolicy = "Safe"
-	// Parallel means that a deployment will be scaled up or down by adding or removing members in parallel.
+	// ParallelScaling means that a deployment will be scaled up or down by adding or removing members in parallel.
 	// If the members of the deployment are storage enabled then this could cause data loss
 	ParallelScaling ScalingPolicy = "Parallel"
-	// ParallelUpSafeDown means that a deployment will be scaled up by adding or removing members in parallel
+	// ParallelUpSafeDownScaling means that a deployment will be scaled up by adding or removing members in parallel
 	// but will be scaled down in a safe manner to ensure no data loss.
 	ParallelUpSafeDownScaling ScalingPolicy = "ParallelUpSafeDown"
 )
@@ -2078,7 +2084,7 @@ type NetworkSpec struct {
 	Hostname *string `json:"hostname,omitempty"`
 }
 
-// Update the specified StatefulSet's network settings.
+// UpdateStatefulSet updates the specified StatefulSet's network settings.
 func (in *NetworkSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
@@ -2176,7 +2182,7 @@ type StartQuorumStatus struct {
 
 // ----- ConfigMapVolumeSpec ------------------------------------------------
 
-// Represents a ConfigMap that will be added to the deployment's Pods as an
+// ConfigMapVolumeSpec represents a ConfigMap that will be added to the deployment's Pods as an
 // additional Volume and as a VolumeMount in the containers.
 // +coh:doc=misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
 // +k8s:openapi-gen=true
@@ -2234,7 +2240,7 @@ type ConfigMapVolumeSpec struct {
 	Optional *bool `json:"optional,omitempty"`
 }
 
-// Add the Volume and VolumeMount for this ConfigMap spec.
+// AddVolumes adds the Volume and VolumeMount for this ConfigMap spec.
 func (in *ConfigMapVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
@@ -2298,7 +2304,7 @@ func (in *ConfigMapVolumeSpec) AddVolumeMounts(c *corev1.Container) {
 
 // ----- SecretVolumeSpec ------------------------------------------------
 
-// Represents a Secret that will be added to the deployment's Pods as an
+// SecretVolumeSpec represents a Secret that will be added to the deployment's Pods as an
 // additional Volume and as a VolumeMount in the containers.
 // +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
 // +k8s:openapi-gen=true
@@ -2356,7 +2362,7 @@ type SecretVolumeSpec struct {
 	Optional *bool `json:"optional,omitempty"`
 }
 
-// Add the Volume and VolumeMount for this Secret spec.
+// AddVolumes adds the Volume and VolumeMount for this Secret spec.
 func (in *SecretVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 	if in == nil {
 		return
@@ -2481,6 +2487,7 @@ func (t ResourceType) toObject() (client.Object, error) {
 
 // ----- Resource -----------------------------------------------------------
 
+// Resource is a structure holding a resource to be managed
 // +k8s:deepcopy-gen=false
 type Resource struct {
 	Kind ResourceType  `json:"kind"`
@@ -2510,7 +2517,7 @@ func (in *Resource) IsPresent() bool {
 	return in.Spec != nil
 }
 
-// Convert the Spec to the specified value.
+// As converts the Spec to the specified value.
 // This is done by serializing the Spec to json and deserializing into the specified object.
 func (in *Resource) As(o runtime.Object) error {
 	if in == nil {
@@ -2528,7 +2535,7 @@ func (in *Resource) As(o runtime.Object) error {
 	return json.Unmarshal(data, o)
 }
 
-// Set the the controller/owner of the resource
+// SetController sets the the controller/owner of the resource
 func (in *Resource) SetController(object runtime.Object, scheme *runtime.Scheme) error {
 	if in == nil || in.Spec == nil {
 		return nil
@@ -2553,6 +2560,7 @@ func (in *Resource) SetController(object runtime.Object, scheme *runtime.Scheme)
 
 // ----- Resources ------------------------------------------------------
 
+// Resources is a cloolection of resources to be managed.
 // +k8s:deepcopy-gen=false
 type Resources struct {
 	Version int32      `json:"version"`
@@ -2654,7 +2662,7 @@ func (in Resources) GetResourcesOfKind(kind ResourceType) []Resource {
 	return items
 }
 
-// Obtain the diff between the previous deployment resources of a specific kind and this deployment resources.
+// DiffForKind obtains the diff between the previous deployment resources of a specific kind and this deployment resources.
 func (in Resources) DiffForKind(kind ResourceType, previous Resources) []Resource {
 	var diff []Resource
 
@@ -2684,7 +2692,7 @@ func (in Resources) DiffForKind(kind ResourceType, previous Resources) []Resourc
 	return diff
 }
 
-// Set the deployment as the controller/owner of all of the resources
+// SetController sets the deployment as the controller/owner of all of the resources
 func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme) error {
 	for _, r := range in.Items {
 		if err := r.SetController(object, scheme); err != nil {
@@ -2711,7 +2719,7 @@ func (in Resources) Create(kind ResourceType, name string, mgr manager.Manager, 
 
 // ----- helper methods -----------------------------------------------------
 
-// Convert an int32 pointer to a string using the default if the pointer is nil.
+// Int32PtrToStringWithDefault converts an int32 pointer to a string using the default if the pointer is nil.
 func Int32PtrToStringWithDefault(i *int32, d int32) string {
 	if i == nil {
 		return Int32ToString(d)
@@ -2719,17 +2727,17 @@ func Int32PtrToStringWithDefault(i *int32, d int32) string {
 	return Int32ToString(*i)
 }
 
-// Convert an int32 pointer to a string.
+// Int32PtrToString converts an int32 pointer to a string.
 func Int32PtrToString(i *int32) string {
 	return Int32ToString(*i)
 }
 
-// Convert an int32 to a string.
+// Int32ToString converts an int32 to a string.
 func Int32ToString(i int32) string {
 	return strconv.FormatInt(int64(i), 10)
 }
 
-// Convert a bool pointer to a string.
+// BoolPtrToString converts a bool pointer to a string.
 func BoolPtrToString(b *bool) string {
 	if b != nil && *b {
 		return "true"
