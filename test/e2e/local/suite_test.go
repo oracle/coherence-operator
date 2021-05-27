@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -20,7 +20,7 @@ var testContext helper.TestContext
 // The entry point for the test suite
 func TestMain(m *testing.M) {
 	var err error
-	
+
 	if testContext, err = helper.NewContext(true); err != nil {
 		fmt.Printf("Error: %+v", err)
 		os.Exit(1)

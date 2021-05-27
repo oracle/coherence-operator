@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,10 +16,10 @@ import (
 )
 
 type ClientSet struct {
-	KubeClient            kubernetes.Interface
-	ExtClient             apiextensions.Interface
-	DynamicClient         dynamic.Interface
-	DiscoveryClient       *discovery.DiscoveryClient
+	KubeClient      kubernetes.Interface
+	ExtClient       apiextensions.Interface
+	DynamicClient   dynamic.Interface
+	DiscoveryClient *discovery.DiscoveryClient
 }
 
 func New() (ClientSet, error) {
