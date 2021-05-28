@@ -215,8 +215,6 @@ GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRDV1_FILES      = $(shell find ./config/crd -type f)
-CRDV1BETA1_FILES = $(shell find ./config/crd-v1beta1 -type f)
-CRD_V1           ?= $(shell kubectl api-versions | grep '^apiextensions.k8s.io/v1$$')
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
@@ -658,11 +656,7 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
 install-crds: prepare-deploy uninstall-crds
-ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl create -f -
-else
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd-v1beta1 | kubectl create -f --validate=false -
-endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -672,11 +666,7 @@ endif
 .PHONY: uninstall-crds
 uninstall-crds: manifests
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-ifeq ("$(CRD_V1)","apiextensions.k8s.io/v1")
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
-else
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd-v1beta1 | kubectl delete -f - || true
-endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -753,7 +743,6 @@ $(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)
 	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
-	cp -R config/crd-v1beta1/bases $(BUILD_MANIFESTS)/crd-v1beta1
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
@@ -767,19 +756,13 @@ else
 	sed -i 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 endif
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
 config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
-
-config/crd-v1beta1/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
-	@echo "Generating CRD v1beta1"
-	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1beta1}" \
-	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd-v1beta1/bases
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -805,14 +788,11 @@ $(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
-pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(CRDV1BETA1_FILES) $(GOBIN)/kustomize
+pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
 	echo "Embedding configuration and CRD files"
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
-	echo "Embedding v1 CRD files"
+	echo "Embedding CRD files"
 	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
-	echo "Embedding v1beat1 CRD files"
-	$(GOBIN)/kustomize build config/crd-v1beta1 > $(BUILD_ASSETS)/crd_v1beta1.yaml
-	go get -u github.com/shurcooL/vfsgen
 	go run ./pkg/generate/assets_generate.go
 
 # ----------------------------------------------------------------------------------------------------------------------

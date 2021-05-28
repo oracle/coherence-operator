@@ -4415,8 +4415,9 @@ spec:
                   Pods and as a VolumeMount to all of the containers and init-containers
                   in the Pod.
                 items:
-                  description: Represents a ConfigMap that will be added to the deployment's
-                    Pods as an additional Volume and as a VolumeMount in the containers.
+                  description: ConfigMapVolumeSpec represents a ConfigMap that will
+                    be added to the deployment's Pods as an additional Volume and
+                    as a VolumeMount in the containers.
                   properties:
                     defaultMode:
                       description: 'Optional: mode bits to use on created files by
@@ -7646,8 +7647,8 @@ spec:
                 description: Ports specifies additional port mappings for the Pod
                   and additional Services for those ports.
                 items:
-                  description: '----- NamedPortSpec struct ----------------------------------------------------
-                    NamedPortSpec defines a named port for a Coherence component'
+                  description: NamedPortSpec defines a named port for a Coherence
+                    component
                   properties:
                     appProtocol:
                       description: The application protocol for this port. This field
@@ -7989,8 +7990,8 @@ spec:
                             even if this flag is true no ServiceMonitor will be created.
                           type: boolean
                         honorLabels:
-                          description: HonorLabels chooses the metric's labels on
-                            collisions with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
+                          description: HonorLabels chooses the metric labels on collisions
+                            with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
                           type: boolean
                         honorTimestamps:
                           description: HonorTimestamps controls whether Prometheus
@@ -8558,8 +8559,9 @@ spec:
                   as a VolumeMount to all of the containers and init-containers in
                   the Pod.
                 items:
-                  description: Represents a Secret that will be added to the deployment's
-                    Pods as an additional Volume and as a VolumeMount in the containers.
+                  description: SecretVolumeSpec represents a Secret that will be added
+                    to the deployment's Pods as an additional Volume and as a VolumeMount
+                    in the containers.
                   properties:
                     defaultMode:
                       description: 'Optional: mode bits to use on created files by

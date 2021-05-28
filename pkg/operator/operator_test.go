@@ -12,7 +12,6 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/fakes"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"testing"
 )
 
@@ -79,80 +78,6 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &crdList)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(len(crdList.Items)).To(Equal(1))
-
-	for _, crd := range crdList.Items {
-		oldCRD := oldCRDs[crd.Name]
-		g.Expect(crd).NotTo(Equal(oldCRD))
-		g.Expect(crd.GetResourceVersion()).To(Equal(oldCRD.GetResourceVersion()))
-	}
-}
-
-func TestShouldCreateV1beta1CRDs(t *testing.T) {
-	var err error
-
-	g := NewGomegaWithT(t)
-	mgr, err := fakes.NewFakeManager()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = v1beta1.AddToScheme(mgr.Scheme)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	log := fakes.TestLogger{T: t}
-
-	err = v1.EnsureV1Beta1CRDs(log, mgr.Scheme, mgr.Client)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crdList := v1beta1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &crdList)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(crdList.Items)).To(Equal(1))
-
-	expected := map[string]bool{
-		"coherence.coherence.oracle.com": false,
-	}
-
-	for _, crd := range crdList.Items {
-		expected[crd.Name] = true
-	}
-
-	for crd, found := range expected {
-		if !found {
-			t.Errorf("Failed to create CRD " + crd)
-		}
-	}
-}
-
-func TestShouldUpdateV1beta1CRDs(t *testing.T) {
-	var err error
-
-	g := NewGomegaWithT(t)
-	mgr, err := fakes.NewFakeManager()
-	g.Expect(err).NotTo(HaveOccurred())
-	err = v1beta1.AddToScheme(mgr.Scheme)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	oldCRDs := map[string]*v1beta1.CustomResourceDefinition{
-		"coherence.coherence.oracle.com": nil,
-	}
-
-	for name := range oldCRDs {
-		crd := v1beta1.CustomResourceDefinition{}
-		crd.SetName(name)
-		crd.SetResourceVersion("1")
-		oldCRDs[name] = &crd
-		_ = mgr.GetClient().Create(context.TODO(), &crd)
-	}
-
-	log := fakes.TestLogger{T: t}
-
-	err = v1.EnsureV1Beta1CRDs(log, mgr.Scheme, mgr.Client)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crdList := v1beta1.CustomResourceDefinitionList{}
 	err = mgr.Client.List(context.TODO(), &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 

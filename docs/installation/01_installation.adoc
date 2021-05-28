@@ -17,7 +17,7 @@ easily be installed into a Kubernetes cluster.
 The prerequisites apply to all installation methods.
 
 * Access to Oracle Coherence Operator images.
-* Access to a Kubernetes v1.13.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.13 upto v1.20
+* Access to a Kubernetes v1.16.0+ cluster. The Operator test pipeline runs on Kubernetes tested on v1.16 upto v1.20
 
 There are a few ways to install the Coherence Operator documented below:
 

@@ -14,7 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	admissionv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	admissionv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +39,7 @@ type certManagerVersion struct {
 }
 
 const (
+	admissionApi          = "admissionregistration.k8s.io/v1"
 	certManagerCertName   = "coherence-webhook-server-certificate"
 	certManagerIssuerName = "coherence-webhook-server-issuer"
 	certTypeAnnotation    = "operator.coherence.oracle.com/cert-type"
@@ -49,8 +50,7 @@ var (
 
 	// Cert-Manager APIs that we can detect
 	certManagerAPIs = []certManagerVersion{
-		{group: "cert-manager.io", versions: []string{"v1alpha2", "v1alpha3"}}, // 0.11.0+
-		{group: "certmanager.k8s.io", versions: []string{"v1alpha1"}},          // 0.10.1
+		{group: "cert-manager.io", versions: []string{"v1"}},
 	}
 )
 
@@ -143,7 +143,7 @@ func (k *HookInstaller) detectCertManagerVersion() error {
 func (k *HookInstaller) detectCertManagerCRD(api certManagerVersion) (string, string, error) {
 	testCRD := fmt.Sprintf("certificates.%s", api.group)
 	log.Info(fmt.Sprintf("Try to retrieve cert-manager CRD %s", testCRD))
-	crd, err := k.Clients.ExtClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(context.TODO(), testCRD, metav1.GetOptions{})
+	crd, err := k.Clients.ExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), testCRD, metav1.GetOptions{})
 	if err == nil {
 		// crd.Spec.Versions[0] must be the one that is stored and served, we should use that one
 		log.Info(fmt.Sprintf("Got CRD. Group: %s, Version: %s", api.group, crd.Spec.Versions[0].Name))
@@ -204,7 +204,7 @@ func (k *HookInstaller) validateCertManagerInstallation() error {
 }
 
 func (k *HookInstaller) validateCrdVersion(crdName string, expectedVersion string) error {
-	certCRD, err := k.Clients.ExtClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(context.TODO(), crdName, metav1.GetOptions{})
+	certCRD, err := k.Clients.ExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), crdName, metav1.GetOptions{})
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			return errors.Wrap(err, fmt.Sprintf("failed to find CRD '%s': %s", crdName, err))
@@ -248,9 +248,9 @@ func (k *HookInstaller) uninstallUnstructured(item *unstructured.Unstructured) e
 	return nil
 }
 
-func installMutatingWebhook(c clients.ClientSet, webhook admissionv1beta1.MutatingWebhookConfiguration) error {
+func installMutatingWebhook(c clients.ClientSet, webhook admissionv1.MutatingWebhookConfiguration) error {
 	log.Info(fmt.Sprintf("installing webhook %s/%s", webhook.Namespace, webhook.Name))
-	cl := c.KubeClient.AdmissionregistrationV1beta1()
+	cl := c.KubeClient.AdmissionregistrationV1()
 	existing, err := cl.MutatingWebhookConfigurations().Get(context.TODO(), webhook.GetName(), metav1.GetOptions{})
 	exists := err == nil
 
@@ -264,9 +264,9 @@ func installMutatingWebhook(c clients.ClientSet, webhook admissionv1beta1.Mutati
 	return err
 }
 
-func installValidatingWebhook(c clients.ClientSet, webhook admissionv1beta1.ValidatingWebhookConfiguration) error {
+func installValidatingWebhook(c clients.ClientSet, webhook admissionv1.ValidatingWebhookConfiguration) error {
 	log.Info(fmt.Sprintf("installing webhook %s/%s", webhook.Namespace, webhook.Name))
-	cl := c.KubeClient.AdmissionregistrationV1beta1()
+	cl := c.KubeClient.AdmissionregistrationV1()
 	existing, err := cl.ValidatingWebhookConfigurations().Get(context.TODO(), webhook.GetName(), metav1.GetOptions{})
 	exists := err == nil
 
@@ -280,7 +280,7 @@ func installValidatingWebhook(c clients.ClientSet, webhook admissionv1beta1.Vali
 	return err
 }
 
-func createMutatingWebhookWithCABundle(ns string, caData []byte) admissionv1beta1.MutatingWebhookConfiguration {
+func createMutatingWebhookWithCABundle(ns string, caData []byte) admissionv1.MutatingWebhookConfiguration {
 	cfg := createMutatingWebhookConfiguration(ns)
 	for i := range cfg.Webhooks {
 		cfg.Webhooks[i].ClientConfig.CABundle = caData
@@ -288,7 +288,7 @@ func createMutatingWebhookWithCABundle(ns string, caData []byte) admissionv1beta
 	return cfg
 }
 
-func createValidatingWebhookWithCABundle(ns string, caData []byte) admissionv1beta1.ValidatingWebhookConfiguration {
+func createValidatingWebhookWithCABundle(ns string, caData []byte) admissionv1.ValidatingWebhookConfiguration {
 	cfg := createValidatingWebhookConfiguration(ns)
 	for i := range cfg.Webhooks {
 		cfg.Webhooks[i].ClientConfig.CABundle = caData
@@ -296,29 +296,29 @@ func createValidatingWebhookWithCABundle(ns string, caData []byte) admissionv1be
 	return cfg
 }
 
-func createMutatingWebhookWithCertManager(ns string, certManagerGroup string) admissionv1beta1.MutatingWebhookConfiguration {
+func createMutatingWebhookWithCertManager(ns string, certManagerGroup string) admissionv1.MutatingWebhookConfiguration {
 	cfg := createMutatingWebhookConfiguration(ns)
 	injectCaAnnotationName := fmt.Sprintf("%s/inject-ca-from", certManagerGroup)
 	cfg.Annotations[injectCaAnnotationName] = fmt.Sprintf("%s/%s", ns, certManagerCertName)
 	return cfg
 }
 
-func createValidatingWebhookWithCertManager(ns string, certManagerGroup string) admissionv1beta1.ValidatingWebhookConfiguration {
+func createValidatingWebhookWithCertManager(ns string, certManagerGroup string) admissionv1.ValidatingWebhookConfiguration {
 	cfg := createValidatingWebhookConfiguration(ns)
 	injectCaAnnotationName := fmt.Sprintf("%s/inject-ca-from", certManagerGroup)
 	cfg.Annotations[injectCaAnnotationName] = fmt.Sprintf("%s/%s", ns, certManagerCertName)
 	return cfg
 }
 
-func createMutatingWebhookConfiguration(ns string) admissionv1beta1.MutatingWebhookConfiguration {
-	namespacedScope := admissionv1beta1.NamespacedScope
-	failedType := admissionv1beta1.Fail
-	equivalentType := admissionv1beta1.Equivalent
-	noSideEffects := admissionv1beta1.SideEffectClassNone
+func createMutatingWebhookConfiguration(ns string) admissionv1.MutatingWebhookConfiguration {
+	namespacedScope := admissionv1.NamespacedScope
+	failedType := admissionv1.Fail
+	equivalentType := admissionv1.Equivalent
+	noSideEffects := admissionv1.SideEffectClassNone
 	path := coh.MutatingWebHookPath
 	clientConfig := createWebhookClientConfig(ns, path)
 
-	return admissionv1beta1.MutatingWebhookConfiguration{
+	return admissionv1.MutatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: viper.GetString(operator.FlagMutatingWebhookName),
 			Annotations: map[string]string{
@@ -327,15 +327,15 @@ func createMutatingWebhookConfiguration(ns string) admissionv1beta1.MutatingWebh
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MutatingWebhookConfiguration",
-			APIVersion: "admissionregistration.k8s.io/v1beta1",
+			APIVersion: admissionApi,
 		},
-		Webhooks: []admissionv1beta1.MutatingWebhook{
+		Webhooks: []admissionv1.MutatingWebhook{
 			{
 				Name: "coherence.oracle.com",
-				Rules: []admissionv1beta1.RuleWithOperations{
+				Rules: []admissionv1.RuleWithOperations{
 					{
-						Operations: []admissionv1beta1.OperationType{"CREATE", "UPDATE"},
-						Rule: admissionv1beta1.Rule{
+						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},
+						Rule: admissionv1.Rule{
 							APIGroups:   []string{"coherence.oracle.com"},
 							APIVersions: []string{"v1"},
 							Resources:   []string{"coherence"},
@@ -352,15 +352,15 @@ func createMutatingWebhookConfiguration(ns string) admissionv1beta1.MutatingWebh
 	}
 }
 
-func createValidatingWebhookConfiguration(ns string) admissionv1beta1.ValidatingWebhookConfiguration {
-	namespacedScope := admissionv1beta1.NamespacedScope
-	failedType := admissionv1beta1.Fail
-	equivalentType := admissionv1beta1.Equivalent
-	noSideEffects := admissionv1beta1.SideEffectClassNone
+func createValidatingWebhookConfiguration(ns string) admissionv1.ValidatingWebhookConfiguration {
+	namespacedScope := admissionv1.NamespacedScope
+	failedType := admissionv1.Fail
+	equivalentType := admissionv1.Equivalent
+	noSideEffects := admissionv1.SideEffectClassNone
 	path := coh.ValidatingWebHookPath
 	clientConfig := createWebhookClientConfig(ns, path)
 
-	return admissionv1beta1.ValidatingWebhookConfiguration{
+	return admissionv1.ValidatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: viper.GetString(operator.FlagValidatingWebhookName),
 			Annotations: map[string]string{
@@ -369,15 +369,15 @@ func createValidatingWebhookConfiguration(ns string) admissionv1beta1.Validating
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ValidatingWebhookConfiguration",
-			APIVersion: "admissionregistration.k8s.io/v1beta1",
+			APIVersion: admissionApi,
 		},
-		Webhooks: []admissionv1beta1.ValidatingWebhook{
+		Webhooks: []admissionv1.ValidatingWebhook{
 			{
 				Name: "coherence.oracle.com",
-				Rules: []admissionv1beta1.RuleWithOperations{
+				Rules: []admissionv1.RuleWithOperations{
 					{
-						Operations: []admissionv1beta1.OperationType{"CREATE", "UPDATE"},
-						Rule: admissionv1beta1.Rule{
+						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},
+						Rule: admissionv1.Rule{
 							APIGroups:   []string{"coherence.oracle.com"},
 							APIVersions: []string{"v1"},
 							Resources:   []string{"coherence"},
@@ -394,18 +394,18 @@ func createValidatingWebhookConfiguration(ns string) admissionv1beta1.Validating
 	}
 }
 
-func createWebhookClientConfig(ns, path string) admissionv1beta1.WebhookClientConfig {
+func createWebhookClientConfig(ns, path string) admissionv1.WebhookClientConfig {
 
-	var clientConfig admissionv1beta1.WebhookClientConfig
+	var clientConfig admissionv1.WebhookClientConfig
 	if operator.IsDevMode() {
 		hn := operator.GetWebhookServiceDNSNames()[0]
 		url := fmt.Sprintf("https://%s:9443%s", hn, path)
-		clientConfig = admissionv1beta1.WebhookClientConfig{
+		clientConfig = admissionv1.WebhookClientConfig{
 			URL: &url,
 		}
 	} else {
-		clientConfig = admissionv1beta1.WebhookClientConfig{
-			Service: &admissionv1beta1.ServiceReference{
+		clientConfig = admissionv1.WebhookClientConfig{
+			Service: &admissionv1.ServiceReference{
 				Name:      viper.GetString(operator.FlagWebhookService),
 				Namespace: ns,
 				Path:      &path,
