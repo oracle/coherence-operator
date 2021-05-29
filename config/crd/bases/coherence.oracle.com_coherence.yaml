@@ -759,6 +759,10 @@ spec:
                     description: CacheConfig is the name of the cache configuration
                       file to use
                     type: string
+                  enableIpMonitor:
+                    description: Enables the Coherence IP Monitor feature. The Operator
+                      disables the IP Monitor by default.
+                    type: boolean
                   excludeFromWKA:
                     description: Exclude members of this deployment from being part
                       of the cluster's WKA list.

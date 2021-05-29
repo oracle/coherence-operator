@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -202,6 +202,58 @@ func TestCreateStatefulSetWithCoherenceSpecWithTracingRatio(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithIpMonitorDefault(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			EnableIPMonitor: nil,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithIpMonitorDisabled(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			EnableIPMonitor: boolPtr(false),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithIpMonitorEnabled(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			EnableIPMonitor: boolPtr(true),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "TRUE"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
