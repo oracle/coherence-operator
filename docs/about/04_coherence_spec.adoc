@@ -145,7 +145,7 @@ m| haBeforeUpdate | Whether or not to perform a StatusHA test on the cluster bef
 
 === ApplicationSpec
 
-The specification of the application deployed into the Coherence.
+ApplicationSpec is the specification of the application deployed into the Coherence.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -162,7 +162,7 @@ m| springBootFatJar | SpringBootFatJar is the full path name to the Spring Boot 
 
 === CloudNativeBuildPackSpec
 
-The configuration when using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
+CloudNativeBuildPackSpec is the configuration when using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -175,7 +175,7 @@ m| launcher | &#160; m| &#42;string | false
 
 === CoherenceSpec
 
-This section of the CRD configures settings specific to Coherence. +
+CoherenceSpec is the section of the CRD configures settings specific to Coherence. +
 see: <<coherence_settings/010_overview.adoc,Coherence Configuration>>
 
 [cols="1,10,1,1"options="header"]
@@ -202,6 +202,7 @@ see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;bool | fa
 m| wka | Specify an existing Coherence deployment to be used for WKA. If an existing deployment is to be used for WKA the ExcludeFromWKA is implicitly set to true. +
 see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;<<CoherenceWKASpec,CoherenceWKASpec>> | false
 m| skipVersionCheck | Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used. m| &#42;bool | false
+m| enableIpMonitor | Enables the Coherence IP Monitor feature. The Operator disables the IP Monitor by default. m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -228,7 +229,7 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 
 === CoherenceWKASpec
 
-
+CoherenceWKASpec configures Coherence well-known-addressing to use an existing Coherence deployment for WKA.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -241,7 +242,7 @@ m| namespace | The optional namespace of the existing Coherence deployment to us
 
 === ConfigMapVolumeSpec
 
-Represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
+ConfigMapVolumeSpec represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
 see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
 
 [cols="1,10,1,1"options="header"]
@@ -276,7 +277,7 @@ m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More
 
 === JVMSpec
 
-The JVM configuration.
+JVMSpec is the JVM configuration.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -296,7 +297,7 @@ m| useJibClasspath | A flag indicating whether to automatically add the default 
 
 === JvmDebugSpec
 
-The JVM Debug specific configuration.
+JvmDebugSpec the JVM Debug specific configuration.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -311,7 +312,7 @@ m| port | The port that the debugger will listen on; the default is 5005. m| &#4
 
 === JvmGarbageCollectorSpec
 
-Options for managing the JVM garbage collector.
+JvmGarbageCollectorSpec is options for managing the JVM garbage collector.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -325,7 +326,7 @@ m| logging | Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetai
 
 === JvmJmxmpSpec
 
-Options for configuring JMX using JMXMP.
+JvmJmxmpSpec is options for configuring JMX using JMXMP.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -338,7 +339,7 @@ m| port | The port tht the JMXMP MBeanServer should bind to. If not set the defa
 
 === JvmMemorySpec
 
-Options for managing the JVM memory.
+JvmMemorySpec is options for managing the JVM memory.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -410,7 +411,7 @@ m| onOutOfMemory | Configure the JVM behaviour when an OutOfMemoryError occurs. 
 
 === JvmOutOfMemorySpec
 
-Options for managing the JVM behaviour when an OutOfMemoryError occurs.
+JvmOutOfMemorySpec is options for managing the JVM behaviour when an OutOfMemoryError occurs.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -435,7 +436,7 @@ m| name | Name of the referent. More info: https://kubernetes.io/docs/concepts/o
 
 === NamedPortSpec
 
-
+NamedPortSpec defines a named port for a Coherence component
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -471,7 +472,7 @@ m| hostname | Specifies the hostname of the Pod If not specified, the pod's host
 
 === PersistenceSpec
 
-The spec for Coherence persistence.
+PersistenceSpec is the spec for Coherence persistence.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -486,7 +487,7 @@ m| snapshots | Snapshot values configure the on-disc persistence data snapshot (
 
 === PersistentStorageSpec
 
-PersistenceStorageSpec defines the persistence settings for the Coherence
+PersistentStorageSpec defines the persistence settings for the Coherence
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -539,7 +540,7 @@ m| timeoutSeconds | Number of seconds after which the handler times out (only ap
 
 === ProbeHandler
 
-The definition of a probe handler.
+ProbeHandler is the definition of a probe handler.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -572,7 +573,7 @@ m| failureThreshold | Minimum consecutive failures for the probe to be considere
 
 === Resource
 
-
+Resource is a structure holding a resource to be managed
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -586,7 +587,7 @@ m| spec | &#160; m| client.Object | true
 
 === Resources
 
-
+Resources is a cloolection of resources to be managed.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -638,7 +639,7 @@ m| requireClientCert | RequireClientCert is a boolean flag indicating whether th
 
 === ScalingSpec
 
-The configuration to control safe scaling.
+ScalingSpec is the configuration to control safe scaling.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -651,7 +652,7 @@ m| probe | The probe to use to determine whether a deployment is Phase HA. If no
 
 === SecretVolumeSpec
 
-Represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
+SecretVolumeSpec represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
 see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>>
 
 [cols="1,10,1,1"options="header"]
@@ -673,7 +674,7 @@ m| optional | Specify whether the Secret or its keys must be defined m| &#42;boo
 
 === ServiceMonitorSpec
 
-The ServiceMonitor spec for a port service.
+ServiceMonitorSpec the ServiceMonitor spec for a port service.
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -692,7 +693,7 @@ m| scrapeTimeout | Timeout after which the scrape is ended See https://coreos.co
 m| tlsConfig | TLS configuration to use when scraping the endpoint See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;monitoringv1.TLSConfig | false
 m| bearerTokenFile | File to read bearer token for scraping targets. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| string | false
 m| bearerTokenSecret | Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#secretkeyselector-v1-core[corev1.SecretKeySelector] | false
-m| honorLabels | HonorLabels chooses the metric's labels on collisions with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| bool | false
+m| honorLabels | HonorLabels chooses the metric labels on collisions with target labels. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| bool | false
 m| honorTimestamps | HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;bool | false
 m| basicAuth | BasicAuth allow an endpoint to authenticate over basic authentication More info: https://prometheus.io/docs/operating/configuration/#endpoints See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| &#42;monitoringv1.BasicAuth | false
 m| metricRelabelings | MetricRelabelings to apply to samples before ingestion. See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint m| []&#42;monitoringv1.RelabelConfig | false
@@ -704,7 +705,7 @@ m| proxyURL | ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy throu
 
 === ServiceSpec
 
-
+ServiceSpec defines the settings for a Service
 
 [cols="1,10,1,1"options="header"]
 |===

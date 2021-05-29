@@ -283,6 +283,9 @@ type CoherenceSpec struct {
 	// that the latest coherence.jar is being used.
 	// +optional
 	SkipVersionCheck *bool `json:"skipVersionCheck,omitempty"`
+	// Enables the Coherence IP Monitor feature.
+	// The Operator disables the IP Monitor by default.
+	EnableIPMonitor *bool `json:"enableIpMonitor,omitempty"`
 }
 
 // IsWKAMember returns true if this deployment is a WKA list member.
@@ -386,6 +389,10 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 
 	if len(in.AllowEndangeredForStatusHA) != 0 {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAllowEndangered, Value: strings.Join(in.AllowEndangeredForStatusHA, ",")})
+	}
+
+	if in.EnableIPMonitor != nil && *in.EnableIPMonitor {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
 	}
 
 	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)

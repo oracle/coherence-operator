@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -142,6 +142,7 @@ const (
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
+	EnvVarEnableIPMonitor             = "COH_ENABLE_IPMONITOR"
 	EnvVarSuffixSSLEnabled            = "_SSL_ENABLED"
 	EnvVarSuffixSSLCerts              = "_SSL_CERTS"
 	EnvVarSuffixSSLKeyStore           = "_SSL_KEYSTORE"
