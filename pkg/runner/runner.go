@@ -449,6 +449,12 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 	// Set the Coherence log level
 	details.AddArgFromEnvVar(v1.EnvVarCohLogLevel, "-Dcoherence.log.level")
 
+	// Disable IPMonitor
+	ipMon := details.Getenv(v1.EnvVarEnableIPMonitor)
+	if ipMon != "TRUE" {
+		details.AddArg("-Dcoherence.ipmonitor.pingtimeout=0")
+	}
+
 	// Do the Coherence version specific configuration
 	if ok := checkCoherenceVersion("12.2.1.4.0", details); ok {
 		// is at least 12.2.1.4
@@ -1105,6 +1111,7 @@ type RunDetails struct {
 	BuildPacks    *bool
 }
 
+// Getenv returns the value for the specified environment variable, or empty string if not set.
 func (in *RunDetails) Getenv(name string) string {
 	return in.Env[name]
 }

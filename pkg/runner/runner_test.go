@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -122,6 +122,7 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-Dcoherence.metrics.http.port=9612",
 		"-Dcoherence.distributed.persistence-mode=on-demand",
 		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
+		"-Dcoherence.ipmonitor.pingtimeout=0",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
 		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",

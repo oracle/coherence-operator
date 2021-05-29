@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -342,6 +342,87 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
 	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".back-end.svc.cluster.local")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceEnableIpMonitor(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				EnableIPMonitor: pointer.BoolPtr(true),
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.ipmonitor.pingtimeout")
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceDisableIpMonitor(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				EnableIPMonitor: pointer.BoolPtr(false),
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedArgs()
+
+	_, cmd, err := DryRun(args, env)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(cmd).NotTo(BeNil())
+
+	g.Expect(cmd.Dir).To(Equal(TestAppDir))
+	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceDefaultIpMonitor(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				EnableIPMonitor: nil,
+			},
+		},
+	}
+
+	args := []string{"runner", "server"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedArgs()
 
 	_, cmd, err := DryRun(args, env)
 	g.Expect(err).NotTo(HaveOccurred())
