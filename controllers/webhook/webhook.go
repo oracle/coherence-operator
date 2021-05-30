@@ -39,7 +39,7 @@ type certManagerVersion struct {
 }
 
 const (
-	admissionApi          = "admissionregistration.k8s.io/v1"
+	admissionAPI          = "admissionregistration.k8s.io/v1"
 	certManagerCertName   = "coherence-webhook-server-certificate"
 	certManagerIssuerName = "coherence-webhook-server-issuer"
 	certTypeAnnotation    = "operator.coherence.oracle.com/cert-type"
@@ -92,12 +92,13 @@ func (k *HookInstaller) InstallWithCertManager() error {
 	}
 	// Install the webhooks
 	ns := operator.GetNamespace()
+	ctx := context.TODO()
 	m := createMutatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installMutatingWebhook(nil, k.Clients, m); err != nil {
+	if err := installMutatingWebhook(ctx, k.Clients, m); err != nil {
 		return err
 	}
 	v := createValidatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installValidatingWebhook(nil, k.Clients, v); err != nil {
+	if err := installValidatingWebhook(ctx, k.Clients, v); err != nil {
 		return err
 	}
 	return nil
@@ -327,7 +328,7 @@ func createMutatingWebhookConfiguration(ns string) admissionv1.MutatingWebhookCo
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MutatingWebhookConfiguration",
-			APIVersion: admissionApi,
+			APIVersion: admissionAPI,
 		},
 		Webhooks: []admissionv1.MutatingWebhook{
 			{
@@ -370,7 +371,7 @@ func createValidatingWebhookConfiguration(ns string) admissionv1.ValidatingWebho
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ValidatingWebhookConfiguration",
-			APIVersion: admissionApi,
+			APIVersion: admissionAPI,
 		},
 		Webhooks: []admissionv1.ValidatingWebhook{
 			{
