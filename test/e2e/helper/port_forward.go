@@ -152,8 +152,8 @@ func (f *PortForwarder) Start() error {
 		}
 		if len(errOut.String()) != 0 {
 			fmt.Println(errOut.String())
-		} else if len(out.String()) != 0 {
-			fmt.Println(out.String())
+			//} else if len(out.String()) != 0 {
+			//	fmt.Println(out.String())
 		}
 	}()
 

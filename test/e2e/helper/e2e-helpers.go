@@ -314,6 +314,7 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 		}
 
 		if sts.Status.ReadyReplicas == replicas {
+			ctx.Logf("StatefulSet %s replicas = (%d/%d)", stsName, sts.Status.ReadyReplicas, replicas)
 			return true, nil
 		}
 		ctx.Logf("Waiting for full availability of StatefulSet %s (%d/%d)", stsName, sts.Status.ReadyReplicas, replicas)
