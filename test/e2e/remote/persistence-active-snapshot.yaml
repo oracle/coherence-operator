@@ -29,6 +29,9 @@ spec:
           resources:
             requests:
               storage: 2Gi
+  jvm:
+    args:
+      - "-Dcoherence.k8s.operator.health.logs=true"
   application:
     main: com.oracle.coherence.k8s.testing.RestServer
   ports:
