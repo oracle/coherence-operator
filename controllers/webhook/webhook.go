@@ -93,11 +93,11 @@ func (k *HookInstaller) InstallWithCertManager() error {
 	// Install the webhooks
 	ns := operator.GetNamespace()
 	m := createMutatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installMutatingWebhook(k.Clients, m); err != nil {
+	if err := installMutatingWebhook(nil, k.Clients, m); err != nil {
 		return err
 	}
 	v := createValidatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installValidatingWebhook(k.Clients, v); err != nil {
+	if err := installValidatingWebhook(nil, k.Clients, v); err != nil {
 		return err
 	}
 	return nil
@@ -248,7 +248,7 @@ func (k *HookInstaller) uninstallUnstructured(item *unstructured.Unstructured) e
 	return nil
 }
 
-func installMutatingWebhook(c clients.ClientSet, webhook admissionv1.MutatingWebhookConfiguration) error {
+func installMutatingWebhook(ctx context.Context, c clients.ClientSet, webhook admissionv1.MutatingWebhookConfiguration) error {
 	log.Info(fmt.Sprintf("installing webhook %s/%s", webhook.Namespace, webhook.Name))
 	cl := c.KubeClient.AdmissionregistrationV1()
 	existing, err := cl.MutatingWebhookConfigurations().Get(context.TODO(), webhook.GetName(), metav1.GetOptions{})
@@ -257,14 +257,14 @@ func installMutatingWebhook(c clients.ClientSet, webhook admissionv1.MutatingWeb
 	if exists && existing != nil {
 		existing.Webhooks = webhook.Webhooks
 		existing.Annotations = webhook.Annotations
-		_, err = cl.MutatingWebhookConfigurations().Update(context.TODO(), existing, metav1.UpdateOptions{})
+		_, err = cl.MutatingWebhookConfigurations().Update(ctx, existing, metav1.UpdateOptions{})
 	} else {
-		_, err = cl.MutatingWebhookConfigurations().Create(context.TODO(), &webhook, metav1.CreateOptions{})
+		_, err = cl.MutatingWebhookConfigurations().Create(ctx, &webhook, metav1.CreateOptions{})
 	}
 	return err
 }
 
-func installValidatingWebhook(c clients.ClientSet, webhook admissionv1.ValidatingWebhookConfiguration) error {
+func installValidatingWebhook(ctx context.Context, c clients.ClientSet, webhook admissionv1.ValidatingWebhookConfiguration) error {
 	log.Info(fmt.Sprintf("installing webhook %s/%s", webhook.Namespace, webhook.Name))
 	cl := c.KubeClient.AdmissionregistrationV1()
 	existing, err := cl.ValidatingWebhookConfigurations().Get(context.TODO(), webhook.GetName(), metav1.GetOptions{})
@@ -273,9 +273,9 @@ func installValidatingWebhook(c clients.ClientSet, webhook admissionv1.Validatin
 	if exists && existing != nil {
 		existing.Webhooks = webhook.Webhooks
 		existing.Annotations = webhook.Annotations
-		_, err = cl.ValidatingWebhookConfigurations().Update(context.TODO(), existing, metav1.UpdateOptions{})
+		_, err = cl.ValidatingWebhookConfigurations().Update(ctx, existing, metav1.UpdateOptions{})
 	} else {
-		_, err = cl.ValidatingWebhookConfigurations().Create(context.TODO(), &webhook, metav1.CreateOptions{})
+		_, err = cl.ValidatingWebhookConfigurations().Create(ctx, &webhook, metav1.CreateOptions{})
 	}
 	return err
 }
@@ -331,7 +331,8 @@ func createMutatingWebhookConfiguration(ns string) admissionv1.MutatingWebhookCo
 		},
 		Webhooks: []admissionv1.MutatingWebhook{
 			{
-				Name: "coherence.oracle.com",
+				Name:                    "coherence.oracle.com",
+				AdmissionReviewVersions: []string{"v1"},
 				Rules: []admissionv1.RuleWithOperations{
 					{
 						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},
@@ -373,7 +374,8 @@ func createValidatingWebhookConfiguration(ns string) admissionv1.ValidatingWebho
 		},
 		Webhooks: []admissionv1.ValidatingWebhook{
 			{
-				Name: "coherence.oracle.com",
+				Name:                    "coherence.oracle.com",
+				AdmissionReviewVersions: []string{"v1"},
 				Rules: []admissionv1.RuleWithOperations{
 					{
 						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},

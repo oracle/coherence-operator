@@ -19,7 +19,7 @@ spec:
         app: coherence-operator
         version: v3.1.6
     spec:
-      serviceAccountName: coherence-operator
+      serviceAccountName: service-account
       terminationGracePeriodSeconds: 10
       containers:
       - name: manager

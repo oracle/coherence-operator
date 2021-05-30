@@ -16,5 +16,5 @@ roleRef:
   name: node-viewer-role
 subjects:
 - kind: ServiceAccount
-  name: coherence-operator
+  name: service-account
   namespace: default

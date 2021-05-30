@@ -1686,7 +1686,8 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
-	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3
+#   pulling image ghcr.io/yue9944882/crd-model-gen:v1.0.3
+	docker pull ghcr.io/yue9944882/crd-model-gen@sha256:38915a80aca00b6db4cb9a94e56015203ced1fa962884dbc92e677ab5465460c
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
 	mkdir -p $(BUILD_OUTPUT)/java-client/java/gen

@@ -175,11 +175,11 @@ func (r *CertReconciler) ReconcileResources(ctx context.Context) error {
 
 	if r.shouldRenewWebhookConfigs(ctx, serverCA) {
 		m := createMutatingWebhookWithCABundle(operator.GetNamespace(), secret.Data[operator.CertFileName])
-		if err = installMutatingWebhook(r.Clientset, m); err != nil {
+		if err = installMutatingWebhook(ctx, r.Clientset, m); err != nil {
 			return err
 		}
 		v := createValidatingWebhookWithCABundle(operator.GetNamespace(), secret.Data[operator.CertFileName])
-		if err = installValidatingWebhook(r.Clientset, v); err != nil {
+		if err = installValidatingWebhook(ctx, r.Clientset, v); err != nil {
 			return err
 		}
 	}
