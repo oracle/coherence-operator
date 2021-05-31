@@ -218,7 +218,12 @@ CRDV1_FILES      = $(shell find ./config/crd -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
-.PHONY: all
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Build
+
+.PHONY: all  ## Build all the Coherence Operator artefacts
 all: java-client build-all-images helm-chart
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -243,10 +248,21 @@ $(BUILD_PROPS):
 	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Clean-up all of the build artifacts
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: clean
+clean: ## Cleans the build 
+	-rm -rf build/_output
+	-rm -f bin/*
+	rm pkg/data/zz_generated_*.go || true
+	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Builds the Operator
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-operator
-build-operator: $(BUILD_TARGETS)/build-operator
+build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Image
@@ -258,6 +274,27 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		. -t $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator Utils Docker image
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-utils
+build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
+	cp $(BUILD_BIN)/runner  java/coherence-operator/target/docker/runner
+	docker build -t $(UTILS_IMAGE) java/coherence-operator/target/docker
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator images without the test images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-operator-images
+build-operator-images: $(BUILD_TARGETS)/build-operator build-utils ## Build all operator images
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build all of the Docker images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-all-images
+build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images ## Build all images (including tests)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
@@ -277,7 +314,7 @@ ensure-sdk:
 # Internal make step that builds the Operator runner artifacts utility
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-runner
-build-runner: $(BUILD_BIN)/runner
+build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	@echo "Building Operator Runner"
@@ -302,16 +339,203 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./converter
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Build the Java artifacts
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-mvn  ## Build the Java artefacts
+build-mvn:
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
+
+# ---------------------------------------------------------------------------
+# Build the Coherence operator Helm chart and package it into a tar.gz
+# ---------------------------------------------------------------------------
+.PHONY: helm-chart
+helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
+
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+# Copy the Helm chart from the source location to the distribution folder
+	-mkdir -p $(BUILD_HELM)
+	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
+	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/templates/deployment.yaml)
+# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
+	helm lint $(BUILD_HELM)/coherence-operator
+	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+
+# ---------------------------------------------------------------------------
+# Do a search and replace of properties in selected files in the Helm charts.
+# This is done because the Helm charts can be large and processing every file
+# makes the build slower.
+# ---------------------------------------------------------------------------
+define replaceprop
+	for i in $(1); do \
+		filename="$(BUILD_HELM)/$${i}"; \
+		echo "Replacing properties in file $${filename}"; \
+		if [ -f $${filename} ]; then \
+			temp_file=$(BUILD_OUTPUT)/temp.out; \
+			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
+			mv $${temp_file} $${filename}; \
+		fi \
+	done
+endef
+
+##@ Development
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate manifests e.g. CRD, RBAC etc.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: manifests
+manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the CustomResourceDefinition and other yaml manifests.
+
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
+	touch $(BUILD_TARGETS)/manifests
+
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
+	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
+	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
+	  output:crd:artifacts:config=config/crd/bases
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate the config.json file used by the Operator for default configuration values
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: generate-config
+generate-config: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json
+
+$(BUILD_OUTPUT)/config.json:
+	@echo "Generating Operator config"
+	@printf "{\n \
+	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
+	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate code, configuration and docs.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: generate
+generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration generation
+
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
+	touch $(BUILD_TARGETS)/generate
+
+api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
+	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
+
+pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
+	echo "Embedding configuration and CRD files"
+	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
+	echo "Embedding CRD files"
+	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
+	go run ./pkg/generate/assets_generate.go
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate API docs
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: api-doc-gen
+api-doc-gen: docs/about/04_coherence_spec.adoc  ## Generate API documentation
+
+docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
+	@echo "Generating CRD Doc"
+	go run ./docgen/ \
+		api/v1/coherenceresourcespec_types.go \
+		api/v1/coherence_types.go \
+		api/v1/coherenceresource_types.go \
+		> docs/about/04_coherence_spec.adoc
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate the keys and certs used in tests.
+# ----------------------------------------------------------------------------------------------------------------------
+$(BUILD_OUTPUT)/certs:
+	@echo "Generating test keys and certs"
+	./hack/keys.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate bundle manifests and metadata, then validate generated files.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: bundle
+bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
+	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(OPERATOR_SDK) bundle validate ./bundle
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build the bundle image.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: bundle-build
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: bundle-push
+bundle-push: ## Push the bundle image.
+	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+
+
+.PHONY: opm
+OPM = ./bin/opm
+opm: ## Download opm locally if necessary.
+ifeq (,$(wildcard $(OPM)))
+ifeq (,$(shell which opm 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(OPM)) ;\
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm ;\
+	chmod +x $(OPM) ;\
+	}
+else
+OPM = $(shell which opm)
+endif
+endif
+
+# A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
+# These images MUST exist in a registry and be pull-able.
+BUNDLE_IMGS ?= $(BUNDLE_IMG)
+
+# The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
+CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+
+# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
+ifneq ($(origin CATALOG_BASE_IMG), undefined)
+FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
+endif
+
+# Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
+# This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
+# https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
+.PHONY: catalog-build
+catalog-build: opm ## Build a catalog image.
+	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+
+# Push the catalog image.
+.PHONY: catalog-push
+catalog-push: ## Push a catalog image.
+	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+
+##@ Test
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go unit tests that do not require a k8s cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
-test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate gotestsum
+test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate gotestsum  ## Run the Operator unit tests
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
 	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/...
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build and test the Java artifacts
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: test-mvn
+test-mvn: $(BUILD_OUTPUT)/certs build-mvn  ## Run the Java artefact tests
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(MVN_VERSION) -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run all unit tests (both Go and Java)
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: test-all
+test-all: test-mvn test-operator  ## Run all unit tests
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
@@ -340,7 +564,7 @@ e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy
+e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end functional tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -389,7 +613,7 @@ run-e2e-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 e2e-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -406,7 +630,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait
+e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -450,7 +674,7 @@ run-prometheus-test: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-elastic-test
 e2e-elastic-test: export MF = $(MAKEFLAGS)
-e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait
+e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator logging/ElasticSearch end-to-end functional tests
 	$(MAKE) run-elastic-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-elastic $${MF} \
@@ -506,7 +730,7 @@ compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum
+compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum    ## Run the Operator backwards compatibility tests
 	helm repo add coherence https://oracle.github.io/coherence-operator/charts
 	helm repo update
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
@@ -520,7 +744,7 @@ compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
 certification-test: export MF = $(MAKEFLAGS)
-certification-test: install-certification
+certification-test: install-certification     ## Run the Operator Kubernetes certification tests
 	$(MAKE) run-certification  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-certification $${MF} \
@@ -574,7 +798,7 @@ cleanup-certification: undeploy uninstall-crds clean-namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: coherence-compatibility-test
 coherence-compatibility-test: export MF = $(MAKEFLAGS)
-coherence-compatibility-test: install-coherence-compatibility
+coherence-compatibility-test: install-coherence-compatibility   ## Run the Operator Coherence compatibility tests
 	$(MAKE) run-coherence-compatibility  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-coherence-compatibility $${MF} \
@@ -617,37 +841,7 @@ run-coherence-compatibility: gotestsum generate
 .PHONY: cleanup-coherence-compatibility
 cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 
-# ---------------------------------------------------------------------------
-# Build the Coherence operator Helm chart and package it into a tar.gz
-# ---------------------------------------------------------------------------
-.PHONY: helm-chart
-helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz
-
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
-# Copy the Helm chart from the source location to the distribution folder
-	-mkdir -p $(BUILD_HELM)
-	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
-	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/templates/deployment.yaml)
-# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
-	helm lint $(BUILD_HELM)/coherence-operator
-	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
-
-# ---------------------------------------------------------------------------
-# Do a search and replace of properties in selected files in the Helm charts.
-# This is done because the Helm charts can be large and processing every file
-# makes the build slower.
-# ---------------------------------------------------------------------------
-define replaceprop
-	for i in $(1); do \
-		filename="$(BUILD_HELM)/$${i}"; \
-		echo "Replacing properties in file $${filename}"; \
-		if [ -f $${filename} ]; then \
-			temp_file=$(BUILD_OUTPUT)/temp.out; \
-			awk -F'=' 'NR==FNR {a[$$1]=$$2;next} {for (i in a) {x = sprintf("\\$${%s}", i); gsub(x, a[i])}}1' $(BUILD_PROPS) $${filename} > $${temp_file}; \
-			mv $${temp_file} $${filename}; \
-		fi \
-	done
-endef
+##@ Deployment
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install CRDs into Kubernetes.
@@ -655,7 +849,7 @@ endef
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: prepare-deploy uninstall-crds
+install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl create -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -664,7 +858,7 @@ install-crds: prepare-deploy uninstall-crds
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
-uninstall-crds: manifests
+uninstall-crds: manifests  ## Uninstall the CRDs
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 
@@ -672,10 +866,10 @@ uninstall-crds: manifests
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy-and-wait
-deploy-and-wait: deploy wait-for-deploy
+deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Pod to be ready
 
 .PHONY: deploy
-deploy: prepare-deploy $(GOBIN)/kustomize
+deploy: prepare-deploy $(GOBIN)/kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
@@ -696,6 +890,7 @@ prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
 	echo "Waiting for Operator to be ready"
+	sleep 10
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -717,7 +912,7 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize  ## Undeploy the Coherence Operator
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
@@ -730,14 +925,9 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: tail-logs
 tail-logs: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
-tail-logs:
+tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Generate manifests e.g. CRD, RBAC etc.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: manifests
-manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG)
 
 $(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
@@ -756,44 +946,72 @@ else
 	sed -i 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 endif
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
-	touch $(BUILD_TARGETS)/manifests
-
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
-	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
-	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd/bases
+##@ KinD
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Generate the config.json file used by the Operator for default configuration values
+# Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: generate-config
-generate-config: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json
-
-$(BUILD_OUTPUT)/config.json:
-	@echo "Generating Operator config"
-	@printf "{\n \
-	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
-	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+.PHONY: kind
+kind:   ## Run a default KinD cluster
+	./hack/kind.sh
+	./hack/kind-label-node.sh
+	docker pull $(COHERENCE_IMAGE)
+	kind load docker-image --name operator $(COHERENCE_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Generate code, configuration and docs.
+# Start a Kind 1.16 cluster
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: generate
-generate: $(BUILD_TARGETS)/generate
+.PHONY: kind-16
+kind-16: kind-16-start kind-load
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
-	touch $(BUILD_TARGETS)/generate
+.PHONY: kind-16-start
+kind-16-start:  ## Run a default KinD 1.16 cluster
+	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:c10a63a5bda231c0a379bf91aebf8ad3c79146daca59db816fb963f731852a99"
+	./hack/kind-label-node.sh
+	docker pull $(COHERENCE_IMAGE) || true
+	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
 
-api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
-	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
-pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
-	echo "Embedding configuration and CRD files"
-	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
-	echo "Embedding CRD files"
-	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
-	go run ./pkg/generate/assets_generate.go
+# ----------------------------------------------------------------------------------------------------------------------
+# Start a Kind 1.19 cluster
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-19
+kind-19: kind-19-start kind-load
+
+.PHONY: kind-19-start
+kind-19-start: ## Run a default KinD 1.19 cluster
+	./hack/kind.sh --image "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
+	./hack/kind-label-node.sh
+	docker pull $(COHERENCE_IMAGE) || true
+	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Load images into Kind
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-load
+kind-load: kind-load-operator  ## Load all images into the KinD cluster
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_HELIDON) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
+	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
+	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
+	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
+
+.PHONY: kind-load-operator
+kind-load-operator:   ## Load the Operator images into the KinD cluster
+	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
+	kind load docker-image --name operator $(UTILS_IMAGE) || true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Load compatibility images into Kind
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-load-compatibility
+kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
+	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
+
+##@ Miscellaneous
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
@@ -869,100 +1087,6 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Generate bundle manifests and metadata, then validate generated files.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: bundle
-bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
-	$(OPERATOR_SDK) generate kustomize manifests -q
-	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	$(OPERATOR_SDK) bundle validate ./bundle
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the bundle image.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: bundle-build
-bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
-
-.PHONY: bundle-push
-bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
-
-
-.PHONY: opm
-OPM = ./bin/opm
-opm: ## Download opm locally if necessary.
-ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPM)) ;\
-	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm ;\
-	chmod +x $(OPM) ;\
-	}
-else
-OPM = $(shell which opm)
-endif
-endif
-
-# A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
-# These images MUST exist in a registry and be pull-able.
-BUNDLE_IMGS ?= $(BUNDLE_IMG)
-
-# The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
-
-# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
-ifneq ($(origin CATALOG_BASE_IMG), undefined)
-FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
-endif
-
-# Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
-# This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
-# https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
-.PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
-
-# Push the catalog image.
-.PHONY: catalog-push
-catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Generate API docs
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: api-doc-gen
-api-doc-gen: docs/about/04_coherence_spec.adoc
-
-docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
-	@echo "Generating CRD Doc"
-	go run ./docgen/ \
-		api/v1/coherenceresourcespec_types.go \
-		api/v1/coherence_types.go \
-		api/v1/coherenceresource_types.go \
-		> docs/about/04_coherence_spec.adoc
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Clean-up all of the build artifacts
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: clean
-clean:
-	-rm -rf build/_output
-	-rm -f bin/*
-	rm pkg/data/zz_generated_*.go || true
-	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Generate the keys and certs used in tests.
-# ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_OUTPUT)/certs:
-	@echo "Generating test keys and certs"
-	./hack/keys.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -974,7 +1098,7 @@ reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
 reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
 reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
 reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
-reset-namespace: delete-namespace
+reset-namespace: delete-namespace      ## Reset the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	@echo "Creating test namespace $(OPERATOR_NAMESPACE)"
 	kubectl create namespace $(OPERATOR_NAMESPACE)
@@ -1002,7 +1126,7 @@ endif
 # Delete the test namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-namespace
-delete-namespace: clean-namespace
+delete-namespace: clean-namespace  ## Delete the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
 	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
@@ -1015,7 +1139,7 @@ endif
 # Delete all resource from the test namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
-clean-namespace: delete-coherence-clusters
+clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
 	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
 		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
@@ -1041,20 +1165,6 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Build the Java artifacts
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-mvn
-build-mvn:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build and test the Java artifacts
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: test-mvn
-test-mvn: $(BUILD_OUTPUT)/certs build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(MVN_VERSION) -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Deploy the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: mvn-deploy
@@ -1076,12 +1186,6 @@ test-examples: build-examples
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f ./examples verify $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Run all unit tests (both Go and Java)
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: test-all
-test-all: test-mvn test-operator
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-operator-image
@@ -1095,14 +1199,6 @@ else
 	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)"
 	docker push $(OPERATOR_RELEASE_IMAGE)
 endif
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Utils Docker image
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-utils-image
-build-utils-image: build-mvn $(BUILD_BIN)/runner
-	cp $(BUILD_BIN)/runner  java/coherence-operator/target/docker/runner
-	docker build -t $(UTILS_IMAGE) java/coherence-operator/target/docker
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Utils Docker image
@@ -1163,18 +1259,6 @@ build-compatibility-image: build-mvn
 .PHONY: push-compatibility-image
 push-compatibility-image:
 	docker push $(TEST_COMPATIBILITY_IMAGE)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build all of the Docker images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-all-images
-build-all-images: $(BUILD_TARGETS)/build-operator build-utils-image build-test-images
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator images without the test images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-operator-images
-build-operator-images: $(BUILD_TARGETS)/build-operator build-utils-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
@@ -1239,68 +1323,6 @@ run-debug-clean: reset-namespace run-debug
 stop:
 	./hack/kill-local.sh
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind cluster
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind
-kind:
-	./hack/kind.sh
-	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE)
-	kind load docker-image --name operator $(COHERENCE_IMAGE)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.16 cluster
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-16
-kind-16: kind-16-start kind-load
-
-.PHONY: kind-16-start
-kind-16-start:
-	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:a89c771f7de234e6547d43695c7ab047809ffc71a0c3b65aa54eda051c45ed20"
-	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.19 cluster
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-19
-kind-19: kind-19-start kind-load
-
-.PHONY: kind-19-start
-kind-19-start:
-	./hack/kind.sh --image "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
-	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Load images into Kind
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-load
-kind-load: kind-load-operator
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_HELIDON) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
-	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
-	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
-	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
-
-.PHONY: kind-load-operator
-kind-load-operator:
-	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
-	kind load docker-image --name operator $(UTILS_IMAGE) || true
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Load compatibility images into Kind
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-load-compatibility
-kind-load-compatibility:
-	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
@@ -1686,8 +1708,7 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
-#   pulling image ghcr.io/yue9944882/crd-model-gen:v1.0.3
-	docker pull ghcr.io/yue9944882/crd-model-gen@sha256:38915a80aca00b6db4cb9a94e56015203ced1fa962884dbc92e677ab5465460c
+	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
 	mkdir -p $(BUILD_OUTPUT)/java-client/java/gen

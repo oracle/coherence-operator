@@ -333,7 +333,7 @@ func createMutatingWebhookConfiguration(ns string) admissionv1.MutatingWebhookCo
 		Webhooks: []admissionv1.MutatingWebhook{
 			{
 				Name:                    "coherence.oracle.com",
-				AdmissionReviewVersions: []string{"v1"},
+				AdmissionReviewVersions: []string{"v1", "v1beta1"},
 				Rules: []admissionv1.RuleWithOperations{
 					{
 						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},
@@ -376,7 +376,7 @@ func createValidatingWebhookConfiguration(ns string) admissionv1.ValidatingWebho
 		Webhooks: []admissionv1.ValidatingWebhook{
 			{
 				Name:                    "coherence.oracle.com",
-				AdmissionReviewVersions: []string{"v1"},
+				AdmissionReviewVersions: []string{"v1", "v1beta1"},
 				Rules: []admissionv1.RuleWithOperations{
 					{
 						Operations: []admissionv1.OperationType{"CREATE", "UPDATE"},

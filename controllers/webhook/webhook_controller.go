@@ -220,7 +220,7 @@ func (r *CertReconciler) writeLocalCertsFromSecret(secret *corev1.Secret) error 
 
 func (r *CertReconciler) shouldRenewWebhookConfigs(ctx context.Context, ca *certs.CA) bool {
 	// Read the current certificate used by the server
-	mCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1beta1().
+	mCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1().
 		MutatingWebhookConfigurations().Get(ctx, viper.GetString(operator.FlagMutatingWebhookName), metav1.GetOptions{})
 	if err != nil {
 		// probably does not exists so needs creating
@@ -233,7 +233,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ctx context.Context, ca *cert
 		return true
 	}
 
-	vCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1beta1().
+	vCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1().
 		ValidatingWebhookConfigurations().Get(ctx, viper.GetString(operator.FlagValidatingWebhookName), metav1.GetOptions{})
 	if err != nil {
 		// probably does not exists so needs creating
