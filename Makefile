@@ -274,13 +274,11 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		--build-arg target=amd64 \
-		--platform linux/amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		--build-arg target=arm64 \
-		--platform linux/arm64 \
 		. -t $(OPERATOR_IMAGE)-arm64
 	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
@@ -291,8 +289,8 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 .PHONY: build-utils
 build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
 	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-	docker build --no-cache --build-arg target=amd64 --platform linux/amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
-	docker build --no-cache --build-arg target=arm64 --platform linux/arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
+	docker build --no-cache --build-arg target=amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
+	docker build --no-cache --build-arg target=arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
 	docker tag $(UTILS_IMAGE)-$(IMAGE_ARCH) $(UTILS_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
