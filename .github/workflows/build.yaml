@@ -171,7 +171,7 @@ jobs:
       if: success()
       with:
         name: coherence.oracle.com_coherence.yaml
-        path: /tmp/coherence-operator/_output/manifests/crd/coherence.oracle.com_coherence.yaml
+        path: build/_output/manifests/crd/coherence.oracle.com_coherence.yaml
 
     - uses: actions/upload-artifact@v1
       if: failure()

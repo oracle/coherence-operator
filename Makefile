@@ -31,6 +31,7 @@ BUILD_INFO      := "$(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)"
 CURRDIR         := $(shell pwd)
 
 ARCH            ?= amd64
+IMAGE_ARCH      ?= amd64
 OS              ?= linux
 UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
@@ -272,7 +273,16 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 	docker build --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
-		. -t $(OPERATOR_IMAGE)
+		--build-arg target=amd64 \
+		--platform linux/amd64 \
+		. -t $(OPERATOR_IMAGE)-amd64
+	docker build --build-arg version=$(VERSION) \
+		--build-arg coherence_image=$(COHERENCE_IMAGE) \
+		--build-arg utils_image=$(UTILS_IMAGE) \
+		--build-arg target=arm64 \
+		--platform linux/arm64 \
+		. -t $(OPERATOR_IMAGE)-arm64
+	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -280,8 +290,10 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-utils
 build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
-	cp $(BUILD_BIN)/runner  java/coherence-operator/target/docker/runner
-	docker build -t $(UTILS_IMAGE) java/coherence-operator/target/docker
+	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
+	docker build --build-arg target=amd64 --platform linux/amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
+	docker build --build-arg target=arm64 --platform linux/arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
+	docker tag $(UTILS_IMAGE)-$(IMAGE_ARCH) $(UTILS_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator images without the test images
@@ -1199,12 +1211,27 @@ test-examples: build-examples
 push-operator-image: $(BUILD_TARGETS)/build-operator
 ifeq ($(OPERATOR_RELEASE_IMAGE), $(OPERATOR_IMAGE))
 	@echo "Pushing $(OPERATOR_IMAGE)"
-	docker push $(OPERATOR_IMAGE)
+	docker push $(OPERATOR_IMAGE)-amd64
+	docker push $(OPERATOR_IMAGE)-arm64
+	docker manifest create $(OPERATOR_IMAGE) \
+		--amend $(OPERATOR_IMAGE)-amd64 \
+		--amend $(OPERATOR_IMAGE)-arm64
+	docker manifest annotate $(OPERATOR_IMAGE) $(OPERATOR_IMAGE)-arm64 --arch arm64
+	docker manifest push $(OPERATOR_IMAGE) 
 else
-	@echo "Tagging $(OPERATOR_IMAGE) as $(OPERATOR_RELEASE_IMAGE)"
-	docker tag $(OPERATOR_IMAGE) $(OPERATOR_RELEASE_IMAGE)
-	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)"
-	docker push $(OPERATOR_RELEASE_IMAGE)
+	@echo "Tagging $(OPERATOR_IMAGE)-amd64 as $(OPERATOR_RELEASE_IMAGE)-amd64"
+	docker tag $(OPERATOR_IMAGE)-amd64 $(OPERATOR_RELEASE_IMAGE)-amd64
+	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)-amd64"
+	docker push $(OPERATOR_RELEASE_IMAGE)-amd64
+	@echo "Tagging $(OPERATOR_IMAGE)-arm64 as $(OPERATOR_RELEASE_IMAGE)-arm64"
+	docker tag $(OPERATOR_IMAGE)-arm64 $(OPERATOR_RELEASE_IMAGE)-arm64
+	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)-arm64"
+	docker push $(OPERATOR_RELEASE_IMAGE)-arm64
+	docker manifest create $(OPERATOR_RELEASE_IMAGE) \
+		--amend $(OPERATOR_RELEASE_IMAGE)-amd64 \
+		--amend $(OPERATOR_RELEASE_IMAGE)-arm64
+	docker manifest annotate $(OPERATOR_RELEASE_IMAGE) $(OPERATOR_RELEASE_IMAGE)-arm64 --arch arm64
+	docker manifest push $(OPERATOR_RELEASE_IMAGE)
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1213,13 +1240,33 @@ endif
 .PHONY: push-utils-image
 push-utils-image:
 ifeq ($(UTILS_RELEASE_IMAGE), $(UTILS_IMAGE))
-	@echo "Pushing $(UTILS_IMAGE)"
-	docker push $(UTILS_IMAGE)
+	@echo "Pushing $(UTILS_IMAGE)-amd64"
+	docker push $(UTILS_IMAGE)-amd64
+	@echo "Pushing $(UTILS_IMAGE)-arm64"
+	docker push $(UTILS_IMAGE)-arm64
+	@echo "Creating $(UTILS_IMAGE) manifest"
+	docker manifest create $(UTILS_IMAGE) \
+		--amend $(UTILS_IMAGE)-amd64 \
+		--amend $(UTILS_IMAGE)-arm64
+	docker manifest annotate $(UTILS_IMAGE) $(UTILS_IMAGE)-arm64 --arch arm64
+	@echo "Pushing $(UTILS_IMAGE) manifest"
+	docker manifest push $(UTILS_IMAGE)
 else
-	@echo "Tagging $(UTILS_IMAGE) as $(UTILS_RELEASE_IMAGE)"
-	docker tag $(UTILS_IMAGE) $(UTILS_RELEASE_IMAGE)
-	@echo "Pushing $(UTILS_RELEASE_IMAGE)"
-	docker push $(UTILS_RELEASE_IMAGE)
+	@echo "Tagging $(UTILS_IMAGE)-amd64 as $(UTILS_RELEASE_IMAGE)-amd64"
+	docker tag $(UTILS_IMAGE)-amd64 $(UTILS_RELEASE_IMAGE)-amd64
+	@echo "Pushing $(UTILS_RELEASE_IMAGE)-amd64"
+	docker push $(UTILS_RELEASE_IMAGE)-amd64
+	@echo "Tagging $(UTILS_IMAGE)-arm64 as $(UTILS_RELEASE_IMAGE)-arm64"
+	docker tag $(UTILS_IMAGE)-arm64 $(UTILS_RELEASE_IMAGE)-arm64
+	@echo "Pushing $(UTILS_RELEASE_IMAGE)-arm64"
+	docker push $(UTILS_RELEASE_IMAGE)-arm64
+	@echo "Creating $(UTILS_RELEASE_IMAGE) manifest"
+	docker manifest create $(UTILS_RELEASE_IMAGE) \
+		--amend $(UTILS_RELEASE_IMAGE)-amd64 \
+		--amend $(UTILS_RELEASE_IMAGE)-arm64
+	docker manifest annotate $(UTILS_RELEASE_IMAGE) $(UTILS_RELEASE_IMAGE)-arm64 --arch arm64
+	@echo "Pushing $(UTILS_RELEASE_IMAGE) manifest"
+	docker manifest push $(UTILS_RELEASE_IMAGE)
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
