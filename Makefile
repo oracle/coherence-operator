@@ -270,13 +270,13 @@ build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator 
 # ----------------------------------------------------------------------------------------------------------------------
 #   We copy the Dockerfile to $(BUILD_OUTPUT) only so that we can use it as a conditional build dependency in this Makefile
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
-	docker build --build-arg version=$(VERSION) \
+	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		--build-arg target=amd64 \
 		--platform linux/amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
-	docker build --build-arg version=$(VERSION) \
+	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		--build-arg target=arm64 \
@@ -291,8 +291,8 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 .PHONY: build-utils
 build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
 	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-	docker build --build-arg target=amd64 --platform linux/amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
-	docker build --build-arg target=arm64 --platform linux/arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
+	docker build --no-cache --build-arg target=amd64 --platform linux/amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
+	docker build --no-cache --build-arg target=arm64 --platform linux/arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
 	docker tag $(UTILS_IMAGE)-$(IMAGE_ARCH) $(UTILS_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -479,7 +479,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle-build
 bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
