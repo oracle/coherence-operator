@@ -295,12 +295,15 @@ build-operator-images: $(BUILD_TARGETS)/build-operator build-utils ## Build all 
 .PHONY: build-all-images
 build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images ## Build all images (including tests)
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
+	mkdir -p $(BUILD_BIN)/linux/amd64 || true
+	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager
+	mkdir -p $(BUILD_BIN)/linux/arm64 || true
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/manager main.go
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
@@ -319,6 +322,10 @@ build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	@echo "Building Operator Runner"
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
+	mkdir -p $(BUILD_BIN)/linux/amd64 || true
+	cp -f $(BUILD_BIN)/runner $(BUILD_BIN)/linux/amd64/runner
+	mkdir -p $(BUILD_BIN)/linux/arm64 || true
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator legacy converter
