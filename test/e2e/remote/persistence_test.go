@@ -143,7 +143,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 	// assert that the data is recovered
 	fmt.Println("Checking Canary cache")
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
+	err = waitCanaryCheck(ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
@@ -259,4 +259,14 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 	})
 
 	return err
+}
+
+func waitCanaryCheck(ns, name string) error {
+	return wait.Poll(helper.RetryInterval, helper.Timeout, func() (done bool, err error) {
+		err = helper.CheckCanary(testContext, ns, name)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
 }
