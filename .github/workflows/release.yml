@@ -76,3 +76,9 @@ jobs:
       with:
         name: coherence-operator.yaml
         path: /tmp/coherence-operator/_output/coherence-operator.yaml
+
+    - name: Upload CRD
+      uses: actions/upload-artifact@v1
+      with:
+        name: coherence.oracle.com_coherence.yaml
+        path: /tmp/coherence-operator/_output/manifests/crd/coherence.oracle.com_coherence.yaml

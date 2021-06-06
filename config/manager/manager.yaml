@@ -5,21 +5,29 @@ metadata:
   namespace: default
   labels:
     control-plane: coherence
-    app: coherence-operator
-    version: v3.1.6
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "3.1.6"
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/part-of: coherence-operator
 spec:
   selector:
     matchLabels:
       control-plane: coherence
+      app.kubernetes.io/instance: coherence-operator-manager
+      app.kubernetes.io/version: "3.1.6"
   replicas: 1
   template:
     metadata:
       labels:
         control-plane: coherence
-        app: coherence-operator
-        version: v3.1.6
+        app.kubernetes.io/name: coherence-operator
+        app.kubernetes.io/instance: coherence-operator-manager
+        app.kubernetes.io/version: "3.1.6"
+        app.kubernetes.io/component: manager
+        app.kubernetes.io/part-of: coherence-operator
     spec:
-      serviceAccountName: coherence-operator
+      serviceAccountName: service-account
       terminationGracePeriodSeconds: 10
       containers:
       - name: manager
@@ -76,22 +84,3 @@ spec:
           defaultMode: 420
           secretName: coherence-webhook-server-cert
           optional: true
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rest
-  namespace: default
-  labels:
-    control-plane: coherence
-    app: coherence-operator
-    version: v3.1.6
-spec:
-  ports:
-    - name: http-rest
-      port: 8000
-      targetPort: operator
-  selector:
-    app: coherence-operator
-    control-plane: coherence
-    version: v3.1.6

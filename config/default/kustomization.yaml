@@ -26,4 +26,4 @@ vars:
     objref:
       kind: Service
       version: v1
-      name: webhook-service
+      name: webhook

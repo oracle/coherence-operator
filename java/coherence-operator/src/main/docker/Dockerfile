@@ -1,5 +1,7 @@
 FROM scratch
 
-COPY lib/*.jar  /files/lib/
-COPY logging/   /files/logging/
-COPY runner     /files/runner
+ARG target
+
+COPY lib/*.jar            /files/lib/
+COPY logging/             /files/logging/
+COPY linux/$target/runner /files/runner

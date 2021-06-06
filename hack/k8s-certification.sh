@@ -33,12 +33,6 @@ if [[ $? != 0 ]]; then
   exit 1
 fi
 
-echo "Pushing Images"
-make push-all-images
-if [[ $? != 0 ]]; then
-  exit 1
-fi
-
 if [[ "$LOAD_KIND" == "true" ]]; then
   echo "Loading Images to Kind"
   make kind-load
