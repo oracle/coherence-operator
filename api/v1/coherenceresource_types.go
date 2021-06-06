@@ -19,7 +19,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	crdbeta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -382,17 +381,11 @@ type CoherenceList struct {
 }
 
 // EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-// CRDs will be created depending on the server version of k8s. For k8s v1.16.0 and above
-// the v1 CRDs will be created and for lower than v1.16.0 the v1beta1 CRDs will be created.
+// CRDs will be created depending on the server version of k8s.
 func EnsureCRDs(v *version.Version, scheme *runtime.Scheme, cl client.Client) error {
 	logger := logf.Log.WithName("operator")
-
-	if v.Major() > 1 || (v.Major() == 1 && v.Minor() >= 16) {
-		// k8s v1.16.0 or above - install v1 CRD
-		return EnsureV1CRDs(logger, scheme, cl)
-	}
-	// k8s lower than v1.16.0 - install v1beta1 CRD
-	return EnsureV1Beta1CRDs(logger, scheme, cl)
+	logger.Info(fmt.Sprintf("Ensuring operator CRDs are present (K8s version %v)", v))
+	return EnsureV1CRDs(logger, scheme, cl)
 }
 
 // EnsureV1CRDs ensures that the Operator configuration secret exists in the namespace.
@@ -400,9 +393,8 @@ func EnsureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client) 
 	return ensureV1CRDs(logger, scheme, cl, "crd_v1.yaml")
 }
 
-// EnsureCRD ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
+// ensureV1CRDs ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
 func ensureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client, fileNames ...string) error {
-	logger.Info("Ensuring operator v1 CRDs are present")
 	if err := crdv1.AddToScheme(scheme); err != nil {
 		return err
 	}
@@ -414,7 +406,7 @@ func ensureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client, 
 	return nil
 }
 
-// EnsureCRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
+// ensureV1CRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
 func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
 	f, err := data.Assets.Open(fileName)
 	if err != nil {
@@ -436,81 +428,6 @@ func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
 
 	oldCRD := crdv1.CustomResourceDefinition{}
 	newCRD := crdv1.CustomResourceDefinition{}
-	err = yaml.Unmarshal(yml, &newCRD)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Loading operator CRD yaml from '" + fileName + "'")
-
-	// Get the existing CRD
-	err = cl.Get(context.TODO(), client.ObjectKey{Name: newCRD.Name}, &oldCRD)
-	switch {
-	case err == nil:
-		// CRD exists so update it
-		logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-		newCRD.ResourceVersion = oldCRD.ResourceVersion
-		err = cl.Update(context.TODO(), &newCRD)
-		if err != nil {
-			return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
-		}
-	case apierrors.IsNotFound(err):
-		// CRD does not exist so create it
-		logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-		err = cl.Create(context.TODO(), &newCRD)
-		if err != nil {
-			return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
-		}
-	default:
-		// An error occurred
-		logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-		return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
-	}
-
-	return nil
-}
-
-// EnsureV1Beta1CRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1Beta1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client) error {
-	return ensureV1Beta1CRDs(logger, scheme, cl, "crd_v1beta1.yaml")
-}
-
-// EnsureCRD ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
-func ensureV1Beta1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client, fileNames ...string) error {
-	logger.Info("Ensuring operator v1beta1 CRDs are present")
-	if err := crdbeta1.AddToScheme(scheme); err != nil {
-		return err
-	}
-	for _, fileName := range fileNames {
-		if err := ensureV1Beta1CRD(logger, cl, fileName); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// EnsureCRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
-func ensureV1Beta1CRD(logger logr.Logger, cl client.Client, fileName string) error {
-	f, err := data.Assets.Open(fileName)
-	if err != nil {
-		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
-	}
-	//goland:noinspection GoUnhandledErrorResult
-	defer f.Close()
-
-	yml, err := ioutil.ReadAll(f)
-	if err != nil {
-		return errors.Wrap(err, "reading embedded CRD asset "+fileName)
-	}
-
-	u := unstructured.Unstructured{}
-	err = yaml.Unmarshal(yml, &u)
-	if err != nil {
-		return err
-	}
-
-	oldCRD := crdbeta1.CustomResourceDefinition{}
-	newCRD := crdbeta1.CustomResourceDefinition{}
 	err = yaml.Unmarshal(yml, &newCRD)
 	if err != nil {
 		return err

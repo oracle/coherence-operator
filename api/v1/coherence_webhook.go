@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -30,7 +30,7 @@ func (in *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // The path in this annotation MUST match the const below
 // +kubebuilder:webhook:path=/mutate-coherence-oracle-com-v1-coherence,mutating=true,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,verbs=create;update,versions=v1,name=mcoherence.kb.io
 
-// This const MUST match the path in the kubebuilder annotation above
+// MutatingWebHookPath This const MUST match the path in the kubebuilder annotation above
 const MutatingWebHookPath = "/mutate-coherence-oracle-com-v1-coherence"
 
 // An anonymous var to ensure that the Coherence struct implements webhook.Defaulter
@@ -66,7 +66,7 @@ func (in *Coherence) Default() {
 // The path in this annotation MUST match the const below
 // +kubebuilder:webhook:verbs=create;update,path=/validate-coherence-oracle-com-v1-coherence,mutating=false,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,versions=v1,name=vcoherence.kb.io
 
-// This const MUST match the path in the kubebuilder annotation above
+// ValidatingWebHookPath This const MUST match the path in the kubebuilder annotation above
 const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
 
 // An anonymous var to ensure that the Coherence struct implements webhook.Validator

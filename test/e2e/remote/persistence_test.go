@@ -143,7 +143,7 @@ func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isR
 
 	// assert that the data is recovered
 	fmt.Println("Checking Canary cache")
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
+	err = helper.CheckCanaryEventuallyGood(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data

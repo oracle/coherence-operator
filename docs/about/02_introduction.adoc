@@ -22,7 +22,7 @@ It is distributed as a Docker image and Helm chart for easy installation and con
 Using the Coherence Operator to manage Coherence clusters running in Kubernetes has many advantages over just deploying
 and running clusters with the resources provided by Kubernetes.
 Coherence can be treated as just another library that your application depends on and uses and hence, a Coherence
-application can run in Kubernetes without requiring the Operator, but if the Operator is not being used then there are
+application can run in Kubernetes without requiring the Operator, but in this case there are
 a number of things that the DevOps team for an application would need to build or do manually.
 
 === Cluster Discovery

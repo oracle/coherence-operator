@@ -5,6 +5,7 @@
 #
 FROM scratch
 
+ARG target
 ARG version
 ARG coherence_image
 ARG utils_image
@@ -15,5 +16,5 @@ LABEL "com.oracle.coherence.version"="$version"
 ENV COHERENCE_IMAGE=$coherence_image \
     UTILS_IMAGE=$utils_image
 
-COPY bin/manager  .
+COPY bin/linux/$target/manager  .
 ENTRYPOINT ["/manager"]
