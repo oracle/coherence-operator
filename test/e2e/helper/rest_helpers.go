@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
 	"strings"
 	"time"
@@ -21,12 +22,23 @@ func StartCanary(ctx TestContext, namespace, deploymentName string) error {
 	return canary(ctx, namespace, deploymentName, "canaryStart", http.MethodPut)
 }
 
-// Invoke the canary test in the deployment being scaled.
+// CheckCanary invokes the canary test in the deployment..
 func CheckCanary(ctx TestContext, namespace, deploymentName string) error {
 	return canary(ctx, namespace, deploymentName, "canaryCheck", http.MethodGet)
 }
 
-// Clear the canary test in the deployment being scaled.
+// CheckCanaryEventuallyGood invokes the canary test in the deployment in a loop to ensure it is eventually ok.
+func CheckCanaryEventuallyGood(ctx TestContext, namespace, deploymentName string) error {
+	return wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = CheckCanary(ctx, namespace, deploymentName)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+}
+
+// ClearCanary clears the canary test in the deployment.
 func ClearCanary(ctx TestContext, namespace, deploymentName string) error {
 	return canary(ctx, namespace, deploymentName, "canaryClear", http.MethodPost)
 }

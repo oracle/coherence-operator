@@ -85,7 +85,7 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
+	err = helper.CheckCanaryEventuallyGood(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
@@ -144,7 +144,7 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
+	err = helper.CheckCanaryEventuallyGood(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
@@ -214,7 +214,7 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the data is recovered
-	err = helper.CheckCanary(testContext, ns, deployment.GetName())
+	err = helper.CheckCanaryEventuallyGood(testContext, ns, deployment.GetName())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// cleanup the data
