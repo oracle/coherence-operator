@@ -2,13 +2,86 @@
 
 == Overview
 
-Coherence Operator 3.1.15 and later supports Istio 1.9.1 and later. You can run the operator and Coherence cluster managed by the operator with Istio sidecar injection enabled.  Coherence caches can be accessed from outside via Coherence*Extend, REST, and other supported Coherence clients.  
+Coherence Operator 3.1.15 and later works with Istio 1.9.1 and later. You can run the operator and Coherence cluster managed by the operator with Istio sidecar injection.  Coherence caches can be accessed from outside the Coherence cluster via Coherence*Extend, REST, and other supported Coherence clients.  
 
-== Limitations
+NOTE: 
+----
+* These instructions assume that you are using a Kubernetes cluster with Istio installed and configured already.
+* You do not need to run Coherence operator with Istio sidecar injection in order for Coherence cluster to run with Istio sidecar injection. 
 
-The current support for Istio has the following limitation:
+== Using the Coherence operator with Istio
 
- * TLS between cluster members do not work in Istio environment. Coherence client can support TLS through Istio secure gateway with TLS termination to connect to Coherence cluster running inside kubernetes.  For example, you can apply the following Istio gateway and and virtual service in the namespace of the Coherence cluster:
+To use Coherence operator with Istio, you can deploy the operator into a namespace which has Istio automatic sidecar injection enabled.  Before installing the operator, create the namespace in which you want to run the Coherence operator and label it for automatic injection.
+
+
+[source,bash]
+----
+kubectl create namespace coherence
+kubectl label namespace coherence istio-injection=enabled
+----
+
+Istio Sidecar AutoInjection is done automatically when you label the coherence namespace with istio-injection.
+
+After the namespace is labeled, you can install the operator using your preferred method in the Operator https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
+
+After installed operator, use the following command to confirm the operator is running:
+
+[source,bash]
+----
+kubectl get pods -n coherence
+
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-7d76f9f475-q2vwv   2/2     Running   1          17h
+----
+
+2/2 in READY column means that there are 2 containers running in the operator Pod. One is Coherence operator and the other is Envoy Proxy.
+
+== Creating a Coherence cluster with Istio
+
+You can configure your cluster to run with Istio automatic sidecar injection enabled. Before creating your cluster, create the namespace in which you want to run the cluster and label it for automatic injection.
+
+[source,bash]
+----
+kubectl create namespace coherence-example
+kubectl label namespace coherence-example istio-injection=enabled
+----
+
+There is no other requirements to run Coherence in Istio environment.
+
+The following is an example that creates a cluster named example-cluster-storage:
+
+example.yaml
+[source,bash]
+----
+# Example
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: example-cluster-storage
+----
+
+[source,bash]
+----
+$ kubectl -n coherence-example apply -f example.yaml
+----
+
+After you installed the Coherence cluster, run the following command to view the pods:
+
+[source,bash]
+----
+$ kubectl -n coherence-example get pods
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+example-cluster-storage-0                        2/2     Running   0          45m
+example-cluster-storage-1                        2/2     Running   0          45m
+example-cluster-storage-2                        2/2     Running   0          45m
+----
+
+You can see that 3 members in the cluster are running with 3 pods. 2/2 in READY column means that there are 2 containers running in each Pod. One is Coherence member and the other is Envoy Proxy.
+
+== TLS
+
+Coherence client can support TLS through Istio secure gateway with TLS termination to connect to Coherence cluster running inside kubernetes.  For example, you can apply the following Istio gateway and and virtual service in the namespace of the Coherence cluster:
 
 tlsGateway.yaml
 [source,bash]
@@ -33,7 +106,6 @@ spec:
     - "*"
 ----
 
-
 tlsVS.yaml
 [source,bash]
 ----
@@ -55,115 +127,57 @@ spec:
         host: example-cluster-proxy-proxy  # the ClusterIP service name of the proxy server
 ----
 
-Then a Coherence*Extend client can connect to the proxy server via TLS protocol at port 8043.
+Then a Coherence*Extend client can connect to the proxy server via TLS protocol at port 8043.  Below is an example of a <remoce-cache-scheme> configuration of a TLS Extend client for the above secure gateway example.  The server.jks in <trust-manager> must contain the same key/certificate as the one used by the gateway.
 
-== Using the Coherence operator with Istio
-
-NOTE: These instructions assume that you are using a Kubernetes cluster with Istio installed and configured already.
-
-You can deploy the operator into a namespace which has Istio automatic sidecar injection enabled. Before installing the operator, create the namespace in which you want to run the Coherence operator and label it.
-
-[source,bash]
+client-cache-config.xml
 ----
-kubectl create namespace coherence-operator
+...
+    <remote-cache-scheme>
+        <scheme-name>extend-direct</scheme-name>
+        <service-name>ExtendTcpProxyService</service-name>
+        <initiator-config>
+            <tcp-initiator>
+                <socket-provider>
+                    <ssl>
+                        <protocol>TLS</protocol>
+                        <trust-manager>
+                            <algorithm>PeerX509</algorithm>
+                            <key-store>
+                                <url>file:server.jks</url>
+                                <password>password</password>
+                            </key-store>
+                        </trust-manager>
+                    </ssl>
+                </socket-provider>
+                <remote-addresses>
+                    <socket-address>
+                        <address>127.0.0.1</address>
+                        <port>8043</port>
+                    </socket-address>
+                </remote-addresses>
+            </tcp-initiator>
+        </initiator-config>
+    </remote-cache-scheme>
+...
 ----
-
-Istio Sidecar AutoInjection is done automatically if you label coherence-operator namespace with istio-injection. If you want to implement manual injection with the deployments then you need to use istioctl kube-inject.
-
-[source,bash]
-----
-kubectl label namespace coherence-operator istio-injection=enabled
-----
-
-After the namespace is labeled, you can install the operator using your preferred method in the Operator https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
-
-After installed operator, use the following command to confirm the operator is running:
-
-[source,bash]
-----
-kubectl get pods -n coherence-operator
-----
-
-== Creating a Coherence cluster with Istio support
-
-You can configure your cluster to run with Istio automatic sidecar injection enabled. Before creating your cluster, create the namespace in which you want to run the cluster and label it for automatic injection.
-
-[source,bash]
-----
-kubectl create namespace coherence-cluster
-kubectl label namespace coherence-cluster istio-injection=enabled
-----
-
-There is no other requirements to run Coherence in Istio environment.
-
-The following is an example that creates a cluster named example-cluster:
-
-example.yaml
-[source,bash]
-----
-# Example
-apiVersion: coherence.oracle.com/v1
-kind: Coherence
-metadata:
-  name: example-cluster
-----
-
-[source,bash]
-----
-$ kubectl -n coherence-cluster apply -f example.yaml
-----
-
-After you installed the Coherence cluster, run the following command to view the pods:
-
-[source,bash]
-----
-$ kubectl -n coherence-cluster get pods
-
-NAME                                             READY   STATUS    RESTARTS   AGE
-example-cluster-0                                2/2     Running   0          45m
-example-cluster-1                                2/2     Running   0          45m
-example-cluster-2                                2/2     Running   0          45m
-----
-
-You can see that 3 members in the cluster are running with 3 pods. 2/2 in READY column means that there are 2 containers running in each Pod. One is Coherence member and the other is Envoy Proxy.
+ 
 
 == Prometheus
 
-You can use Prometheus with Istio to record metrics that track the health of Istio and of Coherence cluster within the service mesh and view them through Granfana. 
+The coherence metrics that record and track the health of Coherence cluster using Prometheus are also available in Istio environment and can be viewed through Granfana.  However, Coherence cluster traffic is not visible by Istio.
 
-== Traffic Management
+== Traffic Visualization
 
-Istio provides traffic management capabilities, including the ability to visualize traffic in Kiali. You do not need to change your applications to use this feature. The Istio proxy (envoy) sidecar that is injected into your pods provides it. The image below shows an example with traffic flowing: In from the Istio gateway on the left, to a cluster called example-cluster in the coherence-example namespace.
-
-In this example, you can see how the traffic flows to the cluster services and then to the individual cluster members.  This example has storage members (example-cluster-storage), a member running proxy service (example-cluster-proxy), and a member running http server (example-cluster-rest).  
+Istio provides traffic management capabilities, including the ability to visualize traffic in Kiali. You do not need to change your applications to use this feature. The Istio proxy (envoy) sidecar that is injected into your pods provides it. The image below shows an example with traffic flow. In this example, you can see how the traffic flows in from the Istio gateway on the left, to the cluster services, and then to the individual cluster members.  This example has storage members (example-cluster-storage), a proxy member running proxy service (example-cluster-proxy), and a REST member running http server (example-cluster-rest).  However, Coherence cluster traffic between members is not visible.  
 
 image::../images/istioKiali.png[width=1024,height=512]
 
 To learn more, see https://istio.io/latest/docs/concepts/traffic-management/[Istio traffic management].
 
-== Distributed Tracing
 
-Istio provides distributed tracing capabilities, including the ability to view traces in Jaeger. In order to use distributed tracing, you will need to enable Coherence Distributed Tracing. For example:
+== Limitations
 
-example.yaml
-[source,bash]
-----
-# Example
-apiVersion: coherence.oracle.com/v1
-kind: Coherence
-metadata:
-  name: example-cluster
-spec:
-  coherence:
-    tracing:
-      ratio: 1
-----
+The current support for Istio has the following limitation:
 
-The images below show an example of a distributed trace flow and details of a trace span.
+ * Ports that are exposed in the ports list are intercepted by Envoy proxies, thus break Coherence cluster traffic. As a result, Coherence cluster traffic must passthrough Envoy proxies.
 
-image::../images/istioJaeger.png[width=1024,height=512]
-
-
-image::../images/istioJaeger2.png[width=1024,height=512]
-
-To learn more, see https://istio.io/latest/docs/tasks/observability/distributed-tracing/[distrubting tracing in Istio].
