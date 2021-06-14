@@ -138,7 +138,7 @@ jobs:
         make e2e-helm-test
 
     - name: Deploy Snapshots
-      if: success()
+      if: ${{ github.ref == 'refs/heads/master' && success() }}
       env:
         MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
         MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
