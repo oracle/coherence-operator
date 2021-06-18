@@ -30,8 +30,8 @@ BUILD_INFO      := "$(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)"
 
 CURRDIR         := $(shell pwd)
 
-ARCH            ?= amd64
 IMAGE_ARCH      ?= amd64
+ARCH            ?= amd64
 OS              ?= linux
 UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
@@ -344,7 +344,7 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 converter: $(BUILD_BIN)/converter $(BUILD_BIN)/converter-linux-amd64 $(BUILD_BIN)/converter-darwin-amd64 $(BUILD_BIN)/converter-windows-amd64
 
 $(BUILD_BIN)/converter: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(OS) GOARCH=$(ARCH) go build -o $(BUILD_BIN)/converter ./converter
+	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter ./converter
 
 $(BUILD_BIN)/converter-linux-amd64: $(BUILD_PROPS) $(GOS)
 	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./converter
