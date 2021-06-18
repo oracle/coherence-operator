@@ -8,16 +8,11 @@ package com.oracle.coherence.k8s;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.net.InetSocketAddress;
-
 import java.net.URL;
-
 import java.nio.charset.StandardCharsets;
-
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -25,9 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import java.util.function.Supplier;
-
 import java.util.stream.Collectors;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -39,19 +32,14 @@ import javax.net.ssl.TrustManagerFactory;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl$SnapshotController;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
-
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
-
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
-
-import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
-
 import com.tangosol.util.Filters;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -724,7 +712,8 @@ public class OperatorRestServer implements AutoCloseable {
                         int partitionCount = partitionedCache.getPartitionCount();
                         int ownedPartitions = partitionedCache.calculateThisOwnership(true);
                         if (ownedPartitions != partitionCount) {
-                            logDebug("CoherenceOperator: StatusHA check failed. Service %s is only storage enabled member but owns %d of %d partitions",
+                            logDebug("CoherenceOperator: StatusHA check failed. "
+                                             + "Service %s is only storage enabled member but owns %d of %d partitions",
                                      name, ownedPartitions, partitionCount);
                             return false;
                         }
@@ -732,7 +721,10 @@ public class OperatorRestServer implements AutoCloseable {
 
                     String statusHA = partitionedCache.getBackupStrengthName();
                     int backupCount = partitionedCache.getBackupCount();
-                    if (memberCount > 1 && backupCount > 0 && STATUS_ENDANGERED.equals(statusHA) && !allowEndangered.contains(name)) {
+                    if (memberCount > 1
+                        && backupCount > 0
+                        && STATUS_ENDANGERED.equals(statusHA)
+                        && !allowEndangered.contains(name)) {
                         err("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s", name, statusHA);
                         return false;
                     }
