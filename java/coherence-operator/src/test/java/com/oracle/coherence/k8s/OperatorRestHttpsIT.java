@@ -15,8 +15,11 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import com.tangosol.net.DefaultCacheServer;
+
 import com.oracle.bedrock.runtime.LocalPlatform;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.coherence.k8s.OperatorRestServer.PROP_HEALTH_LOG;
@@ -40,6 +43,11 @@ public class OperatorRestHttpsIT {
 
     private final LocalPlatform platform = LocalPlatform.get();
 
+    @BeforeAll
+    static void setup() {
+        DefaultCacheServer.startServerDaemon().waitForServiceStart();
+    }
+
     @Test
     public void shouldBeInsecure() throws Exception {
         Properties properties = getProperties();
@@ -48,7 +56,7 @@ public class OperatorRestHttpsIT {
         try (OperatorRestServer server = new OperatorRestServer(properties)) {
             server.start();
             HttpURLConnection connection = readyRequestHttp(server);
-            assertThat(connection.getResponseCode(), is(400));
+            assertThat(connection.getResponseCode(), is(200));
         }
     }
 
@@ -59,7 +67,7 @@ public class OperatorRestHttpsIT {
         try (OperatorRestServer server = new OperatorRestServer(properties)) {
             server.start();
             HttpURLConnection connection = readyRequestTLS(server);
-            assertThat(connection.getResponseCode(), is(400));
+            assertThat(connection.getResponseCode(), is(200));
         }
     }
 

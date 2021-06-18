@@ -11,10 +11,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
+import com.oracle.coherence.common.io.Files;
+
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
+import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Service;
@@ -24,6 +27,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
@@ -274,14 +278,18 @@ public class OperatorRestServerIT {
     }
 
     @Test
-    public void shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence() {
+    public void shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence() throws Exception {
         File buildDir = MavenProjectFileUtils.ensureTestOutputFolder(getClass(), "shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence");
         File activeDir = new File(buildDir, "persistence");
         LocalPlatform platform = LocalPlatform.get();
         Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
 
-        activeDir.mkdirs();
+        // ensure the active directory is removed if it exists so that we do not have data from a previous test
+        if (activeDir.exists()) {
+            FileHelper.deleteDir(activeDir);
+        }
+        assertThat(activeDir.mkdirs(), is(true));
         activeDir.deleteOnExit();
 
         try (JavaApplication app1 = platform.launch(JavaApplication.class,
@@ -289,6 +297,7 @@ public class OperatorRestServerIT {
                                                     CacheConfig.of("test-cache-config.xml"),
                                                     OperationalOverride.of("k8s-coherence-override.xml"),
                                                     LocalStorage.enabled(),
+                                                    Logging.at(9),
                                                     testLogs.builder(),
                                                     DisplayName.of("storage"),
                                                     SystemProperty.of("coherence.distributed.persistence-mode", "active"),
@@ -300,6 +309,7 @@ public class OperatorRestServerIT {
                                                         CacheConfig.of("test-cache-config.xml"),
                                                         OperationalOverride.of("k8s-coherence-override.xml"),
                                                         LocalStorage.disabled(),
+                                                        Logging.at(9),
                                                         testLogs.builder(),
                                                         DisplayName.of("storage-disabled"),
                                                         SystemProperty.of("coherence.k8s.operator.health.logs", true),
@@ -386,6 +396,8 @@ public class OperatorRestServerIT {
                                                     SystemProperty.of("coherence.distributed.backupcount", 2),
                                                     testLogs.builder(),
                                                     DisplayName.of("storage-0"),
+                                                    Logging.at(9),
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_LOG, true),
                                                     SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
@@ -393,9 +405,11 @@ public class OperatorRestServerIT {
                                                         CacheConfig.of("test-cache-config.xml"),
                                                         OperationalOverride.of("k8s-coherence-override.xml"),
                                                         testLogs.builder(),
+                                                        Logging.at(9),
                                                         DisplayName.of("storage-1"),
                                                         SystemProperty.of(OperatorRestServer.PROP_ALLOW_ENDANGERED, "PartitionedCacheOne,$SYS:Config"),
                                                         SystemProperty.of("coherence.distributed.backupcount", 2),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_LOG, true),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app2), is(true));
