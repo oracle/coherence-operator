@@ -123,6 +123,7 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-Dcoherence.distributed.persistence-mode=on-demand",
 		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
 		"-Dcoherence.ipmonitor.pingtimeout=0",
+		"-Dcoherence.k8s.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
 		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",
