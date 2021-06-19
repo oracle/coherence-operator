@@ -11,6 +11,7 @@ spec:
   jvm:
     args:
       - -Dcoherence.log=jdk
+      - -Dcoherence.k8s.operator.health.logs=true
   ports:
     - name: web
       port: 8080
