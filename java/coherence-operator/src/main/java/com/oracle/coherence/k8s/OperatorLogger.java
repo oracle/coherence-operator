@@ -18,22 +18,63 @@ public interface OperatorLogger {
      */
     String PROP_LOGGER = "coherence.k8s.operator.health.logger";
 
+    /**
+     * The {@link #PROP_LOGGER} value to log to std-err.
+     */
     String LOGGER_STD_ERR = "err";
 
+    /**
+     * The {@link #PROP_LOGGER} value to log to std-out.
+     */
     String LOGGER_STD_OUT = "out";
 
+    /**
+     * The {@link #PROP_LOGGER} value to log to a Java util logger.
+     */
     String LOGGER_JAVA = "jdk";
 
+    /**
+     * The {@link #PROP_LOGGER} value to log to the Coherence logger.
+     */
     String LOGGER_COHERENCE = "coh";
 
+    /**
+     * Log a debug message.
+     *
+     * @param msg   the log message
+     * @param args  any arguments to apply to the log message using {@link String#format(String, Object...)}
+     */
     void debug(String msg, Object... args);
 
+    /**
+     * Log an info message.
+     *
+     * @param msg   the log message
+     * @param args  any arguments to apply to the log message using {@link String#format(String, Object...)}
+     */
     void info(String msg, Object... args);
 
+    /**
+     * Log a warning message.
+     *
+     * @param msg   the log message
+     * @param args  any arguments to apply to the log message using {@link String#format(String, Object...)}
+     */
     void warn(String msg, Object... args);
 
+    /**
+     * Log an error message.
+     *
+     * @param msg   the log message
+     * @param args  any arguments to apply to the log message using {@link String#format(String, Object...)}
+     */
     void error(String msg, Object... args);
 
+    /**
+     * Returns the {@link OperatorLogger} to use.
+     *
+     * @return the {@link OperatorLogger} to use
+     */
     static OperatorLogger getLogger() {
         switch (System.getProperty(PROP_LOGGER, LOGGER_COHERENCE)) {
         case LOGGER_JAVA:
@@ -48,6 +89,9 @@ public interface OperatorLogger {
         }
     }
 
+    /**
+     * An {@link OperatorLogger} that logs to the Coherence logger.
+     */
     class CoherenceLogger implements OperatorLogger {
         @Override
         public void debug(String msg, Object... args) {
@@ -78,6 +122,9 @@ public interface OperatorLogger {
         }
     }
 
+    /**
+     * An {@link OperatorLogger} that logs to the Java util logger.
+     */
     class JavaLogger implements OperatorLogger {
         private static final Logger LOGGER = Logger.getLogger(OperatorLogger.class.getName());
 
@@ -102,12 +149,20 @@ public interface OperatorLogger {
         }
     }
 
+    /**
+     * An {@link OperatorLogger} that logs to a {@link PrintStream}.
+     */
     class PrintLogger implements OperatorLogger {
         private static final Logger LOGGER = Logger.getLogger(OperatorLogger.class.getName());
 
         private final PrintStream out;
 
-        public PrintLogger(PrintStream out) {
+        /**
+         * Create a {@link PrintLogger}.
+         *
+         * @param out  the {@link PrintStream} to log to
+         */
+        PrintLogger(PrintStream out) {
             this.out = out;
         }
 

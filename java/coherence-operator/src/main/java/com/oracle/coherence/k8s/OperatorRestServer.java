@@ -565,7 +565,8 @@ public class OperatorRestServer implements AutoCloseable {
                             cluster.suspendService(name);
                         }
                         else {
-                            LOGGER.info("CoherenceOperator: Not suspending service %s - is storage enabled in other deployments", name);
+                            LOGGER.info("CoherenceOperator: Not suspending service %s - "
+                                                + "is storage enabled in other deployments", name);
                         }
                     }
                 }
