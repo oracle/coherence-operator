@@ -2,12 +2,29 @@
 
 == Overview
 
-Coherence Operator 3.1.15 and later works with Istio 1.9.1 and later. You can run the operator and Coherence cluster managed by the operator with Istio sidecar injection.  Coherence caches can be accessed from outside the Coherence cluster via Coherence*Extend, REST, and other supported Coherence clients.  
+Coherence Operator 3.1.6 and later works with Istio 1.9.1 and later. You can run the operator and Coherence cluster managed by the operator with Istio. Coherence caches can be accessed from outside the Coherence cluster via Coherence*Extend, REST, and other supported Coherence clients. Using Coherence clusters with Istio does not require the Coherence Operator to also be using Istio (and vice-versa) . The Coherence Operator can manage Coherence clusters independent of whether those clusters are using Istio or not.
 
-NOTE: 
-----
-* These instructions assume that you are using a Kubernetes cluster with Istio installed and configured already.
-* You do not need to run Coherence operator with Istio sidecar injection in order for Coherence cluster to run with Istio sidecar injection. 
+== Prometheus
+
+The coherence metrics that record and track the health of Coherence cluster using Prometheus are also available in Istio environment and can be viewed through Granfana.  However, Coherence cluster traffic is not visible by Istio.
+
+== Traffic Visualization
+
+Istio provides traffic management capabilities, including the ability to visualize traffic in Kiali. You do not need to change your applications to use this feature. The Istio proxy (envoy) sidecar that is injected into your pods provides it. The image below shows an example with traffic flow. In this example, you can see how the traffic flows in from the Istio gateway on the left, to the cluster services, and then to the individual cluster members.  This example has storage members (example-cluster-storage), a proxy member running proxy service (example-cluster-proxy), and a REST member running http server (example-cluster-rest).  However, Coherence cluster traffic between members is not visible.
+
+image::../images/istioKiali.png[width=1024,height=512]
+
+To learn more, see https://istio.io/latest/docs/concepts/traffic-management/[Istio traffic management].
+
+== Limitations
+
+The current support for Istio has the following limitation:
+
+ * Ports that are exposed in the ports list of pod spec are intercepted by Envoy proxies, thus break Coherence cluster traffic. As a result, Coherence cluster traffic must passthrough Envoy proxies.
+
+== Prerequisites
+
+The instructions assume that you are using a Kubernetes cluster with Istio installed and configured already.
 
 == Using the Coherence operator with Istio
 
@@ -81,7 +98,21 @@ You can see that 3 members in the cluster are running with 3 pods. 2/2 in READY 
 
 == TLS
 
-Coherence client can support TLS through Istio secure gateway with TLS termination to connect to Coherence cluster running inside kubernetes.  For example, you can apply the following Istio gateway and and virtual service in the namespace of the Coherence cluster:
+Coherence cluster works with mTLS. Coherence client can also support TLS through Istio Gateway with TLS termination to connect to Coherence cluster running inside kubernetes.  For example, you can apply the following Istio Gateway and Virtual Service in the namespace of the Coherence cluster.  Before applying the gateway, create a secret for the credential from the certiticate and key (e.g. server.crt and server.key) to be used by the Gateway:
+
+[source,bash]
+----
+kubectl create -n istio-system secret tls extend-credential --key=server.key --cert=server.crt
+----
+
+Then, create a keystore (server.jks) to be used by the Coherence Extend client, e.g.:
+[source,bash]
+----
+openssl pkcs12 -export -in server.crt -inkey server.key -chain -CAfile ca.crt -name "server" -out server.p12
+
+keytool -importkeystore -deststorepass password -destkeystore server.jks -srckeystore server.p12 -srcstoretype PKCS12
+----
+
 
 tlsGateway.yaml
 [source,bash]
@@ -100,7 +131,7 @@ spec:
       protocol: TLS
     tls:
       mode: SIMPLE
-      credentialName: "extend-credential" # must be the same as secret for the TLS key and cert
+      credentialName: "extend-credential" # the secret created in the previous step
       maxProtocolVersion: TLSV1_3
     hosts:
     - "*"
@@ -122,12 +153,18 @@ spec:
   - match:
     route:
     - destination:
-        port:
-          number: 20000                    # the proxy server listening port
-        host: example-cluster-proxy-proxy  # the ClusterIP service name of the proxy server
+        host: example-cluster-proxy-proxy  # the service name used to expose the Extend proxy port
 ----
 
-Then a Coherence*Extend client can connect to the proxy server via TLS protocol at port 8043.  Below is an example of a <remoce-cache-scheme> configuration of a TLS Extend client for the above secure gateway example.  The server.jks in <trust-manager> must contain the same key/certificate as the one used by the gateway.
+Apply the Gateway and VirtualService:
+
+[source,bash]
+----
+kubectl apply -f tlsGateway.yaml -n coherence-example
+kubectl apply -f tlsVS.yaml -n coherence-example
+----
+
+Then configure a Coherence*Extend client to connect to the proxy server via TLS protocol.  Below is an example of a <remoce-cache-scheme> configuration of an Extend client using TLS port 8043 configured in the Gateway and server.jks created earlier in the example.
 
 client-cache-config.xml
 ----
@@ -151,7 +188,7 @@ client-cache-config.xml
                 </socket-provider>
                 <remote-addresses>
                     <socket-address>
-                        <address>127.0.0.1</address>
+                        <address>$INGRESS_HOST</address>
                         <port>8043</port>
                     </socket-address>
                 </remote-addresses>
@@ -160,24 +197,10 @@ client-cache-config.xml
     </remote-cache-scheme>
 ...
 ----
- 
 
-== Prometheus
+If you are using Docker for Desktop, $INGRESS_HOST is 127.0.0.1 and you can use the Kubectl port-forward to allow the Extend client to access the Coherence cluster from your localhost: 
 
-The coherence metrics that record and track the health of Coherence cluster using Prometheus are also available in Istio environment and can be viewed through Granfana.  However, Coherence cluster traffic is not visible by Istio.
-
-== Traffic Visualization
-
-Istio provides traffic management capabilities, including the ability to visualize traffic in Kiali. You do not need to change your applications to use this feature. The Istio proxy (envoy) sidecar that is injected into your pods provides it. The image below shows an example with traffic flow. In this example, you can see how the traffic flows in from the Istio gateway on the left, to the cluster services, and then to the individual cluster members.  This example has storage members (example-cluster-storage), a proxy member running proxy service (example-cluster-proxy), and a REST member running http server (example-cluster-rest).  However, Coherence cluster traffic between members is not visible.  
-
-image::../images/istioKiali.png[width=1024,height=512]
-
-To learn more, see https://istio.io/latest/docs/concepts/traffic-management/[Istio traffic management].
-
-
-== Limitations
-
-The current support for Istio has the following limitation:
-
- * Ports that are exposed in the ports list are intercepted by Envoy proxies, thus break Coherence cluster traffic. As a result, Coherence cluster traffic must passthrough Envoy proxies.
-
+[source,bash]
+----
+kubectl port-forward -n istio-system <istio-ingressgateway-pod> 8043:8043
+----
