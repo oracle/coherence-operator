@@ -438,6 +438,7 @@ public class OperatorRestServer implements AutoCloseable {
      */
     void ready(HttpExchange exchange) {
         try {
+            logDebug("CoherenceOperator: Ready check request");
             boolean hasCluster = hasClusterMembers();
             int response = 400;
             if (hasBeenReady) {
@@ -659,7 +660,9 @@ public class OperatorRestServer implements AutoCloseable {
      */
     boolean isStatusHA(String exclusions) {
         try {
+            logDebug("CoherenceOperator: StatusHA check. Waiting for service start...");
             waitForServiceStart.run();
+            logDebug("CoherenceOperator: StatusHA check. services started");
 
             Set<String> allowEndangered;
             if (exclusions != null) {
