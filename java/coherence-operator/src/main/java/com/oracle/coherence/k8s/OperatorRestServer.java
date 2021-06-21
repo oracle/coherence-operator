@@ -52,7 +52,11 @@ import com.sun.net.httpserver.HttpsServer;
  * Simple http endpoint for heath checking.
  */
 public class OperatorRestServer implements AutoCloseable {
-    // ----- constants ------------------------------------------------------
+
+    /**
+     * The Java logger to use.
+     */
+    private static final OperatorLogger LOGGER = OperatorLogger.getLogger();
 
     /**
      * The system property to use to set the health logging.
@@ -270,6 +274,7 @@ public class OperatorRestServer implements AutoCloseable {
 
             server.setExecutor(null); // creates a default executor
             server.start();
+            System.out.println("Coherence Operator: listening on " + server.getAddress());
 
             httpServer = server;
         }
@@ -484,7 +489,7 @@ public class OperatorRestServer implements AutoCloseable {
             boolean isIdle = isPersistenceIdle();
             int response = isHA && isIdle ? 200 : 400;
             if (response == 400 || LOGGING_ENABLED) {
-                log("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
+                LOGGER.info("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
             }
             send(exchange, response);
         }
@@ -540,11 +545,11 @@ public class OperatorRestServer implements AutoCloseable {
                     send(exchange, 404);
                     return;
                 }
-                warn("CoherenceOperator: Suspending service %s", name);
+                LOGGER.warn("CoherenceOperator: Suspending service %s", name);
                 cluster.suspendService(name);
             }
             else {
-                warn("CoherenceOperator: Suspending all services");
+                LOGGER.warn("CoherenceOperator: Suspending all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
@@ -556,11 +561,11 @@ public class OperatorRestServer implements AutoCloseable {
                                 .distinct()
                                 .count();
                         if (count == 1) {
-                            log("CoherenceOperator: Suspending service %s", name);
+                            LOGGER.info("CoherenceOperator: Suspending service %s", name);
                             cluster.suspendService(name);
                         }
                         else {
-                            log("CoherenceOperator: Not suspending service %s - is storage enabled in other deployments", name);
+                            LOGGER.info("CoherenceOperator: Not suspending service %s - is storage enabled in other deployments", name);
                         }
                     }
                 }
@@ -594,11 +599,11 @@ public class OperatorRestServer implements AutoCloseable {
                     send(exchange, 404);
                     return;
                 }
-                warn("CoherenceOperator: Resuming service %s", name);
+                LOGGER.warn("CoherenceOperator: Resuming service %s", name);
                 cluster.resumeService(name);
             }
             else {
-                warn("CoherenceOperator: Resuming all services");
+                LOGGER.warn("CoherenceOperator: Resuming all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     cluster.resumeService(names.nextElement());
@@ -614,7 +619,7 @@ public class OperatorRestServer implements AutoCloseable {
 
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
-        err("CoherenceOperator: %s failed due to '%s'", action, thrown.getMessage());
+        LOGGER.error("CoherenceOperator: %s failed due to '%s'", action, thrown.getMessage());
         if (msg != null && msg.contains(NO_MANAGED_NODES)) {
             send(t, 400);
         }
@@ -670,13 +675,13 @@ public class OperatorRestServer implements AutoCloseable {
             }
             else {
                 String reason = cluster == null ? "null" : "not running";
-                err("CoherenceOperator: StatusHA check failed - cluster is " + reason);
+                LOGGER.error("CoherenceOperator: StatusHA check failed - cluster is " + reason);
                 return false;
             }
         }
         catch (Exception e) {
             // there is probably no DCS
-            err("CoherenceOperator: StatusHA check failed, %s", e.getMessage());
+            LOGGER.error("CoherenceOperator: StatusHA check failed, %s", e.getMessage());
             return false;
         }
     }
@@ -725,27 +730,27 @@ public class OperatorRestServer implements AutoCloseable {
                         && backupCount > 0
                         && STATUS_ENDANGERED.equals(statusHA)
                         && !allowEndangered.contains(name)) {
-                        err("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s", name, statusHA);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s", name, statusHA);
                         return false;
                     }
 
                     if (partitionedCache.isDistributionInProgress()) {
-                        err("CoherenceOperator: StatusHA check failed. Service %s distribution in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s distribution in progress", name);
                         return false;
                     }
 
                     if (partitionedCache.isRecoveryInProgress()) {
-                        err("CoherenceOperator: StatusHA check failed. Service %s recovery in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s recovery in progress", name);
                         return false;
                     }
 
                     if (partitionedCache.isRestoreInProgress()) {
-                        err("CoherenceOperator: StatusHA check failed. Service %s restore in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s restore in progress", name);
                         return false;
                     }
 
                     if (partitionedCache.isTransferInProgress()) {
-                        err("CoherenceOperator: StatusHA check failed. Service %s transfer in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s transfer in progress", name);
                         return false;
                     }
                 }
@@ -841,39 +846,7 @@ public class OperatorRestServer implements AutoCloseable {
 
     private void logDebug(String message) {
         if (LOGGING_ENABLED) {
-            // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
-            //noinspection deprecation
-            CacheFactory.log(message, CacheFactory.LOG_DEBUG);
+            LOGGER.debug(message);
         }
-    }
-
-    private void log(String message, Object... args) {
-        log(String.format(message, args));
-    }
-
-    private void log(String message) {
-        // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
-        //noinspection deprecation
-        CacheFactory.log(message, CacheFactory.LOG_INFO);
-    }
-
-    private void warn(String message, Object... args) {
-        warn(String.format(message, args));
-    }
-
-    private void warn(String message) {
-        // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
-        //noinspection deprecation
-        CacheFactory.log(message, CacheFactory.LOG_WARN);
-    }
-
-    private void err(String message, Object... args) {
-        err(String.format(message, args));
-    }
-
-    private void err(String message) {
-        // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
-        //noinspection deprecation
-        CacheFactory.log(message, CacheFactory.LOG_ERR);
     }
 }
