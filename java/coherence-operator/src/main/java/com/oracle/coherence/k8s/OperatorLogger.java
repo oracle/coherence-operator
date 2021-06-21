@@ -11,6 +11,10 @@ import java.util.logging.Logger;
 
 import com.tangosol.net.CacheFactory;
 
+/**
+ * A logger for the Coherence Operator that sends messages to a
+ * specific logger implementation.
+ */
 public interface OperatorLogger {
 
     /**
