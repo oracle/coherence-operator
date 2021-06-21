@@ -12,7 +12,7 @@ spec:
     args:
       - -Dcoherence.log=jdk
       - -Dcoherence.k8s.operator.health.logs=true
-      - -Dcoherence.k8s.operator.health.logger=err
+      - -Dcoherence.k8s.operator.health.logger=out
   ports:
     - name: web
       port: 8080

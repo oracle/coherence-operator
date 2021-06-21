@@ -157,7 +157,6 @@ public interface OperatorLogger {
      * An {@link OperatorLogger} that logs to a {@link PrintStream}.
      */
     class PrintLogger implements OperatorLogger {
-        private static final Logger LOGGER = Logger.getLogger(OperatorLogger.class.getName());
 
         private final PrintStream out;
 
@@ -173,21 +172,29 @@ public interface OperatorLogger {
         @Override
         public void debug(String msg, Object... args) {
             out.printf("[DEBUG] " + msg, args);
+            out.println();
+            out.flush();
         }
 
         @Override
         public void info(String msg, Object... args) {
             out.printf("[INFO] " + msg, args);
+            out.println();
+            out.flush();
         }
 
         @Override
         public void warn(String msg, Object... args) {
             out.printf("[WARNING] " + msg, args);
+            out.println();
+            out.flush();
         }
 
         @Override
         public void error(String msg, Object... args) {
             out.printf("[ERROR] " + msg, args);
+            out.println();
+            out.flush();
         }
     }
 }
