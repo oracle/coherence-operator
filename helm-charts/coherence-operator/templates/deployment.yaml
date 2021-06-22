@@ -27,7 +27,7 @@ spec:
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.1.6"
+    app.kubernetes.io/version: "3.2.0"
     app.kubernetes.io/component: manager
 ---
 apiVersion: v1
@@ -75,7 +75,7 @@ spec:
       control-plane: coherence
       app.kubernetes.io/name: coherence-operator
       app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/version: "3.1.6"
+      app.kubernetes.io/version: "3.2.0"
       app.kubernetes.io/component: manager
   template:
     metadata:

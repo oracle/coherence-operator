@@ -498,6 +498,7 @@ func start(details *RunDetails) (string, *exec.Cmd, error) {
 		}
 	}
 
+	details.AddArg(fmt.Sprintf("-Dcoherence.k8s.operator.diagnostics.dir=%s", jvmDir))
 	details.AddArg(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
 
 	if details.IsEnvTrue(v1.EnvVarJvmJmxmpEnabled) {

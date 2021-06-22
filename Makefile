@@ -8,11 +8,11 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.1.6
+VERSION ?= 3.2.0
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.1.2
+PREV_VERSION ?= 3.1.5
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -224,8 +224,8 @@ help: ## Display this help.
 
 ##@ Build
 
-.PHONY: all  ## Build all the Coherence Operator artefacts
-all: java-client build-all-images helm-chart
+.PHONY: all
+all: java-client build-all-images helm-chart ## Build all the Coherence Operator artefacts
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
@@ -358,8 +358,8 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-mvn  ## Build the Java artefacts
-build-mvn:
+.PHONY: build-mvn
+build-mvn: ## Build the Java artefacts
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
 
 # ---------------------------------------------------------------------------
@@ -466,7 +466,7 @@ $(BUILD_OUTPUT)/certs:
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
+bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
 	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -476,11 +476,11 @@ bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests
 # Build the bundle image.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle-build
-bundle-build:
+bundle-build:  ## Build the OLM image
 	docker build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
-bundle-push: ## Push the bundle image.
+bundle-push: ## Push the OLM bundle image.
 	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
 
 
@@ -517,12 +517,12 @@ endif
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
+catalog-build: opm ## Build an OLM catalog image.
 	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
-catalog-push: ## Push a catalog image.
+catalog-push: ## Push an OLM catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
 
