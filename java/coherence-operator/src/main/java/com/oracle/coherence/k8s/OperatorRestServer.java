@@ -29,8 +29,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl$SnapshotController;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
 import com.tangosol.net.CacheFactory;
@@ -776,27 +774,9 @@ public class OperatorRestServer implements AutoCloseable {
         while (names.hasMoreElements()) {
             String name = names.nextElement();
             Service service = cluster.getService(name);
-
-            if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
-                if (service instanceof SafeDistributedCacheService) {
-                    service = ((SafeDistributedCacheService) service).getService();
-                }
-
-                PartitionedCache partitionedCache = (PartitionedCache) service;
-
-                if (partitionedCache.isOwnershipEnabled()) {
-                    // IntelliJ underlines this code red as it thinks it will not compile, but these are TDE
-                    // classes and will compile fine.
-                    PartitionedService$PersistenceControl persistenceControl = partitionedCache.getPersistenceControl();
-                    if (persistenceControl != null) {
-                        PartitionedService$PersistenceControl$SnapshotController snapshotController
-                                = persistenceControl.getSnapshotController();
-                        if (snapshotController != null && !snapshotController.isIdle()) {
-                            logDebug("CoherenceOperator: Persistence not idle for service %s" + name);
-                            allIdle = false;
-                        }
-                    }
-                }
+            if (PersistenceHelper.isActive(service)) {
+                logDebug("CoherenceOperator: Persistence not idle for service %s" + name);
+                allIdle = false;
             }
         }
         return allIdle;
