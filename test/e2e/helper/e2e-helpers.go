@@ -77,7 +77,10 @@ func (in TestContext) Logf(format string, a ...interface{}) {
 
 func (in TestContext) CleanupAfterTest(t *testing.T) {
 	t.Cleanup(func() {
-		DumpOperatorLogs(t, in)
+		if t.Failed() {
+			// dump the logs if the test failed
+			DumpOperatorLogs(t, in)
+		}
 		in.Cleanup()
 	})
 }
