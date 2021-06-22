@@ -402,9 +402,9 @@ public class OperatorRestServer implements AutoCloseable {
     private static void send(HttpExchange t, int status) {
         try {
             t.sendResponseHeaders(status, 0);
-            OutputStream os = t.getResponseBody();
-            os.write(EMPTY_BODY);
-            os.close();
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(EMPTY_BODY);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -422,9 +422,9 @@ public class OperatorRestServer implements AutoCloseable {
         try {
             byte[] bytes = body == null ? EMPTY_BODY : body.getBytes(StandardCharsets.UTF_8);
             t.sendResponseHeaders(status, bytes.length);
-            OutputStream os = t.getResponseBody();
-            os.write(bytes);
-            os.close();
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(bytes);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -446,8 +446,8 @@ public class OperatorRestServer implements AutoCloseable {
                 logDebug("CoherenceOperator: Ready check response %d - cluster=%b", response, hasCluster);
             }
             else {
-                boolean isHA = isStatusHA();
-                boolean isIdle = isPersistenceIdle();
+                boolean isHA = hasCluster && isStatusHA();
+                boolean isIdle = hasCluster && isPersistenceIdle();
                 if (hasCluster && isHA && isIdle) {
                     response = 200;
                     hasBeenReady = true;
