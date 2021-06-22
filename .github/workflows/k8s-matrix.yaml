@@ -8,6 +8,7 @@
 name: K8s Certification
 
 on:
+  workflow_dispatch:
   push:
     branches-ignore:
     - gh-pages

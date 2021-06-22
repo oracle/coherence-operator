@@ -77,7 +77,10 @@ func (in TestContext) Logf(format string, a ...interface{}) {
 
 func (in TestContext) CleanupAfterTest(t *testing.T) {
 	t.Cleanup(func() {
-		DumpOperatorLogs(t, in)
+		if t.Failed() {
+			// dump the logs if the test failed
+			DumpOperatorLogs(t, in)
+		}
 		in.Cleanup()
 	})
 }
@@ -873,6 +876,7 @@ func DumpOperatorLogs(t *testing.T, ctx TestContext) {
 }
 
 func DumpState(ctx TestContext, namespace, dir string) {
+	dumpEvents(namespace, dir, ctx)
 	dumpCoherences(namespace, dir, ctx)
 	dumpStatefulSets(namespace, dir, ctx)
 	dumpServices(namespace, dir, ctx)
@@ -880,6 +884,65 @@ func DumpState(ctx TestContext, namespace, dir string) {
 	dumpRbacRoles(namespace, dir, ctx)
 	dumpRbacRoleBindings(namespace, dir, ctx)
 	dumpServiceAccounts(namespace, dir, ctx)
+}
+
+func dumpEvents(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump events for namespace %s due to %s"
+	list, err := ctx.KubeClient.CoreV1().Events(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := EnsureLogsDir(dir)
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "events.json")
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	_, err = fmt.Fprint(listFile, "[\n")
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for i, item := range list.Items {
+			if i > 0 {
+				_, err = fmt.Fprint(listFile, ",\n")
+				if err != nil {
+					ctx.Logf(message, namespace, err.Error())
+					return
+				}
+			}
+
+			d, err := json.MarshalIndent(item, "", "    ")
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+			_, err = fmt.Fprint(listFile, string(d))
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	}
+
+	_, err = fmt.Fprint(listFile, "]")
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
 }
 
 func dumpCoherences(namespace, dir string, ctx TestContext) {
