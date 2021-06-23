@@ -27,3 +27,8 @@ vars:
       kind: Service
       version: v1
       name: webhook
+  - name: WEBHOOK_SECRET_NAME
+    objref:
+      kind: Secret
+      version: v1
+      name: coherence-webhook-server-cert

@@ -5,6 +5,15 @@ metadata:
     alm-examples: '[ { "apiVersion": "coherence.oracle.com/v1", "kind": "Coherence",
       "metadata": { "name": "coherence-example" }, "spec": { "replicas": 3 } }]'
     capabilities: Full Lifecycle
+    categories: Database
+    certified: 'false'
+    createdAt: ''
+    description: >-
+      Coherence Operator implements features to assist with deploying and
+      managing Coherence clusters in a Kubernetes environment.
+    containerImage: 'ghcr.io/oracle/coherence-operator:3.2.0'
+    support: ''
+    repository: 'https://github.com/oracle/coherence-operator'
     operators.operatorframework.io/builder: operator-sdk-v1.0.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   name: coherence-operator.v3.2.0
@@ -50,6 +59,9 @@ spec:
     url: https://oracle.github.io/coherence-operator/docs/latest
   maturity: alpha
   minKubeVersion: "1.16"
+  maintainers:
+    - name: Jonathan Knight
+      email: jonathan.knight@oracle.com
   provider:
     name: Oracle
     url: https://oracle.github.io/coherence-operator/docs/latest
