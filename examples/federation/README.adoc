@@ -1,0 +1,221 @@
+== Coherence Operator Federation Example
+
+This simple example demostrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
+
+You can find the source code in the https://github.com/oracle/coherence-operator/tree/master/examples/federation[Operator GitHub Repo].
+
+==== What the Example will Cover
+
+* <<install-operator,Install the Coherence Operator>>
+* <<create-the-example-namespace,Create the example namespace>>
+* <<create-secret,Create image pull and config store secrets>>
+* <<example, Run the Example>>
+* <<cleanup, Cleaning Up>>
+
+[#install-operator]
+== Install the Coherence Operator
+
+To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
+
+Once you complete, confirm the operator is running, for example:
+[source,bash]
+----
+kubectl get pods -n coherence
+
+NAME                                                     READY   STATUS    RESTARTS   AGE
+coherence-operator-controller-manager-74d49cd9f9-sgzjr   1/1     Running   1          27s
+----
+
+[#create-the-example-namespace]
+== Create the example namespace
+
+First, run the following command to create the namespace, coherence-example, for the example:
+
+[source,bash]
+----
+kubectl create namespace coherence-example
+
+namespace/coherence-example created
+----
+
+[#create-secret]
+== Create image pull and configure store secrets
+
+This example reqires two secrets:
+
+* An image pull secret named ocr-pull-secret containing your OCR credentials to be used by the example.
+
+Use a command similar to the following to create the image pull secret:
+
+[source,bash]
+----
+kubectl create secret docker-registry ocr-pull-secret \
+    --docker-server=container-registry.oracle.com \
+    --docker-username="<username>" --docker-password="<password>" \
+    --docker-email="<email>" -n coherence-example
+----
+
+* A configure store secret named storage-config to store the Coherence configuration files.
+
+Run the following command to create the configure store secret:
+
+[source,bash]
+----
+kubectl create secret generic storage-config -n coherence-example \
+    --from-file=src/main/resources/tangosol-coherence-override.xml \
+    --from-file=src/main/resources/storage-cache-config.xml
+----
+
+[#example]
+== Run the Example
+
+Ensure you are in the `examples/federation` directory to run the example. This example uses the yaml files `src/main/yaml/primary-cluster.yaml` and `src/main/yaml/secondary-cluster.yaml`, which
+define a primary cluster and a secondary cluster.
+
+==== 1. Install the Coherence clusters
+
+Run the following commands to create the primary and secondary clusters:
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/primary-cluster.yaml
+
+coherence.coherence.oracle.com/primary-cluster created
+----
+
+[source,bash]
+----
+kubectl -n coherence-example create -f src/main/yaml/secondary-cluster.yaml
+
+coherence.coherence.oracle.com/secondary-cluster created
+----
+
+
+==== 2. List the created Coherence clusters
+Run the following command to list the clusters:
+
+[source,bash]
+----
+kubectl -n coherence-example get coherence
+
+NAME                CLUSTER             ROLE                REPLICAS   READY   PHASE
+primary-cluster     primary-cluster     primary-cluster     2          2       Ready
+secondary-cluster   secondary-cluster   secondary-cluster   2          2       Ready
+----
+
+To see the Coherence cache configuration file loaded from the secret volumn we defined, run the following command:
+
+[source,bash]
+----
+kubectl logs -n coherence-example primary-cluster-0 | grep "Loaded cache"
+
+... Oracle Coherence GE 14.1.1.0.0 <Info> (thread=main, member=n/a): Loaded cache configuration from "file:/config/storage-cache-config.xml"
+----
+
+==== 3. View the running pods
+
+Run the following command to view the Pods:
+[source,bash]
+----
+kubectl -n coherence-example get pods
+----
+
+[source,bash]
+----
+NAME                  READY   STATUS    RESTARTS   AGE
+primary-cluster-0     1/1     Running   0          83s
+primary-cluster-1     1/1     Running   0          83s
+secondary-cluster-0   1/1     Running   0          74s
+secondary-cluster-1   1/1     Running   0          73s
+----
+
+==== 4. Connect to the Coherence Console inside the primary cluster to add data
+
+We will connect via Coherence console to add some data using the following commands:
+
+[source,bash]
+----
+kubectl exec -it -n coherence-example primary-cluster-0 /coherence-operator/utils/runner console
+----
+
+At the prompt type the following to create a cache called `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to add an entry with "primarykey" and "primaryvalue":
+
+[source,bash]
+----
+put "primarykey" "primaryvalue"
+----
+
+Use the following to create 10,000 entries of 100 bytes:
+[source,bash]
+----
+bulkput 10000 100 0 100
+----
+
+Lastly issue the command `size` to verify the cache entry count. It should be 10001.
+
+Type `bye` to exit the console.
+
+==== 6. Connect to the Coherence Console inside the secondary cluster to verify that data is federated from primary cluster
+
+We will connect via Coherence console to confirm that the data we added to the primary cluster is federated to the secondary cluster.
+
+[source,bash]
+----
+kubectl exec -it -n coherence-example secondary-cluster-0 /coherence-operator/utils/runner console
+----
+
+At the prompt type the following to set the cache to `test`:
+
+[source,bash]
+----
+cache test
+----
+
+Use the following to get entry with "primarykey":
+
+[source,bash]
+----
+get "primarykey"
+primaryvalue
+----
+
+Issue the command `size` to verify the cache entry count. It should be 10001.
+
+Our federation has Active/Active topology. So, the data changes in both primary and secondary clusters are federated between the clusters. Use the following to add an entry with "secondarykey" and "secondaryvalue":
+[source,bash]
+----
+put "secondarykey" "secondaryvalue"
+----
+
+==== 7. Confirm the primary cluster also received "secondarykey", "secondaryvalue" entry 
+
+Follow the command in the previous section to connect to the Coherence Console inside the primary cluster.
+
+Use the following command to confirm that entry with "secondarykey" is federated to primary cluster:
+
+[source,bash]
+----
+get "secondarykey"
+secondaryvalue
+----
+
+[#cleanup]
+== Cleaning up
+
+Use the following commands to delete the primary and secondary clusters: 
+
+[source,bash]
+----
+kubectl -n coherence-example delete -f src/main/yaml/primary-cluster.yaml
+
+kubectl -n coherence-example delete -f src/main/yaml/secondary-cluster.yaml
+----
+
+Uninstall the Coherence operator using the undeploy commands for whichever method you chose to install it.

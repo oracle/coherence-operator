@@ -1,0 +1,37 @@
+#
+# Copyright (c) 2021 Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Federation Example
+# Primary cluster in an Active/Active topology
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: primary-cluster
+spec:
+  jvm:
+    classpath:
+      - /config
+      - /u01/oracle/oracle_home/coherence/lib/coherence.jar
+    args:
+      - "-Dprimary.cluster=primary-cluster"
+      - "-Dprimary.cluster.port=40000"
+      - "-Dprimary.cluster.host=primary-cluster-federation"
+      - "-Dsecondary.cluster=secondary-cluster"
+      - "-Dsecondary.cluster.port=40000"
+      - "-Dsecondary.cluster.host=secondary-cluster-federation"
+  secretVolumes:
+    - mountPath: /config
+      name: storage-config
+  ports:
+    - name: federation
+      port: 40000
+  coherence:
+    cacheConfig: storage-cache-config.xml
+    overrideConfig: tangosol-coherence-override.xml
+    logLevel: 9
+  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  imagePullSecrets:
+    - name: ocr-pull-secret
+  replicas: 2
