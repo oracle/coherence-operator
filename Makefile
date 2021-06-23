@@ -257,7 +257,6 @@ clean: ## Cleans the build
 	-rm -rf build/_output
 	-rm -rf bin
 	-rm -rf bundle
-	-rm -rf $(BUILD_ASSETS)
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
