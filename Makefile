@@ -434,7 +434,7 @@ $(BUILD_OUTPUT)/config.json:
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration generation
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go pkg/data/assets
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json pkg/data/assets api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
@@ -514,6 +514,7 @@ copyright:  ## Check copyright headers
 	  -X HEADER.txt \
 	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
+	  -X java/certs/ \
 	  -X java/src/copyright/EXCLUDE.txt \
 	  -X Jenkinsfile \
 	  -X .jar \
