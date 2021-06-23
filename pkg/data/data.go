@@ -8,5 +8,6 @@ package data
 
 import "embed"
 
+// Assets is the set of embedded files.
 //go:embed assets/*
 var Assets embed.FS

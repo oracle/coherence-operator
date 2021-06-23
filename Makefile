@@ -234,7 +234,6 @@ $(BUILD_PROPS):
 	# Ensures that build output directories exist
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
-	@mkdir -p $(BUILD_ASSETS)
 	@mkdir -p $(BUILD_BIN)
 	@mkdir -p $(BUILD_DEPLOY)
 	@mkdir -p $(BUILD_HELM)
@@ -254,8 +253,8 @@ $(BUILD_PROPS):
 .PHONY: clean
 clean: ## Cleans the build 
 	-rm -rf build/_output
-	-rm -f bin/*
-	-rm -f pkg/data/assets
+	-rm -rf bin/*
+	-rm -rf pkg/data/assets
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
@@ -442,6 +441,7 @@ api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 pkg/data/assets: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
+	@mkdir -p $(BUILD_ASSETS)
 	echo "Embedding configuration and CRD files"
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 	echo "Embedding CRD files"
@@ -482,7 +482,7 @@ code-review: generate golangci copyright  ## Full code review and Checkstyle tes
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint ## Go code review
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1770,7 +1770,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: generate manifests $(GOBIN)/kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
