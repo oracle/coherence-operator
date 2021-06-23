@@ -25,10 +25,10 @@ fi
 if [ ${OK} != 0 ]; then
   echo "Operator SDK not found or not correct version"
 
-  if [[ "${UNAME_S}" == "Darwin" ]]; then
-    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-${REQUIRED_VERSION}-x86_64-apple-darwin"
+  if [ "${UNAME_S}" = "Darwin" ]; then
+    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_amd64"
   else
-    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-${REQUIRED_VERSION}-x86_64-linux-gnu"
+    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-linux-amd64"
   fi
 
   echo "Downloading Operator SDK ${UNAME_S} version from ${URL}"

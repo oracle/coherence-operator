@@ -1,6 +1,6 @@
 module github.com/oracle/coherence-operator
 
-go 1.15
+go 1.16
 
 require (
 	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
@@ -11,7 +11,6 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/operator-framework/operator-lib v0.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
