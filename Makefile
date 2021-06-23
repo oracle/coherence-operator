@@ -310,7 +310,7 @@ build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
+$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests assets
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
 	mkdir -p $(BUILD_BIN)/linux/amd64 || true
 	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager

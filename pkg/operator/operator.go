@@ -78,7 +78,7 @@ var (
 func SetupFlags(cmd *cobra.Command) {
 	f, err := data.Assets.Open("config.json")
 	if err != nil {
-		setupLog.Error(err, "finding data.json asset")
+		setupLog.Error(err, "finding config.json asset")
 		os.Exit(1)
 	}
 	defer f.Close()
