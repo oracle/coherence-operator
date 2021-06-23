@@ -77,6 +77,7 @@ TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VER
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
 
 # CHANNELS define the bundle channels used in the bundle.
+CHANNELS := stable
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=preview,fast,stable)
@@ -86,6 +87,7 @@ BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
 
 # DEFAULT_CHANNEL defines the default channel used in the bundle.
+DEFAULT_CHANNEL := stable
 # Add a new line here if you would like to change its default config. (E.g DEFAULT_CHANNEL = "stable")
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
@@ -253,7 +255,8 @@ $(BUILD_PROPS):
 .PHONY: clean
 clean: ## Cleans the build 
 	-rm -rf build/_output
-	-rm -rf bin/*
+	-rm -rf bin
+	-rm -rf bundle
 	-rm -rf $(BUILD_ASSETS)
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
@@ -411,7 +414,7 @@ manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the Cus
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: assets $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
