@@ -310,7 +310,7 @@ build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests assets
+$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
 	mkdir -p $(BUILD_BIN)/linux/amd64 || true
 	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager
@@ -413,10 +413,11 @@ manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the Cus
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: assets $(API_GO_FILES) $(GOBIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(GOBIN)/kustomize $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
+	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -429,6 +430,7 @@ $(BUILD_OUTPUT)/config.json:
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
 	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate code, configuration and docs.
@@ -436,19 +438,11 @@ $(BUILD_OUTPUT)/config.json:
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration generation
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json assets api/v1/zz_generated.deepcopy.go
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
-
-.PHONY: assets
-assets: $(BUILD_OUTPUT)/config.json config/crd/bases/coherence.oracle.com_coherence.yaml $(GOBIN)/kustomize
-	@mkdir -p $(BUILD_ASSETS)
-	echo "Embedding configuration and CRD files"
-	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
-	echo "Embedding CRD files"
-	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate API docs
