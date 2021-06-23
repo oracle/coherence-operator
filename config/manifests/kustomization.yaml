@@ -4,3 +4,4 @@ kind: Kustomization
 bases:
 - ../default
 - ../samples
+- ../scorecard
