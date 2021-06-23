@@ -116,7 +116,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Add finalizer for this CR if required
 	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.Finalizer) {
 		// Adding the finalizer causes an update so the request will come around again
-		if err := in.addFinalizer(deployment, ctx); err != nil {
+		if err := in.addFinalizer(ctx, deployment); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -280,7 +280,7 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
-func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence, ctx context.Context) error {
+func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) error {
 	in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
 	controllerutil.AddFinalizer(c, coh.Finalizer)
 
