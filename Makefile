@@ -254,7 +254,7 @@ $(BUILD_PROPS):
 clean: ## Cleans the build 
 	-rm -rf build/_output
 	-rm -rf bin/*
-	-rm -rf pkg/data/assets
+	-rm -rf $(BUILD_ASSETS)
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
@@ -434,13 +434,14 @@ $(BUILD_OUTPUT)/config.json:
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration generation
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json pkg/data/assets api/v1/zz_generated.deepcopy.go
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json assets api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
-pkg/data/assets: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
+.PHONY: assets
+assets: $(BUILD_OUTPUT)/config.json config/crd/bases/coherence.oracle.com_coherence.yaml $(GOBIN)/kustomize
 	@mkdir -p $(BUILD_ASSETS)
 	echo "Embedding configuration and CRD files"
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
@@ -538,7 +539,7 @@ copyright:  ## Check copyright headers
 	  -X .tpl \
 	  -X .yaml \
 	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
-	  -X pkg/data/zz_generated_assets.go \
+	  -X pkg/data/assets/ \
 	  -X zz_generated.
 
 ##@ Operator Lifecycle Manager
