@@ -27,7 +27,7 @@
       <autostart>true</autostart>
       <address-provider>
         <local-address>
-          <address system-property="coherence.extend.address"></address>
+          <address system-property="coherence.extend.address"/>
           <port system-property="coherence.federation.port">40000</port>
         </local-address>
       </address-provider>

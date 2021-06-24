@@ -1,10 +1,19 @@
-== Coherence Operator Federation Example
+///////////////////////////////////////////////////////////////////////////////
 
-This simple example demostrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= Federation Example
+
+== Federation Example
+
+This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
 
 You can find the source code in the https://github.com/oracle/coherence-operator/tree/master/examples/federation[Operator GitHub Repo].
 
-==== What the Example will Cover
+=== What the Example will Cover
 
 * <<install-operator,Install the Coherence Operator>>
 * <<create-the-example-namespace,Create the example namespace>>
@@ -13,7 +22,7 @@ You can find the source code in the https://github.com/oracle/coherence-operator
 * <<cleanup, Cleaning Up>>
 
 [#install-operator]
-== Install the Coherence Operator
+=== Install the Coherence Operator
 
 To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
 
@@ -39,7 +48,7 @@ namespace/coherence-example created
 ----
 
 [#create-secret]
-== Create image pull and configure store secrets
+=== Create image pull and configure store secrets
 
 This example reqires two secrets:
 
@@ -67,7 +76,7 @@ kubectl create secret generic storage-config -n coherence-example \
 ----
 
 [#example]
-== Run the Example
+=== Run the Example
 
 Ensure you are in the `examples/federation` directory to run the example. This example uses the yaml files `src/main/yaml/primary-cluster.yaml` and `src/main/yaml/secondary-cluster.yaml`, which
 define a primary cluster and a secondary cluster.
@@ -207,7 +216,7 @@ secondaryvalue
 ----
 
 [#cleanup]
-== Cleaning up
+=== Cleaning up
 
 Use the following commands to delete the primary and secondary clusters: 
 
