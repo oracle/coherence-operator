@@ -135,7 +135,7 @@ func (in *ReconcileStatefulSet) ReconcileResources(ctx context.Context, request 
 				logger.Info("Scaling down to zero")
 				if deployment.Spec.IsSuspendServicesOnShutdown() {
 					// we are scaling down to zero and suspend services flag is true, so suspend services
-					suspended := in.suspendServices(deployment, stsCurrent)
+					suspended := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
 					case ServiceSuspendFailed:
 						return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
@@ -406,7 +406,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 		// perform the StatusHA check...
 		checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
-		ha := checker.IsStatusHA(deployment, current)
+		ha := checker.IsStatusHA(ctx, deployment, current)
 		if !ha {
 			logger.Info(fmt.Sprintf("deployment %s is not StatusHA - requeue update request.", deployment.Name))
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
@@ -418,7 +418,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 	// if there is only a single replica we need to do service suspension before update
 	if current.Status.ReadyReplicas == 1 {
-		suspended := in.suspendServices(deployment, current)
+		suspended := in.suspendServices(ctx, deployment, current)
 		switch suspended {
 		case ServiceSuspendFailed:
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
@@ -445,12 +445,12 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 }
 
 // suspendServices suspends Coherence services in the target deployment.
-func (in *ReconcileStatefulSet) suspendServices(deployment *coh.Coherence, current *appsv1.StatefulSet) ServiceSuspendStatus {
+func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet) ServiceSuspendStatus {
 	probe := CoherenceProbe{
 		Client: in.GetClient(),
 		Config: in.GetManager().GetConfig(),
 	}
-	return probe.SuspendServices(deployment, current)
+	return probe.SuspendServices(ctx, deployment, current)
 }
 
 func (in *ReconcileStatefulSet) sortEnvForAllContainers(sts *appsv1.StatefulSet) {
@@ -610,7 +610,7 @@ func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment *coh.C
 	}
 
 	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
-	ha := current == 1 || checker.IsStatusHA(deployment, sts)
+	ha := current == 1 || checker.IsStatusHA(ctx, deployment, sts)
 
 	if ha {
 		var replicas int32

@@ -88,7 +88,7 @@ func (in *ReconcileServiceMonitor) ReconcileResources(ctx context.Context, req r
 	diff := store.GetLatest().DiffForKind(in.Kind, store.GetPrevious())
 	for _, res := range diff {
 		if res.IsDelete() {
-			if err = in.monClient.ServiceMonitors(req.Namespace).Delete(context.TODO(), res.Name, metav1.DeleteOptions{}); err != nil {
+			if err = in.monClient.ServiceMonitors(req.Namespace).Delete(ctx, res.Name, metav1.DeleteOptions{}); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for d with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -113,7 +113,7 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 
 	// Fetch the sm's current state
 	var exists bool
-	sm, err := in.monClient.ServiceMonitors(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	sm, err := in.monClient.ServiceMonitors(namespace).Get(ctx, name, metav1.GetOptions{})
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
 		// we can ignore not found errors
@@ -141,11 +141,11 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 			// ensure that the sm is deleted.
 			// This should not actually be required as everything is owned by the deployment
 			// and there should be a cascaded delete by k8s so it's belt and braces.
-			err = in.monClient.ServiceMonitors(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
+			err = in.monClient.ServiceMonitors(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 		}
 	case !exists:
 		// ServiceMonitor does not exist but deployment does so create it
-		err = in.CreateServiceMonitor(namespace, name, storage, logger)
+		err = in.CreateServiceMonitor(ctx, namespace, name, storage, logger)
 		if err != nil {
 			err = errors.Wrapf(err, "Failed to create ServiceMonitor %s/%s", namespace, name)
 		}
@@ -157,7 +157,7 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 }
 
 // CreateServiceMonitor creates a ServiceMonitor spec.
-func (in *ReconcileServiceMonitor) CreateServiceMonitor(namespace, name string, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, namespace, name string, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Creating ServiceMonitor/%s for deployment", name))
 	// Get the ServiceMonitor desired state
 	resource, found := storage.GetLatest().GetResource(in.Kind, name)
@@ -166,7 +166,7 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(namespace, name string, 
 	}
 	// create the ServiceMonitor
 	sm := resource.Spec.(*monitoringv1.ServiceMonitor)
-	_, err := in.monClient.ServiceMonitors(namespace).Create(context.TODO(), sm, metav1.CreateOptions{})
+	_, err := in.monClient.ServiceMonitors(namespace).Create(ctx, sm, metav1.CreateOptions{})
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed creating ServiceMonitor %s/%s - %s", namespace, name, err.Error()))
 		return errors.Wrapf(err, "failed to create ServiceMonitor %s/%s", namespace, name)
@@ -175,7 +175,7 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(namespace, name string, 
 }
 
 // UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
-func (in *ReconcileServiceMonitor) UpdateServiceMonitor(namespace, name string, current runtime.Object, storage utils.Storage) error {
+func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current runtime.Object, storage utils.Storage) error {
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
@@ -197,7 +197,7 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(namespace, name string, 
 	}
 
 	in.GetLog().WithValues().Info(fmt.Sprintf("Patching ServiceMonitor %s/%s", namespace, name))
-	_, err = in.monClient.ServiceMonitors(namespace).Patch(context.TODO(), name, in.GetPatchType(), data, metav1.PatchOptions{})
+	_, err = in.monClient.ServiceMonitors(namespace).Patch(ctx, name, in.GetPatchType(), data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "cannot patch ServiceMonitor %s/%s", namespace, name)
 	}

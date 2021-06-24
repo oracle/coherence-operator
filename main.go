@@ -7,7 +7,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"github.com/oracle/coherence-operator/controllers/webhook"
@@ -159,6 +158,9 @@ func execute() {
 		os.Exit(1)
 	}
 
+	// We intercept the signal handler here so that we can do clean-up before the Manager stops
+	handler := ctrl.SetupSignalHandler()
+
 	// Set-up webhooks if required
 	var cr *webhook.CertReconciler
 	if operator.ShouldEnableWebhooks() {
@@ -166,7 +168,7 @@ func execute() {
 		cr = &webhook.CertReconciler{
 			Clientset: cs,
 		}
-		if err := cr.SetupWithManager(mgr); err != nil {
+		if err := cr.SetupWithManager(handler, mgr); err != nil {
 			setupLog.Error(err, " unable to create webhook certificate controller", "controller", "Certs")
 			os.Exit(1)
 		}
@@ -196,8 +198,6 @@ func execute() {
 
 	// +kubebuilder:scaffold:builder
 
-	// We intercept the signal handler here so that we can do clean-up before the Manager stops
-	handler := ctrl.SetupSignalHandler()
 	go func() {
 		<-handler.Done()
 		if cr != nil {
@@ -206,7 +206,7 @@ func execute() {
 	}()
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(context.TODO()); err != nil {
+	if err := mgr.Start(handler); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

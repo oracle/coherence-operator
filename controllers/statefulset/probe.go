@@ -66,11 +66,11 @@ func (in *CoherenceProbe) TranslatePort(name string, port int) int {
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *CoherenceProbe) IsStatusHA(deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
 	log.Info("Checking StatefulSet "+sts.Name+" for StatusHA",
 		"Namespace", deployment.Namespace, "Name", deployment.Name)
 	p := deployment.Spec.GetScalingProbe()
-	return in.ExecuteProbe(deployment, sts, p)
+	return in.ExecuteProbe(ctx, deployment, sts, p)
 }
 
 type ServiceSuspendStatus int
@@ -86,7 +86,7 @@ const ( // iota is reset to 0
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1.StatefulSet) ServiceSuspendStatus {
+func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet) ServiceSuspendStatus {
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			operator.FlagSkipServiceSuspend+" is set to true",
@@ -110,13 +110,13 @@ func (in *CoherenceProbe) SuspendServices(deployment *coh.Coherence, sts *appsv1
 	}
 
 	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", deployment.Namespace, "Name", deployment.Name)
-	if in.ExecuteProbe(deployment, sts, deployment.Spec.GetSuspendProbe()) {
+	if in.ExecuteProbe(ctx, deployment, sts, deployment.Spec.GetSuspendProbe()) {
 		return ServiceSuspendSuccessful
 	}
 	return ServiceSuspendFailed
 }
 
-func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
+func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
 	logger := log.WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
 	list := corev1.PodList{}
 
@@ -125,7 +125,7 @@ func (in *CoherenceProbe) ExecuteProbe(deployment *coh.Coherence, sts *appsv1.St
 		labels[k] = v
 	}
 
-	err := in.Client.List(context.TODO(), &list, client.InNamespace(deployment.Namespace), labels)
+	err := in.Client.List(ctx, &list, client.InNamespace(deployment.Namespace), labels)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false

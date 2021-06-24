@@ -44,7 +44,7 @@ type CertReconciler struct {
 	hookInstaller *HookInstaller
 }
 
-func (r *CertReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *CertReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager) error {
 	r.SetCommonReconciler(controllerName, mgr)
 	r.rotateBefore = operator.GetCACertRotateBefore()
 
@@ -56,17 +56,17 @@ func (r *CertReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return errors.Wrap(err, " unable to install cert-manager resources")
 		}
 		// if in dev-mode write the certs to local cert files
-		if err := r.writeLocalCerts(context.TODO()); err != nil {
+		if err := r.writeLocalCerts(ctx); err != nil {
 			return err
 		}
 	case operator.ShouldUseSelfSignedCerts():
 		// do an initial reconcile to make sure certs and web hooks are configured
-		if err := r.ReconcileResources(context.Background()); err != nil {
+		if err := r.ReconcileResources(ctx); err != nil {
 			return errors.Wrap(err, " unable to setup and fill the webhook certificates")
 		}
 	default:
 		// certificates are manually managed
-		if err := r.writeLocalCerts(context.TODO()); err != nil {
+		if err := r.writeLocalCerts(ctx); err != nil {
 			return err
 		}
 		// don't use this controller for manual certs so just return

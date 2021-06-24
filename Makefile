@@ -39,7 +39,7 @@ GOPROXY         ?= https://proxy.golang.org
 # Set the location of the Operator SDK executable
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v1.7.2
+OPERATOR_SDK_VERSION := v1.9.0
 OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # Options to append to the Maven command
@@ -77,6 +77,7 @@ TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VER
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
 
 # CHANNELS define the bundle channels used in the bundle.
+CHANNELS := stable
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=preview,fast,stable)
@@ -86,6 +87,7 @@ BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
 
 # DEFAULT_CHANNEL defines the default channel used in the bundle.
+DEFAULT_CHANNEL := stable
 # Add a new line here if you would like to change its default config. (E.g DEFAULT_CHANNEL = "stable")
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
@@ -97,7 +99,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO)controller-bundle:$(VERSION)
+BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO)-bundle:$(VERSION)
 
 # Release build options
 RELEASE_DRY_RUN  ?= true
@@ -183,7 +185,7 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
 override BUILD_OUTPUT        := $(CURRDIR)/build/_output
-override BUILD_ASSETS        := $(BUILD_OUTPUT)/assets
+override BUILD_ASSETS        := pkg/data/assets
 override BUILD_BIN           := ./bin
 override BUILD_DEPLOY        := $(BUILD_OUTPUT)/config
 override BUILD_HELM          := $(BUILD_OUTPUT)/helm-charts
@@ -234,7 +236,6 @@ $(BUILD_PROPS):
 	# Ensures that build output directories exist
 	@echo "Creating build directories"
 	@mkdir -p $(BUILD_OUTPUT)
-	@mkdir -p $(BUILD_ASSETS)
 	@mkdir -p $(BUILD_BIN)
 	@mkdir -p $(BUILD_DEPLOY)
 	@mkdir -p $(BUILD_HELM)
@@ -254,7 +255,8 @@ $(BUILD_PROPS):
 .PHONY: clean
 clean: ## Cleans the build 
 	-rm -rf build/_output
-	-rm -f bin/*
+	-rm -rf bin
+	-rm -rf bundle
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
 	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
@@ -320,7 +322,7 @@ $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: ensure-sdk
 ensure-sdk:
-	@echo "Ensuring Operator SDK is present"
+	@echo "Ensuring Operator SDK is present at version $(OPERATOR_SDK_VERSION)"
 	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -361,6 +363,12 @@ $(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
 .PHONY: build-mvn
 build-mvn: ## Build the Java artefacts
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build Java client
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: java-client
+java-client: $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
@@ -405,10 +413,11 @@ manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the Cus
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(API_GO_FILES) $(GOBIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(GOBIN)/kustomize $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
+	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -421,6 +430,7 @@ $(BUILD_OUTPUT)/config.json:
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
 	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate code, configuration and docs.
@@ -428,18 +438,11 @@ $(BUILD_OUTPUT)/config.json:
 .PHONY: generate
 generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration generation
 
-$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go pkg/data/zz_generated_assets.go
+$(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
 api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
-
-pkg/data/zz_generated_assets.go: $(BUILD_OUTPUT)/config.json $(CRDV1_FILES) $(GOBIN)/kustomize
-	echo "Embedding configuration and CRD files"
-	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
-	echo "Embedding CRD files"
-	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
-	go run ./pkg/generate/assets_generate.go
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate API docs
@@ -463,14 +466,91 @@ $(BUILD_OUTPUT)/certs:
 	./hack/keys.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Executes the code review targets.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: code-review
+code-review: export MAVEN_USER := $(MAVEN_USER)
+code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
+code-review: generate golangci copyright  ## Full code review and Checkstyle test
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes golangci-lint to perform various code review checks on the source.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: golangci
+golangci: $(BUILD_BIN)/golangci-lint ## Go code review
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Performs a copyright check.
+# To add exclusions add the file or folder pattern using the -X parameter.
+# Add directories to be scanned at the end of the parameter list.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: copyright
+copyright:  ## Check copyright headers
+	@java -cp hack/glassfish-copyright-maven-plugin-2.1.jar \
+	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
+	  -X .adoc \
+	  -X bin/ \
+	  -X build/_output/ \
+	  -X clientset/ \
+	  -X dashboards/grafana/ \
+	  -X dashboards/grafana-microprofile/ \
+	  -X dashboards/kibana/ \
+	  -X /Dockerfile \
+	  -X .Dockerfile \
+	  -X docs/ \
+	  -X examples/.mvn/ \
+	  -X .factories \
+	  -X hack/copyright.txt \
+	  -X hack/intellij-codestyle.xml \
+	  -X hack/sdk/ \
+	  -X go.mod \
+	  -X go.sum \
+	  -X HEADER.txt \
+	  -X helm-charts/coherence-operator/templates/NOTES.txt \
+	  -X .iml \
+	  -X java/certs/ \
+	  -X java/src/copyright/EXCLUDE.txt \
+	  -X Jenkinsfile \
+	  -X .jar \
+	  -X .jks \
+	  -X .json \
+	  -X LICENSE.txt \
+	  -X Makefile \
+	  -X .md \
+	  -X meta/ \
+	  -X .mvn/ \
+	  -X mvnw \
+	  -X mvnw.cmd \
+	  -X .png \
+	  -X PROJECT \
+	  -X .sh \
+	  -X temp/ \
+	  -X temp/olm/ \
+	  -X /test-report.xml \
+	  -X THIRD_PARTY_LICENSES.txt \
+	  -X tools.go \
+	  -X .tpl \
+	  -X .yaml \
+	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
+	  -X pkg/data/assets/ \
+	  -X zz_generated.
+
+##@ Operator Lifecycle Manager
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
 bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(GOBIN)/kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.22
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=community --optional-values=image-path=bundle.Dockerfile
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the bundle image.
@@ -482,7 +562,6 @@ bundle-build:  ## Build the OLM image
 .PHONY: bundle-push
 bundle-push: ## Push the OLM bundle image.
 	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
-
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -963,6 +1042,84 @@ else
 	sed -i 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 endif
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Delete and re-create the test namespace
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: reset-namespace
+reset-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
+reset-namespace: export DOCKER_SERVER := $(DOCKER_SERVER)
+reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
+reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
+reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
+reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
+reset-namespace: delete-namespace      ## Reset the test namespace
+ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
+	@echo "Creating test namespace $(OPERATOR_NAMESPACE)"
+	kubectl create namespace $(OPERATOR_NAMESPACE)
+endif
+ifneq ($(DOCKER_SERVER),)
+	@echo "Creating pull secrets for $(DOCKER_SERVER)"
+	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+								--namespace $(OPERATOR_NAMESPACE) \
+								--docker-server "$(DOCKER_SERVER)" \
+								--docker-username "$(DOCKER_USERNAME)" \
+								--docker-password "$(DOCKER_PASSWORD)" \
+								--docker-email="docker@dummy.com"
+endif
+ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
+	@echo "Creating pull secrets for container-registry.oracle.com"
+	kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+								--namespace $(OPERATOR_NAMESPACE) \
+								--docker-server container-registry.oracle.com \
+								--docker-username "$(OCR_DOCKER_USERNAME)" \
+								--docker-password "$(OCR_DOCKER_PASSWORD)" \
+								--docker-email "docker@dummy.com"
+endif
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Delete the test namespace
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: delete-namespace
+delete-namespace: clean-namespace  ## Delete the test namespace
+ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
+	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
+	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
+endif
+	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Delete all resource from the test namespace
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: clean-namespace
+clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
+	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	done
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Create the k8s secret to use in SSL/TLS testing.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: create-ssl-secrets
+create-ssl-secrets: $(BUILD_OUTPUT)/certs
+	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
+	kubectl --namespace $(OPERATOR_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
+	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
+	kubectl create secret generic $(TEST_SSL_SECRET) \
+		--namespace $(OPERATOR_NAMESPACE) \
+		--from-file=keystore.jks=build/_output/certs/icarus.jks \
+		--from-file=storepass.txt=build/_output/certs/storepassword.txt \
+		--from-file=keypass.txt=build/_output/certs/keypassword.txt \
+		--from-file=truststore.jks=build/_output/certs/truststore-guardians.jks \
+		--from-file=trustpass.txt=build/_output/certs/trustpassword.txt \
+		--from-file=operator.key=build/_output/certs/icarus.key \
+		--from-file=operator.crt=build/_output/certs/icarus.crt \
+		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
+
+
 ##@ KinD
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1046,6 +1203,7 @@ $(GOBIN)/controller-gen:
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
+#KUSTOMIZE = $(CURRDIR)/bin/kustomize
 $(GOBIN)/kustomize:
 	@{ \
 	set -e ;\
@@ -1104,82 +1262,6 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Delete and re-create the test namespace
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: reset-namespace
-reset-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
-reset-namespace: export DOCKER_SERVER := $(DOCKER_SERVER)
-reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
-reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
-reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
-reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
-reset-namespace: delete-namespace      ## Reset the test namespace
-ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	@echo "Creating test namespace $(OPERATOR_NAMESPACE)"
-	kubectl create namespace $(OPERATOR_NAMESPACE)
-endif
-ifneq ($(DOCKER_SERVER),)
-	@echo "Creating pull secrets for $(DOCKER_SERVER)"
-	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
-								--namespace $(OPERATOR_NAMESPACE) \
-								--docker-server "$(DOCKER_SERVER)" \
-								--docker-username "$(DOCKER_USERNAME)" \
-								--docker-password "$(DOCKER_PASSWORD)" \
-								--docker-email="docker@dummy.com"
-endif
-ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
-	@echo "Creating pull secrets for container-registry.oracle.com"
-	kubectl create secret docker-registry ocr-k8s-operator-development-secret \
-								--namespace $(OPERATOR_NAMESPACE) \
-								--docker-server container-registry.oracle.com \
-								--docker-username "$(OCR_DOCKER_USERNAME)" \
-								--docker-password "$(OCR_DOCKER_PASSWORD)" \
-								--docker-email "docker@dummy.com"
-endif
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Delete the test namespace
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: delete-namespace
-delete-namespace: clean-namespace  ## Delete the test namespace
-ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
-	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
-endif
-	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
-	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Delete all resource from the test namespace
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: clean-namespace
-clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
-	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
-		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
-		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
-	done
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Create the k8s secret to use in SSL/TLS testing.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: create-ssl-secrets
-create-ssl-secrets: $(BUILD_OUTPUT)/certs
-	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
-	kubectl --namespace $(OPERATOR_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
-	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
-	kubectl create secret generic $(TEST_SSL_SECRET) \
-		--namespace $(OPERATOR_NAMESPACE) \
-		--from-file=keystore.jks=build/_output/certs/icarus.jks \
-		--from-file=storepass.txt=build/_output/certs/storepassword.txt \
-		--from-file=keypass.txt=build/_output/certs/keypassword.txt \
-		--from-file=truststore.jks=build/_output/certs/truststore-guardians.jks \
-		--from-file=trustpass.txt=build/_output/certs/trustpassword.txt \
-		--from-file=operator.key=build/_output/certs/icarus.key \
-		--from-file=operator.crt=build/_output/certs/icarus.crt \
-		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy the Java artifacts
@@ -1507,78 +1589,6 @@ $(BUILD_BIN)/golangci-lint:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.29.0
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Executes golangci-lint to perform various code review checks on the source.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: golangci
-golangci: $(BUILD_BIN)/golangci-lint
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/* ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Performs a copyright check.
-# To add exclusions add the file or folder pattern using the -X parameter.
-# Add directories to be scanned at the end of the parameter list.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: copyright
-copyright:
-	@java -cp hack/glassfish-copyright-maven-plugin-2.1.jar \
-	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
-	  -X .adoc \
-	  -X bin/ \
-	  -X build/_output/ \
-	  -X clientset/ \
-	  -X dashboards/grafana/ \
-	  -X dashboards/grafana-microprofile/ \
-	  -X dashboards/kibana/ \
-	  -X /Dockerfile \
-	  -X .Dockerfile \
-	  -X docs/ \
-	  -X examples/.mvn/ \
-	  -X .factories \
-	  -X hack/copyright.txt \
-	  -X hack/intellij-codestyle.xml \
-	  -X hack/sdk/ \
-	  -X go.mod \
-	  -X go.sum \
-	  -X HEADER.txt \
-	  -X helm-charts/coherence-operator/templates/NOTES.txt \
-	  -X .iml \
-	  -X java/src/copyright/EXCLUDE.txt \
-	  -X Jenkinsfile \
-	  -X .jar \
-	  -X .jks \
-	  -X .json \
-	  -X LICENSE.txt \
-	  -X Makefile \
-	  -X .md \
-	  -X meta/ \
-	  -X .mvn/ \
-	  -X mvnw \
-	  -X mvnw.cmd \
-	  -X .png \
-	  -X PROJECT \
-	  -X .sh \
-	  -X temp/ \
-	  -X temp/olm/ \
-	  -X /test-report.xml \
-	  -X THIRD_PARTY_LICENSES.txt \
-	  -X tools.go \
-	  -X .tpl \
-	  -X .yaml \
-	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
-	  -X pkg/data/zz_generated_assets.go \
-	  -X zz_generated.
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Executes the code review targets.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: code-review
-code-review: export MAVEN_USER := $(MAVEN_USER)
-code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
-code-review: generate golangci copyright
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: version
@@ -1722,7 +1732,7 @@ endif
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
-release:
+release: ## Release the Operator
 ifeq (true, $(RELEASE_DRY_RUN))
 release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
@@ -1759,7 +1769,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: generate manifests $(GOBIN)/kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
@@ -1778,16 +1788,3 @@ $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: manifests $(GOBIN)/kustomize
 	  -u $(LOCAL_MANIFEST_FILE) -n com.oracle.coherence -p com.oracle.coherence.k8s.client -o "$(BUILD_OUTPUT)/java-client/java"
 	kind delete cluster || true
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Build Java client
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: java-client
-java-client: $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# List all of the targets in the Makefile
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: list
-list:
-	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
