@@ -408,7 +408,7 @@ func ensureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client, 
 
 // ensureV1CRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
 func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
-	f, err := data.Assets.Open(fileName)
+	f, err := data.Assets.Open("assets/" + fileName)
 	if err != nil {
 		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
 	}

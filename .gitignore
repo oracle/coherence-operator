@@ -40,7 +40,7 @@ test/**/test-report.xml
 /hack/sdk/*
 
 # Generated file created by the build
-/pkg/data/zz_generated_assets.go
+bundle.Dockerfile
 /__debug_bin
 /istio-1.9.2/
 /java/certs/

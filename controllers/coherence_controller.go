@@ -103,7 +103,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// Remove the finalizer. Once all finalizers have been
 			// removed, the object will be deleted.
 			controllerutil.RemoveFinalizer(deployment, coh.Finalizer)
-			err := in.GetClient().Update(context.TODO(), deployment)
+			err := in.GetClient().Update(ctx, deployment)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
@@ -116,7 +116,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Add finalizer for this CR if required
 	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.Finalizer) {
 		// Adding the finalizer causes an update so the request will come around again
-		if err := in.addFinalizer(deployment); err != nil {
+		if err := in.addFinalizer(ctx, deployment); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -280,12 +280,12 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
-func (in *CoherenceReconciler) addFinalizer(c *coh.Coherence) error {
+func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) error {
 	in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
 	controllerutil.AddFinalizer(c, coh.Finalizer)
 
 	// Update CR
-	err := in.GetClient().Update(context.TODO(), c)
+	err := in.GetClient().Update(ctx, c)
 	if err != nil {
 		in.Log.Error(err, "Failed to update Coherence resource with finalizer",
 			"Namespace", c.Namespace, "Name", c.Name)
@@ -327,7 +327,7 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 				Client: in.GetClient(),
 				Config: in.GetManager().GetConfig(),
 			}
-			if probe.SuspendServices(c, sts) == statefulset.ServiceSuspendFailed {
+			if probe.SuspendServices(ctx, c, sts) == statefulset.ServiceSuspendFailed {
 				return fmt.Errorf("failed to suspend services")
 			}
 		}

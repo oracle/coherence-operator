@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -77,6 +77,6 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	ckr := statefulset.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
-	ha := ckr.IsStatusHA(tc.Deployment, sts)
+	ha := ckr.IsStatusHA(goctx.TODO(), tc.Deployment, sts)
 	g.Expect(ha).To(BeTrue())
 }
