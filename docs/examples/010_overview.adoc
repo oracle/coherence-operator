@@ -22,6 +22,14 @@ This example showcases how to deploy Coherence applications using the Coherence 
 --
 
 [CARD]
+.Federation
+[link=examples/030_federation.adoc]
+--
+This is a simple Coherence federation example. The federation feature requires Coherence Grid Edition.
+--
+
+
+[CARD]
 .TLS
 [link=examples/100_tls.adoc]
 --
@@ -34,8 +42,14 @@ Securing Coherence clusters using TLS.
 --
 Scaling Coherence clusters using the horizontal Pod autoscaler.
 --
-====
 
+[CARD]
+.Istio
+[link=examples/800_istio.adoc]
+--
+Istio Support
+--
+====
 
 [PILLARS]
 ====
