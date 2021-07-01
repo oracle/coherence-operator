@@ -46,8 +46,8 @@ OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
 
 # The Coherence image to use for deployments that do not specify an image
-COHERENCE_VERSION ?= 20.12.1
-COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:20.12.1
+COHERENCE_VERSION ?= 21.06
+COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
