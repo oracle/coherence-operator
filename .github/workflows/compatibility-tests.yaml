@@ -31,8 +31,11 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.1.5
         - 3.0.2
         include:
+        - compatibilityVersion: 3.1.5
+          compatibilitySelector: component=coherence-operator
         - compatibilityVersion: 3.0.2
           compatibilitySelector: component=coherence-operator
 

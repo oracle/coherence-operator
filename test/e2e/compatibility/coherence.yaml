@@ -4,3 +4,7 @@ metadata:
   name: compatibility-cluster
 spec:
   replicas: 2
+  application:
+    main: com.tangosol.net.DefaultCacheServer
+
+
