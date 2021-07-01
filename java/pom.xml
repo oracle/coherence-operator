@@ -39,7 +39,7 @@
         <maven.compiler.target>8</maven.compiler.target>
 
         <!--  The Coherence jar version (compile time dependency) -->
-        <coherence.version>20.12.1</coherence.version>
+        <coherence.version>21.06</coherence.version>
         <!-- The version of Coherence to use in the test images -->
         <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
         <coherence.test.version>${coherence.version}</coherence.test.version>
@@ -639,6 +639,17 @@
     <repositories>
         <repository>
             <id>ossrh-staging</id>
+            <name>OSS Sonatype Snapshots</name>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>ossrh-snapshots</id>
             <name>OSS Sonatype Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
