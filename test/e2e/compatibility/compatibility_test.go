@@ -38,7 +38,17 @@ func TestCompatibility(t *testing.T) {
 	// Install a Coherence deployment
 	d, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = testContext.Client.Create(context.TODO(), &d)
+
+	err = nil
+	for i := 0; i < 10; i++ {
+		err = testContext.Client.Create(context.TODO(), &d)
+		if err == nil {
+			break
+		}
+		t.Logf("Coherence cluster install failed, will retry in 5 seconds: %s", err.Error())
+		time.Sleep(5 * time.Second)
+	}
+
 	g.Expect(err).NotTo(HaveOccurred())
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 
@@ -88,6 +98,8 @@ func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) 
 	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
+	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
@@ -106,6 +118,8 @@ func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
 	pods, err := helper.WaitForOperatorPods(testContext, ns, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
+	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func CleanupBlind(t *testing.T, namespace, name string) {
