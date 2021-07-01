@@ -35,7 +35,7 @@ jobs:
         - 3.0.2
         include:
         - compatibilityVersion: 3.1.5
-          compatibilitySelector: component=coherence-operator
+          compatibilitySelector: control-plane=coherence
         - compatibilityVersion: 3.0.2
           compatibilitySelector: component=coherence-operator
 
