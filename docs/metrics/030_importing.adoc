@@ -72,7 +72,7 @@ the metric names produced by the Coherence metrics publisher
 the metric names produced by the Coherence MP Metrics module.
 * Micrometer - these are dashboards under the `dashboards/grafana-micrometer/` directory that are compatible with
 the metric names produced by the Coherence Micrometer Metrics module. These are metrics commonly used with Microprofile applications such as Helidon.
-* Micrometer - these are dashboards under the dashboards/grafana-micrometer/ directory that are compatible with the metric names produced by the Coherence Micrometer Metrics module. Micrometer is a common metrics framework used with applications such as Spring, Micronaut etc.
+* Micrometer - these are dashboards under the `dashboards/grafana-micrometer/` directory that are compatible with the metric names produced by the Coherence Micrometer Metrics module. Micrometer is a common metrics framework used with applications such as Spring, Micronaut etc.
 
 If you do not see metrics on the dashboards as expected you might be using the wrong dashboards version for how
 Coherence has been configured.

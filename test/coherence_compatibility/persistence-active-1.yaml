@@ -10,8 +10,12 @@ spec:
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
+  jvm:
+    args:
+      - "-Dcoherence.k8s.operator.health.logs=true"
   coherence:
     cacheConfig: test-cache-config.xml
+    logLevel: 9
     management:
       enabled: true
       port: 30000
