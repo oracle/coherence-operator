@@ -65,7 +65,7 @@ public class Main {
         try {
             return Coherence.class.getCanonicalName();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             return DefaultCacheServer.class.getCanonicalName();
         }
     }

@@ -17,31 +17,25 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.oracle.coherence.common.base.Logger;
-
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Service;
-import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.Filters;
@@ -57,6 +51,11 @@ import com.sun.net.httpserver.HttpsServer;
  */
 public class OperatorRestServer implements AutoCloseable {
     // ----- constants ------------------------------------------------------
+
+    /**
+     * The operator logger to use.
+     */
+    private static final OperatorLogger LOGGER = OperatorLogger.getLogger();
 
     /**
      * The system property to use to set the health logging.
@@ -184,107 +183,9 @@ public class OperatorRestServer implements AutoCloseable {
     public static final String PATH_RESUME = "/resume";
 
     /**
-     * The MBean name of the PartitionAssignment MBean.
-     */
-    public static final String MBEAN_PARTITION_ASSIGNMENT = Registry.PARTITION_ASSIGNMENT_TYPE
-            + ",service=*,responsibility=DistributionCoordinator";
-
-    /**
-     * The MBean name of the Service MBean.
-     */
-    public static final String MBEAN_SERVICE = Registry.SERVICE_TYPE + ",name=*,nodeId=%d";
-
-    /**
-     * The MBean name of the Service MBean pattern.
-     */
-    public static final String MBEAN_SERVICE_PATTERN = "%s:" + Registry.SERVICE_TYPE
-            + ",name=%s,nodeId=%d";
-
-    /**
-     * Service MBean Attributes required to compute HAStatus.
-     *
-     * @see #isServiceStatusHA(String, java.util.Map)
-     */
-    public static final String[] SERVICE_STATUS_HA_ATTRIBUTES =
-            {
-                    "HAStatus",
-                    "HAStatusCode",
-                    "BackupCount",
-                    "ServiceNodeCount",
-                    "RemainingDistributionCount"
-            };
-
-    /**
-     * The MBean name of the Persistence Coordinator MBean.
-     */
-    public static final String MBEAN_PERSISTENCE_COORDINATOR = Registry.PERSISTENCE_SNAPSHOT_TYPE
-            + ",service=*,responsibility=PersistenceCoordinator";
-
-    /**
-     * The MBean attribute to check the idle state of the persistence coordinator.
-     */
-    public static final String[] PERSISTENCE_IDLE_ATTRIBUTES = new String[] {"Idle"};
-
-    /**
-     * The MBean attribute to check the state of a partitioned cache service.
-     */
-    public static final String[] CACHE_SERVICE_ATTRIBUTES = new String[] {"Type", "StorageEnabled", "MemberCount",
-            "OwnedPartitionsPrimary", "PartitionsAll", "StorageEnabledCount"};
-
-    /**
      * The value of the Status HA attribute to signify endangered.
      */
     public static final String STATUS_ENDANGERED = "ENDANGERED";
-
-    /**
-     * The name of the HA status MBean attribute.
-     */
-    public static final String ATTRIB_HASTATUS = "hastatus";
-
-    /**
-     * The name of the Remaining Distribution Count MBean attribute.
-     */
-    public static final String ATTRIB_REMAINING_DISTRIBUTION_COUNT = "remainingdistributioncount";
-
-    /**
-     * The name of the HA status code MBean attribute.
-     */
-    public static final String ATTRIB_HASTATUS_CODE = "hastatuscode";
-
-    /**
-     * The name of the backup count MBean attribute.
-     */
-    public static final String ATTRIB_BACKUPS = "backupcount";
-
-    /**
-     * The name of the service node count MBean attribute.
-     */
-    public static final String ATTRIB_NODE_COUNT = "servicenodecount";
-
-    /**
-     * The name of the persistence coordinator idle state MBean attribute.
-     */
-    public static final String ATTRIB_IDLE = "idle";
-
-    /**
-     * The name of the persistence coordinator idle state MBean attribute.
-     */
-    public static final String ATTRIB_STORAGE_ENABLED = "storageenabled";
-
-    /**
-     * The name of the member count MBean attribute.
-     */
-    public static final String ATTRIB_MEMBER_COUNT = "membercount";
-
-    /**
-     * The name of the owned primary partitions MBean attribute.
-     */
-    public static final String ATTRIB_OWNED_PARTITIONS_PRIMARY = "ownedpartitionsprimary";
-
-    /**
-     * The name of the partition count MBean attribute.
-     */
-    public static final String ATTRIB_PARTITIONS_ALL = "partitionsall";
 
     /**
      * The error message in an exception due to there being no management member in the cluster.
@@ -372,6 +273,7 @@ public class OperatorRestServer implements AutoCloseable {
 
             server.setExecutor(null); // creates a default executor
             server.start();
+            System.out.println("Coherence Operator: listening on " + server.getAddress());
 
             httpServer = server;
         }
@@ -499,9 +401,9 @@ public class OperatorRestServer implements AutoCloseable {
     private static void send(HttpExchange t, int status) {
         try {
             t.sendResponseHeaders(status, 0);
-            OutputStream os = t.getResponseBody();
-            os.write(EMPTY_BODY);
-            os.close();
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(EMPTY_BODY);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -519,9 +421,9 @@ public class OperatorRestServer implements AutoCloseable {
         try {
             byte[] bytes = body == null ? EMPTY_BODY : body.getBytes(StandardCharsets.UTF_8);
             t.sendResponseHeaders(status, bytes.length);
-            OutputStream os = t.getResponseBody();
-            os.write(bytes);
-            os.close();
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(bytes);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -542,8 +444,8 @@ public class OperatorRestServer implements AutoCloseable {
                 logDebug("CoherenceOperator: Ready check response %d - cluster=%b", response, hasCluster);
             }
             else {
-                boolean isHA = isStatusHA();
-                boolean isIdle = isPersistenceIdle();
+                boolean isHA = hasCluster && isStatusHA();
+                boolean isIdle = hasCluster && isPersistenceIdle();
                 if (hasCluster && isHA && isIdle) {
                     response = 200;
                     hasBeenReady = true;
@@ -586,7 +488,7 @@ public class OperatorRestServer implements AutoCloseable {
             boolean isIdle = isPersistenceIdle();
             int response = isHA && isIdle ? 200 : 400;
             if (response == 400 || LOGGING_ENABLED) {
-                log("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
+                LOGGER.info("CoherenceOperator: HA check response %d - HA=%b Idle=%b", response, isHA, isIdle);
             }
             send(exchange, response);
         }
@@ -642,11 +544,11 @@ public class OperatorRestServer implements AutoCloseable {
                     send(exchange, 404);
                     return;
                 }
-                warn("CoherenceOperator: Suspending service %s", name);
+                LOGGER.warn("CoherenceOperator: Suspending service %s", name);
                 cluster.suspendService(name);
             }
             else {
-                warn("CoherenceOperator: Suspending all services");
+                LOGGER.warn("CoherenceOperator: Suspending all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
@@ -658,11 +560,12 @@ public class OperatorRestServer implements AutoCloseable {
                                 .distinct()
                                 .count();
                         if (count == 1) {
-                            log("CoherenceOperator: Suspending service %s", name);
+                            LOGGER.info("CoherenceOperator: Suspending service %s", name);
                             cluster.suspendService(name);
                         }
                         else {
-                            log("CoherenceOperator: Not suspending service %s - is storage enabled in other deployments", name);
+                            LOGGER.info("CoherenceOperator: Not suspending service %s "
+                                                + "- is storage enabled in other deployments", name);
                         }
                     }
                 }
@@ -696,11 +599,11 @@ public class OperatorRestServer implements AutoCloseable {
                     send(exchange, 404);
                     return;
                 }
-                warn("CoherenceOperator: Resuming service %s", name);
+                LOGGER.warn("CoherenceOperator: Resuming service %s", name);
                 cluster.resumeService(name);
             }
             else {
-                warn("CoherenceOperator: Resuming all services");
+                LOGGER.warn("CoherenceOperator: Resuming all services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     cluster.resumeService(names.nextElement());
@@ -716,7 +619,7 @@ public class OperatorRestServer implements AutoCloseable {
 
     private void handleError(HttpExchange t, Throwable thrown, String action) {
         String msg = thrown.getMessage();
-        err("CoherenceOperator: %s failed due to '%s'", action, thrown.getMessage());
+        LOGGER.error("CoherenceOperator: %s failed due to '%s'", action, thrown.getMessage());
         if (msg != null && msg.contains(NO_MANAGED_NODES)) {
             send(t, 400);
         }
@@ -746,144 +649,149 @@ public class OperatorRestServer implements AutoCloseable {
         return isStatusHA(exclusions);
     }
 
+    /**
+     * Returns {@code true} if all Coherence services are safe.
+     *
+     * @param exclusions  the service names that are allowed to be endangered
+     *
+     * @return {@code true} if all Coherence services are safe
+     */
     boolean isStatusHA(String exclusions) {
         try {
+            logDebug("CoherenceOperator: StatusHA check. Waiting for service start...");
             waitForServiceStart.run();
+            logDebug("CoherenceOperator: StatusHA check. services started");
 
-            Set<String> allowEndangered = null;
+            Set<String> allowEndangered;
             if (exclusions != null) {
                 allowEndangered = Arrays.stream(exclusions.split(","))
-                        .map(this::quoteMBeanName)
-                        .map(s -> ",service=" + s + ",")
                         .collect(Collectors.toSet());
+            }
+            else {
+                allowEndangered = Collections.emptySet();
             }
 
             Cluster cluster = clusterSupplier.get();
             if (cluster != null && cluster.isRunning()) {
-                int id = cluster.getLocalMember().getId();
-
-                Set<String> cacheServices = getDistributedCacheServiceNames(id);
-                if (cacheServices.isEmpty()) {
-                    // no storage  enabled services in this member so we're HA
-                    logDebug("No storage enabled cache services found, inferring HA is OK for this member");
-                    return true;
-                }
-
-                Set<String> distributionCoordinators = getPartitionAssignmentMBeans();
-
-                // Ensure we have a DistributionCoordinator for all cache services
-                // If the senior just died we might not have one
-                Set<String> coords = new HashSet<>();
-                for (String s : distributionCoordinators) {
-                    ObjectName objectName = ObjectName.getInstance(s);
-                    coords.add(objectName.getKeyProperty("service"));
-                }
-                boolean missing = false;
-                for (String name : cacheServices) {
-                    if (!coords.contains(name)) {
-                        missing = true;
-                        err("CoherenceOperator: StatusHA check failed - No DistributionCoordinator "
-                                    + "for DistributedCache service " + name);
-                    }
-                }
-
-                if (missing) {
-                    err("CoherenceOperator: StatusHA check failed - Missing DistributionCoordinators MBeans");
-                    return false;
-                }
-
-                for (String mBean : getPartitionAssignmentMBeans()) {
-                    if (allowEndangered != null && allowEndangered.stream().anyMatch(mBean::contains)) {
-                        // this service is allowed to be endangered so skip it.
-                        continue;
-                    }
-                    ObjectName objectName = new ObjectName(mBean);
-                    String     sService   = objectName.getKeyProperty("service");
-                    // check the service is actually present on this member
-                    if (cluster.getService(sService) != null) {
-                        Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
-                        if (!isServiceStatusHA(mBean, attributes)) {
-                            return false;
-                        }
-                        if (!isCacheServiceSafe(mBean, id)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+                return areCacheServicesHA(cluster, allowEndangered);
             }
             else {
-                err("CoherenceOperator: StatusHA check failed - cluster is null");
+                String reason = cluster == null ? "null" : "not running";
+                LOGGER.error("CoherenceOperator: StatusHA check failed - cluster is " + reason);
                 return false;
             }
         }
         catch (Exception e) {
             // there is probably no DCS
-            err("CoherenceOperator: StatusHA check failed, %s", e.getMessage());
+            LOGGER.error("CoherenceOperator: StatusHA check failed, %s", e.getMessage());
             return false;
         }
     }
 
-    boolean isPersistenceIdle() {
-        boolean allIdle = true;
+    /**
+     * Returns {@code true} if all Coherence services are safe.
+     *
+     * @param cluster          the Coherence cluster
+     * @param allowEndangered  the service names that are allowed to be endangered
+     *
+     * @return {@code true} if all Coherence services are safe
+     */
+    boolean areCacheServicesHA(Cluster cluster, Set<String> allowEndangered) {
+        logDebug("CoherenceOperator: Checking HA: allowEndangered=%s", allowEndangered);
 
-        for (String mBean : getPersistenceCoordinatorMBeans()) {
-            Map<String, Object> attributes = getMBeanAttributes(mBean, PERSISTENCE_IDLE_ATTRIBUTES);
-            Boolean isIdle = (Boolean) attributes.get(ATTRIB_IDLE);
-            if (!isIdle) {
-                logDebug("CoherenceOperator: Persistence not idle for MBean %s" + mBean);
-                allIdle = false;
+        Enumeration<String> names = cluster.getServiceNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+
+            Service service = cluster.getService(name);
+            if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+                if (service instanceof SafeDistributedCacheService) {
+                    service = ((SafeDistributedCacheService) service).getService();
+                }
+
+                PartitionedCache partitionedCache = (PartitionedCache) service;
+
+                if (partitionedCache.isOwnershipEnabled()) {
+                    int memberCount = partitionedCache.getOwnershipEnabledMembers().size();
+
+                    if (memberCount == 1) {
+                        // storage enabled and only one member, check we own all partitions
+                        int partitionCount = partitionedCache.getPartitionCount();
+                        int ownedPartitions = partitionedCache.calculateThisOwnership(true);
+                        if (ownedPartitions != partitionCount) {
+                            logDebug("CoherenceOperator: StatusHA check failed. "
+                                             + "Service %s is only storage enabled member but owns %d of %d partitions",
+                                     name, ownedPartitions, partitionCount);
+                            return false;
+                        }
+                    }
+
+                    String statusHA = partitionedCache.getBackupStrengthName();
+                    int backupCount = partitionedCache.getBackupCount();
+                    if (memberCount > 1
+                        && backupCount > 0
+                        && STATUS_ENDANGERED.equals(statusHA)
+                        && !allowEndangered.contains(name)) {
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s", name, statusHA);
+                        return false;
+                    }
+
+                    if (partitionedCache.isDistributionInProgress()) {
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s distribution in progress", name);
+                        return false;
+                    }
+
+                    if (partitionedCache.isRecoveryInProgress()) {
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s recovery in progress", name);
+                        return false;
+                    }
+
+                    if (partitionedCache.isRestoreInProgress()) {
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s restore in progress", name);
+                        return false;
+                    }
+
+                    if (partitionedCache.isTransferInProgress()) {
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s transfer in progress", name);
+                        return false;
+                    }
+                }
             }
         }
+        return true;
+    }
 
+    /**
+     * Returns {@code true} if all persistence enabled services are idle.
+     *
+     * @return {@code true} if all persistence enabled services are idle
+     */
+    boolean isPersistenceIdle() {
+        boolean allIdle = true;
+        Cluster cluster = clusterSupplier.get();
+        Enumeration<String> names = cluster.getServiceNames();
+
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            Service service = cluster.getService(name);
+
+            if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+                if (service instanceof SafeDistributedCacheService) {
+                    service = ((SafeDistributedCacheService) service).getService();
+                }
+                if (PersistenceHelper.isActive(service)) {
+                    logDebug("CoherenceOperator: Persistence not idle for service %s" + name);
+                    allIdle = false;
+                }
+            }
+        }
         return allIdle;
     }
 
     /**
-     * Check that a given service is safe.
-     * <p>
-     * If the service has more than one member this method returns {@code true}.
-     * If there is only a single storage enabled member then verify that the single member
-     * owns all of the partitions. This ensures that when using active persistence the
-     * member is not still creating stores.
+     * Returns the name of the lowest Coherence cache service Status HA name.
      *
-     * @param mBean    the name of the paersistence manager MBean
-     * @param memberId this member Id
-     * @return true if the service is safe
-     * @throws MalformedObjectNameException if there is an error creating the MBean name
-     */
-    private boolean isCacheServiceSafe(String mBean, int memberId) throws MalformedObjectNameException {
-        ObjectName objectName = ObjectName.getInstance(mBean);
-        String domain = objectName.getDomain();
-        String serviceName = objectName.getKeyProperty("service");
-        String serviceMBean = String.format(MBEAN_SERVICE_PATTERN, domain, serviceName, memberId);
-        Map<String, Object> attributes = getMBeanAttributes(serviceMBean, CACHE_SERVICE_ATTRIBUTES);
-        Boolean storageEnabled = (Boolean) attributes.get(ATTRIB_STORAGE_ENABLED);
-        Integer memberCount = (Integer) attributes.get(ATTRIB_MEMBER_COUNT);
-        Integer ownedPartitions = (Integer) attributes.get(ATTRIB_OWNED_PARTITIONS_PRIMARY);
-        Integer partitionCount = (Integer) attributes.get(ATTRIB_PARTITIONS_ALL);
-        boolean safe = true;
-
-        if (storageEnabled != null && storageEnabled && memberCount != null && memberCount == 1) {
-            // storage enabled and only one member, check we own all partitions
-            safe = ownedPartitions != null && partitionCount != null && ownedPartitions.intValue() == partitionCount.intValue();
-        }
-
-        logDebug("CoherenceOperator: Partitioned Cache Service MBean %s is safe=%b - %s", serviceMBean, safe, attributes);
-        return safe;
-    }
-
-    private String quoteMBeanName(String sMBean) {
-        if (MBeanHelper.isQuoteRequired(sMBean)) {
-            return MBeanHelper.quote(sMBean);
-        }
-        return sMBean;
-    }
-
-    /**
-     * Returns {@code true} if the JVM is StatusHA.
-     *
-     * @return {@code true} if the JVM is StatusHA
+     * @return the name of the lowest Coherence cache service Status HA name
      */
     private String getStatusName() {
         Cluster cluster = clusterSupplier.get();
@@ -891,20 +799,25 @@ public class OperatorRestServer implements AutoCloseable {
         String status = "n/a";
 
         if (cluster != null && cluster.isRunning()) {
-            for (String mBean : getPartitionAssignmentMBeans()) {
-                Map<String, Object> attributes = getMBeanServiceStatusHAAttributes(mBean);
-                // convert the attribute case as MBeanProxy or REST return them with different cases
-                Map<String, Object> map = attributes.entrySet()
-                        .stream()
-                        .collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Map.Entry::getValue));
+            Enumeration<String> names = cluster.getServiceNames();
+            while (names.hasMoreElements()) {
+                String name = names.nextElement();
+                Service service = cluster.getService(name);
 
-                Integer code = (Integer) map.get(ATTRIB_HASTATUS_CODE);
-                if (code != null && code < lowestStatus) {
-                    status = (String) map.get(ATTRIB_HASTATUS);
+                if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+                    if (service instanceof SafeDistributedCacheService) {
+                        service = ((SafeDistributedCacheService) service).getService();
+                    }
+                    PartitionedCache partitionedCache = (PartitionedCache) service;
+                    if (partitionedCache.isOwnershipEnabled()) {
+                        int code = partitionedCache.getBackupStrength();
+                        if (code < lowestStatus) {
+                            status = partitionedCache.getBackupStrengthName();
+                        }
+                    }
                 }
             }
         }
-
         return status;
     }
 
@@ -917,111 +830,6 @@ public class OperatorRestServer implements AutoCloseable {
         }
     }
 
-    /**
-     * Determine whether the Status HA state of the specified service is endangered.
-     * <p>
-     * If the service only has a single member then it will always be endangered but
-     * this method will return {@code false}.
-     *
-     * @param mBean      the name of the MBean being checked
-     * @param attributes the MBean attributes to use to determine whether the service is HA
-     * @return {@code true} if the service is endangered
-     */
-    private boolean isServiceStatusHA(String mBean, Map<String, Object> attributes) {
-        boolean statusHA = true;
-
-        Number nodeCount = (Number) attributes.get(ATTRIB_NODE_COUNT);
-        Number backupCount = (Number) attributes.get(ATTRIB_BACKUPS);
-        Object status = attributes.get(ATTRIB_HASTATUS);
-        Integer remainingDistributionCount = (Integer) attributes.get(ATTRIB_REMAINING_DISTRIBUTION_COUNT);
-
-        if (remainingDistributionCount > 0) {
-            // still re-distributing
-            statusHA = false;
-        }
-        else if (nodeCount != null && nodeCount.intValue() > 1 && backupCount != null && backupCount.intValue() > 0) {
-            // more than one node with backup > 1 check status is not endangered
-            statusHA = !Objects.equals(STATUS_ENDANGERED, status);
-        }
-
-        if (!statusHA) {
-            log("CoherenceOperator: StatusHA check failed for MBean %s - %s", mBean, attributes);
-        }
-        else {
-            logDebug("CoherenceOperator: StatusHA check passed for MBean %s - %s", mBean, attributes);
-        }
-        return statusHA;
-    }
-
-    /**
-     * Obtain the {@link MBeanServerProxy} to use to query Coherence MBeans.
-     *
-     * @return the {@link MBeanServerProxy} to use to query Coherence MBeans
-     */
-    private Optional<MBeanServerProxy> getMBeanServerProxy() {
-        Cluster cluster = clusterSupplier.get();
-        if (cluster != null && cluster.isRunning()) {
-            Registry registry = cluster.getManagement();
-            if (registry != null) {
-                return Optional.ofNullable(registry.getMBeanServerProxy());
-            }
-            else {
-                logDebug("CoherenceOperator: MBeanServerProxy not present - registry is null");
-            }
-        }
-        logDebug("CoherenceOperator: MBeanServerProxy not present - %s",
-                 cluster == null ? "Cluster is null" : "Cluster not running");
-        return Optional.empty();
-    }
-
-    private Set<String> getPartitionAssignmentMBeans() {
-        return getMBeanServerProxy()
-                .map(p -> p.queryNames(MBEAN_PARTITION_ASSIGNMENT, null))
-                .orElse(Collections.emptySet());
-    }
-
-    /**
-     * Returns the names of the distributed cache service MBeans for services that are
-     * storage enabled on this local member.
-     *
-     * @param memberId  the local member id
-     *
-     * @return the names of the storage enabled cache services
-     */
-    private Set<String> getDistributedCacheServiceNames(int memberId) {
-        try {
-            Set<String> cacheServices = new HashSet<>();
-            String mBeanPattern = String.format(MBEAN_SERVICE, memberId);
-            Set<String> set = getMBeanServerProxy()
-                    .map(p -> p.queryNames(mBeanPattern, null))
-                    .orElse(Collections.emptySet());
-
-            logDebug("CoherenceOperator: MBeanServerProxy query '%s' found %d MBeans",
-                     mBeanPattern, set.size());
-
-            for (String mBean : set) {
-                Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type", "StorageEnabled"});
-                String type = (String) attributes.get("type");
-                Boolean storageEnabled = (Boolean) attributes.get("storageenabled");
-                if (storageEnabled != null && storageEnabled
-                    && "DistributedCache".equals(type) || "FederatedCache".equals(type)) {
-                    ObjectName objectName = new ObjectName(mBean);
-                    cacheServices.add(objectName.getKeyProperty("name"));
-                }
-            }
-            return cacheServices;
-        }
-        catch (MalformedObjectNameException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    private Set<String> getPersistenceCoordinatorMBeans() {
-        return getMBeanServerProxy()
-                .map(p -> p.queryNames(MBEAN_PERSISTENCE_COORDINATOR, null))
-                .orElse(Collections.emptySet());
-    }
-
     private void logDebug(String message, Object... args) {
         logDebug(String.format(message, args));
     }
@@ -1030,52 +838,5 @@ public class OperatorRestServer implements AutoCloseable {
         if (LOGGING_ENABLED) {
             CacheFactory.log(message, CacheFactory.LOG_INFO);
         }
-    }
-
-    private void log(String message, Object... args) {
-        log(String.format(message, args));
-    }
-
-    private void log(String message) {
-        CacheFactory.log(message, CacheFactory.LOG_INFO);
-    }
-
-    private void warn(String message, Object... args) {
-        warn(String.format(message, args));
-    }
-
-    private void warn(String message) {
-        CacheFactory.log(message, CacheFactory.LOG_WARN);
-    }
-
-    private void err(String message, Object... args) {
-        err(String.format(message, args));
-    }
-
-    private void err(String message) {
-        CacheFactory.log(message, CacheFactory.LOG_ERR);
-    }
-
-    /**
-     * Return attribute and values needed to compute service HA Status.
-     *
-     * @param mBeanName the MBean name
-     * @return attribute/value pairs of the specified MBean needed to compute service HAStatus.
-     */
-    private Map<String, Object> getMBeanServiceStatusHAAttributes(String mBeanName) {
-        return getMBeanAttributes(mBeanName, SERVICE_STATUS_HA_ATTRIBUTES);
-    }
-
-    private Map<String, Object> getMBeanAttributes(String sMBean, String[] asAttributes) {
-        Map<String, Object> mapAttrValue = new HashMap<>();
-        Optional<MBeanServerProxy> optional = getMBeanServerProxy();
-        if (optional.isPresent()) {
-            MBeanServerProxy proxy = optional.get();
-            for (String attribute : asAttributes) {
-                mapAttrValue.put(attribute.toLowerCase(), proxy.getAttribute(sMBean, attribute));
-            }
-        }
-
-        return mapAttrValue;
     }
 }
