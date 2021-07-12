@@ -34,6 +34,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
@@ -963,7 +965,12 @@ public class OperatorRestServer implements AutoCloseable {
             if (registry != null) {
                 return Optional.ofNullable(registry.getMBeanServerProxy());
             }
+            else {
+                logDebug("CoherenceOperator: MBeanServerProxy not present - registry is null");
+            }
         }
+        logDebug("CoherenceOperator: MBeanServerProxy not present - %s",
+                 cluster == null ? "Cluster is null" : "Cluster not running");
         return Optional.empty();
     }
 
@@ -988,6 +995,9 @@ public class OperatorRestServer implements AutoCloseable {
             Set<String> set = getMBeanServerProxy()
                     .map(p -> p.queryNames(mBeanPattern, null))
                     .orElse(Collections.emptySet());
+
+            logDebug("CoherenceOperator: MBeanServerProxy query '%s' found %d MBeans",
+                     mBeanPattern, set.size());
 
             for (String mBean : set) {
                 Map<String, Object> attributes = getMBeanAttributes(mBean, new String[] {"Type", "StorageEnabled"});
@@ -1018,7 +1028,7 @@ public class OperatorRestServer implements AutoCloseable {
 
     private void logDebug(String message) {
         if (LOGGING_ENABLED) {
-            CacheFactory.log(message, CacheFactory.LOG_DEBUG);
+            CacheFactory.log(message, CacheFactory.LOG_INFO);
         }
     }
 

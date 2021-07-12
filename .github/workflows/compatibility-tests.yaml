@@ -125,7 +125,7 @@ jobs:
         make compatibility-test COMPATIBLE_VERSION=${{ matrix.compatibilityVersion }} COMPATIBLE_SELECTOR=${{ matrix.compatibilitySelector }}
 
     - uses: actions/upload-artifact@v1
-      if: failure()
+#      if: failure()
       with:
         name: test-output
         path: build/_output/test-logs
