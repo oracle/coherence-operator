@@ -182,7 +182,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Cache_UnitsBytes{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
+          "expr": "sum(vendor_Coherence_Cache_Units_Bytes{cluster=~\"$ClusterName\",tier=\"back\"}) by (coherence_service, name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -241,7 +241,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Cache_UnitsBytes{cluster=~\"$ClusterName\",tier=\"back\"})",
+          "expr": "sum(vendor_Coherence_Cache_Units_Bytes{cluster=~\"$ClusterName\",tier=\"back\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -250,7 +250,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_StorageManager_IndexTotalUnits{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_Storage_Manager_Index_Total_units{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -413,7 +413,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_StorageManager_IndexTotalUnits{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
+          "expr": "sum(vendor_Coherence_Storage_Manager_Index_Total_Units{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -424,6 +424,101 @@
       "title": "Cache Index Size",
       "transform": "table",
       "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Shows a graph of total cache evictions across all caches and members.",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "hiddenSeries": false,
+      "id": 94,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor_Coherence_Storage_Manager_Eviction_Count{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Storage_Manager_Eviction_Count{cluster=~\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Total Evictions",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Cache Evictions",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "refresh": "30s",
@@ -494,7 +589,7 @@
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(vendor_Coherence_Service_RequestMaxDuration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor_Coherence_Service_Request_Max_Duration{cluster=~\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
