@@ -1333,7 +1333,7 @@
           "unit": "decbytes"
         },
         {
-          "alias": "Non Opttimzed Query Time",
+          "alias": "Non Optimzed Query Time",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
