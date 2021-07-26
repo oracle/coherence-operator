@@ -241,7 +241,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Cache_Units_Bytes{cluster=~\"$ClusterName\",tier=\"back\"})",
+          "expr": "sum(vendor_Coherence_Cache_UnitsBytes{cluster=~\"$ClusterName\",tier=\"back\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -250,7 +250,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor_Coherence_Storage_Manager_Index_Total_units{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor_Coherence_StorageManager_IndexTotalUnits{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -413,7 +413,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Storage_Manager_Index_Total_Units{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
+          "expr": "sum(vendor_Coherence_StorageManager_IndexTotalUnits{cluster=~\"$ClusterName\"}) by (coherence_service, cache )",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -470,7 +470,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor_Coherence_Storage_Manager_Eviction_Count{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_Storage_Manager_Eviction_Count{cluster=~\"$ClusterName\"} offset $__interval)",
+          "expr": "sum(vendor_Coherence_StorageManager_EvictionCount{cluster=~\"$ClusterName\"}) - sum(vendor_Coherence_StorageManager_EvictionCount{cluster=~\"$ClusterName\"} offset $__interval)",
           "format": "time_series",
           "instant": false,
           "interval": "",
