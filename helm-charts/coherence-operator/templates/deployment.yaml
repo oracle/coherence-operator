@@ -22,8 +22,10 @@ metadata:
     app.kubernetes.io/managed-by: helm
 spec:
   ports:
-  - port: 443
+  - name: webhook
+    port: 443
     targetPort: 9443
+    appProtocol: http
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
@@ -45,9 +47,10 @@ metadata:
     app.kubernetes.io/managed-by: helm
 spec:
   ports:
-    - name: http-rest
-      port: 8000
-      targetPort: 8000
+  - name: http-rest
+    port: 8000
+    targetPort: 8000
+    appProtocol: http
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
@@ -73,10 +76,6 @@ spec:
   selector:
     matchLabels:
       control-plane: coherence
-      app.kubernetes.io/name: coherence-operator
-      app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/version: "${VERSION}"
-      app.kubernetes.io/component: manager
   template:
     metadata:
       labels:

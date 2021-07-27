@@ -32,7 +32,7 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(selector).NotTo(BeEmpty(), "COMPATIBLE_SELECTOR environment variable has not been set")
 
 	// Install Previous version
-	t.Logf("Installing previous Operator version: %s\n", version)
+	t.Logf("Helm install previous Operator version: %s\n", version)
 	InstallPreviousVersion(g, ns, name, version, selector)
 
 	// Install a Coherence deployment
@@ -52,21 +52,21 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 
-	// delete the previous Operator version
-	t.Logf("Unnstalling previous Operator version: %s\n", version)
-	err = UninstallOperator(ns, name)
-	g.Expect(err).NotTo(HaveOccurred())
+	//// delete the previous Operator version
+	//t.Logf("Unnstalling previous Operator version: %s\n", version)
+	//err = UninstallOperator(ns, name)
+	//g.Expect(err).NotTo(HaveOccurred())
+	//
+	//// wait for Operator Pod to be deleted
+	//err = helper.WaitForOperatorCleanup(testContext, ns)
+	//g.Expect(err).NotTo(HaveOccurred())
 
-	// wait for Operator Pod to be deleted
-	err = helper.WaitForOperatorCleanup(testContext, ns)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// Install this version
-	t.Logf("Installing current Operator version\n")
-	InstallCurrentVersion(g, ns, name)
+	// Upgrade to this version
+	t.Logf("Helm upgrade to current Operator version\n")
+	UpgradeToCurrentVersion(g, ns, name)
 
 	// wait a few minutes to allow the new Operator to reconcile the existing Coherence cluster
-	t.Logf("Installed current Operator version - waiting for reconcile...\n")
+	t.Logf("Upgraded to current Operator version - waiting for reconcile...\n")
 	time.Sleep(2 * time.Minute)
 
 	// Get the current state fo the StatefulSet
@@ -102,11 +102,11 @@ func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) 
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
+func UpgradeToCurrentVersion(g *GomegaWithT, ns, name string) {
 	chart, err := helper.FindOperatorHelmChartDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	cmd := exec.Command("helm", "install",
+	cmd := exec.Command("helm", "upgrade",
 		"--set", "image="+helper.GetOperatorImage(),
 		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
 		"--namespace", ns, "--wait", name, chart)
@@ -115,7 +115,10 @@ func InstallCurrentVersion(g *GomegaWithT, ns, name string) {
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	pods, err := helper.WaitForOperatorPods(testContext, ns, time.Second*10, time.Minute*5)
+	version := os.Getenv("VERSION")
+	selector := "app.kubernetes.io/version=" + version
+
+	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
 	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
