@@ -14,8 +14,6 @@ spec:
   selector:
     matchLabels:
       control-plane: coherence
-      app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/version: "3.2.1"
   replicas: 1
   template:
     metadata:
