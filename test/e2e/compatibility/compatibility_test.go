@@ -52,15 +52,6 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 
-	//// delete the previous Operator version
-	//t.Logf("Unnstalling previous Operator version: %s\n", version)
-	//err = UninstallOperator(ns, name)
-	//g.Expect(err).NotTo(HaveOccurred())
-	//
-	//// wait for Operator Pod to be deleted
-	//err = helper.WaitForOperatorCleanup(testContext, ns)
-	//g.Expect(err).NotTo(HaveOccurred())
-
 	// Upgrade to this version
 	t.Logf("Helm upgrade to current Operator version\n")
 	UpgradeToCurrentVersion(g, ns, name)
