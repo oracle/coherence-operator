@@ -25,7 +25,6 @@ spec:
   - name: webhook
     port: 443
     targetPort: 9443
-    appProtocol: http
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
@@ -50,7 +49,6 @@ spec:
   - name: http-rest
     port: 8000
     targetPort: 8000
-    appProtocol: http
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
