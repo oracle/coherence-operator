@@ -490,7 +490,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -499,7 +499,7 @@
         }
       ],
       "thresholds": "",
-      "title": "Used Cluster Heap",
+      "title": "Used Cluster Heap After GC",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -604,7 +604,7 @@
       ],
       "datasource": null,
       "decimals": 1,
-      "description": "Percentage of heap memory used across all members.",
+      "description": "Percentage of heap memory used after GC across all members.",
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -656,7 +656,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) * 100  ",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"}) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) * 100  ",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -666,7 +666,7 @@
       ],
       "thresholds": "50,80",
       "timeFrom": null,
-      "title": "Total Heap Memory Usage %",
+      "title": "Total Memory Usage %",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -722,11 +722,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Used Cluster Memory",
+          "legendFormat": "Used Cluster Memory After GC",
           "refId": "A"
         },
         {
@@ -1022,7 +1022,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role)",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"}) by (role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1038,7 +1038,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"}) by (role) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1097,7 +1097,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}) by (role) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
+          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"}) by (role) / sum(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}) by (role)  \n",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1465,7 +1465,7 @@
       ],
       "targets": [
         {
-          "expr": "topk($TopLimit, avg(avg_over_time(coherence_memory_heap_memory_usage_used{cluster=~\"$ClusterName\"}[$__range]) / avg_over_time(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}[$__range])) by (member))",
+          "expr": "topk($TopLimit, avg(avg_over_time(coherence_memory_heap_after_gc_used{cluster=~\"$ClusterName\"}[$__range]) / avg_over_time(coherence_memory_heap_memory_usage_max{cluster=~\"$ClusterName\"}[$__range])) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1474,7 +1474,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top $TopLimit Members - Heap Used % - Current Range",
+      "title": "Top $TopLimit Members - Memory Used % - Current Range",
       "transform": "table",
       "type": "table"
     },
