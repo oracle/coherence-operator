@@ -18,6 +18,8 @@ The prerequisites apply to all installation methods.
 
 * Access to Oracle Coherence Operator images.
 * Access to a Kubernetes v1.16.0+ cluster. The Operator test pipeline is run using Kubernetes versions v1.16 upto v1.21
+* A Coherence application image using Coherence version 12.2.1.3 or later. Note that some functionality (e.g. metrics) is only
+available in Coherence 12.2.1.4 and later.
 
 NOTE: ARM Support: As of version 3.2.0, the Coherence Operator is build as a multi-architecture image that supports running in Kubernetes on both Linux/amd64 and Linux/arm64. The prerequisite is that the Coherence application image used has been built to support ARM.
 
