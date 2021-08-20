@@ -151,7 +151,7 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 		}
 	default:
 		// Both the sm and deployment exists so this is maybe an update
-		err = in.Update(ctx, name, sm, storage)
+		err = in.Update(ctx, name, sm, storage, logger)
 	}
 	return err
 }
