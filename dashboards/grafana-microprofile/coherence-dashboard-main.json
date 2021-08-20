@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -11,7 +11,7 @@
         "type": "dashboard"
       },
       {
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "enable": true,
         "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
@@ -27,7 +27,7 @@
         "useValueForTime": false
       },
       {
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "enable": true,
         "expr": "changes(vendor_Coherence_Service_OwnedPartitionsPrimary{cluster=~\"$ClusterName\"}[60s])",
         "hide": false,
@@ -73,7 +73,7 @@
   "panels": [
     {
       "content": "<center><h3>Cluster Overview - $CoherenceVersion</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -88,7 +88,7 @@
     },
     {
       "collapsed": true,
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -149,7 +149,7 @@
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -170,7 +170,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Shows the number of cluster members.",
       "format": "none",
       "gauge": {
@@ -259,7 +259,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Recent member departures.",
       "format": "none",
@@ -345,7 +345,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "The number of services with endangered partitions.",
       "format": "none",
@@ -437,7 +437,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Total used cluster heap across all members after GC.",
       "format": "decbytes",
       "gauge": {
@@ -521,7 +521,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Total available cluster heap across all members.",
       "format": "decbytes",
       "gauge": {
@@ -605,7 +605,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 1,
       "description": "Percentage of heap memory used across all members.",
       "format": "percent",
@@ -687,7 +687,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Total and used cluster memory (after GC) across all members (storage enabled and disabled). Please see tables and graphs directly below for breakdown by Role.",
       "fill": 1,
       "fillGradient": 0,
@@ -788,7 +788,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Show the current load average across all machines.",
       "fill": 1,
       "fillGradient": 0,
@@ -886,7 +886,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Total heap usage summarized by role.",
       "fontSize": "100%",
       "gridPos": {
@@ -1065,7 +1065,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Memory usage percentage by member role.",
       "fill": 1,
@@ -1158,7 +1158,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the lowest physical memory % available.",
       "fontSize": "100%",
       "gridPos": {
@@ -1257,7 +1257,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the highest CPU Load % over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1373,7 +1373,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the highest heap memory % used over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1489,7 +1489,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the greatest  Total GC Time over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1601,7 +1601,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1713,7 +1713,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Services  that have the greatest change in the Task Count over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -1829,7 +1829,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total task backlog per member.",
       "fill": 1,
@@ -1930,7 +1930,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total task backlog by service.",
       "fill": 1,
@@ -2031,7 +2031,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total Proxy Outgoing Byte Backlog by Service",
       "fill": 1,
@@ -2129,7 +2129,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Services that  have unbalanced partitions.",
       "fontSize": "100%",
       "gridPos": {
@@ -2228,7 +2228,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the greatest change in sent and received messages over the current time range.",
       "fontSize": "100%",
       "gridPos": {
@@ -2340,7 +2340,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The current top $TopLimit caches, services and member with the highest Max Query Time.",
       "fontSize": "100%",
       "gridPos": {
@@ -2476,7 +2476,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The current top $TopLimit nodes with the highest number of Non-Optimized Queries.",
       "fontSize": "100%",
       "gridPos": {
@@ -2614,7 +2614,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -2707,7 +2707,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -2806,7 +2806,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2830,7 +2830,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -2857,7 +2857,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -2884,7 +2884,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,

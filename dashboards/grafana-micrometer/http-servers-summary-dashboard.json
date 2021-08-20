@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -42,7 +42,7 @@
   "panels": [
     {
       "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -57,7 +57,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -252,7 +252,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "fill": 1,
       "fillGradient": 0,
@@ -345,7 +345,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "fill": 1,
       "fillGradient": 0,
@@ -479,7 +479,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -503,7 +503,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,

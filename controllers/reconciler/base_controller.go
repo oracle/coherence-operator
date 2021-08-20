@@ -487,6 +487,7 @@ func (in *ReconcileSecondaryResource) ReconcileResources(ctx context.Context, re
 
 	var err error
 	diff := storage.GetLatest().DiffForKind(in.Kind, storage.GetPrevious())
+	logger.Info(fmt.Sprintf("Reconciling %d %v resources", len(diff), in.Kind))
 	for _, res := range diff {
 		if res.IsDelete() {
 			if err = in.Delete(ctx, request.Namespace, res.Name, logger); err != nil {
@@ -494,7 +495,7 @@ func (in *ReconcileSecondaryResource) ReconcileResources(ctx context.Context, re
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileResource(ctx, request.Namespace, res.Name, deployment, storage); err != nil {
+			if err = in.ReconcileResource(ctx, request.Namespace, res.Name, deployment, storage, logger); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for deployment with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -503,8 +504,9 @@ func (in *ReconcileSecondaryResource) ReconcileResources(ctx context.Context, re
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
-	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
+// ReconcileResource reconciles a specific resource.
+func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Reconciling resource %v %s/%s", in.Kind, namespace, name))
 
 	// Fetch the resource's current state
 	resource, exists, err := in.FindResource(ctx, namespace, name)
@@ -526,7 +528,7 @@ func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, nam
 			// The deployment does not exist (or is scaled down to zero) but the resource still does,
 			// ensure that the resource is deleted.
 			// This should not actually be required as everything is owned by the deployment
-			// and there should be a cascaded delete by k8s so it's belt and braces.
+			// and there should be a cascaded delete by k8s, so it's belt and braces.
 			err = in.Delete(ctx, namespace, name, logger)
 		}
 	case !exists:
@@ -534,7 +536,7 @@ func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, nam
 		err = in.Create(ctx, name, storage, logger)
 	default:
 		// Both the resource and deployment exists so this is maybe an update
-		err = in.Update(ctx, name, resource.(client.Object), storage)
+		err = in.Update(ctx, name, resource.(client.Object), storage, logger)
 	}
 	return err
 }
@@ -572,7 +574,7 @@ func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, nam
 	// create a new resource from copying the empty template
 	resource := in.NewFromTemplate(namespace, name)
 
-	// Do the delete
+	// Do the deletion
 	err := in.GetClient().Delete(ctx, resource, client.PropagationPolicy(metav1.DeletePropagationBackground))
 	// check for an error (we ignore not-found as this means k8s has already done the delete for us)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -583,7 +585,8 @@ func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, nam
 }
 
 // Update possibly updates the resource if the current state differs from the desired state.
-func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage) error {
+func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Updating %v/%s for deployment", in.Kind, name))
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {

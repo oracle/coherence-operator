@@ -12,7 +12,7 @@ VERSION ?= 3.2.2
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.1.5
+PREV_VERSION ?= 3.2.1
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -124,16 +124,6 @@ WATCH_NAMESPACE ?=
 # flag indicating whether the test namespace should be reset (deleted and recreated) before tests
 CREATE_OPERATOR_NAMESPACE ?= true
 
-# Prometheus Operator settings (used in integration tests)
-PROMETHEUS_INCLUDE_GRAFANA   ?= true
-PROMETHEUS_OPERATOR_VERSION  ?= 8.13.7
-PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
-GRAFANA_DASHBOARDS           ?= dashboards/grafana/
-
-# Elasticsearch & Kibana settings (used in integration tests)
-ELASTIC_VERSION ?= 7.6.2
-KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
-
 # restart local storage for persistence
 LOCAL_STORAGE_RESTART ?= false
 
@@ -221,13 +211,36 @@ CRDV1_FILES      = $(shell find ./config/crd -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
-help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+# Prometheus Operator settings (used in integration tests)
+PROMETHEUS_VERSION           ?= v0.8.0
+PROMETHEUS_HOME              ?= $(BUILD_OUTPUT)/prometheus
+PROMETHEUS_NAMESPACE         ?= monitoring
+PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
+GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 
+# Elasticsearch & Kibana settings (used in integration tests)
+ELASTIC_VERSION ?= 7.6.2
+KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
+
+# ======================================================================================================================
+# Makefile targets start here
+# ======================================================================================================================
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Display the Makefile help - this is a list of the targets with a description.
+# This target MUST be the first target in the Makefile so that it is run when running make with no arguments
+# ----------------------------------------------------------------------------------------------------------------------
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+
+# ======================================================================================================================
+# Build targets
+# ======================================================================================================================
 ##@ Build
 
 .PHONY: all
-all: java-client build-all-images helm-chart ## Build all the Coherence Operator artefacts
+all: java-client build-all-images helm-chart ## Build all the Coherence Operator artefacts and images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
@@ -310,7 +323,7 @@ build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) generate manifests
+$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
 	mkdir -p $(BUILD_BIN)/linux/amd64 || true
 	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager
@@ -376,7 +389,7 @@ java-client: $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
 
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
@@ -402,6 +415,9 @@ define replaceprop
 	done
 endef
 
+# ======================================================================================================================
+# General development related targets
+# ======================================================================================================================
 ##@ Development
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -471,7 +487,7 @@ $(BUILD_OUTPUT)/certs:
 .PHONY: code-review
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
-code-review: generate golangci copyright  ## Full code review and Checkstyle test
+code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review and Checkstyle test
 	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -538,6 +554,9 @@ copyright:  ## Check copyright headers
 	  -X pkg/data/assets/ \
 	  -X zz_generated.
 
+# ======================================================================================================================
+# Targets related to Operator Lifecycle Manager and the Operator SDK
+# ======================================================================================================================
 ##@ Operator Lifecycle Manager
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -605,6 +624,9 @@ catalog-push: ## Push an OLM catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
 
+# ======================================================================================================================
+# Targets to run various tests
+# ======================================================================================================================
 ##@ Test
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -926,17 +948,19 @@ run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO
 run-coherence-compatibility: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-coherence-compatibility: gotestsum generate
+run-coherence-compatibility: gotestsum $(BUILD_TARGETS)/generate
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Clean up after to running compatability tests.
 # ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-coherence-compatibility
 cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 
+# ======================================================================================================================
+# Targets related to deploying the Operator into k8s for testing and debugging
+# ======================================================================================================================
 ##@ Deployment
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -954,7 +978,7 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
-uninstall-crds: manifests  ## Uninstall the CRDs
+uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 
@@ -962,7 +986,7 @@ uninstall-crds: manifests  ## Uninstall the CRDs
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: deploy-and-wait
-deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Pod to be ready
+deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Operator Pod to be ready
 
 .PHONY: deploy
 deploy: prepare-deploy $(GOBIN)/kustomize   ## Deploy the Coherence Operator
@@ -979,7 +1003,7 @@ just-deploy:
 	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
-prepare-deploy: manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
@@ -1089,6 +1113,15 @@ endif
 	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Delete all of the Coherence resources from the test namespace.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: delete-coherence-clusters
+delete-coherence-clusters: ## Delete all running Coherence clusters in the test namespace
+	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	done
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete all resource from the test namespace
@@ -1120,6 +1153,9 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 		--from-file=operator-ca.crt=build/_output/certs/guardians-ca.crt
 
 
+# ======================================================================================================================
+# Targets related to running KinD clusters
+# ======================================================================================================================
 ##@ KinD
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1185,6 +1221,9 @@ kind-load-operator:   ## Load the Operator images into the KinD cluster
 kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
 	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
 
+# ======================================================================================================================
+# Miscellaneous targets
+# ======================================================================================================================
 ##@ Miscellaneous
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1461,35 +1500,38 @@ stop:
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-prometheus
+get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
+
+$(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt:
+	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
+	mkdir $(PROMETHEUS_HOME)
+	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
+	rm $(BUILD_OUTPUT)/prometheus.tar.gz
+	touch $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt
+
 .PHONY: install-prometheus
-install-prometheus:
-	kubectl create ns $(OPERATOR_NAMESPACE) || true
-	kubectl create -f hack/prometheus-rbac.yaml
-	helm repo add stable https://charts.helm.sh/stable || true
-	@echo "Create Grafana Dashboards ConfigMap:"
-	kubectl -n $(OPERATOR_NAMESPACE) create configmap coherence-grafana-dashboards --from-file=$(GRAFANA_DASHBOARDS)
-	kubectl -n $(OPERATOR_NAMESPACE) label configmap coherence-grafana-dashboards grafana_dashboard=1
-	@echo "Getting Helm Version:"
-	helm version
-	@echo "Installing stable/prometheus-operator:"
-	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(PROMETHEUS_OPERATOR_VERSION) --wait \
-		--set grafana.enabled=$(PROMETHEUS_INCLUDE_GRAFANA) \
-		--values hack/prometheus-values.yaml prometheus stable/prometheus-operator
-	@echo "Installing Prometheus instance:"
-	kubectl -n $(OPERATOR_NAMESPACE) apply -f hack/prometheus.yaml
+install-prometheus:  ## Install Prometheus and Grafana
+	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
+	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+	kubectl create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for=condition=Ready pod/prometheus-prometheus-0
+	@echo "Waiting for Prometheus StatefulSet to be ready"
+	kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
+	@echo "Waiting for Grafana Deployment to be ready"
+	kubectl -n monitoring rollout status deployment/grafana --timeout=5m
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
-uninstall-prometheus:
-	kubectl -n $(OPERATOR_NAMESPACE) delete -f hack/prometheus.yaml || true
-	kubectl -n $(OPERATOR_NAMESPACE) delete configmap coherence-grafana-dashboards || true
-	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus || true
-	kubectl delete -f hack/prometheus-rbac.yaml || true
+uninstall-prometheus: ## Uninstall Prometheus and Grafana
+	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests
+	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Install Prometheus Adapter used for k8s metrics and Horizontal Pod Autoscaler
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-prometheus-adapter
 install-prometheus-adapter:
 	kubectl create ns $(OPERATOR_NAMESPACE) || true
@@ -1498,6 +1540,9 @@ install-prometheus-adapter:
 		--set prometheus.url=http://prometheus.$(OPERATOR_NAMESPACE).svc \
 		--values hack/prometheus-adapter-values.yaml prometheus-adapter stable/prometheus-adapter
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall Prometheus Adapter used for k8s metrics and Horizontal Pod Autoscaler
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus-adapter
 uninstall-prometheus-adapter:
 	helm --namespace $(OPERATOR_NAMESPACE) delete prometheus-adapter || true
@@ -1506,17 +1551,16 @@ uninstall-prometheus-adapter:
 # Start a port-forward process to the Grafana Pod.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-grafana
-port-forward-grafana: export GRAFANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app.kubernetes.io/name=grafana -o name)
-port-forward-grafana:
+port-forward-grafana: ## Run a port-forward to Grafana on http://127.0.0.1:3000
 	@echo "Reach Grafana on http://127.0.0.1:3000"
-	@echo "User: admin Password: prom-operator"
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(GRAFANA_POD) 3000:3000
+	@echo "User: admin Password: admin"
+	kubectl --namespace monitoring port-forward svc/grafana 3000
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Elasticsearch & Kibana
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-elastic
-install-elastic: helm-install-elastic kibana-import
+install-elastic: helm-install-elastic kibana-import ## Install Elastic Stack
 
 .PHONY: helm-install-elastic
 helm-install-elastic:
@@ -1547,7 +1591,7 @@ kibana-import:
 # Uninstall Elasticsearch & Kibana
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-elastic
-uninstall-elastic:
+uninstall-elastic: ## Uninstall Elastic Stack
 	helm uninstall --namespace $(OPERATOR_NAMESPACE) kibana || true
 	helm uninstall --namespace $(OPERATOR_NAMESPACE) elasticsearch || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
@@ -1557,7 +1601,7 @@ uninstall-elastic:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-kibana
 port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name)
-port-forward-kibana:
+port-forward-kibana: ## Run a port-forward to Kibana on http://127.0.0.1:5601
 	@echo "Reach Kibana on http://127.0.0.1:5601"
 	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
 
@@ -1566,20 +1610,10 @@ port-forward-kibana:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: port-forward-es
 port-forward-es: export ES_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name)
-port-forward-es:
+port-forward-es: ## Run a port-forward to Elasticsearch on http://127.0.0.1:9200
 	@echo "Reach Elasticsearch on http://127.0.0.1:9200"
 	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(ES_POD) 9200:9200
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Delete all of the Coherence resources from the test namespace.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: delete-coherence-clusters
-delete-coherence-clusters:
-	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
-  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
-		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
-	done
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Obtain the golangci-lint binary
@@ -1732,7 +1766,7 @@ endif
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
-release: ## Release the Operator
+release:
 ifeq (true, $(RELEASE_DRY_RUN))
 release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
@@ -1769,7 +1803,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: generate manifests $(GOBIN)/kustomize
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds

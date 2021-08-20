@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -13,18 +13,15 @@
 Since version 12.2.1.4 Coherence has had the ability to expose a http endpoint that can be used to scrape metrics.
 This would typically be used to expose metrics to something like Prometheus.
 
-
 NOTE: The description below is only applicable if metrics will be served by Coherence using the
 `coherence-metrics` module. If Coherence metrics will be served from a different endpoint, for
 example from a Helidon web-server using `coherence-mp-metrics` or using Coherence Micrometer integration,
 then the documentation below does not apply.
 
-
 NOTE: The default metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
 setting the relevant fields in the `Coherence` CRD. This assumes that your application has included the
 `coherence-metrics` module as a dependency. See the Coherence product documentation for more details on enabling metrics
 in your application.
-
 
 The example below shows how to enable and access Coherence metrics when served by the endpoint provided by the
 `coherence-metrics` module. For the example below to work the application deployed must have the `coherence-metrics`
@@ -35,8 +32,6 @@ endpoint is available at `http://host:port/metrics`.
 
 See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-coherence-metrics.html[Using Coherence Metrics]
 documentation for full details on the available metrics.
-
-NOTE: Note: Use of metrics is available only when using the operator with clusters running Coherence 12.2.1.4 or later version.
 
 === Deploy Coherence with Metrics Enabled
 

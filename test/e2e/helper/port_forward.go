@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/transport/spdy"
 )
 
-// A PortForwarder forwards ports from the local machine to a K8s Pod.
+// PortForwarder forwards ports from the local machine to a K8s Pod.
 // This works in the same way the kubectl port-forward works.
 //
 // Typical usage would be to create the PortForwarder, start it, check
@@ -54,7 +54,7 @@ type PortForwarder struct {
 	KubeClient kubernetes.Interface
 }
 
-// Forward all ports in a Pod to local ports.
+// PortForwarderForPod forwards all ports in a Pod to local ports.
 // This method returns a PortForwarder that is not started, a map of port name to local port
 // and any error that may have occurred.
 func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, error) {
@@ -84,7 +84,7 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	return &PortForwarder{Namespace: pod.Namespace, PodName: pod.Name, Ports: ports}, localPorts, nil
 }
 
-// Forward all ports in a Pod to local ports.
+// StartPortForwarderForPod forwards all ports in a Pod to local ports.
 // This method returns a running PortForwarder, a map of port name to local port
 // and any error that may have occurred.
 func StartPortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, error) {
@@ -191,7 +191,7 @@ type AvailablePorts interface {
 	NextPortForward(ports ...int32) ([]string, error)
 }
 
-// Obtain an AvailablePorts that finds free ephemeral ports.
+// GetAvailablePorts obtains an AvailablePorts that finds free ephemeral ports.
 func GetAvailablePorts() AvailablePorts {
 	return &ports{}
 }
