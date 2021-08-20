@@ -110,9 +110,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			err := in.GetClient().Update(ctx, deployment)
 			if err != nil {
 				return ctrl.Result{}, err
-			} else {
-				log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
 			}
+		} else {
+			log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
 		}
 		return ctrl.Result{}, nil
 	}
