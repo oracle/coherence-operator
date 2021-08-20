@@ -381,7 +381,7 @@ build-mvn: ## Build the Java artefacts
 # Build Java client
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: java-client
-java-client: $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
+java-client: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests prepare-deploy $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
