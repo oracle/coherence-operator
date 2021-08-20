@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -46,8 +46,8 @@ func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod) {
 }
 
 func IsPrometheusInstalled() (bool, corev1.Pod, error) {
-	promNamespace := helper.GetTestNamespace()
-	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app=prometheus,prometheus=prometheus")
+	promNamespace := helper.GetPrometheusNamespace()
+	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app=prometheus")
 	if err != nil || len(promPods) == 0 {
 		return false, corev1.Pod{}, err
 	}

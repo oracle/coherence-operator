@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -11,7 +11,7 @@
         "type": "dashboard"
       },
       {
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "enable": true,
         "expr": "changes(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
@@ -66,7 +66,7 @@
   "panels": [
     {
       "content": "<center><h3>Member Details - $MemberName</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -81,7 +81,7 @@
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -102,7 +102,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -184,7 +184,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "format": "decbytes",
       "gauge": {
         "maxValue": 100,
@@ -266,7 +266,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -348,7 +348,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -430,7 +430,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "format": "percentunit",
       "gauge": {
         "maxValue": 1,
@@ -505,7 +505,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 8,
@@ -677,7 +677,7 @@
     },
     {
       "content": "<center><h3>Memory and Garbage Collection</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -695,7 +695,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "",
       "fill": 1,
@@ -791,7 +791,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -883,7 +883,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -982,7 +982,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1078,7 +1078,7 @@
     },
     {
       "content": "<center><h3>Member Network Details</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1096,7 +1096,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The rate at which packets are being sent from this member.",
       "fill": 1,
       "fillGradient": 0,
@@ -1189,7 +1189,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The rate at which packets are being received by this member.",
       "fill": 1,
       "fillGradient": 0,
@@ -1282,7 +1282,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1373,7 +1373,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1464,7 +1464,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "The Guardian Recovery and Terminations over the current time range.",
       "fill": 1,
       "fillGradient": 0,
@@ -1566,7 +1566,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1667,7 +1667,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1691,7 +1691,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,

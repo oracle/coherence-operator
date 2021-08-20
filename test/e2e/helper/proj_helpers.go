@@ -28,14 +28,22 @@ import (
 )
 
 const (
-	TestNamespaceEnv         = "OPERATOR_NAMESPACE"
-	OperatorImageEnv         = "OPERATOR_IMAGE"
+	// TestNamespaceEnv is environment variable holding the name of the test k8s namespace.
+	TestNamespaceEnv = "OPERATOR_NAMESPACE"
+	// PrometheusNamespaceEnv is environment variable holding the name of the Prometheus k8s namespace.
+	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
+	// OperatorImageEnv is environment variable holding the name of the Operator image.
+	OperatorImageEnv = "OPERATOR_IMAGE"
+	// UtilsImageEnv is environment variable holding the name of the Operator utils image.
+	UtilsImageEnv = "UTILS_IMAGE"
+	// CohCompatibilityImageEnv is environment variable holding the name of the compatibility test image.
 	CohCompatibilityImageEnv = "TEST_COMPATIBILITY_IMAGE"
-	UtilsImageEnv            = "UTILS_IMAGE"
-	WatchNamespaceEnv        = "WATCH_NAMESPACE"
-	TestSslSecretEnv         = "TEST_SSL_SECRET"
-	ImagePullSecretsEnv      = "IMAGE_PULL_SECRETS"
-	CoherenceVersionEnv      = "COHERENCE_VERSION"
+	// TestSslSecretEnv is environment variable holding the name of the SSL certs secret.
+	TestSslSecretEnv = "TEST_SSL_SECRET"
+	// ImagePullSecretsEnv is environment variable holding the name of the image pull secrets.
+	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
+	// CoherenceVersionEnv is environment variable holding the Coherence version.
+	CoherenceVersionEnv = "COHERENCE_VERSION"
 
 	defaultNamespace = "operator-test"
 
@@ -47,18 +55,22 @@ const (
 	certs         = outDir + string(os.PathSeparator) + "certs"
 )
 
+// GetOperatorImage returns the name of the Operator image.
 func GetOperatorImage() string {
 	return os.Getenv(OperatorImageEnv)
 }
 
+// GetUtilsImage returns the name of the Operator utils image.
 func GetUtilsImage() string {
 	return os.Getenv(UtilsImageEnv)
 }
 
+// GetCoherenceCompatibilityImage returns the name of the compatibility test image.
 func GetCoherenceCompatibilityImage() string {
 	return os.Getenv(CohCompatibilityImageEnv)
 }
 
+// GetTestNamespace returns the name of the test namespace.
 func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)
 	if ns == "" {
@@ -67,18 +79,21 @@ func GetTestNamespace() string {
 	return ns
 }
 
-func GetWatchNamespaces() []string {
-	ns := os.Getenv(WatchNamespaceEnv)
-	if ns != "" {
-		return strings.Split(ns, ",")
+// GetPrometheusNamespace returns the name of the Prometheus namespace.
+func GetPrometheusNamespace() string {
+	ns := os.Getenv(PrometheusNamespaceEnv)
+	if ns == "" {
+		ns = "monitoring"
 	}
-	return []string{}
+	return ns
 }
 
+// GetTestSSLSecretName returns the name of the SSL cert secret.
 func GetTestSSLSecretName() string {
 	return os.Getenv(TestSslSecretEnv)
 }
 
+// GetImagePullSecrets returns the names of the image pull secrets.
 func GetImagePullSecrets() []coh.LocalObjectReference {
 	s := os.Getenv(ImagePullSecretsEnv)
 	if s == "" {
@@ -91,6 +106,7 @@ func GetImagePullSecrets() []coh.LocalObjectReference {
 	return secrets
 }
 
+// FindProjectRootDir returns the project root directory.
 func FindProjectRootDir() (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -110,6 +126,7 @@ func FindProjectRootDir() (string, error) {
 	return "", os.ErrNotExist
 }
 
+// FindOperatorHelmChartDir returns the Operator Helm chart directory.
 func FindOperatorHelmChartDir() (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
@@ -119,6 +136,7 @@ func FindOperatorHelmChartDir() (string, error) {
 	return pd + string(os.PathSeparator) + operatorChart, nil
 }
 
+// FindTestLogsDir returns the test log directory.
 func FindTestLogsDir() (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
@@ -128,6 +146,7 @@ func FindTestLogsDir() (string, error) {
 	return pd + string(os.PathSeparator) + testLogs, nil
 }
 
+// FindTestCertsDir returns the test cert directory.
 func FindTestCertsDir() (string, error) {
 	pd, err := FindProjectRootDir()
 	if err != nil {
@@ -161,6 +180,7 @@ func createCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, er
 	return l.loadYaml(namespace, file)
 }
 
+// CoherenceLoader can load Coherence resources from yaml files.
 type CoherenceLoader struct {
 }
 
@@ -251,7 +271,7 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 	return deployments, nil
 }
 
-// Load the specified value from the yaml file.
+// LoadFromYamlFile loads the specified value from the yaml file.
 func LoadFromYamlFile(file string, o interface{}) error {
 	actualFile, err := FindActualFile(file)
 	if err != nil {
@@ -277,7 +297,7 @@ func FindActualFile(file string) (string, error) {
 		return file, nil
 	}
 
-	// files does not exist
+	// file does not exist
 	if !strings.HasPrefix(file, "/") {
 		// the file does not exist and is not absolute so try relative to a location
 		// in the call stack by walking up the stack and trying each location.
@@ -302,7 +322,7 @@ func FindActualFile(file string) (string, error) {
 	return "", err
 }
 
-// Skip the specified test if the current Coherence version set in the COHERENCE_VERSION
+// SkipIfCoherenceVersionLessThan skips the specified test if the current Coherence version set in the COHERENCE_VERSION
 // environment variable is less than the specified version.
 func SkipIfCoherenceVersionLessThan(t *testing.T, version ...int) {
 	ok, err := IsCoherenceVersionAtLeast(version...)
@@ -315,9 +335,9 @@ func SkipIfCoherenceVersionLessThan(t *testing.T, version ...int) {
 	}
 }
 
-// Determine whether current Coherence version set in the COHERENCE_VERSION
-// environment variable is greater than the specified version or the
-// COHERENCE_VERSION environment variable has not been set.
+// IsCoherenceVersionAtLeast determines whether current Coherence version set in the COHERENCE_VERSION
+// environment variable is greater than the specified version or the COHERENCE_VERSION environment
+// variable has not been set.
 func IsCoherenceVersionAtLeast(version ...int) (bool, error) {
 	if len(version) == 0 {
 		return true, nil
@@ -384,7 +404,7 @@ func GetKubeconfigAndNamespace(configPath string) (*rest.Config, string, error) 
 	}
 
 	// If this is Docker on Mac the host name resolves to loopback
-	// It seems that if we use the host name we may later get an x509 error
+	// It seems that if we use the host name we may later get a x509 error
 	// but if we change the host to the loopback IP 127.0.0.1 it works fine
 	if ip[0].IsLoopback() {
 		kubeconfig.Host = strings.Replace(kubeconfig.Host, u.Hostname(), "127.0.0.1", 1)

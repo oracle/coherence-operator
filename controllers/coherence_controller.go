@@ -52,7 +52,7 @@ type CoherenceReconciler struct {
 }
 
 // blank assignment to verify that CoherenceReconciler implements reconcile.Reconciler
-// There will be a compile time error here if this breaks
+// There will be a compile-time error here if this breaks
 var _ reconcile.Reconciler = &CoherenceReconciler{}
 
 // +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence,verbs=get;list;watch;create;update;patch;delete
@@ -64,6 +64,8 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	log := in.Log.WithValues("coherence", request.NamespacedName)
+
+	log.Info("Reconciling Coherence resource")
 
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
@@ -90,9 +92,11 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// Check whether this is a deletion
-	if deployment.GetDeletionTimestamp() != nil {
+	deleteTime := deployment.GetDeletionTimestamp()
+	if deleteTime != nil {
 		// Check whether finalization needs to be run
 		if utils.StringArrayContains(deployment.GetFinalizers(), coh.Finalizer) {
+			log.Info("Coherence resource deleted at " + deleteTime.String() + ", running finalizer")
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
@@ -106,6 +110,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			err := in.GetClient().Update(ctx, deployment)
 			if err != nil {
 				return ctrl.Result{}, err
+			} else {
+				log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
 			}
 		}
 		return ctrl.Result{}, nil
@@ -132,8 +138,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Check whether the deployment has a replica count specified
 	// Ideally we'd do this with a validating/defaulting web-hook but maybe in a later version.
 	if deployment.Spec.Replicas == nil {
-		// No replica count so we patch the deployment to have the default replicas value.
-		// The reason we do this is because the kubectl scale command will fail if the replicas
+		// No replica count, so we patch the deployment to have the default replicas value.
+		// The reason we do this, is because the kubectl scale command will fail if the replicas
 		// field is not set to a non-nil value.
 		patch := &coh.Coherence{}
 		deployment.DeepCopyInto(patch)
@@ -184,8 +190,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	result := ctrl.Result{Requeue: false}
 
 	if isDiff {
-		in.Log.Info("Reconciling Coherence resource secondary resources")
-		// make the deployment the owner of all of the secondary resources about to be reconciled
+		log.Info("Reconciling Coherence resource secondary resources")
+		// make the deployment the owner of all the secondary resources about to be reconciled
 		if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
 			return reconcile.Result{}, err
 		}
@@ -198,6 +204,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 		// process the secondary resources in the order they should be created
 		for _, rec := range in.reconcilers {
+			log.Info("Reconciling Coherence resource secondary resources (" + rec.GetControllerName() + ")")
 			r, err := rec.ReconcileResources(ctx, request, deployment, storage)
 			if err != nil {
 				return reconcile.Result{}, err
@@ -206,7 +213,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 	} else {
 		// original and desired are identical so there is nothing else to do
-		in.Log.Info("Reconciled secondary resources for deployment, nothing to update")
+		log.Info("Reconciled secondary resources for deployment, nothing to update")
 	}
 
 	// if replica count is zero update the status to Stopped
@@ -216,7 +223,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 	}
 
-	in.Log.Info(fmt.Sprintf("Finished reconciling Coherence resource. Result='%v'", result))
+	log.Info(fmt.Sprintf("Finished reconciling Coherence resource. Result='%v'", result))
 	return result, err
 }
 

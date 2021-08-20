@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -11,7 +11,7 @@
         "type": "dashboard"
       },
       {
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "enable": true,
         "expr": "changes(coherence_cluster_size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
@@ -492,7 +492,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster Name",
@@ -514,7 +514,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "hide": 2,
         "includeAll": false,
         "label": "Coherence Version",
@@ -540,7 +540,7 @@
             "$__all"
           ]
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "hide": 2,
         "includeAll": true,
         "label": "Services",

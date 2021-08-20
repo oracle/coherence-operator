@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -42,7 +42,7 @@
   "panels": [
     {
       "content": "<center><h3>Proxy Servers Summary - $ClusterName</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -57,7 +57,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -338,7 +338,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total bytes sent (bytes/sec) of all Proxy Server members.",
       "fill": 1,
@@ -436,7 +436,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total bytes received (bytes/sec) of all Proxy Server members.",
       "fill": 1,
@@ -534,7 +534,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total Proxy Connections Across All Services",
       "fill": 1,
@@ -630,7 +630,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total Proxy connections per service",
       "fill": 1,
@@ -726,7 +726,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total Outgoing Byte Backlog per Service",
       "fill": 1,
@@ -822,7 +822,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Total Outgoing Message Backlog per Service",
       "fill": 1,
@@ -927,7 +927,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -951,7 +951,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,

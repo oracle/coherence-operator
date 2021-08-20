@@ -7,20 +7,6 @@ You can find the source code in the https://github.com/oracle/coherence-operator
 
 The following scenarios are covered:
 
-1. Installing the Coherence Operator
-2. Installing a Coherence cluster
-3. Deploying a Proxy tier
-4. Deploying a storage-disabled application
-5. Enabling Active Persistence
-6. Viewing Metrics via Grafana
-
-After the initial installation of the Coherence cluster, the following examples
-build on the previous ones by issuing a `kubectl apply` to modify
-the installation adding additional roles.
-
-You can use `kubectl create` for any of the examples to install that one directly.
-
-
 * <<pre,Prerequisites>>
 ** <<create-the-example-namespace,Create the example namespace>>
 ** <<clone-the-github-repository,Clone the GitHub repository>>
@@ -30,9 +16,14 @@ You can use `kubectl create` for any of the examples to install that one directl
 ** <<ex2,Example 2 - Adding a Proxy role>>
 ** <<ex3,Example 3 - Adding a User application role>>
 ** <<ex4,Example 4 - Enabling Persistence>>
-** <<metrics,View Cluster Metrics via Grafana>>
-** <<grafana,Port Forward and Access Grafana>>
+** <<metrics,View Cluster Metrics using Prometheus and Grafana>>
 * <<cleaning-up,Cleaning Up>>
+
+After the initial installation of the Coherence cluster, the following examples
+build on the previous ones by issuing a `kubectl apply` to modify
+the installation adding additional roles.
+
+You can use `kubectl create` for any of the examples to install that one directly.
 
 [#pre]
 == Prerequisites
@@ -122,7 +113,7 @@ You also need to prefix the image name in the `yaml` files below.
 Install the Coherence Operator using your preferred method in the Operator
 https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide]
 
-Confirm the operator is running, for example:
+Confirm the operator is running, for example if the operator is installed into the `coherence-example` namespace:
 [source,bash]
 ----
 kubectl get pods -n coherence-example
@@ -744,146 +735,29 @@ Lastly issue the command `size` to verify the cache entry count is 10,000 meanin
 Type `bye` to exit the console.
 
 [#metrics]
-=== View Cluster Metrics via Grafana
+=== View Cluster Metrics Using Prometheus and Grafana
 
 If you wish to view metrics via Grafana, you must carry out the following steps **before** you
 install any of the examples above.
 
 ==== Install Prometheus Operator
 
-Add the `stable` helm repository
+Install the Prometheus Operator, as documented in the Prometheus Operator https://prometheus-operator.dev/docs/prologue/quick-start/[Quick Start] page. Prometheus can then be accessed as documented in the
+https://prometheus-operator.dev/docs/prologue/quick-start/#access-prometheus[Access Prometheus section of the Quick Start] page.
 
-[source,bash]
-----
-helm repo add stable https://charts.helm.sh/stable
+==== Access Grafana
 
-helm repo update
-----
+The Prometheus Operator also installs Grafana. Grafana can be accessed as documented in the
+https://prometheus-operator.dev/docs/prologue/quick-start/#access-grafana[Access Grafana section of the Quick Start] page.
+Note the default credentials specified in that section of the documentation.
 
-==== Create Prometheus pre-requisites
+==== Import the Grafana Dashboards
 
-[source,bash]
-----
-    kubectl apply -f src/main/yaml/prometheus-rbac.yaml  
-----
+To import the Coherence Grafana dashboards follow the instructions in the Operator documentation section
+<<metrics/030_importing.adoc,Importing Grafana Dashboards>>.
 
-==== Create Config Maps for datasource and dashboards
-
-[source,bash]
-----
-kubectl -n coherence-example create -f src/main/yaml/grafana-datasource-config.yaml
-
-kubectl -n coherence-example label configmap demo-grafana-datasource grafana_datasource=1
-
-kubectl -n coherence-example create -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-dashboards.yaml
-
-kubectl -n coherence-example label configmap coherence-grafana-dashboards grafana_dashboard=1
-----        
-
-==== Install Prometheus Operator
-
-NOTE: If you have already installed Prometheus Operator before on this Kubernetes Cluster then set `--set prometheusOperator.createCustomResource=false`.
-
-Issue the following command to install the Prometheus Operator using Helm:
-
-[source,bash]
-----
-helm install --namespace coherence-example --version 8.13.9 \
-    --set grafana.enabled=true \
-    --set prometheusOperator.createCustomResource=true \
-    --values src/main/yaml/prometheus-values.yaml prometheus stable/prometheus-operator
-----        
-
-[TIP]
-====
-Note: for Helm version 2, use the following:
-
-[source,bash]
-----
-helm install --namespace coherence-example --version 8.13.9 \
-    --set grafana.enabled=true --name prometheus \
-    --set prometheusOperator.createCustomResource=true \
-    --values src/main/yaml/prometheus-values.yaml stable/prometheus-operator
-----
-====
-
-Use the following to view the installed pods:
-
-[source,bash]
-----
-kubectl get pods -n coherence-example
-----
-
-[source,bash]
-----
-NAME                                                   READY   STATUS    RESTARTS   AGE
-coherence-operator-578497bb5b-w89kt                    1/1     Running   0          136m
-prometheus-grafana-6bb6d86f86-rgsm6                    2/2     Running   0          85s
-prometheus-kube-state-metrics-5496457bd-vjqgd          1/1     Running   0          85s
-prometheus-prometheus-node-exporter-29lrp              1/1     Running   0          85s
-prometheus-prometheus-node-exporter-82b5w              1/1     Running   0          85s
-prometheus-prometheus-node-exporter-mbj2k              1/1     Running   0          85s
-prometheus-prometheus-oper-operator-6bc97bc4d7-67qjp   2/2     Running   0          85s
-prometheus-prometheus-prometheus-oper-prometheus-0     3/3     Running   1          68s
-----
-
-Remember to now install one of the examples above.  If you have already had the examples installed,
-you must delete and re-install once you have installed Prometheus operator.
-
-[#grafana]
-==== Port Forward and Access Grafana
-
-Port-forward the ports for these components using the scripts
-in the `examples/deployment/scripts/` directory.
-
-*   Port-forward Grafana for viewing metrics
-
-[source,bash]
-----
-./port-forward-grafana.sh coherence-example
-----
-
-[source,bash]
-----
-Port-forwarding coherence-operator-grafana-8454698bcf-5dqvm in coherence-example
-Open the following URL: http://127.0.0.1:3000/d/coh-main/coherence-dashboard-main
-Forwarding from 127.0.0.1:3000 -> 3000
-Forwarding from [::1]:3000 -> 3000
-----      
-
-The default username is `admin` and the password is `prom-operator`.
-
-*   Port-forward Kibana for viewing log messages
-
-[source,bash]
-----
-./port-forward-kibana.sh coherence-example
-----
-
-[source,bash]
-----
-Port-forwarding kibana-67c4f74ffb-nspwz in coherence-example
-Open the following URL: http://127.0.0.1:5601/
-Forwarding from 127.0.0.1:5601 -> 5601
-Forwarding from [::1]:5601 -> 5601
-----    
-
-*   Port-forward Prometheus (for troubleshooting only)
-
-[source,bash]
-----
-./port-forward-prometheus.sh coherence-example
-----
-
-[source,bash]
-----
-Port-forwarding prometheus-prometheus-prometheus-oper-prometheus-0 in coherence-example
-Open the following URL: http://127.0.0.1:9090/targets
-Forwarding from 127.0.0.1:9090 -> 9090
-Forwarding from [::1]:9090 -> 9090
-----                  
-
-*   Open the URLS described above.
+After importing the dashboards into Grafana and with the port-forward still running the Coherence dashboards can be
+accessed at http://localhost:3000/d/coh-main/coherence-dashboard-main[localhost:3000/d/coh-main/coherence-dashboard-main]
 
 ==== Troubleshooting
 
@@ -891,7 +765,6 @@ Forwarding from [::1]:9090 -> 9090
 
 *   If you are not seeing data after 5 minutes, access the Prometheus endpoint as described above.
     Ensure that the endpoints named `coherence-example/example-cluster-storage-metrics/0 (3/3 up)` are up.
-
     If the endpoints are not up then wait 60 seconds and refresh the browser.
 
 *   If you do not see any values in the `Cluster Name` dropdown in Grafana, ensure the endpoints are up as  described above and click on `Manage Alerts` and then `Back to Main Dashboard`. This will re-query the data and load the list of clusters.    
@@ -922,42 +795,5 @@ Uninstall the Coherence operator using the undeploy commands for whichever metho
 
 ==== Delete Prometheus Operator
 
-[source,bash]
-----
- helm delete prometheus --namespace coherence-example
-
- kubectl -n coherence-example delete -f src/main/yaml/grafana-datasource-config.yaml
-
- kubectl -n coherence-example delete configmap coherence-grafana-dashboards
-
- kubectl delete -f src/main/yaml/prometheus-rbac.yaml
-----
-
-[TIP]
-====
-For Helm version 2 use the following:
-[source,bash]
-----
-helm delete prometheus --purge
-----
-====
-
-NOTE: You can optionally delete the Prometheus Operator Custom Resource Definitions (CRD's) if you are not going to install Prometheus Operator again.
-
-
-[source,bash]
-----
-kubectl delete crd alertmanagers.monitoring.coreos.com
-kubectl delete crd podmonitors.monitoring.coreos.com
-kubectl delete crd prometheuses.monitoring.coreos.com
-kubectl delete crd prometheusrules.monitoring.coreos.com
-kubectl delete crd prometheusrules.monitoring.coreos.com
-kubectl delete crd servicemonitors.monitoring.coreos.com
-kubectl delete crd thanosrulers.monitoring.coreos.com
-----
-
-A shorthand way of doing this if you are running Linux/Mac is:
-[source,bash]
-----
-kubectl get crds -n coherence-example | grep monitoring.coreos.com | awk '{print $1}' | xargs kubectl delete crd
-----
+Uninstall the Prometheus Operator as documented in the
+https://prometheus-operator.dev/docs/prologue/quick-start/#remove-kube-prometheus[Remove kube-prometheus section of the Quick Start] page.

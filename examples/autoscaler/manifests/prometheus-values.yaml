@@ -1,7 +1,0 @@
-prometheus:
-  prometheusSpec:
-    serviceMonitorSelectorNilUsesHelmValues: false
-alertmanager:
-  enabled: false
-nodeExporter:
-  enabled: true

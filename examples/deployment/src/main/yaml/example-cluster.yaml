@@ -11,18 +11,17 @@ metadata:
   name: example-cluster-storage
 spec:
   cluster: example-cluster
+  replicas: 3
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
   jvm:
     memory:
       heapSize: 512m
-  ports:
-    - name: metrics
-      port: 9612
-      serviceMonitor:
-        enabled: true
   coherence:
     cacheConfig: storage-cache-config.xml
     metrics:
       enabled: true
-  image: deployment-example:1.0.0
-  imagePullPolicy: Always
-  replicas: 3
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true

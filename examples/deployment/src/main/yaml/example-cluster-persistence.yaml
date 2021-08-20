@@ -11,14 +11,9 @@ metadata:
   name: example-cluster-storage
 spec:
   cluster: example-cluster
-  jvm:
-    memory:
-      heapSize: 512m
-  ports:
-    - name: metrics
-      port: 9612
-      serviceMonitor:
-        enabled: true
+  replicas: 3
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
   coherence:
     cacheConfig: storage-cache-config.xml
     metrics:
@@ -31,9 +26,13 @@ spec:
         resources:
           requests:
             storage: 1Gi
-  image: deployment-example:1.0.0
-  imagePullPolicy: Always
-  replicas: 3
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true
 ---
 apiVersion: coherence.oracle.com/v1
 kind: Coherence
@@ -41,24 +40,23 @@ metadata:
   name: example-cluster-proxy
 spec:
   cluster: example-cluster
-  jvm:
-    memory:
-      heapSize: 512m
-  ports:
-    - name: metrics
-      port: 9612
-      serviceMonitor:
-        enabled: true
-    - name: proxy
-      port: 20000
+  replicas: 1
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
   coherence:
     cacheConfig: proxy-cache-config.xml
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:1.0.0
-  imagePullPolicy: Always
-  replicas: 1
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true
+    - name: proxy
+      port: 20000
 ---
 apiVersion: coherence.oracle.com/v1
 kind: Coherence
@@ -66,23 +64,22 @@ metadata:
   name: example-cluster-rest
 spec:
   cluster: example-cluster
-  jvm:
-    memory:
-      heapSize: 512m
-  ports:
-    - name: metrics
-      port: 9612
-      serviceMonitor:
-        enabled: true
-    - name: http
-      port: 8080
+  replicas: 1
+  image: deployment-example:1.0.0
+  imagePullPolicy: Always
   coherence:
     cacheConfig: storage-cache-config.xml
     storageEnabled: false
     metrics:
       enabled: true
-  image: deployment-example:1.0.0
-  imagePullPolicy: Always
   application:
     main: com.oracle.coherence.examples.Main
-  replicas: 1
+  jvm:
+    memory:
+      heapSize: 512m
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true
+    - name: http
+      port: 8080

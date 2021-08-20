@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package net
 
 import "net"
 
+// GetLocalAddress returns the local IP address.
 func GetLocalAddress() (net.IP, error) {
 	var flagP2P = net.FlagUp | net.FlagPointToPoint
 	var mtuBest = 0

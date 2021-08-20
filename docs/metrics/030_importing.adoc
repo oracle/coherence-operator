@@ -6,14 +6,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Importing Grafana Dashboards
+= Coherence Grafana Dashboards
 
-The Operator has a set of Grafana dashboards that can be imported into a Grafana instance.
+The Operator has a set of Coherence specific Grafana dashboards that can be imported into a Grafana instance.
 
-NOTE: Note: Use of metrics is available only when using the operator with clusters running
-Coherence 12.2.1.4 or later version.
-
-== Obtain the Coherence Dashboards
+== Download the Coherence Dashboards
 
 The Coherence Operator provides a set of dashboards for Coherence that may be imported into Grafana.
 There are two ways to obtain the dashboards:
@@ -35,236 +32,70 @@ directory named `dashboards/` in the current working directory. This `dashboards
 the various Coherence dashboard files.
 
 
-== Importing Grafana Dashboards.
+== Import the Dashboards into Grafana.
 
 This example shows you how to import the Grafana dashboards into your own Grafana instance.
 
-By default, the Coherence dashboards require a datasource named `Prometheus` which
-should also be the default datasource.
+The latest Coherence dashboards can be downloaded from the https://github.com/oracle/coherence-operator/raw/gh-pages/dashboards/latest/coherence-dashboards.tar.gz[Coherence Operator GitHub repo]
+in a `.tar.gz` file.
 
-If this datasource is already used, and you cannot add another datasource as the default,
-then please go to <<different,Importing with a different datasource>>.
-
-[#importing]
-=== Manually Importing Using the Defaults
-
-In your Grafana environment, ensure you either:
-
-* have a Prometheus datasource named `Prometheus` which is also marked as the default datasource
-
-* have added a new Prometheus datasource which you have set as the default
-
-Then continue below.
-
-* Clone the git repository using
+e.g.
 [source,bash]
 ----
-git clone https://github.com/oracle/coherence-operator.git
+curl -Lo coherence-dashboards.tar.gz https://github.com/oracle/coherence-operator/raw/gh-pages/dashboards/latest/coherence-dashboards.tar.gz
+tar -xvf coherence-dashboards.tar.gz
 ----
 
-[NOTE]
+This will result in a directory named `dashboards` containing the different types of Coherence dashboards available.
+The Grafana dashboard `.json` files will be in the `dashboards/grafana/` subdirectory
+
+[IMPORTANT]
 ====
-There are three sets of dashboards available
+By default, the Coherence dashboards require a datasource in Grafana named `prometheus` (which is case-sensitive).
+This datasource usually exists in an out-of-the-box Prometheus Operator installation.
+If your Grafana environment does not have this datasource, then there are two choices.
 
-* Default - these are dashboards under the `dashboards/grafana/` directory that are compatible with the metric names produced by the Coherence metrics publisher
-* Microprofile - these are dashboards under the `dashboards/grafana-microprofile/` directory that are compatible with the metric names produced by the Coherence MP Metrics module. These are metrics commonly used with Microprofile applications such as Helidon. 
-* Micrometer - these are dashboards under the `dashboards/grafana-micrometer/` directory that are compatible with the metric names produced by the Coherence Micrometer Metrics module. Micrometer is a common metrics framework used with applications such as Spring, Micronaut etc.
+* Create a Prometheus datasource named `prometheus` as described in the https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/[Grafana Add a Datasource] documentation.
 
-If you do not see metrics on the dashboards as expected you might be using the wrong dashboards version for how
-Coherence has been configured.
-The simplest way to find out which version corresponds to your Coherence cluster
-is to query the metrics endpoint with something like `curl`.
-If the metric names are in the format `vendor:coherence_cluster_size`, i.e. prefixed with `vendor:` then this is
-the default Coherence format.
-If metric names are in the format `vendor_Coherence_Cluster_Size`, i.e. prefixed with `vendor_` then this is
-Microprofile format.
-====
-
-* Decide which dashboards you will import, depending on how metrics are being published (see the note above).
-* Login to Grafana and for each dashboard in the chosen dashboard directory carry out the
-following to upload to Grafana:
-[#steps]
-** Highlight the '+' (plus) icons and click on import
-** Click `Upload Json file' button to select a dashboard
-** Leave all the default values and click on `Import`
-
-
-[#different]
-=== Manually Importing With a Different Datasource
-
-If your Grafana environment has a default datasource that you cannot change or already has a
-datasource named `Prometheus`, follow these steps to import the dashboards:
-
-* Login to Grafana
-* Create a new datasource named `Coherence-Prometheus` and point to your Prometheus endpoint
-* Create a temporary directory and copy all the dashboards from the cloned directory
-   `<DIR>/dashboards/grafana` to this temporary directory
-* Change to this temporary directory and run the following to update the datasource to `Coherence-Prometheus` or the
-datasource of your own choice:
+* If you have an existing Prometheus datasource with a different name then you will need to edit the dashboard json
+files to change all occurrences of `"datasource": "prometheus"` to have the name of your Prometheus datasource.
+For example, running the script below in the directory containing the datasource `.json` files to be imported will
+change the datasource name from `prometheus` to `Coherence-Prometheus`.
 [source,bash]
 ----
 for file in *.json
 do
-    sed -i '' -e 's/"datasource": "Prometheus"/"datasource": "Coherence-Prometheus"/g' \
-              -e 's/"datasource": null/"datasource": "Coherence-Prometheus"/g' \
-              -e 's/"datasource": "-- Grafana --"/"datasource": "Coherence-Prometheus"/g' $file;
+    sed -i '' -e 's/"datasource": "prometheus"/"datasource": "Coherence-Prometheus"/g' $file;
 done
 ----
-* Once you have completed the script, proceed to upload the dashboards as described above.
+====
 
-== Automatically Importing Dashboards
+=== Manually Import Grafana Dashboards
 
-There are ways to automatically import dashboards into Grafana, the exact method would depend on how Grafana is to
-be installed and run.
-The Coherence Operator test pipeline, for example, uses the
-https://github.com/coreos/prometheus-operator[Prometheus Operator]
-to install Prometheus and Grafana and automatically imports the Coherence dashboards from a `ConfigMap`. +
-The examples below show how to create the dashboards as a `ConfigMap` and then install them into a Grafana
-instances started with the Prometheus Operator.
+The dashboard `.json` files can be manually imported into Grafana using the Grafana UI following the instructions
+in the https://grafana.com/docs/grafana/latest/dashboards/export-import/#import-dashboard[Grafana Import Dashboard]
+documentation.
 
-There are two ways to create the `ConfigMap` containing the dashboard files:
+=== Bulk Import Grafana Dashboards
 
-* Use the `ConfigMap` yaml available directly from GitHub
-* Obtain the dashboards as described above and create a `ConfigMap` from those files.
+At the time of writing, for whatever reason, Grafana does not provide a simple way to bulk import a set of dashboard files.
+There are many examples and scripts on available in the community that show how to do this.
+The Coherence Operator source contains a script that can be used for this purpose
+https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh[grafana-import.sh]
 
-=== Create a ConfigMap from GitHub Yaml
-
-To create a `ConfigMap` with the Grafana dashboards directly from the `ConfigMap` yaml for a specific Operator release
-the following commands can be used:
-
-[source,bash]
-----
-kubectl -n monitoring create \
-    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-dashboards.yaml
-----
-In this example the dashboards will be installed into the `monitoring` namespace.
-
-The example above installs the dashboards configured to use the default Coherence metrics format.
-Coherence provides integrations with Microprofile metrics and https://micrometer.io[Micrometer] metrics, which
-produce metrics with slightly different name formats.
-The operator provides dashboards compatible with both of these formats.
-
-* Microprofile change the URL to `coherence-grafana-microprofile-dashboards.yaml`, for example:
+The commands below will download and run the shell script to import the dashboards.
+Change the `<GRAFANA-USER>` and `<GRAFANA_PWD>` to the Grafana credentials for your environment.
+For example if using the default Prometheus Operator installation they are as specified on the
+https://prometheus-operator.dev/docs/prologue/quick-start/#access-grafana[Access Grafana section of the Quick Start] page.
+We do not document the credentials here as the default values have been known to change between Prometheus Operator and Grafana versions.
 
 [source,bash]
 ----
-kubectl -n monitoring create \
-    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-microprofile-dashboards.yaml
+curl -Lo grafana-import.sh https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh
+chmod +x grafana-import.sh
+./grafana-import.sh -u <GRAFANA-USER> -w <GRAFANA_PWD> -p dashboards/grafana -t localhost:3000
 ----
 
-* Micrometer change the URL to `coherence-grafana-micrometer-dashboards.yaml`, for example:
-
-[source,bash]
-----
-kubectl -n monitoring create \
-    -f https://oracle.github.io/coherence-operator/dashboards/latest/coherence-grafana-micrometer-dashboards.yaml
-----
-
-
-=== Create a ConfigMap from the Dashboard Package File
-
-To create a `ConfigMap` with the Grafana dashboards in directly from `.tar.gz` dashboard package for a specific
-Operator release the following commands can be used:
-
-[source,bash]
-----
-curl https://oracle.github.io/coherence-operator/dashboards/latest/coherence-dashboards.tar.gz \
-    -o coherence-dashboards.tar.gz
-tar -zxvf coherence-dashboards.tar.gz
-kubectl -n monitoring create configmap coherence-grafana-dashboards --from-file=dashboards/grafana
-----
-The `VERSION` variable has been set to the version of the dashboards to be used (this corresponds to an
-Operator release version but dashboards can be used independently of the Operator). +
-In this example the dashboards `ConfigMap` named `coherence-grafana-dashboards` will be installed into
-the `monitoring` namespace.
-
-
-=== Label the ConfigMap
-
-In this example Grafana will be configured to import dashboards from `ConfigMaps` with the
-label `grafana_dashboard`, so the `ConfigMap` created above needs to be labelled:
-
-[source,bash]
-----
-kubectl -n monitoring label configmap coherence-grafana-dashboards grafana_dashboard=1
-----
-
-=== Install the Prometheus Operator
-
-The Prometheus Operator will be installed using its Helm chart.
-Create a Helm values file like the following:
-[source,yaml]
-.prometheus-values.yaml
-----
-prometheus:
-  prometheusSpec:
-    serviceMonitorSelectorNilUsesHelmValues: false
-alertmanager:
-  enabled: false
-nodeExporter:
-  enabled: true
-grafana:
-  enabled: true                   # <1>
-  sidecar:
-    dashboards:                   # <2>
-      enabled: true
-      label: grafana_dashboard
-----
-<1> Grafana will be enabled.
-<2> Grafana will automatically import dashboards from `ConfigMaps` that have the label `grafana_dashboard`
-(which was given to the `ConfigMap` created above).
-
-Prometheus can be installed into the `monitoring` namespace using the Helm command:
-[source,bash]
-----
-helm install --namespace monitoring \
-    --values prometheus-values.yaml \
-    prometheus stable/prometheus-operator
-----
-
-To actually start Prometheus a `Prometheus` CRD resource needs to be added to Kubernetes.
-Create a `Prometheus` resource yaml file suitable for testing:
-
-[source,yaml]
-.prometheus.yaml
-----
-apiVersion: monitoring.coreos.com/v1
-kind: Prometheus
-metadata:
-  name: prometheus
-spec:
-  serviceAccountName: prometheus
-  serviceMonitorSelector:
-    matchLabels:
-      coherenceComponent: coherence-service-monitor  # <1>
-  resources:
-    requests:
-      memory: 400Mi
-  enableAdminAPI: true
-----
-<1> The `serviceMonitorSelector` tells Prometheus to use any `ServiceMonitor` that is created with the
-`coherence-service-monitor` label, which is a label that the Coherence Operator adds to any `ServiceMonitor`
-that it creates.
-
-Install the `prometheus.yaml` file into Kubernetes:
-[source,bash]
-----
-kubectl -n monitoring create -f etc/prometheus.yaml
-----
-
-In the `monitoring` namespace there should now be a number of `Pods` and `Services`, among them a `Prometheus`
-instance, and a Grafana instance. It should be possible to reach the Grafana UI on the ports exposed by the `Pod`
-and see the imported Coherence dashboards.
-
-[source,bash]
-----
-GRAFANA_POD=$(kubectl -n monitoring get pod -l app.kubernetes.io/name=grafana -o name)
-kubectl -n monitoring port-forward ${GRAFANA_POD} 3000:3000
-----
-
-NOTE: The default username for Grafana installed by the Prometheus Operator is `admin`
-the default password is `prom-operator`
-
-If a Coherence cluster has been started with the Operator as described in the <<metrics/020_metrics.adoc,Publish Metrics>>
-page, its metrics will eventually appear in Prometheus and Grafana. It can sometimes take a minute or so for
+Coherence clusters can now be created as described in the <<metrics/020_metrics.adoc,Publish Metrics>>
+page, and metrics will eventually appear in Prometheus and Grafana. It can sometimes take a minute or so for
 Prometheus to start scraping metrics and for them to appear in Grafana.

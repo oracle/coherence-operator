@@ -3,7 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -11,7 +11,7 @@
         "type": "dashboard"
       },
       {
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "enable": true,
         "expr": "changes(vendor_Coherence_Cluster_Size{cluster=~\"$ClusterName\"}[1m])",
         "hide": false,
@@ -57,7 +57,7 @@
   "panels": [
     {
       "content": "<center><h3>gRPC Summary - $ClusterName</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -79,7 +79,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "",
       "format": "short",
       "gauge": {
@@ -166,7 +166,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "",
       "format": "short",
       "gauge": {
@@ -253,7 +253,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": null,
       "description": "",
       "format": "short",
@@ -341,7 +341,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "",
       "format": "short",
       "gauge": {
@@ -428,7 +428,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "",
       "format": "short",
       "gauge": {
@@ -515,7 +515,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "",
       "format": "short",
       "gauge": {
@@ -595,7 +595,7 @@
     },
     {
       "columns": [],
-      "datasource": null,
+      "datasource": "prometheus",
       "description": "Shows the total gRPC Requests for the various request categories.",
       "fontSize": "100%",
       "gridPos": {
@@ -834,7 +834,7 @@
     },
     {
       "content": "<center><h3>Cache Wide Operations</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -852,7 +852,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Shows the number of cache wide operations such as  size, clear, destroy, truncate, add index and remove index.",
       "fill": 1,
@@ -998,7 +998,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
@@ -1142,7 +1142,7 @@
     },
     {
       "content": "<center><h3>Mutations</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1160,7 +1160,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Shows the number of mutations such as  put, get, remove, replace, getAll, putAll, removeMapping and replaceMapping.",
       "fill": 1,
@@ -1324,7 +1324,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
@@ -1486,7 +1486,7 @@
     },
     {
       "content": "<center><h3>Queries/ Data Access</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1504,7 +1504,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Shows the number of query or access operations such as  isEmpty, keySet, entrySet, values, nextEntrySet, nextKeySet, containsKey, containsValue and containsEntry.",
       "fill": 1,
@@ -1677,7 +1677,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
@@ -1839,7 +1839,7 @@
     },
     {
       "content": "<center><h3>Invocations/ Aggregations</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1857,7 +1857,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Shows the number of event based operations.",
       "fill": 1,
@@ -1976,7 +1976,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
@@ -2093,7 +2093,7 @@
     },
     {
       "content": "<center><h3>Events</h3></center>",
-      "datasource": null,
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -2111,7 +2111,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 0,
       "description": "Shows the number of event based operations.",
       "fill": 1,
@@ -2212,7 +2212,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "prometheus",
       "decimals": 2,
       "description": "Shows the operation rate/ second over  the last minute.",
       "fill": 1,
@@ -2322,7 +2322,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2346,7 +2346,7 @@
         "allValue": null,
         "current": {
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -2373,7 +2373,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -2401,7 +2401,7 @@
             "$__all"
           ]
         },
-        "datasource": "Prometheus",
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
