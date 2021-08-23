@@ -46,8 +46,8 @@ OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
 
 # The Coherence image to use for deployments that do not specify an image
-COHERENCE_VERSION ?= 21.06
-COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06
+COHERENCE_VERSION ?= 21.06.1
+COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -1158,42 +1158,24 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ======================================================================================================================
 ##@ KinD
 
+KIND_IMAGE ?= "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
-	./hack/kind.sh --image "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
+	./hack/kind.sh --image $(KIND_IMAGE)
 	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE)
 	kind load docker-image --name operator $(COHERENCE_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.16 cluster
+# Stop and delete the Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-16
-kind-16: kind-16-start kind-load
-
-.PHONY: kind-16-start
-kind-16-start:  ## Run a default KinD 1.16 cluster
-	./hack/kind.sh --image "kindest/node:v1.16.15@sha256:c10a63a5bda231c0a379bf91aebf8ad3c79146daca59db816fb963f731852a99"
-	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a Kind 1.19 cluster
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: kind-19
-kind-19: kind-19-start kind-load
-
-.PHONY: kind-19-start
-kind-19-start: ## Run a default KinD 1.19 cluster
-	./hack/kind.sh --image "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
-	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE) || true
-	kind load docker-image --name operator $(COHERENCE_IMAGE) || true
+.PHONY: kind-stop
+kind-stop:   ## Stop and delete the KinD cluster named "operator"
+	kind delete cluster --name operator
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
