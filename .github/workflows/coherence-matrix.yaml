@@ -120,7 +120,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
-        sh ./hack/kind.sh
+        make kind
         kubectl version
         kubectl get nodes
         docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" -p "${{ secrets.OCR_DOCKER_PASSWORD }}"

@@ -1163,7 +1163,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
-	./hack/kind.sh
+	./hack/kind.sh --image "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
 	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE)
 	kind load docker-image --name operator $(COHERENCE_IMAGE)

@@ -48,7 +48,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
-        sh ./hack/kind.sh --image kindest/node:v1.18.2@sha256:7b27a6d0f2517ff88ba444025beae41491b016bc6af573ba467b70c5e8e0d85f
+        make kind
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java

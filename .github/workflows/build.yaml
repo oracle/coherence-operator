@@ -85,8 +85,7 @@ jobs:
 #     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
-        sh ./hack/kind.sh --image kindest/node:v1.18.8@sha256:f4bcc97a0ad6e7abaf3f643d890add7efe6ee4ab90baeb374b4f41a4c95567eb
-        sh ./hack/kind-label-node.sh
+        make kind
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
