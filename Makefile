@@ -1511,7 +1511,7 @@ $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt:
 	touch $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt
 
 .PHONY: install-prometheus
-install-prometheus:  ## Install Prometheus and Grafana
+install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
 	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
 	kubectl create -f $(PROMETHEUS_HOME)/manifests
@@ -1525,7 +1525,7 @@ install-prometheus:  ## Install Prometheus and Grafana
 # Uninstall Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
-uninstall-prometheus: ## Uninstall Prometheus and Grafana
+uninstall-prometheus: get-prometheus ## Uninstall Prometheus and Grafana
 	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests
 	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup
 
