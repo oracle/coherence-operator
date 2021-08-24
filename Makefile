@@ -400,24 +400,6 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Internal make step that builds the Operator legacy converter
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: converter
-converter: $(BUILD_BIN)/converter $(BUILD_BIN)/converter-linux-amd64 $(BUILD_BIN)/converter-darwin-amd64 $(BUILD_BIN)/converter-windows-amd64
-
-$(BUILD_BIN)/converter: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter ./converter
-
-$(BUILD_BIN)/converter-linux-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./converter
-
-$(BUILD_BIN)/converter-darwin-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./converter
-
-$(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./converter
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
@@ -542,7 +524,7 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint ## Go code review
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
