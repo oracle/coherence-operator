@@ -71,6 +71,9 @@ func TestBasicHelmInstall(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
 		Cleanup(ns, "operator")
 	})
 
@@ -92,6 +95,9 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
 		Cleanup(ns, "operator")
 	})
 
@@ -114,6 +120,9 @@ func TestHelmInstallWithoutClusterRoles(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
 		Cleanup(ns, "operator")
 	})
 
@@ -136,6 +145,9 @@ func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
 		Cleanup(ns, "operator")
 	})
 
