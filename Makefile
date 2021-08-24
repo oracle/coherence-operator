@@ -554,6 +554,58 @@ copyright:  ## Check copyright headers
 	  -X pkg/data/assets/ \
 	  -X zz_generated.
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the Operator locally.
+#
+# To exit out of the local Operator you can use ctrl-c or ctrl-z but
+# sometimes this leaves orphaned processes on the local machine so
+# ensure these are killed run "make debug-stop"
+# ----------------------------------------------------------------------------------------------------------------------
+run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run: export UTILS_IMAGE := $(UTILS_IMAGE)
+run: ## Run the Operator locally
+	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
+		--cert-type=self-signed --webhook-service=host.docker.internal \
+	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the Operator locally after deleting and recreating the test namespace.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: run-clean
+run-clean: reset-namespace run ## Run the Operator locally after resetting the test namespace
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the Operator in locally debug mode,
+# Running this task will start the Operator and pause it until a Delve
+# is attached.
+#
+# To exit out of the local Operator you can use ctrl-c or ctrl-z but
+# sometimes this leaves orphaned processes on the local machine so
+# ensure these are killed run "make debug-stop"
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: run-debug
+run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-debug: ## Run the Operator locally in debug mode
+	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
+		-- --skip-service-suspend=true --coherence-dev-mode=true \
+		--cert-type=self-signed --webhook-service=host.docker.internal
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the Operator locally in debug mode after deleting and recreating
+# the test namespace.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: run-debug-clean
+run-debug-clean: reset-namespace run-debug  ## Run the Operator locally in debug mode after resetting the test namespace
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Kill any locally running Operator
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: stop
+stop: ## Stop the locally running Operator
+	./hack/kill-local.sh
+
 # ======================================================================================================================
 # Targets related to Operator Lifecycle Manager and the Operator SDK
 # ======================================================================================================================
@@ -1426,58 +1478,6 @@ push-all-images: push-test-images push-utils-image push-operator-image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
 push-release-images: push-utils-image push-operator-image
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Run the Operator locally.
-#
-# To exit out of the local Operator you can use ctrl-c or ctrl-z but
-# sometimes this leaves orphaned processes on the local machine so
-# ensure these are killed run "make debug-stop"
-# ----------------------------------------------------------------------------------------------------------------------
-run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run:
-	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
-		--cert-type=self-signed --webhook-service=host.docker.internal \
-	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Run the Operator locally after deleting and recreating the test namespace.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: run-clean
-run-clean: reset-namespace run
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Run the Operator in locally debug mode,
-# Running this task will start the Operator and pause it until a Delve
-# is attached.
-#
-# To exit out of the local Operator you can use ctrl-c or ctrl-z but
-# sometimes this leaves orphaned processes on the local machine so
-# ensure these are killed run "make debug-stop"
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: run-debug
-run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug:
-	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
-		-- --skip-service-suspend=true --coherence-dev-mode=true \
-		--cert-type=self-signed --webhook-service=host.docker.internal
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Run the Operator locally in debug mode after deleting and recreating
-# the test namespace.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: run-debug-clean
-run-debug-clean: reset-namespace run-debug
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Kill any locally running Operator
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: stop
-stop:
-	./hack/kill-local.sh
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
