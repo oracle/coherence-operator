@@ -453,9 +453,9 @@ endef
 # Generate manifests e.g. CRD, RBAC etc.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: manifests
-manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the CustomResourceDefinition and other yaml manifests.
+manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition and other yaml manifests.
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
 config/crd/bases/coherence.oracle.com_coherence.yaml: $(GOBIN)/kustomize $(API_GO_FILES) $(GOBIN)/controller-gen
