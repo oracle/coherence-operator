@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCreateWebhookCertSecretByDefault(t *testing.T) {
@@ -87,7 +88,7 @@ func TestBasicHelmInstall(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstall("basic", cmd, g, ns)
+	AssertHelmInstall(t, "basic", cmd, g, ns)
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
@@ -112,7 +113,7 @@ func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstall("account", cmd, g, ns)
+	AssertHelmInstall(t, "account", cmd, g, ns)
 }
 
 func TestHelmInstallWithoutClusterRoles(t *testing.T) {
@@ -137,7 +138,7 @@ func TestHelmInstallWithoutClusterRoles(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstallWithSubTest("no-roles", cmd, g, ns, AssertNoClusterRoles)
+	AssertHelmInstallWithSubTest(t, "no-roles", cmd, g, ns, AssertNoClusterRoles)
 }
 
 func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
@@ -163,7 +164,7 @@ func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstallWithSubTest("node-role", cmd, g, ns, AssertOnlyNodeClusterRoles)
+	AssertHelmInstallWithSubTest(t, "node-role", cmd, g, ns, AssertOnlyNodeClusterRoles)
 }
 
 type SubTest func() error
@@ -223,23 +224,32 @@ func AssertRBAC(allowNode bool) error {
 	return nil
 }
 
-func AssertHelmInstall(id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
-	AssertHelmInstallWithSubTest(id, cmd, g, ns, emptySubTest)
+func AssertHelmInstall(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
+	AssertHelmInstallWithSubTest(t, id, cmd, g, ns, emptySubTest)
 }
 
-func AssertHelmInstallWithSubTest(id string, cmd *exec.Cmd, g *GomegaWithT, ns string, test SubTest) {
+func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, ns string, test SubTest) {
+	t.Logf("Asserting Helm install. Removing Webhooks")
 	err := RemoveWebHook()
 	g.Expect(err).NotTo(HaveOccurred())
+	t.Logf("Asserting Helm install. Removing RBAC")
 	err = RemoveRBAC()
 	g.Expect(err).NotTo(HaveOccurred())
 
+	t.Logf("Asserting Helm install. Performing Helm install")
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
+	t.Logf("Asserting Helm install. Ensure Operator Pod is ready")
 	pods, err := helper.ListOperatorPods(testContext, ns)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(1))
 
+	pod := pods[0]
+	err = helper.WaitForPodReady(testContext.KubeClient, pod.Namespace, pod.Name, 10*time.Second, 5*time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Logf("Asserting Helm install. Deploying Coherence resource")
 	deployment, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
