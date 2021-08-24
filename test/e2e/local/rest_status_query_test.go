@@ -51,7 +51,7 @@ func TestRestStatusQueryForDeployment(t *testing.T) {
 	helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
 
 	namespace := helper.GetTestNamespace()
-	url := fmt.Sprintf("http://127.0.0.1:8000/status/%s/minimal-cluster", namespace)
+	url := fmt.Sprintf("http://127.0.0.1:8000/%s/minimal-cluster", namespace)
 
 	client := &http.Client{}
 
