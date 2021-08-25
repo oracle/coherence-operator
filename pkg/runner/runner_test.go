@@ -13,7 +13,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
-	"os/exec"
+	"os"
 	"strings"
 	"testing"
 )
@@ -25,19 +25,20 @@ func TestMinimalDeployment(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
@@ -52,20 +53,21 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
 		"-Dcoherence.override=k8s-coherence-override.xml")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func GetMinimalExpectedArgsWithoutPrefix(prefix string) []string {
@@ -86,7 +88,7 @@ func GetMinimalExpectedArgs() []string {
 		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
 
 	args := []string{
-		"java",
+		GetJavaCommand(),
 		"-cp",
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -98,7 +100,7 @@ func GetMinimalExpectedArgs() []string {
 
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	args := []string{
-		"java",
+		GetJavaCommand(),
 		"-cp",
 		"/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -157,8 +159,9 @@ func RemoveArgWithPrefix(args []string, prefix string) []string {
 }
 
 func GetJavaCommand() string {
-	cmd := exec.Command("java")
-	return cmd.Path
+	return os.Getenv("JAVA_HOME") + "/bin/java"
+	//cmd := exec.Command("java")
+	//return cmd.Path
 }
 
 func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {

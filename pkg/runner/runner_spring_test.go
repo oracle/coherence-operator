@@ -28,19 +28,20 @@ func TestSpringBootApplication(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestSpringBootFatJarApplication(t *testing.T) {
@@ -57,19 +58,20 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar)
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
@@ -87,19 +89,20 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgs(jar), "-Dloader.main=foo.Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestSpringBootBuildpacks(t *testing.T) {
@@ -117,25 +120,26 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := getBuildpackLauncher()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := executeWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Dir).To(Equal(""))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
 
-	g.Expect(len(cmd.Args)).To(Equal(4))
-	g.Expect(cmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
-	g.Expect(cmd.Args[1]).To(Equal("java"))
-	g.Expect(cmd.Args[3]).To(Equal(SpringBootMain))
+	g.Expect(len(e.OsCmd.Args)).To(Equal(4))
+	g.Expect(e.OsCmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
+	g.Expect(e.OsCmd.Args[1]).To(Equal("java"))
+	g.Expect(e.OsCmd.Args[3]).To(Equal(SpringBootMain))
 
-	g.Expect(cmd.Args[2]).To(HavePrefix("@"))
-	fileName := cmd.Args[2][1:]
+	g.Expect(e.OsCmd.Args[2]).To(HavePrefix("@"))
+	fileName := e.OsCmd.Args[2][1:]
 	data, err := ioutil.ReadFile(fileName)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -146,7 +150,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 
 func GetMinimalExpectedSpringBootArgs() []string {
 	args := []string{
-		"java",
+		GetJavaCommand(),
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
 	args = append(AppendCommonExpectedArgs(args), SpringBootMain)
@@ -155,7 +159,7 @@ func GetMinimalExpectedSpringBootArgs() []string {
 
 func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
 	args := []string{
-		"java",
+		GetJavaCommand(),
 		"-cp",
 		jar,
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
