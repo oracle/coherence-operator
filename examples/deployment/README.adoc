@@ -13,15 +13,15 @@ The following scenarios are covered:
 ** <<install-operator,Install the Coherence Operator>>
 * <<examples,Run the Examples>>
 ** <<ex1,Example 1 - Coherence cluster only>>
-** <<ex2,Example 2 - Adding a Proxy role>>
-** <<ex3,Example 3 - Adding a User application role>>
+** <<ex2,Example 2 - Adding a Proxy tier>>
+** <<ex3,Example 3 - Adding a User application tier>>
 ** <<ex4,Example 4 - Enabling Persistence>>
 ** <<metrics,View Cluster Metrics using Prometheus and Grafana>>
 * <<cleaning-up,Cleaning Up>>
 
 After the initial installation of the Coherence cluster, the following examples
 build on the previous ones by issuing a `kubectl apply` to modify
-the installation adding additional roles.
+the installation adding additional tiers.
 
 You can use `kubectl create` for any of the examples to install that one directly.
 
@@ -59,7 +59,7 @@ to match your selected namespace when running the examples.
 [#clone-the-github-repository]
 == Clone the GitHub repository
 
-This examples exist in the `examples/deployment` directory in the
+These examples exist in the `examples/deployment` directory in the
 https://github.com/oracle/coherence-operator[Coherence Operator GitHub repository].
 
 Clone the repository:
@@ -131,11 +131,11 @@ Ensure you are in the `examples/deployment` directory to run the following comma
 === Example 1 - Coherence cluster only
 
 The first example uses the yaml file `src/main/yaml/example-cluster.yaml`, which
-defines a single role `storage` which will store cluster data.
+defines a single tier `storage` which will store cluster data.
 
 NOTE: If you have pushed your Docker image to a remote repository, ensure you update the above file to prefix the image.
 
-==== 1. Install the Coherence cluster `storage` role
+==== 1. Install the Coherence cluster `storage` tier
 
 [source,bash]
 ----
@@ -200,7 +200,7 @@ Lastly issue the command `size` to verify the cache entry count.
 
 Type `bye` to exit the console.
 
-==== Scale the `storage` role to 6 members
+==== Scale the `storage` tier to 6 members
 
 To scale up the cluster the `kubectl scale` command can be used:
 [source,bash]
@@ -234,7 +234,7 @@ Re-run step 3 above and just use the `cache test` and `size` commands to confirm
 
 This confirms that the scale-out was done in a `safe` manner ensuring no data loss.
 
-=== Scale the `storage` role back to 3 members
+=== Scale the `storage` tier back to 3 members
 
 To scale back doewn to three members run the following command:
 [source,bash]
@@ -261,7 +261,7 @@ example-cluster-storage-4   0/1     Terminating   0          3m41s
 ----
 
 [#ex2]
-=== Example 2 - Adding a Proxy role
+=== Example 2 - Adding a Proxy tier
 
 The second example uses the yaml file `src/main/yaml/example-cluster-proxy.yaml`, which
 adds a proxy server `example-cluster-proxy` to allow for Coherence*Extend connections via a Proxy server.
@@ -269,7 +269,7 @@ adds a proxy server `example-cluster-proxy` to allow for Coherence*Extend connec
 The additional yaml added below shows:
 
 * A port called `proxy` being exposed on 20000
-* The role being set as storage-disabled
+* The tier being set as storage-disabled
 * A different cache config being used which will start a Proxy Server. See [here](src/main/resources/proxy-cache-config.xml) for details
 
 [source,yaml]
@@ -300,7 +300,7 @@ spec:
   replicas: 1
 ----
 
-==== Install the `proxy` role
+==== Install the `proxy` tier
 
 [source,bash]
 ----
@@ -378,15 +378,15 @@ The above results will show that you can see the data previously inserted and
 can add new data into the cluster using Coherence*Extend.
 
 [#ex3]
-=== Example 3 - Adding a User application role
+=== Example 3 - Adding a User application tier
 
 The third example uses the yaml file `src/main/yaml/example-cluster-app.yaml`, which
-adds a new role `rest`. This role defines a user application which uses https://helidon.io/[Helidon] to create a `/query` endpoint allowing the user to send CohQL commands via this endpoint.
+adds a new tier `rest`. This tier defines a user application which uses https://helidon.io/[Helidon] to create a `/query` endpoint allowing the user to send CohQL commands via this endpoint.
 
 The additional yaml added below shows:
 
 * A port called `http` being exposed on 8080 for the application
-* The role being set as storage-disabled
+* The tier being set as storage-disabled
 * Using the storage-cache-config.xml but as storage-disabled
 * An alternate main class to run - `com.oracle.coherence.examples.Main`
 
@@ -419,7 +419,7 @@ spec:
     main: com.oracle.coherence.examples.Main
 ----
 
-==== Install the `rest` role
+==== Install the `rest` tier
 
 Install the yaml with the following command:
 [source,bash]
@@ -537,9 +537,9 @@ connection: keep-alive
 === Example 4 - Enabling Persistence
 
 The fourth example uses the yaml file `src/main/yaml/example-cluster-persistence.yaml`, which
-enabled Active Persistence for the `storage` role by adding a `persistence:` element.
+enabled Active Persistence for the `storage` tier by adding a `persistence:` element.
 
-The additional yaml added to the storage role below shows:
+The additional yaml added to the storage tier below shows:
 
 * Active Persistence being enabled via `persistence.enabled=true`
 * Various Persistence Volume Claim (PVC) values being set under `persistentVolumeClaim`
@@ -745,11 +745,24 @@ install any of the examples above.
 Install the Prometheus Operator, as documented in the Prometheus Operator https://prometheus-operator.dev/docs/prologue/quick-start/[Quick Start] page. Prometheus can then be accessed as documented in the
 https://prometheus-operator.dev/docs/prologue/quick-start/#access-prometheus[Access Prometheus section of the Quick Start] page.
 
+[NOTE]
+====
+*Using RBAC*
+
+If installing Prometheus into RBAC enabled k8s clusters, you may need to create the required RBAC resources
+as described in the https://prometheus-operator.dev/docs/operator/rbac/[Prometheus RBAC] documentation.
+The Coherence Operator contains an example that works with the out-of-the-box Prometheus Operator install
+that we use for testing https://raw.githubusercontent.com/oracle/coherence-operator/master/hack/prometheus-rbac.yaml[prometheus-rbac.yaml]
+This yaml creates a `ClusterRole` with the required permissions and a `ClusterRoleBinding` that binds the role to the
+`prometheus-k8s` service account (which is the name of the account created, and used by the Prometheus Operator).
+This yaml file can be installed into k8s before installing the Prometheus Operator.
+====
+
 ==== Access Grafana
 
 The Prometheus Operator also installs Grafana. Grafana can be accessed as documented in the
 https://prometheus-operator.dev/docs/prologue/quick-start/#access-grafana[Access Grafana section of the Quick Start] page.
-Note the default credentials specified in that section of the documentation.
+Note that the default credentials are specified in that section of the documentation.
 
 ==== Import the Grafana Dashboards
 

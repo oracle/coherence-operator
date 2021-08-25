@@ -13,10 +13,10 @@
 # and then this script should be run to update the grafana-micrometer with
 # the dashboards.
 #
-# THe dashboards in the grafana-microprofile directory are significanlty different and need
+# THe dashboards in the grafana-microprofile directory are significantly different and need
 # to be modified separated
 #
-# Note: The dashboards in the grafana-micrometer overwirtten.
+# Note: The dashboards in the grafana-micrometer overwritten.
 
 DB_BASE=grafana
 DB_MM=grafana-micrometer

@@ -7,6 +7,13 @@
 # This is the Makefile to build the Coherence Kubernetes Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 
+# ======================================================================================================================
+# Makefile Variables
+#
+# The following section contains all of the variables and properties used by other targets in the Makefile
+# to set things like build directories, version numbers etc.
+# ======================================================================================================================
+
 # The version of the Operator being build - this should be a valid SemVer format
 VERSION ?= 3.2.2
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
@@ -22,30 +29,9 @@ COMPATIBLE_VERSION  = 3.0.2
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = component=coherence-operator
 
-# Capture the Git commit to add to the build information
-GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
-GITREPO         := https://github.com/oracle/coherence-operator.git
-BUILD_DATE      := $(shell date -u | tr ' ' '.')
-BUILD_INFO      := "$(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)"
-
-CURRDIR         := $(shell pwd)
-
-IMAGE_ARCH      ?= amd64
-ARCH            ?= amd64
-OS              ?= linux
-UNAME_S         := $(shell uname -s)
-GOPROXY         ?= https://proxy.golang.org
-
-# Set the location of the Operator SDK executable
-UNAME_S               = $(shell uname -s)
-UNAME_M               = $(shell uname -m)
-OPERATOR_SDK_VERSION := v1.9.0
-OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
-
-# Options to append to the Maven command
-MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-
+# ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
+# ----------------------------------------------------------------------------------------------------------------------
 COHERENCE_VERSION ?= 21.06.1
 COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06.1
 # This is the Coherence image that will be used in tests.
@@ -55,7 +41,43 @@ TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
 TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Capture the Git commit to add to the build information that is then embedded in the Go binary
+# ----------------------------------------------------------------------------------------------------------------------
+GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
+GITREPO         := https://github.com/oracle/coherence-operator.git
+BUILD_DATE      := $(shell date -u | tr ' ' '.')
+BUILD_INFO      := "$(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)"
+
+CURRDIR         := $(shell pwd)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# By default we target amd64 as this is by far the most common local build environment
+# We actually build images for amd64 and arm64
+# ----------------------------------------------------------------------------------------------------------------------
+IMAGE_ARCH      ?= amd64
+ARCH            ?= amd64
+OS              ?= linux
+UNAME_S         := $(shell uname -s)
+GOPROXY         ?= https://proxy.golang.org
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Set the location of the Operator SDK executable
+# ----------------------------------------------------------------------------------------------------------------------
+UNAME_S               = $(shell uname -s)
+UNAME_M               = $(shell uname -m)
+OPERATOR_SDK_VERSION := v1.9.0
+OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Options to append to the Maven command
+# ----------------------------------------------------------------------------------------------------------------------
+MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
+# ----------------------------------------------------------------------------------------------------------------------
 RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
@@ -68,7 +90,9 @@ BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
 GPG_PASSPHRASE :=
 
+# ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
+# ----------------------------------------------------------------------------------------------------------------------
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
 TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-compatibility:$(VERSION)
 TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-helidon
@@ -76,7 +100,10 @@ TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VER
 TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
 TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
 
-# CHANNELS define the bundle channels used in the bundle.
+# ----------------------------------------------------------------------------------------------------------------------
+# Operator Lifecycle Manager properties
+# ----------------------------------------------------------------------------------------------------------------------
+# CHANNELS define the bundle channels used in the Operator Lifecycle Manager bundle.
 CHANNELS := stable
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -101,10 +128,15 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO)-bundle:$(VERSION)
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Release build options
+# ----------------------------------------------------------------------------------------------------------------------
 RELEASE_DRY_RUN  ?= true
 PRE_RELEASE      ?= true
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Testing properties
+# ----------------------------------------------------------------------------------------------------------------------
 # Extra arguments to pass to the go test command for the various test steps.
 # For example, when running make e2e-test we can run just a single test such
 # as the zone test using the go test -run=regex argument like this
@@ -127,7 +159,11 @@ CREATE_OPERATOR_NAMESPACE ?= true
 # restart local storage for persistence
 LOCAL_STORAGE_RESTART ?= false
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Env variables used to create pull secrets
+# This is required if building and testing in environments that need to pull or push
+# images to private registries. For example building and testing with k8s in OCI.
+# ----------------------------------------------------------------------------------------------------------------------
 DOCKER_SERVER ?=
 DOCKER_USERNAME ?=
 DOCKER_PASSWORD ?=
@@ -143,7 +179,7 @@ else
 	USE_MAVEN_SETTINGS =
 endif
 
-# Configure the image pull secrets information
+# Configure the image pull secrets information.
 ifneq ("$(or $(DOCKER_USERNAME),$(DOCKER_PASSWORD))","")
 DOCKER_SECRET = coherence-k8s-operator-development-secret
 else
@@ -174,6 +210,9 @@ IMAGE_PULL_POLICY  ?= IfNotPresent
 # Env variable used by the kubectl test framework to locate the kubectl binary
 TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Build output directories
+# ----------------------------------------------------------------------------------------------------------------------
 override BUILD_OUTPUT        := $(CURRDIR)/build/_output
 override BUILD_ASSETS        := pkg/data/assets
 override BUILD_BIN           := ./bin
@@ -185,16 +224,20 @@ override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+# ----------------------------------------------------------------------------------------------------------------------
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
+# ----------------------------------------------------------------------------------------------------------------------
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
@@ -211,14 +254,18 @@ CRDV1_FILES      = $(shell find ./config/crd -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
+# ----------------------------------------------------------------------------------------------------------------------
 PROMETHEUS_VERSION           ?= v0.8.0
 PROMETHEUS_HOME              ?= $(BUILD_OUTPUT)/prometheus
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 
+# ----------------------------------------------------------------------------------------------------------------------
 # Elasticsearch & Kibana settings (used in integration tests)
+# ----------------------------------------------------------------------------------------------------------------------
 ELASTIC_VERSION ?= 7.6.2
 KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 
@@ -353,24 +400,6 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Internal make step that builds the Operator legacy converter
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: converter
-converter: $(BUILD_BIN)/converter $(BUILD_BIN)/converter-linux-amd64 $(BUILD_BIN)/converter-darwin-amd64 $(BUILD_BIN)/converter-windows-amd64
-
-$(BUILD_BIN)/converter: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter ./converter
-
-$(BUILD_BIN)/converter-linux-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o $(BUILD_BIN)/converter-linux-amd64 ./converter
-
-$(BUILD_BIN)/converter-darwin-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=darwin GOARCH=amd64 go build -o $(BUILD_BIN)/converter-darwin-amd64 ./converter
-
-$(BUILD_BIN)/converter-windows-amd64: $(BUILD_PROPS) $(GOS)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o $(BUILD_BIN)/converter-windows-amd64 ./converter
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
@@ -424,9 +453,9 @@ endef
 # Generate manifests e.g. CRD, RBAC etc.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: manifests
-manifests: $(BUILD_TARGETS)/manifests $(BUILD_MANIFESTS_PKG) ## Generate the CustomResourceDefinition and other yaml manifests.
+manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition and other yaml manifests.
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
 config/crd/bases/coherence.oracle.com_coherence.yaml: $(GOBIN)/kustomize $(API_GO_FILES) $(GOBIN)/controller-gen
@@ -495,7 +524,7 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(BUILD_BIN)/golangci-lint ## Go code review
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/... ./converter/...
+	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1496,6 +1525,10 @@ $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt:
 install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
 	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+#   We create additional custom RBAC rules because the defaults do not work
+#   in an RBAC enabled cluster such as KinD
+#   See: https://prometheus-operator.dev/docs/operator/rbac/
+	kubectl create -f hack/prometheus-rbac.yaml
 	kubectl create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
 	@echo "Waiting for Prometheus StatefulSet to be ready"
@@ -1508,8 +1541,9 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus: get-prometheus ## Uninstall Prometheus and Grafana
-	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests
-	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup
+	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests || true
+	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup || true
+	kubectl delete --ignore-not-found=true -f hack/prometheus-rbac.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus Adapter used for k8s metrics and Horizontal Pod Autoscaler
