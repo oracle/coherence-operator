@@ -671,16 +671,14 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment *c
 	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
 	logger.Info("Scaling StatefulSet", "Replicas", replicas)
 
-	cl := in.GetClient()
 	events := in.GetEventRecorder()
 
 	// Update this Coherence resource's status
 	deployment.Status.Phase = coh.ConditionTypeScaling
 	deployment.Status.Replicas = replicas
-	err := cl.Status().Update(ctx, deployment)
-	if err != nil {
-		// failed to update the Coherence resource's status
-		return reconcile.Result{}, errors.Wrap(err, "updating deployment status to Scaling")
+
+	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
+		logger.Error(err, "Error updating deployment status to Scaling")
 	}
 
 	// Create the desired state
@@ -689,7 +687,7 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment *c
 	stsDesired.Spec.Replicas = &replicas
 
 	// ThreeWayPatch theStatefulSet to trigger it to scale
-	_, err = in.ThreeWayPatch(ctx, sts.Name, sts, sts, stsDesired)
+	_, err := in.ThreeWayPatch(ctx, sts.Name, sts, sts, stsDesired)
 	if err != nil {
 		// send a failed scale event
 		msg := fmt.Sprintf("failed to scale StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)

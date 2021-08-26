@@ -19,14 +19,14 @@ func EnsureHashLabel(c *Coherence) (string, bool) {
 	if labels == nil {
 		labels = make(map[string]string)
 	}
-	hash, ok := labels[LabelCoherenceHash]
-	if !ok {
-		hash = ComputeHash(&c.Spec, nil)
-		labels[LabelCoherenceHash] = hash
+	hashNew := ComputeHash(&c.Spec, nil)
+	hashCurrent, found := labels[LabelCoherenceHash]
+	if !found || hashCurrent != hashNew {
+		labels[LabelCoherenceHash] = hashNew
 		c.SetLabels(labels)
-		return hash, true
+		return hashNew, true
 	}
-	return hash, false
+	return hashCurrent, false
 }
 
 // ComputeHash returns a hash value calculated from Coherence spec and

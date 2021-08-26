@@ -97,6 +97,8 @@ func toStatefulSet(mgr *fakes.FakeManager, obj runtime.Object) (*appsv1.Stateful
 func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeManager) {
 	g := NewGomegaWithT(t)
 
+	_, _ = coh.EnsureHashLabel(&d)
+
 	chain, err := NewFakeReconcileChain()
 	g.Expect(err).NotTo(HaveOccurred())
 	results, err := chain.ReconcileDeployments(d)
@@ -245,10 +247,20 @@ func (in *fakeReconcileChain) ReconcileDeployments(deployments ...coh.Coherence)
 
 func (in *fakeReconcileChain) ReconcileExisting(names ...apitypes.NamespacedName) (map[string]reconcile.Result, error) {
 	results := make(map[string]reconcile.Result)
+	ctx := context.TODO()
 
 	for _, name := range names {
 		request := reconcile.Request{NamespacedName: name}
-		result, err := in.r.Reconcile(context.TODO(), request)
+		c := coh.Coherence{}
+		err := in.r.GetClient().Get(ctx, request.NamespacedName, &c)
+		if len(c.GetFinalizers()) == 0 {
+			// there is no finalizer, so we need to do a call first that will just add the finalizer
+			_, err := in.r.Reconcile(ctx, request)
+			if err != nil {
+				return results, err
+			}
+		}
+		result, err := in.r.Reconcile(ctx, request)
 		if err != nil {
 			return results, err
 		}

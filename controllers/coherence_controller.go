@@ -126,6 +126,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	hash, hashApplied := coh.EnsureHashLabel(deployment)
 	if hashApplied {
 		log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
+		if err := in.GetClient().Update(ctx, deployment); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Add finalizer for this CR if required
