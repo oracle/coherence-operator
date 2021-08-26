@@ -253,6 +253,9 @@ func (in *fakeReconcileChain) ReconcileExisting(names ...apitypes.NamespacedName
 		request := reconcile.Request{NamespacedName: name}
 		c := coh.Coherence{}
 		err := in.r.GetClient().Get(ctx, request.NamespacedName, &c)
+		if err != nil {
+			return results, err
+		}
 		if len(c.GetFinalizers()) == 0 {
 			// there is no finalizer, so we need to do a call first that will just add the finalizer
 			_, err := in.r.Reconcile(ctx, request)
