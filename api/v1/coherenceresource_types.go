@@ -86,6 +86,9 @@ type CoherenceResourceStatus struct {
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	Conditions status.Conditions `json:"conditions,omitempty"`
+	// Hash is the hash of the latest applied Coherence spec
+	// +optional
+	Hash string `json:"hash,omitempty"`
 }
 
 // UpdatePhase updates the current Phase
@@ -190,6 +193,12 @@ func (in *CoherenceResourceStatus) setPhase(phase status.ConditionType) bool {
 // ensure that the initial state conditions are present
 func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool {
 	updated := false
+
+	// update Hash if required
+	if in.Hash != deployment.Status.Hash {
+		in.Hash = deployment.Status.Hash
+		updated = true
+	}
 
 	// update Replicas if required
 	if in.Replicas != deployment.Spec.GetReplicas() {

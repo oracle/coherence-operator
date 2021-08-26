@@ -47,6 +47,10 @@ func (in *Coherence) Default() {
 			in.Spec.SetReplicas(3)
 		}
 
+		if hash, applied := EnsureHashLabel(in); applied {
+			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+		}
+
 		// only set defaults for image names new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		in.Spec.EnsureCoherenceImage(&coherenceImage)

@@ -213,6 +213,40 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context,
 	return err
 }
 
+// UpdateDeploymentStatusHash updates the Coherence resource's status hash.
+func (in *CommonReconciler) UpdateDeploymentStatusHash(ctx context.Context, key types.NamespacedName, hash string) error {
+	var err error
+	deployment := &coh.Coherence{}
+	err = in.GetClient().Get(ctx, key, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", key.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		if deployment.Status.Hash != hash {
+			updated := deployment.DeepCopy()
+			updated.Status.Hash = hash
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+			if err != nil {
+				return errors.Wrap(err, "creating Coherence resource status patch")
+			}
+			if patch != nil {
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
+				if err != nil {
+					return errors.Wrap(err, "updating Coherence resource status")
+				}
+			}
+		}
+	}
+	return err
+}
+
 // MaybeFindStatefulSet finds the required StatefulSet, returning the StatefulSet and a flag indicating whether it was found.
 func (in *CommonReconciler) MaybeFindStatefulSet(ctx context.Context, namespace, name string) (*appsv1.StatefulSet, bool, error) {
 	sts := &appsv1.StatefulSet{}
@@ -434,9 +468,21 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *c
 	return reconcile.Result{Requeue: false}, nil
 }
 
-// FindDeployment finds the Coherence resource for a given request.
-func (in *CommonReconciler) FindDeployment(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
-	deployment, _, err := in.MaybeFindDeployment(ctx, request.Namespace, request.Name)
+// FindOwningCoherenceResource finds the owning Coherence resource.
+func (in *CommonReconciler) FindOwningCoherenceResource(ctx context.Context, o client.Object) (*coh.Coherence, error) {
+	if o != nil {
+		for _, ref := range o.GetOwnerReferences() {
+			if ref.Kind == coh.ResourceTypeCoherence.Name() {
+				return in.FindDeployment(ctx, o.GetNamespace(), ref.Name)
+			}
+		}
+	}
+	return nil, nil
+}
+
+// FindDeployment finds the Coherence resource.
+func (in *CommonReconciler) FindDeployment(ctx context.Context, namespace, name string) (*coh.Coherence, error) {
+	deployment, _, err := in.MaybeFindDeployment(ctx, namespace, name)
 	return deployment, err
 }
 
@@ -464,13 +510,13 @@ func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, 
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() client.Object
-	ReconcileResources(context.Context, reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
+	ReconcileAllResourceOfKind(context.Context, reconcile.Request, *coh.Coherence, utils.Storage, bool) (reconcile.Result, error)
 	CanWatch() bool
 }
 
 // ----- ReconcileSecondaryResource ----------------------------------------------
 
-// ReconcileSecondaryResource reconciles a secondary resource for a Coherence resource
+// ReconcileSecondaryResource reconciles secondary resources of a specific Kind for a specific Coherence resource
 type ReconcileSecondaryResource struct {
 	CommonReconciler
 	Template  client.Object
@@ -481,38 +527,47 @@ type ReconcileSecondaryResource struct {
 func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Template }
 func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
-// ReconcileResources reconciles the state of the desired resources for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileResources(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
+// ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
+func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage, skipHashCheck bool) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
+	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
 	var err error
-	diff := storage.GetLatest().DiffForKind(in.Kind, storage.GetPrevious())
-	logger.Info(fmt.Sprintf("Reconciling %d %v resources", len(diff), in.Kind))
-	for _, res := range diff {
+	resources := storage.GetLatest().GetResourcesOfKind(in.Kind)
+	for _, res := range resources {
 		if res.IsDelete() {
 			if err = in.Delete(ctx, request.Namespace, res.Name, logger); err != nil {
-				logger.Info(fmt.Sprintf("Finished reconciling all %s for deployment with error: %s", in.Kind, err.Error()))
+				logger.Info(fmt.Sprintf("Finished reconciling all %v with error", in.Kind), "error", err.Error())
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileResource(ctx, request.Namespace, res.Name, deployment, storage, logger); err != nil {
-				logger.Info(fmt.Sprintf("Finished reconciling all %s for deployment with error: %s", in.Kind, err.Error()))
+			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, deployment, storage, skipHashCheck, logger); err != nil {
+				logger.Info(fmt.Sprintf("Finished reconciling all %v with error", in.Kind), "error", err.Error())
 				return reconcile.Result{}, err
 			}
 		}
 	}
+	logger.Info(fmt.Sprintf("Finished reconciling all %v", in.Kind))
 	return reconcile.Result{}, nil
 }
 
-// ReconcileResource reconciles a specific resource.
-func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Reconciling resource %v %s/%s", in.Kind, namespace, name))
+// HashLabelsMatch determines whether the Coherence Hash label on the specified Object matches the hash on the storage.
+func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage utils.Storage) bool {
+	storageHash, storageHashFound := storage.GetHash()
+	objectHash, objectHashFound := o.GetLabels()[coh.LabelCoherenceHash]
+	return storageHashFound == objectHashFound && storageHash == objectHash
+}
+
+// ReconcileSingleResource reconciles a specific resource.
+func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+	logger = logger.WithValues("Resource", name)
+	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 
 	// Fetch the resource's current state
 	resource, exists, err := in.FindResource(ctx, namespace, name)
 	if err != nil {
 		// Error reading the object - requeue the request.
-		// We can't call the error handler as we do not even have a deployment.
+		// We can't call the error handler as we do not even have a owning Coherence resource.
 		// We log the error and do not requeue the request.
 		return errors.Wrapf(err, "getting %s %s/%s", in.Kind, namespace, name)
 	}
@@ -522,22 +577,43 @@ func (in *ReconcileSecondaryResource) ReconcileResource(ctx context.Context, nam
 		exists = false
 	}
 
+	if owner == nil {
+		// try to find the owning Coherence resource
+		if owner, err = in.FindOwningCoherenceResource(ctx, resource); err != nil {
+			return err
+		}
+	}
+
+	if owner != nil && in.Kind.Name() == coh.ResourceTypeSecret.Name() && name == owner.GetName() {
+		// this a reconcile event for the storage secret, we can ignore it
+		logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
+		return nil
+	}
+
+	if storage == nil && owner != nil {
+		if storage, err = utils.NewStorage(owner.GetNamespacedName(), in.GetManager()); err != nil {
+			return err
+		}
+	}
+
 	switch {
-	case deployment == nil || deployment.GetReplicas() == 0:
+	case owner == nil || owner.GetReplicas() == 0:
 		if exists {
-			// The deployment does not exist (or is scaled down to zero) but the resource still does,
+			// The owning Coherence resource does not exist (or is scaled down to zero) but the resource still does,
 			// ensure that the resource is deleted.
-			// This should not actually be required as everything is owned by the deployment
+			// This should not actually be required as everything is owned by the owning Coherence resource
 			// and there should be a cascaded delete by k8s, so it's belt and braces.
 			err = in.Delete(ctx, namespace, name, logger)
 		}
 	case !exists:
-		// Resource does not exist but deployment does so create it
+		// Resource does not exist but owning Coherence resource does so create it
 		err = in.Create(ctx, name, storage, logger)
 	default:
-		// Both the resource and deployment exists so this is maybe an update
-		err = in.Update(ctx, name, resource.(client.Object), storage, logger)
+		// Both the resource and owning Coherence resource exist so this is maybe an update
+		err = in.Update(ctx, name, resource.(client.Object), storage, skipHashCheck, logger)
 	}
+
+	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
 	return err
 }
 
@@ -554,15 +630,15 @@ func (in *ReconcileSecondaryResource) NewFromTemplate(namespace, name string) cl
 
 // Create the specified resource
 func (in *ReconcileSecondaryResource) Create(ctx context.Context, name string, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Creating %v/%s for deployment", in.Kind, name))
+	logger.Info(fmt.Sprintf("Creating %v", in.Kind))
 	// Get the resource state
 	resource, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
-		return fmt.Errorf("cannot create %v/%s for deployment as latest state not present in store", in.Kind, name)
+		logger.Info(fmt.Sprintf("Cannot create %v as latest state not present in store", in.Kind))
+		return nil
 	}
 	// create the resource
 	if err := in.GetClient().Create(ctx, resource.Spec); err != nil {
-		logger.Info(fmt.Sprintf("Failed creating %v for deployment - %s", in.Kind, err.Error()))
 		return errors.Wrapf(err, "failed to create %v/%s", in.Kind, name)
 	}
 	return nil
@@ -570,7 +646,7 @@ func (in *ReconcileSecondaryResource) Create(ctx context.Context, name string, s
 
 // Delete the resource
 func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, name string, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Deleting %v/%s for deployment", in.Kind, name))
+	logger.Info("Deleting StatefulSet")
 	// create a new resource from copying the empty template
 	resource := in.NewFromTemplate(namespace, name)
 
@@ -585,20 +661,34 @@ func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, nam
 }
 
 // Update possibly updates the resource if the current state differs from the desired state.
-func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Updating %v/%s for deployment", in.Kind, name))
+func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
+
+	hashMatches := in.HashLabelsMatch(current, storage)
+	if hashMatches && !skipHashCheck {
+		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
+		lo := current.GetLabels()[coh.LabelCoherenceHash]
+		ls, _ := storage.GetHash()
+		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
+		return nil
+	}
+
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
-		return fmt.Errorf("cannot update %s/%s as latest state not present in store", in.Kind, name)
+		logger.Info(fmt.Sprintf("Cannot update %v as latest state not present in store", in.Kind))
+		return nil
 	}
 
-	_, err := in.ThreeWayPatch(ctx, name, current, original.Spec, desired.Spec)
+	patched, err := in.ThreeWayPatch(ctx, name, current, original.Spec, desired.Spec)
+	if patched && hashMatches {
+		logger.Info(fmt.Sprintf("Patch applied to %v even though hashes matched (possible external update)", in.Kind))
+	}
 	return err
 }
 
-func (in *ReconcileSecondaryResource) FindResource(ctx context.Context, namespace, name string) (metav1.Object, bool, error) {
-	object := in.NewFromTemplate(namespace, name).(metav1.Object)
+func (in *ReconcileSecondaryResource) FindResource(ctx context.Context, namespace, name string) (client.Object, bool, error) {
+	object := in.NewFromTemplate(namespace, name)
 	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, object.(client.Object))
 	var found bool
 	switch {

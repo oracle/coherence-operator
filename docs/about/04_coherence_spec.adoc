@@ -812,6 +812,7 @@ m| readyReplicas | ReadyReplicas is the number of number of members in the Coher
 m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
 m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
 m| conditions | The status conditions. m| status.Conditions | false
+m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
 |===
 
 <<Table of Contents,Back to TOC>>

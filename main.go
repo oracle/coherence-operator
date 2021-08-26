@@ -148,7 +148,7 @@ func execute() {
 
 	initialiseOperator(v, cl)
 
-	// Set-up the Coherence reconciler
+	// Set up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
@@ -164,7 +164,7 @@ func execute() {
 	// Set-up webhooks if required
 	var cr *webhook.CertReconciler
 	if operator.ShouldEnableWebhooks() {
-		// Set-up the webhook certificate reconciler
+		// Set up the webhook certificate reconciler
 		cr = &webhook.CertReconciler{
 			Clientset: cs,
 		}
@@ -173,7 +173,7 @@ func execute() {
 			os.Exit(1)
 		}
 
-		// Set-up the webhooks
+		// Set up the webhooks
 		if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, " unable to create webhook", "webhook", "Coherence")
 			os.Exit(1)

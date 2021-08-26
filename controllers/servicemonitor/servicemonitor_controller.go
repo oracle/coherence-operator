@@ -18,8 +18,8 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -33,7 +33,7 @@ const (
 // If the reconcile.Reconciler API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileServiceMonitor{}
 
-// NewServiceMonitorReconciler returns a new Service reconciler.
+// NewServiceMonitorReconciler returns a new ServiceMonitor reconciler.
 func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileServiceMonitor{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
@@ -58,6 +58,9 @@ func (in *ReconcileServiceMonitor) GetReconciler() reconcile.Reconciler { return
 // Reconcile reads that state of the ServiceMonitors for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
 func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
+	logger.Info("Starting reconcile")
+
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
@@ -66,34 +69,32 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Obtain the parent Coherence resource
-	deployment, err := in.FindDeployment(ctx, request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
 	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	return in.ReconcileResources(ctx, request, deployment, storage)
+	err = in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, storage, true, logger)
+	logger.Info("Completed reconcile")
+	return reconcile.Result{}, err
 }
 
-// ReconcileResources reconciles the state of the desired ServiceMonitors for the reconciler
-func (in *ReconcileServiceMonitor) ReconcileResources(ctx context.Context, req reconcile.Request, d *coh.Coherence, store utils.Storage) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", req.Namespace, "Name", req.Name)
+// ReconcileAllResourceOfKind reconciles the state of the desired ServiceMonitors for the reconciler
+func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d *coh.Coherence, storage utils.Storage, skipHashCheck bool) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
+	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
 	var err error
-	diff := store.GetLatest().DiffForKind(in.Kind, store.GetPrevious())
-	for _, res := range diff {
+
+	resources := storage.GetLatest().GetResourcesOfKind(in.Kind)
+	for _, res := range resources {
 		if res.IsDelete() {
-			if err = in.monClient.ServiceMonitors(req.Namespace).Delete(ctx, res.Name, metav1.DeleteOptions{}); err != nil {
+			if err = in.monClient.ServiceMonitors(request.Namespace).Delete(ctx, res.Name, metav1.DeleteOptions{}); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for d with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileResource(ctx, req.Namespace, res.Name, d, store); err != nil {
+			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, d, storage, skipHashCheck, logger); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for d with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -102,12 +103,13 @@ func (in *ReconcileServiceMonitor) ReconcileResources(ctx context.Context, req r
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namespace, name string, deployment *coh.Coherence, storage utils.Storage) error {
-	logger := in.GetLog().WithValues("Namespace", namespace, "Name", name)
+func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+	logger = logger.WithValues("Resource", name)
+	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 
 	// See whether it is even possible to handle Prometheus ServiceMonitor resources
 	if !in.hasServiceMonitor() {
-		logger.Info(fmt.Sprintf("Cannot reconcile ServiceMonitor %s as the ServiceMonitor CR is not installed", name))
+		logger.Info("Cannot reconcile ServiceMonitor as the ServiceMonitor CR is not installed")
 		return nil
 	}
 
@@ -121,7 +123,7 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 		exists = false
 	case err != nil:
 		// Error reading the object - requeue the request.
-		// We can't call the error handler as we do not even have a deployment.
+		// We can't call the error handler as we do not even have a owning Coherence resource.
 		// We log the error and do not requeue the request.
 		return errors.Wrapf(err, "getting ServiceMonitor %s/%s", namespace, name)
 	default:
@@ -134,52 +136,72 @@ func (in *ReconcileServiceMonitor) ReconcileResource(ctx context.Context, namesp
 		exists = false
 	}
 
+	if owner == nil {
+		// find the owning Coherence resource
+		if owner, err = in.FindOwningCoherenceResource(ctx, sm); err != nil {
+			return err
+		}
+	}
+
 	switch {
-	case deployment == nil || deployment.GetReplicas() == 0:
+	case owner == nil || owner.GetReplicas() == 0:
 		if exists {
-			// The deployment does not exist (or is scaled down to zero) but the sm still does,
+			// The owning Coherence resource does not exist (or is scaled down to zero) but the sm still does,
 			// ensure that the sm is deleted.
-			// This should not actually be required as everything is owned by the deployment
-			// and there should be a cascaded delete by k8s so it's belt and braces.
+			// This should not actually be required as everything is owned by the owning Coherence resource
+			// and there should be a cascaded delete by k8s, so it's belt and braces.
 			err = in.monClient.ServiceMonitors(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 		}
 	case !exists:
-		// ServiceMonitor does not exist but deployment does so create it
+		// ServiceMonitor does not exist but owning Coherence resource does, so create it
 		err = in.CreateServiceMonitor(ctx, namespace, name, storage, logger)
 		if err != nil {
 			err = errors.Wrapf(err, "Failed to create ServiceMonitor %s/%s", namespace, name)
 		}
 	default:
-		// Both the sm and deployment exists so this is maybe an update
-		err = in.Update(ctx, name, sm, storage, logger)
+		// Both the sm and owning Coherence resource exist, so this is maybe an update
+		err = in.UpdateServiceMonitor(ctx, namespace, name, sm, storage, skipHashCheck, logger)
 	}
+
+	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
 	return err
 }
 
 // CreateServiceMonitor creates a ServiceMonitor spec.
 func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, namespace, name string, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Creating ServiceMonitor/%s for deployment", name))
+	logger.Info(fmt.Sprintf("Creating %v", in.Kind))
+
 	// Get the ServiceMonitor desired state
 	resource, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
-		return fmt.Errorf("cannot create ServiceMonitor %s/%s for deployment as latest state not present in store", namespace, name)
+		return fmt.Errorf("cannot create ServiceMonitor as latest state not present in store")
 	}
 	// create the ServiceMonitor
 	sm := resource.Spec.(*monitoringv1.ServiceMonitor)
 	_, err := in.monClient.ServiceMonitors(namespace).Create(ctx, sm, metav1.CreateOptions{})
 	if err != nil {
-		logger.Info(fmt.Sprintf("Failed creating ServiceMonitor %s/%s - %s", namespace, name, err.Error()))
 		return errors.Wrapf(err, "failed to create ServiceMonitor %s/%s", namespace, name)
 	}
 	return nil
 }
 
 // UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
-func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current runtime.Object, storage utils.Storage) error {
+func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current client.Object, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
+
+	hashMatches := in.HashLabelsMatch(current, storage)
+	if hashMatches && !skipHashCheck {
+		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
+		lo := current.GetLabels()[coh.LabelCoherenceHash]
+		ls, _ := storage.GetHash()
+		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
+		return nil
+	}
+
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
-		return fmt.Errorf("cannot update ServiceMonitor %s/%s as latest state not present in store", namespace, name)
+		return fmt.Errorf("cannot update ServiceMonitor as latest state not present in store")
 	}
 
 	// fix the CreationTimestamp so that it is not in the patch
@@ -196,8 +218,11 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, nam
 		return nil
 	}
 
-	in.GetLog().WithValues().Info(fmt.Sprintf("Patching ServiceMonitor %s/%s", namespace, name))
+	logger.Info("Patching ServiceMonitor")
 	_, err = in.monClient.ServiceMonitors(namespace).Patch(ctx, name, in.GetPatchType(), data, metav1.PatchOptions{})
+	if hashMatches {
+		logger.Info("Patch applied to ServiceMonitor even though hashes matched (possible external update)")
+	}
 	if err != nil {
 		return errors.Wrapf(err, "cannot patch ServiceMonitor %s/%s", namespace, name)
 	}

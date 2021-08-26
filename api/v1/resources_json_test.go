@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -32,7 +32,7 @@ func TestSerializeResources(t *testing.T) {
 
 	resources := []v1.Resource{
 		{
-			Kind: v1.ResourceTypeDeployment,
+			Kind: v1.ResourceTypeCoherence,
 			Name: "foo",
 			Spec: &v1.Coherence{ObjectMeta: om},
 		},
@@ -78,7 +78,7 @@ func TestSerializeMultipleResources(t *testing.T) {
 
 	resources := []v1.Resource{
 		{
-			Kind: v1.ResourceTypeDeployment,
+			Kind: v1.ResourceTypeCoherence,
 			Name: "foo",
 			Spec: &v1.Coherence{ObjectMeta: om},
 		},

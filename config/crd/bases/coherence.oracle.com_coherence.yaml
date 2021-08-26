@@ -11842,6 +11842,9 @@ spec:
                   Coherence deployment represented by the Coherence resource.
                 format: int32
                 type: integer
+              hash:
+                description: Hash is the hash of the latest applied Coherence spec
+                type: string
               phase:
                 description: "The phase of a Coherence resource is a simple, high-level
                   summary of where the Coherence resource is in its lifecycle. The

@@ -37,54 +37,70 @@ const (
 	LabelComponentPortService          = "coherence-service"
 	LabelComponentPortServiceMonitor   = "coherence-service-monitor"
 	LabelComponentWKA                  = "coherenceWkaService"
+	LabelCoherenceHash                 = "coherence-hash"
+	LabelCoherenceStore                = "coherence-storage"
 
 	StatusSelectorTemplate = LabelCoherenceCluster + "=%s," + LabelCoherenceDeployment + "=%s"
 
-	// Feature annotations
+	// AnnotationFeatureSuspend is the feature annotations
 	AnnotationFeatureSuspend = "com.oracle.coherence.operator/feature.suspend"
 
-	// The default k8s service account name.
+	// DefaultServiceAccount is the default k8s service account name.
 	DefaultServiceAccount = "default"
 
-	// Container Names
+	// ContainerNameCoherence is the Coherence container name
 	ContainerNameCoherence = "coherence"
-	ContainerNameUtils     = "coherence-k8s-utils"
+	// ContainerNameUtils is the utils container name
+	ContainerNameUtils = "coherence-k8s-utils"
 
-	// Volume names
-	VolumeNamePersistence   = "persistence-volume"
-	VolumeNameSnapshots     = "snapshot-volume"
-	VolumeNameLogs          = "logs"
-	VolumeNameUtils         = "coh-utils"
-	VolumePodInfo           = "coh-pod-info"
-	VolumeNameJVM           = "jvm"
+	// VolumeNamePersistence is the name of the persistence volume
+	VolumeNamePersistence = "persistence-volume"
+	// VolumeNameSnapshots is the name of the snapshots volume
+	VolumeNameSnapshots = "snapshot-volume"
+	// VolumeNameLogs is the name of the logs volume
+	VolumeNameLogs = "logs"
+	// VolumeNameUtils is the name of the utils volume
+	VolumeNameUtils = "coh-utils"
+	// VolumePodInfo is the name of the Pod info volume
+	VolumePodInfo = "coh-pod-info"
+	// VolumeNameJVM is the name of the JVM diagnostics volume
+	VolumeNameJVM = "jvm"
+	// VolumeNameManagementSSL is the name of the management TLS volume
 	VolumeNameManagementSSL = "management-ssl-config"
-	VolumeNameMetricsSSL    = "metrics-ssl-config"
+	// VolumeNameMetricsSSL is the name of the metrics TLS volume
+	VolumeNameMetricsSSL = "metrics-ssl-config"
 
 	VolumePathAttributes = "attributes"
 	VolumePathLabels     = "labels"
 
-	// Volume mount paths
-	VolumeMountRoot                = "/coherence-operator"
-	VolumeMountPathPersistence     = VolumeMountRoot + "/persistence"
-	VolumeMountPathSnapshots       = VolumeMountRoot + "/snapshot"
-	VolumeMountPathUtils           = VolumeMountRoot + "/utils"
-	VolumeMountPathJVM             = VolumeMountRoot + "/jvm"
+	// VolumeMountRoot is the root path for volume mounts
+	VolumeMountRoot = "/coherence-operator"
+	// VolumeMountPathPersistence is the persistence volume mount
+	VolumeMountPathPersistence = VolumeMountRoot + "/persistence"
+	// VolumeMountPathSnapshots is the snapshots volume mount
+	VolumeMountPathSnapshots = VolumeMountRoot + "/snapshot"
+	// VolumeMountPathUtils is the utils volume mount
+	VolumeMountPathUtils = VolumeMountRoot + "/utils"
+	// VolumeMountPathJVM is the JVM diagnostics volume mount
+	VolumeMountPathJVM = VolumeMountRoot + "/jvm"
+	// VolumeMountPathManagementCerts is the management certs volume mount
 	VolumeMountPathManagementCerts = VolumeMountRoot + "/coherence/certs/management"
-	VolumeMountPathMetricsCerts    = VolumeMountRoot + "/coherence/certs/metrics"
+	// VolumeMountPathMetricsCerts is the metrics certs volume mount
+	VolumeMountPathMetricsCerts = VolumeMountRoot + "/coherence/certs/metrics"
 
-	// Start command for the runner
+	// RunnerCommand is the start command for the runner
 	RunnerCommand = VolumeMountPathUtils + "/runner"
 
-	// Start command for the utils init container
+	// UtilsInitCommand is the start command for the utils init container
 	UtilsInitCommand = "/files/runner"
-	RunnerInit       = "init"
+	// RunnerInit is the command line argument for the utils init container
+	RunnerInit = "init"
 
 	ServiceMonitorKind         = "ServiceMonitor"
 	ServiceMonitorGroup        = "monitoring.coreos.com"
 	ServiceMonitorVersion      = "v1"
 	ServiceMonitorGroupVersion = ServiceMonitorGroup + "/" + ServiceMonitorVersion
 
-	// Port names
 	PortNameCoherence  = "coherence"
 	PortNameDebug      = "debug-port"
 	PortNameHealth     = "health"
