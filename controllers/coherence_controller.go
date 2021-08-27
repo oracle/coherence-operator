@@ -228,7 +228,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// process the secondary resources in the order they should be created
 	for _, rec := range in.reconcilers {
 		log.Info("Reconciling Coherence resource secondary resources", "controller", rec.GetControllerName())
-		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage, false)
+		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			return reconcile.Result{}, err
 		}

@@ -69,7 +69,7 @@ func (in *ReconcileSecret) Reconcile(ctx context.Context, request reconcile.Requ
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	err = in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, nil, true, logger)
+	err = in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, nil, logger)
 	logger.Info("Completed reconcile")
 	return reconcile.Result{}, err
 }
