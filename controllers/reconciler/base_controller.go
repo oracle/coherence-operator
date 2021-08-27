@@ -510,7 +510,7 @@ func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, 
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() client.Object
-	ReconcileAllResourceOfKind(context.Context, reconcile.Request, *coh.Coherence, utils.Storage, bool) (reconcile.Result, error)
+	ReconcileAllResourceOfKind(context.Context, reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
 
@@ -528,7 +528,7 @@ func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Te
 func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
 // ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage, skipHashCheck bool) (reconcile.Result, error) {
+func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
 	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
@@ -541,7 +541,7 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, deployment, storage, skipHashCheck, logger); err != nil {
+			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, deployment, storage, logger); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %v with error", in.Kind), "error", err.Error())
 				return reconcile.Result{}, err
 			}
@@ -559,7 +559,7 @@ func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage u
 }
 
 // ReconcileSingleResource reconciles a specific resource.
-func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
 	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 
@@ -610,7 +610,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 		err = in.Create(ctx, name, storage, logger)
 	default:
 		// Both the resource and owning Coherence resource exist so this is maybe an update
-		err = in.Update(ctx, name, resource.(client.Object), storage, skipHashCheck, logger)
+		err = in.Update(ctx, name, resource.(client.Object), storage, logger)
 	}
 
 	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
@@ -661,18 +661,10 @@ func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, nam
 }
 
 // Update possibly updates the resource if the current state differs from the desired state.
-func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
 
 	hashMatches := in.HashLabelsMatch(current, storage)
-	if hashMatches && !skipHashCheck {
-		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
-		lo := current.GetLabels()[coh.LabelCoherenceHash]
-		ls, _ := storage.GetHash()
-		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
-		return nil
-	}
-
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {

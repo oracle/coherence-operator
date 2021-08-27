@@ -74,13 +74,13 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, err
 	}
 
-	err = in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, storage, true, logger)
+	err = in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, storage, logger)
 	logger.Info("Completed reconcile")
 	return reconcile.Result{}, err
 }
 
 // ReconcileAllResourceOfKind reconciles the state of the desired ServiceMonitors for the reconciler
-func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d *coh.Coherence, storage utils.Storage, skipHashCheck bool) (reconcile.Result, error) {
+func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
 	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
@@ -94,7 +94,7 @@ func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Contex
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, d, storage, skipHashCheck, logger); err != nil {
+			if err = in.ReconcileSingleResource(ctx, request.Namespace, res.Name, d, storage, logger); err != nil {
 				logger.Info(fmt.Sprintf("Finished reconciling all %s for d with error: %s", in.Kind, err.Error()))
 				return reconcile.Result{}, err
 			}
@@ -103,7 +103,7 @@ func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Contex
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
 	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 
@@ -160,7 +160,7 @@ func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, 
 		}
 	default:
 		// Both the sm and owning Coherence resource exist, so this is maybe an update
-		err = in.UpdateServiceMonitor(ctx, namespace, name, sm, storage, skipHashCheck, logger)
+		err = in.UpdateServiceMonitor(ctx, namespace, name, sm, storage, logger)
 	}
 
 	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
@@ -186,18 +186,10 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, nam
 }
 
 // UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
-func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current client.Object, storage utils.Storage, skipHashCheck bool, logger logr.Logger) error {
+func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
 
 	hashMatches := in.HashLabelsMatch(current, storage)
-	if hashMatches && !skipHashCheck {
-		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
-		lo := current.GetLabels()[coh.LabelCoherenceHash]
-		ls, _ := storage.GetHash()
-		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
-		return nil
-	}
-
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {

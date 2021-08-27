@@ -345,6 +345,19 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
 
+.PHONY: build-operator-debug
+build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug
+	docker build --no-cache --build-arg version=$(VERSION) \
+		--build-arg coherence_image=$(COHERENCE_IMAGE) \
+		--build-arg utils_image=$(UTILS_IMAGE) \
+		--build-arg target=amd64 \
+		-f debug/Dockerfile \
+		. -t $(OPERATOR_IMAGE)-debug
+
+$(BUILD_BIN)/linux/amd64/manager-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/manager-debug main.go
+	chmod +x $(BUILD_BIN)/linux/amd64/manager-debug
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Utils Docker image
 # ----------------------------------------------------------------------------------------------------------------------
@@ -593,7 +606,7 @@ copyright:  ## Check copyright headers
 # ----------------------------------------------------------------------------------------------------------------------
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: export UTILS_IMAGE := $(UTILS_IMAGE)
-run: ## run the Operator locally
+run: create-namespace ## run the Operator locally
 	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
@@ -616,7 +629,7 @@ run-clean: reset-namespace run ## run the Operator locally after resetting the n
 .PHONY: run-debug
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
-run-debug: ## run the Operator locally with Delve debugger
+run-debug: create-namespace ## run the Operator locally with Delve debugger
 	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
 		-- --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal
@@ -763,7 +776,7 @@ e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
-e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end functional tests using a local Operator deployment
+e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -775,7 +788,7 @@ e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secre
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-test
 e2e-test: export MF = $(MAKEFLAGS)
-e2e-test: prepare-e2e-test
+e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional tests using an Operator deployed in k8s
 	$(MAKE) run-e2e-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) undeploy $${MF} \
@@ -802,7 +815,7 @@ run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-run-e2e-test: gotestsum
+run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional tests using an ALREADY DEPLOYED Operator
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
 
@@ -1070,7 +1083,7 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Operator Pod to be ready
 
 .PHONY: deploy
-deploy: prepare-deploy $(GOBIN)/kustomize   ## Deploy the Coherence Operator
+deploy: prepare-deploy create-namespace $(GOBIN)/kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
@@ -1086,6 +1099,20 @@ just-deploy:
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+
+.PHONY: deploy-debug
+deploy-debug: prepare-deploy-debug create-namespace $(GOBIN)/kustomize   ## Deploy the Coherence Operator running with Delve
+ifneq (,$(WATCH_NAMESPACE))
+	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+endif
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
+	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	sleep 5
+
+
+.PHONY: prepare-deploy
+prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug $(GOBIN)/kustomize
+	$(call prepare_deploy,$(OPERATOR_IMAGE)-debug,$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
@@ -1151,6 +1178,16 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
 # ----------------------------------------------------------------------------------------------------------------------
+.PHONY: create-namespace
+create-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
+create-namespace: ## Create the test namespace
+ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
+	kubectl get ns operator-test -o name > /dev/null 2>&1 || kubectl create namespace operator-test
+endif
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Delete and re-create the test namespace
+# ----------------------------------------------------------------------------------------------------------------------
 .PHONY: reset-namespace
 reset-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
 reset-namespace: export DOCKER_SERVER := $(DOCKER_SERVER)
@@ -1158,11 +1195,7 @@ reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
 reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
 reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
 reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
-reset-namespace: delete-namespace      ## Reset the test namespace
-ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	@echo "Creating test namespace $(OPERATOR_NAMESPACE)"
-	kubectl create namespace $(OPERATOR_NAMESPACE)
-endif
+reset-namespace: delete-namespace create-namespace      ## Reset the test namespace
 ifneq ($(DOCKER_SERVER),)
 	@echo "Creating pull secrets for $(DOCKER_SERVER)"
 	kubectl create secret docker-registry coherence-k8s-operator-development-secret \

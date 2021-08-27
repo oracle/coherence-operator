@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
 
 	coh "github.com/oracle/coherence-operator/api/v1"
 )
@@ -135,7 +136,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	finalizerApplied := false
 	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.Finalizer) {
 		// Adding the finalizer causes an update so the request will come around again
-		err = in.addFinalizer(ctx, deployment)
+		deployment, err = in.addFinalizer(ctx, deployment)
 		finalizerApplied = true
 	}
 
@@ -172,6 +173,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		patch.Spec.Replicas = &replicas
 		_, err = in.ThreeWayPatch(ctx, deployment.Name, deployment, deployment, patch)
 		if err != nil {
+			log.Info("Added default replicas to Coherence resource, re-queuing request", "Replicas", strconv.Itoa(int(replicas)))
 			return reconcile.Result{}, err
 		}
 	}
@@ -192,8 +194,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	var desiredResources coh.Resources
 
 	storeHash, found := storage.GetHash()
-	if !found || storeHash != hash {
-		// storage state was saved with the no hash or a different hash so is not in the desired state
+	if !found || storeHash != hash || deployment.Status.Phase != coh.ConditionTypeReady {
+		// Storage state was saved with the no hash or a different hash so is not in the desired state
+		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
 		if desiredResources, err = deployment.Spec.CreateKubernetesResources(deployment); err != nil {
 			return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
@@ -308,18 +311,29 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
-func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) error {
+func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) (*coh.Coherence, error) {
 	in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
-	controllerutil.AddFinalizer(c, coh.Finalizer)
+
+	//cl := in.GetClient()
+
+	// Re-fetch the Coherence resource to ensure we have the most recent copy
+	latest := &coh.Coherence{}
+	c.DeepCopyInto(latest)
+
+	//err := cl.Get(ctx, c.GetNamespacedName(), &latest)
+	//if err != nil {
+	//	return c, errors.Wrapf(err, "failed to get Coherence resource %s/%s to add finalizer", c.Namespace, c.Name)
+	//}
+
+	controllerutil.AddFinalizer(latest, coh.Finalizer)
 
 	// Update CR
-	err := in.GetClient().Update(ctx, c)
+	_, err := in.TwoWayPatch(ctx, c.Name, c, latest)
+	//	err = cl.Update(ctx, c)
 	if err != nil {
-		in.Log.Error(err, "Failed to update Coherence resource with finalizer",
-			"Namespace", c.Namespace, "Name", c.Name)
-		return err
+		return latest, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
 	}
-	return nil
+	return latest, nil
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {

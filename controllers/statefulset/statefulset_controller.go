@@ -97,14 +97,14 @@ func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile
 		return reconcile.Result{}, err
 	}
 
-	result, err := in.ReconcileAllResourceOfKind(ctx, request, nil, storage, false)
+	result, err := in.ReconcileAllResourceOfKind(ctx, request, nil, storage)
 	logger.Info("Completed reconcile")
 	return result, err
 }
 
 // ReconcileAllResourceOfKind will process the specified reconcile request for the specified deployment.
 // The previous state being reconciled can be obtained from the storage parameter.
-func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage, skipHashCheck bool) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 	logger.Info("Reconciling StatefulSet for deployment")
 
@@ -160,7 +160,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		result, err = in.createStatefulSet(ctx, deployment, storage, logger)
 	default:
 		// Both StatefulSet and deployment exists so this is maybe an update
-		result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, skipHashCheck, logger)
+		result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, logger)
 	}
 
 	if err == nil {
@@ -256,20 +256,11 @@ func (in *ReconcileStatefulSet) canCreate(ctx context.Context, deployment *coh.C
 	return true, ""
 }
 
-func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet, storage utils.Storage, skipHashCheck bool, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Updating statefulSet")
 
 	var err error
 	result := reconcile.Result{}
-
-	hashMatches := in.HashLabelsMatch(current, storage)
-	if hashMatches && !skipHashCheck {
-		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
-		lo := current.GetLabels()[coh.LabelCoherenceHash]
-		ls, _ := storage.GetHash()
-		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
-		return result, nil
-	}
 
 	// get the desired resource state from the store
 	resource, found := storage.GetLatest().GetResource(coh.ResourceTypeStatefulSet, current.Name)
@@ -294,7 +285,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 		// scale up so we do not do a rolling upgrade of the bigger scaled up cluster
 
 		// try the patch first
-		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, skipHashCheck, logger)
+		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
 		if err == nil && !result.Requeue {
 			// there was nothing else to patch so we can do the scale up
 			result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
@@ -309,23 +300,15 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 		result.Requeue = true
 	default:
 		// just an update
-		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, skipHashCheck, logger)
+		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
 	}
 
 	return result, err
 }
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage, skipHashCheck bool, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
-	if hashMatches && !skipHashCheck {
-		// the hash label in the StatefulSet matches that on the storage so there is nothing to do
-		lo := current.GetLabels()[coh.LabelCoherenceHash]
-		ls, _ := storage.GetHash()
-		logger.Info("Nothing to update hash label matches storage hash label", "hash", lo, "storage", ls)
-		return reconcile.Result{}, nil
-	}
-
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
 
