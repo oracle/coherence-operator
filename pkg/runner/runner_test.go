@@ -31,7 +31,7 @@ func TestMinimalDeployment(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -60,7 +60,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
 		"-Dcoherence.override=k8s-coherence-override.xml")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

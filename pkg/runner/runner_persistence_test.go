@@ -35,7 +35,7 @@ func TestServerWithPersistenceMode(t *testing.T) {
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.persistence-mode="),
 		"-Dcoherence.distributed.persistence-mode=active")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -55,7 +55,7 @@ func TestServerWithPersistenceDirectory(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -75,7 +75,7 @@ func TestServerWithSnapshotDirectory(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

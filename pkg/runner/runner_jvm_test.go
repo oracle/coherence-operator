@@ -33,7 +33,7 @@ func TestJvmArgsEmpty(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -61,7 +61,7 @@ func TestJvmArgs(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -93,7 +93,7 @@ func TestJvmArgsWithEnvExpansion(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -121,7 +121,7 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+UseContainerSupport")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -149,7 +149,7 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -179,7 +179,7 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseG1GC")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -209,7 +209,7 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseConcMarkSweepGC")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -239,7 +239,7 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseParallelGC")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -276,7 +276,7 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 		"-XX:+PrintGCApplicationStoppedTime",
 		"-XX:+PrintGCApplicationConcurrentTime")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -306,7 +306,7 @@ func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -336,7 +336,7 @@ func TestJvmGarbageCollectorArgs(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:Arg1", "-XX:Arg2")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

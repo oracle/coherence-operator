@@ -34,7 +34,7 @@ func TestSpringBootApplication(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -64,7 +64,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar)
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -95,7 +95,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgs(jar), "-Dloader.main=foo.Bar")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -125,7 +125,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 
 	expectedCommand := getBuildpackLauncher()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

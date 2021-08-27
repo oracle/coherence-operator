@@ -32,7 +32,7 @@ func TestApplicationTypeNone(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -61,7 +61,7 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -89,7 +89,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -118,7 +118,7 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -146,7 +146,7 @@ func TestApplicationTypeJava(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -175,7 +175,7 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -203,7 +203,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, HelidonMain)
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -232,7 +232,7 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	e, err := executeWithArgs(env, args)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e.OsCmd).NotTo(BeNil())

@@ -51,15 +51,13 @@ const (
 
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
-
-	// EnvPrefix is the environment variable prefix of all environment variables bound to our command line flags.
-	EnvPrefix = "COH"
 )
 
 var (
 	// An alternative configuration file to use instead of program arguments
 	cfgFile string
 
+	// backoffSchedule is a sequence of back-off times for re-trying http requests.
 	backoffSchedule = []time.Duration{
 		1 * time.Second,
 		3 * time.Second,
@@ -119,6 +117,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(consoleCommand())
 	rootCmd.AddCommand(queryPlusCommand())
 	rootCmd.AddCommand(mbeanServerCommand())
+	rootCmd.AddCommand(statusCommand())
 
 	return rootCmd, v
 }
@@ -191,11 +190,11 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 
 // Execute runs the runner with a given environment.
 func Execute() (Execution, error) {
-	return executeWithArgs(nil, nil)
+	return ExecuteWithArgs(nil, nil)
 }
 
-// executeWithArgs runs the runner with a given environment and argument overrides.
-func executeWithArgs(env map[string]string, args []string) (Execution, error) {
+// ExecuteWithArgs runs the runner with a given environment and argument overrides.
+func ExecuteWithArgs(env map[string]string, args []string) (Execution, error) {
 	cmd, v := NewRootCommand(env)
 	if len(args) > 0 {
 		cmd.SetArgs(args)
@@ -405,7 +404,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 			details.addArg("-XX:MinRAMPercentage=" + d.String())
 			details.addArg("-XX:MaxRAMPercentage=" + d.String())
 		} else {
-			fmt.Printf("ERROR: Heap Percentage \"%s\" not a valid resource.Quantity - %s\n", percentageHeap, err.Error())
+			log.Info("ERROR: Heap Percentage is not a valid resource.Quantity", "Value", percentageHeap, "Error", err.Error())
 			os.Exit(1)
 		}
 	} else {
@@ -417,7 +416,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 				d := q.AsDec()
 				details.addArg("-XX:InitialRAMPercentage=" + d.String())
 			} else {
-				fmt.Printf("ERROR: InitialRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", initial, err.Error())
+				log.Info("ERROR: InitialRAMPercentage is not a valid resource.Quantity", "Value", initial, "Error", err.Error())
 				os.Exit(1)
 			}
 		}
@@ -429,7 +428,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 				d := q.AsDec()
 				details.addArg("-XX:MaxRAMPercentage=" + d.String())
 			} else {
-				fmt.Printf("ERROR: MaxRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", max, err.Error())
+				log.Info("ERROR: MaxRAMPercentage is not a valid resource.Quantity", "Value", max, "Error", err.Error())
 				os.Exit(1)
 			}
 		}
@@ -441,7 +440,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 				d := q.AsDec()
 				details.addArg("-XX:MinRAMPercentage=" + d.String())
 			} else {
-				fmt.Printf("ERROR: MinRAMPercentage \"%s\" not a valid resource.Quantity - %s\n", min, err.Error())
+				log.Info("ERROR: MinRAMPercentage is not a valid resource.Quantity", "Value", min, "Error", err.Error())
 				os.Exit(1)
 			}
 		}
@@ -630,7 +629,7 @@ func createGraalCommand(details *RunDetails) (*exec.Cmd, error) {
 
 // Set the Coherence site and rack values
 func configureSiteAndRack(details *RunDetails) {
-	fmt.Println("INFO: Configuring Coherence site and rack")
+	log.Info("Configuring Coherence site and rack")
 	if !details.GetSite {
 		return
 	}
@@ -649,9 +648,9 @@ func configureSiteAndRack(details *RunDetails) {
 		default:
 			st, err := os.Stat(siteLocation)
 			if err == nil && !st.IsDir() {
-				bytes, err := ioutil.ReadFile(siteLocation)
+				d, err := ioutil.ReadFile(siteLocation)
 				if err != nil {
-					site = string(bytes)
+					site = string(d)
 				}
 			}
 		}
@@ -675,9 +674,9 @@ func configureSiteAndRack(details *RunDetails) {
 		default:
 			st, err := os.Stat(rackLocation)
 			if err == nil && !st.IsDir() {
-				bytes, err := ioutil.ReadFile(rackLocation)
+				d, err := ioutil.ReadFile(rackLocation)
 				if err != nil {
-					rack = string(bytes)
+					rack = string(d)
 				}
 			}
 		}
@@ -693,33 +692,6 @@ func configureSiteAndRack(details *RunDetails) {
 // httpGetWithBackoff does a http get for the specified url with retry back-off for errors.
 func httpGetWithBackoff(url string, details *RunDetails) string {
 	var backoff time.Duration
-	for _, backoff = range backoffSchedule {
-		s, status, err := httpGet(url, details)
-		if err == nil && status == http.StatusOK {
-			return s
-		}
-		log.Info("http get backoff", "url", url, "backoff", backoff.String())
-		time.Sleep(backoff)
-	}
-
-	// now just retry using the final back-off value for a maximum of five more attempts...
-	for i := 0; i < 5; i++ {
-		s, status, err := httpGet(url, details)
-		if err == nil && status == http.StatusOK {
-			return s
-		}
-		log.Info("http get backoff", "url", url, "backoff", backoff.String())
-		time.Sleep(backoff)
-	}
-
-	log.Info("Unable to perform get request within backoff limit", "url", url)
-	return ""
-}
-
-// Do a http get for the specified url and return the response body for
-// a 200 response or empty string for a non-200 response or error.
-func httpGet(url string, details *RunDetails) (string, int, error) {
-	log.Info("Performing http get", "url", url)
 	timeout := 120
 
 	val := details.Getenv(v1.EnvVarOperatorTimeout)
@@ -736,26 +708,52 @@ func httpGet(url string, details *RunDetails) (string, int, error) {
 		Timeout: time.Duration(timeout) * time.Second,
 	}
 
+	for _, backoff = range backoffSchedule {
+		s, status, err := httpGet(url, client)
+		if err == nil && status == http.StatusOK {
+			return s
+		}
+		log.Info("http get backoff", "url", url, "backoff", backoff.String())
+		time.Sleep(backoff)
+	}
+
+	// now just retry using the final back-off value for a maximum of five more attempts...
+	for i := 0; i < 5; i++ {
+		s, status, err := httpGet(url, client)
+		if err == nil && status == http.StatusOK {
+			return s
+		}
+		log.Info("http get backoff", "url", url, "backoff", backoff.String())
+		time.Sleep(backoff)
+	}
+
+	log.Info("Unable to perform get request within backoff limit", "url", url)
+	return ""
+}
+
+// Do a http get for the specified url and return the response body for
+// a 200 response or empty string for a non-200 response or error.
+func httpGet(url string, client http.Client) (string, int, error) {
+	log.Info("Performing http get", "url", url)
+
 	resp, err := client.Get(url)
 	if err != nil {
-		fmt.Printf("ERROR: failed to get url %s - %s\n", url, err.Error())
-		return "", http.StatusInternalServerError, err
+		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to get URL %s", url)
 	}
 	//noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("ERROR: filed to read response body from %s - %s\n", url, resp.Status)
-		return "", resp.StatusCode, nil
+		return "", resp.StatusCode, errors.Wrapf(err, "failed to read response body from URL %s", url)
 	}
 
 	s := string(body)
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("ERROR: filed to get 200 response from %s - status=%s body=%s\n", url, resp.Status, s)
+		log.Info("Did not receive a 200 response from URL", "Status", resp.Status, "Body", s)
 	} else {
-		log.Info("Get response", "url", url, "body", s)
+		log.Info("Received 200 response", "Body", s)
 	}
 
 	return s, resp.StatusCode, nil
