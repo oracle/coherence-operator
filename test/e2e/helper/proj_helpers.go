@@ -58,12 +58,12 @@ const (
 func EnsureTestEnvVars() {
 	ensureEnvVar("TEST_IMAGE_PULL_POLICY", "IfNotPresent")
 
-	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-compatibility:latest")
-	ensureEnvVar("TEST_APPLICATION_IMAGE", "ghcr.io/oracle/operator-test:latest")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "ghcr.io/oracle/operator-test:latest-helidon")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "GHCR.IO/ORACLE/operator-test:latest-spring")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_FAT", "ghcr.io/oracle/operator-test:latest-spring-fat")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_CNBP", "ghcr.io/oracle/operator-test:latest-spring-cnbp")
+	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-test-compatibility:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE", "ghcr.io/oracle/operator-test:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "ghcr.io/oracle/operator-test-helidon:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "ghcr.io/oracle/operator-test-spring:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_FAT", "ghcr.io/oracle/operator-test-spring-fat:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_CNBP", "ghcr.io/oracle/operator-test-spring-cnbp:1.0.0")
 }
 
 func ensureEnvVar(key, value string) {
