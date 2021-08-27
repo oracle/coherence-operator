@@ -23,8 +23,8 @@ const (
 	// CommandStatus is the argument to execute a deployment status query.
 	CommandStatus = "status"
 
-	// ArgOperatorUrl is the Operator URL status command argument.
-	ArgOperatorUrl = "operator-url"
+	// ArgOperatorURL is the Operator URL status command argument.
+	ArgOperatorURL = "operator-url"
 	// ArgNamespace is the Coherence resource namespace status command argument.
 	ArgNamespace = "namespace"
 	// ArgName is the Coherence resource name status command argument.
@@ -57,7 +57,7 @@ func statusCommand() *cobra.Command {
 	}
 
 	flagSet := cmd.Flags()
-	flagSet.String(ArgOperatorUrl, "http://coherence-operator-rest.coherence.svc.local:8000", "The Coherence Operator URL, typically the operator's REST service")
+	flagSet.String(ArgOperatorURL, "http://coherence-operator-rest.coherence.svc.local:8000", "The Coherence Operator URL, typically the operator's REST service")
 	flagSet.String(ArgNamespace, "", "The namespace the Coherence resource is deployed into")
 	flagSet.String(ArgName, "", "The name of the Coherence resource")
 	flagSet.String(ArgCondition, string(v1.ConditionTypeReady), "The required condition that the Coherence resource should be in")
@@ -76,7 +76,7 @@ func statusQuery(cmd *cobra.Command) error {
 	var err error
 
 	flagSet := cmd.Flags()
-	url, err := flagSet.GetString(ArgOperatorUrl)
+	url, err := flagSet.GetString(ArgOperatorURL)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func statusQuery(cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	insecureSkipVerify, err := flagSet.GetBool(ArgSkipInsecure)
+	i, err := flagSet.GetBool(ArgSkipInsecure)
 	if err != nil {
 		return err
 	}
@@ -139,11 +139,12 @@ func statusQuery(cmd *cobra.Command) error {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			Certificates:       certs,
-			RootCAs:            caCertPool,
-			InsecureSkipVerify: insecureSkipVerify,
+			Certificates: certs,
+			RootCAs:      caCertPool,
 		},
 	}
+
+	tr.TLSClientConfig.InsecureSkipVerify = i
 
 	client := http.Client{Transport: tr}
 	request := fmt.Sprintf("%s/status/%s/%s?phase=%s", url, ns, n, condition)
