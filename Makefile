@@ -93,12 +93,12 @@ GPG_PASSPHRASE :=
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)
-TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-compatibility:$(VERSION)
-TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-helidon
-TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring
-TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-fat
-TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:$(VERSION)-spring-cnbp
+TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:latest
+TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-compatibility:latest
+TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test:latest-helidon
+TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test:latest-spring
+TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test:latest-spring-fat
+TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test:latest-spring-cnbp
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties

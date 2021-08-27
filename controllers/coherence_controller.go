@@ -320,11 +320,6 @@ func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherenc
 	latest := &coh.Coherence{}
 	c.DeepCopyInto(latest)
 
-	//err := cl.Get(ctx, c.GetNamespacedName(), &latest)
-	//if err != nil {
-	//	return c, errors.Wrapf(err, "failed to get Coherence resource %s/%s to add finalizer", c.Namespace, c.Name)
-	//}
-
 	controllerutil.AddFinalizer(latest, coh.Finalizer)
 
 	// Update CR

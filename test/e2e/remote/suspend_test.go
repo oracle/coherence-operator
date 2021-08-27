@@ -33,21 +33,25 @@ const testFinalizer = "coherence.oracle.com/test"
 func TestSuspendServices(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
+	ctx := context.Background()
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
 	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	controllerutil.AddFinalizer(&c, testFinalizer)
+
 	installSimpleDeployment(t, c)
 
 	// get the StatefulSet for the deployment
-	sts, err := testContext.KubeClient.AppsV1().StatefulSets(ns).Get(context.TODO(), c.Name, metav1.GetOptions{})
+	sts, err := testContext.KubeClient.AppsV1().StatefulSets(ns).Get(ctx, c.Name, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = addTestFinalizer(&c)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Delete the deployment which should cause services to be suspended
 	// The deployment will not be deleted yet as we still have the test finalizer in place
-	err = testContext.Client.Delete(context.TODO(), &c)
+	err = testContext.Client.Delete(ctx, &c)
 	g.Expect(err).NotTo(HaveOccurred())
 	// The Operator should run its finalizer and suspend services
 	err = waitForFinalizerTasks(c.GetNamespacedName())
@@ -69,12 +73,12 @@ func TestSuspendServices(t *testing.T) {
 func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
+	ctx := context.Background()
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
 	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	controllerutil.AddFinalizer(&c, testFinalizer)
 
 	// Set the flag to NOT suspend on shutdown
 	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
@@ -82,12 +86,15 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	installSimpleDeployment(t, c)
 
 	// get the StatefulSet for the deployment
-	sts, err := testContext.KubeClient.AppsV1().StatefulSets(ns).Get(context.TODO(), c.Name, metav1.GetOptions{})
+	sts, err := testContext.KubeClient.AppsV1().StatefulSets(ns).Get(ctx, c.Name, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = addTestFinalizer(&c)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Delete the deployment which should cause services to be suspended
 	// The deployment will not be deleted yet as we still have the test finalizer in place
-	err = testContext.Client.Delete(context.TODO(), &c)
+	err = testContext.Client.Delete(ctx, &c)
 	g.Expect(err).NotTo(HaveOccurred())
 	// The Operator should run its finalizer and suspend services
 	err = waitForFinalizerTasks(c.GetNamespacedName())
@@ -109,13 +116,17 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
+	ctx := context.Background()
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
 	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	controllerutil.AddFinalizer(&c, testFinalizer)
+
 	installSimpleDeployment(t, c)
+
+	err = addTestFinalizer(&c)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	// Add a finalizer to the StatefulSet to stop it being deleted
 	sts := &appsv1.StatefulSet{
@@ -130,10 +141,10 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	defer removeAllFinalizers(sts)
 
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
-	err = testContext.Client.Get(context.TODO(), c.GetNamespacedName(), &c)
+	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 	c.SetReplicas(0)
-	err = testContext.Client.Update(context.TODO(), &c)
+	err = testContext.Client.Update(ctx, &c)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Operator should suspend services and delete the StatefulSet causing its deletion timestamp to be set
@@ -159,17 +170,20 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
+	ctx := context.Background()
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
 	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	controllerutil.AddFinalizer(&c, testFinalizer)
 
 	// Set the flag to NOT suspend on shutdown
 	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
 
 	installSimpleDeployment(t, c)
+
+	err = addTestFinalizer(&c)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	// Add a finalizer to the StatefulSet to stop it being deleted
 	sts := &appsv1.StatefulSet{
@@ -184,10 +198,10 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	defer removeAllFinalizers(sts)
 
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
-	err = testContext.Client.Get(context.TODO(), c.GetNamespacedName(), &c)
+	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 	c.SetReplicas(0)
-	err = testContext.Client.Update(context.TODO(), &c)
+	err = testContext.Client.Update(ctx, &c)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Operator should suspend services and delete the StatefulSet causing its deletion timestamp to be set
@@ -213,6 +227,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 func TestNotSuspendServicesInMultipleDeployments(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
+	ctx := context.Background()
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
@@ -238,7 +253,7 @@ func TestNotSuspendServicesInMultipleDeployments(t *testing.T) {
 	g.Expect(data["clusterSize"]).To(BeEquivalentTo(size))
 
 	// Delete deployment two, which should cause services to be suspended
-	err = testContext.Client.Delete(context.TODO(), &cTwo)
+	err = testContext.Client.Delete(ctx, &cTwo)
 	g.Expect(err).NotTo(HaveOccurred())
 	// wait for deployment two to be deleted
 	err = helper.WaitForDelete(testContext, &cTwo)
@@ -251,11 +266,12 @@ func TestNotSuspendServicesInMultipleDeployments(t *testing.T) {
 }
 
 func waitForFinalizerTasks(n types.NamespacedName) error {
+	ctx := context.Background()
 	// wait for the Operator finalizer to be removed which signals that the Operator finalization
 	// is complete and services should be suspended.
 	c := &cohv1.Coherence{}
 	return wait.Poll(time.Second, 5*time.Minute, func() (done bool, err error) {
-		if err := testContext.Client.Get(context.TODO(), n, c); err != nil {
+		if err := testContext.Client.Get(ctx, n, c); err != nil {
 			return false, err
 		}
 		return utils.StringArrayDoesNotContain(c.GetFinalizers(), cohv1.Finalizer), nil
@@ -263,9 +279,10 @@ func waitForFinalizerTasks(n types.NamespacedName) error {
 }
 
 func waitForStatefulSetDeletionTimestamp(n types.NamespacedName) error {
+	ctx := context.Background()
 	sts := &appsv1.StatefulSet{}
 	return wait.Poll(time.Second, 5*time.Minute, func() (done bool, err error) {
-		if err := testContext.Client.Get(context.TODO(), n, sts); err != nil {
+		if err := testContext.Client.Get(ctx, n, sts); err != nil {
 			return false, err
 		}
 		return sts.GetDeletionTimestamp() != nil, nil
@@ -273,22 +290,24 @@ func waitForStatefulSetDeletionTimestamp(n types.NamespacedName) error {
 }
 
 func addTestFinalizer(o client.Object) error {
+	ctx := context.Background()
 	k := helper.ObjectKey(o)
-	if err := testContext.Client.Get(context.TODO(), k, o); err != nil {
+	if err := testContext.Client.Get(ctx, k, o); err != nil {
 		return err
 	}
 	controllerutil.AddFinalizer(o, testFinalizer)
-	return testContext.Client.Update(context.TODO(), o)
+	return testContext.Client.Update(ctx, o)
 }
 
 func removeAllFinalizers(o client.Object) error {
+	ctx := context.Background()
 	k := helper.ObjectKey(o)
 	o.DeepCopyObject()
-	if err := testContext.Client.Get(context.TODO(), k, o); err != nil {
+	if err := testContext.Client.Get(ctx, k, o); err != nil {
 		return err
 	}
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
-	return testContext.Client.Patch(context.TODO(), o, patch)
+	return testContext.Client.Patch(ctx, o, patch)
 }
 
 func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]interface{}, error) {

@@ -55,6 +55,23 @@ const (
 	certs         = outDir + string(os.PathSeparator) + "certs"
 )
 
+func EnsureTestEnvVars() {
+	ensureEnvVar("TEST_IMAGE_PULL_POLICY", "IfNotPresent")
+
+	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-compatibility:latest")
+	ensureEnvVar("TEST_APPLICATION_IMAGE", "ghcr.io/oracle/operator-test:latest")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "ghcr.io/oracle/operator-test:latest-helidon")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "GHCR.IO/ORACLE/operator-test:latest-spring")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_FAT", "ghcr.io/oracle/operator-test:latest-spring-fat")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_CNBP", "ghcr.io/oracle/operator-test:latest-spring-cnbp")
+}
+
+func ensureEnvVar(key, value string) {
+	if _, found := os.LookupEnv(key); !found {
+		_ = os.Setenv(key, value)
+	}
+}
+
 // GetOperatorImage returns the name of the Operator image.
 func GetOperatorImage() string {
 	return os.Getenv(OperatorImageEnv)
@@ -250,6 +267,7 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 	}
 
 	// expand any ${env-var} references in the yaml file
+
 	s := os.ExpandEnv(string(data))
 
 	// Get the yaml decoder
