@@ -7,32 +7,174 @@
 package v1
 
 import (
-	"context"
 	"fmt"
-	"github.com/ghodss/yaml"
-	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/status"
-	"github.com/oracle/coherence-operator/pkg/data"
-	"github.com/oracle/coherence-operator/pkg/rest"
-	"github.com/pkg/errors"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
-	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/version"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+// Coherence resource Condition Types
+// The different eight types of state that a deployment may be in.
+//
+// Transitions are:
+// Initialized    -> Waiting
+//                -> Created
+// Waiting        -> Created
+// Created        -> Ready
+//                -> Stopped
+// Ready          -> Scaling
+//                -> RollingUpgrade
+//                -> Stopped
+// Scaling        -> Ready
+//                -> Stopped
+// RollingUpgrade -> Ready
+// Stopped        -> Created
+const (
+	ConditionTypeInitialized    status.ConditionType = "Initialized"
+	ConditionTypeWaiting        status.ConditionType = "Waiting"
+	ConditionTypeCreated        status.ConditionType = "Created"
+	ConditionTypeReady          status.ConditionType = "Ready"
+	ConditionTypeScaling        status.ConditionType = "Scaling"
+	ConditionTypeRollingUpgrade status.ConditionType = "RollingUpgrade"
+	ConditionTypeFailed         status.ConditionType = "Failed"
+	ConditionTypeStopped        status.ConditionType = "Stopped"
 )
 
 // The package init function that will automatically register the Coherence resource types with
 // the default k8s Scheme.
 func init() {
 	SchemeBuilder.Register(&Coherence{}, &CoherenceList{})
+}
+
+// ----- Coherence type ------------------------------------------------------------------
+
+// Coherence is the top level schema for the Coherence API and custom resource definition (CRD).
+//
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
+// +kubebuilder:resource:path=coherence,scope=Namespaced,shortName=coh,categories=coherence
+// +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".status.coherenceCluster",description="The name of the Coherence cluster that this deployment belongs to"
+// +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".status.role",description="The role of this deployment in a Coherence cluster"
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
+// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
+type Coherence struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   CoherenceResourceSpec   `json:"spec,omitempty"`
+	Status CoherenceResourceStatus `json:"status,omitempty"`
+}
+
+// GetCoherenceClusterName obtains the Coherence cluster name for the Coherence resource.
+func (in *Coherence) GetCoherenceClusterName() string {
+	if in == nil {
+		return ""
+	}
+
+	if in.Spec.Cluster == nil {
+		return in.Name
+	}
+	return *in.Spec.Cluster
+}
+
+// GetWkaServiceName returns the name of the headless Service used for Coherence WKA.
+func (in *Coherence) GetWkaServiceName() string {
+	if in == nil {
+		return ""
+	}
+	return in.Name + WKAServiceNameSuffix
+}
+
+// GetHeadlessServiceName returns the name of the headless Service used for the StatefulSet.
+func (in *Coherence) GetHeadlessServiceName() string {
+	if in == nil {
+		return ""
+	}
+	return in.Name + HeadlessServiceNameSuffix
+}
+
+// GetReplicas returns the number of replicas required for a deployment.
+// The Replicas field is a pointer and may be nil so this method will
+// return either the actual Replicas value or the default (DefaultReplicas const)
+// if the Replicas field is nil.
+func (in *Coherence) GetReplicas() int32 {
+	if in == nil {
+		return 0
+	}
+	if in.Spec.Replicas == nil {
+		return DefaultReplicas
+	}
+	return *in.Spec.Replicas
+}
+
+// SetReplicas sets the number of replicas required for a deployment.
+func (in *Coherence) SetReplicas(replicas int32) {
+	if in != nil {
+		in.Spec.Replicas = &replicas
+	}
+}
+
+// CreateCommonLabels creates the deployment's common label set.
+func (in *Coherence) CreateCommonLabels() map[string]string {
+	labels := make(map[string]string)
+	labels[LabelCoherenceDeployment] = in.Name
+	labels[LabelCoherenceCluster] = in.GetCoherenceClusterName()
+	labels[LabelCoherenceRole] = in.GetRoleName()
+
+	if in.Spec.AppLabel != nil {
+		labels[LabelApp] = *in.Spec.AppLabel
+	}
+
+	if in.Spec.VersionLabel != nil {
+		labels[LabelVersion] = *in.Spec.VersionLabel
+	}
+
+	return labels
+}
+
+// GetNamespacedName returns the namespace/name key to lookup this resource.
+func (in *Coherence) GetNamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: in.Namespace,
+		Name:      in.Name,
+	}
+}
+
+// GetRoleName returns the role name for a deployment.
+// If the Spec.Role field is set that is used for the role name
+// otherwise the deployment name is used as the role name.
+func (in *Coherence) GetRoleName() string {
+	switch {
+	case in == nil:
+		return ""
+	case in.Spec.Role != "":
+		return in.Spec.Role
+	default:
+		return in.Name
+	}
+}
+
+// GetWKA returns the host name Coherence should for WKA.
+func (in *Coherence) GetWKA() string {
+	if in == nil {
+		return ""
+	}
+	return in.Spec.Coherence.GetWKA(in)
+}
+
+// ----- CoherenceList type ------------------------------------------------------------------------
+
+// +kubebuilder:object:root=true
+
+// CoherenceList is a list of Coherence resources.
+type CoherenceList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Coherence `json:"items"`
 }
 
 // ----- CoherenceResourceStatus type --------------------------------------------------------------
@@ -231,280 +373,4 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool
 	}
 
 	return updated
-}
-
-// Coherence resource Condition Types
-// The different eight types of state that a deployment may be in.
-//
-// Transitions are:
-// Initialized    -> Waiting
-//                -> Created
-// Waiting        -> Created
-// Created        -> Ready
-//                -> Stopped
-// Ready          -> Scaling
-//                -> RollingUpgrade
-//                -> Stopped
-// Scaling        -> Ready
-//                -> Stopped
-// RollingUpgrade -> Ready
-// Stopped        -> Created
-const (
-	ConditionTypeInitialized    status.ConditionType = "Initialized"
-	ConditionTypeWaiting        status.ConditionType = "Waiting"
-	ConditionTypeCreated        status.ConditionType = "Created"
-	ConditionTypeReady          status.ConditionType = "Ready"
-	ConditionTypeScaling        status.ConditionType = "Scaling"
-	ConditionTypeRollingUpgrade status.ConditionType = "RollingUpgrade"
-	ConditionTypeFailed         status.ConditionType = "Failed"
-	ConditionTypeStopped        status.ConditionType = "Stopped"
-)
-
-// ----- Coherence type ------------------------------------------------------------------
-
-// Coherence is the Schema for the Coherence API.
-//
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
-// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
-// +kubebuilder:resource:path=coherence,scope=Namespaced,shortName=coh,categories=coherence
-// +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".status.coherenceCluster",description="The name of the Coherence cluster that this deployment belongs to"
-// +kubebuilder:printcolumn:name="Role",type="string",JSONPath=".status.role",description="The role of this deployment in a Coherence cluster"
-// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
-// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
-// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
-type Coherence struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   CoherenceResourceSpec   `json:"spec,omitempty"`
-	Status CoherenceResourceStatus `json:"status,omitempty"`
-}
-
-// GetCoherenceClusterName obtains the Coherence cluster name for the Coherence resource.
-func (in *Coherence) GetCoherenceClusterName() string {
-	if in == nil {
-		return ""
-	}
-
-	if in.Spec.Cluster == nil {
-		return in.Name
-	}
-	return *in.Spec.Cluster
-}
-
-// GetWkaServiceName returns the name of the headless Service used for Coherence WKA.
-func (in *Coherence) GetWkaServiceName() string {
-	if in == nil {
-		return ""
-	}
-	return in.Name + WKAServiceNameSuffix
-}
-
-// GetHeadlessServiceName returns the name of the headless Service used for the StatefulSet.
-func (in *Coherence) GetHeadlessServiceName() string {
-	if in == nil {
-		return ""
-	}
-	return in.Name + HeadlessServiceNameSuffix
-}
-
-// GetReplicas returns the number of replicas required for a deployment.
-// The Replicas field is a pointer and may be nil so this method will
-// return either the actual Replicas value or the default (DefaultReplicas const)
-// if the Replicas field is nil.
-func (in *Coherence) GetReplicas() int32 {
-	if in == nil {
-		return 0
-	}
-	if in.Spec.Replicas == nil {
-		return DefaultReplicas
-	}
-	return *in.Spec.Replicas
-}
-
-// SetReplicas sets the number of replicas required for a deployment.
-func (in *Coherence) SetReplicas(replicas int32) {
-	if in != nil {
-		in.Spec.Replicas = &replicas
-	}
-}
-
-// CreateCommonLabels creates the deployment's common label set.
-func (in *Coherence) CreateCommonLabels() map[string]string {
-	labels := make(map[string]string)
-	labels[LabelCoherenceDeployment] = in.Name
-	labels[LabelCoherenceCluster] = in.GetCoherenceClusterName()
-	labels[LabelCoherenceRole] = in.GetRoleName()
-
-	if in.Spec.AppLabel != nil {
-		labels[LabelApp] = *in.Spec.AppLabel
-	}
-
-	if in.Spec.VersionLabel != nil {
-		labels[LabelVersion] = *in.Spec.VersionLabel
-	}
-
-	return labels
-}
-
-// GetNamespacedName returns the namespace/name key to lookup this resource.
-func (in *Coherence) GetNamespacedName() types.NamespacedName {
-	return types.NamespacedName{
-		Namespace: in.Namespace,
-		Name:      in.Name,
-	}
-}
-
-// GetRoleName returns the role name for a deployment.
-// If the Spec.Role field is set that is used for the role name
-// otherwise the deployment name is used as the role name.
-func (in *Coherence) GetRoleName() string {
-	switch {
-	case in == nil:
-		return ""
-	case in.Spec.Role != "":
-		return in.Spec.Role
-	default:
-		return in.Name
-	}
-}
-
-// GetWKA returns the host name Coherence should for WKA.
-func (in *Coherence) GetWKA() string {
-	if in == nil {
-		return ""
-	}
-	return in.Spec.Coherence.GetWKA(in)
-}
-
-// ----- CoherenceList type ------------------------------------------------------------------------
-
-// +kubebuilder:object:root=true
-
-// CoherenceList contains a list of Coherence resources.
-type CoherenceList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Coherence `json:"items"`
-}
-
-// EnsureCRDs ensures that the Operator configuration secret exists in the namespace.
-// CRDs will be created depending on the server version of k8s.
-func EnsureCRDs(v *version.Version, scheme *runtime.Scheme, cl client.Client) error {
-	logger := logf.Log.WithName("operator")
-	logger.Info(fmt.Sprintf("Ensuring operator CRDs are present (K8s version %v)", v))
-	return EnsureV1CRDs(logger, scheme, cl)
-}
-
-// EnsureV1CRDs ensures that the Operator configuration secret exists in the namespace.
-func EnsureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client) error {
-	return ensureV1CRDs(logger, scheme, cl, "crd_v1.yaml")
-}
-
-// ensureV1CRDs ensures that the specified V1 CRDs are loaded using the specified embedded CRD files
-func ensureV1CRDs(logger logr.Logger, scheme *runtime.Scheme, cl client.Client, fileNames ...string) error {
-	if err := crdv1.AddToScheme(scheme); err != nil {
-		return err
-	}
-	for _, fileName := range fileNames {
-		if err := ensureV1CRD(logger, cl, fileName); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// ensureV1CRD ensures that the specified V1 CRD is loaded using the specified embedded CRD file
-func ensureV1CRD(logger logr.Logger, cl client.Client, fileName string) error {
-	f, err := data.Assets.Open("assets/" + fileName)
-	if err != nil {
-		return errors.Wrap(err, "opening embedded CRD asset "+fileName)
-	}
-	//goland:noinspection GoUnhandledErrorResult
-	defer f.Close()
-
-	yml, err := ioutil.ReadAll(f)
-	if err != nil {
-		return errors.Wrap(err, "reading embedded CRD asset "+fileName)
-	}
-
-	u := unstructured.Unstructured{}
-	err = yaml.Unmarshal(yml, &u)
-	if err != nil {
-		return err
-	}
-
-	oldCRD := crdv1.CustomResourceDefinition{}
-	newCRD := crdv1.CustomResourceDefinition{}
-	err = yaml.Unmarshal(yml, &newCRD)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Loading operator CRD yaml from '" + fileName + "'")
-
-	// Get the existing CRD
-	err = cl.Get(context.TODO(), client.ObjectKey{Name: newCRD.Name}, &oldCRD)
-	switch {
-	case err == nil:
-		// CRD exists so update it
-		logger.Info("Updating operator CRD '" + newCRD.Name + "'")
-		newCRD.ResourceVersion = oldCRD.ResourceVersion
-		err = cl.Update(context.TODO(), &newCRD)
-		if err != nil {
-			return errors.Wrapf(err, "updating Coherence CRD %s", newCRD.Name)
-		}
-	case apierrors.IsNotFound(err):
-		// CRD does not exist so create it
-		logger.Info("Creating operator CRD '" + newCRD.Name + "'")
-		err = cl.Create(context.TODO(), &newCRD)
-		if err != nil {
-			return errors.Wrapf(err, "creating Coherence CRD %s", newCRD.Name)
-		}
-	default:
-		// An error occurred
-		logger.Error(err, "checking for existing Coherence CRD "+newCRD.Name)
-		return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
-	}
-
-	return nil
-}
-
-// EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
-	secret := &coreV1.Secret{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: OperatorConfigName, Namespace: namespace}, secret)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
-	}
-
-	restHostAndPort := rest.GetServerHostAndPort()
-
-	secret.SetNamespace(namespace)
-	secret.SetName(OperatorConfigName)
-
-	oldValue := secret.Data[OperatorConfigKeyHost]
-	if oldValue == nil || string(oldValue) != restHostAndPort {
-		// data is different so create/update
-
-		if secret.StringData == nil {
-			secret.StringData = make(map[string]string)
-		}
-		secret.StringData[OperatorConfigKeyHost] = restHostAndPort
-
-		log.Info(fmt.Sprintf("Operator Configuration: '%s' value was '%s', set to '%s'", OperatorConfigKeyHost, string(oldValue), restHostAndPort))
-		if apierrors.IsNotFound(err) {
-			// for some reason we're getting here even if the secret exists so delete it!!
-			_ = c.Delete(ctx, secret)
-			log.Info("Creating configuration secret " + OperatorConfigName + " in namespace " + namespace)
-			err = c.Create(ctx, secret)
-		} else {
-			log.Info("Updating configuration secret " + OperatorConfigName + " in namespace " + namespace)
-			err = c.Update(ctx, secret)
-		}
-	}
-
-	return err
 }

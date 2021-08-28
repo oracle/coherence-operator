@@ -770,7 +770,7 @@ m| ready | Whether this quorum's condition has been met m| bool | true
 
 === Coherence
 
-Coherence is the Schema for the Coherence API.
+Coherence is the top level schema for the Coherence API and custom resource definition (CRD).
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -784,7 +784,7 @@ m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | fals
 
 === CoherenceList
 
-CoherenceList contains a list of Coherence resources.
+CoherenceList is a list of Coherence resources.
 
 [cols="1,10,1,1"options="header"]
 |===

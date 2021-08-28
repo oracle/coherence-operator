@@ -45,7 +45,8 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: Coherence is the Schema for the Coherence API.
+        description: Coherence is the top level schema for the Coherence API and custom
+          resource definition (CRD).
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

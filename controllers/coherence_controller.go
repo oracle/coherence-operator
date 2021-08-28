@@ -97,7 +97,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	deleteTime := deployment.GetDeletionTimestamp()
 	if deleteTime != nil {
 		// Check whether finalization needs to be run
-		if utils.StringArrayContains(deployment.GetFinalizers(), coh.Finalizer) {
+		if utils.StringArrayContains(deployment.GetFinalizers(), coh.CoherenceFinalizer) {
 			log.Info("Coherence resource deleted at " + deleteTime.String() + ", running finalizer")
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
@@ -108,7 +108,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			}
 			// Remove the finalizer. Once all finalizers have been
 			// removed, the object will be deleted.
-			controllerutil.RemoveFinalizer(deployment, coh.Finalizer)
+			controllerutil.RemoveFinalizer(deployment, coh.CoherenceFinalizer)
 			err := in.GetClient().Update(ctx, deployment)
 			if err != nil {
 				return ctrl.Result{}, err
@@ -134,7 +134,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// Add finalizer for this CR if required
 	finalizerApplied := false
-	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.Finalizer) {
+	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.CoherenceFinalizer) {
 		// Adding the finalizer causes an update so the request will come around again
 		deployment, err = in.addFinalizer(ctx, deployment)
 		finalizerApplied = true
@@ -312,19 +312,18 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) (*coh.Coherence, error) {
-	in.Log.Info("Adding Finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
-
-	//cl := in.GetClient()
-
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
 	latest := &coh.Coherence{}
 	c.DeepCopyInto(latest)
 
-	controllerutil.AddFinalizer(latest, coh.Finalizer)
+	controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
 
-	// Update CR
-	_, err := in.TwoWayPatch(ctx, c.Name, c, latest)
-	//	err = cl.Update(ctx, c)
+	callback := func() {
+		in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
+	}
+
+	// Perform a three-way patch to apply the finalizer
+	_, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
 	if err != nil {
 		return latest, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
 	}

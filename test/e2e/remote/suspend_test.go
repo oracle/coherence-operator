@@ -274,7 +274,7 @@ func waitForFinalizerTasks(n types.NamespacedName) error {
 		if err := testContext.Client.Get(ctx, n, c); err != nil {
 			return false, err
 		}
-		return utils.StringArrayDoesNotContain(c.GetFinalizers(), cohv1.Finalizer), nil
+		return utils.StringArrayDoesNotContain(c.GetFinalizers(), cohv1.CoherenceFinalizer), nil
 	})
 }
 

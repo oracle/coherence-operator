@@ -16,30 +16,46 @@ const (
 	// HeadlessServiceNameSuffix is the suffix appended to a deployment name to give the StatefulSet headless-service name
 	HeadlessServiceNameSuffix = "-sts"
 
-	// Finalizer is the name of the finalizer that the Operator adds to Coherence deployments
-	Finalizer = "coherence.oracle.com/operator"
+	// CoherenceFinalizer is the name of the finalizer that the Operator adds to Coherence deployments
+	CoherenceFinalizer = "coherence.oracle.com/operator"
 
-	// Label keys used to label k8s resources
+	// LabelCoherenceDeployment is the label containing the name of the owning Coherence resource
 	LabelCoherenceDeployment = "coherenceDeployment"
-	LabelCoherenceCluster    = "coherenceCluster"
-	LabelCoherenceRole       = "coherenceRole"
-	LabelComponent           = "coherenceComponent"
-	LabelPort                = "coherencePort"
-	LabelCoherenceWKAMember  = "coherenceWKAMember"
-	LabelApp                 = "app"
-	LabelVersion             = "version"
+	// LabelCoherenceCluster is the label containing the Coherence cluster name
+	LabelCoherenceCluster = "coherenceCluster"
+	// LabelCoherenceRole is the label containing a Coherence role name
+	LabelCoherenceRole = "coherenceRole"
+	// LabelComponent is the label containing a component name
+	LabelComponent = "coherenceComponent"
+	// LabelPort is the label associated to an exposed port name
+	LabelPort = "coherencePort"
+	// LabelCoherenceWKAMember is the label applied to WKA members
+	LabelCoherenceWKAMember = "coherenceWKAMember"
+	// LabelApp is an optional application label that can be applied to resources
+	LabelApp = "app"
+	// LabelVersion is the label containing a resource version
+	LabelVersion = "version"
+	// LabelCoherenceHash is the label for the Coherence resource spec hash
+	LabelCoherenceHash = "coherence-hash"
 
-	// Values used for the component label in k8s resources
+	// LabelComponentCoherenceStatefulSet is the component label value for a Coherence StatefulSet resource
 	LabelComponentCoherenceStatefulSet = "coherence"
-	LabelComponentCoherencePod         = "coherencePod"
-	LabelComponentCoherenceHeadless    = "coherence-headless"
-	LabelComponentPVC                  = "coherence-volume"
-	LabelComponentPortService          = "coherence-service"
-	LabelComponentPortServiceMonitor   = "coherence-service-monitor"
-	LabelComponentWKA                  = "coherenceWkaService"
-	LabelCoherenceHash                 = "coherence-hash"
-	LabelCoherenceStore                = "coherence-storage"
+	// LabelComponentCoherenceHeadless is the component label value for  a Coherence StatefulSet headless Service resource
+	LabelComponentCoherenceHeadless = "coherence-headless"
+	// LabelComponentCoherencePod is the component label value for a Coherence Pod
+	LabelComponentCoherencePod = "coherencePod"
+	// LabelComponentPVC is the component label value for Coherence PersistentVolumeClaim
+	LabelComponentPVC = "coherence-volume"
+	// LabelComponentPortService is the component label value for a Coherence Service
+	LabelComponentPortService = "coherence-service"
+	// LabelComponentPortServiceMonitor is the component label value for a Coherence ServiceMonitor
+	LabelComponentPortServiceMonitor = "coherence-service-monitor"
+	// LabelComponentWKA is the component label value for a Coherence WKA Service
+	LabelComponentWKA = "coherenceWkaService"
+	// LabelCoherenceStore is the component label value for a Coherence state storage Secret
+	LabelCoherenceStore = "coherence-storage"
 
+	// StatusSelectorTemplate is the string template for a WKA service selector
 	StatusSelectorTemplate = LabelCoherenceCluster + "=%s," + LabelCoherenceDeployment + "=%s"
 
 	// AnnotationFeatureSuspend is the feature annotations
@@ -57,12 +73,8 @@ const (
 	VolumeNamePersistence = "persistence-volume"
 	// VolumeNameSnapshots is the name of the snapshots volume
 	VolumeNameSnapshots = "snapshot-volume"
-	// VolumeNameLogs is the name of the logs volume
-	VolumeNameLogs = "logs"
 	// VolumeNameUtils is the name of the utils volume
 	VolumeNameUtils = "coh-utils"
-	// VolumePodInfo is the name of the Pod info volume
-	VolumePodInfo = "coh-pod-info"
 	// VolumeNameJVM is the name of the JVM diagnostics volume
 	VolumeNameJVM = "jvm"
 	// VolumeNameManagementSSL is the name of the management TLS volume
@@ -70,14 +82,14 @@ const (
 	// VolumeNameMetricsSSL is the name of the metrics TLS volume
 	VolumeNameMetricsSSL = "metrics-ssl-config"
 
+	// VolumePathAttributes is the container attributes file volume
 	VolumePathAttributes = "attributes"
-	VolumePathLabels     = "labels"
 
 	// VolumeMountRoot is the root path for volume mounts
 	VolumeMountRoot = "/coherence-operator"
 	// VolumeMountPathPersistence is the persistence volume mount
 	VolumeMountPathPersistence = VolumeMountRoot + "/persistence"
-	// VolumeMountPathSnapshots is the snapshots volume mount
+	// VolumeMountPathSnapshots is the snapshot's volume mount
 	VolumeMountPathSnapshots = VolumeMountRoot + "/snapshot"
 	// VolumeMountPathUtils is the utils volume mount
 	VolumeMountPathUtils = VolumeMountRoot + "/utils"
@@ -96,29 +108,46 @@ const (
 	// RunnerInit is the command line argument for the utils init container
 	RunnerInit = "init"
 
-	ServiceMonitorKind         = "ServiceMonitor"
-	ServiceMonitorGroup        = "monitoring.coreos.com"
-	ServiceMonitorVersion      = "v1"
+	// ServiceMonitorKind is the Prometheus ServiceMonitor resource API Kind
+	ServiceMonitorKind = "ServiceMonitor"
+	// ServiceMonitorGroup is the Prometheus ServiceMonitor resource API Group
+	ServiceMonitorGroup = "monitoring.coreos.com"
+	// ServiceMonitorVersion is the Prometheus ServiceMonitor resource API version
+	ServiceMonitorVersion = "v1"
+	// ServiceMonitorGroupVersion is the Prometheus ServiceMonitor resource API group version
 	ServiceMonitorGroupVersion = ServiceMonitorGroup + "/" + ServiceMonitorVersion
 
-	PortNameCoherence  = "coherence"
-	PortNameDebug      = "debug-port"
-	PortNameHealth     = "health"
+	// PortNameCoherence is the name of the Coherence port
+	PortNameCoherence = "coherence"
+	// PortNameDebug is the name of the debug port
+	PortNameDebug = "debug-port"
+	// PortNameHealth is the name of the health port
+	PortNameHealth = "health"
+	// PortNameMetrics is the name of the Coherence management port
 	PortNameManagement = "management"
-	PortNameMetrics    = "metrics"
+	// PortNameMetrics is the name of the Coherence metrics port
+	PortNameMetrics = "metrics"
 
-	DefaultDebugPort      int32 = 5005
+	// DefaultDebugPort is the default debug port
+	DefaultDebugPort int32 = 5005
+	// DefaultManagementPort is the Coherence manaement debug port
 	DefaultManagementPort int32 = 30000
-	DefaultMetricsPort    int32 = 9612
-	DefaultJmxmpPort      int32 = 9099
-	DefaultHealthPort     int32 = 6676
+	// DefaultMetricsPort is the default Coherence metrics port
+	DefaultMetricsPort int32 = 9612
+	// DefaultJmxmpPort is the default JMX over JMXMP port
+	DefaultJmxmpPort int32 = 9099
+	// DefaultHealthPort is the default health port
+	DefaultHealthPort int32 = 6676
 
+	// OperatorConfigName is the Operator configuration Secret name
 	OperatorConfigName = "coherence-operator-config"
-
+	// OperatorConfigKeyHost is the key used in the Operator configuration Secret
 	OperatorConfigKeyHost = "operatorhost"
 
+	// DefaultReadinessPath is the default readiness endpoint path
 	DefaultReadinessPath = "/ready"
-	DefaultLivenessPath  = "/healthz"
+	// DefaultLivenessPath is the default liveness endpoint path
+	DefaultLivenessPath = "/healthz"
 
 	// DefaultCnbpLauncher is the Cloud Native Build Pack launcher executable
 	DefaultCnbpLauncher = "/cnb/lifecycle/launcher"
@@ -177,7 +206,6 @@ const (
 	EnvVarJavaClasspath               = "CLASSPATH"
 	EnvVarJvmClasspathJib             = "JVM_USE_JIB_CLASSPATH"
 	EnvVarJvmExtraClasspath           = "JVM_EXTRA_CLASSPATH"
-	EnvVarJvmExtraModulepath          = "JVM_EXTRA_MODULEPATH"
 	EnvVarJvmArgs                     = "JVM_ARGS"
 	EnvVarJvmUseContainerLimits       = "JVM_USE_CONTAINER_LIMITS"
 	EnvVarJvmShowSettings             = "JVM_SHOW_SETTINGS"
@@ -204,7 +232,6 @@ const (
 	EnvVarJvmOomHeapDump              = "JVM_OOM_HEAP_DUMP"
 	EnvVarJvmJmxmpEnabled             = "JVM_JMXMP_ENABLED"
 	EnvVarJvmJmxmpPort                = "JVM_JMXMP_PORT"
-	EnvVarJvmDiagnosticOptions        = "JVM_UNLOCK_DIAGNOSTIC_OPTIONS"
 	EnvVarSpringBootFatJar            = "COH_SPRING_BOOT_FAT_JAR"
 	EnvVarCnbpEnabled                 = "COH_CNBP_ENABLED"
 	EnvVarCnbpLauncher                = "COH_CNBP_LAUNCHER"

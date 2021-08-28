@@ -41,14 +41,6 @@ TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
 TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Capture the Git commit to add to the build information that is then embedded in the Go binary
-# ----------------------------------------------------------------------------------------------------------------------
-GITCOMMIT       ?= $(shell git rev-list -1 HEAD)
-GITREPO         := https://github.com/oracle/coherence-operator.git
-BUILD_DATE      := $(shell date -u | tr ' ' '.')
-BUILD_INFO      := "$(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)"
-
 CURRDIR         := $(shell pwd)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -241,12 +233,17 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Capture the Git commit to add to the build information that is then embedded in the Go binary
+# ----------------------------------------------------------------------------------------------------------------------
+GITCOMMIT         ?= $(shell git rev-list -1 HEAD)
+GITREPO           := https://github.com/oracle/coherence-operator.git
 SOURCE_DATE_EPOCH := $(shell git show -s --format=format:%ct HEAD)
 DATE_FMT          := "%Y-%m-%dT%H:%M:%SZ"
 BUILD_DATE        := $(shell date -u -d "@$SOURCE_DATE_EPOCH" "+${DATE_FMT}" 2>/dev/null || date -u -r "${SOURCE_DATE_EPOCH}" "+${DATE_FMT}" 2>/dev/null || date -u "+${DATE_FMT}")
+BUILD_USER        := $(shell whoami)
 
-BUILD_INFO       = $(VERSION)|$(GITCOMMIT)|$(BUILD_DATE)
-LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Date=$(BUILD_DATE)
+LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Date=$(BUILD_DATE) -X main.Author=$(BUILD_USER)
 GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
