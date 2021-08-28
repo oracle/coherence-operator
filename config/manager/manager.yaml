@@ -43,8 +43,6 @@ spec:
         - containerPort: 8088
           name: health-server
           protocol: TCP
-        command:
-          - /manager
         args:
           - --enable-leader-election
         envFrom:

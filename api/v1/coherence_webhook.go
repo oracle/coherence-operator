@@ -12,6 +12,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -43,8 +44,17 @@ func (in *Coherence) Default() {
 	if in.Status.Phase == "" {
 		logger.Info("setting defaults for resource")
 
+		// ensure the operator finalizer is present
+		controllerutil.AddFinalizer(in, CoherenceFinalizer)
+
+		// set the default replicas if not present
 		if in.Spec.Replicas == nil {
 			in.Spec.SetReplicas(3)
+		}
+
+		// apply a label with the hash of the spec
+		if hash, applied := EnsureHashLabel(in); applied {
+			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 		}
 
 		// only set defaults for image names new Coherence instances

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -36,7 +36,7 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	// Should have created the correct number of resources
 	g.Expect(len(resources)).To(Equal(6))
 
-	// Resource 0 = Deployment
+	// Resource 0 is the Coherence resource
 	c, err := toCoherence(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
@@ -70,6 +70,51 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
 }
 
+func TestShouldAddFinalizerWhenNotPresent(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	// Create the test deployment (a minimal deployment configuration)
+	deployment := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "operator-test",
+		},
+	}
+
+	resources, mgr := Reconcile(t, deployment)
+	// Should have created resources
+	g.Expect(len(resources)).NotTo(BeZero())
+	// Resource 0 = Coherence resource
+	c, err := toCoherence(mgr, resources[0])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
+	// the finalizer should be present
+	g.Expect(c.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
+}
+
+func TestShouldAddFinalizerWhenNotPresentWithoutRemovingExistingFinalizers(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	// Create the test deployment (a minimal deployment configuration)
+	deployment := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "operator-test",
+			Finalizers: []string{"foo", "bar"},
+		},
+	}
+
+	resources, mgr := Reconcile(t, deployment)
+	// Should have created resources
+	g.Expect(len(resources)).NotTo(BeZero())
+	// Resource 0 = Coherence resource
+	c, err := toCoherence(mgr, resources[0])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
+	// the finalizer should be present
+	g.Expect(c.GetFinalizers()).To(ContainElement("foo"))
+	g.Expect(c.GetFinalizers()).To(ContainElement("bar"))
+	g.Expect(c.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
+}
+
 func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -93,7 +138,7 @@ func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
 	// Should have created the correct number of resources
 	g.Expect(len(resources)).To(Equal(6))
 
-	// Resource 0 = Deployment
+	// Resource 0 is the Coherence resource
 	c, err := toCoherence(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
@@ -153,7 +198,7 @@ func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
 	// Should have created the correct number of resources
 	g.Expect(len(resources)).To(Equal(5))
 
-	// Resource 0 = Deployment
+	// Resource 0 is the Coherence resource
 	c, err := toCoherence(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))

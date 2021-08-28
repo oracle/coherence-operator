@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/fakes"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -60,15 +61,6 @@ func FindContainerPort(container corev1.Container, name string) (corev1.Containe
 	return corev1.ContainerPort{}, false
 }
 
-//func FindStatefulSetVolume(sts *appsv1.StatefulSet, name string) (corev1.Volume, bool) {
-//	for _, vol := range sts.Spec.Template.Spec.Volumes {
-//		if vol.Name == name {
-//			return vol, true
-//		}
-//	}
-//	return corev1.Volume{}, false
-//}
-
 func toCoherence(mgr *fakes.FakeManager, obj runtime.Object) (*coh.Coherence, error) {
 	c := &coh.Coherence{}
 	err := mgr.Scheme.Convert(obj, c, context.TODO())
@@ -97,6 +89,8 @@ func toStatefulSet(mgr *fakes.FakeManager, obj runtime.Object) (*appsv1.Stateful
 func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeManager) {
 	g := NewGomegaWithT(t)
 
+	_, _ = coh.EnsureHashLabel(&d)
+
 	chain, err := NewFakeReconcileChain()
 	g.Expect(err).NotTo(HaveOccurred())
 	results, err := chain.ReconcileDeployments(d)
@@ -110,52 +104,15 @@ func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeMana
 
 	mgr := chain.GetManager()
 	resources := mgr.Client.GetCreates()
+	finalCoh := &coh.Coherence{}
+
+	// Set the first resource to be the final Coherence resource state
+	err = mgr.Client.Get(context.TODO(), d.GetNamespacedName(), finalCoh)
+	g.Expect(err).NotTo(HaveOccurred())
+	resources[0] = finalCoh
+
 	return resources, mgr
 }
-
-// Run the original deployment through a fake reconciler then reconcile the updated deployment
-//func ReconcileAndUpdate(t *testing.T, original, updated coh.Coherence) *fakes.FakeManager {
-//	g := NewGomegaWithT(t)
-//
-//	// To test update the names must match
-//	g.Expect(original.Name).To(Equal(updated.Name), "Deployments must have the same name")
-//
-//	chain, err := NewFakeReconcileChain()
-//	g.Expect(err).NotTo(HaveOccurred())
-//	results, err := chain.ReconcileDeployments(original)
-//	g.Expect(err).NotTo(HaveOccurred())
-//
-//	// should be one result for the original deployment
-//	result, found := results[original.Name]
-//	g.Expect(found).To(BeTrue(), "No result found for original deployment "+original.Name)
-//	// result should not be re-queued
-//	g.Expect(result.Requeue).To(BeFalse(), "Result for original deployment "+original.Name+" was re-queued")
-//
-//	created := coh.Coherence{}
-//	err = chain.GetManager().Client.Get(context.TODO(), original.GetNamespacedName(), &created)
-//	g.Expect(err).NotTo(HaveOccurred())
-//
-//	cpy := created.DeepCopy()
-//	ts := created.GetCreationTimestamp()
-//	j, err := json.Marshal(updated)
-//	g.Expect(err).NotTo(HaveOccurred())
-//	err = json.Unmarshal(j, &created)
-//	g.Expect(err).NotTo(HaveOccurred())
-//	created.SetCreationTimestamp(ts)
-//
-//	fmt.Println(deep.Equal(cpy, &created))
-//
-//	results, err = chain.ReconcileDeployments(created)
-//	g.Expect(err).NotTo(HaveOccurred())
-//
-//	result, found = results[original.Name]
-//	// should be one result for the updated deployment
-//	g.Expect(found).To(BeTrue(), "No result found for updated deployment "+original.Name)
-//	// result should not be re-queued
-//	g.Expect(result.Requeue).To(BeFalse(), "Result for updated deployment "+original.Name+" was re-queued")
-//
-//	return chain.GetManager()
-//}
 
 type FakeReconcileChain interface {
 	ReconcileDeploymentsFromYaml(yamlFile string) ([]coh.Coherence, map[string]reconcile.Result, error)
@@ -245,10 +202,24 @@ func (in *fakeReconcileChain) ReconcileDeployments(deployments ...coh.Coherence)
 
 func (in *fakeReconcileChain) ReconcileExisting(names ...apitypes.NamespacedName) (map[string]reconcile.Result, error) {
 	results := make(map[string]reconcile.Result)
+	ctx := context.TODO()
 
 	for _, name := range names {
 		request := reconcile.Request{NamespacedName: name}
-		result, err := in.r.Reconcile(context.TODO(), request)
+		c := coh.Coherence{}
+		err := in.r.GetClient().Get(ctx, request.NamespacedName, &c)
+		if err != nil {
+			return results, err
+		}
+
+		if utils.StringArrayDoesNotContain(c.GetFinalizers(), coh.CoherenceFinalizer) {
+			// there is no finalizer, so we need to do a call first that will just add the finalizer
+			_, err := in.r.Reconcile(ctx, request)
+			if err != nil {
+				return results, err
+			}
+		}
+		result, err := in.r.Reconcile(ctx, request)
 		if err != nil {
 			return results, err
 		}
