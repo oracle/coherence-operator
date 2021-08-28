@@ -29,26 +29,21 @@ const (
 )
 
 type Storage interface {
-	// Obtain the deployment resources for the specified version
+	// GetName returns the name of the storage secret.
+	GetName() string
+	// GetLatest obtains the deployment resources for the specified version
 	GetLatest() coh.Resources
-	// Obtain the deployment resources for the version prior to the specified version
+	// GetPrevious obtains the deployment resources for the version prior to the specified version
 	GetPrevious() coh.Resources
-	// Store the deployment resources, this will create a new version in the store
+	// Store will store the deployment resources, this will create a new version in the store
 	Store(coh.Resources, metav1.Object) error
-	// Destroy the store
+	// Destroy will destroy the store
 	Destroy()
+	// GetHash will return the hash label of the owning resource
+	GetHash() (string, bool)
 }
 
-func NewStorageForDeployment(deployment *coh.Coherence, mgr manager.Manager) (Storage, error) {
-	key := client.ObjectKeyFromObject(deployment)
-
-	store, err := newStorage(key, mgr)
-	if err != nil {
-		return nil, err
-	}
-	return store, err
-}
-
+// NewStorage creates a new storage for the given key.
 func NewStorage(key client.ObjectKey, mgr manager.Manager) (Storage, error) {
 	return newStorage(key, mgr)
 }
@@ -64,15 +59,33 @@ type secretStore struct {
 	key      client.ObjectKey
 	latest   coh.Resources
 	previous coh.Resources
+	hash     *string
 }
 
 func (in *secretStore) createSecretStruct() *corev1.Secret {
+	labels := make(map[string]string)
+	labels[coh.LabelCoherenceStore] = "true"
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: in.key.Namespace,
 			Name:      in.key.Name,
+			Labels:    labels,
 		},
 	}
+}
+
+func (in *secretStore) GetName() string {
+	if in == nil || in.hash == nil {
+		return ""
+	}
+	return in.key.Name
+}
+
+func (in *secretStore) GetHash() (string, bool) {
+	if in == nil || in.hash == nil {
+		return "", false
+	}
+	return *in.hash, true
 }
 
 func (in *secretStore) Destroy() {
@@ -116,6 +129,13 @@ func (in *secretStore) Store(r coh.Resources, owner metav1.Object) error {
 	if err != nil {
 		return err
 	}
+
+	labels := secret.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	labels[coh.LabelCoherenceHash] = owner.GetLabels()[coh.LabelCoherenceHash]
+	secret.SetLabels(labels)
 
 	secret.Data[storeKeyLatest] = newLatest
 	secret.Data[storeKeyPrevious] = oldLatest
@@ -164,11 +184,17 @@ func (in *secretStore) loadVersions() error {
 				return errors.Wrap(err, "unmarshalling previous store state")
 			}
 		}
+
+		if hashValue, found := secret.GetLabels()[coh.LabelCoherenceHash]; found {
+			in.hash = &hashValue
+		} else {
+			in.hash = nil
+		}
 	}
 	return nil
 }
 
-// Obtain the store secret fro k8s returning the secret, a bool indicating whether the secret exists in k8s and any error
+// getSecret obtains the store Secret from k8s returning the Secret and a bool indicating whether the Secret exists in k8s and any error
 func (in *secretStore) getSecret() (*corev1.Secret, bool, error) {
 	secret := in.createSecretStruct()
 	err := in.manager.GetClient().Get(context.TODO(), in.key, secret)

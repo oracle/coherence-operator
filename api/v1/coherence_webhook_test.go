@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -25,6 +25,45 @@ func TestDefaultReplicasIsSet(t *testing.T) {
 	c.Default()
 	g.Expect(c.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+}
+
+func TestShouldAddFinalizer(t *testing.T) {
+	g := NewGomegaWithT(t)
+	c := coh.Coherence{}
+	c.Default()
+	finalizers := c.GetFinalizers()
+	g.Expect(len(finalizers)).To(Equal(1))
+	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
+}
+
+func TestShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
+	g := NewGomegaWithT(t)
+	c := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "foo",
+			Finalizers: []string{coh.CoherenceFinalizer},
+		},
+	}
+	c.Default()
+	finalizers := c.GetFinalizers()
+	g.Expect(len(finalizers)).To(Equal(1))
+	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
+}
+
+func TestShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
+	g := NewGomegaWithT(t)
+	c := coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "foo",
+			Finalizers: []string{"foo", "bar"},
+		},
+	}
+	c.Default()
+	finalizers := c.GetFinalizers()
+	g.Expect(len(finalizers)).To(Equal(3))
+	g.Expect(finalizers).To(ContainElement("foo"))
+	g.Expect(finalizers).To(ContainElement("bar"))
+	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
 }
 
 func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {

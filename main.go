@@ -7,6 +7,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/oracle/coherence-operator/controllers/webhook"
@@ -146,9 +147,9 @@ func execute() {
 		os.Exit(1)
 	}
 
-	initialiseOperator(v, cl)
+	initialiseOperator(context.TODO(), v, cl)
 
-	// Set-up the Coherence reconciler
+	// Set up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
@@ -164,7 +165,7 @@ func execute() {
 	// Set-up webhooks if required
 	var cr *webhook.CertReconciler
 	if operator.ShouldEnableWebhooks() {
-		// Set-up the webhook certificate reconciler
+		// Set up the webhook certificate reconciler
 		cr = &webhook.CertReconciler{
 			Clientset: cs,
 		}
@@ -173,7 +174,7 @@ func execute() {
 			os.Exit(1)
 		}
 
-		// Set-up the webhooks
+		// Set up the webhooks
 		if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, " unable to create webhook", "webhook", "Coherence")
 			os.Exit(1)
@@ -212,12 +213,12 @@ func execute() {
 	}
 }
 
-func initialiseOperator(v *version.Version, cl client.Client) {
+func initialiseOperator(ctx context.Context, v *version.Version, cl client.Client) {
 	opLog := ctrl.Log.WithName("operator")
 
 	// Ensure that the CRDs exist
 	if operator.ShouldInstallCRDs() {
-		err := coh.EnsureCRDs(v, scheme, cl)
+		err := coh.EnsureCRDs(ctx, v, scheme, cl)
 		if err != nil {
 			opLog.Error(err, "")
 			os.Exit(1)
@@ -248,6 +249,7 @@ func printVersion() {
 	opLog := ctrl.Log.WithName("operator")
 	opLog.Info(fmt.Sprintf("Operator Version: %s", Version))
 	opLog.Info(fmt.Sprintf("Operator Build Date: %s", Date))
+	opLog.Info(fmt.Sprintf("Operator Built By: %s", Author))
 	opLog.Info(fmt.Sprintf("Operator Git Commit: %s", Commit))
 	opLog.Info(fmt.Sprintf("Operator Coherence Image: %s", viper.GetString(operator.FlagCoherenceImage)))
 	opLog.Info(fmt.Sprintf("Operator Utils Image: %s", viper.GetString(operator.FlagUtilsImage)))
@@ -256,8 +258,12 @@ func printVersion() {
 }
 
 var (
-	// build information injected by the Go linker at build time.
+	// Version is the Operator version injected by the Go linker at build time.
 	Version string
-	Commit  string
-	Date    string
+	// Commit is the git commit hash injected by the Go linker at build time.
+	Commit string
+	// Date is the build timestamp injected by the Go linker at build time.
+	Date string
+	// Author is the user name of the account at build time
+	Author string
 )

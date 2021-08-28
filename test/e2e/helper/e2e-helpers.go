@@ -66,6 +66,7 @@ type TestContext struct {
 	KubeClient kubernetes.Interface
 	Manager    ctrl.Manager
 	Logger     logr.Logger
+	Context    context.Context
 	testEnv    *envtest.Environment
 	stop       chan struct{}
 	namespaces []string
@@ -110,7 +111,7 @@ func (in TestContext) CreateNamespace(ns string) error {
 		},
 		Spec: corev1.NamespaceSpec{},
 	}
-	_, err := in.KubeClient.CoreV1().Namespaces().Create(context.TODO(), &n, metav1.CreateOptions{})
+	_, err := in.KubeClient.CoreV1().Namespaces().Create(in.Context, &n, metav1.CreateOptions{})
 	if err != nil {
 		in.namespaces = append(in.namespaces, ns)
 	}
@@ -133,7 +134,7 @@ func (in TestContext) DeleteNamespace(ns string) error {
 
 func (in TestContext) cleanAndDeleteNamespace(ns string) error {
 	in.CleanupNamespace(ns)
-	return in.KubeClient.CoreV1().Namespaces().Delete(context.TODO(), ns, metav1.DeleteOptions{})
+	return in.KubeClient.CoreV1().Namespaces().Delete(in.Context, ns, metav1.DeleteOptions{})
 }
 
 func (in TestContext) Close() {
@@ -224,8 +225,10 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		return TestContext{}, err
 	}
 
+	ctx := context.Background()
+
 	// Ensure CRDs exist
-	err = coh.EnsureCRDs(v, scheme.Scheme, cl)
+	err = coh.EnsureCRDs(ctx, v, scheme.Scheme, cl)
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -246,7 +249,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	// Start the manager, which will start the controller
 	stop = make(chan struct{})
 	go func() {
-		err = k8sManager.Start(context.TODO())
+		err = k8sManager.Start(ctx)
 	}()
 
 	if err != nil {
@@ -259,6 +262,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		KubeClient: cs.KubeClient,
 		Manager:    k8sManager,
 		Logger:     testLogger.WithName("test"),
+		Context:    ctx,
 		testEnv:    testEnv,
 		stop:       stop,
 	}, nil
@@ -275,7 +279,7 @@ func WaitForDeploymentReady(ctx TestContext, namespace, name string, retryInterv
 	var key = types.NamespacedName{Namespace: namespace, Name: name}
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		err = ctx.Client.Get(context.TODO(), key, d)
+		err = ctx.Client.Get(ctx.Context, key, d)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				ctx.Logf("Waiting for availability of Coherence deployment %s/%s - NotFound", namespace, name)
@@ -306,7 +310,7 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 	var sts *appsv1.StatefulSet
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		sts, err = ctx.KubeClient.AppsV1().StatefulSets(namespace).Get(context.TODO(), stsName, metav1.GetOptions{})
+		sts, err = ctx.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx.Context, stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				ctx.Logf("Waiting for availability of StatefulSet %s - NotFound", stsName)
@@ -337,7 +341,7 @@ func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval,
 	var ep *corev1.Endpoints
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), service, metav1.GetOptions{})
+		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, service, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				ctx.Logf("Waiting for availability of Endpoints %s - NotFound", service)
@@ -506,7 +510,7 @@ func WaitForDeletion(ctx TestContext, namespace, name string, resource client.Ob
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		err = ctx.Client.Get(context.TODO(), key, resource)
+		err = ctx.Client.Get(ctx.Context, key, resource)
 		switch {
 		case err != nil && errors.IsNotFound(err):
 			return true, nil
@@ -569,7 +573,7 @@ func ListCoherencePods(ctx TestContext, namespace string) ([]corev1.Pod, error) 
 func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
 
-	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), opts)
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, opts)
 	if err != nil {
 		return []corev1.Pod{}, err
 	}
@@ -631,7 +635,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
 	for _, r := range list.Items {
 		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", r.Name, r.Namespace)
-		if err := ctx.Client.Patch(context.Background(), &r, patch); err != nil {
+		if err := ctx.Client.Patch(ctx.Context, &r, patch); err != nil {
 			ctx.Logf("error patching Coherence %s: %+v", r.Name, err)
 		}
 		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
@@ -702,7 +706,7 @@ func WaitForOperatorCleanup(ctx TestContext, namespace string) error {
 
 // DumpOperatorLog dumps the Operator Pod log to a file.
 func DumpOperatorLog(ctx TestContext, namespace, directory string) {
-	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=coherence-operator"})
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, metav1.ListOptions{LabelSelector: "name=coherence-operator"})
 	if err == nil {
 		if len(list.Items) > 0 {
 			pod := list.Items[0]
@@ -731,7 +735,7 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	for _, container := range pod.Spec.Containers {
 		var err error
 		res := ctx.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
-		s, err := res.Stream(context.TODO())
+		s, err := res.Stream(ctx.Context)
 		if err == nil {
 			name := logs + pathSep + directory
 			err = os.MkdirAll(name, os.ModePerm)
@@ -888,7 +892,7 @@ func DumpState(ctx TestContext, namespace, dir string) {
 
 func dumpEvents(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump events for namespace %s due to %s"
-	list, err := ctx.KubeClient.CoreV1().Events(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().Events(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -949,7 +953,7 @@ func dumpCoherences(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump Coherence resource for namespace %s due to %s"
 
 	list := coh.CoherenceList{}
-	err := ctx.Client.List(context.TODO(), &list, client.InNamespace(namespace))
+	err := ctx.Client.List(ctx.Context, &list, client.InNamespace(namespace))
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1005,7 +1009,7 @@ func dumpCoherences(namespace, dir string, ctx TestContext) {
 func dumpStatefulSets(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump StatefulSets for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.AppsV1().StatefulSets(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1061,7 +1065,7 @@ func dumpStatefulSets(namespace, dir string, ctx TestContext) {
 func dumpServices(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump Services for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().Services(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1117,7 +1121,7 @@ func dumpServices(namespace, dir string, ctx TestContext) {
 func dumpRbacRoles(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump RBAC Roles for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.RbacV1().Roles(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.RbacV1().Roles(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1173,7 +1177,7 @@ func dumpRbacRoles(namespace, dir string, ctx TestContext) {
 func dumpRbacRoleBindings(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump RBAC RoleBindings for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.RbacV1().RoleBindings(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1229,7 +1233,7 @@ func dumpRbacRoleBindings(namespace, dir string, ctx TestContext) {
 func dumpServiceAccounts(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump ServiceAccounts for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().ServiceAccounts(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1290,7 +1294,7 @@ func DumpPodsForTest(ctx TestContext, t *testing.T) {
 func dumpPods(namespace, dir string, ctx TestContext) {
 	const message = "Could not dump Pods for namespace %s due to %s"
 
-	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, metav1.ListOptions{})
 	if err != nil {
 		ctx.Logf(message, namespace, err.Error())
 		return
@@ -1443,7 +1447,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	for _, d := range deployments {
 		ctx.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
-		err = ctx.Client.Create(context.TODO(), &d)
+		err = ctx.Client.Create(ctx.Context, &d)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -1462,9 +1466,9 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		ctx.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
 		actual := &coh.Coherence{}
-		err = ctx.Client.Get(context.TODO(), d.GetNamespacedName(), actual)
+		err = ctx.Client.Get(ctx.Context, d.GetNamespacedName(), actual)
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(actual.GetFinalizers()).To(ContainElement(coh.Finalizer))
+		g.Expect(actual.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
 	}
 
 	// Get all of the Pods in the cluster
@@ -1479,7 +1483,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	// Verify that the WKA service has the same number of endpoints as the cluster size.
 	serviceName := deployments[0].GetWkaServiceName()
 
-	ep, err := ctx.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
+	ep, err := ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(ep.Subsets)).NotTo(BeZero())
 
@@ -1490,7 +1494,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	for _, d := range deployments {
 		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
 		dpl := coh.Coherence{}
-		err = ctx.Client.Get(context.TODO(), opts, &dpl)
+		err = ctx.Client.Get(ctx.Context, opts, &dpl)
 		g.Expect(err).NotTo(HaveOccurred())
 		m[dpl.Name] = dpl
 	}
@@ -1510,7 +1514,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	// Verify that the WKA service endpoints list for each deployment has all of the required the Pod IP addresses.
 	for _, d := range deployments {
 		serviceName := d.GetWkaServiceName()
-		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
+		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(len(ep.Subsets)).NotTo(BeZero())
 
@@ -1533,7 +1537,7 @@ func WaitForDelete(ctx TestContext, obj client.Object) error {
 
 	// Wait for resources to be deleted.
 	return wait.PollImmediate(1*time.Second, 30*time.Second, func() (done bool, err error) {
-		err = ctx.Client.Get(context.TODO(), key, obj.DeepCopyObject().(client.Object))
+		err = ctx.Client.Get(ctx.Context, key, obj.DeepCopyObject().(client.Object))
 		ctx.Logf("Fetched %s/%s to wait for delete: %v", key.Namespace, key.Name, err)
 
 		if err != nil && apierrors.IsNotFound(err) {
