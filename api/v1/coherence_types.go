@@ -2441,7 +2441,7 @@ func (t ResourceType) Name() string {
 }
 
 const (
-	ResourceTypeDeployment     ResourceType = "Coherence"
+	ResourceTypeCoherence      ResourceType = "Coherence"
 	ResourceTypeConfigMap      ResourceType = "ConfigMap"
 	ResourceTypeSecret         ResourceType = "Secret"
 	ResourceTypeService        ResourceType = "Service"
@@ -2454,8 +2454,8 @@ func ToResourceType(kind string) (ResourceType, error) {
 	var err error
 
 	switch kind {
-	case ResourceTypeDeployment.Name():
-		t = ResourceTypeDeployment
+	case ResourceTypeCoherence.Name():
+		t = ResourceTypeCoherence
 	case ResourceTypeConfigMap.Name():
 		t = ResourceTypeConfigMap
 	case ResourceTypeSecret.Name():
@@ -2477,7 +2477,7 @@ func (t ResourceType) toObject() (client.Object, error) {
 	var err error
 
 	switch t {
-	case ResourceTypeDeployment:
+	case ResourceTypeCoherence:
 		o = &Coherence{}
 	case ResourceTypeConfigMap:
 		o = &corev1.ConfigMap{}
@@ -2545,7 +2545,7 @@ func (in *Resource) As(o runtime.Object) error {
 	return json.Unmarshal(data, o)
 }
 
-// SetController sets the the controller/owner of the resource
+// SetController sets the controller/owner of the resource
 func (in *Resource) SetController(object runtime.Object, scheme *runtime.Scheme) error {
 	if in == nil || in.Spec == nil {
 		return nil
@@ -2673,11 +2673,13 @@ func (in Resources) GetResourcesOfKind(kind ResourceType) []Resource {
 }
 
 // DiffForKind obtains the diff between the previous deployment resources of a specific kind and this deployment resources.
-func (in Resources) DiffForKind(kind ResourceType, previous Resources) []Resource {
+// Returns an array of Resource instances that have difference and a count of the total resources diff'ed.
+func (in Resources) DiffForKind(kind ResourceType, previous Resources) ([]Resource, int) {
 	var diff []Resource
 
 	// work out any deletions
-	for _, r := range previous.GetResourcesOfKind(kind) {
+	res := previous.GetResourcesOfKind(kind)
+	for _, r := range res {
 		_, found := in.GetResource(kind, r.Name)
 		if !found {
 			// previous resource is deleted from this Resources
@@ -2699,7 +2701,7 @@ func (in Resources) DiffForKind(kind ResourceType, previous Resources) []Resourc
 		}
 	}
 
-	return diff
+	return diff, len(res)
 }
 
 // SetController sets the deployment as the controller/owner of all of the resources
@@ -2710,6 +2712,20 @@ func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme)
 		}
 	}
 	return nil
+}
+
+// SetHashLabels sets the hash label on all the resources.
+func (in Resources) SetHashLabels(hash string) {
+	for _, r := range in.Items {
+		if r.Spec != nil {
+			labels := r.Spec.GetLabels()
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			labels[LabelCoherenceHash] = hash
+			r.Spec.SetLabels(labels)
+		}
+	}
 }
 
 // Create the specified resource

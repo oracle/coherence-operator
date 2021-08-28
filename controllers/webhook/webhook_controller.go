@@ -30,7 +30,7 @@ import (
 
 const (
 	// The name of this controller. This is used in events, log messages, etc.
-	controllerName = "controller_certs"
+	controllerName = "controllers.Certs"
 )
 
 // blank assignment to verify that CertReconciler implements reconcile.Reconciler.

@@ -9,7 +9,6 @@ package reconciler
 import (
 	"context"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -22,10 +21,6 @@ var _ reconcile.Reconciler = &SimpleReconciler{}
 
 func NewConfigMapReconciler(mgr manager.Manager) SecondaryResourceReconciler {
 	return NewSimpleReconciler(mgr, "controllers.ConfigMap", coh.ResourceTypeConfigMap, &corev1.ConfigMap{})
-}
-
-func NewSecretReconciler(mgr manager.Manager) SecondaryResourceReconciler {
-	return NewSimpleReconciler(mgr, "controllers.Secret", coh.ResourceTypeSecret, &corev1.Secret{})
 }
 
 func NewServiceReconciler(mgr manager.Manager) SecondaryResourceReconciler {
@@ -54,24 +49,19 @@ func (in *SimpleReconciler) GetReconciler() reconcile.Reconciler { return in }
 // Reconcile reads that state of the secondary resource for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
 func (in *SimpleReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
+	logger.Info("Starting reconcile")
+
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
+		logger.Info("Completed reconcile. Already locked, re-queuing")
 		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	// Obtain the parent Coherence resource
-	deployment, err := in.FindDeployment(ctx, request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	return in.ReconcileResources(ctx, request, deployment, storage)
+	err := in.ReconcileSingleResource(ctx, request.Namespace, request.Name, nil, nil, logger)
+	logger.Info("Completed reconcile")
+	return reconcile.Result{}, err
 }

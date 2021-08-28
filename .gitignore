@@ -42,5 +42,5 @@ test/**/test-report.xml
 # Generated file created by the build
 bundle.Dockerfile
 /__debug_bin
-/istio-1.9.2/
+hack/istio*/
 /java/certs/

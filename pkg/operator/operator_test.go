@@ -25,13 +25,14 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	err = crdv1.AddToScheme(mgr.Scheme)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	ctx := context.TODO()
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1CRDs(log, mgr.Scheme, mgr.Client)
+	err = v1.EnsureV1CRDs(ctx, log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &crdList)
+	err = mgr.Client.List(ctx, &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(crdList.Items)).To(Equal(1))
@@ -72,13 +73,14 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 		_ = mgr.GetClient().Create(context.TODO(), &crd)
 	}
 
+	ctx := context.TODO()
 	log := fakes.TestLogger{T: t}
 
-	err = v1.EnsureV1CRDs(log, mgr.Scheme, mgr.Client)
+	err = v1.EnsureV1CRDs(ctx, log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crdList := crdv1.CustomResourceDefinitionList{}
-	err = mgr.Client.List(context.TODO(), &crdList)
+	err = mgr.Client.List(ctx, &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(crdList.Items)).To(Equal(1))
