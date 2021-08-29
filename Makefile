@@ -59,13 +59,11 @@ GOPROXY         ?= https://proxy.golang.org
 UNAME_S               = $(shell uname -s)
 UNAME_M               = $(shell uname -m)
 OPERATOR_SDK_VERSION := v1.9.0
-OPERATOR_SDK          = $(CURRDIR)/hack/sdk/$(UNAME_S)-$(UNAME_M)/operator-sdk
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -216,6 +214,16 @@ override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Set the location of various build tools
+# ----------------------------------------------------------------------------------------------------------------------
+TOOLS_DIRECTORY   = $(CURRDIR)/tools
+TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
+OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
+OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
+PROMETHEUS_HOME   = $(TOOLS_DIRECTORY)/prometheus
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 # ----------------------------------------------------------------------------------------------------------------------
@@ -255,7 +263,6 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
 PROMETHEUS_VERSION           ?= v0.8.0
-PROMETHEUS_HOME              ?= $(BUILD_OUTPUT)/prometheus
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
@@ -393,7 +400,7 @@ $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TA
 .PHONY: ensure-sdk
 ensure-sdk:
 	@echo "Ensuring Operator SDK is present at version $(OPERATOR_SDK_VERSION)"
-	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION)
+	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION) $(OPERATOR_SDK_HOME)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator runner artifacts utility
@@ -533,8 +540,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # Executes golangci-lint to perform various code review checks on the source.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
-golangci: $(BUILD_BIN)/golangci-lint ## Go code review
-	$(BUILD_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -557,6 +564,7 @@ copyright:  ## Check copyright headers
 	  -X .Dockerfile \
 	  -X docs/ \
 	  -X examples/.mvn/ \
+	  -X examples/helm/chart/templates/NOTES.txt \
 	  -X .factories \
 	  -X hack/copyright.txt \
 	  -X hack/intellij-codestyle.xml \
@@ -587,6 +595,7 @@ copyright:  ## Check copyright headers
 	  -X temp/olm/ \
 	  -X /test-report.xml \
 	  -X THIRD_PARTY_LICENSES.txt \
+	  -X tools/ \
 	  -X tools.go \
 	  -X .tpl \
 	  -X .yaml \
@@ -1616,7 +1625,7 @@ helm-install-elastic:
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
 #   Create the ConfigMap containing the Coherence Kibana dashboards import script
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-import || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file hack/coherence-dashboard-import.sh coherence-kibana-import
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file hack/kibana-import.sh coherence-kibana-import
 #   Set-up the Elastic Helm repo
 	@echo "Getting Helm Version:"
 	helm version
@@ -1631,7 +1640,7 @@ helm-install-elastic:
 .PHONY: kibana-import
 kibana-import:
 	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/coherence-dashboard-import.sh
+	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana
@@ -1664,9 +1673,9 @@ port-forward-es: ## Run a port-forward to Elasticsearch on http://127.0.0.1:9200
 # ----------------------------------------------------------------------------------------------------------------------
 # Obtain the golangci-lint binary
 # ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/golangci-lint:
-	@mkdir -p $(BUILD_BIN)
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BUILD_BIN) v1.29.0
+$(TOOLS_BIN)/golangci-lint:
+	@mkdir -p $(TOOLS_BIN)
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(TOOLS_BIN) v1.29.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -1680,7 +1689,12 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests \
+		-Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) \
+		-Doperator.image=$(OPERATOR_IMAGE) \
+		-Doperator.utils.image=$(UTILS_IMAGE) \
+		$(MAVEN_OPTIONS)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.
@@ -1825,15 +1839,15 @@ endif
 # Create the third-party license file
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: license
-license: $(BUILD_BIN)/licensed
+license: $(TOOLS_BIN)/licensed
 	mkdir .licenses || true
 	touch .licenses/NOTICE
-	$(BUILD_BIN)/licensed cache
-	$(BUILD_BIN)/licensed notice
+	$(TOOLS_BIN)/licensed cache
+	$(TOOLS_BIN)/licensed notice
 	cp .licenses/NOTICE THIRD_PARTY_LICENSES.txt
 
 
-$(BUILD_BIN)/licensed:
+$(TOOLS_BIN)/licensed:
 ifeq (Darwin, $(UNAME_S))
 	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-darwin-x64.tar.gz > licensed.tar.gz
 else
@@ -1841,8 +1855,8 @@ else
 endif
 	tar -xzf licensed.tar.gz
 	rm -f licensed.tar.gz
-	mv ./licensed $(BUILD_BIN)/licensed
-	chmod +x $(BUILD_BIN)/licensed
+	mv ./licensed $(TOOLS_BIN)/licensed
+	chmod +x $(TOOLS_BIN)/licensed
 
 
 # ----------------------------------------------------------------------------------------------------------------------

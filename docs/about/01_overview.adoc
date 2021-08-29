@@ -16,28 +16,28 @@
 ====
 [CARD]
 .Quick Start
-[icon=fa-rocket,link=about/03_quickstart.adoc]
+[icon=fa-rocket,link=docs/about/03_quickstart.adoc]
 --
 Quick start guide to running your first Coherence cluster using the Coherence Operator.
 --
 
 [CARD]
 .Install
-[icon=fa-save,link=installation/01_installation.adoc]
+[icon=fa-save,link=docs/installation/01_installation.adoc]
 --
 Installing and running the Coherence Operator.
 --
 
 [CARD]
 .Build and Deploy Applications
-[icon=cloud_upload,link=applications/010_overview.adoc]
+[icon=cloud_upload,link=docs/applications/010_overview.adoc]
 --
 Deploying Coherence Applications using the Coherence Operator.
 --
 
 [CARD]
 .Troubleshooting
-[icon=fa-question-circle,link=troubleshooting/01_trouble-shooting.adoc]
+[icon=fa-question-circle,link=docs/troubleshooting/01_trouble-shooting.adoc]
 --
 Hints and tips to troubleshoot common issues.
 --
@@ -52,28 +52,28 @@ Hints and tips to troubleshoot common issues.
 
 [CARD]
 .Scaling
-[icon=fa-balance-scale,link=scaling/010_overview.adoc]
+[icon=fa-balance-scale,link=docs/scaling/010_overview.adoc]
 --
 Safe scaling of Coherence deployments the Coherence Operator.
 --
 
 [CARD]
 .Configure Coherence
-[icon="fa-cogs",link=coherence/010_overview.adoc]
+[icon="fa-cogs",link=docs/coherence/010_overview.adoc]
 --
 Configuring Coherence behaviour.
 --
 
 [CARD]
 .Configure the JVM
-[icon=fa-cog,link=jvm/010_overview.adoc]
+[icon=fa-cog,link=docs/jvm/010_overview.adoc]
 --
 Configure the behaviour of the JVM.
 --
 
 [CARD]
 .Expose Ports & Services
-[icon=control_camera,link=ports/010_overview.adoc]
+[icon=control_camera,link=docs/ports/010_overview.adoc]
 --
 Configure services to expose ports provided by the application.
 --
@@ -85,28 +85,28 @@ Configure services to expose ports provided by the application.
 
 [CARD]
 .Metrics
-[icon=speed,link=metrics/010_overview.adoc]
+[icon=speed,link=docs/metrics/010_overview.adoc]
 --
 Enabling and working with Metrics in the Coherence Operator.
 --
 
 [CARD]
 .Management and Diagnostics
-[icon="fa-stethoscope",link=management/010_overview.adoc]
+[icon="fa-stethoscope",link=docs/management/010_overview.adoc]
 --
 Management and Diagnostics in the Coherence Operator.
 --
 
 [CARD]
 .Logging
-[icon=find_in_page,link=logging/010_overview.adoc]
+[icon=find_in_page,link=docs/logging/010_overview.adoc]
 --
 Viewing and managing log files within using the Coherence Operator.
 --
 
 [CARD]
 .Coherence CRD Reference
-[icon=widgets,link=about/04_coherence_spec.adoc]
+[icon=widgets,link=docs/about/04_coherence_spec.adoc]
 --
 Coherence CRD reference guide.
 --

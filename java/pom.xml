@@ -231,18 +231,6 @@
                 <version>${version.lib.junit.jupiter}</version>
                 <scope>test</scope>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>org.junit.jupiter</groupId>-->
-<!--                <artifactId>junit-jupiter-params</artifactId>-->
-<!--                <version>${version.lib.junit.jupiter}</version>-->
-<!--                <scope>test</scope>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.junit.jupiter</groupId>-->
-<!--                <artifactId>junit-jupiter-engine</artifactId>-->
-<!--                <version>${version.lib.junit.jupiter}</version>-->
-<!--                <scope>test</scope>-->
-<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.hamcrest</groupId>
@@ -308,18 +296,6 @@
                             <test.certs.location>${test.certs.location}</test.certs.location>
                         </systemProperties>
                     </configuration>
-<!--                    <dependencies>-->
-<!--                        <dependency>-->
-<!--                            <groupId>org.junit.jupiter</groupId>-->
-<!--                            <artifactId>junit-jupiter-engine</artifactId>-->
-<!--                            <version>${version.lib.junit.jupiter}</version>-->
-<!--                        </dependency>-->
-<!--                        <dependency>-->
-<!--                            <groupId>org.junit.vintage</groupId>-->
-<!--                            <artifactId>junit-vintage-engine</artifactId>-->
-<!--                            <version>${version.lib.junit.jupiter}</version>-->
-<!--                        </dependency>-->
-<!--                    </dependencies>-->
                 </plugin>
 
                 <plugin>
@@ -366,7 +342,7 @@
                     <version>${version.plugin.helidon-build-tools}</version>
                     <configuration>
                         <siteConfigFile>${top.parent.basedir}/../docs/sitegen.yaml</siteConfigFile>
-                        <siteSourceDirectory>${top.parent.basedir}/../docs</siteSourceDirectory>
+                        <siteSourceDirectory>${top.parent.basedir}/..</siteSourceDirectory>
                         <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
                         <siteArchiveExcludes>
                             <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>

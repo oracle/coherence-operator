@@ -28,19 +28,20 @@ func TestApplicationArgsEmpty(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationArgs(t *testing.T) {
@@ -55,19 +56,20 @@ func TestApplicationArgs(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "Foo", "Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
@@ -86,19 +88,20 @@ func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "foo-value", "bar-value")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationMain(t *testing.T) {
@@ -113,19 +116,20 @@ func TestApplicationMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), "com.tangosol.net.DefaultCacheServer", "com.oracle.test.Main")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationWorkingDirectory(t *testing.T) {
@@ -143,17 +147,18 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutAppClasspath()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(wd))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(wd))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }

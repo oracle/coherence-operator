@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -26,19 +26,20 @@ func TestApplicationTypeNone(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeNoneWithMain(t *testing.T) {
@@ -54,19 +55,20 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeCoherence(t *testing.T) {
@@ -81,19 +83,20 @@ func TestApplicationTypeCoherence(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeCoherenceWithMain(t *testing.T) {
@@ -109,19 +112,20 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeJava(t *testing.T) {
@@ -136,19 +140,20 @@ func TestApplicationTypeJava(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeJavaWithMain(t *testing.T) {
@@ -164,19 +169,20 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeHelidon(t *testing.T) {
@@ -191,19 +197,20 @@ func TestApplicationTypeHelidon(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, HelidonMain)
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestApplicationTypeHelidonWithMain(t *testing.T) {
@@ -219,17 +226,18 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DCS, "com.foo.Bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
+	g.Expect(e).NotTo(BeNil())
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }

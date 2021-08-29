@@ -17,9 +17,11 @@ import (
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -179,7 +181,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = coh.EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -369,4 +371,42 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 		}
 	}
 	return nil
+}
+
+// EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
+func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
+	secret := &coreV1.Secret{}
+
+	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, secret)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return err
+	}
+
+	restHostAndPort := rest.GetServerHostAndPort()
+
+	secret.SetNamespace(namespace)
+	secret.SetName(coh.OperatorConfigName)
+
+	oldValue := secret.Data[coh.OperatorConfigKeyHost]
+	if oldValue == nil || string(oldValue) != restHostAndPort {
+		// data is different so create/update
+
+		if secret.StringData == nil {
+			secret.StringData = make(map[string]string)
+		}
+		secret.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
+
+		log.Info(fmt.Sprintf("Operator Configuration: '%s' value was '%s', set to '%s'", coh.OperatorConfigKeyHost, string(oldValue), restHostAndPort))
+		if apierrors.IsNotFound(err) {
+			// for some reason we're getting here even if the secret exists so delete it!!
+			_ = c.Delete(ctx, secret)
+			log.Info("Creating configuration secret " + coh.OperatorConfigName + " in namespace " + namespace)
+			err = c.Create(ctx, secret)
+		} else {
+			log.Info("Updating configuration secret " + coh.OperatorConfigName + " in namespace " + namespace)
+			err = c.Update(ctx, secret)
+		}
+	}
+
+	return err
 }

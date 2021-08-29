@@ -1,0 +1,14 @@
+Thank you for installing the {{ .Chart.Name }} Helm chart.
+
+Your Coherence resource is named "{{ .Release.Name }}" in the Kubernetes namespace "{{ .Release.Namespace }}".
+
+To learn more about the release, try the following commands:
+
+  $ kubectl -n {{ .Release.Namespace }} get coherence {{ .Release.Name }}
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+For more help see:
+https://coherence.community
+https://oracle.github.io/coherence-operator/docs/latest

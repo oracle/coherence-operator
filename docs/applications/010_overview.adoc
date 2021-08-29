@@ -20,14 +20,14 @@ deployment will use.
 ====
 [CARD]
 .Build Custom Application Images
-[link=applications/020_build_application.adoc]
+[link=docs/applications/020_build_application.adoc]
 --
 Building custom Coherence application images for use with the Coherence Operator.
 --
 
 [CARD]
 .Deploy Custom Application Images
-[link=applications/030_deploy_application.adoc]
+[link=docs/applications/030_deploy_application.adoc]
 --
 Deploying custom application images using the Coherence Operator.
 --
@@ -42,28 +42,28 @@ the application code. Some of the application specific settings are shown below:
 ====
 [CARD]
 .Setting the Classpath
-[link=jvm/020_classpath.adoc]
+[link=docs/jvm/020_classpath.adoc]
 --
 Setting a custom classpath for the application.
 --
 
 [CARD]
 .Setting a Main Class
-[link=applications/040_application_main.adoc]
+[link=docs/applications/040_application_main.adoc]
 --
 Setting a custom main class to run.
 --
 
 [CARD]
 .Setting Application Arguments
-[link=applications/050_application_args.adoc]
+[link=docs/applications/050_application_args.adoc]
 --
 Setting arguments to pass to the main class.
 --
 
 [CARD]
 .Working Directory
-[link=applications/060_application_working_dir.adoc]
+[link=docs/applications/060_application_working_dir.adoc]
 --
 Setting the application's working directory.
 --

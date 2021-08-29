@@ -34,14 +34,14 @@ If this approach does not meet your needs you are obviously free to configure an
 ====
 [CARD]
 .Enabling Log Capture
-[link=logging/020_logging.adoc]
+[link=docs/logging/020_logging.adoc]
 --
 Capturing and viewing Coherence cluster Logs in Elasticsearch using a Fluentd side-car.
 --
 
 [CARD]
 .Kibana Dashboards
-[link=logging/030_kibana.adoc]
+[link=docs/logging/030_kibana.adoc]
 --
 Importing and using the Kibana Dashboards available.
 --

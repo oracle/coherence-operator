@@ -27,7 +27,7 @@ Assuming that all the above reductions in features are acceptable then the Opera
 
 == Install the Operator Without ClusterRoles
 
-The two methods of installing the Operator discussed in the <<installation/01_installation.adoc,Install Guide>> can be used to install the Operator without ClusterRoles.
+The two methods of installing the Operator discussed in the <<docs/installation/01_installation.adoc,Install Guide>> can be used to install the Operator without ClusterRoles.
 
 === Manually Install CRDs
 
@@ -54,7 +54,7 @@ kubectl create -f crd/coherence.oracle.com_coherence.yaml
 
 === Install Using Helm
 
-The Operator can be installed from the Helm chart, as described in the <<installation/01_installation.adoc,Install Guide>>.
+The Operator can be installed from the Helm chart, as described in the <<docs/installation/01_installation.adoc,Install Guide>>.
 The Helm chart contains values that control whether cluster roles are created when installing the chart. To install the chart without any cluster roles set the `clusterRoles` value to `false`.
 
 [source,bash]
@@ -90,7 +90,7 @@ helm install  \
 
 === Install Using Kustomize
 
-The Operator can be installed using Kustomize with the manifest files, as described in the <<installation/01_installation.adoc,Install Guide>>.
+The Operator can be installed using Kustomize with the manifest files, as described in the <<docs/installation/01_installation.adoc,Install Guide>>.
 
 ==== Exclude the ClusterRole Manifests
 

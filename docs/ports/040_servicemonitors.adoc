@@ -66,7 +66,7 @@ spec:
 
 === Configure the ServiceMonitor
 
-The `Coherence` CRD <<about/04_coherence_spec.adoc#_servicemonitorspec,ServiceMonitorSpec>>
+The `Coherence` CRD <<docs/about/04_coherence_spec.adoc#_servicemonitorspec,ServiceMonitorSpec>>
 contains many of the fields from the
 https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec[Prometheus `ServiceMonitorSpec`]
 and https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint[Prometheus Endpoint]

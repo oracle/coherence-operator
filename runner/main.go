@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,61 +7,30 @@
 package main
 
 import (
-	"fmt"
 	"github.com/oracle/coherence-operator/pkg/runner"
 	"os"
-	"strings"
+	ctrl "sigs.k8s.io/controller-runtime"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
-	// BuildInfo is a pipe delimited string of build information injected by the Go linker at build time.
-	BuildInfo string
+	log = ctrl.Log.WithName("runner")
+
+	// Version is the runner version injected by the Go linker at build time.
+	Version string
+	// Commit is the runner Git commit injected by the Go linker at build time.
+	Commit string
+	// Date is the runner build date injected by the Go linker at build time.
+	Date string
 )
 
 func main() {
-	err := runner.Run(os.Args, envToMap())
-	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	log.Info("Coherence Operator runner version information", "Version", Version, "Commit", Commit, "BuildDate", Date)
+	if _, err := runner.Execute(); err != nil {
+		logf.Log.WithName("runner").Error(err, "Unexpected error while executing command")
 		os.Exit(1)
-	}
-	os.Exit(0)
-}
-
-func envToMap() map[string]string {
-	env := make(map[string]string)
-	for _, ev := range os.Environ() {
-		key, val := getKeyVal(ev)
-		env[key] = val
-	}
-
-	env[runner.EnvVarBuildInfo] = BuildInfo
-	if BuildInfo != "" {
-		parts := strings.Split(BuildInfo, "|")
-
-		if len(parts) > 0 {
-			env[runner.EnvVarVersion] = parts[0]
-		}
-
-		if len(parts) > 1 {
-			env[runner.EnvVarGitCommit] = parts[1]
-		}
-
-		if len(parts) > 2 {
-			env[runner.EnvVarBuildDate] = strings.Replace(parts[2], ".", " ", -1)
-		}
-	}
-
-	return env
-}
-
-func getKeyVal(ev string) (string, string) {
-	values := strings.Split(ev, "=")
-	switch len(values) {
-	case 1:
-		return values[0], ""
-	case 2:
-		return values[0], values[1]
-	default:
-		return values[0], strings.Join(values[1:], "=")
 	}
 }

@@ -27,7 +27,7 @@ a number of things that the DevOps team for an application would need to build o
 
 === Cluster Discovery
 JVMs that run as Coherence cluster members need to discover the other members of the cluster.
-This is discussed in the <<coherence/070_wka.adoc,Coherence Well Known Addressing>> section of the documentation.
+This is discussed in the <<docs/coherence/070_wka.adoc,Coherence Well Known Addressing>> section of the documentation.
 When using the Operator the well known addressing configuration for clusters is managed automatically to allow a Coherence
 deployment to create its own cluster or to join with other deployments to form larger clusters.
 
@@ -102,7 +102,7 @@ The operator will use default values for fields that have not been entered, so t
 a Coherence deployment using a `StatefulSet` with a replica count of three, which means that will be three storage
 enabled Coherence `Pods`.
 
-See the <<about/04_coherence_spec.adoc,Coherence CRD spec>> page for details of all the fields in the CRD.
+See the <<docs/about/04_coherence_spec.adoc,Coherence CRD spec>> page for details of all the fields in the CRD.
 
 In the above example no `spec.image` field has been set, so the Operator will use a publicly available Coherence CE
 image as its default. These images are meant for demos, POCs and experimentation, but for a production application you
@@ -119,7 +119,7 @@ While an image exists on a node it is effectively the same as having installed t
 
 One way to ensure that the Pods of a Coherence deployment only get scheduled onto nodes that meet the
 license requirement is to configure Pod scheduling, for example a node selector. Node selectors, and other scheduling,
-is simple to configure in the `Coherence` CRD, see the <<other/090_pod_scheduling.adoc,scheduling documentation>>
+is simple to configure in the `Coherence` CRD, see the <<docs/other/090_pod_scheduling.adoc,scheduling documentation>>
 
 For example, if a commercial Coherence license exists such that a sub-set of nodes in a Kubernetes cluster
 have been covered by the license then those nodes could all be given a label, e.g. `coherenceLicense=true`

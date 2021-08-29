@@ -5,8 +5,6 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
-= Federation Example
-
 == Federation Example
 
 This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.

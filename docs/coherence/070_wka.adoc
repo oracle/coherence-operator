@@ -131,7 +131,7 @@ WARNING: When excluding a deployment from WKA it is important that at least one 
 has been started first otherwise the non-WKA role members cannot start.Eventually the K8s readiness probe for these Pods
 would time-out causing K8s to restart them but this would not be a desirable way to start a cluster.
 The start-up order can be controlled by configuring the deployment's `startQuorum` list, as described in the documentation
-section on <<ordering/010_overview.adoc,deployment start-up ordering>>.
+section on <<docs/ordering/010_overview.adoc,deployment start-up ordering>>.
 
 
 == Multi-Namespace Clusters

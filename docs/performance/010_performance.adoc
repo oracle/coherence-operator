@@ -64,7 +64,7 @@ In this example we will schedule all the Pods to zome `US-ASHBURN-AD-1`.
 
 === Scheduling Pods of a Coherence Cluster
 
-The `Coherence` CRD supports a number of ways to schedule Pods, as described in the <<other/090_pod_scheduling.adoc,Configure Pod Scheduling>> documentation. Using node labels is the simplest of the scheduling methods.
+The `Coherence` CRD supports a number of ways to schedule Pods, as described in the <<docs/other/090_pod_scheduling.adoc,Configure Pod Scheduling>> documentation. Using node labels is the simplest of the scheduling methods.
 In this case we need to schedule Pods onto nodes that have the label `topology.kubernetes.io/zone=US-ASHBURN-AD-1`.
 In the `Coherence` yaml we use the `nodeSelector` field.
 
