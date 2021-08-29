@@ -1650,7 +1650,12 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests -Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
+	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests \
+		-Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) \
+		-Doperator.image=$(OPERATOR_IMAGE) \
+		-Doperator.utils.image=$(UTILS_IMAGE) \
+		$(MAVEN_OPTIONS)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.

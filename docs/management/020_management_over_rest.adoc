@@ -50,7 +50,7 @@ spec:
 <2> To expose Management over REST via a `Service` it is added to the `ports` list.
 The `management` port is a special case where the `port` number is optional so in this case Management over REST
 will bind to the default port `30000`.
-(see <<ports/020_container_ports.adoc,Exposing Ports>> for details)
+(see <<docs/ports/020_container_ports.adoc,Exposing Ports>> for details)
 
 To expose Management over REST on a different port the alternative port value can be set in the `coherence.management`
 section, for example:
@@ -226,6 +226,6 @@ Please see the
 https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/[Coherence REST API] for more information on these features.
 
 * https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC[Connecting JVisualVM to Management over REST]
-* <<clusters/058_coherence_management.adoc,Enabling SSL>>
+* <<docs/clusters/058_coherence_management.adoc,Enabling SSL>>
 * https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html[Produce and extract a Java Flight Recorder (JFR) file]
 * https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/api-reporter.html[Access the Reporter]

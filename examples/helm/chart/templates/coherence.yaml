@@ -1,0 +1,11 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "coherence-labels" . | indent 4 }}
+spec:
+{{- if .Values.spec }}
+{{ toYaml .Values.spec | indent 2 }}
+{{- end }}

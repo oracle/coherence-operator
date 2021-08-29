@@ -10,7 +10,7 @@
 
 == Configure Services for Ports
 
-As described in the <<ports/020_container_ports.adoc,Additional Container Ports>> documentation,
+As described in the <<docs/ports/020_container_ports.adoc,Additional Container Ports>> documentation,
 it is possible to expose additional ports on the Coherence container in the Pods of a `Coherence` resource.
 The Coherence Operator will create a `Service` to expose each additional port.
 By default, the name of the service is the combination of the `Coherence` resource name and the port name

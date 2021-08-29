@@ -23,7 +23,7 @@ Any additional volumes and volume mounts added to the `Coherence` resource spec 
 
 To add a container to the `Pods` specify the container in the `sideCars` list in the `Coherence` CRD spec.
 
-See the <<logging/020_logging.adoc,Logging Documentation>> for a bigger example of adding a side-car container.
+See the <<docs/logging/020_logging.adoc,Logging Documentation>> for a bigger example of adding a side-car container.
 
 For example:
 [source,yaml]

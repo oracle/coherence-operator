@@ -253,7 +253,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		}
 	}
 
-	ctx := context.Background()
 	// Start the manager, which will start the controller and REST server
 	stop = make(chan struct{})
 	go func() {

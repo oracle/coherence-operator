@@ -10,7 +10,7 @@
 
 == Deploy Coherence Application Images
 
-Once a custom application image has been built (as described in <<applications/020_build_application.adoc,Build Custom Application Images>>)
+Once a custom application image has been built (as described in <<docs/applications/020_build_application.adoc,Build Custom Application Images>>)
 a `Coherence` resource can be configured to use that image.
 
 
@@ -77,7 +77,7 @@ spec:
 
 Additional configuration can be added to specify other application settings, these include:
 
-* setting the <<jvm/020_classpath.adoc,classpath>>
-* specifying the <<applications/040_application_main.adoc,application main>>
-* specifying <<applications/050_application_args.adoc,application arguments>>
-* specifying the <<applications/060_application_working_dir.adoc,working directory>>
+* setting the <<docs/jvm/020_classpath.adoc,classpath>>
+* specifying the <<docs/applications/040_application_main.adoc,application main>>
+* specifying <<docs/applications/050_application_args.adoc,application arguments>>
+* specifying the <<docs/applications/060_application_working_dir.adoc,working directory>>
