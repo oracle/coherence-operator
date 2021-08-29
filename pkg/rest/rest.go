@@ -261,33 +261,33 @@ func (s server) getCoherenceStatus(w http.ResponseWriter, r *http.Request) {
 		Name:      segments[2],
 	}, &coh)
 
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			w.WriteHeader(http.StatusNotFound)
-			log.Info("GET status query for Coherence deployment - NotFound", "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
-			_, _ = fmt.Fprintf(w, "Coherence deployment %s/%s does not exist", segments[1], segments[2])
-		} else {
-			log.Error(err, "GET status query for Coherence deployment - Error", "namespace", segments[1], "name", segments[2], "remoteAddress", "remoteAddress", r.RemoteAddr)
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = fmt.Fprintf(w, "Error getting Coherence deployment %s/%s - %s", segments[1], segments[2], err.Error())
-		}
-		return
-	}
-
 	phase := r.URL.Query().Get("phase")
 	if phase == "" {
 		phase = string(v1.ConditionTypeReady)
 	}
 
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+			log.Info("GET status query for Coherence deployment - NotFound", "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+			_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "NotFound"}`, segments[1], segments[2], phase)
+		} else {
+			log.Error(err, "GET status query for Coherence deployment - Error", "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "Error", "Cause": "%s"}`, segments[1], segments[2], phase, err.Error())
+		}
+		return
+	}
+
 	actual := string(coh.Status.Phase)
 	match := strings.EqualFold(phase, actual)
 
-	log.Info("GET query for Coherence deployment", "required", phase, "actual", actual, "namespace", segments[1], "name", segments[2], "remoteAddress", "remoteAddress", r.RemoteAddr, phase, actual)
+	log.Info("GET query for Coherence deployment status", "required", phase, "actual", actual, "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
 
 	if match {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintf(w, "Coherence deployment %s/%s Required=%s Actual=%s", segments[1], segments[2], phase, actual)
 	}
+	_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "%s"}`, segments[1], segments[2], phase, actual)
 }

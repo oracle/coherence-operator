@@ -42,7 +42,7 @@ func TestStatusForNonExistentCluster(t *testing.T) {
 	ns := helper.GetTestNamespace()
 
 	var env map[string]string
-	args := []string{"status", "--operator-url", "http://localhost:8000", "--namespace", ns, "--name", "foo", "--timeout", "1m"}
+	args := []string{"status", "--operator-url", "http://localhost:8000", "--namespace", ns, "--name", "foo", "--timeout", "30s"}
 
 	// should not be found
 	_, err := runner.ExecuteWithArgs(env, args)
