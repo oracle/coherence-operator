@@ -184,7 +184,10 @@ By creating a K8s Job that runs the status command we can query the Operator for
 
 To run a simple status check we are only interested in the following parameters for the status command:
 
+
 |===
+|Argument |Description
+
 |`--operator-url`
 |The Coherence Operator URL, typically the operator's REST service (default "http://coherence-operator-rest.coherence.svc.local:8000"
 
