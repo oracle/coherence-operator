@@ -8,6 +8,13 @@
 
 # Maven files
 target/
+java/coherence-operator/target
+java/coherence-operator-client/target
+java/operator-compatibility/target
+java/operator-test/target
+java/operator-test-helidon/target
+java/operator-test-spring/target
+java/target
 
 # Operator-SDK build output
 build/
@@ -15,6 +22,7 @@ _output/
 bin/
 bundle/
 temp/
+tools/
 
 # licensed
 .licenses/
