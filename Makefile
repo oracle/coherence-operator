@@ -547,6 +547,7 @@ copyright:  ## Check copyright headers
 	  -X .Dockerfile \
 	  -X docs/ \
 	  -X examples/.mvn/ \
+	  -X examples/helm/chart/templates/NOTES.txt \
 	  -X .factories \
 	  -X hack/copyright.txt \
 	  -X hack/intellij-codestyle.xml \
