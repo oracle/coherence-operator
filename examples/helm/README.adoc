@@ -290,4 +290,6 @@ helm  install test ./chart --no-hooks
 ----
 Now the Helm install command will return as soon as the Coherence resource has been created.
 
+==== Other Helm Hooks
 
+We saw above how a custom post-install and post-update hook could be used to work aroud the restrictions of Helm's `--wait` argument. Of course there are other hooks available in Helm that the method above could be used in. For example, say I had a front end application to be deployed using a Helm chart, but I did not want Helm to start the deployment until the Coherence back-end was ready, I could use the same method above in a pre-install hook.

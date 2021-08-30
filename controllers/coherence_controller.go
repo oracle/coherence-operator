@@ -126,32 +126,13 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// Ensure the hash label is present (it should have been added by the web-hook but may not have been if the
 	// Coherence resource was added when the Operator was uninstalled).
-	hash, hashApplied := coh.EnsureHashLabel(deployment)
-	if hashApplied {
-		log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
-		if err := in.GetClient().Update(ctx, deployment); err != nil {
-			return ctrl.Result{}, err
-		}
+	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
+		return ctrl.Result{}, err
 	}
 
-	// Add finalizer for this CR if required
-	finalizerApplied := false
-	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.CoherenceFinalizer) {
-		// Adding the finalizer causes an update so the request will come around again
-		deployment, err = in.addFinalizer(ctx, deployment)
-		finalizerApplied = true
-	}
-
-	// if we added either the hash label or finalizer or there was an error the request will be re-queued, so we exit here
-	if hashApplied || finalizerApplied || err != nil {
-		switch {
-		case hashApplied && finalizerApplied:
-			log.Info("Applied hash label and finalizer, re-queuing request", "hash", hash)
-		case finalizerApplied:
-			log.Info("Applied finalizer, re-queuing request")
-		case hashApplied:
-			log.Info("Applied hash label, re-queuing request", "hash", hash)
-		}
+	// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
+	//	// Coherence resource was added when the Operator was uninstalled)
+	if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -193,6 +174,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
+	hash := deployment.GetLabels()[coh.LabelCoherenceHash]
 	var desiredResources coh.Resources
 
 	storeHash, found := storage.GetHash()
@@ -313,23 +295,55 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
-func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) (*coh.Coherence, error) {
-	// Re-fetch the Coherence resource to ensure we have the most recent copy
-	latest := &coh.Coherence{}
-	c.DeepCopyInto(latest)
-
-	controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
-
-	callback := func() {
-		in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
+// ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
+func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
+	var hasLabel bool
+	labels := c.GetLabels()
+	if len(labels) > 0 {
+		_, hasLabel = labels[coh.LabelCoherenceHash]
+	} else {
+		hasLabel = false
 	}
 
-	// Perform a three-way patch to apply the finalizer
-	_, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
-	if err != nil {
-		return latest, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
+	if !hasLabel {
+		// Re-fetch the Coherence resource to ensure we have the most recent copy
+		latest := &coh.Coherence{}
+		c.DeepCopyInto(latest)
+
+		hash, _ := coh.EnsureHashLabel(latest)
+
+		callback := func() {
+			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
+		}
+
+		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with hash", c.Namespace, c.Name)
+		}
+		return applied, nil
 	}
-	return latest, nil
+	return false, nil
+}
+
+func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
+	if utils.StringArrayDoesNotContain(c.GetFinalizers(), coh.CoherenceFinalizer) {
+		// Re-fetch the Coherence resource to ensure we have the most recent copy
+		latest := &coh.Coherence{}
+		c.DeepCopyInto(latest)
+		controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
+
+		callback := func() {
+			in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
+		}
+
+		// Perform a three-way patch to apply the finalizer
+		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
+		}
+		return applied, nil
+	}
+	return false, nil
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
@@ -375,36 +389,36 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 
 // EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
 func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
-	secret := &coreV1.Secret{}
+	s := &coreV1.Secret{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, secret)
+	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, s)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
 
 	restHostAndPort := rest.GetServerHostAndPort()
 
-	secret.SetNamespace(namespace)
-	secret.SetName(coh.OperatorConfigName)
+	s.SetNamespace(namespace)
+	s.SetName(coh.OperatorConfigName)
 
-	oldValue := secret.Data[coh.OperatorConfigKeyHost]
+	oldValue := s.Data[coh.OperatorConfigKeyHost]
 	if oldValue == nil || string(oldValue) != restHostAndPort {
 		// data is different so create/update
 
-		if secret.StringData == nil {
-			secret.StringData = make(map[string]string)
+		if s.StringData == nil {
+			s.StringData = make(map[string]string)
 		}
-		secret.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
+		s.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
 
-		log.Info(fmt.Sprintf("Operator Configuration: '%s' value was '%s', set to '%s'", coh.OperatorConfigKeyHost, string(oldValue), restHostAndPort))
+		log.Info("Operator configuration updated", "Key", coh.OperatorConfigKeyHost, "OldValue", string(oldValue), "NewValue", restHostAndPort)
 		if apierrors.IsNotFound(err) {
 			// for some reason we're getting here even if the secret exists so delete it!!
-			_ = c.Delete(ctx, secret)
-			log.Info("Creating configuration secret " + coh.OperatorConfigName + " in namespace " + namespace)
-			err = c.Create(ctx, secret)
+			_ = c.Delete(ctx, s)
+			log.Info("Creating configuration secret " + coh.OperatorConfigName)
+			err = c.Create(ctx, s)
 		} else {
-			log.Info("Updating configuration secret " + coh.OperatorConfigName + " in namespace " + namespace)
-			err = c.Update(ctx, secret)
+			log.Info("Updating configuration secret " + coh.OperatorConfigName)
+			err = c.Update(ctx, s)
 		}
 	}
 
