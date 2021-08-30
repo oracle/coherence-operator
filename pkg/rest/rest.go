@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -282,12 +283,14 @@ func (s server) getCoherenceStatus(w http.ResponseWriter, r *http.Request) {
 	actual := string(coh.Status.Phase)
 	match := strings.EqualFold(phase, actual)
 
-	log.Info("GET query for Coherence deployment status", "required", phase, "actual", actual, "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
-
+	var status int
 	if match {
-		w.WriteHeader(http.StatusOK)
+		status = http.StatusOK
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
+		status = http.StatusBadRequest
 	}
+
+	log.Info("GET query for Coherence deployment status", "code", strconv.Itoa(status), "required", phase, "actual", actual, "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+	w.WriteHeader(status)
 	_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "%s"}`, segments[1], segments[2], phase, actual)
 }

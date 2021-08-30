@@ -74,8 +74,6 @@ func (in *Coherence) Default() {
 		if hash, applied := EnsureHashLabel(in); applied {
 			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 		}
-		// ensure the operator finalizer is present
-		controllerutil.AddFinalizer(in, CoherenceFinalizer)
 	}
 }
 

@@ -126,6 +126,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	if deployment == nil {
 		// find the owning Coherence resource
 		if deployment, err = in.FindOwningCoherenceResource(ctx, stsCurrent); err != nil {
+			logger.Info("Finished reconciling StatefulSet. Error finding parent Coherence resource", "error", err.Error())
 			return reconcile.Result{}, err
 		}
 	}
@@ -167,8 +168,13 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		err = in.UpdateDeploymentStatus(ctx, request)
 	}
 
+	if err != nil {
+		logger.Info("Finished reconciling StatefulSet with error", "error", err.Error())
+		return result, err
+	}
+
 	logger.Info("Finished reconciling StatefulSet for deployment")
-	return result, err
+	return result, nil
 }
 
 func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
@@ -403,7 +409,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	if deployment.Spec.CheckHABeforeUpdate() {
 		// Check we have the expected number of ready replicas
 		if readyReplicas != currentReplicas {
-			logger.Info("Re-queuing update request. Not all Pods are ready, Stateful not ready replicas is %d out of %d", "Ready", readyReplicas, "Replicas", currentReplicas)
+			logger.Info("Re-queuing update request. StatefulSet Status not all replicas are ready", "Ready", readyReplicas, "CurrentReplicas", currentReplicas)
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 		}
 

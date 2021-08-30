@@ -160,16 +160,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request 
 	default:
 		updated := deployment.DeepCopy()
 		if updated.Status.Update(deployment, &sts.Status) {
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
-				}
-			}
+			err = in.GetClient().Status().Update(ctx, updated)
 		}
 	}
 	return err
@@ -288,7 +279,7 @@ func (in *CommonReconciler) CreateTwoWayPatch(name string, desired, current runt
 	return in.CreateTwoWayPatchOfType(in.patchType, name, desired, current, ignore...)
 }
 
-// CreateTwoWayPatchOfType creates a two-way patch between the original state, the current state and the desired state of a k8s resource.
+// CreateTwoWayPatchOfType creates a two-way patch between the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
 	currentData, err := json.Marshal(current)
 	if err != nil {

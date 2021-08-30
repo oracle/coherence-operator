@@ -55,8 +55,9 @@ func TestRestStatusQueryForDeployment(t *testing.T) {
 
 	client := &http.Client{}
 
-	println("Connecting with: ", url)
+	t.Logf("Testing status query URL is %s", url)
 	resp, err := client.Get(url)
+	t.Logf("Received status response: %v err %v", resp, err)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 }
