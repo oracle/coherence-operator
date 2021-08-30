@@ -8,9 +8,11 @@ package local
 import (
 	"fmt"
 	. "github.com/onsi/gomega"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestRestStatusQueryWithInvalidPath(t *testing.T) {
@@ -46,11 +48,17 @@ func TestRestStatusQueryForUnknownDeployment(t *testing.T) {
 func TestRestStatusQueryForDeployment(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
+	namespace := helper.GetTestNamespace()
+	name := "minimal-cluster"
 	g := NewGomegaWithT(t)
 
+	// deploy the cluster
 	helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
 
-	namespace := helper.GetTestNamespace()
+	// wait for Coherence resource to get to the ready state
+	_, err := helper.WaitForCoherenceCondition(testContext, namespace, name, helper.StatusPhaseCondition(coh.ConditionTypeReady), 10*time.Second, 5*time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	url := fmt.Sprintf("http://127.0.0.1:8000/status/%s/minimal-cluster", namespace)
 
 	client := &http.Client{}
