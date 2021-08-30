@@ -297,12 +297,10 @@ func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in 
 
 // ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
 func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	var currentHash string
+	currentHash := ""
 	labels := c.GetLabels()
 	if len(labels) > 0 {
-		currentHash, _ = labels[coh.LabelCoherenceHash]
-	} else {
-		currentHash = ""
+		currentHash = labels[coh.LabelCoherenceHash]
 	}
 
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
