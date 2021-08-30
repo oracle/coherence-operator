@@ -22,7 +22,6 @@ _output/
 bin/
 bundle/
 temp/
-tools/
 
 # licensed
 .licenses/

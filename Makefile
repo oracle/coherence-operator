@@ -218,7 +218,7 @@ override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 # ----------------------------------------------------------------------------------------------------------------------
 # Set the location of various build tools
 # ----------------------------------------------------------------------------------------------------------------------
-TOOLS_DIRECTORY   = $(CURRDIR)/tools
+TOOLS_DIRECTORY   = $(CURRDIR)/build/tools
 TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
@@ -556,6 +556,7 @@ copyright:  ## Check copyright headers
 	  -X .adoc \
 	  -X bin/ \
 	  -X build/_output/ \
+	  -X build/tools/ \
 	  -X clientset/ \
 	  -X dashboards/grafana/ \
 	  -X dashboards/grafana-microprofile/ \
@@ -595,7 +596,6 @@ copyright:  ## Check copyright headers
 	  -X temp/olm/ \
 	  -X /test-report.xml \
 	  -X THIRD_PARTY_LICENSES.txt \
-	  -X tools/ \
 	  -X tools.go \
 	  -X .tpl \
 	  -X .yaml \

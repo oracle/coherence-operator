@@ -127,13 +127,13 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// Ensure the hash label is present (it should have been added by the web-hook but may not have been if the
 	// Coherence resource was added when the Operator was uninstalled).
 	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
-	//	// Coherence resource was added when the Operator was uninstalled)
+	// Coherence resource was added when the Operator was uninstalled)
 	if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	// ensure that the deployment has an initial status
@@ -179,7 +179,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	storeHash, found := storage.GetHash()
 	if !found || storeHash != hash || deployment.Status.Phase != coh.ConditionTypeReady {
-		// Storage state was saved with the no hash or a different hash so is not in the desired state
+		// Storage state was saved with no hash or a different hash so is not in the desired state
 		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
 		if desiredResources, err = deployment.Spec.CreateKubernetesResources(deployment); err != nil {
@@ -297,21 +297,20 @@ func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in 
 
 // ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
 func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	var hasLabel bool
+	var currentHash string
 	labels := c.GetLabels()
 	if len(labels) > 0 {
-		_, hasLabel = labels[coh.LabelCoherenceHash]
+		currentHash, _ = labels[coh.LabelCoherenceHash]
 	} else {
-		hasLabel = false
+		currentHash = ""
 	}
 
-	if !hasLabel {
-		// Re-fetch the Coherence resource to ensure we have the most recent copy
-		latest := &coh.Coherence{}
-		c.DeepCopyInto(latest)
+	// Re-fetch the Coherence resource to ensure we have the most recent copy
+	latest := &coh.Coherence{}
+	c.DeepCopyInto(latest)
+	hash, _ := coh.EnsureHashLabel(latest)
 
-		hash, _ := coh.EnsureHashLabel(latest)
-
+	if currentHash != hash {
 		callback := func() {
 			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
 		}
