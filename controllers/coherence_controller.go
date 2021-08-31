@@ -17,9 +17,11 @@ import (
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -124,33 +126,14 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// Ensure the hash label is present (it should have been added by the web-hook but may not have been if the
 	// Coherence resource was added when the Operator was uninstalled).
-	hash, hashApplied := coh.EnsureHashLabel(deployment)
-	if hashApplied {
-		log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
-		if err := in.GetClient().Update(ctx, deployment); err != nil {
-			return ctrl.Result{}, err
-		}
+	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
+		return ctrl.Result{Requeue: true}, err
 	}
 
-	// Add finalizer for this CR if required
-	finalizerApplied := false
-	if utils.StringArrayDoesNotContain(deployment.GetFinalizers(), coh.CoherenceFinalizer) {
-		// Adding the finalizer causes an update so the request will come around again
-		deployment, err = in.addFinalizer(ctx, deployment)
-		finalizerApplied = true
-	}
-
-	// if we added either the hash label or finalizer or there was an error the request will be re-queued, so we exit here
-	if hashApplied || finalizerApplied || err != nil {
-		switch {
-		case hashApplied && finalizerApplied:
-			log.Info("Applied hash label and finalizer, re-queuing request", "hash", hash)
-		case finalizerApplied:
-			log.Info("Applied finalizer, re-queuing request")
-		case hashApplied:
-			log.Info("Applied hash label, re-queuing request", "hash", hash)
-		}
-		return ctrl.Result{}, err
+	// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
+	// Coherence resource was added when the Operator was uninstalled)
+	if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	// ensure that the deployment has an initial status
@@ -179,7 +162,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = coh.EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -191,11 +174,12 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
+	hash := deployment.GetLabels()[coh.LabelCoherenceHash]
 	var desiredResources coh.Resources
 
 	storeHash, found := storage.GetHash()
 	if !found || storeHash != hash || deployment.Status.Phase != coh.ConditionTypeReady {
-		// Storage state was saved with the no hash or a different hash so is not in the desired state
+		// Storage state was saved with no hash or a different hash so is not in the desired state
 		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
 		if desiredResources, err = deployment.Spec.CreateKubernetesResources(deployment); err != nil {
@@ -311,23 +295,52 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
-func (in *CoherenceReconciler) addFinalizer(ctx context.Context, c *coh.Coherence) (*coh.Coherence, error) {
+// ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
+func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
+	currentHash := ""
+	labels := c.GetLabels()
+	if len(labels) > 0 {
+		currentHash = labels[coh.LabelCoherenceHash]
+	}
+
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
 	latest := &coh.Coherence{}
 	c.DeepCopyInto(latest)
+	hash, _ := coh.EnsureHashLabel(latest)
 
-	controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
+	if currentHash != hash {
+		callback := func() {
+			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
+		}
 
-	callback := func() {
-		in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
+		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with hash", c.Namespace, c.Name)
+		}
+		return applied, nil
 	}
+	return false, nil
+}
 
-	// Perform a three-way patch to apply the finalizer
-	_, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
-	if err != nil {
-		return latest, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
+func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
+	if utils.StringArrayDoesNotContain(c.GetFinalizers(), coh.CoherenceFinalizer) {
+		// Re-fetch the Coherence resource to ensure we have the most recent copy
+		latest := &coh.Coherence{}
+		c.DeepCopyInto(latest)
+		controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
+
+		callback := func() {
+			in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
+		}
+
+		// Perform a three-way patch to apply the finalizer
+		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
+		}
+		return applied, nil
 	}
-	return latest, nil
+	return false, nil
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
@@ -369,4 +382,42 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 		}
 	}
 	return nil
+}
+
+// EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
+func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
+	s := &coreV1.Secret{}
+
+	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, s)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return err
+	}
+
+	restHostAndPort := rest.GetServerHostAndPort()
+
+	s.SetNamespace(namespace)
+	s.SetName(coh.OperatorConfigName)
+
+	oldValue := s.Data[coh.OperatorConfigKeyHost]
+	if oldValue == nil || string(oldValue) != restHostAndPort {
+		// data is different so create/update
+
+		if s.StringData == nil {
+			s.StringData = make(map[string]string)
+		}
+		s.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
+
+		log.Info("Operator configuration updated", "Key", coh.OperatorConfigKeyHost, "OldValue", string(oldValue), "NewValue", restHostAndPort)
+		if apierrors.IsNotFound(err) {
+			// for some reason we're getting here even if the secret exists so delete it!!
+			_ = c.Delete(ctx, s)
+			log.Info("Creating configuration secret " + coh.OperatorConfigName)
+			err = c.Create(ctx, s)
+		} else {
+			log.Info("Updating configuration secret " + coh.OperatorConfigName)
+			err = c.Update(ctx, s)
+		}
+	}
+
+	return err
 }

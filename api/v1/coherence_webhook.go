@@ -42,8 +42,7 @@ var _ webhook.Defaulter = &Coherence{}
 func (in *Coherence) Default() {
 	logger := webhookLogger.WithValues("namespace", in.Namespace, "name", in.Name)
 	if in.Status.Phase == "" {
-		logger.Info("setting defaults for resource")
-
+		logger.Info("Setting defaults for new resource")
 		// ensure the operator finalizer is present
 		controllerutil.AddFinalizer(in, CoherenceFinalizer)
 
@@ -69,7 +68,12 @@ func (in *Coherence) Default() {
 		}
 		in.Annotations[AnnotationFeatureSuspend] = "true"
 	} else {
-		logger.Info("skipping defaulting for existing resource")
+		logger.Info("Updating defaults for existing resource")
+		// this is an update
+		// apply a label with the hash of the spec
+		if hash, applied := EnsureHashLabel(in); applied {
+			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+		}
 	}
 }
 

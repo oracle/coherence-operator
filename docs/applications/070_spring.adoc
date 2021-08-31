@@ -23,8 +23,8 @@ so the Operator requires a bit more information adding to the `Coherence` deploy
 The simplest way to build an application image to run with the Coherence Operator (including Spring Boot applications)
 is to use the https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] tool.
 JIB images will work out of the box with the operator, even for a Spring Boot application, as described in
-<<applications/020_build_application.adoc,Building Applications>> and
-<<applications/030_deploy_application.adoc,Deploying Applications>>.
+<<docs/applications/020_build_application.adoc,Building Applications>> and
+<<docs/applications/030_deploy_application.adoc,Deploying Applications>>.
 
 If you have used the Spring Maven or Gradle plugins to build the application into a fat jar, but you then build the image
 using the https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] plugin then JIB will detect the fat

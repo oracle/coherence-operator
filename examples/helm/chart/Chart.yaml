@@ -1,0 +1,13 @@
+# Copyright 2021, Oracle Corporation and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+name: coherence-example
+description: An example Coherence Helm chart
+apiVersion: v1
+version: 1.0.0
+appVersion: 1.0.0
+home: https://github.com/oracle/coherence-operator
+sources:
+- https://github.com/oracle/coherence-operator
+icon: "https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png"

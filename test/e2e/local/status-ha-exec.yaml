@@ -11,4 +11,4 @@ spec:
   scaling:
     probe:
       exec:
-        command: [ "/coherence-operator/utils/runner", "version" ]
+        command: [ "/coherence-operator/utils/runner", "-h" ]

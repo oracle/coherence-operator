@@ -14,19 +14,19 @@ these fields are in the `spec.coherence` section of the CRD.
 == Configuring Coherence
 
 The `Coherence` CRD has specific fields to configure the most common Coherence settings.
-Any other settings can be configured by adding system properties to the <<jvm/010_overview.adoc,JVM Settings>>.
+Any other settings can be configured by adding system properties to the <<docs/jvm/010_overview.adoc,JVM Settings>>.
 
 The following Coherence features can be directly specified in the `Coherence` spec.
 
-* <<coherence/020_cluster_name.adoc,Cluster Name>>
-* <<coherence/030_cache_config.adoc,Cache Configuration File>>
-* <<coherence/040_override_file.adoc,Operational Configuration File>> (aka, the override file)
-* <<coherence/050_storage_enabled.adoc,Storage Enabled>> or disabled deployments
-* <<coherence/060_log_level.adoc,Log Level>>
-* <<coherence/070_wka.adoc,Well Known Addressing>> and cluster discovery
-* <<coherence/080_persistence.adoc,Persistence>>
-* <<management/010_overview.adoc,Management over REST>>
-* <<metrics/010_overview.adoc,Metrics>>
+* <<docs/coherence/020_cluster_name.adoc,Cluster Name>>
+* <<docs/coherence/030_cache_config.adoc,Cache Configuration File>>
+* <<docs/coherence/040_override_file.adoc,Operational Configuration File>> (aka, the override file)
+* <<docs/coherence/050_storage_enabled.adoc,Storage Enabled>> or disabled deployments
+* <<docs/coherence/060_log_level.adoc,Log Level>>
+* <<docs/coherence/070_wka.adoc,Well Known Addressing>> and cluster discovery
+* <<docs/coherence/080_persistence.adoc,Persistence>>
+* <<docs/management/010_overview.adoc,Management over REST>>
+* <<docs/metrics/010_overview.adoc,Metrics>>
 
 NOTE: The Coherence settings in the `Coherence` CRD spec typically set system property values that will
 be passed through to the Coherence JVM command line, which in turn configure Coherence.

@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-helm-hook"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ .Release.Name }}-helm-hook"
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: post-install-job
+        image: {{ .Values.operator.image }}
+        command:
+          - "/files/runner"
+          - "status"
+          - "--namespace"
+          -  {{ .Release.Namespace | quote }}
+          - "--name"
+          - {{ .Release.Name | quote }}
+          - "--operator-url"
+          - "http://{{ .Values.operator.service | default "coherence-operator-rest" }}.{{ .Values.operator.namespace | default "coherence" }}.svc.cluster.local:{{ .Values.operator.port | default 8000 }}"
+          - "--condition"
+          - {{ .Values.operator.condition | default "Ready" | quote }}
+          - "--timeout"
+          - {{ .Values.operator.timeout | default "5m" | quote }}
+          - "--interval"
+          - {{ .Values.operator.interval | default "10s" | quote }}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -28,56 +28,59 @@ func TestServerWithPersistenceMode(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.persistence-mode="),
 		"-Dcoherence.distributed.persistence-mode=active")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestServerWithPersistenceDirectory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	args := []string{"server"}
+	args := []string{"server", "--dry-run"}
 	env := map[string]string{
 		coh.EnvVarCohPersistenceDir: coh.VolumeMountPathPersistence,
 	}
 
 	expectedCommand := GetJavaCommand()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=" + coh.VolumeMountPathPersistence))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=" + coh.VolumeMountPathPersistence))
 }
 
 func TestServerWithSnapshotDirectory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	args := []string{"server"}
+	args := []string{"server", "--dry-run"}
 	env := map[string]string{
 		coh.EnvVarCohSnapshotDir: coh.VolumeMountPathSnapshots,
 	}
 
 	expectedCommand := GetJavaCommand()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(""))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=" + coh.VolumeMountPathSnapshots))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=" + coh.VolumeMountPathSnapshots))
 }

@@ -6,40 +6,42 @@
 
 engine:
   asciidoctor:
-    images-dir: "./images"
+    images-dir: "./docs/images"
     libraries:
       - "asciidoctor-diagram"
     attributes:
       plantumlconfig: "_plantuml-config.txt"
       operator-version: "${operator.version}"
+      operator-image: "${operator.image}"
+      operator-utils-image: "${operator.utils.image}"
       guides-dir: "${project.basedir}/../examples/guides"
 assets:
   - target: "/"
     includes:
-      - "css/*.css"
+      - "docs/css/*.css"
   - target: "/"
     includes:
-      - "images/**/*"
+      - "docs/images/**/*"
 header:
   favicon:
-    path: "images/logo.png"
+    path: "docs/images/logo.png"
     type: "png"
   stylesheets:
-    - path: "css/styles.css"
+    - path: "docs/css/styles.css"
 pages:
     - includes:
-        - "**/*.adoc"
+        - "docs/**/*.adoc"
       excludes:
 backend:
     name: "vuetify"
-    homePage: "about/01_overview.adoc"
+    homePage: "docs/about/01_overview.adoc"
     releases:
         - "${operator.version}"
     navigation:
       title: "Coherence Operator"
       glyph:
         type: "image"
-        value: "images/logo.png"
+        value: "docs/images/logo.png"
       items:
         - title: "Core documentation"
           items:
@@ -50,7 +52,7 @@ backend:
                 value: "assistant"
               items:
                 - includes:
-                    - "about/*.adoc"
+                    - "docs/about/*.adoc"
             - title: "Installation"
               pathprefix: "/install"
               glyph:
@@ -58,7 +60,7 @@ backend:
                 value: "fa-save"
               items:
                 - includes:
-                    - "installation/*.adoc"
+                    - "docs/installation/*.adoc"
             - title: "Deploy Applications"
               pathprefix: "/applications"
               glyph:
@@ -66,7 +68,7 @@ backend:
                 value: "cloud_upload"
               items:
                 - includes:
-                    - "applications/*.adoc"
+                    - "docs/applications/*.adoc"
             - title: "Coherence Settings"
               pathprefix: "/coherence"
               glyph:
@@ -74,7 +76,7 @@ backend:
                 value: "fa-cogs"
               items:
                 - includes:
-                    - "coherence/*.adoc"
+                    - "docs/coherence/*.adoc"
             - title: "JVM Settings"
               pathprefix: "/jvm"
               glyph:
@@ -82,7 +84,7 @@ backend:
                 value: "fa-cog"
               items:
                 - includes:
-                    - "jvm/*.adoc"
+                    - "docs/jvm/*.adoc"
             - title: "Expose Ports & Services"
               pathprefix: "/ports"
               glyph:
@@ -90,7 +92,7 @@ backend:
                 value: "control_camera"
               items:
                 - includes:
-                    - "ports/*.adoc"
+                    - "docs/ports/*.adoc"
             - title: "Scaling Up & Down"
               pathprefix: "/scaling"
               glyph:
@@ -98,7 +100,7 @@ backend:
                 value: "fa-balance-scale"
               items:
                 - includes:
-                    - "scaling/*.adoc"
+                    - "docs/scaling/*.adoc"
             - title: "Start-up Order"
               pathprefix: "/ordering"
               glyph:
@@ -106,7 +108,7 @@ backend:
                 value: "line_weight"
               items:
                 - includes:
-                    - "ordering/*.adoc"
+                    - "docs/ordering/*.adoc"
             - title: "Management Diagnostics"
               pathprefix: "/management"
               glyph:
@@ -114,7 +116,7 @@ backend:
                 value: "fa-stethoscope"
               items:
                 - includes:
-                    - "management/*.adoc"
+                    - "docs/management/*.adoc"
             - title: "Metrics"
               pathprefix: "/metrics"
               glyph:
@@ -122,7 +124,7 @@ backend:
                 value: "speed"
               items:
                 - includes:
-                    - "metrics/*.adoc"
+                    - "docs/metrics/*.adoc"
             - title: "Logging"
               pathprefix: "/logging"
               glyph:
@@ -130,7 +132,7 @@ backend:
                 value: "find_in_page"
               items:
                 - includes:
-                    - "logging/*.adoc"
+                    - "docs/logging/*.adoc"
             - title: "Other Pod Settings"
               pathprefix: "/other"
               glyph:
@@ -138,7 +140,7 @@ backend:
                 value: "widgets"
               items:
                 - includes:
-                    - "other/*.adoc"
+                    - "docs/other/*.adoc"
             - title: "Examples"
               pathprefix: "/examples"
               glyph:
@@ -146,7 +148,7 @@ backend:
                 value: "explore"
               items:
                 - includes:
-                    - "examples/*.adoc"
+                    - "docs/examples/*.adoc"
             - title: "Troubleshooting"
               pathprefix: "/troubleshooting"
               glyph:
@@ -154,7 +156,7 @@ backend:
                 value: "fa-question-circle"
               items:
                 - includes:
-                    - "troubleshooting/*.adoc"
+                    - "docs/troubleshooting/*.adoc"
         - title: "Additional resources"
           items:
             - title: "Slack"
@@ -166,7 +168,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "people"
-              href: "https://coherence.java.net"
+              href: "https://coherence.community"
             - title: "GitHub"
               glyph:
                 type: "icon"

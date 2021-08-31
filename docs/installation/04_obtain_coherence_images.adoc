@@ -55,4 +55,4 @@ spec:
 
 <1> The `coherence-secret` will be used for pulling images from the registry associated to the secret
 
-Also see <<installation/05_private_repos.adoc,Using Private Image Registries>>
+Also see <<docs/installation/05_private_repos.adoc,Using Private Image Registries>>

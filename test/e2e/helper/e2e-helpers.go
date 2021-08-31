@@ -19,6 +19,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	oprest "github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -158,7 +159,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		Short: "Start the operator manager",
 	}
 
-	// configure viper for the the flags and env-vars
+	// configure viper for the flags and env-vars
 	operator.SetupFlags(Cmd)
 	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
 	flagSet.AddGoFlagSet(flag.CommandLine)
@@ -235,6 +236,12 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	var stop chan struct{}
 
+	// Create the REST server
+	restServer := oprest.NewServer(cs)
+	if err := restServer.SetupWithManager(k8sManager); err != nil {
+		return TestContext{}, err
+	}
+
 	if startController {
 		// Create the Coherence controller
 		err = (&controllers.CoherenceReconciler{
@@ -246,11 +253,16 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		}
 	}
 
-	// Start the manager, which will start the controller
+	// Start the manager, which will start the controller and REST server
 	stop = make(chan struct{})
 	go func() {
 		err = k8sManager.Start(ctx)
 	}()
+
+	k8sManager.GetCache().WaitForCacheSync(ctx)
+	<-restServer.Running()
+
+	time.Sleep(5 * time.Second)
 
 	if err != nil {
 		return TestContext{}, err

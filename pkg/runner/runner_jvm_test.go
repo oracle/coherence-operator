@@ -27,19 +27,20 @@ func TestJvmArgsEmpty(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmArgs(t *testing.T) {
@@ -54,19 +55,20 @@ func TestJvmArgs(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmArgsWithEnvExpansion(t *testing.T) {
@@ -85,19 +87,20 @@ func TestJvmArgsWithEnvExpansion(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmUseContainerLimitsFalse(t *testing.T) {
@@ -112,19 +115,20 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+UseContainerSupport")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmUseContainerLimitsTrue(t *testing.T) {
@@ -139,19 +143,20 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorG1(t *testing.T) {
@@ -168,19 +173,20 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseG1GC")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorCMS(t *testing.T) {
@@ -197,19 +203,20 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseConcMarkSweepGC")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorParallel(t *testing.T) {
@@ -226,19 +233,20 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseParallelGC")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
@@ -255,7 +263,7 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
@@ -268,13 +276,14 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 		"-XX:+PrintGCApplicationStoppedTime",
 		"-XX:+PrintGCApplicationConcurrentTime")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {
@@ -291,19 +300,20 @@ func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestJvmGarbageCollectorArgs(t *testing.T) {
@@ -320,17 +330,18 @@ func TestJvmGarbageCollectorArgs(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:Arg1", "-XX:Arg2")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
