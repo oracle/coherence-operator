@@ -4,28 +4,32 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-// Package rest provides a ReST server for the Coherence Operator.
+// Package rest provides a REST server for the Coherence Operator.
 package rest
 
 import (
 	"context"
 	"fmt"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	onet "github.com/oracle/coherence-operator/pkg/net"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	k8s "k8s.io/client-go/kubernetes"
 	"net"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // The logger to use to log messages
 var (
-	log = logf.Log.WithName("rest-server")
+	log = ctrl.Log.WithName("rest-server")
 	svr *server
 )
 
@@ -42,7 +46,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type Server interface {
 	// GetAddress returns the address that this server is listening on.
 	GetAddress() net.Addr
-	// GetAddress returns the address that this server is listening on.
+	// GetPort returns the port that this server is listening on.
 	GetPort() int32
 	// Close closes this server's listener
 	Close() error
@@ -52,9 +56,11 @@ type Server interface {
 	Start(ctx context.Context) error
 	// SetupWithManager will configure the server to run when the manager starts
 	SetupWithManager(mgr ctrl.Manager) error
+	// Running closes when the server is running
+	Running() <-chan struct{}
 }
 
-// Obtain the host and port that the REST server is listening on of empty string if the server
+// GetServerHostAndPort obtains the host and port that the REST server is listening on of empty string if the server
 // is not started.
 func GetServerHostAndPort() string {
 	if svr == nil {
@@ -65,27 +71,41 @@ func GetServerHostAndPort() string {
 
 // NewServer will create a new REST server
 func NewServer(c clients.ClientSet) Server {
+	running := make(chan struct{})
 	if svr == nil {
 		svr = &server{
-			client: c.KubeClient,
+			client:  c.KubeClient,
+			running: running,
 		}
 	}
 	return svr
 }
 
 type server struct {
-	listener net.Listener
-	client   k8s.Interface
+	listener   net.Listener
+	client     k8s.Interface
+	mgr        ctrl.Manager
+	ctx        context.Context
+	running    chan struct{}
+	httpServer *http.Server
 }
 
+// SetupWithManager configures this server from the specified Manager.
 func (s server) SetupWithManager(mgr ctrl.Manager) error {
+	s.mgr = mgr
 	return mgr.Add(s)
 }
 
+func (s server) Running() <-chan struct{} {
+	return s.running
+}
+
+// Start starts this server
 func (s server) Start(ctx context.Context) error {
 	mux := http.NewServeMux()
 	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
 	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
+	mux.Handle("/status/", handler{fn: s.getCoherenceStatus})
 
 	address := fmt.Sprintf("%s:%d", operator.GetRestHost(), operator.GetRestPort())
 	listener, err := net.Listen("tcp", address)
@@ -95,8 +115,10 @@ func (s server) Start(ctx context.Context) error {
 
 	s.listener = listener
 
+	close(s.running)
+
 	go func() {
-		log.Info("Serving REST requests on " + s.listener.Addr().String())
+		log.Info("Serving REST requests", "listenAddress", s.listener.Addr().String())
 		panic(http.Serve(s.listener, mux))
 	}()
 	return nil
@@ -112,10 +134,13 @@ func (s server) GetPort() int32 {
 }
 
 func (s server) Close() error {
-	return s.listener.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	s.httpServer.SetKeepAlivesEnabled(false)
+	return s.httpServer.Shutdown(ctx)
 }
 
-// GetHostAndPort returns the address and port that this endpoint can be reached on by external processes.
 func (s server) GetHostAndPort() string {
 	var service string
 	var port int32
@@ -168,13 +193,15 @@ func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
 func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.Request) {
 	var value string
 	labelUsed := "<None>"
-	pos := strings.LastIndex(r.URL.Path, "/")
-	name := r.URL.Path[1+pos:]
 
+	path := r.URL.Path
 	// strip off any trailing slash
-	if last := len(name) - 1; last >= 0 && name[last] == '/' {
-		name = name[:last]
+	if last := len(path) - 1; last >= 0 && path[last] == '/' {
+		path = path[:last]
 	}
+
+	pos := strings.LastIndex(path, "/")
+	name := r.URL.Path[1+pos:]
 
 	node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
 
@@ -187,15 +214,83 @@ func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.
 			}
 		}
 	} else {
-		log.Error(err, "Error getting node "+name+" from k8s")
+		if apierrors.IsNotFound(err) {
+			log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
+		} else {
+			log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
+		}
 		value = ""
 		labelUsed = ""
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 	if _, err = fmt.Fprint(w, value); err != nil {
 		log.Error(err, "Error writing value response for node "+name)
 	} else {
-		log.Info(fmt.Sprintf("GET query for node labels node='%s' label:'%s' response:'%s'", name, labelUsed, value))
+		log.Info("GET query for node labels", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
 	}
+}
+
+// getCoherenceStatus is a GET request that returns the status of a Coherence deployment.
+// The namespace and name of the deployment are extracted from the request path.
+// For example, a path of /status/foo/bar would check the status of Coherence resource "bar"
+// in namespace "foo".
+// By default, the request checks that the deployment has a status of Ready.
+// It is possible to pass in a different status using the ?phase=<expected-phase> query parameter.
+func (s server) getCoherenceStatus(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	// strip off any trailing slash
+	if last := len(path) - 1; last >= 0 && path[last] == '/' {
+		path = path[:last]
+	}
+	// strip off any leading slash
+	if path[0] == '/' {
+		path = path[1:]
+	}
+
+	segments := strings.Split(path, "/")
+	if len(segments) != 3 {
+		log.Info("GET query for Coherence deployment - invalid path", "remoteAddress", r.RemoteAddr, "path", r.URL.Path)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintf(w, "Invalid status request. Required path is /status/<namespace>/<name>")
+		return
+	}
+
+	coh := v1.Coherence{}
+	err := s.mgr.GetClient().Get(s.ctx, types.NamespacedName{
+		Namespace: segments[1],
+		Name:      segments[2],
+	}, &coh)
+
+	phase := r.URL.Query().Get("phase")
+	if phase == "" {
+		phase = string(v1.ConditionTypeReady)
+	}
+
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+			log.Info("GET status query for Coherence deployment - NotFound", "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+			_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "NotFound"}`, segments[1], segments[2], phase)
+		} else {
+			log.Error(err, "GET status query for Coherence deployment - Error", "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "Error", "Cause": "%s"}`, segments[1], segments[2], phase, err.Error())
+		}
+		return
+	}
+
+	actual := string(coh.Status.Phase)
+	match := strings.EqualFold(phase, actual)
+
+	var status int
+	if match {
+		status = http.StatusOK
+	} else {
+		status = http.StatusBadRequest
+	}
+
+	log.Info("GET query for Coherence deployment status", "code", strconv.Itoa(status), "required", phase, "actual", actual, "namespace", segments[1], "name", segments[2], "remoteAddress", r.RemoteAddr)
+	w.WriteHeader(status)
+	_, _ = fmt.Fprintf(w, `{"Namespace": "%s", "Name": "%s", "Required": "%s", "Actual": "%s"}`, segments[1], segments[2], phase, actual)
 }

@@ -13,7 +13,7 @@ to install a simple Coherence cluster.
 
 == Prerequisites
 
-Ensure that the <<installation/01_installation.adoc,Coherence Operator prerequisites>> are available.
+Ensure that the <<docs/installation/01_installation.adoc,Coherence Operator prerequisites>> are available.
 
 == 1. Install the Coherence Operator
 
@@ -69,16 +69,16 @@ or with Helm v2
 helm install --namespace coherence-test  --name operator coherence/coherence-operator
 ----
 
-See the <<installation/01_installation.adoc, full install guide>> for more details.
+See the <<docs/installation/01_installation.adoc, full install guide>> for more details.
 
 
 == 2. Install a Coherence Deployment
 
 Ensure that the Coherence images can be pulled by the Kubernetes cluster,
-see <<installation/04_obtain_coherence_images.adoc,Obtain Coherence Images>>.
+see <<docs/installation/04_obtain_coherence_images.adoc,Obtain Coherence Images>>.
 By default, a `Coherence` resource will use the OSS Coherence CE image from Docker Hub.
 If a different image is to be used the image name will need to be specified in the `Coherence` yaml,
-see <<applications/010_overview.adoc,Setting the Application Image>> for documentation on how to
+see <<docs/applications/010_overview.adoc,Setting the Application Image>> for documentation on how to
 specify a different images to use.
 
 

@@ -1,17 +1,16 @@
 #!/bin/sh
 
 REQUIRED_VERSION=$1
+OPERATOR_SDK_HOME=$2
 
-CURRDIR=$(pwd)
 UNAME_S=$(uname -s)
-UNAME_M=$(uname -m)
-OPERATOR_SDK=${CURRDIR}/hack/sdk/${UNAME_S}-${UNAME_M}/operator-sdk
+OPERATOR_SDK=${OPERATOR_SDK_HOME}/operator-sdk
 OK=0
 
 if [ ! -f "${OPERATOR_SDK}" ]; then
 #  Operator SDK does not exist
   echo "Operator SDK not found at ${OPERATOR_SDK}"
-  mkdir -p ${CURRDIR}/hack/sdk/${UNAME_S}-${UNAME_M} || true
+  mkdir -p ${OPERATOR_SDK_HOME} || true
   OK=1
 else
 #  Operator SDK exists, check its version

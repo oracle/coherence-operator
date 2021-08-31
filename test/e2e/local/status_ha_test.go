@@ -77,6 +77,6 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	ckr := statefulset.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
-	ha := ckr.IsStatusHA(goctx.TODO(), tc.Deployment, sts)
+	ha := ckr.IsStatusHA(testContext.Context, tc.Deployment, sts)
 	g.Expect(ha).To(BeTrue())
 }

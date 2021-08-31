@@ -16,14 +16,14 @@ There are a number of examples which show you how to build and deploy applicatio
 ====
 [CARD]
 .Deployment
-[link=examples/020_deployment.adoc]
+[link=docs/docs/examples/020_deployment.adoc]
 --
 This example showcases how to deploy Coherence applications using the Coherence Operator.
 --
 
 [CARD]
 .Federation
-[link=examples/030_federation.adoc]
+[link=docs/examples/030_federation.adoc]
 --
 This is a simple Coherence federation example. The federation feature requires Coherence Grid Edition.
 --
@@ -31,31 +31,38 @@ This is a simple Coherence federation example. The federation feature requires C
 
 [CARD]
 .TLS
-[link=examples/100_tls.adoc]
+[link=docs/examples/100_tls.adoc]
 --
 Securing Coherence clusters using TLS.
 --
 
 [CARD]
 .Autoscaling
-[link=examples/500_autoscaler.adoc]
+[link=docs/examples/500_autoscaler.adoc]
 --
-Scaling Coherence clusters using the horizontal Pod autoscaler.
+Scaling Coherence clusters using the horizontal Pod Autoscaler.
 --
 
 [CARD]
 .Istio
-[link=examples/800_istio.adoc]
+[link=docs/examples/800_istio.adoc]
 --
 Istio Support
+--
+
+[CARD]
+.Helm
+[link=docs/examples/810_helm.adoc]
+--
+Manage Coherence resources using Helm.
 --
 ====
 
 [PILLARS]
 ====
 [CARD]
-.Coherene Demo App
-[link=examples/900_demo.adoc]
+.Coherence Demo App
+[link=docs/examples/900_demo.adoc]
 --
 Deploying the Coherence demo application.
 --

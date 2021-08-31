@@ -99,7 +99,7 @@ and the Node label used to get the value for the rack will be `identity/rack`.
 
 ==== Using Kubectl or Kustomize
 
-If using `kubectl` or `kustomize` as described in the <<installation/01_installation.adoc,Installation Guide>>
+If using `kubectl` or `kustomize` as described in the <<docs/installation/01_installation.adoc,Installation Guide>>
 the additional environment variables can be applied using `kustomize` commands.
 
 [source,bash]

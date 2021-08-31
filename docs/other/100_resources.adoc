@@ -18,7 +18,7 @@ https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-conta
 WARNING: When setting resource limits, in particular memory limits, for a container it is important to ensure that the
 Coherence JVM is properly configured so that it does not consume more memory than the limits. If the JVM attempts to
 consume more memory than the resource limits allow the `Pod` can be killed by Kubernetes.
-See <<jvm/050_memory.adoc,Configuring the JVM Memory>> for details on the different memory settings.
+See <<docs/jvm/050_memory.adoc,Configuring the JVM Memory>> for details on the different memory settings.
 
 For example:
 

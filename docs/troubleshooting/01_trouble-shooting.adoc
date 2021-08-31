@@ -37,7 +37,7 @@ This is expected behaviour. The Operator uses a K8s web-hook for defaulting and 
 A web-hook requires certificates to be present in a `Secret` mounted to the Operator Pod as a volume.
 If this Secret is not present the Operator creates it and populates it with self-signed certs.
 In order for the Secret to then be mounted correctly the Pod must be restarted.
-See the <<webhooks/01_introduction.adoc,the WebHooks>> documentation.
+See the <<docs/webhooks/01_introduction.adoc,the WebHooks>> documentation.
 
 [#ready]
 === Why are the Coherence Pods not reaching ready
@@ -126,7 +126,7 @@ If the Nodes in the cluster do not have these labels set then the site and rack 
 will not be able to reach rack or site safe.
 
 There are a few possible solutions to this, see the explanation in the
-documentation explaining <<coherence/021_member_identity.adoc,Member Identity>>
+documentation explaining <<docs/coherence/021_member_identity.adoc,Member Identity>>
 
 [#dashboards]
 === My Grafana Dashboards do not display any metrics
@@ -144,5 +144,5 @@ If metric names are in the format `vendor_Coherence_Cluster_Size`, i.e. prefixed
 Microprofile format.
 If the metric name has no `vendor` prefix then it is using Micrometer metrics.
 
-See: the <<metrics/030_importing.adoc,Importing Grafana Dashboards>> documentation.
+See: the <<docs/metrics/030_importing.adoc,Importing Grafana Dashboards>> documentation.
 

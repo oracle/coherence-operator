@@ -25,20 +25,21 @@ func TestCoherenceClusterName(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.cluster="),
 		"-Dcoherence.cluster=test-cluster")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceCacheConfig(t *testing.T) {
@@ -53,20 +54,21 @@ func TestCoherenceCacheConfig(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.cacheconfig="),
 		"-Dcoherence.cacheconfig=test-config.xml")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceOperationalConfig(t *testing.T) {
@@ -81,20 +83,21 @@ func TestCoherenceOperationalConfig(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.k8s.override="),
 		"-Dcoherence.k8s.override=test-override.xml")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceStorageEnabledTrue(t *testing.T) {
@@ -109,20 +112,21 @@ func TestCoherenceStorageEnabledTrue(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.localstorage="),
 		"-Dcoherence.distributed.localstorage=true")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceStorageEnabledFalse(t *testing.T) {
@@ -137,20 +141,21 @@ func TestCoherenceStorageEnabledFalse(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.localstorage="),
 		"-Dcoherence.distributed.localstorage=false")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceExcludeFromWKATrue(t *testing.T) {
@@ -165,19 +170,20 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceLogLevel(t *testing.T) {
@@ -192,20 +198,21 @@ func TestCoherenceLogLevel(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.log.level="),
 		"-Dcoherence.log.level=9")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceTracingRatio(t *testing.T) {
@@ -221,19 +228,20 @@ func TestCoherenceTracingRatio(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.tracing.ratio=0.012340")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceAllowEndangeredEmptyList(t *testing.T) {
@@ -248,19 +256,20 @@ func TestCoherenceAllowEndangeredEmptyList(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceAllowEndangered(t *testing.T) {
@@ -275,19 +284,20 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.k8s.operator.statusha.allowendangered=foo,bar")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
@@ -305,20 +315,21 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
 	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".foo.svc.cluster.local")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
@@ -336,20 +347,21 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
 	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".back-end.svc.cluster.local")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceEnableIpMonitor(t *testing.T) {
@@ -364,19 +376,20 @@ func TestCoherenceEnableIpMonitor(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.ipmonitor.pingtimeout")
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceDisableIpMonitor(t *testing.T) {
@@ -391,19 +404,20 @@ func TestCoherenceDisableIpMonitor(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
 func TestCoherenceDefaultIpMonitor(t *testing.T) {
@@ -418,17 +432,18 @@ func TestCoherenceDefaultIpMonitor(t *testing.T) {
 		},
 	}
 
-	args := []string{"runner", "server"}
+	args := []string{"server", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	_, cmd, err := DryRun(args, env)
+	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(cmd).NotTo(BeNil())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
 
-	g.Expect(cmd.Dir).To(Equal(TestAppDir))
-	g.Expect(cmd.Path).To(Equal(expectedCommand))
-	g.Expect(cmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }

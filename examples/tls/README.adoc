@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
 == Secure Coherence with TLS
 
 This example is going to show how to use TLS (or SSL) to secure communication between different parts of a Coherence cluster and applications. This is quite a long guide as there are a number of things that can be secured wth TLS.
@@ -18,7 +25,7 @@ Using Cert Manager we will ultimately end up with four k8s `Secrets`:
 
 If you do not want to use Cert Manager to try this example then a long as you have a way to create the required `Secrets` containing the keys and passwords above then you can skip to the section on <<coherence,Securing Coherence>>.
 
-==== What the Example will Cover
+=== What the Example will Cover
 
 * <<install_operator,Install the Operator>>
 * <<setup_cert_manager,Setting Up Cert-Manager>>
@@ -38,19 +45,19 @@ If you do not want to use Cert Manager to try this example then a long as you ha
 
 
 [#install_operator]
-== Install the Operator
+=== Install the Operator
 
 To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide]
 
 [#setup_cert_manager]
-== Setting Up Cert-Manager
+=== Setting Up Cert-Manager
 
 In this example we will use self-signed certs as this makes everything easy to get going.
 Cert Manager has a number of ways to configure real certificates for production use.
 Assuming that you've installed Cert Manager using one of the methods in its https://cert-manager.io/docs/installation/[Install Guide] we can proceed to created all of the required resources.
 
 [#create_self_signed_issuer]
-=== Create the SelfSigned Issuer
+==== Create the SelfSigned Issuer
 
 This is used to generate a root CA for use with the CA Issuer.
 Here we are using a `ClusterIssuer` so that we can use a single self-signed issuer across all namespaces.
