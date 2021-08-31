@@ -6,19 +6,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Coherence Grafana Dashboards
+= Import the Grafana Dashboards
 
-The Operator has a set of Coherence specific Grafana dashboards that can be imported into a Grafana instance.
-
-== Download the Coherence Dashboards
+== Importing the Coherence Dashboards
 
 The Coherence Operator provides a set of dashboards for Coherence that may be imported into Grafana.
+The Coherence dashboards are explained in detail on the <<040_dashboards.adoc,Coherence Grafana Dashboards>> page.
+
 There are two ways to obtain the dashboards:
 
-* Clone the Coherence Operator GitHub repo, checkout the branch or tag for the version you want to use and
-then obtain the dashboards from the `dashboards/` directory.
-
-* Download the `.tar.gz` dashboards package for the release you want to use.
+1 - Download the `.tar.gz` dashboards package for the release you want to use.
 
 [source,bash]
 ----
@@ -32,22 +29,14 @@ directory named `dashboards/` in the current working directory. This `dashboards
 the various Coherence dashboard files.
 
 
+2 - Clone the Coherence Operator GitHub repo, checkout the branch or tag for the version you want to use and
+then obtain the dashboards from the `dashboards/` directory.
+
+
 == Import the Dashboards into Grafana.
 
-This example shows you how to import the Grafana dashboards into your own Grafana instance.
-
-The latest Coherence dashboards can be downloaded from the https://github.com/oracle/coherence-operator/raw/gh-pages/dashboards/latest/coherence-dashboards.tar.gz[Coherence Operator GitHub repo]
-in a `.tar.gz` file.
-
-e.g.
-[source,bash]
-----
-curl -Lo coherence-dashboards.tar.gz https://github.com/oracle/coherence-operator/raw/gh-pages/dashboards/latest/coherence-dashboards.tar.gz
-tar -xvf coherence-dashboards.tar.gz
-----
-
-This will result in a directory named `dashboards` containing the different types of Coherence dashboards available.
-The Grafana dashboard `.json` files will be in the `dashboards/grafana/` subdirectory
+This section shows you how to import the Grafana dashboards into your own Grafana instance.
+Once you have obtained the dashboards using one of the methods above, the Grafana dashboard `.json` files will be in the `dashboards/grafana/` subdirectory
 
 [IMPORTANT]
 ====

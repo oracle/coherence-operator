@@ -6,11 +6,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Grafana Dashboards
+= Coherence Grafana Dashboards
 
 The Coherence Operator provides detailed Grafana dashboards to provide insight into your running Coherence Clusters.
 
-== Grafana Dashboards
+== Coherence Grafana Dashboards
 
 NOTE: Note: The Grafana dashboards require Coherence metrics, which is available only when using Coherence version 12.2.1.4.
 
