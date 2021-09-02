@@ -569,6 +569,29 @@ func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int
 	return pods, err
 }
 
+// WaitForPodsWithLabelAndField waits for at least the required number of pending Pods
+func WaitForPodsWithLabelAndField(ctx TestContext, namespace, labelSelector, fieldSelector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	var pods []corev1.Pod
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		pods, err = ListPodsWithLabelAndFieldSelector(ctx, namespace, labelSelector, fieldSelector)
+		if err != nil {
+			ctx.Logf("Waiting for %d Pods with label selector '%s' and field selector '%s' - failed due to %s", count, labelSelector, fieldSelector, err.Error())
+			return false, err
+		}
+
+		found := len(pods) >= count
+		if !found {
+			ctx.Logf("Waiting for %d Pods with label selector '%s' and field selector '%s' - found %d", count, labelSelector, fieldSelector, len(pods))
+			return found, nil
+		}
+
+		return found, nil
+	})
+
+	return pods, err
+}
+
 // ListCoherencePodsForDeployment lists the Pods that exist for a deployment - this is Pods with the label "coherenceDeployment=<deployment>"
 func ListCoherencePodsForDeployment(ctx TestContext, namespace, deployment string) ([]corev1.Pod, error) {
 	selector := fmt.Sprintf("%s=%s", coh.LabelCoherenceDeployment, deployment)
@@ -584,6 +607,18 @@ func ListCoherencePods(ctx TestContext, namespace string) ([]corev1.Pod, error) 
 // ListPodsWithLabelSelector lists the Coherence Cluster Pods that exist for a given label selector.
 func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]corev1.Pod, error) {
 	opts := metav1.ListOptions{LabelSelector: selector}
+
+	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, opts)
+	if err != nil {
+		return []corev1.Pod{}, err
+	}
+
+	return list.Items, nil
+}
+
+// ListPodsWithLabelAndFieldSelector lists the Coherence Cluster Pods that exist for a given label and field selectors.
+func ListPodsWithLabelAndFieldSelector(ctx TestContext, namespace, labelSelector, fieldSelector string) ([]corev1.Pod, error) {
+	opts := metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: fieldSelector}
 
 	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, opts)
 	if err != nil {
