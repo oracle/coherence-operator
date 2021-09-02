@@ -224,6 +224,11 @@ type CoherenceResourceSpec struct {
 	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	// +optional
 	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// ContainerSecurityContext is the SecurityContext that will be added to the Coherence container in each Pod
+	// in this deployment.
+	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+	// +optional
+	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// Share a single process namespace between all of the containers in a pod. When this is set containers will
 	// be able to view and signal processes from other containers in the same pod, and the first process in each
 	// container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set.
@@ -725,7 +730,8 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence)
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
-		VolumeMounts: vm,
+		SecurityContext: in.ContainerSecurityContext,
+		VolumeMounts:    vm,
 	}
 
 	if in.ImagePullPolicy != nil {
@@ -900,7 +906,8 @@ func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) cor
 			{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 			{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
 		},
-		VolumeMounts: vm,
+		SecurityContext: in.ContainerSecurityContext,
+		VolumeMounts:    vm,
 	}
 
 	// set the image pull policy if set for the deployment
