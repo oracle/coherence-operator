@@ -276,6 +276,31 @@ func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
+func TestCreateStatefulSetWithContainerSecurityContext(t *testing.T) {
+	ctx := corev1.SecurityContext{
+		Capabilities: &corev1.Capabilities{
+			Add: []corev1.Capability{"foo"},
+		},
+		RunAsUser:    pointer.Int64Ptr(1000),
+		RunAsNonRoot: boolPtr(true),
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		ContainerSecurityContext: &ctx,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	// Add the expected security context to both the utils init-container and the Coherence container
+	stsExpected.Spec.Template.Spec.InitContainers[0].SecurityContext = &ctx
+	stsExpected.Spec.Template.Spec.Containers[0].SecurityContext = &ctx
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
 func TestCreateStatefulSetWithShareProcessNamespaceFalse(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		ShareProcessNamespace: boolPtr(false),
