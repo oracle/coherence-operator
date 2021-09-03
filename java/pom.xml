@@ -31,7 +31,7 @@
     </modules>
 
     <properties>
-        <revision>3.2.2</revision>
+        <revision>3.2.3</revision>
         <operator.version>${project.version}</operator.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
