@@ -28,7 +28,10 @@
     <dependency>
       <groupId>com.oracle.coherence.ce</groupId>
       <artifactId>coherence</artifactId>
-      <version>${coherence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence-grpc-proxy</artifactId>
     </dependency>
     <dependency>
       <groupId>com.oracle.coherence.ce</groupId>

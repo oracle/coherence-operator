@@ -1,0 +1,14 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  ports:
+    - name: extend
+      port: 20000
+      service:
+        type: LoadBalancer
+    - name: grpc
+      port: 1408
+      service:
+        type: LoadBalancer
