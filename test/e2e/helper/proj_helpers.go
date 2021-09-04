@@ -30,12 +30,16 @@ import (
 const (
 	// TestNamespaceEnv is environment variable holding the name of the test k8s namespace.
 	TestNamespaceEnv = "OPERATOR_NAMESPACE"
+	// TestClientNamespaceEnv is environment variable holding the name of the client test k8s namespace.
+	TestClientNamespaceEnv = "OPERATOR_NAMESPACE_CLIENT"
 	// PrometheusNamespaceEnv is environment variable holding the name of the Prometheus k8s namespace.
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
 	// OperatorImageEnv is environment variable holding the name of the Operator image.
 	OperatorImageEnv = "OPERATOR_IMAGE"
 	// UtilsImageEnv is environment variable holding the name of the Operator utils image.
 	UtilsImageEnv = "UTILS_IMAGE"
+	// ClientImageEnv is environment variable holding the name of the client test image.
+	ClientImageEnv = "TEST_APPLICATION_IMAGE_CLIENT"
 	// CohCompatibilityImageEnv is environment variable holding the name of the compatibility test image.
 	CohCompatibilityImageEnv = "TEST_COMPATIBILITY_IMAGE"
 	// TestSslSecretEnv is environment variable holding the name of the SSL certs secret.
@@ -45,7 +49,8 @@ const (
 	// CoherenceVersionEnv is environment variable holding the Coherence version.
 	CoherenceVersionEnv = "COHERENCE_VERSION"
 
-	defaultNamespace = "operator-test"
+	defaultNamespace       = "operator-test"
+	defaultClientNamespace = "operator-test-client"
 
 	buildDir      = "build"
 	outDir        = buildDir + string(os.PathSeparator) + "_output"
@@ -59,6 +64,7 @@ func EnsureTestEnvVars() {
 	ensureEnvVar("TEST_IMAGE_PULL_POLICY", "IfNotPresent")
 
 	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-test-compatibility:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_CLIENT", "ghcr.io/oracle/operator-test-client:1.0.0")
 	ensureEnvVar("TEST_APPLICATION_IMAGE", "ghcr.io/oracle/operator-test:1.0.0")
 	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "ghcr.io/oracle/operator-test-helidon:1.0.0")
 	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "ghcr.io/oracle/operator-test-spring:1.0.0")
@@ -82,6 +88,11 @@ func GetUtilsImage() string {
 	return os.Getenv(UtilsImageEnv)
 }
 
+// GetClientImage returns the name of the client test image
+func GetClientImage() string {
+	return os.Getenv(ClientImageEnv)
+}
+
 // GetCoherenceCompatibilityImage returns the name of the compatibility test image.
 func GetCoherenceCompatibilityImage() string {
 	return os.Getenv(CohCompatibilityImageEnv)
@@ -92,6 +103,15 @@ func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)
 	if ns == "" {
 		ns = defaultNamespace
+	}
+	return ns
+}
+
+// GetTestClientNamespace returns the name of the client test namespace.
+func GetTestClientNamespace() string {
+	ns := os.Getenv(TestClientNamespaceEnv)
+	if ns == "" {
+		ns = defaultClientNamespace
 	}
 	return ns
 }

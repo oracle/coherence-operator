@@ -460,6 +460,33 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resour
 	return Resources{Items: res}, nil
 }
 
+// FindPortServiceNames returns a map of the port names to the names of the Service used to expose those ports.
+func (in *CoherenceResourceSpec) FindPortServiceNames(deployment *Coherence) map[string]string {
+	m := make(map[string]string)
+	if in != nil {
+		for _, port := range in.Ports {
+			if s, found := port.GetServiceName(deployment); found {
+				m[port.Name] = s
+			}
+		}
+	}
+	return m
+}
+
+// FindPortServiceName returns the name of the Service used to expose a named port and a bool indicating
+// whether the named port has a Service.
+func (in *CoherenceResourceSpec) FindPortServiceName(name string, deployment *Coherence) (string, bool) {
+	if in == nil {
+		return "", false
+	}
+	for _, port := range in.Ports {
+		if port.Name == name {
+			return port.GetServiceName(deployment)
+		}
+	}
+	return "", false
+}
+
 // CreateServicesForPort creates the Services for each port (and optionally ServiceMonitors)
 func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []Resource {
 	var resources []Resource

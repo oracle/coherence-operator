@@ -64,6 +64,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -85,6 +86,7 @@ GPG_PASSPHRASE :=
 # ----------------------------------------------------------------------------------------------------------------------
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
 TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
+TEST_APPLICATION_IMAGE_CLIENT      := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
 TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
 TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test-spring:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat:1.0.0
@@ -141,6 +143,8 @@ endif
 
 # default as in test/e2e/helper/proj_helpers.go
 OPERATOR_NAMESPACE ?= operator-test
+# the test client namespace
+OPERATOR_NAMESPACE_CLIENT ?= operator-test-client
 # the optional namespaces the operator should watch
 WATCH_NAMESPACE ?=
 # flag indicating whether the test namespace should be reset (deleted and recreated) before tests
@@ -273,6 +277,17 @@ GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 ELASTIC_VERSION ?= 7.6.2
 KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 
+# ----------------------------------------------------------------------------------------------------------------------
+# MetalLB load balancer settings
+# ----------------------------------------------------------------------------------------------------------------------
+METALLB_VERSION ?= v0.10.2
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Istio settings
+# ----------------------------------------------------------------------------------------------------------------------
+# The version of Istio to install, leave empty for the latest
+ISTIO_VERSION ?=
+
 # ======================================================================================================================
 # Makefile targets start here
 # ======================================================================================================================
@@ -322,8 +337,8 @@ clean: ## Cleans the build
 	-rm -rf bin
 	-rm -rf bundle
 	rm pkg/data/zz_generated_*.go || true
-	./mvnw $(USE_MAVEN_SETTINGS) -f java clean $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -f examples clean $(MAVEN_OPTIONS)
+	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
+	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Builds the Operator
@@ -379,6 +394,25 @@ build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator util
 build-operator-images: $(BUILD_TARGETS)/build-operator build-utils ## Build all operator images
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator Test images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-test-images
+build-test-images: build-mvn build-client-image ## Build all of the test images
+	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
+	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
+	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
+	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
+	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
+
+.PHONY: build-client-image
+build-client-image: ## Build the test client image
+	./mvnw -B -f java/operator-test-client package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT) $(MAVEN_BUILD_OPTS)
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
@@ -421,7 +455,7 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn: ## Build the Java artefacts
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java package -DskipTests -Drevision=$(MVN_VERSION) $(MAVEN_OPTIONS)
+	./mvnw -B -f java package -DskipTests $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build Java client
@@ -534,7 +568,7 @@ $(BUILD_OUTPUT)/certs:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review and Checkstyle test
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java validate -DskipTests -P checkstyle $(MAVEN_OPTIONS)
+	./mvnw -B -f java validate -DskipTests -P checkstyle $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
@@ -744,7 +778,7 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: $(BUILD_OUTPUT)/certs build-mvn  ## Run the Java artefact tests
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java verify -Drevision=$(MVN_VERSION) -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_OPTIONS)
+	./mvnw -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_BUILD_OPTS)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -763,6 +797,7 @@ test-all: test-mvn test-operator  ## Run all unit tests
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-local-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
@@ -815,6 +850,7 @@ run-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-e2e-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
@@ -822,6 +858,30 @@ run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IM
 run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional tests using an ALREADY DEPLOYED Operator
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Run the end-to-end Coherence client tests.
+# ----------------------------------------------------------------------------------------------------------------------
+e2e-client-test: export CGO_ENABLED = 0
+e2e-client-test: export CLIENT_CLASSPATH := $(CURRDIR)/java/operator-test-client/target/operator-test-client-$(MVN_VERSION).jar:$(CURRDIR)/java/operator-test-client/target/lib/*
+e2e-client-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+e2e-client-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
+e2e-client-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-client-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
+e2e-client-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+e2e-client-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+e2e-client-test: export COH_SKIP_SITE := true
+e2e-client-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+e2e-client-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+e2e-client-test: export VERSION := $(VERSION)
+e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
+e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+e2e-client-test: export UTILS_IMAGE := $(UTILS_IMAGE)
+e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -930,6 +990,7 @@ run-elastic-test: gotestsum
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+compatibility-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
@@ -982,6 +1043,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+run-certification: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
@@ -1186,7 +1248,8 @@ endif
 create-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
 create-namespace: ## Create the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	kubectl get ns operator-test -o name > /dev/null 2>&1 || kubectl create namespace operator-test
+	kubectl get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE)
+	kubectl get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE_CLIENT)
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1226,7 +1289,8 @@ endif
 delete-namespace: clean-namespace  ## Delete the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
-	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE)" || true
+	kubectl delete namespace $(OPERATOR_NAMESPACE_CLIENT) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE_CLIENT)" || true
 endif
 	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
@@ -1301,6 +1365,7 @@ kind-stop:   ## Stop and delete the KinD cluster named "operator"
 .PHONY: kind-load
 kind-load: kind-load-operator  ## Load all images into the KinD cluster
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
+	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_CLIENT) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_HELIDON) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
@@ -1407,21 +1472,21 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: mvn-deploy
 mvn-deploy: java-client
-	./mvnw $(USE_MAVEN_SETTINGS) $(MAVEN_OPTIONS) -s ./.mvn/settings.xml -B -f java clean deploy -DskipTests -Drevision=$(MVN_VERSION) -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
+	./mvnw $(MAVEN_BUILD_OPTS) -s ./.mvn/settings.xml -B -f java clean deploy -DskipTests -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f ./examples package -DskipTests -P docker $(MAVEN_OPTIONS)
+	./mvnw -B -f ./examples package -DskipTests -P docker $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f ./examples verify $(MAVEN_OPTIONS)
+	./mvnw -B -f ./examples verify $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
@@ -1489,26 +1554,12 @@ else
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Test images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-test-images
-build-test-images: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Drevision=$(MVN_VERSION) -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Drevision=$(MVN_VERSION) -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_OPTIONS)
-	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
-	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
-	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
-	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
-	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
 push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE)
+	docker push $(TEST_APPLICATION_IMAGE_CLIENT)
 	docker push $(TEST_APPLICATION_IMAGE_HELIDON)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT)
@@ -1519,12 +1570,12 @@ push-test-images:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: build-mvn
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility package -DskipTests -Drevision=$(MVN_VERSION) \
+	./mvnw -B -f java/operator-compatibility package -DskipTests \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java/operator-compatibility exec:exec -Drevision=$(MVN_VERSION) \
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-compatibility exec:exec \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_OPTIONS)
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -1669,6 +1720,59 @@ port-forward-es: ## Run a port-forward to Elasticsearch on http://127.0.0.1:9200
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Install MetalLB
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-metallb
+install-metallb: ## Install MetalLB to allow services of type LoadBalancer
+	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml
+	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml
+	kubectl apply -f hack/metallb-config.yaml
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall MetalLB
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-metallb
+uninstall-metallb: ## Uninstall MetalLB
+	kubectl delete -f hack/metallb-config.yaml || true
+	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml || true
+	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml || true
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the latest Istio version
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-istio
+install-istio: get-istio ## Install the latest version of Istio into k8s
+	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
+	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
+	sleep 10
+	$(eval EGRESS_POD := $(shell kubectl -n istio-system get pod -l app=istio-egressgateway -o name))
+	kubectl -n istio-system wait --for condition=ready --timeout 300s $(EGRESS_POD)
+	$(eval INGRESS_POD := $(shell kubectl -n istio-system get pod -l app=istio-ingressgateway -o name))
+	kubectl -n istio-system wait --for condition=ready --timeout 300s $(INGRESS_POD)
+	$(eval ISTIOD_POD := $(shell kubectl -n istio-system get pod -l app=istiod -o name))
+	kubectl -n istio-system wait --for condition=ready --timeout 300s $(ISTIOD_POD)
+	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall Istio
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-istio
+uninstall-istio: get-istio ## Uninstall Istio from k8s
+	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
+	$(ISTIO_HOME)/bin/istioctl x uninstall --purge -y
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Get the latest Istio version
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-istio
+get-istio:
+	./hack/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
+	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
+	@echo "Istio installed at $(ISTIO_HOME)"
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Obtain the golangci-lint binary
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
@@ -1687,8 +1791,8 @@ version:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
 docs:
-	./mvnw $(USE_MAVEN_SETTINGS) -B -f java install -P docs -pl docs -DskipTests \
-		-Doperator.version=$(VERSION) -Drevision=$(MVN_VERSION) \
+	./mvnw -B -f java install -P docs -pl docs -DskipTests \
+		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
 		-Doperator.utils.image=$(UTILS_IMAGE) \
 		$(MAVEN_OPTIONS)

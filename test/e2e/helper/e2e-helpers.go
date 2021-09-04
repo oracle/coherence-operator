@@ -372,6 +372,29 @@ func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval,
 	return ep, err
 }
 
+// WaitForJobCompletion waits for a specified k8s Job to complete.
+func WaitForJobCompletion(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		p, err := k8s.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		if len(p.Status.ContainerStatuses) > 0 {
+			ready := true
+			for _, s := range p.Status.ContainerStatuses {
+				if s.State.Terminated == nil || s.State.Terminated.ExitCode != 0 {
+					ready = false
+					break
+				}
+			}
+			return ready, nil
+		}
+		return false, nil
+	})
+
+	return err
+}
+
 // DeploymentStateCondition is a function that takes a deployment and determines whether it meets a condition
 type DeploymentStateCondition interface {
 	Test(*coh.Coherence) bool
@@ -643,7 +666,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 		return err
 	}
 
-	// Delete all of the Coherence resources - patching out any finalizer
+	// Delete all the Coherence resources - patching out any finalizer
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
 	for _, r := range list.Items {
 		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", r.Name, r.Namespace)
@@ -900,6 +923,16 @@ func DumpState(ctx TestContext, namespace, dir string) {
 	dumpRbacRoles(namespace, dir, ctx)
 	dumpRbacRoleBindings(namespace, dir, ctx)
 	dumpServiceAccounts(namespace, dir, ctx)
+	dumpClientNamespace(dir, ctx)
+}
+
+func dumpClientNamespace(dir string, ctx TestContext) {
+	namespace := GetTestClientNamespace()
+	_, err := ctx.KubeClient.CoreV1().Namespaces().Get(ctx.Context, namespace, metav1.GetOptions{})
+	if err == nil {
+		dumpPods(namespace, dir, ctx)
+		dumpJobs(namespace, dir, ctx)
+	}
 }
 
 func dumpEvents(namespace, dir string, ctx TestContext) {
@@ -1127,6 +1160,62 @@ func dumpServices(namespace, dir string, ctx TestContext) {
 		}
 	} else {
 		_, _ = fmt.Fprintf(listFile, "No Service resources found in namespace %s", namespace)
+	}
+}
+
+func dumpJobs(namespace, dir string, ctx TestContext) {
+	const message = "Could not dump Jobs for namespace %s due to %s"
+
+	list, err := ctx.KubeClient.BatchV1().Jobs(namespace).List(ctx.Context, metav1.ListOptions{})
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	logsDir, err := EnsureLogsDir(dir)
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	listFile, err := os.Create(logsDir + string(os.PathSeparator) + "jobs-list.txt")
+	if err != nil {
+		ctx.Logf(message, namespace, err.Error())
+		return
+	}
+
+	fn := func() { _ = listFile.Close() }
+	defer fn()
+
+	if len(list.Items) > 0 {
+		for _, item := range list.Items {
+			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+
+			d, err := json.MarshalIndent(item, "", "    ")
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+
+			file, err := os.Create(logsDir + string(os.PathSeparator) + "Job-" + item.GetName() + ".json")
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+
+			_, err = fmt.Fprint(file, string(d))
+			_ = file.Close()
+			if err != nil {
+				ctx.Logf(message, namespace, err.Error())
+				return
+			}
+		}
+	} else {
+		_, _ = fmt.Fprintf(listFile, "No Job resources found in namespace %s", namespace)
 	}
 }
 
@@ -1376,7 +1465,7 @@ func EnsureLogsDir(subDir string) (string, error) {
 	return dir, err
 }
 
-// GetLastPodReadyTime returns the latest ready time from all of the specified Pods for a given deployment
+// GetLastPodReadyTime returns the latest ready time from all the specified Pods for a given deployment
 func GetLastPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Time{})
 	for _, p := range pods {
@@ -1391,7 +1480,7 @@ func GetLastPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	return t
 }
 
-// GetFirstPodReadyTime returns the first ready time from all of the specified Pods for a given deployment
+// GetFirstPodReadyTime returns the first ready time from all the specified Pods for a given deployment
 func GetFirstPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Now())
 	for _, p := range pods {
@@ -1406,7 +1495,7 @@ func GetFirstPodReadyTime(pods []corev1.Pod, deployment string) metav1.Time {
 	return t
 }
 
-// GetFirstPodScheduledTime returns the earliest scheduled time from all of the specified Pods for a given deployment
+// GetFirstPodScheduledTime returns the earliest scheduled time from all the specified Pods for a given deployment
 func GetFirstPodScheduledTime(pods []corev1.Pod, deployment string) metav1.Time {
 	t := metav1.NewTime(time.Now())
 	for _, p := range pods {
@@ -1421,7 +1510,17 @@ func GetFirstPodScheduledTime(pods []corev1.Pod, deployment string) metav1.Time 
 	return t
 }
 
-// AssertDeployments tests that a cluster can be created using the specified yaml.
+// AssertSingleDeployment tests that a cluster can be created using the specified yaml.
+func AssertSingleDeployment(ctx TestContext, t *testing.T, yamlFile string) (coh.Coherence, error) {
+	c, _ := AssertDeployments(ctx, t, yamlFile)
+	for _, v := range c {
+		return v, nil
+	}
+	// should not actually get here
+	return coh.Coherence{}, fmt.Errorf("there were no Coherence resources found")
+}
+
+// AssertDeployments tests that one or more clusters can be created using the specified yaml.
 func AssertDeployments(ctx TestContext, t *testing.T, yamlFile string) (map[string]coh.Coherence, []corev1.Pod) {
 	return AssertDeploymentsInNamespace(ctx, t, yamlFile, GetTestNamespace())
 }
@@ -1473,7 +1572,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
 	}
 
-	// Assert that the finalizer has been added to all of the deployments
+	// Assert that the finalizer has been added to all the deployments
 	for _, d := range deployments {
 		ctx.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
@@ -1483,7 +1582,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		g.Expect(actual.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
 	}
 
-	// Get all of the Pods in the cluster
+	// Get all the Pods in the cluster
 	ctx.Logf("Getting all Pods for cluster '%s'", clusterName)
 	pods, err := ListCoherencePodsForCluster(ctx, namespace, clusterName)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -1523,7 +1622,7 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		}
 	}
 
-	// Verify that the WKA service endpoints list for each deployment has all of the required the Pod IP addresses.
+	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
 	for _, d := range deployments {
 		serviceName := d.GetWkaServiceName()
 		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
