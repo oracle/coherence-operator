@@ -133,7 +133,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 	switch {
 	case deployment == nil || deployment.GetReplicas() == 0:
-		// The Coherence resource does not exist or it exists and is scaling down to zero replicas
+		// The Coherence resource does not exist, or it exists and is scaling down to zero replicas
 		if stsExists {
 			// The StatefulSet does exist though, so it needs to be deleted.
 			if deployment != nil {
