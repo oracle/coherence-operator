@@ -192,7 +192,7 @@ func AssertRBAC(allowNode bool) error {
 	for _, cr := range crList.Items {
 		if strings.HasPrefix(strings.ToLower(cr.Name), "coherence-operator") {
 			if !allowNode || cr.Name != "coherence-operator-node-viewer" {
-				return fmt.Errorf("no Coherence ClusterRole shoudl exist but found %s", cr.Name)
+				return fmt.Errorf("no Coherence ClusterRole should exist but found %s", cr.Name)
 			}
 		}
 	}
@@ -205,7 +205,7 @@ func AssertRBAC(allowNode bool) error {
 	for _, crb := range crbList.Items {
 		if strings.HasPrefix(strings.ToLower(crb.Name), "coherence-operator") {
 			if !allowNode || crb.Name != "coherence-operator-node-viewer" {
-				return fmt.Errorf("no Coherence ClusterRoleBinding shoudl exist but found %s", crb.Name)
+				return fmt.Errorf("no Coherence ClusterRoleBinding should exist but found %s", crb.Name)
 			}
 		}
 	}
@@ -297,7 +297,7 @@ func RemoveWebHook() error {
 	return nil
 }
 
-// Remove all of the RBAC rules that the Operator install creates to
+// RemoveRBAC removes all the RBAC rules that the Operator install creates to
 // ensure that nothing is left from a previous test.
 func RemoveRBAC() error {
 	var err error

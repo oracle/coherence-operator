@@ -17,6 +17,7 @@ on:
   pull_request:
     types:
       - opened
+      - synchronize
       - committed
     branches-ignore:
     - gh-pages
