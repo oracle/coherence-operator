@@ -45,6 +45,22 @@ Hints and tips to troubleshoot common issues.
 ====
 
 
+== Examples
+
+[PILLARS]
+====
+
+[CARD]
+.Guides & Examples
+[icon=explore,link=docs/examples/010_overview.adoc]
+--
+There are a number of examples of using the Coherence Operator and different Coherence features in Kubernetes.
+--
+
+
+====
+
+
 == In Depth
 
 [PILLARS]
