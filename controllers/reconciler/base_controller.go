@@ -244,7 +244,7 @@ func (in *CommonReconciler) MaybeFindStatefulSet(ctx context.Context, namespace,
 	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, sts)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
-		return sts, false, nil
+		return nil, false, nil
 	case err != nil:
 		return sts, false, err
 	default:
