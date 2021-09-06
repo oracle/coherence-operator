@@ -137,7 +137,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		if stsExists {
 			// The StatefulSet does exist though, so it needs to be deleted.
 			if deployment != nil {
-				// If we get here we must be scaling down to zero as the Coherence resource exists
+				// If we get here, we must be scaling down to zero as the Coherence resource exists
 				// If the Coherence resource did not exist then service suspension already happened
 				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
