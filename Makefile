@@ -209,7 +209,7 @@ TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 # ----------------------------------------------------------------------------------------------------------------------
 override BUILD_OUTPUT        := $(CURRDIR)/build/_output
 override BUILD_ASSETS        := pkg/data/assets
-override BUILD_BIN           := ./bin
+override BUILD_BIN           := $(CURRDIR)/bin
 override BUILD_DEPLOY        := $(BUILD_OUTPUT)/config
 override BUILD_HELM          := $(BUILD_OUTPUT)/helm-charts
 override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
@@ -321,6 +321,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_MANIFESTS)
 	@mkdir -p $(BUILD_TARGETS)
 	@mkdir -p $(TEST_LOGS_DIR)
+	@mkdir -p $(TOOLS_BIN)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -333,12 +334,20 @@ $(BUILD_PROPS):
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean
 clean: ## Cleans the build 
-	-rm -rf build/_output
-	-rm -rf bin
+	-rm -rf $(BUILD_OUTPUT)
+	-rm -rf $(BUILD_BIN)
 	-rm -rf bundle
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
 	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Clean-up all of the locally downloaded build tools
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: clean-tools
+clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool version)
+	-rm -rf $(TOOLS_BIN)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Builds the Operator
@@ -469,7 +478,7 @@ java-client: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
 
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
@@ -509,11 +518,11 @@ manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition a
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(GOBIN)/kustomize $(API_GO_FILES) $(GOBIN)/controller-gen
-	$(GOBIN)/controller-gen "crd:trivialVersions=true,crdVersions={v1}" \
+config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) controller-gen
+	$(CONTROLLER_GEN) "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
-	$(GOBIN)/kustomize build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
+	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -537,8 +546,8 @@ generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration g
 $(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
-api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(GOBIN)/controller-gen
-	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
+api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) controller-gen
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate API docs
@@ -695,10 +704,10 @@ stop: ## kill any locally running operator process
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_PROPS) ensure-sdk $(GOBIN)/kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
+bundle: $(BUILD_PROPS) ensure-sdk kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
-	cd config/manager && $(GOBIN)/kustomize edit set image controller=$(OPERATOR_IMAGE)
-	$(GOBIN)/kustomize build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.22
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=community --optional-values=image-path=bundle.Dockerfile
@@ -1130,7 +1139,7 @@ cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
 install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl create -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl create -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -1140,7 +1149,7 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1149,35 +1158,35 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Operator Pod to be ready
 
 .PHONY: deploy
-deploy: prepare-deploy create-namespace $(GOBIN)/kustomize   ## Deploy the Coherence Operator
+deploy: prepare-deploy create-namespace kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
 
 .PHONY: just-deploy
 just-deploy:
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(GOBIN)/kustomize
+prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: deploy-debug
-deploy-debug: prepare-deploy-debug create-namespace $(GOBIN)/kustomize   ## Deploy the Coherence Operator running with Delve
+deploy-debug: prepare-deploy-debug create-namespace kustomize   ## Deploy the Coherence Operator running with Delve
 ifneq (,$(WATCH_NAMESPACE))
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
 
 
 .PHONY: prepare-deploy
-prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug $(GOBIN)/kustomize
+prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE)-debug,$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
@@ -1196,19 +1205,19 @@ define prepare_deploy
 	-rm -r $(BUILD_DEPLOY)
 	mkdir -p $(BUILD_DEPLOY)
 	cp -R config $(BUILD_OUTPUT)
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
-	cd $(BUILD_DEPLOY)/manager && $(GOBIN)/kustomize edit set image controller=$(1)
-	cd $(BUILD_DEPLOY)/default && $(GOBIN)/kustomize edit set namespace $(2)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
+	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
@@ -1223,7 +1232,7 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
-$(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
+$(BUILD_MANIFESTS_PKG): kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)
 	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
@@ -1233,7 +1242,7 @@ $(BUILD_MANIFESTS_PKG): $(GOBIN)/kustomize
 	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
 	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 ifeq (Darwin, $(UNAME_S))
 	sed -i '' -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 else
@@ -1394,63 +1403,27 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
 # ----------------------------------------------------------------------------------------------------------------------
-$(GOBIN)/controller-gen:
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
+.PHONY: controller-gen
+CONTROLLER_GEN = $(TOOLS_BIN)/controller-gen
+controller-gen: ## Download controller-gen locally if necessary.
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
-#KUSTOMIZE = $(CURRDIR)/bin/kustomize
-$(GOBIN)/kustomize:
-	@{ \
-	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.10.0 ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
-	}
-	KUSTOMIZE=$(GOBIN)/kustomize
+.PHONY: kustomize
+KUSTOMIZE = $(TOOLS_BIN)/kustomize
+kustomize: ## Download kustomize locally if necessary.
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: gotestsum
-gotestsum:
-ifeq (, $(shell which gotestsum))
-	@{ \
-	set -e ;\
-	GOTESTSUM_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$GOTESTSUM_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get gotest.tools/gotestsum@v0.5.2 ;\
-	rm -rf $$GOTESTSUM_GEN_TMP_DIR ;\
-	}
-GOTESTSUM=$(GOBIN)/gotestsum
-else
-GOTESTSUM=$(shell which gotestsum)
-endif
+GOTESTSUM = $(TOOLS_BIN)/gotestsum
+gotestsum: ## Download gotestsum locally if necessary.
+	$(call go-get-tool,$(GOTESTSUM),gotest.tools/gotestsum@v0.5.2)
 
-# ----------------------------------------------------------------------------------------------------------------------
-# find or download yq
-# ----------------------------------------------------------------------------------------------------------------------
-$(GOBIN)/yq:
-	@{ \
-	set -e ;\
-	YQ_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$YQ_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get github.com/mikefarah/yq/v3 ;\
-	rm -rf $$YQ_GEN_TMP_DIR ;\
-	}
-	YQ=$(GOBIN)/yq
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -1460,8 +1433,8 @@ set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
 go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+echo "Downloading $(2) into $(TOOLS_BIN)" ;\
+GOBIN=$(TOOLS_BIN) go get $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
@@ -1961,7 +1934,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(GOBIN)/kustomize
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(KUSTOMIZE)
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
@@ -1970,7 +1943,7 @@ $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_
 	chmod +x $(BUILD_OUTPUT)/java-client/java/generate.sh
 	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile
 	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:v1.0.3 $(BUILD_OUTPUT)/java-client/java
-	$(GOBIN)/kustomize build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
 	docker run --rm --network host \
 	  -v "$(LOCAL_MANIFEST_FILE)":"$(LOCAL_MANIFEST_FILE)" \
 	  -v /var/run/docker.sock:/var/run/docker.sock \

@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.6.1
   creationTimestamp: null
   name: coherence.coherence.oracle.com
 spec:
@@ -5358,6 +5358,7 @@ spec:
                               be referred to by services.
                             type: string
                           protocol:
+                            default: TCP
                             description: Protocol for port. Must be UDP, TCP, or SCTP.
                               Defaults to "TCP".
                             type: string
@@ -7832,6 +7833,7 @@ spec:
                       format: int32
                       type: integer
                     protocol:
+                      default: TCP
                       description: Protocol for container port. Must be UDP or TCP.
                         Defaults to "TCP"
                       type: string
@@ -9507,6 +9509,7 @@ spec:
                               be referred to by services.
                             type: string
                           protocol:
+                            default: TCP
                             description: Protocol for port. Must be UDP, TCP, or SCTP.
                               Defaults to "TCP".
                             type: string
