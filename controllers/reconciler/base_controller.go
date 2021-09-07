@@ -159,7 +159,13 @@ func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request 
 		err = nil
 	default:
 		updated := deployment.DeepCopy()
-		if sts != nil && updated.Status.Update(deployment, &sts.Status) {
+		var status *appsv1.StatefulSetStatus
+		if sts == nil {
+			status = nil
+		} else {
+			status =  &sts.Status
+		}
+		if updated.Status.Update(deployment, status) {
 			err = in.GetClient().Status().Update(ctx, updated)
 		}
 	}

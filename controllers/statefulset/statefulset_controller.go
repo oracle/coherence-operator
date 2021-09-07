@@ -157,7 +157,8 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
-			return reconcile.Result{}, nil
+			err = in.UpdateDeploymentStatus(ctx, request)
+			return reconcile.Result{}, err
 		}
 	case !stsExists:
 		// StatefulSet does not exist but deployment does so create the StatefulSet (checking any start quorum)

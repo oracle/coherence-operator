@@ -204,14 +204,15 @@ type CoherenceResourceStatus struct {
 	// Replicas is the desired number of members in the Coherence deployment
 	// represented by the Coherence resource.
 	// +optional
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas"`
 	// CurrentReplicas is the current number of members in the Coherence deployment
 	// represented by the Coherence resource.
-	CurrentReplicas int32 `json:"currentReplicas,omitempty"`
-	// ReadyReplicas is the number of number of members in the Coherence deployment
+	// +optional
+	CurrentReplicas int32 `json:"currentReplicas"`
+	// ReadyReplicas is the number of members in the Coherence deployment
 	// represented by the Coherence resource that are in the ready state.
 	// +optional
-	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
+	ReadyReplicas int32 `json:"readyReplicas"`
 	// The effective role name for this deployment.
 	// This will come from the Spec.Role field if set otherwise the deployment name
 	// will be used for the role name
