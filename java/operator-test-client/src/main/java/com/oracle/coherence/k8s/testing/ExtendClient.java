@@ -9,8 +9,22 @@ package com.oracle.coherence.k8s.testing;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
+/**
+ * A simple Coherence Extend client.
+ */
 public class ExtendClient {
 
+    /**
+     * Private constructor for utility class.
+     */
+    private ExtendClient() {
+    }
+
+    /**
+     * Run the Extend client.
+     *
+     * @param args  the program arguments.
+     */
     public static void main(String[] args) {
         try {
             System.out.println("Getting cache 'test' from Extend client session");
