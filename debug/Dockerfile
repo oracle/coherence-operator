@@ -3,7 +3,8 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
-FROM operator-debug:latest
+ARG BASE_IMAGE=ghcr.io/oracle/coherence-operator:delve
+FROM $BASE_IMAGE
 
 ARG target
 ARG version

@@ -8,9 +8,6 @@ FROM golang:1.16
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
-COPY debug/debug.sh .
-
 RUN go get github.com/go-delve/delve/cmd/dlv
-RUN chmod +x debug.sh
 
 ENTRYPOINT ["dlv"]

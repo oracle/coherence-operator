@@ -72,6 +72,8 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
+OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
+OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
 # The Operator images to push
 OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
@@ -374,13 +376,17 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
 	touch $(BUILD_TARGETS)/build-operator
 
 .PHONY: build-operator-debug
-build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug
+build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug ## Build the Coherence Operator image with the Delve debugger
 	docker build --no-cache --build-arg version=$(VERSION) \
+		--build-arg BASE_IMAGE=$(OPERATOR_IMAGE_DELVE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg utils_image=$(UTILS_IMAGE) \
 		--build-arg target=amd64 \
 		-f debug/Dockerfile \
-		. -t $(OPERATOR_IMAGE)-debug
+		. -t $(OPERATOR_IMAGE_DEBUG)
+
+build-delve-image: ## Build the Coherence Operator Delve debugger base image
+	docker build -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
 
 $(BUILD_BIN)/linux/amd64/manager-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/manager-debug main.go
@@ -1183,11 +1189,31 @@ endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
+	@echo ""
+	@echo "Deployed a debug enabled Operator."
+	@echo ""
+	@echo "To allow the IDE to connect a remote debugger run the following command to forward port 2345"
+	@echo ""
+	@echo "make port-forward-debug"
+	@echo ""
+	@echo "To see tail the Operator logs during debugging you can run:"
+	@echo ""
+	@echo "make tail-logs"
+	@echo ""
 
 
-.PHONY: prepare-deploy
+.PHONY: port-forward-debug
+port-forward-debug: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+port-forward-debug:  ## Run a port-forward process to forward localhost:2345 to port 2345 in the Operator Pod
+	@echo "Starting port-forward to the Operator Pod on port 2345 - DO NOT stop this process until debugging is finished!"
+	@echo "Connect your IDE debugger to localhost:2345 (which is the default remote debug setting in IDEs like Goland)"
+	@echo "If your IDE immediately disconnects it may be that the Operator Pod was not yet started, so try again."
+	@echo ""
+	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(POD) 2345:2345 || true
+
+.PHONY: prepare-deploy-debug
 prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE)-debug,$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
