@@ -8,13 +8,26 @@ package com.oracle.coherence.k8s.testing;
 
 import com.oracle.coherence.client.GrpcSessionConfiguration;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 
+/**
+ * A simple Coherence gRPC client.
+ */
 public class GrpcClient {
 
+    /**
+     * Private constructor for utility class.
+     */
+    private GrpcClient() {
+    }
+
+    /**
+     * Run the gRPC client.
+     *
+     * @param args  the program arguments.
+     */
     public static void main(String[] args) {
         try {
             SessionConfiguration config = GrpcSessionConfiguration.builder()
