@@ -14,14 +14,7 @@ on:
   push:
     branches-ignore:
     - gh-pages
-  pull_request:
-    types:
-      - opened
-      - committed
-    branches-ignore:
-    - gh-pages
-    - 1.0.0
-    - 2.x
+
 
 env:
   MAVEN_USER: ${{ secrets.MAVEN_USER }}

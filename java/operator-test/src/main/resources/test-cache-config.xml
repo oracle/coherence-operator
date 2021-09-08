@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+  ~ Copyright (c) 2019, 2021 Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -49,8 +49,8 @@
       <acceptor-config>
         <tcp-acceptor>
           <local-address>
-            <address system-property="coherence.extend.address"/>
-            <port system-property="coherence.extend.port"/>
+            <address system-property="coherence.extend.address">0.0.0.0</address>
+            <port system-property="coherence.extend.port">20000</port>
           </local-address>
         </tcp-acceptor>
       </acceptor-config>

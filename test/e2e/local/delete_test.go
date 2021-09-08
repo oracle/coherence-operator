@@ -8,8 +8,11 @@ package local
 
 import (
 	"context"
+	"fmt"
 	. "github.com/onsi/gomega"
+	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 	"testing"
 	"time"
@@ -75,3 +78,32 @@ func TestDeleteDeploymentWithZeroReadyPods(t *testing.T) {
 	err = helper.WaitForDelete(testContext, &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 }
+
+// Test that a deployment where one or more Pods in a Coherence resource cannot be created due to a lack of resources
+func TestDeleteDeploymentWithAllPendingPods(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	namespace := helper.GetTestNamespace()
+
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "deployment-no-resources.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = testContext.Client.Create(context.TODO(), &deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// wait for all pods to be in pending state
+	var fieldSelector = fmt.Sprintf("%s=%s", "status.phase", corev1.PodPending)
+	labelSelector := fmt.Sprintf("%s=%s", cohv1.LabelComponent, cohv1.LabelComponentCoherencePod)
+	_, err = helper.WaitForPodsWithLabelAndField(testContext, namespace, labelSelector, fieldSelector, int(deployment.GetReplicas()), time.Second * 10, time.Minute * 2)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Delete the Coherence deployment
+	err = testContext.Client.Delete(context.TODO(), &deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = helper.WaitForDelete(testContext, &deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+

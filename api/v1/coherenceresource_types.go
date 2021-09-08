@@ -118,6 +118,46 @@ func (in *Coherence) SetReplicas(replicas int32) {
 	}
 }
 
+// FindFullyQualifiedPortServiceNames returns a map of the exposed ports of this resource mapped to their Service's
+// fully qualified domain name.
+func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
+	if in == nil {
+		return make(map[string]string)
+	}
+	m := in.Spec.FindPortServiceNames(in)
+	for k, v := range m {
+		m[k] = v + "." + in.GetNamespace() + ".svc.cluster.local"
+	}
+	return m
+}
+
+// FindFullyQualifiedPortServiceName returns the fully qualified name of the Service used to expose a named port and a bool indicating
+// whether the named port has a Service.
+func (in *Coherence) FindFullyQualifiedPortServiceName(name string) (string, bool) {
+	n, found := in.FindPortServiceName(name)
+	if found {
+		n = n + "." + in.GetNamespace() + ".svc.cluster.local"
+	}
+	return n, found
+}
+
+// FindPortServiceNames returns a map of the port names for this resource mapped to their Service names.
+func (in *Coherence) FindPortServiceNames() map[string]string {
+	if in == nil {
+		return make(map[string]string)
+	}
+	return in.Spec.FindPortServiceNames(in)
+}
+
+// FindPortServiceName returns the name of the Service used to expose a named port and a bool indicating
+// whether the named port has a Service.
+func (in *Coherence) FindPortServiceName(name string) (string, bool) {
+	if in == nil {
+		return "", false
+	}
+	return in.Spec.FindPortServiceName(name, in)
+}
+
 // CreateCommonLabels creates the deployment's common label set.
 func (in *Coherence) CreateCommonLabels() map[string]string {
 	labels := make(map[string]string)

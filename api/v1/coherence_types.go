@@ -934,18 +934,28 @@ type NamedPortSpec struct {
 	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty"`
 }
 
-// CreateService creates the Kubernetes service to expose this port.
-func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
+// GetServiceName returns the name of the Service used to expose this port, or returns
+// empty string and false if there is no service for this port.
+func (in *NamedPortSpec) GetServiceName(deployment *Coherence) (string, bool) {
 	if in == nil || !in.IsEnabled() {
-		return nil
+		return "", false
 	}
-
 	var name string
 	if in.Service != nil && in.Service.Name != nil {
 		name = in.Service.GetName()
 	} else {
 		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
 	}
+	return name, true
+}
+
+// CreateService creates the Kubernetes service to expose this port.
+func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
+	if in == nil || !in.IsEnabled() {
+		return nil
+	}
+
+	name, _ := in.GetServiceName(deployment)
 
 	var portName string
 	if in.Service != nil && in.Service.PortName != nil {

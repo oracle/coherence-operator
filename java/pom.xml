@@ -28,6 +28,7 @@
         <module>operator-test</module>
         <module>operator-test-helidon</module>
         <module>operator-test-spring</module>
+        <module>operator-test-client</module>
     </modules>
 
     <properties>
@@ -39,7 +40,7 @@
         <maven.compiler.target>8</maven.compiler.target>
 
         <!--  The Coherence jar version (compile time dependency) -->
-        <coherence.version>21.06</coherence.version>
+        <coherence.version>21.06.1</coherence.version>
         <!-- The version of Coherence to use in the test images -->
         <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
         <coherence.test.version>${coherence.version}</coherence.test.version>
@@ -86,11 +87,12 @@
         <version.plugin.jib>3.1.1</version.plugin.jib>
         <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
         <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
-        <version.plugin.maven.dependency>3.1.1</version.plugin.maven.dependency>
+        <version.plugin.maven.dependency>3.2.0</version.plugin.maven.dependency>
         <version.plugin.maven.deploy>2.8.2</version.plugin.maven.deploy>
         <version.plugin.maven.exec>3.0.0</version.plugin.maven.exec>
         <version.plugin.maven.failsafe>3.0.0-M5</version.plugin.maven.failsafe>
         <version.plugin.maven.gpg>1.6</version.plugin.maven.gpg>
+        <version.plugin.maven.jar>3.2.0</version.plugin.maven.jar>
         <version.plugin.maven.license>2.0.0</version.plugin.maven.license>
         <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
         <version.plugin.maven.source>2.2.1</version.plugin.maven.source>
@@ -119,6 +121,16 @@
                 <groupId>com.oracle.coherence.ce</groupId>
                 <artifactId>coherence-cdi-server</artifactId>
                 <version>${coherence.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>com.oracle.coherence.ce</groupId>
+              <artifactId>coherence-java-client</artifactId>
+              <version>${coherence.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>com.oracle.coherence.ce</groupId>
+              <artifactId>coherence-grpc-proxy</artifactId>
+              <version>${coherence.version}</version>
             </dependency>
 
             <dependency>
@@ -310,6 +322,18 @@
                             <format>OCI</format>
                         </container>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <version>${version.plugin.maven.jar}</version>
+                </plugin>
+
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-dependency-plugin</artifactId>
+                  <version>${version.plugin.maven.dependency}</version>
                 </plugin>
 
                 <plugin>
