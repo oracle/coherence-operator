@@ -12007,9 +12007,9 @@ spec:
                   and its secondary resources."
                 type: string
               readyReplicas:
-                description: ReadyReplicas is the number of number of members in the
-                  Coherence deployment represented by the Coherence resource that
-                  are in the ready state.
+                description: ReadyReplicas is the number of members in the Coherence
+                  deployment represented by the Coherence resource that are in the
+                  ready state.
                 format: int32
                 type: integer
               replicas:
