@@ -123,7 +123,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		return result, nil
 	}
 
-	if deployment == nil {
+	if stsExists && deployment == nil {
 		// find the owning Coherence resource
 		if deployment, err = in.FindOwningCoherenceResource(ctx, stsCurrent); err != nil {
 			logger.Info("Finished reconciling StatefulSet. Error finding parent Coherence resource", "error", err.Error())
@@ -133,11 +133,11 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 	switch {
 	case deployment == nil || deployment.GetReplicas() == 0:
-		// The Coherence resource does not exist or it exists and is scaling down to zero replicas
+		// The Coherence resource does not exist, or it exists and is scaling down to zero replicas
 		if stsExists {
 			// The StatefulSet does exist though, so it needs to be deleted.
 			if deployment != nil {
-				// If we get here we must be scaling down to zero as the Coherence resource exists
+				// If we get here, we must be scaling down to zero as the Coherence resource exists
 				// If the Coherence resource did not exist then service suspension already happened
 				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
@@ -155,6 +155,10 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 			}
 			// delete the StatefulSet
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
+		} else {
+			// The StatefulSet and parent resource has been deleted so no more to do
+			err = in.UpdateDeploymentStatus(ctx, request)
+			return reconcile.Result{}, err
 		}
 	case !stsExists:
 		// StatefulSet does not exist but deployment does so create the StatefulSet (checking any start quorum)
@@ -214,7 +218,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 // canCreate determines whether any specified start quorum has been met.
 func (in *ReconcileStatefulSet) canCreate(ctx context.Context, deployment *coh.Coherence) (bool, string) {
 	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
-		// there is not start quorum
+		// there is no start quorum
 		return true, ""
 	}
 
