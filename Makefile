@@ -590,7 +590,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------

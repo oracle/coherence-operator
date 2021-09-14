@@ -687,11 +687,12 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	}
 
 	// Do a plain delete first
-	for _, r := range list.Items {
-		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &r)
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Deleting Coherence resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
 		if err != nil {
-			ctx.Logf("Error deleting Coherence resource %s - %s", r.Name, err.Error())
+			ctx.Logf("Error deleting Coherence resource %s - %s", item.Name, err.Error())
 		}
 	}
 
@@ -703,15 +704,16 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 
 	// Delete all the Coherence resources - patching out any finalizer
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
-	for _, r := range list.Items {
-		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", r.Name, r.Namespace)
-		if err := ctx.Client.Patch(ctx.Context, &r, patch); err != nil {
-			ctx.Logf("error patching Coherence %s: %+v", r.Name, err)
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Patching Coherence resource %s in namespace %s to remove finalizers", item.Name, item.Namespace)
+		if err := ctx.Client.Patch(ctx.Context, &item, patch); err != nil {
+			ctx.Logf("error patching Coherence %s: %+v", item.Name, err)
 		}
-		ctx.Logf("Deleting Coherence resource %s in namespace %s", r.Name, r.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &r)
+		ctx.Logf("Deleting Coherence resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
 		if err != nil {
-			ctx.Logf("Error deleting Coherence resource %s - %s", r.Name, err.Error())
+			ctx.Logf("Error deleting Coherence resource %s - %s", item.Name, err.Error())
 		}
 	}
 
@@ -724,26 +726,26 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 				return false, nil
 			}
 			return true, nil
-		} else {
-			ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%+v", err.Error(), err)
-			return false, nil
 		}
+		ctx.Logf("Error waiting for deletion of Coherence resources: %s\n%+v", err.Error(), err)
+		return false, nil
 	})
 
-	// wait for all Coherence Pods to be deleted
-	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
-		list, err := ListCoherencePods(ctx, namespace)
-		if err == nil {
-			if len(list) > 0 {
-				ctx.Logf("Waiting for deletion of %d Coherence Pods", len(list))
-				return false, nil
+	if err == nil {
+		// wait for all Coherence Pods to be deleted
+		err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+			list, err := ListCoherencePods(ctx, namespace)
+			if err == nil {
+				if len(list) > 0 {
+					ctx.Logf("Waiting for deletion of %d Coherence Pods", len(list))
+					return false, nil
+				}
+				return true, nil
 			}
-			return true, nil
-		} else {
 			ctx.Logf("Error waiting for deletion of Coherence Pods: %s", err.Error())
 			return false, nil
-		}
-	})
+		})
+	}
 
 	return err
 }
@@ -764,10 +766,9 @@ func WaitForOperatorCleanup(ctx TestContext, namespace string) error {
 				return false, nil
 			}
 			return true, nil
-		} else {
-			ctx.Logf("Error waiting for deletion of Coherence Operator Pods: %s", err.Error())
-			return false, nil
 		}
+		ctx.Logf("Error waiting for deletion of Coherence Operator Pods: %s", err.Error())
+		return false, nil
 	})
 
 	ctx.Logger.Info("Coherence Operator Pods deleted")
@@ -820,7 +821,9 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 				}
 				out, err := os.Create(logName)
 				if err == nil {
-					_, err = io.Copy(out, s)
+					if _, err = io.Copy(out, s); err != nil {
+						ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
+					}
 				} else {
 					ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 				}
@@ -1452,7 +1455,8 @@ func dumpPods(namespace, dir string, ctx TestContext) {
 	defer fn()
 
 	if len(list.Items) > 0 {
-		for _, item := range list.Items {
+		for i := range list.Items {
+			item := list.Items[i]
 			_, err = fmt.Fprint(listFile, item.GetName()+"\n")
 			if err != nil {
 				ctx.Logf(message, namespace, err.Error())
@@ -1590,7 +1594,8 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	}
 	ctx.Logf("Expected cluster size is %d", expectedClusterSize)
 
-	for _, d := range deployments {
+	for i := range deployments {
+		d := deployments[i]
 		ctx.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
 		err = ctx.Client.Create(ctx.Context, &d)

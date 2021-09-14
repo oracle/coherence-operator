@@ -78,6 +78,7 @@ func assertCoherenceClusterIndexInKibana(t *testing.T, kPod *corev1.Pod) {
 		}
 		return res.StatusCode == http.StatusOK, nil
 	})
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 // ESClient is an elastic search client associated to an Elasticsearch Pod

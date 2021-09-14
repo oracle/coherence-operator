@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package coherence_compatibility
+package compatibility
 
 import (
 	"context"
