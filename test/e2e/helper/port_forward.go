@@ -131,7 +131,7 @@ func (f *PortForwarder) Start() error {
 	}
 
 	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", ns, f.PodName)
-	hostIP := strings.TrimPrefix(config.Host, "https:/")
+	hostIP := strings.TrimPrefix(config.Host, "https://")
 
 	serverURL := url.URL{Scheme: "https", Path: path, Host: hostIP}
 
