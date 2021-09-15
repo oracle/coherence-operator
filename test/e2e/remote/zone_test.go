@@ -26,7 +26,7 @@ import (
 // Verify that a Coherence resource deployed by the Operator has the correct site value
 // set from the Node's failure domain zone.
 func TestSiteLabel(t *testing.T) {
-	// This test uses Management over ReST to verify the site
+	// This test uses Management over REST to verify the site
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -45,7 +45,7 @@ func TestSiteLabel(t *testing.T) {
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
 // set from the Node's failure domain region.
 func TestRackLabel(t *testing.T) {
-	// This test uses Management over ReST to verify the rack
+	// This test uses Management over REST to verify the rack
 	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -94,7 +94,7 @@ func assertLabel(t *testing.T, name string, labels []string, fn func(management.
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
-	// Do a Management over ReST query for the deployment members
+	// Do a Management over REST query for the deployment members
 	cl := &http.Client{}
 	members, _, err := management.GetMembers(cl, "127.0.0.1", ports[coh.PortNameManagement])
 	g.Expect(err).NotTo(HaveOccurred())

@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -64,12 +65,16 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 
 	for _, c := range pod.Spec.Containers {
 		for _, p := range c.Ports {
-			podPorts[p.Name] = p.ContainerPort
+			name := p.Name
+			if name == "" {
+				name = strconv.Itoa(int(p.ContainerPort))
+			}
+			podPorts[name] = p.ContainerPort
 			local, err := available.Next()
 			if err != nil {
 				return nil, nil, err
 			}
-			localPorts[p.Name] = local
+			localPorts[name] = local
 		}
 	}
 

@@ -59,8 +59,8 @@ func assertCoherenceClusterIndexInKibana(t *testing.T, kPod *corev1.Pod) {
 	// Defer closing the PortForwarder so we clean-up properly
 	defer fwd.Close()
 
-	// The ReST port in the Kibana container spec is named "kPod"
-	port := ports["kPod"]
+	// The REST port in the Kibana container spec is un-named, so we have to get it by the port number
+	port := ports["5601"]
 
 	indexPattern := os.Getenv("KIBANA_INDEX_PATTERN")
 	if indexPattern == "" {
@@ -68,7 +68,7 @@ func assertCoherenceClusterIndexInKibana(t *testing.T, kPod *corev1.Pod) {
 	}
 
 	// Query Kibana for the Coherence Cluster index pattern
-	url := fmt.Sprintf("http://127.0.0.1:%d//api/saved_objects/index-pattern/%s", port, indexPattern)
+	url := fmt.Sprintf("http://127.0.0.1:%d/api/saved_objects/index-pattern/%s", port, indexPattern)
 
 	// Do the query in a loop as it might take time to appear
 	err = wait.Poll(time.Second*5, time.Minute*2, func() (done bool, err error) {
@@ -148,7 +148,7 @@ func (c *ESClient) Query(fn ESFunction) (*esapi.Response, error) {
 	// Defer closing the PortForwarder so we clean-up properly
 	defer fwd.Close()
 
-	// The ReST port in the Elasticsearch container spec is named "rest"
+	// The REST port in the Elasticsearch container spec is named "rest"
 	port := ports["http"]
 
 	esHost := fmt.Sprintf("http://127.0.0.1:%d", port)
