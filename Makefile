@@ -1260,8 +1260,8 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 
 $(BUILD_MANIFESTS_PKG): kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
-	mkdir -p $(BUILD_MANIFESTS)
-	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
+	mkdir -p $(BUILD_MANIFESTS)/crd
+	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
