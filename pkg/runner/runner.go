@@ -273,10 +273,15 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// are running a Spring Boot application.
 	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-		details.addClasspathIfExists(appDir + "/resources")
-		details.addClasspathIfExists(appDir + "/classes")
-		details.addJarsToClasspath(appDir + "/classpath")
-		details.addJarsToClasspath(appDir + "/libs")
+		_, err = os.Stat(appDir + "/jib-classpath-file")
+		if err == nil {
+			details.addClasspath("@" + appDir + "/jib-classpath-file")
+		} else {
+			details.addClasspathIfExists(appDir + "/resources")
+			details.addClasspathIfExists(appDir + "/classes")
+			details.addJarsToClasspath(appDir + "/classpath")
+			details.addJarsToClasspath(appDir + "/libs")
+		}
 	}
 
 	// Add the Operator Utils jar to the classpath
@@ -542,8 +547,33 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.getCommand()
+	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
+	jibMainClassFileName := appDir + "/jib-main-class-file"
+	_, err := os.Stat(jibMainClassFileName)
+	if err == nil {
+		return createJibMainClassFileCommand(javaCmd, details, jibMainClassFileName)
+	}
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
+}
+
+func createJibMainClassFileCommand(javaCmd string, details *RunDetails, jibMainClassFileName string) (*exec.Cmd, error) {
+	args := details.getCommand()
+	args = append(args, "@"+jibMainClassFileName)
+	cmd := exec.Command(javaCmd, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if details.Dir != "" {
+		_, err := os.Stat(details.Dir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Working directory %s does not exists or is not a directory", details.Dir)
+		}
+		cmd.Dir = details.Dir
+	}
+
+	return cmd, nil
 }
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {

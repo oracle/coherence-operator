@@ -164,7 +164,7 @@ func createJibMainClassFile() *os.File {
 		os.Exit(1)
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("%s/libs/foo1.jar", TestAppDir))
+	_, err = f.WriteString("com.foo.bar.MyMainClass")
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
