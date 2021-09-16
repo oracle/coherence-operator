@@ -9,8 +9,8 @@ package servicemonitor
 import (
 	"context"
 	"fmt"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+	monitoring "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	client "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
@@ -19,7 +19,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -30,7 +29,7 @@ const (
 )
 
 // blank assignment to verify that ReconcileServiceMonitor implements reconcile.Reconciler.
-// If the reconcile.Reconciler API was to change then we'd get a compile error here.
+// If the `reconcile.Reconciler` API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileServiceMonitor{}
 
 // NewServiceMonitorReconciler returns a new ServiceMonitor reconciler.
@@ -38,10 +37,10 @@ func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResour
 	r := &ReconcileServiceMonitor{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
 			Kind:      coh.ResourceTypeServiceMonitor,
-			Template:  &monitoringv1.ServiceMonitor{},
+			Template:  &monitoring.ServiceMonitor{},
 			SkipWatch: true,
 		},
-		monClient: monclientv1.NewForConfigOrDie(mgr.GetConfig()),
+		monClient: client.NewForConfigOrDie(mgr.GetConfig()),
 	}
 
 	r.SetCommonReconciler(controllerName, mgr)
@@ -50,7 +49,7 @@ func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResour
 
 type ReconcileServiceMonitor struct {
 	reconciler.ReconcileSecondaryResource
-	monClient *monclientv1.MonitoringV1Client
+	monClient *client.MonitoringV1Client
 }
 
 func (in *ReconcileServiceMonitor) GetReconciler() reconcile.Reconciler { return in }
@@ -123,7 +122,7 @@ func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, 
 		exists = false
 	case err != nil:
 		// Error reading the object - requeue the request.
-		// We can't call the error handler as we do not even have a owning Coherence resource.
+		// We can't call the error handler as we do not even have an owning Coherence resource.
 		// We log the error and do not requeue the request.
 		return errors.Wrapf(err, "getting ServiceMonitor %s/%s", namespace, name)
 	default:
@@ -177,7 +176,7 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, nam
 		return fmt.Errorf("cannot create ServiceMonitor as latest state not present in store")
 	}
 	// create the ServiceMonitor
-	sm := resource.Spec.(*monitoringv1.ServiceMonitor)
+	sm := resource.Spec.(*monitoring.ServiceMonitor)
 	_, err := in.monClient.ServiceMonitors(namespace).Create(ctx, sm, metav1.CreateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to create ServiceMonitor %s/%s", namespace, name)
@@ -186,7 +185,7 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, nam
 }
 
 // UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
-func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current *monitoring.ServiceMonitor, storage utils.Storage, logger logr.Logger) error {
 	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
 
 	hashMatches := in.HashLabelsMatch(current, storage)
@@ -197,7 +196,10 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, nam
 	}
 
 	// fix the CreationTimestamp so that it is not in the patch
-	desired.Spec.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
+	desired.Spec.(metav1.Object).SetCreationTimestamp(current.GetCreationTimestamp())
+	// fix the current spec's GVK - which may be blank, and if so causes an incorrect three-way patch to be created
+	current.SetGroupVersionKind(desired.Spec.GetObjectKind().GroupVersionKind())
+
 	// create the patch
 	data, err := in.CreateThreeWayPatchData(original.Spec, desired.Spec, current)
 	if err != nil {
