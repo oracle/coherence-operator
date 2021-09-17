@@ -43,7 +43,7 @@ func ClearCanary(ctx TestContext, namespace, deploymentName string) error {
 	return canary(ctx, namespace, deploymentName, "canaryClear", http.MethodPost)
 }
 
-// Make a canary ReST PUT call to Pod zero of the deployment.
+// Make a canary REST PUT call to Pod zero of the deployment.
 func canary(ctx TestContext, namespace, deploymentName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-0", deploymentName)
 

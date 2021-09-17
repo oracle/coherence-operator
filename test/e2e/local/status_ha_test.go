@@ -34,16 +34,16 @@ func TestStatusHA(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	deploymentExec, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-exec.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	deploymentHttp, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-http.yaml")
+	deploymentHTTP, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-http.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	deploymentTcp, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-tcp.yaml")
+	deploymentTCP, err := helper.NewSingleCoherenceFromYaml(ns, "status-ha-tcp.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	testCases := []StatusHATestCase{
 		{Deployment: &deploymentDefault, Name: "DefaultStatusHAHandler"},
 		{Deployment: &deploymentExec, Name: "ExecStatusHAHandler"},
-		{Deployment: &deploymentHttp, Name: "HttpStatusHAHandler"},
-		{Deployment: &deploymentTcp, Name: "TcpStatusHAHandler"},
+		{Deployment: &deploymentHTTP, Name: "HttpStatusHAHandler"},
+		{Deployment: &deploymentTCP, Name: "TcpStatusHAHandler"},
 	}
 
 	for _, tc := range testCases {

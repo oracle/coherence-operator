@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -64,12 +65,16 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 
 	for _, c := range pod.Spec.Containers {
 		for _, p := range c.Ports {
-			podPorts[p.Name] = p.ContainerPort
+			name := p.Name
+			if name == "" {
+				name = strconv.Itoa(int(p.ContainerPort))
+			}
+			podPorts[name] = p.ContainerPort
 			local, err := available.Next()
 			if err != nil {
 				return nil, nil, err
 			}
-			localPorts[p.Name] = local
+			localPorts[name] = local
 		}
 	}
 
@@ -78,7 +83,7 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	for name, localPort := range localPorts {
 		podPort := podPorts[name]
 		ports[i] = fmt.Sprintf("%d:%d", localPort, podPort)
-		i = i + 1
+		i++
 	}
 
 	return &PortForwarder{Namespace: pod.Namespace, PodName: pod.Name, Ports: ports}, localPorts, nil
@@ -131,7 +136,7 @@ func (f *PortForwarder) Start() error {
 	}
 
 	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", ns, f.PodName)
-	hostIP := strings.TrimLeft(config.Host, "https:/")
+	hostIP := strings.TrimPrefix(config.Host, "https://")
 
 	serverURL := url.URL{Scheme: "https", Path: path, Host: hostIP}
 
@@ -166,7 +171,7 @@ func (f *PortForwarder) Start() error {
 	}()
 
 	// blocks until forwarder is ready
-	_ = <-forwarder.Ready
+	<-forwarder.Ready
 
 	f.Running = true
 

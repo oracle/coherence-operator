@@ -22,7 +22,7 @@ func (log TestLogger) Info(msg string, keysAndValues ...interface{}) {
 	log.T.Logf("%s %v", msg, keysAndValues)
 }
 
-func (_ TestLogger) Enabled() bool {
+func (TestLogger) Enabled() bool {
 	return false
 }
 
@@ -30,7 +30,7 @@ func (log TestLogger) Error(err error, msg string, args ...interface{}) {
 	log.T.Logf("%s: %v -- %v", msg, err, args)
 }
 
-func (log TestLogger) V(v int) logr.InfoLogger {
+func (log TestLogger) V(v int) logr.Logger {
 	return log
 }
 

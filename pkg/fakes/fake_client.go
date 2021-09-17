@@ -111,7 +111,8 @@ var _ ClientWithErrors = &clientWithErrors{}
 // NewFakeClient creates a new ClientWithErrors and initialises it
 // with the specified objects.
 func NewFakeClient(initObjs ...runtime.Object) ClientWithErrors {
-	c := clientWithErrors{wrapped: fake.NewFakeClientWithScheme(scheme.Scheme, initObjs...)}
+	cl := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithRuntimeObjects(initObjs...).Build()
+	c := clientWithErrors{wrapped: cl}
 	return &c
 }
 

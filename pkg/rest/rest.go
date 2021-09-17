@@ -50,7 +50,7 @@ type Server interface {
 	GetPort() int32
 	// Close closes this server's listener
 	Close() error
-	// GetHostAndPort returns the address that the ReST server should be reached on by external processes
+	// GetHostAndPort returns the address that the REST server should be reached on by external processes
 	GetHostAndPort() string
 	// Start the REST server
 	Start(ctx context.Context) error

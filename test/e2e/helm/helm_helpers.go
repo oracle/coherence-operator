@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -44,7 +44,7 @@ func findEnvVar(name string, c *corev1.Container) *corev1.EnvVar {
 	return nil
 }
 
-func helmInstall(args ...string) (*HelmInstallResult, error) {
+func helmInstall(args ...string) (*InstallResult, error) {
 	chart, err := helper.FindOperatorHelmChartDir()
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func helmInstall(args ...string) (*HelmInstallResult, error) {
 	return parseHelmManifest(fmt.Sprintf("%v", manifest))
 }
 
-func parseHelmManifest(manifest string) (*HelmInstallResult, error) {
+func parseHelmManifest(manifest string) (*InstallResult, error) {
 	resources := make(map[schema.GroupVersionResource]map[string]runtime.Object)
 	s := scheme.Scheme
 	decoder := scheme.Codecs.UniversalDecoder()
@@ -119,18 +119,18 @@ func parseHelmManifest(manifest string) (*HelmInstallResult, error) {
 	}
 
 	ordered := list[0:index]
-	return &HelmInstallResult{resources: resources, ordered: ordered, decoder: decoder}, nil
+	return &InstallResult{resources: resources, ordered: ordered, decoder: decoder}, nil
 }
 
-type HelmInstallResult struct {
+type InstallResult struct {
 	resources map[schema.GroupVersionResource]map[string]runtime.Object
 	ordered   []runtime.Object
 	decoder   runtime.Decoder
 }
 
-type HelmInstallResultFilter func(runtime.Object) bool
+type InstallResultFilter func(runtime.Object) bool
 
-func (h *HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer) error {
+func (h *InstallResult) ToString(filter InstallResultFilter, w io.Writer) error {
 	var sep = []byte("\n---\n")
 
 	for _, res := range h.ordered {
@@ -154,13 +154,13 @@ func (h *HelmInstallResult) ToString(filter HelmInstallResultFilter, w io.Writer
 	return nil
 }
 
-func (h *HelmInstallResult) Size() int {
+func (h *InstallResult) Size() int {
 	if h == nil {
 		return 0
 	}
 	return len(h.ordered)
 }
-func (h *HelmInstallResult) Get(name string, o runtime.Object) error {
+func (h *InstallResult) Get(name string, o runtime.Object) error {
 	if h == nil {
 		return fmt.Errorf("resource '%s' not found", name)
 	}
@@ -197,7 +197,7 @@ func (h *HelmInstallResult) Get(name string, o runtime.Object) error {
 	return nil
 }
 
-func (h *HelmInstallResult) List(list runtime.Object) error {
+func (h *InstallResult) List(list runtime.Object) error {
 	if h == nil || h.resources == nil {
 		return nil
 	}
@@ -225,7 +225,7 @@ func (h *HelmInstallResult) List(list runtime.Object) error {
 	return nil
 }
 
-func (h *HelmInstallResult) getGVRFromObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionResource, error) {
+func (h *InstallResult) getGVRFromObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionResource, error) {
 	gvk, err := apiutil.GVKForObject(obj, scheme)
 	if err != nil {
 		return schema.GroupVersionResource{}, err

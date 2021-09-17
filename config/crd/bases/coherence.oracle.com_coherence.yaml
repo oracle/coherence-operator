@@ -834,7 +834,7 @@ spec:
                             description: Secrets is the name of the k8s secrets containing
                               the Java key stores and password files.   This value
                               MUST be provided if SSL is enabled on the Coherence
-                              management over ReST endpoint.
+                              management over REST endpoint.
                             type: string
                           trustStore:
                             description: TrustStore is the name of the Java trust
@@ -927,7 +927,7 @@ spec:
                             description: Secrets is the name of the k8s secrets containing
                               the Java key stores and password files.   This value
                               MUST be provided if SSL is enabled on the Coherence
-                              management over ReST endpoint.
+                              management over REST endpoint.
                             type: string
                           trustStore:
                             description: TrustStore is the name of the Java trust

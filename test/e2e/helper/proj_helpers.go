@@ -44,8 +44,8 @@ const (
 	CohCompatibilityImageEnv = "TEST_COMPATIBILITY_IMAGE"
 	// TestSslSecretEnv is environment variable holding the name of the SSL certs secret.
 	TestSslSecretEnv = "TEST_SSL_SECRET"
-	// ImagePullSecretsEnv is environment variable holding the name of the image pull secrets.
-	ImagePullSecretsEnv = "IMAGE_PULL_SECRETS"
+	// ImagePullSecEnv is environment variable holding the name of the image pull secrets.
+	ImagePullSecEnv = "IMAGE_PULL_SECRETS"
 	// CoherenceVersionEnv is environment variable holding the Coherence version.
 	CoherenceVersionEnv = "COHERENCE_VERSION"
 
@@ -132,7 +132,7 @@ func GetTestSSLSecretName() string {
 
 // GetImagePullSecrets returns the names of the image pull secrets.
 func GetImagePullSecrets() []coh.LocalObjectReference {
-	s := os.Getenv(ImagePullSecretsEnv)
+	s := os.Getenv(ImagePullSecEnv)
 	if s == "" {
 		return nil
 	}
@@ -353,7 +353,7 @@ func FindActualFile(file string) (string, error) {
 				// no more call stack
 				break
 			}
-			i = i + 1
+			i++
 		}
 	}
 
