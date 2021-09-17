@@ -138,7 +138,7 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	err = addTestFinalizer(sts)
 	g.Expect(err).NotTo(HaveOccurred())
 	// ensure we remove the finalizer
-	defer removeAllFinalizers(sts)
+	defer removeAllFinalizersLoggingErrors(t, sts)
 
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
 	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
@@ -195,7 +195,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	err = addTestFinalizer(sts)
 	g.Expect(err).NotTo(HaveOccurred())
 	// ensure we remove the finalizer
-	defer removeAllFinalizers(sts)
+	defer removeAllFinalizersLoggingErrors(t, sts)
 
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
 	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
@@ -308,6 +308,12 @@ func removeAllFinalizers(o client.Object) error {
 	}
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
 	return testContext.Client.Patch(ctx, o, patch)
+}
+
+func removeAllFinalizersLoggingErrors(t *testing.T, o client.Object) {
+	if err := removeAllFinalizers(o); err != nil {
+		t.Logf("Error removing finalizer from %s/%s - %s", o.GetNamespace(), o.GetName(), err.Error())
+	}
 }
 
 func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]interface{}, error) {

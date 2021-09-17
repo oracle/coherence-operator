@@ -590,7 +590,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1678,6 +1679,7 @@ helm-install-elastic:
 	@echo "Getting Helm Version:"
 	helm version
 	helm repo add elastic https://helm.elastic.co || true
+	helm repo update || true
 #   Install Elasticsearch
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
@@ -1688,7 +1690,7 @@ helm-install-elastic:
 .PHONY: kibana-import
 kibana-import:
 	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
+	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} -- /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana

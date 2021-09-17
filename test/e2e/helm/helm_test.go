@@ -10,6 +10,7 @@ import (
 	goctx "context"
 	"fmt"
 	. "github.com/onsi/gomega"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -256,7 +257,7 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 	name := deployment.GetName()
 	deployment.SetName(name + "-" + id)
 
-	defer testContext.Client.Delete(goctx.TODO(), &deployment)
+	defer deleteCoherence(t, &deployment)
 
 	err = testContext.Client.Create(goctx.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -266,6 +267,12 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 
 	err = test()
 	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func deleteCoherence(t *testing.T, d *coh.Coherence) {
+	if err := testContext.Client.Delete(goctx.TODO(), d); err != nil {
+		t.Logf("Error deleting Coherence deployment %s - %s", d.GetNamespacedName(), err.Error())
+	}
 }
 
 func Cleanup(namespace, name string) {

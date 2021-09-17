@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-// FakeRestServer can be use to server ReST requests in tests.
+// FakeRestServer can be use to server REST requests in tests.
 type FakeRestServer interface {
 	// Add a handler to respond to a query for a specific path.
 	AddHandler(path string, handler http.Handler)
@@ -31,7 +31,7 @@ type FakeRestServer interface {
 	GetURL(path string) string
 }
 
-// NewFakeRestServer creates and starts a fake ReST server.
+// NewFakeRestServer creates and starts a fake REST server.
 func NewFakeRestServer() (FakeRestServer, error) {
 	f := &fakeServer{}
 	ports := helper.GetAvailablePorts()
