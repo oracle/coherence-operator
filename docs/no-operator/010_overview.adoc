@@ -1,0 +1,68 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Overview
+
+== Non-Operator Examples Overview
+
+Although this documentation is all about the Coherence Kubernetes Operator, not everyone can use the Operator in their Kubernetes cluster. For example, some corporate or cloud security policies ban the use of CRDs, or have very restrictive RBAC policies that ultimately make it impossible to run Operators that uses their own CRDs or require RBAC cluster roles (and in some cases, even disallowing namespace roles).
+
+These examples show how to run Coherence clusters and use some Coherence features in Kubernetes manually.
+Obviously the features of the Operator such as safe scaling, safe rolling upgrades, etc. will not be available.
+Some Operator examples show features that can also be used without the Operator, for example the Operator
+https://oracle.github.io/coherence-operator/docs/latest/docs/examples/100_tls[TLS] and
+https://oracle.github.io/coherence-operator/docs/latest/docs/examples/800_istio[Istio]
+examples hae a lot of general information.
+
+The source for the non-operator examples is in the GitHub repo, in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator[examples/no-operator/] directory
+
+=== Common Prerequisites
+
+[PILLARS]
+====
+[CARD]
+.Example Server Image
+[link=docs/no-operator/015_server.adoc]
+--
+Building the example Coherence server image used by the rest of the examples below.
+--
+
+[CARD]
+.Extend Client
+[link=docs/no-operator/016_client.adoc]
+--
+The Extend client used by the rest of the examples below.
+--
+====
+
+=== The Examples
+
+[PILLARS]
+====
+[CARD]
+.Simple Cluster
+[link=docs/no-operator/020_simple.adoc]
+--
+How to deploy a simple Coherence cluster using a `StatefulSet`.
+--
+
+[CARD]
+.Metrics
+[link=docs/no-operator/030_metrics.adoc]
+--
+How to enable Coherence metrics and scrape them with Prometheus (where Prometheus is inside or outside Kubernetes).
+--
+
+
+[CARD]
+.Coherence Extend with TLS
+[link=docs/no-operator/040_tls.adoc]
+--
+Securing external Coherence Extend clients using TLS.
+--
+====

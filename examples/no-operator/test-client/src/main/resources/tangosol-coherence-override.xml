@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="common/tangosol-coherence-override.xml">
+    <cluster-config>
+        <socket-providers>
+            <socket-provider id="extend-tls">
+                <ssl>
+                    <protocol>TLS</protocol>
+                    <identity-manager>
+                        <algorithm>SunX509</algorithm>
+                        <key-store>
+                            <url>file:server.jks</url>
+                            <password-provider>
+                                <name>identity-password-provider</name>
+                            </password-provider>
+                            <type>JKS</type>
+                        </key-store>
+                        <password-provider>
+                            <name>key-password-provider</name>
+                        </password-provider>
+                    </identity-manager>
+                    <trust-manager>
+                        <algorithm>SunX509</algorithm>
+                        <key-store>
+                            <url>file:trust.jks</url>
+                            <password-provider>
+                                <name>trust-password-provider</name>
+                            </password-provider>
+                            <type>JKS</type>
+                        </key-store>
+                    </trust-manager>
+                    <socket-provider>tcp</socket-provider>
+                </ssl>
+            </socket-provider>
+        </socket-providers>
+
+        <password-providers>
+            <password-provider id="trust-password-provider">
+                <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+                <init-params>
+                    <init-param>
+                        <param-name>fileName</param-name>
+                        <param-value system-property="coherence.trust.password.file">trust-password.txt</param-value>
+                    </init-param>
+                </init-params>
+            </password-provider>
+            <password-provider id="identity-password-provider">
+                <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+                <init-params>
+                    <init-param>
+                        <param-name>fileName</param-name>
+                        <param-value system-property="coherence.identity.password.file">server-password.txt</param-value>
+                    </init-param>
+                </init-params>
+            </password-provider>
+            <password-provider id="key-password-provider">
+                <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+                <init-params>
+                    <init-param>
+                        <param-name>fileName</param-name>
+                        <param-value system-property="coherence.key.password.file">server-key-password.txt</param-value>
+                    </init-param>
+                </init-params>
+            </password-provider>
+        </password-providers>
+    </cluster-config>
+</coherence>

@@ -16,7 +16,7 @@ There are a number of examples which show you how to build and deploy applicatio
 ====
 [CARD]
 .Deployment
-[link=docs/docs/examples/020_deployment.adoc]
+[link=docs/examples/020_deployment.adoc]
 --
 This example showcases how to deploy Coherence applications using the Coherence Operator.
 --

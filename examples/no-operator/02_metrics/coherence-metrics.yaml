@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-sts
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: statefulset-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-coherence
+    port: 7
+    protocol: TCP
+    targetPort: 7
+  publishNotReadyAddresses: true
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-wka
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: wka-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-coherence
+    port: 7
+    protocol: TCP
+    targetPort: 7
+  publishNotReadyAddresses: true
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-extend
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: extend-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: tcp-coherence
+    port: 20000
+    protocol: TCP
+    targetPort: extend
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: statefulset
+spec:
+  selector:
+    matchLabels:
+      coherence.oracle.com/cluster: test-cluster
+      coherence.oracle.com/deployment: storage
+  serviceName: storage-sts
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        coherence.oracle.com/cluster: test-cluster
+        coherence.oracle.com/deployment: storage
+    spec:
+      containers:
+        - name: coherence
+          image: simple-coherence:1.0.0
+          command:
+            - java
+          args:
+            - -cp
+            - "@/app/jib-classpath-file"
+            - -Xms1800m
+            - -Xmx1800m
+            - "@/app/jib-main-class-file"
+          env:
+            - name: COHERENCE_CLUSTER
+              value: storage
+            - name: COHERENCE_WKA
+              value: storage-wka
+            - name: COHERENCE_CACHECONFIG
+              value: "test-cache-config.xml"
+            - name: COHERENCE_METRICS_HTTP_ENABLED
+              value: "true"
+          ports:
+            - name: extend
+              containerPort: 20000
+            - name: metrics
+              containerPort: 9612
+
+
+

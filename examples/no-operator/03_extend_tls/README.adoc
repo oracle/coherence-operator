@@ -1,0 +1,390 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+== Secure Coherence Extend with TLS
+
+This example shows how to deploy a simple Coherence cluster in Kubernetes manually, and secure the Extend endpoint using TLS.
+This example expands on the `StatefulSet` used in the first simple deployment example.
+
+*Prerequisites*
+
+This example assumes that you have already built the example server image.
+
+There are a number of ways to use TLS to secure ingress in Kubernetes. We could use a load balancer `Service` and terminate TLS at the load balance, or we could use an add-on such as Istio to manage TLS ingress. Both of those approaches would require no changes to the Coherence server, as the server would not know TLS was being used.
+The https://oracle.github.io/coherence-operator/docs/latest/#/docs/examples/010_overview[Coherence Operator Examples]
+contains examples of using TLS with Coherence and using Istio. The TLS example also shows how to use Kubernetes built in certificate management to create keys and certificates.
+
+In this example we are going to actually change the server to use TLS for its Extend endpoints.
+
+== Create Certs and Java Keystores
+
+To use TLS we will need some certificates and Java keystore files. For testing and examples, self-signed certs are fine. The source code for this example contains some keystores.
+* `server.jks` contains the server key and certificate files
+* `trust.jks` contains the CA certificate used to create the client and server certificates
+
+The keystores are password protected, the passwords are stored in files with the example source.
+We will use these files to securely provide the passwords to the client and server instead of hard coding or providing credentials via system properties or environment variables.
+* `server-password.txt` is the password to open the `server.jks` keystore
+* `server-key-password.txt` is the password for the key file stored in the `server.jks` keystore
+* `trust-password.txt` is the password to open the trust.jks` keystore.
+
+== Configure Coherence Extend TLS
+
+The Coherence documentation explains how to
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-90E20139-3945-4993-9048-7FBC93B243A3[Use TLS Secure Communication].
+This example is going to use a standard approach to securing Extend with TLS. To provide the keystores and credentials the example will make use of Kubernetes `Secrets` to mount those files as `Volumes` in the `StatefulSet`. This is much more flexible and secure than baking them into an application's code or image.
+
+=== Configure the Extend Proxy
+
+If we look at the `test-cache-config.xml` file in the `simple-server` example project, we can see the configuration for the Extend proxy.
+
+[source,xml]
+.test-cache-config.xml
+----
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <socket-provider system-property="coherence.extend.socket.provider"/>
+          <local-address>
+            <address system-property="coherence.extend.address">0.0.0.0</address>
+            <port system-property="coherence.extend.port">20000</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
+----
+
+The important item to note above is the `socket-provider` element, which is empty, but can be set using the `coherence.extend.socket.provider` system property (or the `COHERENCE_EXTEND_SOCKET_PROVIDER` environment variable). By default, a plain TCP socket will be used, but by setting the specified property a different socket can be used, in this case we'll use one configured for TLS.
+
+=== Socket Providers
+
+In Coherence, socket providers can be configured in the operational configuration file, typically named `tangosol-coherence-override.xml`. The source code for the `simple-server` module contains this file with the TLS socket provider already configured.
+
+We need to configure two things in the operational configuration file, the socket provider and some password providers to supply the keystore credentials.
+
+The `socket-provider` section looks like this:
+
+[source,xml]
+.tangosol-coherence-override.xml
+----
+<socket-providers>
+    <socket-provider id="extend-tls">
+        <ssl>
+            <protocol>TLS</protocol>
+            <identity-manager>
+                <algorithm>SunX509</algorithm>
+                <key-store>
+                    <url system-property="coherence.extend.keystore">file:server.jks</url>
+                    <password-provider>
+                        <name>identity-password-provider</name>
+                    </password-provider>
+                    <type>JKS</type>
+                </key-store>
+                <password-provider>
+                    <name>key-password-provider</name>
+                </password-provider>
+            </identity-manager>
+            <trust-manager>
+                <algorithm>SunX509</algorithm>
+                <key-store>
+                    <url system-property="coherence.extend.truststore">file:trust.jks</url>
+                    <password-provider>
+                        <name>trust-password-provider</name>
+                    </password-provider>
+                    <type>JKS</type>
+                </key-store>
+            </trust-manager>
+            <socket-provider>tcp</socket-provider>
+        </ssl>
+    </socket-provider>
+</socket-providers>
+----
+
+There is a `socket-provider` with the id of `extend-tls`. This id is the value that must be used to tell the Extend proxy which socket provider to use, i.e. using the system property `-Dcoherence.extend.socket.provider=extend-tls`
+
+The `<identity-manager>` element specifies the keystore containing the key and certificate file that the proxy should use. This is set to `file:server.jks` but can be overridden using the `coherence.extend.keystore` system property, or corresponding environment variable. The password for the `<identity-manager>` keystore is configured to be provided by the `password-provider` named `identity-password-provider`. The password for the key file in the identity keystore is configured to be provided by the `password-provider` named `key-password-provider`.
+
+The `<trust-manager>` element contains the configuration for the trust keystore containing the CA certs used to validate client certificates. By default, the keystore name is `file:trust.jks` but this can be overridden using the `coherence.extend.truststore` system property or corresponding environment variable. The password for the trust keystore is configured to be provided by the `password-provider` named `trust-password-provider`.
+
+
+There are three `<password-provider>` elements in the configuration above, so we need to also configure these three password providers in the operational configuration file.
+
+[source,xml]
+.tangosol-coherence-override.xml
+----
+<password-providers>
+    <password-provider id="trust-password-provider">
+        <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+        <init-params>
+            <init-param>
+                <param-name>fileName</param-name>
+                <param-value system-property="coherence.trust.password.file">trust-password.txt</param-value>
+            </init-param>
+        </init-params>
+    </password-provider>
+    <password-provider id="identity-password-provider">
+        <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+        <init-params>
+            <init-param>
+                <param-name>fileName</param-name>
+                <param-value system-property="coherence.identity.password.file">server-password.txt</param-value>
+            </init-param>
+        </init-params>
+    </password-provider>
+    <password-provider id="key-password-provider">
+        <class-name>com.oracle.coherence.examples.tls.FileBasedPasswordProvider</class-name>
+        <init-params>
+            <init-param>
+                <param-name>fileName</param-name>
+                <param-value system-property="coherence.key.password.file">server-key-password.txt</param-value>
+            </init-param>
+        </init-params>
+    </password-provider>
+</password-providers>
+----
+
+There are three password providers declared above, each with an 'id' attribute corresponding to the names used in the socket provider configuration. Each password provider is identical, they just have a different password file name.
+
+The `class-name` element refers to a class named `com.oracle.coherence.examples.tls.FileBasedPasswordProvider`, which is in the source code for both the server and client. This is an implementation of the `com.tangosol.net.PasswordProvider` interface which can read a password from a file.
+
+Each password provider's password file name can be set using the relevant system property or environment variable. The name of the trust keystore password file is set using the `coherence.trust.password.file` system property. The name of the identity keystore is set using the `coherence.identity.password.file` system property. The nam eof the identity key file password file is set using the `coherence.key.password.file` system property.
+
+The simple server image has all the configuration above built in so there is nothing additional to do to use TLS other than set the system properties or environment variables. The test client uses the same configurations, so it can also be run using TLS by setting the relevant system properties.
+
+== Create the Kubernetes Resources
+
+We can now create the resources we need to run the Cluster with TLS enabled.
+
+=== Keystore Secret
+
+We first need to supply the keystores and credentials to the Coherence `Pods`. The secure way to do this in Kubernetes is to use a `Secret`. We can create a `Secret` from the command line using `kubectl`. From the `03_extend_tls/` directory containing the keystores and password file srun the following command:
+
+[source,bash]
+----
+kubectl create secret generic coherence-tls \
+    --from-file=./server.jks \
+    --from-file=./server-password.txt \
+    --from-file=./server-key-password.txt \
+    --from-file=./trust.jks \
+    --from-file=./trust-password.txt
+----
+
+The command above will create a `Secret` named `coherence-tls` containing the files specified. We can now use the `Secret` in the cluster's `StatefulSet`
+
+=== StatefulSet
+
+We will expand on the `StatefulSet` created in the simple server example and add TLS.
+
+[source,yaml]
+.coherence-tls.yaml
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: statefulset
+spec:
+  selector:
+    matchLabels:
+      coherence.oracle.com/cluster: test-cluster
+      coherence.oracle.com/deployment: storage
+  serviceName: storage-sts
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        coherence.oracle.com/cluster: test-cluster
+        coherence.oracle.com/deployment: storage
+    spec:
+      volumes:
+        - name: tls
+          secret:
+            secretName: coherence-tls
+      containers:
+        - name: coherence
+          image: simple-coherence:1.0.0
+          volumeMounts:
+            - mountPath: /certs
+              name: tls
+          command:
+            - java
+          args:
+            - -cp
+            - "@/app/jib-classpath-file"
+            - -Xms1800m
+            - -Xmx1800m
+            - "@/app/jib-main-class-file"
+          env:
+            - name: COHERENCE_CLUSTER
+              value: storage
+            - name: COHERENCE_WKA
+              value: storage-wka
+            - name: COHERENCE_CACHECONFIG
+              value: test-cache-config.xml
+            - name: COHERENCE_EXTEND_SOCKET_PROVIDER
+              value: extend-tls
+            - name: COHERENCE_EXTEND_KEYSTORE
+              value: file:/certs/server.jks
+            - name: COHERENCE_IDENTITY_PASSWORD_FILE
+              value: /certs/server-password.txt
+            - name: COHERENCE_KEY_PASSWORD_FILE
+              value: /certs/server-key-password.txt
+            - name: COHERENCE_EXTEND_TRUSTSTORE
+              value: file:/certs/trust.jks
+            - name: COHERENCE_TRUST_PASSWORD_FILE
+              value: /certs/trust-password.txt
+          ports:
+            - name: extend
+              containerPort: 20000
+----
+
+The yaml above is identical to the simple server example with the following additions:
+
+* A `Volume` has been added to the `spec` section.
+[source,yaml]
+----
+volumes:
+- name: tls
+  secret:
+    secretName: coherence-tls
+----
+The volume name is `tls` and the files to mount to the file system in the Pod come from the `coherence-tls` secret we created above.
+
+* A `volumeMount` has been added to the Coherence container to map the `tls` volume to the mount point `/certs`.
+[source,yaml]
+----
+volumeMounts:
+  - mountPath: /certs
+    name: tls
+----
+
+* A number of environment variables have been added to configure Coherence to use the `extend-tls` socket provider and the locations of the keystores and password files.
+[source,yaml]
+----
+- name: COHERENCE_EXTEND_SOCKET_PROVIDER
+  value: extend-tls
+- name: COHERENCE_EXTEND_KEYSTORE
+  value: file:/certs/server.jks
+- name: COHERENCE_IDENTITY_PASSWORD_FILE
+  value: /certs/server-password.txt
+- name: COHERENCE_KEY_PASSWORD_FILE
+  value: /certs/server-key-password.txt
+- name: COHERENCE_EXTEND_TRUSTSTORE
+  value: file:/certs/trust.jks
+- name: COHERENCE_TRUST_PASSWORD_FILE
+  value: /certs/trust-password.txt
+----
+
+[NOTE]
+====
+The `COHERENCE_EXTEND_KEYSTORE` and `COHERENCE_EXTEND_TRUSTSTORE` values must be URLs. In this case we refer to files usinf the `file:` prefix.
+====
+
+== Deploy to Kubernetes
+
+The source code for this example contains a file named `coherence-tls.yaml` containing all the configuration above as well as the `Services` required to run Coherence and expose the Extend port.
+
+We can deploy it with the following command:
+[source,bash]
+----
+kubectl apply -f coherence-tls.yaml
+----
+
+We can see all the resources created in Kubernetes are the same as for the simple server example.
+[source,bash]
+----
+kubectl get all
+----
+Which will display something like the following:
+[source]
+----
+NAME            READY   STATUS    RESTARTS   AGE
+pod/storage-0   1/1     Running   0          19s
+pod/storage-1   1/1     Running   0          17s
+pod/storage-2   1/1     Running   0          16s
+
+NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/storage-extend   ClusterIP   10.105.78.34   <none>        20000/TCP   19s
+service/storage-sts      ClusterIP   None           <none>        7/TCP       19s
+service/storage-wka      ClusterIP   None           <none>        7/TCP       19s
+
+NAME                       READY   AGE
+statefulset.apps/storage   3/3     19s
+----
+
+== Run the Client
+
+If we run the test client using the same instructions as the simple server example, we will run an interactive Coherence console.
+
+[source,bash]
+----
+cd test-client/
+mvn exec:java
+----
+
+When the `Map (?):` prompt is displayed we can try to create a cache.
+[source]
+----
+Map (?): cache test
+----
+
+This will not throw an exception because the client is not using TLS so the server rejected the connection.
+[source]
+----
+2021-09-17 18:19:39.182/12.090 Oracle Coherence CE 21.06.1 <Error> (thread=com.tangosol.net.CacheFactory.main(), member=1): Error while starting service "RemoteCache": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: [127.0.0.1:20000]
+	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator.openConnection(TcpInitiator.CDB:139)
+	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator.ensureConnection(Initiator.CDB:11)
+	at com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService.openChannel(RemoteCacheService.CDB:7)
+	at com.tangosol.coherence.component.net.extend.RemoteService.ensureChannel(RemoteService.CDB:6)
+	at com.tangosol.coherence.component.net.extend.RemoteService.doStart(RemoteService.CDB:11)
+----
+
+=== Enable Client TLS
+
+Just like the server, the example test client contains the same operational configuration to configure a socket provider and password providers. The test client directory also contains copies of the keystores and password files. We can therefore run the client with the relevant system properties to enable it to use TLS and connect to the server.
+
+We just need to run the client from the `test-client/` directory setting the socket provider system property.
+
+[source,bash]
+----
+cd test-client/
+mvn exec:java -Dcoherence.extend.socket.provider=extend-tls
+----
+
+After the client starts we can run the `cache` command, which should complete without
+an error.
+[source]
+----
+Map (?): cache test
+----
+
+We can see from the output below that the client connected and created a remote cache.
+[source]
+----
+Cache Configuration: test
+  SchemeName: remote
+  ServiceName: RemoteCache
+  ServiceDependencies: DefaultRemoteCacheServiceDependencies{RemoteCluster=null, RemoteService=Proxy, InitiatorDependencies=DefaultTcpInitiatorDependencies{EventDispatcherThreadPriority=10, RequestTimeoutMillis=30000, SerializerFactory=null, TaskHungThresholdMillis=0, TaskTimeoutMillis=0, ThreadPriority=10, WorkerThreadCount=0, WorkerThreadCountMax=2147483647, WorkerThreadCountMin=0, WorkerThreadPriority=5}{Codec=null, FilterList=[], PingIntervalMillis=0, PingTimeoutMillis=30000, MaxIncomingMessageSize=0, MaxOutgoingMessageSize=0}{ConnectTimeoutMillis=30000, RequestSendTimeoutMillis=30000}{LocalAddress=null, RemoteAddressProviderBldr=com.tangosol.coherence.config.builder.WrapperSocketAddressProviderBuilder@5431b4b4, SocketOptions=SocketOptions{LingerTimeout=0, KeepAlive=true, TcpNoDelay=true}, SocketProvideBuilderr=com.tangosol.coherence.config.builder.SocketProviderBuilder@52c85af7, isNameServiceAddressProvider=false}}{DeferKeyAssociationCheck=false}
+
+Map (test):
+----
+
+Now the client is connected using TLS, we could do puts and gets, or other operations on the cache.
+
+To exit from the client press ctrl-C, and uninstall the cluster
+[source,bash]
+----
+kubectl delete -f coherence-tls.yaml
+----
+
+
+

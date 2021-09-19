@@ -149,6 +149,14 @@ backend:
               items:
                 - includes:
                     - "docs/examples/*.adoc"
+            - title: "Non-Operator Examples"
+              pathprefix: "/no-operator"
+              glyph:
+                type: "icon"
+                value: "fa-ban"
+              items:
+                - includes:
+                    - "docs/no-operator/*.adoc"
             - title: "Troubleshooting"
               pathprefix: "/troubleshooting"
               glyph:
