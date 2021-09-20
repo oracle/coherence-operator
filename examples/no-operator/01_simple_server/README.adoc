@@ -1,0 +1,324 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+== A Simple Coherence Cluster in Kubernetes
+
+This example shows how to deploy a simple Coherence cluster in Kubernetes manually, without using the Coherence Operator.
+
+*Prerequisites*
+
+This example assumes that you have already built the example server image.
+
+
+== Create the Kubernetes Resources
+
+Now we have an image we can create the yaml files required to run the Coherence cluster in Kubernetes.
+
+=== StatefulSet and Services
+
+We will run Coherence using a `StatefulSet` and in Kubernetes all `StatefulSet` resources also require a headless `Service`.
+
+==== StatefulSet Headless Service
+
+[source,yaml]
+.coherence.yaml
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-sts
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: statefulset-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-coherence
+    port: 7
+    protocol: TCP
+    targetPort: 7
+  publishNotReadyAddresses: true
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+----
+
+The `Service` above named `storage-sts` has a selector that must match labels on the `Pods` in the `StatefulSet`.
+We use port 7 in this `Service` because all services must define at least one port, but we never use this port and nothing in the Coherence `Pods` will bind to port 7.
+
+==== Coherence Well Known Address Headless Service
+
+When running Coherence clusters in Kubernetes we need to use well-known-addressing for Coherence cluster discovery.
+For this to work we create a `Service` that we can use for discovery of `Pods` that are in the cluster.
+In this example we only have a single `StatefulSet`, so we could just use the headless service above for WKA too.
+But in Coherence clusters where there are multiple `StatefulSets` in the cluster we would have to use a separate `Service`.
+
+[source,yaml]
+.coherence.yaml
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-wka
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: wka-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-coherence
+    port: 7
+    protocol: TCP
+    targetPort: 7
+  publishNotReadyAddresses: true
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+----
+
+The `Service` above named `storage-wka` is almost identical to the `StatefulSet` service.
+It only has a single selector label, so will match all `Pods` with the label `coherence.oracle.com/cluster: test-cluster` regardless of which `StatefulSet` they belong to.
+
+The other important property of the WKA `Service` is that it must have the field `publishNotReadyAddresses: true` so that `Pods` with matching labels are assigned to the `Service` even when those `Pods` are not ready.
+
+==== The StatefulSet
+
+We can now create the `StatefulSet` yaml.
+[source,yaml]
+.coherence.yaml
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+spec:
+  selector:
+    matchLabels:
+      coherence.oracle.com/cluster: test-cluster
+      coherence.oracle.com/deployment: storage
+  serviceName: storage-sts
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        coherence.oracle.com/cluster: test-cluster
+        coherence.oracle.com/deployment: storage
+    spec:
+      containers:
+        - name: coherence
+          image: simple-coherence:1.0.0
+          command:
+            - java
+          args:
+            - -cp
+            - "@/app/jib-classpath-file"
+            - -Xms1800m
+            - -Xmx1800m
+            - "@/app/jib-main-class-file"
+          env:
+            - name: COHERENCE_CLUSTER
+              value: storage
+            - name: COHERENCE_WKA
+              value: storage-wka
+            - name: COHERENCE_CACHECONFIG
+              value: "test-cache-config.xml"
+          ports:
+            - name: extend
+              containerPort: 20000
+----
+
+* The `StatefulSet` above will create a Coherence cluster with three replicas (or `Pods`).
+* There is a single `container` in the `Pod` named `coherence` that will run the image `simple-coherence:1.0.0` we created above.
+* The command line used to run the container will be `java -cp @/app/jib-classpath-file -Xms1800m -Xmx1800m @/app/jib-main-class-file`
+* Because we used JIB to create the image, there will be a file named `/app/jib-classpath-file` that contains the classpath for the application. We can use this to set the classpath on the JVM command line using `-cp @/app/jib-classpath-file` so in our yaml we know we will have the correct classpath for the image we built. If we change the classpath by changing project dependencies in the `pom.xml` file for our project and rebuild the image the container in Kubernetes will automatically use the changed classpath.
+* JIB also creates a file in the image named `/app/jib-main-class-file` which contains the name of the main class we specified in the JIB Maven plugin. We can use `@/app/jib-main-class-file` in place of the main class in our command line so that we run the correct main class in our container. If we change the main class in the JIB settings when we build the image our container in Kubernetes will automatically run the correct main class.
+* We set both the min and max heap to 1.8 GB (it is a Coherence recommendation to set both min and max heap to the same value rather than set a smaller -Xms).
+* The main class that will run will be `com.tangosol.net.Coherence`.
+* The cache configuration file configures a Coherence Extend proxy service, which will listen on port `20000`. We need to expose this port in the container's ports section.
+
+* We set a number of environment variables for the container:
+
+|===
+|Name |Value |Description
+
+|COHERENCE_CLUSTER
+|storage
+|This sets the cluster name in Coherence (the same as setting `-Dcoherence.cluster=storage`)
+
+|COHERENCE_WKA
+|storage-wka
+|This sets the DNS name Coherence will use for discovery of other Pods in cluster. It is set to the name of the WKA `Service` created above.
+
+|COHERENCE_CACHECONFIG
+|"test-cache-config.xml"
+|This tells Coherence the name of the cache configuration file to use (the same as setting `-Dcoherence.cacheconfig=test-cache-config.xml`);
+|===
+
+==== Coherence Extend Service
+
+In the cache configuration used in the image Coherence will run a Coherence Extend proxy service, listening on port 20000.
+This port has been exposed in the Coherence container in the `StatefulSet` and we can also expose it via a `Service`.
+
+[source,yaml]
+.coherence.yaml
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-extend
+  labels:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+    coherence.oracle.com/component: wka-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: extend
+    port: 20000
+    protocol: TCP
+    targetPort: extend
+  selector:
+    coherence.oracle.com/cluster: test-cluster
+    coherence.oracle.com/deployment: storage
+----
+
+The type of the `Service` above is `ClusterIP`, but we could just as easily use a different type depending on how the service will be used. For example, we might use ingress, or Istio, or a load balancer if the Extend clients were connecting from outside the Kubernetes cluster. In local development we can just port forward to the service above.
+
+== Deploy to Kubernetes
+
+We can combine all the snippets of yaml above into a single file and deploy it to Kubernetes.
+The source code for this example contains a file named `coherence.yaml` containing all the configuration above.
+We can deploy it with the following command:
+[source,bash]
+----
+kubectl apply -f coherence.yaml
+----
+
+We can see all the resources created in Kubernetes by running the following command:
+[source,bash]
+----
+kubectl get all
+----
+Which will display something like the following:
+[source]
+----
+NAME            READY   STATUS    RESTARTS   AGE
+pod/storage-0   1/1     Running   0          19s
+pod/storage-1   1/1     Running   0          17s
+pod/storage-2   1/1     Running   0          16s
+
+NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/storage-extend   ClusterIP   10.105.78.34   <none>        20000/TCP   19s
+service/storage-sts      ClusterIP   None           <none>        7/TCP       19s
+service/storage-wka      ClusterIP   None           <none>        7/TCP       19s
+
+NAME                       READY   AGE
+statefulset.apps/storage   3/3     19s
+----
+We can see there are three `Pods` as we specified three replicas.
+The three `Services` we specified have been created.
+Finally, the `StatefulSet` exists and has three ready replicas.
+
+
+== Connect an Extend Client
+
+Now we have a Coherence cluster running in Kubernetes we can try connecting a simple Extend client.
+For this example we will use the test client Maven project to run the client.
+
+To connect from our local dev machine into the server we will use port-forward in this example.
+We could have configured ingress and load balancing, etc. but for local dev and test port-forward is simple and easy.
+
+The client is configured to connect to an Extend proxy listening on `127.0.0.1:20000`. The server we have deployed into Kubernetes is listening also listening on port 20000 via the `storage-extend` service. If we run a port-forward process that forwards port 20000 on our local machine to port 20000 of the service we can connect the client without needing any other configuration.
+
+[source,bash]
+----
+kubectl port-forward service/storage-extend 20000:20000
+----
+
+Now in another terminal window, we can run the test client from the `test-client/` directory execute the following command:
+[source,bash]
+----
+mvn exec:java
+----
+
+This will start a Coherence interactive console which will eventually print the `Map (?):` prompt.
+The console is now waiting for commands, so we can go ahead and create a cache.
+
+At the `Map (?):` prompt type the command `cache test` and press enter. This will create a cache named `test`
+[source]
+----
+Map (?): cache test
+----
+
+We should see output something like this:
+[source]
+----
+2021-09-17 12:25:12.143/14.600 Oracle Coherence CE 21.06.1 <Info> (thread=com.tangosol.net.CacheFactory.main(), member=1): Loaded cache configuration from "file:/Users/jonathanknight/dev/Projects/GitOracle/coherence-operator-3.0/examples/no-operator/test-client/target/classes/client-cache-config.xml"
+2021-09-17 12:25:12.207/14.664 Oracle Coherence CE 21.06.1 <D5> (thread=com.tangosol.net.CacheFactory.main(), member=1): Created cache factory com.tangosol.net.ExtensibleConfigurableCacheFactory
+
+Cache Configuration: test
+  SchemeName: remote
+  ServiceName: RemoteCache
+  ServiceDependencies: DefaultRemoteCacheServiceDependencies{RemoteCluster=null, RemoteService=Proxy, InitiatorDependencies=DefaultTcpInitiatorDependencies{EventDispatcherThreadPriority=10, RequestTimeoutMillis=30000, SerializerFactory=null, TaskHungThresholdMillis=0, TaskTimeoutMillis=0, ThreadPriority=10, WorkerThreadCount=0, WorkerThreadCountMax=2147483647, WorkerThreadCountMin=0, WorkerThreadPriority=5}{Codec=null, FilterList=[], PingIntervalMillis=0, PingTimeoutMillis=30000, MaxIncomingMessageSize=0, MaxOutgoingMessageSize=0}{ConnectTimeoutMillis=30000, RequestSendTimeoutMillis=30000}{LocalAddress=null, RemoteAddressProviderBldr=com.tangosol.coherence.config.builder.WrapperSocketAddressProviderBuilder@35f8cdc1, SocketOptions=SocketOptions{LingerTimeout=0, KeepAlive=true, TcpNoDelay=true}, SocketProvideBuilderr=com.tangosol.coherence.config.builder.SocketProviderBuilder@1e4cf40, isNameServiceAddressProvider=false}}{DeferKeyAssociationCheck=false}
+
+Map (test):
+----
+The cache named `test` has been created and prompt has changed to `Map (test):`, so this confirms that we have connected to the Extend proxy in the server running in Kubernetes.
+
+We can not put data into the cache using the `put` command
+
+[source]
+----
+Map (test): put key-1 value-1
+----
+The command above puts an entry into the `test` cache with a key of `"key-1"` and a value of `"value-1"` and will print the previous value mapped to the `"key-1"` key, which in this case is `null`.
+[source]
+----
+Map (test): put key-1 value-1
+null
+
+Map (test):
+----
+
+We can now do a `get` command to fetch the entry we just put, which should print `value-1` and re-display the command prompt.
+[source]
+----
+Map (test): get key-1
+value-1
+
+Map (test):
+----
+
+To confirm we really have connected to the server we can kill the console wil ctrl-C, restart it and execute the `cache` and `get` commands again.
+[source]
+----
+Map (?): cache test
+
+... output removed for brevity ...
+
+Map (test): get key-1
+value-1
+
+Map (test):
+----
+We can see above that the get command returned `value-1` which we previously inserted.
+
+== Clean-UP
+
+We can now exit the test client by pressing ctrl-C, stop the port-forward process with crtl-C and undeploy the server:
+[source,bash]
+----
+kubectl delete -f coherence.yaml
+----
+
+
+
+
+
