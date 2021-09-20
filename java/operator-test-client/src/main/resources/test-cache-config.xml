@@ -6,7 +6,6 @@
   -->
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
-        xmlns:xi="http://www.w3.org/2001/XInclude"
         xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
   <caching-scheme-mapping>
@@ -17,7 +16,6 @@
   </caching-scheme-mapping>
 
   <caching-schemes>
-    <xi:include href="remote-scheme.xml" parse="xml"/>
     <remote-cache-scheme>
       <scheme-name>remote-scheme</scheme-name>
       <service-name>RemoteCache</service-name>
