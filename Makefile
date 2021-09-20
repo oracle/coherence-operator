@@ -646,6 +646,7 @@ copyright:  ## Check copyright headers
 	  -X THIRD_PARTY_LICENSES.txt \
 	  -X tools.go \
 	  -X .tpl \
+	  -X .txt \
 	  -X .yaml \
 	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
 	  -X pkg/data/assets/ \

@@ -1,0 +1,27 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+== Example Extend Client
+
+In the `examples/no-operator/test-client/` directory is a simple Maven project that we will use to run a simple Extend client.
+This will allow us to show connectivity to our test cluster from outside of Kubernetes.
+
+To run the test client we can run this command from the `test-client/` directory:
+
+[source,bash]
+----
+mvn exec:java
+----
+
+This will start a Coherence interactive console as an Extend client.
+We can then run various commands to test Extend connectivity.
+
+
+
+
+
+

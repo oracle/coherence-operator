@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>storage-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>*</topic-name>
+      <scheme-name>topic-scheme</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>storage-scheme</scheme-name>
+      <service-name>StorageService</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-scheme</scheme-name>
+      <service-name>PartitionedTopic</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <autostart>true</autostart>
+    </paged-topic-scheme>
+
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <socket-provider system-property="coherence.extend.socket.provider"/>
+          <local-address>
+            <address system-property="coherence.extend.address">0.0.0.0</address>
+            <port system-property="coherence.extend.port">20000</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>
