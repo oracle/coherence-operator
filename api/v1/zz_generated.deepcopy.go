@@ -221,6 +221,11 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.ResumeServicesOnStartup != nil {
+		in, out := &in.ResumeServicesOnStartup, &out.ResumeServicesOnStartup
+		*out = new(bool)
+		**out = **in
+	}
 	if in.SuspendServiceTimeout != nil {
 		in, out := &in.SuspendServiceTimeout, &out.SuspendServiceTimeout
 		*out = new(int)

@@ -35,6 +35,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.Service;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
@@ -273,7 +274,7 @@ public class OperatorRestServer implements AutoCloseable {
 
             server.setExecutor(null); // creates a default executor
             server.start();
-            System.out.println("Coherence Operator: listening on " + server.getAddress());
+            System.out.println("CoherenceOperator: listening on " + server.getAddress());
 
             httpServer = server;
         }
@@ -441,7 +442,7 @@ public class OperatorRestServer implements AutoCloseable {
             int response = 400;
             if (hasBeenReady) {
                 response = hasCluster ? 200 : 400;
-                logDebug("CoherenceOperator: Ready check response %d - cluster=%b", response, hasCluster);
+                LOGGER.debug("CoherenceOperator: Ready check response %d - cluster=%b", response, hasCluster);
             }
             else {
                 boolean isHA = hasCluster && isStatusHA();
@@ -450,7 +451,7 @@ public class OperatorRestServer implements AutoCloseable {
                     response = 200;
                     hasBeenReady = true;
                 }
-                logDebug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b",
+                LOGGER.debug("CoherenceOperator: Ready check response %d - cluster=%b HA=%b Idle=%b",
                          response, hasCluster, isHA, isIdle);
             }
             send(exchange, response);
@@ -469,7 +470,7 @@ public class OperatorRestServer implements AutoCloseable {
         try {
             boolean hasCluster = hasClusterMembers();
             int response = hasClusterMembers() ? 200 : 400;
-            logDebug("CoherenceOperator: Health check response %d - cluster=%b", response, hasCluster);
+            LOGGER.debug("CoherenceOperator: Health check response %d - cluster=%b", response, hasCluster);
             send(exchange, response);
         }
         catch (Throwable thrown) {
@@ -548,25 +549,38 @@ public class OperatorRestServer implements AutoCloseable {
                 cluster.suspendService(name);
             }
             else {
-                LOGGER.warn("CoherenceOperator: Suspending all services");
+                LOGGER.warn("CoherenceOperator: Suspending all persistence enabled services");
                 Enumeration<String> names = cluster.getServiceNames();
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
                     Service svc = cluster.getService(name);
+                    LOGGER.debug("CoherenceOperator: Suspending all persistence enabled services - servoce=%s", name);
                     if (svc instanceof DistributedCacheService && ((DistributedCacheService) svc).isLocalStorageEnabled()) {
                         DistributedCacheService dcs = (DistributedCacheService) svc;
-                        long count = dcs.getOwnershipEnabledMembers().stream()
-                                .map(m -> identityMap.get(m.getId()))
-                                .distinct()
-                                .count();
-                        if (count == 1) {
-                            LOGGER.info("CoherenceOperator: Suspending service %s", name);
-                            cluster.suspendService(name);
+
+                        if (PersistenceHelper.isPersistenceEnabled(dcs)) {
+                            long count = dcs.getOwnershipEnabledMembers().stream()
+                                    .map(m -> identityMap.get(m.getId()))
+                                    .distinct()
+                                    .count();
+
+                            if (count == 1) {
+                                LOGGER.info("CoherenceOperator: Suspending service %s", name);
+                                cluster.suspendService(name);
+                            }
+                            else {
+                                LOGGER.info("CoherenceOperator: Not suspending service %s "
+                                        + "- is storage enabled in other deployments", name);
+                            }
                         }
                         else {
-                            LOGGER.info("CoherenceOperator: Not suspending service %s "
-                                                + "- is storage enabled in other deployments", name);
+                            LOGGER.debug("CoherenceOperator: Suspending all persistence enabled services "
+                                    + "- service=%s does not have persistence enabled", name);
                         }
+                    }
+                    else {
+                        LOGGER.debug("CoherenceOperator: Suspending all persistence enabled services "
+                                + "- service=%s is not a storage enabled DistributedCacheService", name);
                     }
                 }
             }
@@ -658,9 +672,9 @@ public class OperatorRestServer implements AutoCloseable {
      */
     boolean isStatusHA(String exclusions) {
         try {
-            logDebug("CoherenceOperator: StatusHA check. Waiting for service start...");
+            LOGGER.debug("CoherenceOperator: StatusHA check. Waiting for service start...");
             waitForServiceStart.run();
-            logDebug("CoherenceOperator: StatusHA check. services started");
+            LOGGER.debug("CoherenceOperator: StatusHA check. services started");
 
             Set<String> allowEndangered;
             if (exclusions != null) {
@@ -696,8 +710,9 @@ public class OperatorRestServer implements AutoCloseable {
      *
      * @return {@code true} if all Coherence services are safe
      */
+    @SuppressWarnings("unchecked")
     boolean areCacheServicesHA(Cluster cluster, Set<String> allowEndangered) {
-        logDebug("CoherenceOperator: Checking HA: allowEndangered=%s", allowEndangered);
+        LOGGER.debug("CoherenceOperator: Checking HA: allowEndangered=%s", allowEndangered);
 
         Enumeration<String> names = cluster.getServiceNames();
         while (names.hasMoreElements()) {
@@ -712,47 +727,61 @@ public class OperatorRestServer implements AutoCloseable {
                 PartitionedCache partitionedCache = (PartitionedCache) service;
 
                 if (partitionedCache.isOwnershipEnabled()) {
-                    int memberCount = partitionedCache.getOwnershipEnabledMembers().size();
+                    Set<Member> setOwnershipEnabledMembers = partitionedCache.getOwnershipEnabledMembers();
+                    int memberCount                        = setOwnershipEnabledMembers.size();
 
                     if (memberCount == 1) {
                         // storage enabled and only one member, check we own all partitions
                         int partitionCount = partitionedCache.getPartitionCount();
                         int ownedPartitions = partitionedCache.calculateThisOwnership(true);
                         if (ownedPartitions != partitionCount) {
-                            logDebug("CoherenceOperator: StatusHA check failed. "
-                                             + "Service %s is only storage enabled member but owns %d of %d partitions",
+                            LOGGER.debug("CoherenceOperator: StatusHA check failed. "
+                                             + "Service %s this member is the only storage enabled member, "
+                                             + "but owns only %d of %d partitions",
                                      name, ownedPartitions, partitionCount);
                             return false;
                         }
                     }
 
+                    String sMembersIds = setOwnershipEnabledMembers.stream()
+                                                                   .map(Member::getId)
+                                                                   .map(String::valueOf)
+                                                                   .collect(Collectors.joining(","));
+                    String sMembers = String.format("memberCount=%d members=[%s]", memberCount, sMembersIds);
+
                     String statusHA = partitionedCache.getBackupStrengthName();
                     int backupCount = partitionedCache.getBackupCount();
+
                     if (memberCount > 1
                         && backupCount > 0
                         && STATUS_ENDANGERED.equals(statusHA)
                         && !allowEndangered.contains(name)) {
-                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s", name, statusHA);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s has HA status of %s, suspended=%b, %s",
+                                name, statusHA, partitionedCache.isSuspended(), sMembers);
                         return false;
                     }
 
                     if (partitionedCache.isDistributionInProgress()) {
-                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s distribution in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s distribution in progress, %s",
+                                name, sMembers);
                         return false;
                     }
 
                     if (partitionedCache.isRecoveryInProgress()) {
-                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s recovery in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s recovery in progress, %s",
+                                name, sMembers);
                         return false;
                     }
 
                     if (partitionedCache.isRestoreInProgress()) {
-                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s restore in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s restore in progress, %s",
+                                name, sMembers);
                         return false;
                     }
 
                     if (partitionedCache.isTransferInProgress()) {
-                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s transfer in progress", name);
+                        LOGGER.error("CoherenceOperator: StatusHA check failed. Service %s transfer in progress, %s",
+                                name, sMembers);
                         return false;
                     }
                 }
@@ -780,7 +809,7 @@ public class OperatorRestServer implements AutoCloseable {
                     service = ((SafeDistributedCacheService) service).getService();
                 }
                 if (PersistenceHelper.isActive(service)) {
-                    logDebug("CoherenceOperator: Persistence not idle for service %s" + name);
+                    LOGGER.debug("CoherenceOperator: Persistence not idle for service %s" + name);
                     allIdle = false;
                 }
             }
@@ -825,18 +854,7 @@ public class OperatorRestServer implements AutoCloseable {
         String s = System.getProperty(PROP_WAIT_FOR_DCS, "false");
         if (Boolean.parseBoolean(s)) {
             DefaultCacheServer dcs = DefaultCacheServer.getInstance();
-            // Wait for service start to ensure that we will get back any partition cache MBeans
             dcs.waitForServiceStart();
-        }
-    }
-
-    private void logDebug(String message, Object... args) {
-        logDebug(String.format(message, args));
-    }
-
-    private void logDebug(String message) {
-        if (LOGGING_ENABLED) {
-            CacheFactory.log(message, CacheFactory.LOG_INFO);
         }
     }
 }

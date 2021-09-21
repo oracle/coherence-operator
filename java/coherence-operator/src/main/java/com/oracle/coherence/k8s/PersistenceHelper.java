@@ -28,6 +28,19 @@ public final class PersistenceHelper {
 
     /**
      * Returns {@code true} if the specified service is a storage enabled cache service configured
+     * with persistence.
+     *
+     * @param service  the  service to check
+     *
+     * @return {@code true} if the specified service is configured with persistence
+     */
+    public static boolean isPersistenceEnabled(Service service) {
+        PartitionedService$PersistenceControl persistenceControl = getPersistenceControl(service);
+        return persistenceControl != null;
+    }
+
+    /**
+     * Returns {@code true} if the specified service is a storage enabled cache service configured
      * with persistence and the persistence controller is not idle.
      *
      * @param service  the  service to check
@@ -36,8 +49,19 @@ public final class PersistenceHelper {
      *         controller is not idle
      */
     public static boolean isActive(Service service) {
-        if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
+        PartitionedService$PersistenceControl persistenceControl = getPersistenceControl(service);
+        if (persistenceControl != null) {
+            // IntelliJ underlines this code red as it thinks it will not compile, but these are TDE
+            // classes and will compile fine.
+            PartitionedService$PersistenceControl$SnapshotController snapshotController
+                    = persistenceControl.getSnapshotController();
+            return snapshotController != null && !snapshotController.isIdle();
+        }
+        return false;
+    }
 
+    private static PartitionedService$PersistenceControl getPersistenceControl(Service service) {
+        if (service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled()) {
             while (true) {
                 if (service instanceof SafeDistributedCacheService) {
                     service = ((SafeDistributedCacheService) service).getService();
@@ -55,15 +79,10 @@ public final class PersistenceHelper {
                 if (partitionedCache.isOwnershipEnabled()) {
                     // IntelliJ underlines this code red as it thinks it will not compile, but these are TDE
                     // classes and will compile fine.
-                    PartitionedService$PersistenceControl persistenceControl = partitionedCache.getPersistenceControl();
-                    if (persistenceControl != null) {
-                        PartitionedService$PersistenceControl$SnapshotController snapshotController
-                                = persistenceControl.getSnapshotController();
-                        return snapshotController != null && !snapshotController.isIdle();
-                    }
+                    return partitionedCache.getPersistenceControl();
                 }
             }
         }
-        return false;
+        return null;
     }
 }

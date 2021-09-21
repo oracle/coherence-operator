@@ -7,6 +7,7 @@
 package com.oracle.coherence.k8s;
 
 import java.io.PrintStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.tangosol.net.CacheFactory;
@@ -75,6 +76,15 @@ public interface OperatorLogger {
     void error(String msg, Object... args);
 
     /**
+     * Log an error message.
+     *
+     * @param t     the excpetion to log
+     * @param msg   the log message
+     * @param args  any arguments to apply to the log message using {@link String#format(String, Object...)}
+     */
+    void error(Throwable t, String msg, Object... args);
+
+    /**
      * Returns the {@link OperatorLogger} to use.
      *
      * @return the {@link OperatorLogger} to use
@@ -129,7 +139,13 @@ public interface OperatorLogger {
         @Override
         public void error(String msg, Object... args) {
             // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
-            com.oracle.coherence.common.base.Logger.warn(String.format(msg, args));
+            com.oracle.coherence.common.base.Logger.err(String.format(msg, args));
+        }
+
+        @Override
+        public void error(Throwable t, String msg, Object... args) {
+            // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
+            com.oracle.coherence.common.base.Logger.err(String.format(msg, args), t);
         }
     }
 
@@ -162,7 +178,15 @@ public interface OperatorLogger {
         public void error(String msg, Object... args) {
             // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
             //noinspection deprecation
-            CacheFactory.log(String.format(msg, args), CacheFactory.LOG_WARN);
+            CacheFactory.log(String.format(msg, args), CacheFactory.LOG_ERR);
+        }
+
+        @Override
+        public void error(Throwable t, String msg, Object... args) {
+            // The log method is deprecated but we need to work with earlier Coherence versions so we use it.
+            //noinspection deprecation
+            CacheFactory.log(String.format(msg, args), CacheFactory.LOG_ERR);
+            CacheFactory.err(t);
         }
     }
 
@@ -190,6 +214,11 @@ public interface OperatorLogger {
         @Override
         public void error(String msg, Object... args) {
             LOGGER.severe(String.format(msg, args));
+        }
+
+        @Override
+        public void error(Throwable t, String msg, Object... args) {
+            LOGGER.log(Level.SEVERE, String.format(msg, args), t);
         }
     }
 
@@ -234,6 +263,14 @@ public interface OperatorLogger {
         public void error(String msg, Object... args) {
             out.printf("[ERROR] " + msg, args);
             out.println();
+            out.flush();
+        }
+
+        @Override
+        public void error(Throwable t, String msg, Object... args) {
+            out.printf("[ERROR] " + msg, args);
+            out.println();
+            t.printStackTrace(out);
             out.flush();
         }
     }

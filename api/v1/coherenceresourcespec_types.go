@@ -99,6 +99,14 @@ type CoherenceResourceSpec struct {
 	// The default value if not specified is true.
 	// +optional
 	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
+	// ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when
+	// the Coherence container is started. This only applies to storage enabled distributed cache
+	// services. This ensures that services that are suspended due to the shutdown of a storage
+	// tier, but those services are still running (albeit suspended) in other storage disabled
+	// deployments, will be resumed when storage comes back.
+	// The default value if not specified is true.
+	// +optional
+	ResumeServicesOnStartup *bool `json:"resumeServicesOnStartup,omitempty"`
 	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
 	// call to return (the default is 60 seconds)
 	// +optional
@@ -855,6 +863,10 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 
 	if deployment.Annotations[AnnotationFeatureSuspend] == "true" {
 		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace})
+	}
+
+	if deployment.Spec.ResumeServicesOnStartup != nil {
+		env = append(env, corev1.EnvVar{Name: EnvVarOperatorAllowResume, Value: BoolPtrToString(deployment.Spec.ResumeServicesOnStartup)})
 	}
 
 	return env

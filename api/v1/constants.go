@@ -157,6 +157,7 @@ const (
 	EnvVarAppMainArgs                 = "COH_MAIN_ARGS"
 	EnvVarOperatorHost                = "OPERATOR_HOST"
 	EnvVarOperatorTimeout             = "OPERATOR_REQUEST_TIMEOUT"
+	EnvVarOperatorAllowResume         = "OPERATOR_ALLOW_RESUME"
 	EnvVarCoherenceHome               = "COHERENCE_HOME"
 	EnvVarCohDependencyModules        = "DEPENDENCY_MODULES"
 	EnvVarCohSkipVersionCheck         = "COH_SKIP_VERSION_CHECK"

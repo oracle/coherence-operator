@@ -8589,6 +8589,15 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                     type: object
                 type: object
+              resumeServicesOnStartup:
+                description: ResumeServicesOnStartup allows the Operator to resume
+                  suspended Coherence services when the Coherence container is started.
+                  This only applies to storage enabled distributed cache services.
+                  This ensures that services that are suspended due to the shutdown
+                  of a storage tier, but those services are still running (albeit
+                  suspended) in other storage disabled deployments, will be resumed
+                  when storage comes back. The default value if not specified is true.
+                type: boolean
               role:
                 description: The name of the role that this deployment represents
                   in a Coherence cluster. This value will be used to set the Coherence

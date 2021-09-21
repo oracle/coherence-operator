@@ -303,3 +303,35 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaDifferentNamespace(t *testing.
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulSetWithResumeServicesOnStartupTrue(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		ResumeServicesOnStartup: boolPtr(true),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "true"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithResumeServicesOnStartupFalse(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		ResumeServicesOnStartup: boolPtr(false),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "false"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
