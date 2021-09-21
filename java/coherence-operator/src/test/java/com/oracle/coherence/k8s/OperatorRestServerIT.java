@@ -550,6 +550,9 @@ public class OperatorRestServerIT {
                                                    LocalHost.only(),
                                                    testLogs.builder(),
                                                    DisplayName.of("storage"),
+                                                   SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                   SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                   SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort))) {
 
             Eventually.assertDeferred(() -> this.isServiceOneRunning(app), is(true));
