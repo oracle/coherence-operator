@@ -554,11 +554,11 @@ public class OperatorRestServer implements AutoCloseable {
                 while (names.hasMoreElements()) {
                     name = names.nextElement();
                     Service svc = cluster.getService(name);
-                    LOGGER.debug("CoherenceOperator: Suspending all persistence enabled services - servoce=%s", name);
+                    LOGGER.debug("CoherenceOperator: Suspending all persistence enabled services - service=%s", name);
                     if (svc instanceof DistributedCacheService && ((DistributedCacheService) svc).isLocalStorageEnabled()) {
                         DistributedCacheService dcs = (DistributedCacheService) svc;
 
-                        if (PersistenceHelper.isPersistenceEnabled(dcs)) {
+                        if (PersistenceHelper.isActivePersistenceEnabled(dcs)) {
                             long count = dcs.getOwnershipEnabledMembers().stream()
                                     .map(m -> identityMap.get(m.getId()))
                                     .distinct()

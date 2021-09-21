@@ -6,6 +6,7 @@
 
 package com.oracle.coherence.k8s;
 
+import com.oracle.coherence.persistence.PersistenceManager;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PersistenceControl$SnapshotController;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -34,9 +35,10 @@ public final class PersistenceHelper {
      *
      * @return {@code true} if the specified service is configured with persistence
      */
-    public static boolean isPersistenceEnabled(Service service) {
+    public static boolean isActivePersistenceEnabled(Service service) {
         PartitionedService$PersistenceControl persistenceControl = getPersistenceControl(service);
-        return persistenceControl != null;
+        PersistenceManager<?> activeManager = persistenceControl == null ? null : persistenceControl.getActiveManager();
+        return activeManager != null;
     }
 
     /**
