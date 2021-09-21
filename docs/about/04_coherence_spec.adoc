@@ -110,6 +110,8 @@ m| volumeMounts | VolumeMounts defines extra volume mounts to map to the additio
 m| healthPort | The port that the health check endpoint will bind to. m| &#42;int32 | false
 m| readinessProbe | The readiness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
 m| livenessProbe | The liveness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
+m| startupProbe | The startup probe config to be used for the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
+m| readinessGates | ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#podreadinessgate-v1-core[corev1.PodReadinessGate] | false
 m| resources | Resources is the optional resource requests and limits for the containers +
  ref: http://kubernetes.io/docs/user-guide/compute-resources/ + +
  +

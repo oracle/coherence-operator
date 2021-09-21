@@ -184,6 +184,14 @@ type CoherenceResourceSpec struct {
 	// ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 	// +optional
 	LivenessProbe *ReadinessProbeSpec `json:"livenessProbe,omitempty"`
+	// The startup probe config to be used for the Pods in this deployment.
+	// See: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+	// +optional
+	StartupProbe *ReadinessProbeSpec `json:"startupProbe,omitempty"`
+	// ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness.
+	// See: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate
+	// +optional
+	ReadinessGates []corev1.PodReadinessGate `json:"readinessGates,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
 	//
@@ -664,6 +672,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				Tolerations:                  in.Tolerations,
 				Affinity:                     in.EnsurePodAffinity(deployment),
 				NodeSelector:                 in.NodeSelector,
+				ReadinessGates:               in.ReadinessGates,
 				InitContainers: []corev1.Container{
 					in.CreateUtilsContainer(deployment),
 				},
@@ -782,6 +791,11 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence)
 
 	c.LivenessProbe = in.CreateDefaultLivenessProbe()
 	in.LivenessProbe.UpdateProbeSpec(healthPort, DefaultLivenessPath, c.LivenessProbe)
+
+	if in.StartupProbe != nil {
+		c.StartupProbe = in.CreateDefaultLivenessProbe()
+		in.StartupProbe.UpdateProbeSpec(healthPort, DefaultLivenessPath, c.StartupProbe)
+	}
 
 	return c
 }
