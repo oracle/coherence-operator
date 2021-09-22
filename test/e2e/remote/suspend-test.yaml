@@ -13,6 +13,14 @@ spec:
     main: com.oracle.coherence.k8s.testing.RestServer
   coherence:
     cacheConfig: test-cache-config.xml
+    persistence:
+      mode: active
+      persistentVolumeClaim:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
     management:
       enabled: true
       port: 30000

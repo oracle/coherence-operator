@@ -74,6 +74,13 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <!-- Use the assembly plugin to pull together the files to use to build the
              docker image under the target/docker folder -->
         <plugins>

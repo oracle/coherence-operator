@@ -57,6 +57,7 @@ public class Main {
             return;
         }
         initialised = true;
+        CoherenceOperator.printBanner(System.out);
         OperatorRestServer server = new OperatorRestServer(System.getProperties());
         server.start();
     }
