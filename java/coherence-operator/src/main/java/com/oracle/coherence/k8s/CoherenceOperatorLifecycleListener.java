@@ -115,7 +115,8 @@ public class CoherenceOperatorLifecycleListener
     private void ensureResumed(Service service) {
         if (service instanceof PartitionedCache && ((PartitionedCache) service).isSuspended()) {
             String serviceName = ((PartitionedCache) service).getServiceName();
-            if (SERVICE_RESUME_MAP == null || SERVICE_RESUME_MAP.getOrDefault(serviceName, DEFAULT_RESUME_SERVICE) == Boolean.TRUE) {
+            if (SERVICE_RESUME_MAP == null
+                || SERVICE_RESUME_MAP.getOrDefault(serviceName, DEFAULT_RESUME_SERVICE) == Boolean.TRUE) {
                 // We need to resume the service on another thread so that we do not block start-up,
                 // in this case we'll just use the fork-join pool.
                 CompletableFuture.runAsync(() -> {
