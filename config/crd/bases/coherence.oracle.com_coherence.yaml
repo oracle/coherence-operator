@@ -727,8 +727,24 @@ spec:
                       not set the application directory default value is "/app".
                     type: string
                 type: object
+              autoResumeServices:
+                additionalProperties:
+                  type: boolean
+                description: AutoResumeServices is a map of Coherence service names
+                  to allow more fine-grained control over which services may be auto-resumed
+                  by the operator when a Coherence Pod starts. The key to the map
+                  is the name of the Coherence service. This should be the fully qualified
+                  name if scoped services are being used in Coherence. The value is
+                  a bool, set to `true` to allow the service to be auto-resumed or
+                  `false` to not allow the service to be auto-resumed. Adding service
+                  names to this list will override any value set in `ResumeServicesOnStartup`,
+                  so if the `ResumeServicesOnStartup` field is `false` but there are
+                  service names in the `AutoResumeServices`, mapped to `true`, those
+                  services will still be resumed. Note that starting Pods with suspended
+                  partitioned cache services may stop the Pod reaching the ready state.
+                type: object
               automountServiceAccountToken:
-                description: Whether or not to auto-mount the Kubernetes API credentials
+                description: Whether to auto-mount the Kubernetes API credentials
                   for a service account
                 type: boolean
               cluster:
@@ -4770,11 +4786,11 @@ spec:
                 - name
                 x-kubernetes-list-type: map
               haBeforeUpdate:
-                description: Whether or not to perform a StatusHA test on the cluster
-                  before performing an update or deletion. This field can be set to
-                  false to force through an update even when a Coherence deployment
-                  is in an unstable state. The default is true, to always check for
-                  StatusHA before updating a Coherence deployment.
+                description: Whether to perform a StatusHA test on the cluster before
+                  performing an update or deletion. This field can be set to false
+                  to force through an update even when a Coherence deployment is in
+                  an unstable state. The default is true, to always check for StatusHA
+                  before updating a Coherence deployment.
                 type: boolean
               healthPort:
                 description: The port that the health check endpoint will bind to.
@@ -7582,8 +7598,8 @@ spec:
               labels:
                 additionalProperties:
                   type: string
-                description: 'The extra labels to add to the all of the Pods in this
-                  deployments. Labels here will add to or override those defined for
+                description: 'The extra labels to add to the all the Pods in this
+                  deployment. Labels here will add to or override those defined for
                   the cluster. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/'
                 type: object
               livenessProbe:
@@ -8596,7 +8612,9 @@ spec:
                   This ensures that services that are suspended due to the shutdown
                   of a storage tier, but those services are still running (albeit
                   suspended) in other storage disabled deployments, will be resumed
-                  when storage comes back. The default value if not specified is true.
+                  when storage comes back. Note that starting Pods with suspended
+                  partitioned cache services may stop the Pod reaching the ready state.
+                  The default value if not specified is true.
                 type: boolean
               role:
                 description: The name of the role that this deployment represents

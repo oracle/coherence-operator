@@ -121,7 +121,8 @@ type CoherenceResourceSpec struct {
 	// `ResumeServicesOnStartup` field is `false` but there are service names in the `AutoResumeServices`, mapped
 	// to `true`, those services will still be resumed.
 	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
-	AutoResumeServices map[string]bool
+	// +optional
+	AutoResumeServices map[string]bool `json:"autoResumeServices,omitempty"`
 	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
 	// call to return (the default is 60 seconds)
 	// +optional
