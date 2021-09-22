@@ -6,7 +6,6 @@
 
 package com.oracle.coherence.k8s;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.Properties;
@@ -56,6 +55,11 @@ public class CoherenceOperator
         return ensureProperties().getProperty("version", NA);
     }
 
+    /**
+     * Print the Operator banner.
+     *
+     * @param out  the {@link PrintStream} to print he banner on
+     */
     public static void printBanner(PrintStream out) {
         out.printf("CoherenceOperator: Java Runner version %s\n", getVersion());
     }
@@ -68,7 +72,8 @@ public class CoherenceOperator
                 if (url != null) {
                     props.load(url.openStream());
                 }
-            } catch (Throwable t) {
+            }
+            catch (Throwable t) {
                 t.printStackTrace();
             }
             properties = props;
