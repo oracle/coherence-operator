@@ -127,6 +127,7 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-Dcoherence.ipmonitor.pingtimeout=0",
 		"-Dcoherence.k8s.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
+		"-Dcoherence.k8s.operator.can.resume.services=true",
 		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",
 		"-XX:+UnlockDiagnosticVMOptions",

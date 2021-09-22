@@ -363,10 +363,14 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	// set the flag that allows the operator to resume suspended services on start-up
-	if !details.isEnvTrue(v1.EnvVarOperatorAllowResume) {
+	if !details.isEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {
 		details.addArg("-Dcoherence.k8s.operator.can.resume.services=false")
 	} else {
 		details.addArg("-Dcoherence.k8s.operator.can.resume.services=true")
+	}
+
+	if svc := details.Getenv(v1.EnvVarOperatorResumeServices); svc != "" {
+		details.addArg("-Dcoherence.k8s.operator.resume.services=base64:" + svc)
 	}
 
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))

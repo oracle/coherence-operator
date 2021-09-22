@@ -858,6 +858,178 @@ public class OperatorRestServerIT {
         }
     }
 
+    @Test
+    public void shouldNotResumeSuspendedServiceOnStartupWhenResumeDisabled() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort3 = new Capture<>(platform.getAvailablePorts());
+
+        try (JavaApplication app1 = platform.launch(JavaApplication.class,
+                                                    ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config-two.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
+                                                    testLogs.builder(),
+                                                    DisplayName.of("storage-disabled-0"),
+                                                    LocalStorage.disabled(),
+                                                    IPv4Preferred.yes(),
+                                                    LocalHost.only(),
+                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                    SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                    SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "one"),
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
+
+            try (JavaApplication app2 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
+                                                        testLogs.builder(),
+                                                        DisplayName.of("storage-0"),
+                                                        LocalStorage.enabled(),
+                                                        IPv4Preferred.yes(),
+                                                        LocalHost.only(),
+                                                        SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                        SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                        SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "two"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
+
+                Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
+                Eventually.assertDeferred(() -> isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app1), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app2), is(true));
+
+                // wait for ready
+                Eventually.assertDeferred(() -> httpRequest(httpPort2, OperatorRestServer.PATH_READY), is(200));
+                // suspend services
+                Eventually.assertDeferred(() -> httpRequest(httpPort2, OperatorRestServer.PATH_SUSPEND), is(200));
+
+                assertThat(isServiceOneSuspended(app1), is(true));
+                assertThat(isServiceTwoSuspended(app1), is(true));
+                assertThat(isServiceOneSuspended(app2), is(true));
+                assertThat(isServiceTwoSuspended(app2), is(true));
+
+                // storage enabled member will close on exiting the try with resources block
+            }
+
+            // restart the storage member
+            try (JavaApplication app3 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
+                                                        testLogs.builder(),
+                                                        DisplayName.of("storage-1"),
+                                                        LocalStorage.enabled(),
+                                                        IPv4Preferred.yes(),
+                                                        LocalHost.only(),
+                                                        SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                        SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                        SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "two"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort3))) {
+
+                Eventually.assertDeferred(() -> isServiceOneRunning(app3), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app3), is(true));
+
+                // The Operator should not have resumed the suspended services
+                assertThat(isServiceOneSuspended(app3), is(true));
+                assertThat(isServiceTwoSuspended(app3), is(true));
+            }
+        }
+    }
+
+    @Test
+    public void shouldResumeSpecificSuspendedServiceOnStartup() {
+        LocalPlatform platform = LocalPlatform.get();
+        Capture<Integer> httpPort1 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort2 = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> httpPort3 = new Capture<>(platform.getAvailablePorts());
+
+        String serviceList = "\"PartitionedCacheOne\"=true,\"PartitionedCacheTwo\"=false";
+
+        try (JavaApplication app1 = platform.launch(JavaApplication.class,
+                                                    ClassName.of(Main.class),
+                                                    CacheConfig.of("test-cache-config-two.xml"),
+                                                    OperationalOverride.of("k8s-coherence-override.xml"),
+                                                    testLogs.builder(),
+                                                    DisplayName.of("storage-disabled-0"),
+                                                    LocalStorage.disabled(),
+                                                    IPv4Preferred.yes(),
+                                                    LocalHost.only(),
+                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                    SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                    SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_RESUME_SERVICES, serviceList),
+                                                    SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "one"),
+                                                    SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
+
+            try (JavaApplication app2 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
+                                                        testLogs.builder(),
+                                                        DisplayName.of("storage-0"),
+                                                        LocalStorage.enabled(),
+                                                        IPv4Preferred.yes(),
+                                                        LocalHost.only(),
+                                                        SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                        SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_RESUME_SERVICES, serviceList),
+                                                        SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "two"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
+
+                Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
+                Eventually.assertDeferred(() -> isServiceOneRunning(app2), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app1), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app2), is(true));
+
+                // wait for ready
+                Eventually.assertDeferred(() -> httpRequest(httpPort2, OperatorRestServer.PATH_READY), is(200));
+                // suspend services
+                Eventually.assertDeferred(() -> httpRequest(httpPort2, OperatorRestServer.PATH_SUSPEND), is(200));
+
+                assertThat(isServiceOneSuspended(app1), is(true));
+                assertThat(isServiceTwoSuspended(app1), is(true));
+                assertThat(isServiceOneSuspended(app2), is(true));
+                assertThat(isServiceTwoSuspended(app2), is(true));
+
+                // storage enabled member will close on exiting the try with resources block
+            }
+
+            // restart the storage member
+            try (JavaApplication app3 = platform.launch(JavaApplication.class,
+                                                        ClassName.of(Main.class),
+                                                        CacheConfig.of("test-cache-config-two.xml"),
+                                                        OperationalOverride.of("k8s-coherence-override.xml"),
+                                                        testLogs.builder(),
+                                                        DisplayName.of("storage-1"),
+                                                        LocalStorage.enabled(),
+                                                        IPv4Preferred.yes(),
+                                                        LocalHost.only(),
+                                                        SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                        SystemProperty.of("coherence.distributed.persistence.base.dir", filePersistence),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_CAN_RESUME, false),
+                                                        SystemProperty.of(CoherenceOperatorLifecycleListener.PROP_RESUME_SERVICES, serviceList),
+                                                        SystemProperty.of(CoherenceOperatorMBean.PROP_IDENTITY, "two"),
+                                                        SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort3))) {
+
+                Eventually.assertDeferred(() -> isServiceOneRunning(app3), is(true));
+                Eventually.assertDeferred(() -> isServiceTwoRunning(app3), is(true));
+
+                Eventually.assertDeferred(() -> isServiceOneSuspended(app3), is(false));
+                assertThat(isServiceTwoSuspended(app3), is(true));
+            }
+        }
+    }
+
     // ----- helper methods -------------------------------------------------
 
     // Must be public - used in Eventually.assertThat
