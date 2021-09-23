@@ -51,14 +51,14 @@ Hints and tips to troubleshoot common issues.
 ====
 [CARD]
 .Guides & Examples
-[icon=explore,link=docs/examples/010_overview.adoc]
+[icon=explore,link=examples/000_overview.adoc]
 --
 There are a number of examples of using the Coherence Operator and different Coherence features in Kubernetes.
 --
 
 [CARD]
 .Non-Operator Guides & Examples
-[icon=fa-ban,link=docs/no-operator/010_overview.adoc]
+[icon=fa-ban,link=examples/no-operator/000_overview.adoc]
 --
 Examples for those in the unlucky situation of not being able to install Operators, CRDs, RBAC cluster roles etc, and therfore need to manage Coherence clusters manually.
 --

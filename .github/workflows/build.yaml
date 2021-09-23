@@ -137,6 +137,12 @@ jobs:
       run: |
         make e2e-helm-test
 
+    - name: Examples Tests
+      shell: bash
+      run: |
+        make build-examples
+        make test-examples
+
     - name: Deploy Snapshots
       if: ${{ github.ref == 'refs/heads/master' && success() }}
       env:

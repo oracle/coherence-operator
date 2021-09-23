@@ -5,68 +5,54 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
+= Coherence in Kubernetes Without the Operator
+
 == Coherence in Kubernetes Without the Operator
 
 Although this project is all about the Coherence Kubernetes Operator, there are occasions where using an Operator is not possible.
 For example, some corporate or cloud security policies ban the use of CRDs, or have very restrictive RBAC policies that ultimately make it impossible to run Operators that uses their own CRDs or require cluster roles (or even just namespace roles).
-
-This example shows how to run a simple Coherence cluster in Kubernetes manually.
+These example shows how to run a Coherence clusters in Kubernetes manually.
 Obviously the features of the Operator such as safe scaling, safe rolling upgrades, etc. will not be available.
 
-There are various parts to the example, each described below:
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/[Coherence Operator GitHub] repository.
+====
 
 === Prerequisites
-
 There are some common prerequisites used by all the examples.
 
-==== The Server Image
+* *The Server Image*
 
-The `server-image/` directory contains a simple Maven project that builds an image containing a very simple Coherence application.
-This application is nothing more than a cache configuration file that has an Extend proxy along with Coherence metrics and management over REST. We will use this image in the various examples we cover here. When we run the image it will start a simple storage enabled Coherence server.
+These examples use the image built in the <<examples/015_simple_image/README.adoc,Build a Coherence Server Image>> example.
+The image is nothing more than a cache configuration file that has an Extend proxy along with Coherence metrics and management over REST.
+We will use this image in the various examples we cover here. When we run the image it will start a simple storage enabled Coherence server.
 
-The server image Maven project, in the `server-image/` directory, uses the
-https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin[JIB Maven plugin]
-to build an image we can use in these examples. JIB is simple to use and configure and creates reasonably secure images based on distroless Java base images. These images contain the core Linux runtime and a JVM, there are no command line shells or other utilities to introduce security concerns. The down-side is that you cannot exec into a running container, but with the introduction of ephemeral containers in Kubernetes, this is not such an issue.
-
-To create the server image run the following command from the `server-image/` directory:
-[source,bash]
-----
-mvn clean compile jib:dockerBuild
-----
-The command above will create an image named `simple-coherence:1.0.0` which we use in the examples.
-
-==== The Test Client
-
-In the `test-client/` directory is a simple Maven project that we will use to run a simple Extend client.
-This will allow us to show connectivity to our test cluster from outside of Kubernetes.
-
-To run the test client we can run this command from the `test-client/` directory:
-[source,bash]
-----
-mvn exec:java
-----
-This will start a Coherence interactive console as an Extend client.
-We can then run various commands to test Extend connectivity.
+* *The Test Client*
+In the <<examples/no-operator/test-client/README.adoc,`test-client/`>> directory is a simple Maven project that we will use to run a simple Extend client.
 
 == The Examples
 
-There are a number of examples where we cover different configuration options and functionality.
-Each example is in its own source directory with its own README instructions.
+[PILLARS]
+====
+[CARD]
+.Simple Server
+[link=examples/no-operator/01_simple_server/README.adoc]
+--
+Run a simple Coherence storage enabled cluster as a StatefulSet and connect an Extend client to it.
+--
 
-|===
-|Directory |Description
+[CARD]
+.Simple Server with Metrics
+[link=examples/no-operator/02_metrics/README.adoc]
+--
+Expands the simple storage enabled server to expose metrics that can be scraped by Prometheus.
+--
 
-|`01_simple_server/`
-|Run a simple Coherence storage enabled cluster as a `StatefulSet` and connect an Extend client to it.
-
-|`02_metrics/`
-|Expands the simple storage enabled server to expose metrics that can be scraped by Prometheus.
-
-|`03_extend_tls/`
-|Expands the simple storage enabled server to secure Extend using TLS.
-|===
-
-
-
-
-
+[CARD]
+.Securing Extend with TLS
+[link=examples/no-operator/03_extend_tls/README.adoc]
+--
+Expands the simple storage enabled server to secure Extend using TLS.
+--
+====
