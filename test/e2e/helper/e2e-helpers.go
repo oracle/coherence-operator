@@ -497,6 +497,23 @@ func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeo
 	return WaitForPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
 }
 
+func DeleteJob(ctx TestContext, namespace, jobName string) error {
+	client := ctx.KubeClient.BatchV1().Jobs(namespace)
+	if err := client.Delete(ctx.Context, jobName, metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name=" + jobName)
+	if err != nil {
+		return err
+	}
+
+	for _, pod := range pods {
+		_ = ctx.Client.Delete(ctx.Context, &pod)
+	}
+
+	return nil
+}
+
 // WaitForPodsWithSelector waits for a Coherence Operator Pods to be created.
 func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod

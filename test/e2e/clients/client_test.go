@@ -26,8 +26,10 @@ func TestSimpleClients(t *testing.T) {
 
 	// Create all the child test cases.
 	testCases := []ClientTestCase{
-		// Simple Extend test
-		{ClientType: ClientTypeExtend, Name: "ExtendInternal", Cluster: cluster, Test: simpleClientTest},
+		// Simple Extend test direct connection
+		{ClientType: ClientTypeExtend, Name: "ExtendInternalDirect", Cluster: cluster, Test: simpleClientTest},
+		//Simple Extend test name-service connection
+		{ClientType: ClientTypeExtend, Name: "ExtendInternalNS", Cluster: cluster, Test: simpleClientTest, CacheConfig: "test-cache-config-ns.xml"},
 		// Simple gRPC test
 		{ClientType: ClientTypeGrpc, Name: "GrpcInternal", Cluster: cluster, Test: simpleClientTest},
 	}
@@ -54,11 +56,11 @@ func simpleClientTest(t *testing.T, tc ClientTestCase) {
 
 	// ensure we delete the Job when the test finishes
 	t.Cleanup(func() {
-		_ = client.Delete(testContext.Context, jobName, metav1.DeleteOptions{})
+		_ = helper.DeleteJob(testContext, ns, jobName)
 	})
 
 	// ensure there is no Job left from a previous test
-	_ = client.Delete(testContext.Context, jobName, metav1.DeleteOptions{})
+	_ = helper.DeleteJob(testContext, ns, jobName)
 
 	// Create the Job to run the client
 	job := CreateClientJob(ns, jobName, tc)

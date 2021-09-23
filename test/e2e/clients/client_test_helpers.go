@@ -7,6 +7,7 @@
 package clients
 
 import (
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -21,6 +22,7 @@ type CoherenceCluster struct {
 	Services       map[string]string
 	ServiceFQDNs   map[string]string
 	ServiceIngress map[string][]corev1.LoadBalancerIngress
+	Coherence      v1.Coherence
 }
 
 func DeployTestCluster(testContext helper.TestContext, t *testing.T, yaml string) (*CoherenceCluster, error) {
@@ -49,6 +51,7 @@ func DeployTestCluster(testContext helper.TestContext, t *testing.T, yaml string
 		Services:       svcNames,
 		ServiceFQDNs:   svcFQDN,
 		ServiceIngress: ingress,
+		Coherence:      cluster,
 	}, nil
 }
 
@@ -74,13 +77,34 @@ func CreateClientJob(ns, name string, tc ClientTestCase) *batchv1.Job {
 			Name:  "COHERENCE_DISTRIBUTED_LOCALSTORAGE",
 			Value: "false",
 		},
+		{
+			Name:  "COHERENCE_CLUSTER",
+			Value: tc.Cluster.Coherence.GetCoherenceClusterName(),
+		},
 	}
 
 	switch tc.ClientType {
 	case ClientTypeExtend:
+		var extendAddress string
+		var extendPort string
+
+		if tc.Name == "ExtendInternalNS" {
+			// Use name service
+			extendAddress = tc.Cluster.ServiceFQDNs["wka"]
+			extendPort = "7574"
+		} else {
+			// use direct socket address
+			extendAddress = tc.Cluster.ServiceFQDNs["extend"]
+			extendPort = "20000"
+		}
+
 		envVars = append(envVars, corev1.EnvVar{
 			Name:  "COHERENCE_EXTEND_ADDRESS",
-			Value: tc.Cluster.ServiceFQDNs["extend"],
+			Value: extendAddress,
+		})
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "COHERENCE_EXTEND_PORT",
+			Value: extendPort,
 		})
 	case ClientTypeGrpc:
 		envVars = append(envVars, corev1.EnvVar{
