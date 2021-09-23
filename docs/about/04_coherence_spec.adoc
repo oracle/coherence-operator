@@ -110,6 +110,8 @@ m| volumeMounts | VolumeMounts defines extra volume mounts to map to the additio
 m| healthPort | The port that the health check endpoint will bind to. m| &#42;int32 | false
 m| readinessProbe | The readiness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
 m| livenessProbe | The liveness probe config to be used for the Pods in this deployment. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
+m| startupProbe | The startup probe config to be used for the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
+m| readinessGates | ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#podreadinessgate-v1-core[corev1.PodReadinessGate] | false
 m| resources | Resources is the optional resource requests and limits for the containers +
  ref: http://kubernetes.io/docs/user-guide/compute-resources/ + +
  +
@@ -608,7 +610,7 @@ SSLSpec defines the SSL settings for a Coherence component over REST endpoint.
 | Field | Description | Type | Required
 m| enabled | Enabled is a boolean flag indicating whether enables or disables SSL on the Coherence management over REST endpoint, the default is false (disabled). m| &#42;bool | false
 m| secrets | Secrets is the name of the k8s secrets containing the Java key stores and password files. +
-  This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint. + m| &#42;string | false
+  This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint. + m| &#42;string | false
 m| keyStore | Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore +
   when configuring component over REST to use SSL. + m| &#42;string | false
 m| keyStorePasswordFile | KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore +

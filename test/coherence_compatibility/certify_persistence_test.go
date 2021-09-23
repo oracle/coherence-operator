@@ -5,7 +5,7 @@
  *
  */
 
-package coherence_compatibility
+package compatibility
 
 import (
 	goctx "context"
@@ -14,22 +14,9 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
 	"testing"
 	"time"
-)
-
-type snapshotActionType int
-
-const (
-	canaryServiceName = "CanaryService"
-
-	createSnapshot snapshotActionType = iota
-	recoverSnapshot
-	deleteSnapshot
 )
 
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
@@ -168,94 +155,4 @@ func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod
 	g.Expect(len(pods)).Should(BeNumerically(">", 0))
 
 	return deployment, pods
-}
-
-func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType, snapshotName string) error {
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
-	if err != nil {
-		return err
-	}
-
-	defer pf.Close()
-
-	url := fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence/snapshots/%s",
-		ports[v1.PortNameManagement], canaryServiceName, snapshotName)
-	httpMethod := "POST"
-	if actionType == deleteSnapshot {
-		httpMethod = "DELETE"
-	}
-	if actionType == recoverSnapshot {
-		url = url + "/recover"
-	}
-
-	client := &http.Client{}
-	var resp *http.Response
-	var req *http.Request
-	// try a max of 5 times
-	for i := 0; i < 5; i++ {
-		req, err = http.NewRequest(httpMethod, url, nil)
-		if err == nil {
-			resp, err = client.Do(req)
-			if err == nil {
-				break
-			}
-		}
-		time.Sleep(5 * time.Second)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("snapshot request returned non-200 status %d", resp.StatusCode)
-	}
-
-	// wait for idle
-	err = wait.Poll(helper.RetryInterval, helper.Timeout, func() (done bool, err error) {
-		url = fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence?fields=operationStatus",
-			ports[v1.PortNameManagement], canaryServiceName)
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			fmt.Printf("Cannot create idle check request: %v\n", url)
-			return false, err
-		}
-		resp, err = client.Do(req)
-		if err != nil {
-			fmt.Printf("Error in send idle check request: %v\n", url)
-			return false, err
-		}
-		defer closeBody(resp)
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("Idle check request with incorrect status code: %v\n", resp.StatusCode)
-			return false, err
-		}
-
-		bs, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Print("Error in reading idle check response")
-			return false, err
-		}
-
-		var data map[string]interface{}
-		if err = json.Unmarshal(bs, &data); err != nil {
-			fmt.Print("Error in unmarshalling idle check response")
-			return false, nil
-		}
-		opStatus := data["operationStatus"]
-		fmt.Printf("Persistence opStatus: %v\n", opStatus)
-		if opStatus == "Idle" {
-			return true, nil
-		}
-		return false, nil
-	})
-
-	return err
-}
-
-func closeBody(resp *http.Response) {
-	if err := resp.Body.Close(); err != nil {
-		testContext.Logger.Error(err, "error closing http response body")
-	}
 }

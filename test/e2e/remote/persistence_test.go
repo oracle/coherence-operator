@@ -193,7 +193,7 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 		httpMethod = "DELETE"
 	}
 	if actionType == Recover {
-		url = url + "/recover"
+		url += "/recover"
 	}
 
 	client := &http.Client{}

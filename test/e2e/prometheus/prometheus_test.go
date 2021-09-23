@@ -57,7 +57,7 @@ func IsPrometheusInstalled() (bool, corev1.Pod, error) {
 // Ensure that the Prometheus status/config endpoint can be accessed.
 func ShouldGetPrometheusConfig(t *testing.T, pod corev1.Pod) {
 	g := NewGomegaWithT(t)
-	r, err := PrometheusApiRequest(pod, "/api/v1/status/config")
+	r, err := PrometheusAPIRequest(pod, "/api/v1/status/config")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(r.Status).To(Equal("success"))
 }
@@ -108,21 +108,19 @@ func ShouldGetClusterSizeMetric(t *testing.T, pod corev1.Pod) {
 }
 
 func PrometheusQuery(t *testing.T, pod corev1.Pod, query string, result interface{}) error {
-	r, err := PrometheusApiRequest(pod, "/api/v1/query?query="+query)
+	r, err := PrometheusAPIRequest(pod, "/api/v1/query?query="+query)
 	if err != nil {
 		return err
 	}
 
 	if r.Status != "success" {
 		return fmt.Errorf("prometheus returned a non-success status '%s' Data='%s'", r.Status, string(r.Data))
-	} else {
-		t.Logf("Query: /api/v1/query?query=%s Result: status=%s %s", query, r.Status, string(r.Data))
 	}
-
+	t.Logf("Query: /api/v1/query?query=%s Result: status=%s %s", query, r.Status, string(r.Data))
 	return r.GetData(result)
 }
 
-func PrometheusApiRequest(pod corev1.Pod, path string) (*PrometheusApiResult, error) {
+func PrometheusAPIRequest(pod corev1.Pod, path string) (*PrometheusAPIResult, error) {
 	// Start the port forwarder for the Pod
 	pf, ports, err := helper.StartPortForwarderForPod(&pod)
 	if err != nil {
@@ -149,19 +147,19 @@ func PrometheusApiRequest(pod corev1.Pod, path string) (*PrometheusApiResult, er
 		return nil, err
 	}
 
-	result := &PrometheusApiResult{}
+	result := &PrometheusAPIResult{}
 	err = json.Unmarshal(data, result)
 	return result, err
 }
 
-type PrometheusApiResult struct {
+type PrometheusAPIResult struct {
 	Status string          `json:"status"`
 	Data   json.RawMessage `json:"data"`
 }
 
-func (r *PrometheusApiResult) GetData(v interface{}) error {
+func (r *PrometheusAPIResult) GetData(v interface{}) error {
 	if r == nil {
-		return fmt.Errorf("called on a nil PrometheusApiResult")
+		return fmt.Errorf("called on a nil PrometheusAPIResult")
 	}
 
 	return json.Unmarshal(r.Data, v)
