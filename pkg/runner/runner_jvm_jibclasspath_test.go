@@ -7,6 +7,7 @@
 package runner
 
 import (
+	"bufio"
 	"fmt"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
@@ -143,7 +144,7 @@ func createJibClasspathFile() *os.File {
 		os.Exit(1)
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("%s/libs/foo1.jar", TestAppDir))
+	_, err = f.WriteString(fmt.Sprintf("%s/classpath/*:%s/libs/*", TestAppDir, TestAppDir))
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -164,7 +165,7 @@ func createJibMainClassFile() *os.File {
 		os.Exit(1)
 	}
 
-	_, err = f.WriteString("com.foo.bar.MyMainClass")
+	_, err = f.WriteString("com.tangosol.net.DefaultCacheServer")
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -179,7 +180,8 @@ func createJibMainClassFile() *os.File {
 }
 
 func GetMinimalExpectedArgsWithAppClasspathFile() []string {
-	cp := fmt.Sprintf("@%s/jib-classpath-file", TestAppDir)
+	fileName := fmt.Sprintf("%s/jib-classpath-file", TestAppDir)
+	cp := readFirstLine(fileName)
 	args := []string{
 		GetJavaCommand(),
 		"-cp",
@@ -201,12 +203,16 @@ func GetMinimalExpectedArgsWithAppMainClassFile() []string {
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
 
-	mainClass := fmt.Sprintf("@%s/jib-main-class-file", TestAppDir)
-	return append(AppendCommonExpectedArgs(args), mainClass)
+	fileName := fmt.Sprintf("%s/jib-main-class-file", TestAppDir)
+	mainCls := readFirstLine(fileName)
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		mainCls)
 }
 
 func GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile() []string {
-	cp := fmt.Sprintf("@%s/jib-classpath-file", TestAppDir)
+	fileName := fmt.Sprintf("%s/jib-classpath-file", TestAppDir)
+	cp := readFirstLine(fileName)
 
 	args := []string{
 		GetJavaCommand(),
@@ -214,6 +220,24 @@ func GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile() []string {
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
 
-	mainClass := fmt.Sprintf("@%s/jib-main-class-file", TestAppDir)
-	return append(AppendCommonExpectedArgs(args), mainClass)
+	fileName = fmt.Sprintf("%s/jib-main-class-file", TestAppDir)
+	mainCls := readFirstLine(fileName)
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		mainCls)
+}
+
+func readFirstLine(fqfn string) string {
+	file, _ := os.Open(fqfn)
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var text []string
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
+	}
+	file.Close()
+	if len(text) == 0 {
+		return ""
+	}
+	return text[0]
 }

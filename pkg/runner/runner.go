@@ -7,6 +7,7 @@
 package runner
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -273,9 +274,12 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// are running a Spring Boot application.
 	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-		_, err = os.Stat(appDir + "/jib-classpath-file")
-		if err == nil {
-			details.addClasspath("@" + appDir + "/jib-classpath-file")
+		fi, e := os.Stat(appDir + "/jib-classpath-file")
+		if e == nil && (fi.Size() != 0) {
+			clsPath := readFirstLineFromFile(appDir+"/jib-classpath-file", fi)
+			if len(clsPath) != 0 {
+				details.addClasspath(clsPath)
+			}
 		} else {
 			details.addClasspathIfExists(appDir + "/resources")
 			details.addClasspathIfExists(appDir + "/classes")
@@ -549,31 +553,32 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.getCommand()
 	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
 	jibMainClassFileName := appDir + "/jib-main-class-file"
-	_, err := os.Stat(jibMainClassFileName)
-	if err == nil {
-		return createJibMainClassFileCommand(javaCmd, details, jibMainClassFileName)
+	fi, err := os.Stat(jibMainClassFileName)
+	if err == nil && (fi.Size() != 0) {
+		mainCls := readFirstLineFromFile(jibMainClassFileName, fi)
+		if len(mainCls) != 0 {
+			details.MainArgs = []string{mainCls}
+		}
 	}
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
 }
 
-func createJibMainClassFileCommand(javaCmd string, details *RunDetails, jibMainClassFileName string) (*exec.Cmd, error) {
-	args := details.getCommand()
-	args = append(args, "@"+jibMainClassFileName)
-	cmd := exec.Command(javaCmd, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	if details.Dir != "" {
-		_, err := os.Stat(details.Dir)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Working directory %s does not exists or is not a directory", details.Dir)
-		}
-		cmd.Dir = details.Dir
+func readFirstLineFromFile(fqfn string, fi os.FileInfo) string {
+	log.Info(fmt.Sprintf("%s size=%d", fi.Name(), fi.Size()))
+	file, _ := os.Open(fqfn)
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var text []string
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
 	}
-
-	return cmd, nil
+	file.Close()
+	if len(text) == 0 {
+		return ""
+	}
+	log.Info(fmt.Sprintf("First Line of the %s:\n%s\n", fi.Name(), text[0]))
+	return text[0]
 }
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
