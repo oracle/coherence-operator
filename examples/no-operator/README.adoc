@@ -14,6 +14,13 @@ For example, some corporate or cloud security policies ban the use of CRDs, or h
 These example shows how to run a Coherence clusters in Kubernetes manually.
 Obviously the features of the Operator such as safe scaling, safe rolling upgrades, etc. will not be available.
 
+[NOTE]
+====
+We really recommend that you try and use the Coherence Operator for managing Coherence clusters in Kubernetes.
+It is possible to run the Operator with fewer RBAC permissions, for example without `ClusterRoles` and only using `Roles` restricted to a single namespace. The Operator can also run without installing its web-hooks. Ultimately though it requires the CRD to be installed, which could be done manually instead of allowing the Operator to install it.
+If you really cannot change the minds of those dictating policies that mean you cannot use the Operator then these examples may be useful.
+====
+
 [TIP]
 ====
 image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/[Coherence Operator GitHub] repository.
