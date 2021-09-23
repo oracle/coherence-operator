@@ -551,15 +551,6 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.getCommand()
-	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-	jibMainClassFileName := appDir + "/jib-main-class-file"
-	fi, err := os.Stat(jibMainClassFileName)
-	if err == nil && (fi.Size() != 0) {
-		mainCls := readFirstLineFromFile(jibMainClassFileName, fi)
-		if len(mainCls) != 0 {
-			details.MainArgs = []string{mainCls}
-		}
-	}
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
 }
