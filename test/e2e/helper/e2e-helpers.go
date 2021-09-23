@@ -507,8 +507,8 @@ func DeleteJob(ctx TestContext, namespace, jobName string) error {
 		return err
 	}
 
-	for _, pod := range pods {
-		_ = ctx.Client.Delete(ctx.Context, &pod)
+	for i := range pods {
+		_ = ctx.Client.Delete(ctx.Context, &pods[i])
 	}
 
 	return nil
