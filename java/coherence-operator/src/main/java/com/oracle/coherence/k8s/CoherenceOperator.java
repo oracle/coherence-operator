@@ -6,6 +6,10 @@
 
 package com.oracle.coherence.k8s;
 
+import java.io.PrintStream;
+import java.net.URL;
+import java.util.Properties;
+
 import com.tangosol.net.CacheFactory;
 
 /**
@@ -17,6 +21,8 @@ public class CoherenceOperator
         implements CoherenceOperatorMBean {
 
     private static final String NA = "n/a";
+
+    private static Properties properties;
 
     private String identity = NA;
 
@@ -38,5 +44,40 @@ public class CoherenceOperator
     @Override
     public int getNodeId() {
         return CacheFactory.getCluster().getLocalMember().getId();
+    }
+
+    /**
+     * Returns the operator version.
+     *
+     * @return the operator version
+     */
+    public static String getVersion() {
+        return ensureProperties().getProperty("version", NA);
+    }
+
+    /**
+     * Print the Operator banner.
+     *
+     * @param out  the {@link PrintStream} to print he banner on
+     */
+    public static void printBanner(PrintStream out) {
+        out.printf("CoherenceOperator: Java Runner version %s\n", getVersion());
+    }
+
+    private static synchronized Properties ensureProperties() {
+        if (properties == null) {
+            Properties props = new Properties();
+            try {
+                URL url = CoherenceOperator.class.getResource("/META-INF/operator.properties");
+                if (url != null) {
+                    props.load(url.openStream());
+                }
+            }
+            catch (Throwable t) {
+                t.printStackTrace();
+            }
+            properties = props;
+        }
+        return properties;
     }
 }

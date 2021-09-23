@@ -7,6 +7,9 @@
 package v1
 
 import (
+	"bytes"
+	"encoding/base64"
+	"fmt"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"strconv"
+	"strings"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -99,6 +103,26 @@ type CoherenceResourceSpec struct {
 	// The default value if not specified is true.
 	// +optional
 	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
+	// ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when
+	// the Coherence container is started. This only applies to storage enabled distributed cache
+	// services. This ensures that services that are suspended due to the shutdown of a storage
+	// tier, but those services are still running (albeit suspended) in other storage disabled
+	// deployments, will be resumed when storage comes back.
+	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
+	// The default value if not specified is true.
+	// +optional
+	ResumeServicesOnStartup *bool `json:"resumeServicesOnStartup,omitempty"`
+	// AutoResumeServices is a map of Coherence service names to allow more fine-grained control over
+	// which services may be auto-resumed by the operator when a Coherence Pod starts.
+	// The key to the map is the name of the Coherence service. This should be the fully qualified name
+	// if scoped services are being used in Coherence. The value is a bool, set to `true` to allow the
+	// service to be auto-resumed or `false` to not allow the service to be auto-resumed.
+	// Adding service names to this list will override any value set in `ResumeServicesOnStartup`, so if the
+	// `ResumeServicesOnStartup` field is `false` but there are service names in the `AutoResumeServices`, mapped
+	// to `true`, those services will still be resumed.
+	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
+	// +optional
+	AutoResumeServices map[string]bool `json:"autoResumeServices,omitempty"`
 	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
 	// call to return (the default is 60 seconds)
 	// +optional
@@ -117,7 +141,7 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
-	// The extra labels to add to the all of the Pods in this deployments.
+	// The extra labels to add to the all the Pods in this deployment.
 	// Labels here will add to or override those defined for the cluster.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 	// +optional
@@ -257,14 +281,14 @@ type CoherenceResourceSpec struct {
 	// sets the serviceAccountName value in the Pod spec.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-	// Whether or not to auto-mount the Kubernetes API credentials for a service account
+	// Whether to auto-mount the Kubernetes API credentials for a service account
 	// +optional
 	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
 	// The timeout to apply to REST requests made back to the Operator from Coherence Pods.
 	// These requests are typically to obtain site and rack information for the Pod.
 	// +optional
 	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
-	// Whether or not to perform a StatusHA test on the cluster before performing an update or deletion.
+	// Whether to perform a StatusHA test on the cluster before performing an update or deletion.
 	// This field can be set to false to force through an update even when a Coherence deployment is in
 	// an unstable state.
 	// The default is true, to always check for StatusHA before updating a Coherence deployment.
@@ -869,6 +893,19 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 
 	if deployment.Annotations[AnnotationFeatureSuspend] == "true" {
 		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace})
+	}
+
+	if deployment.Spec.ResumeServicesOnStartup != nil {
+		env = append(env, corev1.EnvVar{Name: EnvVarOperatorAllowResume, Value: BoolPtrToString(deployment.Spec.ResumeServicesOnStartup)})
+	}
+
+	if deployment.Spec.AutoResumeServices != nil {
+		b := new(bytes.Buffer)
+		for key, value := range deployment.Spec.AutoResumeServices {
+			_, _ = fmt.Fprintf(b, "\"%s\"=%t,", strings.Replace(key, "\"", "\\\"", -1), value)
+		}
+		value := base64.StdEncoding.EncodeToString(b.Bytes())
+		env = append(env, corev1.EnvVar{Name: EnvVarOperatorResumeServices, Value: value})
 	}
 
 	return env

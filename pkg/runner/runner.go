@@ -362,6 +362,17 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarJvmJmxmpPort, "-Dcoherence.jmxmp.port", fmt.Sprintf("%d", v1.DefaultJmxmpPort))
 	}
 
+	// set the flag that allows the operator to resume suspended services on start-up
+	if !details.isEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {
+		details.addArg("-Dcoherence.k8s.operator.can.resume.services=false")
+	} else {
+		details.addArg("-Dcoherence.k8s.operator.can.resume.services=true")
+	}
+
+	if svc := details.Getenv(v1.EnvVarOperatorResumeServices); svc != "" {
+		details.addArg("-Dcoherence.k8s.operator.resume.services=base64:" + svc)
+	}
+
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))
 	switch {
 	case gc == "" || gc == "g1":
