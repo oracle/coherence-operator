@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,117 +10,111 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
-	"os/exec"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"strings"
 )
 
-func findContainer(name string, d *appsv1.Deployment) *corev1.Container {
-	for _, c := range d.Spec.Template.Spec.Containers {
-		if c.Name == name {
-			return &c
-		}
-	}
-	return nil
-}
+//func findContainer(name string, d *appsv1.Deployment) *corev1.Container {
+//	for _, c := range d.Spec.Template.Spec.Containers {
+//		if c.Name == name {
+//			return &c
+//		}
+//	}
+//	return nil
+//}
 
-func findEnvVar(name string, c *corev1.Container) *corev1.EnvVar {
-	for _, e := range c.Env {
-		if e.Name == name {
-			return &e
-		}
-	}
-	return nil
-}
+//func findEnvVar(name string, c *corev1.Container) *corev1.EnvVar {
+//	for _, e := range c.Env {
+//		if e.Name == name {
+//			return &e
+//		}
+//	}
+//	return nil
+//}
 
-func helmInstall(args ...string) (*HelmInstallResult, error) {
-	chart, err := helper.FindOperatorHelmChartDir()
-	if err != nil {
-		return nil, err
-	}
+//func helmInstall(args ...string) (*HelmInstallResult, error) {
+//	chart, err := helper.FindOperatorHelmChartDir()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	ns := helper.GetTestNamespace()
+//
+//	args = append([]string{"install", "--dry-run", "-o", "json"}, args...)
+//	args = append(args, "--namespace", ns, "operator", chart)
+//
+//	cmd := exec.Command("helm", args...)
+//	b, err := cmd.CombinedOutput()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	m := make(map[string]interface{})
+//	if err = json.Unmarshal(b, &m); err != nil {
+//		return nil, err
+//	}
+//
+//	manifest := m["manifest"]
+//
+//	return parseHelmManifest(fmt.Sprintf("%v", manifest))
+//}
 
-	ns := helper.GetTestNamespace()
-
-	args = append([]string{"install", "--dry-run", "-o", "json"}, args...)
-	args = append(args, "--namespace", ns, "operator", chart)
-
-	cmd := exec.Command("helm", args...)
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, err
-	}
-
-	m := make(map[string]interface{})
-	if err = json.Unmarshal(b, &m); err != nil {
-		return nil, err
-	}
-
-	manifest := m["manifest"]
-
-	return parseHelmManifest(fmt.Sprintf("%v", manifest))
-}
-
-func parseHelmManifest(manifest string) (*HelmInstallResult, error) {
-	resources := make(map[schema.GroupVersionResource]map[string]runtime.Object)
-	s := scheme.Scheme
-	decoder := scheme.Codecs.UniversalDecoder()
-
-	parts := strings.Split(manifest, "\n---\n")
-	list := make([]runtime.Object, len(parts))
-	ownerRefs := make([]metav1.OwnerReference, 0)
-
-	index := 0
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			u := unstructured.Unstructured{}
-			err := yaml.Unmarshal([]byte(trimmed), &u)
-			if err != nil {
-				return nil, err
-			}
-			gvr, _ := meta.UnsafeGuessKindToResource(u.GroupVersionKind())
-
-			// remove owner references
-			u.SetOwnerReferences(ownerRefs)
-			data, err := yaml.Marshal(u.Object)
-			if err != nil {
-				return nil, err
-			}
-
-			o, err := s.New(u.GroupVersionKind())
-			if err != nil {
-				return nil, err
-			}
-			_, _, err = decoder.Decode(data, nil, o)
-			if err != nil {
-				return nil, err
-			}
-
-			m, ok := resources[gvr]
-			if !ok {
-				m = make(map[string]runtime.Object)
-			}
-			list[index] = o
-			index++
-			m[u.GetName()] = o
-			resources[gvr] = m
-		}
-	}
-
-	ordered := list[0:index]
-	return &HelmInstallResult{resources: resources, ordered: ordered, decoder: decoder}, nil
-}
+//func parseHelmManifest(manifest string) (*HelmInstallResult, error) {
+//	resources := make(map[schema.GroupVersionResource]map[string]runtime.Object)
+//	s := scheme.Scheme
+//	decoder := scheme.Codecs.UniversalDecoder()
+//
+//	parts := strings.Split(manifest, "\n---\n")
+//	list := make([]runtime.Object, len(parts))
+//	ownerRefs := make([]metav1.OwnerReference, 0)
+//
+//	index := 0
+//	for _, part := range parts {
+//		trimmed := strings.TrimSpace(part)
+//		if trimmed != "" {
+//			u := unstructured.Unstructured{}
+//			err := yaml.Unmarshal([]byte(trimmed), &u)
+//			if err != nil {
+//				return nil, err
+//			}
+//			gvr, _ := meta.UnsafeGuessKindToResource(u.GroupVersionKind())
+//
+//			// remove owner references
+//			u.SetOwnerReferences(ownerRefs)
+//			data, err := yaml.Marshal(u.Object)
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			o, err := s.New(u.GroupVersionKind())
+//			if err != nil {
+//				return nil, err
+//			}
+//			_, _, err = decoder.Decode(data, nil, o)
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			m, ok := resources[gvr]
+//			if !ok {
+//				m = make(map[string]runtime.Object)
+//			}
+//			list[index] = o
+//			index++
+//			m[u.GetName()] = o
+//			resources[gvr] = m
+//		}
+//	}
+//
+//	ordered := list[0:index]
+//	return &HelmInstallResult{resources: resources, ordered: ordered, decoder: decoder}, nil
+//}
 
 type HelmInstallResult struct {
 	resources map[schema.GroupVersionResource]map[string]runtime.Object

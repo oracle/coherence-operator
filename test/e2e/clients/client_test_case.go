@@ -8,10 +8,6 @@ package clients
 
 import "testing"
 
-const (
-	defaultCacheConfig = "test-cache-config.xml"
-)
-
 // ClientType represents a type of text client
 type ClientType string
 

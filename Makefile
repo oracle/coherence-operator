@@ -19,15 +19,15 @@ VERSION ?= 3.2.3
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.1
+PREV_VERSION ?= 3.2.2
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  = 3.0.2
+COMPATIBLE_VERSION  = 3.2.2
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
-COMPATIBLE_SELECTOR = component=coherence-operator
+COMPATIBLE_SELECTOR = control-plane=coherence
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -41,7 +41,8 @@ TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
 TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 
-CURRDIR         := $(shell pwd)
+# The current working directory
+CURRDIR := $(shell pwd)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # By default we target amd64 as this is by far the most common local build environment
@@ -590,7 +591,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-files=zz_.*,generated/*,pkd/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -645,6 +647,7 @@ copyright:  ## Check copyright headers
 	  -X THIRD_PARTY_LICENSES.txt \
 	  -X tools.go \
 	  -X .tpl \
+	  -X .txt \
 	  -X .yaml \
 	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
 	  -X pkg/data/assets/ \
@@ -998,7 +1001,8 @@ run-elastic-test: gotestsum
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/...
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end Operator Compatibility tests.
+# Executes the Go end-to-end Operator backwards compatibility tests to ensure upgrades from previous Operator versions
+# work and do not impact running clusters, etc.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
@@ -1030,13 +1034,13 @@ compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end Operator certification tests.
+# Executes the Go end-to-end Operator Kubernetes versions certification tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: certification-test
 certification-test: export MF = $(MAKEFLAGS)
-certification-test: install-certification     ## Run the Operator Kubernetes certification tests
+certification-test: install-certification     ## Run the Operator Kubernetes versions certification tests
 	$(MAKE) run-certification  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-certification $${MF} \
@@ -1085,13 +1089,13 @@ run-certification: gotestsum
 cleanup-certification: undeploy uninstall-crds clean-namespace
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end Operator coherence compatibility tests.
+# Executes the Go end-to-end Operator Coherence versions compatibility tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: coherence-compatibility-test
 coherence-compatibility-test: export MF = $(MAKEFLAGS)
-coherence-compatibility-test: install-coherence-compatibility   ## Run the Operator Coherence compatibility tests
+coherence-compatibility-test: install-coherence-compatibility   ## Run the Operator Coherence versions compatibility tests
 	$(MAKE) run-coherence-compatibility  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-coherence-compatibility $${MF} \
@@ -1128,7 +1132,7 @@ run-coherence-compatibility: gotestsum $(BUILD_TARGETS)/generate
 	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Clean up after to running compatability tests.
+# Clean up after to running backwards compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-coherence-compatibility
 cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
@@ -1260,8 +1264,8 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 
 $(BUILD_MANIFESTS_PKG): kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
-	mkdir -p $(BUILD_MANIFESTS)
-	cp -R config/crd/bases/ $(BUILD_MANIFESTS)/crd
+	mkdir -p $(BUILD_MANIFESTS)/crd
+	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
@@ -1678,6 +1682,7 @@ helm-install-elastic:
 	@echo "Getting Helm Version:"
 	helm version
 	helm repo add elastic https://helm.elastic.co || true
+	helm repo update || true
 #   Install Elasticsearch
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
@@ -1688,7 +1693,7 @@ helm-install-elastic:
 .PHONY: kibana-import
 kibana-import:
 	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
+	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} -- /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Elasticsearch & Kibana

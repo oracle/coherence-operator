@@ -82,13 +82,11 @@ func CreateClientJob(ns, name string, tc ClientTestCase) *batchv1.Job {
 			Name:  "COHERENCE_EXTEND_ADDRESS",
 			Value: tc.Cluster.ServiceFQDNs["extend"],
 		})
-		break
 	case ClientTypeGrpc:
 		envVars = append(envVars, corev1.EnvVar{
 			Name:  "COHERENCE_GRPC_CHANNELS_DEFAULT_HOST",
 			Value: tc.Cluster.ServiceFQDNs["grpc"],
 		})
-		break
 	}
 
 	job := batchv1.Job{}

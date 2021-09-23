@@ -32,10 +32,19 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.2.2
+        - 3.2.1
         - 3.1.5
+        - 3.1.4
         - 3.0.2
         include:
+        - compatibilityVersion: 3.2.2
+          compatibilitySelector: control-plane=coherence
+        - compatibilityVersion: 3.2.1
+          compatibilitySelector: control-plane=coherence
         - compatibilityVersion: 3.1.5
+          compatibilitySelector: control-plane=coherence
+        - compatibilityVersion: 3.1.4
           compatibilitySelector: control-plane=coherence
         - compatibilityVersion: 3.0.2
           compatibilitySelector: component=coherence-operator
@@ -54,7 +63,6 @@ jobs:
         dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
         df -h
         echo "Removing large packages"
-        sudo apt-get remove -y '^ghc-8.*'
         sudo apt-get remove -y '^dotnet-.*'
         sudo apt-get remove -y '^llvm-.*'
         sudo apt-get remove -y 'monodoc-http'
@@ -101,14 +109,6 @@ jobs:
         kubectl get nodes
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java:11
-        docker pull ghcr.io/oracle/coherence-operator:3.0.2
-        docker tag ghcr.io/oracle/coherence-operator:3.0.2 container-registry.oracle.com/middleware/coherence-operator:3.0.2
-        kind load docker-image --name operator container-registry.oracle.com/middleware/coherence-operator:3.0.2
-        docker pull ghcr.io/oracle/coherence-operator:3.0.2-utils
-        docker tag ghcr.io/oracle/coherence-operator:3.0.2-utils container-registry.oracle.com/middleware/coherence-operator:3.0.2-utils
-        kind load docker-image --name operator container-registry.oracle.com/middleware/coherence-operator:3.0.2-utils
-        docker pull oraclecoherence/coherence-ce:14.1.1-0-1
-        kind load docker-image --name operator oraclecoherence/coherence-ce:14.1.1-0-1
 
     - name: Build
       shell: bash

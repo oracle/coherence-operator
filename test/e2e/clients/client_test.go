@@ -7,7 +7,6 @@
 package clients
 
 import (
-	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,21 +111,21 @@ func simpleClientTest(t *testing.T, tc ClientTestCase) {
 //	time.Sleep(20*time.Second)
 //}
 
-func findIngress(tc ClientTestCase, portName string) (string, int32, error) {
-	ingress, found := tc.Cluster.ServiceIngress[portName]
-	if !found {
-		return "", -1, fmt.Errorf("could not find ingress configuration for port %s", portName)
-	}
-
-	for _, i := range ingress {
-		if i.IP != "" {
-			for _, p := range i.Ports {
-				if p.Error == nil {
-					return "127.0.0.1", p.Port, nil
-				}
-			}
-		}
-	}
-
-	return "", -1, fmt.Errorf("could not find a working ingress configuration for port %s", portName)
-}
+//func findIngress(tc ClientTestCase, portName string) (string, int32, error) {
+//	ingress, found := tc.Cluster.ServiceIngress[portName]
+//	if !found {
+//		return "", -1, fmt.Errorf("could not find ingress configuration for port %s", portName)
+//	}
+//
+//	for _, i := range ingress {
+//		if i.IP != "" {
+//			for _, p := range i.Ports {
+//				if p.Error == nil {
+//					return "127.0.0.1", p.Port, nil
+//				}
+//			}
+//		}
+//	}
+//
+//	return "", -1, fmt.Errorf("could not find a working ingress configuration for port %s", portName)
+//}

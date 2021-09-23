@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -538,7 +538,7 @@ type SSLSpec struct {
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
 	// Secrets is the name of the k8s secrets containing the Java key stores and password files.
-	//   This value MUST be provided if SSL is enabled on the Coherence management over ReST endpoint.
+	//   This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint.
 	// +optional
 	Secrets *string `json:"secrets,omitempty"`
 	// Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
