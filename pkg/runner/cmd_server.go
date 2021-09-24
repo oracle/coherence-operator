@@ -41,6 +41,17 @@ func server(details *RunDetails, _ *cobra.Command) {
 	// If the main class environment variable is set then use that
 	// otherwise run Coherence DCS.
 	mc, found := details.lookupEnv(v1.EnvVarAppMainClass)
+	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
+	jibMainClassFileName := appDir + "/jib-main-class-file"
+	fi, err := os.Stat(jibMainClassFileName)
+	mainCls := ""
+	if err == nil && (fi.Size() != 0) {
+		mainCls = readFirstLineFromFile(jibMainClassFileName, fi)
+	}
+	if !found && (len(mainCls) != 0) {
+		mc = mainCls
+		found = true
+	}
 	switch {
 	case found && details.AppType != AppTypeSpring:
 		// we have a main class specified, and we're not a Spring Boot app
