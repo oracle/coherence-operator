@@ -5,6 +5,7 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
+= Example Extend Client
 == Example Extend Client
 
 In the `examples/no-operator/test-client/` directory is a simple Maven project that we will use to run a simple Extend client.

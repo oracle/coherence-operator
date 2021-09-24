@@ -1,0 +1,302 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= Manage Coherence using Helm
+
+== Manage Coherence Resources using Helm
+
+Occasionally there is a requirement to manage Coherence resources using Helm instead of Kubernetes tools such as `kubectl`. There is no Helm chart for a Coherence resource as it is a single resource and any Helm chart and values file would need to replicate the entire Coherence CRD if it was to be of generic enough use for everyone. For this reason, anyone wanting to manage Coherence resource using Helm will need to create their own chart, which can then be specific to their needs.
+
+This example shows some ways that Helm can be used to manage Coherence resources.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/300_helm[Coherence Operator GitHub] repository.
+====
+
+=== A Simple Generic Helm Chart
+
+This example contains the most basic Helm chart possible to support managing a Coherence resource locate in the `chart/` directory. The chart is actually completely generic and would support any configuration of Coherence resource.
+
+The values file contains a single value `spec`, which will contain the entire spec of the Coherence resource.
+
+[source,yaml]
+.chart/values.yaml
+----
+spec:
+----
+
+There is a single template file, as we only create a single Coherence resource.
+// The following code block is raw html as there is no other way to escape the double curly brackets
+// in the Helm chart template!!!
+++++
+<span v-pre><div class="markup-container"><div class="block-title"><span>test-cluster.yaml</span></div><div data-lang="yaml" class="markup"><pre><code class="yaml hljs makefile">apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "coherence-labels" . | indent 4 }}
+spec:
+{{- if .Values.spec }}
+{{ toYaml .Values.spec | indent 2 }}
+{{- end }}</code></pre><div class="markup__copy"><i aria-hidden="true" class="material-icons icon">content_copy</i><span class="markup__copy__message">Copied</span></div></div></div></span>
+++++
+
+The first part of the template is fairly standard for a Helm chart, we configure the resource name, namespace and add some labels.
+
+The generic nature of the chart comes from the fact that the template then just takes the whole `spec` value from the values file, and if it is not `null` converts it to yaml under the `spec:` section of the template. This means that any yaml that is valid in a Coherence CRD `spec` section can be used in a values file (or with `--set` arguments) when installing the chart.
+
+
+=== Installing the Chart
+
+Installing the example Helm chart is as simple as any other chart. One difference here being that the chart is not installed into a chart repository so has to be installed from the `char/` directory. If you wanted to you could
+
+NOTE: The following commands are all run from the `examples/helm` directory so that the chart location is specified as `./chart`. You can run the commands from anywhere, but you would need to specify the full path to the example chart directory.
+
+
+==== A Simple Dry Run
+
+To start with we will do a simple dry-run install that will display the yaml Helm would have created if the install command had been real.
+
+[source,bash]
+----
+helm  install test ./chart --dry-run
+----
+
+The above command should result in the following output
+
+[source]
+----
+NAME: test
+LAST DEPLOYED: Sat Aug 28 16:30:53 2021
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+HOOKS:
+MANIFEST:
+---
+# Source: coherence-example/templates/coherence.yaml
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+  namespace: default
+  labels:    
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test
+    app.kubernetes.io/version: "1.0.0"
+spec:
+----
+
+We can see at the bottom of the output the simple Coherence resource that would have been created by helm.
+This is a valid Coherence resource because every field in the spec section is optional. If the install had been real this would have resulted in a Coherence cluster named "test" with three storage enabled cluster members, as the default replica count is three.
+
+==== Setting Values
+
+But how do we set other values in the Coherence resouce. That is simple because Helm does not validate what we enter as values we can either create a values file with anything we like under the `spec` secion or we can specify values using the `--set` Helm argument.
+
+For example, if we wanted to set the replica count to six in a Coherence resource we would need to set the `spec.replicas` field to `6`, and we do exactly the same in the helm chart.
+
+We could create a values file like this:
+[source]
+.test-values.yaml
+----
+spec:
+  replicas: 6
+----
+
+Which we can install with
+[source,bash]
+----
+helm  install test ./chart -f test-values.yaml
+----
+
+Which would produce a Coherence resource like this:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+  namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 6
+----
+
+We could have done the same thing using `--set`, for example:
+[source,bash]
+----
+helm  install test ./chart -f test-values.yaml --set spec.replicas=6
+----
+
+We can even set more deeply nested values, for example the Coherence log level is set in the `spec.coherence.logLevel` field of the Coherence CRD so we can use the same value in the Helm install command or values file:
+
+[source,bash]
+----
+helm  install test ./chart -f test-values.yaml --set spec.coherence.logLevel=9
+----
+
+Which would produce the following Coherence resource:
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+  namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  coherence:
+    logLevel: 9
+----
+
+Just like any Helm chart, whether you use `--set` arguments or use a values file depends on how complex the resulting yaml will be. Some fields of the Coherence CRD spec would be impractical to try to configure on the command line with `--set` and would be much simpler in the values file.
+
+=== Helm Wait - Waiting for the Install to Complete
+
+The Helm `install` command (and `update` command) have a `--wait` argument that tells Helm to wait until the installed resources are ready. This can be very useful if you want to ensure that everything is created and running correctly after and install or upgrade. If you read the help test for the `--wait` argument you will see the following:
+
+[quote]
+--wait    if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment, StatefulSet, or ReplicaSet are in a ready state before marking the release as successful. It will wait for as long as `--timeout`
+
+The limitation should be obvious, Helm can only wait for a sub-set of al the possible resources that you can create from a Helm chart. It has no idea how to wait for a `Coherence` resource to be ready. To work around this limitation we can use a https://helm.sh/docs/topics/charts_hooks/[Helm chart hook], mre specifically a post-install and post-upgrade hook.
+
+A hook is typically a k8s Job that Helm will execute, you create the Job spec as part of the Helm chart templates.
+
+==== The Coherence Operator Utils Runner
+
+The Coherence Operator has two images, the Operator itself and a second image containing an executable named `runner` which the Operator uses to run Coherence servers in the Pods it is managing. One of the other commands that the runner can execute is a `status` command, which queries the Operator for the current status of a Coherence resource. If you pull the image and execute it you can see the help text for the runner CLI.
+
+The following commands will pull the Operator utils image and run it to display the help fot eh status command:
+[source,bash,,subs="attributes"]
+----
+docker pull {operator-utils-image}
+docker run -it --rm {operator-utils-image} status -h
+----
+
+By creating a K8s Job that runs the status command we can query the Operator for the status of the Coherence resource we installed from the Helm chart. Of course, we could have written something similar that used kubectl in the Job or similar to query k8s for the state of the Coherence resource, but this becomes more complex in RBAC enabled cluster. Querying the simple REST endpoint of the Coherence Operator does not require RBAC rules for the Job to execute.
+
+To run a simple status check we are only interested in the following parameters for the status command:
+
+
+|===
+|Argument |Description
+
+|`--operator-url`
+|The Coherence Operator URL, typically the operator's REST service (default "http://coherence-operator-rest.coherence.svc.local:8000"
+
+|`--namespace`
+|The namespace the Coherence resource is deployed into. This will be the namespace our Helm chart was installed into.
+
+|`--name`
+|The name of the Coherence resource. This will be the name from the Helm chart install
+
+|`--timeout`
+|The maximum amount of time to wait for the Coherence resource to reach the required condition (default 5m0s)
+
+|`--interval`
+|The status check re-try interval (default 10s)
+|===
+
+First we can add a few additional default values to our Helm chart values file that will be sensible defaults to pass to the hook Job.
+
+[source,yaml]
+.chart/values.yaml
+----
+include::chart/values.yaml[]
+----
+
+We have added an `operator` section to isolate the values for the hook from the `spec` values used in our Coherence resource.
+
+
+We can now create the hook template in our Helm chart using the new values in the values file.
+// The following code block is raw html as there is no other way to escape the double curly brackets
+// in the Helm chart template!!!
+++++
+<span v-pre><div class="markup-container"><div class="block-title"><span>chart/templates/hook.yaml</span></div><div data-lang="yaml" class="markup"><pre><code class="yaml hljs makefile">apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-helm-hook"
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ .Release.Name }}-helm-hook"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: post-install-job
+        image: {{ .Values.operator.image }}
+        command:
+          - "/files/runner"
+          - "status"
+          - "--namespace"
+          -  {{ .Release.Namespace | quote }}
+          - "--name"
+          - {{ .Release.Name | quote }}
+          - "--operator-url"
+          - "http://{{ .Values.operator.service | default "coherence-operator-rest" }}.{{ .Values.operator.namespace | default "coherence" }}.svc.cluster.local:{{ .Values.operator.port | default 8000 }}"
+          - "--condition"
+          - {{ .Values.operator.condition | default "Ready" | quote }}
+          - "--timeout"
+          - {{ .Values.operator.timeout | default "5m" | quote }}
+          - "--interval"
+          - {{ .Values.operator.interval | default "10s" | quote }}</code></pre><div class="markup__copy"><i aria-hidden="true" class="material-icons icon">content_copy</i><span class="markup__copy__message">Copied</span></div></div></div></span>
+++++
+
+The annotations section is what tells Helm that this is a hook resource:
+[source,yaml]
+----
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+----
+We define the hook as a `post-install` and `post-update` hook, so that it runs on both `install` and `update` of the Coherence resource.
+The hook job will also be deleted once it has successfully run. It will not be deleted if it fails, so we can look at the output of the failure in the Jon Pod logs.
+
+==== Installing with the Hook
+
+If we repeat the Helm install command to install a Coherence resource with the hook in the chart we should see Helm wait and not complete until the Coherence resource (and by inference the StatefulSet and Pods) are all ready.
+
+[source,bash]
+----
+helm  install test ./chart
+----
+
+If we were installing a large Coherence cluster, or doing a Helm upgrade, which results in a rolling upgrade of the Coherence cluster, this could take a lot longer than the default timeout we used of 5 minutes. We can alter the timeout and re-try interval using `--set` arguments.
+
+[source,bash]
+----
+helm  install test ./chart --set operator.timeout=20m --set operator.interval=1m
+----
+In the above command the timeout is now 20 minutes and the status check will re-try every one minute.
+
+==== Skipping Hooks
+
+Sometime we might want to install the chart and not wait for everything to be ready. We can use the Helm `--no-hooks` argument to skip hook execution.
+
+[source,bash]
+----
+helm  install test ./chart --no-hooks
+----
+Now the Helm install command will return as soon as the Coherence resource has been created.
+
+==== Other Helm Hooks
+
+We saw above how a custom post-install and post-update hook could be used to work aroud the restrictions of Helm's `--wait` argument. Of course there are other hooks available in Helm that the method above could be used in. For example, say I had a front end application to be deployed using a Helm chart, but I did not want Helm to start the deployment until the Coherence back-end was ready, I could use the same method above in a pre-install hook.

@@ -1,13 +1,89 @@
-= Coherence Operator Examples
+///////////////////////////////////////////////////////////////////////////////
 
-The examples provide demonstrations of how to accomplish common tasks. These examples are provided for educational and 
-demonstration purposes only; they are not intended to be used in production deployments or 
-to be depended upon to create production environments.
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
 
-== Table of Contents
+///////////////////////////////////////////////////////////////////////////////
+= Examples Overview
 
-* <<deployment/README.adoc#,Coherence Operator Deployment Example>>
+== Examples Overview
 
-* <<autoscaler/README.adoc#,Kubernetes Horizontal Pod Autoscaler Example>>
+There are a number of examples which show you how to build and deploy applications for the Coherence Operator.
 
-* <<tls/README.adoc#,Secure Coherence Clusters with TLS>>
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/master/examples/[Coherence Operator GitHub] repository.
+====
+
+[PILLARS]
+====
+[CARD]
+.Hello World
+[link=examples/020_hello_world/README.adoc]
+--
+Deploying the most basic Coherence cluster using the Operator.
+--
+
+[CARD]
+.Simple Coherence Image
+[link=examples/015_simple_image/README.adoc]
+--
+Building a simple Coherence image with JIB using Maven or Gradle.
+--
+====
+
+[PILLARS]
+====
+[CARD]
+.Deployment
+[link=examples/020_deployment.adoc]
+--
+This example showcases how to deploy Coherence applications using the Coherence Operator.
+--
+
+[CARD]
+.TLS
+[link=examples/090_tls/README.adoc]
+--
+Securing Coherence clusters using TLS.
+--
+
+[CARD]
+.Federation
+[link=examples/100_federation/README.adoc]
+--
+This is a simple Coherence federation example. The federation feature requires Coherence Grid Edition.
+--
+
+[CARD]
+.Autoscaling
+[link=examples/200_autoscaler/README.adoc]
+--
+Scaling Coherence clusters using the horizontal Pod Autoscaler.
+--
+
+[CARD]
+.Helm
+[link=examples/300_helm/README.adoc]
+--
+Manage Coherence resources using Helm.
+--
+
+[CARD]
+.Istio
+[link=examples/400_Istio/README.adoc]
+--
+Istio Support
+--
+====
+
+[PILLARS]
+====
+[CARD]
+.Coherence Demo App
+[link=examples/900_demo.adoc]
+--
+Deploying the Coherence demo application.
+--
+====

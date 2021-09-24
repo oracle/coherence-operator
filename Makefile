@@ -32,8 +32,8 @@ COMPATIBLE_SELECTOR = control-plane=coherence
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
-COHERENCE_VERSION ?= 21.06.1
-COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06.1
+COHERENCE_VERSION ?= 21.06.2
+COHERENCE_IMAGE ?= oraclecoherence/coherence-ce:21.06.2
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -606,8 +606,7 @@ copyright:  ## Check copyright headers
 	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
 	  -X .adoc \
 	  -X bin/ \
-	  -X build/_output/ \
-	  -X build/tools/ \
+	  -X build/ \
 	  -X clientset/ \
 	  -X dashboards/ \
 	  -X /Dockerfile \
@@ -622,6 +621,10 @@ copyright:  ## Check copyright headers
 	  -X hack/sdk/ \
 	  -X go.mod \
 	  -X go.sum \
+	  -X .gradle/ \
+	  -X gradle/ \
+	  -X gradlew \
+	  -X gradlew.bat \
 	  -X HEADER.txt \
 	  -X helm-charts/coherence-operator/templates/NOTES.txt \
 	  -X .iml \
@@ -629,6 +632,7 @@ copyright:  ## Check copyright headers
 	  -X java/src/copyright/EXCLUDE.txt \
 	  -X Jenkinsfile \
 	  -X .jar \
+	  -X jib-cache/ \
 	  -X .jks \
 	  -X .json \
 	  -X LICENSE.txt \
@@ -1482,7 +1486,7 @@ mvn-deploy: java-client
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	./mvnw -B -f ./examples package -DskipTests -P docker $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f ./examples package jib:dockerBuild -DskipTests $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
@@ -1800,7 +1804,9 @@ docs:
 		-Doperator.image=$(OPERATOR_IMAGE) \
 		-Doperator.utils.image=$(UTILS_IMAGE) \
 		$(MAVEN_OPTIONS)
-
+	mkdir -p $(BUILD_OUTPUT)/docs/images/images
+	cp -r docs/images/ build/_output/docs/images/
+	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.

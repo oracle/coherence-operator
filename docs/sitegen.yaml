@@ -19,19 +19,17 @@ assets:
   - target: "/"
     includes:
       - "docs/css/*.css"
-  - target: "/"
-    includes:
-      - "docs/images/**/*"
 header:
   favicon:
-    path: "docs/images/logo.png"
+    path: "images/logo.png"
     type: "png"
   stylesheets:
     - path: "docs/css/styles.css"
 pages:
     - includes:
         - "docs/**/*.adoc"
-      excludes:
+        - "examples/**/*.adoc"
+    - excludes:
 backend:
     name: "vuetify"
     homePage: "docs/about/01_overview.adoc"
@@ -41,7 +39,7 @@ backend:
       title: "Coherence Operator"
       glyph:
         type: "image"
-        value: "docs/images/logo.png"
+        value: "images/logo.png"
       items:
         - title: "Core documentation"
           items:
@@ -148,7 +146,10 @@ backend:
                 value: "explore"
               items:
                 - includes:
-                    - "docs/examples/*.adoc"
+                    - "examples/**/*.adoc"
+                  excludes:
+                     - "examples/README.adoc"
+                     - "examples/no-operator/**/*"
             - title: "Non-Operator Examples"
               pathprefix: "/no-operator"
               glyph:
@@ -156,7 +157,9 @@ backend:
                 value: "fa-ban"
               items:
                 - includes:
-                    - "docs/no-operator/*.adoc"
+                    - "examples/no-operator/**/*.adoc"
+                  excludes:
+                    - "examples/no-operator/README.adoc"
             - title: "Troubleshooting"
               pathprefix: "/troubleshooting"
               glyph:

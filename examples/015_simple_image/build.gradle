@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+	id 'java'
+    id 'com.google.cloud.tools.jib' version '3.1.4'
+}
+
+group = 'com.oracle.coherence.examples'
+version = '1.0.0'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("com.oracle.coherence.ce:coherence-bom:21.06.2")
+
+	implementation "com.oracle.coherence.ce:coherence"
+	implementation "com.oracle.coherence.ce:coherence-management"
+}
+
+jib {
+  from {
+    image = 'gcr.io/distroless/java:11'
+  }
+  to {
+    image = "${project.name}"
+    tags = ["${version}", 'latest']
+  }
+  container {
+    mainClass = 'com.tangosol.net.Coherence'
+    format = 'OCI'
+  }
+}

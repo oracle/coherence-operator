@@ -1,0 +1,151 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= A "Hello World" Operator Example
+
+== A "Hello World" Operator Example
+
+This is the most basic example of how to deploy a simple Coherence cluster to Kubernetes using the Coherence Operator.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/020_hello_world[Coherence Operator GitHub] repository.
+====
+
+=== Install the Operator
+
+If you have not already done so, you need to install the Coherence Operator.
+There are a few simple ways to do this as described in the <<docs/installation/01_installation.adoc,Installation Guide>>
+
+=== A Default Coherence Cluster
+
+All the fields in the Coherence CRD spec are optional, the Operator will apply default values, if required, for fields not specified.
+
+For example, this is the minimum required yaml to run a Coherence cluster:
+[source,yaml]
+.default-coherence.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+----
+
+The yaml above could be installed into Kubernetes using kubectl:
+[source,bash]
+----
+kubectl create -f default-coherence.yaml
+----
+
+The command above will create a Coherence cluster named `test` in the `default` Kubernetes namespace.
+
+Because no `spec` was specified in the yaml, the Operator will use its defaults for certain fields.
+
+* The `replicas` field, which controls the number of Pods in the cluster, will default to `3`.
+* The image used to run Coherence will be the default for this version of the Operator,
+typically this is the latest Coherence CE image released at the time the Operator version was released.
+* No ports will be exposed on the container, and no additional services will be created.
+
+We can list the resources that have been created by the Operator.
+[source,bash]
+----
+kubectl get all
+----
+
+Which should display something like this:
+[source,bash]
+----
+NAME         READY   STATUS    RESTARTS   AGE
+pod/test-0   1/1     Running   0          81s
+pod/test-1   1/1     Running   0          81s
+pod/test-2   1/1     Running   0          81s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/test-sts     ClusterIP   None         <none>        7/TCP     81s
+service/test-wka     ClusterIP   None         <none>        7/TCP     81s
+
+NAME                    READY   AGE
+statefulset.apps/test   3/3     81s
+----
+* We can see that the Operator has created a `StatefulSet`, with three `Pods` and there are two `Services`.
+* The `test-sts` service is the headless service required for the `StatefulSet`.
+* The `test-wka` service is the headless service that Coherence will use for well known address cluster discovery.
+
+We can now undeploy the cluster:
+[source,bash]
+----
+kubectl delete -f default-coherence.yaml
+----
+
+
+=== Deploy the Simple Server Image
+
+We can deploy a specific image by setting the `spec.image` field in the yaml.
+In this example we'll deploy the `simple-coherence:1.0.0` image built in the
+<<examples/015_simple_image/README.adoc,Build a Coherence Server Image>> example.
+
+To deploy a specific image we just need to set the `spec.image` field.
+[source,yaml]
+.simple.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: simple
+spec:
+  image: simple-coherence:1.0.0  <1>
+  replicas: 6                    <2>
+  ports:
+    - name: extend               <3>
+      port: 20000
+----
+<1> We have set the image to use to the <<examples/015_simple_image/README.adoc,Build a Coherence Server Image>> example `simple-coherence:1.0.0`.
+<2> We have set the `replicas` field to `6`, so this time there should only be six Pods.
+<3> The simple image starts a Coherence Extend proxy on port `20000`, so we expose this port in the `Coherence` spec. The Operator will then expose the port on the Coherence container and create a Service for the port.
+
+We can deploy the simple cluster into Kubernetes using kubectl:
+[source,bash]
+----
+kubectl create -f simple.yaml
+----
+
+Now list the resources the Operator has created.
+[source,bash]
+----
+kubectl get all
+----
+
+Which this time should look something like this:
+[source,bash]
+----
+NAME         READY   STATUS    RESTARTS   AGE
+pod/test-0   1/1     Running   0          4m49s
+pod/test-1   1/1     Running   0          4m49s
+pod/test-2   1/1     Running   0          4m49s
+pod/test-3   1/1     Running   0          4m49s
+pod/test-4   1/1     Running   0          4m49s
+pod/test-5   1/1     Running   0          4m49s
+
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP     164d
+service/test-extend   ClusterIP   10.108.166.193   <none>        20000/TCP   4m49s
+service/test-sts      ClusterIP   None             <none>        7/TCP       4m49s
+service/test-wka      ClusterIP   None             <none>        7/TCP       4m49s
+
+NAME                    READY   AGE
+statefulset.apps/test   6/6     4m49s
+----
+* We can see that the Operator has created a `StatefulSet`, with six `Pods` and there are three `Services`.
+* The `simple-sts` service is the headless service required for the `StatefulSet`.
+* The `simple-wka` service is the headless service that Coherence will use for well known address cluster discovery.
+* The `simple-extend` service is the service that exposes the Extend port `20000`, and could be used by Extend clients to connect to the cluster.
+
+We can now delete the simple cluster:
+[source,bash]
+----
+kubectl delete -f simple.yaml
+----
