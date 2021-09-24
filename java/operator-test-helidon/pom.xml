@@ -63,7 +63,7 @@
                 <version>${version.plugin.jib}</version>
                 <configuration>
                     <container>
-                      <mainClass>io.helidon.microprofile.cdi.com.oracle.coherence.k8s.testing.Main</mainClass>
+                      <mainClass>io.helidon.microprofile.server.Main</mainClass>
                     </container>
                     <!-- MUST use packaged mode for Helidon CDI application -->
                     <containerizingMode>packaged</containerizingMode>

@@ -7,6 +7,7 @@
 package runner
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -273,10 +274,18 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// are running a Spring Boot application.
 	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-		details.addClasspathIfExists(appDir + "/resources")
-		details.addClasspathIfExists(appDir + "/classes")
-		details.addJarsToClasspath(appDir + "/classpath")
-		details.addJarsToClasspath(appDir + "/libs")
+		fi, e := os.Stat(appDir + "/jib-classpath-file")
+		if e == nil && (fi.Size() != 0) {
+			clsPath := readFirstLineFromFile(appDir+"/jib-classpath-file", fi)
+			if len(clsPath) != 0 {
+				details.addClasspath(clsPath)
+			}
+		} else {
+			details.addClasspathIfExists(appDir + "/resources")
+			details.addClasspathIfExists(appDir + "/classes")
+			details.addJarsToClasspath(appDir + "/classpath")
+			details.addJarsToClasspath(appDir + "/libs")
+		}
 	}
 
 	// Add the Operator Utils jar to the classpath
@@ -555,6 +564,23 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.getCommand()
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
+}
+
+func readFirstLineFromFile(fqfn string, fi os.FileInfo) string {
+	log.Info(fmt.Sprintf("%s size=%d", fi.Name(), fi.Size()))
+	file, _ := os.Open(fqfn)
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var text []string
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
+	}
+	file.Close()
+	if len(text) == 0 {
+		return ""
+	}
+	log.Info(fmt.Sprintf("First Line of the %s:\n%s\n", fi.Name(), text[0]))
+	return text[0]
 }
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
