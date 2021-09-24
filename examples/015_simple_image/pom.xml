@@ -21,10 +21,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
-        <coherence.version>22.06</coherence.version>
+        <coherence.version>22.06.1</coherence.version>
 
         <version.plugin.jib>3.1.4</version.plugin.jib>
     </properties>
@@ -48,7 +48,11 @@
         </dependency>
         <dependency>
             <groupId>com.oracle.coherence.ce</groupId>
-            <artifactId>coherence-management</artifactId>
+            <artifactId>coherence-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-grpc-proxy</artifactId>
         </dependency>
     </dependencies>
 

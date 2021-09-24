@@ -15,7 +15,7 @@ This example shows some ways that Helm can be used to manage Coherence resources
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/300_helm[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}300_helm[Coherence Operator GitHub] repository.
 ====
 
 === A Simple Generic Helm Chart

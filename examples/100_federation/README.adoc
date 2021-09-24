@@ -13,7 +13,7 @@ This simple example demonstrates the Coherence federation feature.  It shows how
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/100_federation[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}100_federation[Coherence Operator GitHub] repository.
 ====
 
 === What the Example will Cover
