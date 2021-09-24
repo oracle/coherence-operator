@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.2.3
+VERSION ?= 3.2.4
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.2
+PREV_VERSION ?= 3.2.3
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  = 3.2.2
+COMPATIBLE_VERSION  = 3.2.3
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
@@ -1805,7 +1805,7 @@ docs:
 		-Doperator.utils.image=$(UTILS_IMAGE) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
-	cp -r docs/images/ build/_output/docs/images/
+	cp -R docs/images/ build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
 
 # ----------------------------------------------------------------------------------------------------------------------
