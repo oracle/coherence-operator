@@ -501,6 +501,9 @@ func (in *CoherenceResourceSpec) FindPortServiceNames(deployment *Coherence) map
 				m[port.Name] = s
 			}
 		}
+
+		// manually add the wka port which will be <resource-name>-wka
+		m["wka"] = deployment.Name + "-wka"
 	}
 	return m
 }

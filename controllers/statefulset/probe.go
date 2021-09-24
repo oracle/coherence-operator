@@ -273,7 +273,7 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 	p := httpprobe.New()
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
-	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%s msg=%s error=%s", u.String(), result, s, err))
+	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%v msg=%s error=%s", u.String(), result, s, err))
 
 	return result == probe.Success, err
 }
