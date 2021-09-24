@@ -18,10 +18,24 @@
   <name>Oracle Coherence Operator Examples Parent</name>
 
   <modules>
-    <module>deployment</module>
-    <module>autoscaler</module>
-    <module>tls</module>
+    <module>015_simple_image</module>
+    <module>021_deployment</module>
+    <module>200_autoscaler</module>
+    <module>090_tls</module>
   </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.1.4</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
 
 

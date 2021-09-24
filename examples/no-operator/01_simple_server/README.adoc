@@ -5,9 +5,16 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
+= A Simple Coherence Cluster
+
 == A Simple Coherence Cluster in Kubernetes
 
 This example shows how to deploy a simple Coherence cluster in Kubernetes manually, without using the Coherence Operator.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/01_simple_server[Coherence Operator GitHub] repository.
+====
 
 *Prerequisites*
 
@@ -260,8 +267,8 @@ Map (?): cache test
 We should see output something like this:
 [source]
 ----
-2021-09-17 12:25:12.143/14.600 Oracle Coherence CE 21.06.1 <Info> (thread=com.tangosol.net.CacheFactory.main(), member=1): Loaded cache configuration from "file:/Users/jonathanknight/dev/Projects/GitOracle/coherence-operator-3.0/examples/no-operator/test-client/target/classes/client-cache-config.xml"
-2021-09-17 12:25:12.207/14.664 Oracle Coherence CE 21.06.1 <D5> (thread=com.tangosol.net.CacheFactory.main(), member=1): Created cache factory com.tangosol.net.ExtensibleConfigurableCacheFactory
+2021-09-17 12:25:12.143/14.600 Oracle Coherence CE 21.06.2 <Info> (thread=com.tangosol.net.CacheFactory.main(), member=1): Loaded cache configuration from "file:/Users/jonathanknight/dev/Projects/GitOracle/coherence-operator-3.0/examples/no-operator/test-client/target/classes/client-cache-config.xml"
+2021-09-17 12:25:12.207/14.664 Oracle Coherence CE 21.06.2 <D5> (thread=com.tangosol.net.CacheFactory.main(), member=1): Created cache factory com.tangosol.net.ExtensibleConfigurableCacheFactory
 
 Cache Configuration: test
   SchemeName: remote

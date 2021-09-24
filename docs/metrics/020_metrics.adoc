@@ -13,19 +13,14 @@
 Since version 12.2.1.4 Coherence has had the ability to expose a http endpoint that can be used to scrape metrics.
 This would typically be used to expose metrics to something like Prometheus.
 
-NOTE: The description below is only applicable if metrics will be served by Coherence using the
-`coherence-metrics` module. If Coherence metrics will be served from a different endpoint, for
-example from a Helidon web-server using `coherence-mp-metrics` or using Coherence Micrometer integration,
-then the documentation below does not apply.
-
 NOTE: The default metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
-setting the relevant fields in the `Coherence` CRD. This assumes that your application has included the
-`coherence-metrics` module as a dependency. See the Coherence product documentation for more details on enabling metrics
+setting the relevant fields in the `Coherence` CRD.
+If your Coherence version is before CE 21.06.2 this example assumes that your application has included the
+`coherence-metrics` module as a dependency.
+See the Coherence product documentation for more details on enabling metrics
 in your application.
 
-The example below shows how to enable and access Coherence metrics when served by the endpoint provided by the
-`coherence-metrics` module. For the example below to work the application deployed must have the `coherence-metrics`
-jar file and its dependencies on the classpath.
+The example below shows how to enable and access Coherence metrics.
 
 Once the metrics port has been exposed, for example via a load balancer or port-forward command, the metrics
 endpoint is available at `http://host:port/metrics`.

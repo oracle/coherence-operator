@@ -5,17 +5,24 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
+= Secure Coherence Extend with TLS
+
 == Secure Coherence Extend with TLS
 
 This example shows how to deploy a simple Coherence cluster in Kubernetes manually, and secure the Extend endpoint using TLS.
 This example expands on the `StatefulSet` used in the first simple deployment example.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/03_extend_tls[Coherence Operator GitHub] repository.
+====
 
 *Prerequisites*
 
 This example assumes that you have already built the example server image.
 
 There are a number of ways to use TLS to secure ingress in Kubernetes. We could use a load balancer `Service` and terminate TLS at the load balance, or we could use an add-on such as Istio to manage TLS ingress. Both of those approaches would require no changes to the Coherence server, as the server would not know TLS was being used.
-The https://oracle.github.io/coherence-operator/docs/latest/#/docs/examples/010_overview[Coherence Operator Examples]
+The https://oracle.github.io/coherence-operator/docs/latest/#/examples/010_overview[Coherence Operator Examples]
 contains examples of using TLS with Coherence and using Istio. The TLS example also shows how to use Kubernetes built in certificate management to create keys and certificates.
 
 In this example we are going to actually change the server to use TLS for its Extend endpoints.
@@ -340,7 +347,7 @@ Map (?): cache test
 This will not throw an exception because the client is not using TLS so the server rejected the connection.
 [source]
 ----
-2021-09-17 18:19:39.182/12.090 Oracle Coherence CE 21.06.1 <Error> (thread=com.tangosol.net.CacheFactory.main(), member=1): Error while starting service "RemoteCache": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: [127.0.0.1:20000]
+2021-09-17 18:19:39.182/12.090 Oracle Coherence CE 21.06.2 <Error> (thread=com.tangosol.net.CacheFactory.main(), member=1): Error while starting service "RemoteCache": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: [127.0.0.1:20000]
 	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator.openConnection(TcpInitiator.CDB:139)
 	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator.ensureConnection(Initiator.CDB:11)
 	at com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService.openChannel(RemoteCacheService.CDB:7)
