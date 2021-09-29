@@ -529,6 +529,7 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) 
 	$(CONTROLLER_GEN) "crd:trivialVersions=true,crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
+	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
 	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
