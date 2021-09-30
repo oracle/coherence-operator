@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,14 +9,13 @@ package v1_test
 import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 func TestCreateStatefulSetWithEmptyVolumeClaimTemplates(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
-		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{},
+		VolumeClaimTemplates: []coh.PersistentVolumeClaim{},
 	}
 
 	// Create the test deployment
@@ -30,8 +29,8 @@ func TestCreateStatefulSetWithEmptyVolumeClaimTemplates(t *testing.T) {
 
 func TestCreateStatefulSetWithOneVolumeClaimTemplate(t *testing.T) {
 
-	volumeOne := corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
+	volumeOne := coh.PersistentVolumeClaim{
+		Metadata: coh.PersistentVolumeClaimObjectMeta{
 			Name: "PVCOne",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -41,14 +40,14 @@ func TestCreateStatefulSetWithOneVolumeClaimTemplate(t *testing.T) {
 	}
 
 	spec := coh.CoherenceResourceSpec{
-		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{volumeOne},
+		VolumeClaimTemplates: []coh.PersistentVolumeClaim{volumeOne},
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne)
+	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne.ToPVC())
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -56,8 +55,8 @@ func TestCreateStatefulSetWithOneVolumeClaimTemplate(t *testing.T) {
 
 func TestCreateStatefulSetWithTwoVolumeClaimTemplates(t *testing.T) {
 
-	volumeOne := corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
+	volumeOne := coh.PersistentVolumeClaim{
+		Metadata: coh.PersistentVolumeClaimObjectMeta{
 			Name: "PVCOne",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -66,8 +65,8 @@ func TestCreateStatefulSetWithTwoVolumeClaimTemplates(t *testing.T) {
 		},
 	}
 
-	volumeTwo := corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
+	volumeTwo := coh.PersistentVolumeClaim{
+		Metadata: coh.PersistentVolumeClaimObjectMeta{
 			Name: "PVCTwo",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -77,14 +76,14 @@ func TestCreateStatefulSetWithTwoVolumeClaimTemplates(t *testing.T) {
 	}
 
 	spec := coh.CoherenceResourceSpec{
-		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{volumeOne, volumeTwo},
+		VolumeClaimTemplates: []coh.PersistentVolumeClaim{volumeOne, volumeTwo},
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne, volumeTwo)
+	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne.ToPVC(), volumeTwo.ToPVC())
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

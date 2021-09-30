@@ -654,7 +654,6 @@ copyright:  ## Check copyright headers
 	  -X .tpl \
 	  -X .txt \
 	  -X .yaml \
-	  -X pkg/apis/coherence/legacy/zz_generated.deepcopy.go \
 	  -X pkg/data/assets/ \
 	  -X zz_generated.
 
