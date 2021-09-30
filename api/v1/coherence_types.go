@@ -2766,6 +2766,14 @@ type PersistentVolumeClaim struct {
 	Spec corev1.PersistentVolumeClaimSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 }
 
+// ToPVC converts this PersistentVolumeClaim to a k8s PersistentVolumeClaim.
+func (in *PersistentVolumeClaim) ToPVC() corev1.PersistentVolumeClaim {
+	return corev1.PersistentVolumeClaim{
+		ObjectMeta: in.Metadata.toObjectMeta(),
+		Spec:       in.Spec,
+	}
+}
+
 // ----- PersistentVolumeClaimObjectMeta struct -----------------------------
 
 // PersistentVolumeClaimObjectMeta is metadata  for the PersistentVolumeClaim.

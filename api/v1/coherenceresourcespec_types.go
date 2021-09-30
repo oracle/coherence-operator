@@ -738,11 +738,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, in.Volumes...)
 	// append any additional PVCs
 	for _, v := range in.VolumeClaimTemplates {
-		pvc := corev1.PersistentVolumeClaim{
-			ObjectMeta: v.Metadata.toObjectMeta(),
-			Spec:       v.Spec,
-		}
-		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, pvc)
+		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
 	}
 
 	return Resource{
