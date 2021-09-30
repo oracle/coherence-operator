@@ -1,0 +1,24 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage-with-pvc
+spec:
+  replicas: 1
+  volumeClaimTemplates:
+    - metadata:
+        name: data-volume
+        labels:
+          coherence.oracle.com/test1: "pvc-test-1"
+          coherence.oracle.com/test2: "pvc-test-2"
+        annotations:
+          test-key1: test-value-1
+          test-key2: test-value-2
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+  volumeMounts:
+    - name: data-volume
+      mountPath: /opt/data
+

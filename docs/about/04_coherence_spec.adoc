@@ -44,6 +44,8 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<NetworkSpec,NetworkSpec>>
 * <<PersistenceSpec,PersistenceSpec>>
 * <<PersistentStorageSpec,PersistentStorageSpec>>
+* <<PersistentVolumeClaim,PersistentVolumeClaim>>
+* <<PersistentVolumeClaimObjectMeta,PersistentVolumeClaimObjectMeta>>
 * <<PodDNSConfig,PodDNSConfig>>
 * <<PortSpecWithSSL,PortSpecWithSSL>>
 * <<Probe,Probe>>
@@ -104,9 +106,7 @@ see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<Sec
 m| volumes | Volumes defines extra volume mappings that will be added to the Coherence Pod. +
   The content of this yaml should match the normal k8s volumes section of a Pod definition + +
   as described in https://kubernetes.io/docs/concepts/storage/volumes/ + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volume-v1-core[corev1.Volume] | false
-m| volumeClaimTemplates | VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. +
-  The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition + +
-  as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/ + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaim-v1-core[corev1.PersistentVolumeClaim] | false
+m| volumeClaimTemplates | VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/ Every claim in this list must have at least one matching (by name) volumeMount in one container in the template. A claim in this list takes precedence over any volumes in the template, with the same name. m| []<<PersistentVolumeClaim,PersistentVolumeClaim>> | false
 m| volumeMounts | VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above +
   in store.volumes and store.volumeClaimTemplates + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumemount-v1-core[corev1.VolumeMount] | false
 m| healthPort | The port that the health check endpoint will bind to. m| &#42;int32 | false
@@ -499,6 +499,33 @@ PersistentStorageSpec defines the persistence settings for the Coherence
 | Field | Description | Type | Required
 m| persistentVolumeClaim | PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaimspec-v1-core[corev1.PersistentVolumeClaimSpec] | false
 m| volume | Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumesource-v1-core[corev1.VolumeSource] | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== PersistentVolumeClaim
+
+PersistentVolumeClaim is a request for and claim to a persistent volume
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| metadata | Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata m| <<PersistentVolumeClaimObjectMeta,PersistentVolumeClaimObjectMeta>> | false
+m| spec | Spec defines the desired characteristics of a volume requested by a pod author. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaimspec-v1-core[corev1.PersistentVolumeClaimSpec] | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== PersistentVolumeClaimObjectMeta
+
+PersistentVolumeClaimObjectMeta is metadata  for the PersistentVolumeClaim.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| name | Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names m| string | false
+m| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
+m| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations m| map[string]string | false
 |===
 
 <<Table of Contents,Back to TOC>>

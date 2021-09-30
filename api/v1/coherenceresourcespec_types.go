@@ -186,11 +186,14 @@ type CoherenceResourceSpec struct {
 	// +optional
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
 	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
-	//   The content of this yaml should match the normal k8s volumeClaimTemplates section of a Pod definition
-	//   as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec
+	// as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// Every claim in this list must have at least one matching (by name) volumeMount in one
+	// container in the template. A claim in this list takes precedence over any volumes in the
+	// template, with the same name.
 	// +listType=atomic
 	// +optional
-	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	VolumeClaimTemplates []PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
 	// VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
 	//   in store.volumes and store.volumeClaimTemplates
 	// +listType=map
@@ -734,7 +737,9 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 	// append any additional Volumes
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, in.Volumes...)
 	// append any additional PVCs
-	sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, in.VolumeClaimTemplates...)
+	for _, v := range in.VolumeClaimTemplates {
+		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
+	}
 
 	return Resource{
 		Kind: ResourceTypeStatefulSet,

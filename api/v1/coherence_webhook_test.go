@@ -447,7 +447,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
 		Spec: coh.CoherenceResourceSpec{
-			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{},
+			VolumeClaimTemplates: []coh.PersistentVolumeClaim{},
 		},
 	}
 
@@ -466,10 +466,10 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
 		Spec: coh.CoherenceResourceSpec{
-			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
 				{
-					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-					Spec:       corev1.PersistentVolumeClaimSpec{},
+					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
+					Spec:     corev1.PersistentVolumeClaimSpec{},
 				},
 			},
 		},
@@ -495,10 +495,10 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
 		Spec: coh.CoherenceResourceSpec{
-			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
 				{
-					ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-					Spec:       corev1.PersistentVolumeClaimSpec{},
+					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
+					Spec:     corev1.PersistentVolumeClaimSpec{},
 				},
 			},
 		},
