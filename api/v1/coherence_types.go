@@ -2753,6 +2753,55 @@ func (in Resources) Create(kind ResourceType, name string, mgr manager.Manager, 
 	return nil
 }
 
+// ----- PersistentVolumeClaim struct ---------------------------------------
+
+// PersistentVolumeClaim is a request for and claim to a persistent volume
+// +k8s:openapi-gen=true
+type PersistentVolumeClaim struct {
+	// Standard object's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+	Metadata PersistentVolumeClaimObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	// Spec defines the desired characteristics of a volume requested by a pod author.
+	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+	Spec corev1.PersistentVolumeClaimSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+}
+
+// ----- PersistentVolumeClaimObjectMeta struct -----------------------------
+
+// PersistentVolumeClaimObjectMeta is metadata  for the PersistentVolumeClaim.
+// +k8s:openapi-gen=true
+type PersistentVolumeClaimObjectMeta struct {
+	// Name must be unique within a namespace. Is required when creating resources, although
+	// some resources may allow a client to request the generation of an appropriate name
+	// automatically. Name is primarily intended for creation idempotence and configuration
+	// definition.
+	// Cannot be updated.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+
+	// Map of string keys and values that can be used to organize and categorize
+	// (scope and select) objects. May match selectors of replication controllers
+	// and services.
+	// More info: http://kubernetes.io/docs/user-guide/labels
+	// +optional
+	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,11,rep,name=labels"`
+
+	// Annotations is an unstructured key value map stored with a resource that may be
+	// set by external tools to store and retrieve arbitrary metadata. They are not
+	// queryable and should be preserved when modifying objects.
+	// More info: http://kubernetes.io/docs/user-guide/annotations
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty" protobuf:"bytes,12,rep,name=annotations"`
+}
+
+func (in *PersistentVolumeClaimObjectMeta) toObjectMeta() metav1.ObjectMeta {
+	return metav1.ObjectMeta{
+		Name:        in.Name,
+		Annotations: in.Annotations,
+		Labels:      in.Labels,
+	}
+}
+
 // ----- helper methods -----------------------------------------------------
 
 // Int32PtrToStringWithDefault converts an int32 pointer to a string using the default if the pointer is nil.
