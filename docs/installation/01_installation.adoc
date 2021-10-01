@@ -68,7 +68,7 @@ If you want the default Coherence Operator installation then the simplest soluti
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.4/coherence-operator.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.5/coherence-operator.yaml
 ----
 
 This will create a namespace called `coherence` and install the Operator into it along with all the required `ClusterRole` and `RoleBinding` resources. The `coherence` namespace can be changed by downloading and editing the yaml file.
@@ -237,13 +237,13 @@ helm install  \
 
 If you want to use yaml directly to install the operator, with something like `kubectl`, you can use the manifest files
 published with the GitHub release at this link:
-https://github.com/oracle/coherence-operator/releases/download/v3.2.4/coherence-operator-manifests.tar.gz[3.2.4 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.2.5/coherence-operator-manifests.tar.gz[3.2.5 Manifests]
 
 These manifest files are for use with a tool called Kustomize, which is built into `kubectl`
 see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
 
 Download the
-https://github.com/oracle/coherence-operator/releases/download/v3.2.4/coherence-operator-manifests.tar.gz[3.2.4 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.2.5/coherence-operator-manifests.tar.gz[3.2.5 Manifests]
 from the release page and unpack the file, which should produce a directory called `manifests` with a structure like this:
 
 [source]
@@ -283,14 +283,14 @@ Change the name of the Operator image by running the command below, changing the
 that you are using for the Operator
 [source,bash]
 ----
-cd ./manager && kustomize edit set image controller=container-registry.oracle.com/middleware/coherence-operator:3.2.4
+cd ./manager && kustomize edit set image controller=container-registry.oracle.com/middleware/coherence-operator:3.2.5
 ----
 
 Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image
 [source,bash]
 ----
-cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.2.4-utils
+cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=container-registry.oracle.com/middleware/coherence-operator:3.2.5-utils
 ----
 
 Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
