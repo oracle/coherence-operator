@@ -34,4 +34,4 @@ commonLabels:
   app.kubernetes.io/instance: coherence-operator-crd
   app.kubernetes.io/name: coherence-operator
   app.kubernetes.io/part-of: coherence-operator
-  app.kubernetes.io/version: 3.2.4
+  app.kubernetes.io/version: 3.2.5
