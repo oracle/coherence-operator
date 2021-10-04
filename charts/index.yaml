@@ -4,7 +4,7 @@ entries:
   - apiVersion: v1
     appVersion: 3.2.4
     created: "2021-10-01T12:32:24.019488419Z"
-    description: A Kubernetes Operator for Coherence
+    description: A Kubernetes Operator for Oracle Coherence
     digest: 8ff73fefbcd73aad26f549822f878bbd3656b8e2076c85544ed8a26de06f5964
     home: https://github.com/oracle/coherence-operator
     icon: https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png
