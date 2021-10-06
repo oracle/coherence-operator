@@ -272,9 +272,13 @@ type CoherenceResourceStatus struct {
 	// Hash is the hash of the latest applied Coherence spec
 	// +optional
 	Hash string `json:"hash,omitempty"`
+	// ActionsExecuted tracks whether actions were executed
+	// +optional
+	ActionsExecuted bool `json:"actionsExecuted,omitempty"`
 }
 
 // UpdatePhase updates the current Phase
+// TODO not used?
 func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase status.ConditionType) bool {
 	return in.SetCondition(deployment, status.Condition{Type: phase, Status: coreV1.ConditionTrue})
 }
