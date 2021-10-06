@@ -135,14 +135,14 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 }
 
 // UpdateDeploymentStatus updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request reconcile.Request) error {
+func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
 	var err error
 	var sts *appsv1.StatefulSet
 	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
 		// an error occurred
 		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
-		return err
+		return nil, err
 	}
 
 	deployment := &coh.Coherence{}
@@ -169,7 +169,7 @@ func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request 
 			err = in.GetClient().Status().Update(ctx, updated)
 		}
 	}
-	return err
+	return deployment, err
 }
 
 // UpdateDeploymentStatusPhase updates the Coherence resource's status.

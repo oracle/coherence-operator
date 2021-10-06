@@ -25,6 +25,8 @@ These are all the types and fields that are used in the Coherence CRD.
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.
 
 === Table of Contents
+* <<Action,Action>>
+* <<ActionJob,ActionJob>>
 * <<CoherenceResourceSpec,CoherenceResourceSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>>
@@ -63,6 +65,33 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<Coherence,Coherence>>
 * <<CoherenceList,CoherenceList>>
 * <<CoherenceResourceStatus,CoherenceResourceStatus>>
+
+=== Action
+
+Action is an action to execute when the StatefulSet becomes ready.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| probe | This is the spec of some sort of probe to fire when the StatefulSet becomes ready m| &#42;<<Probe,Probe>> | false
+m| job | or this is the spec of a Job to create when the StatefulSet becomes ready m| &#42;<<ActionJob,ActionJob>> | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== ActionJob
+
+
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| spec | Spec will be used to create a Job, the name is the Coherence deployment name + \"-\" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource so it gets deleted when the Coherence resource is deleted. m| batchv1.JobSpec | true
+m| labels | Labels are the extra labels to add to the Job. m| map[string]string | false
+m| annotations | Annotations to add to the Job. m| map[string]string | false
+|===
+
+<<Table of Contents,Back to TOC>>
 
 === CoherenceResourceSpec
 
@@ -144,6 +173,7 @@ m| serviceAccountName | The name to use for the service account to use when RBAC
 m| automountServiceAccountToken | Whether to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod. m| &#42;int32 | false
 m| haBeforeUpdate | Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to false to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment. m| &#42;bool | false
+m| actions | Actions to execute once all of the Pods are ready after an initial deployment m| []<<Action,Action>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -845,6 +875,7 @@ m| role | The effective role name for this deployment. This will come from the S
 m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
 m| conditions | The status conditions. m| status.Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
+m| actionsExecuted | &#160; m| bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
