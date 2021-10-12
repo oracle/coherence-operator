@@ -1,0 +1,28 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: action-test
+spec:
+  replicas: 1
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  ports:
+    - name: rest
+      port: 8080
+  actions:
+    - job:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: pi
+                  image: perl
+                  command: [ "perl",  "-Mbignum=bpi", "-wle", "sleep(10)" ]
+              restartPolicy: Never
+          backoffLimit: 4
+        labels:
+          test: actions
+        annotations:
+          desc: example
+      name: perl

@@ -305,7 +305,9 @@ type CoherenceResourceSpec struct {
 
 // Action is an action to execute when the StatefulSet becomes ready.
 type Action struct {
-	// TODO: add action name?
+	// Action name
+	// +optional
+	Name string `json:"name,omitempty"`
 
 	// This is the spec of some sort of probe to fire when the StatefulSet becomes ready
 	Probe *Probe `json:"probe,omitempty"`

@@ -7752,6 +7752,9 @@ spec:
                       required:
                       - spec
                       type: object
+                    name:
+                      description: Action name
+                      type: string
                     probe:
                       description: This is the spec of some sort of probe to fire
                         when the StatefulSet becomes ready
@@ -19821,6 +19824,7 @@ spec:
               resource.
             properties:
               actionsExecuted:
+                description: ActionsExecuted tracks whether actions were executed
                 type: boolean
               coherenceCluster:
                 description: The name of the Coherence cluster that this deployment

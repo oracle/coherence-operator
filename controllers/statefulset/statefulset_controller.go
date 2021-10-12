@@ -148,6 +148,9 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				logger.Info("Scaling down to zero")
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, false)
 				// TODO: what to do with error?
+				if err != nil {
+					logger.Info("Error updating deployment status", "error", err.Error())
+				}
 				if deployment.Spec.IsSuspendServicesOnShutdown() {
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
@@ -175,8 +178,9 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, logger)
 	}
 
+	var updated *coh.Coherence
 	if err == nil {
-		if updated, err := in.UpdateDeploymentStatus(ctx, request); err != nil {
+		if updated, err = in.UpdateDeploymentStatus(ctx, request); err == nil {
 			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0  {
 				in.execActions(ctx, stsCurrent, deployment)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, true)
@@ -236,22 +240,27 @@ func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.Sta
 	for _, action := range deployment.Spec.Actions {
 		if action.Probe != nil {
 			if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
-				log.Info("Action probe execution failed.")
+				log.Info("Action probe execution failed.", "probe", action.Probe)
 			}
-
 		}
 		if action.Job != nil {
-			job := buildActionJob(action.Job, deployment)
+			job := buildActionJob(action.Name, action.Job, deployment)
 			if err := in.GetClient().Create(ctx, job); err != nil {
-				log.Info(fmt.Sprintf("Action job creation failed: %s", err))
+				log.Info("Action job creation failed", "error", err.Error())
+			} else {
+				log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
 			}
 		}
 	}
 }
 
 // buildActionJob creates job based on ActionJob config
-func buildActionJob(actionJob *coh.ActionJob, deployment *coh.Coherence) *batchv1.Job {
-	return &batchv1.Job{
+func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh.Coherence) *batchv1.Job {
+	generateName := deployment.Name + "-"
+	if actionName := strings.TrimSpace(actionName); actionName != "" {
+		generateName = generateName + actionName + "-"
+	}
+	job := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
 			APIVersion: "batch/v1",
@@ -259,21 +268,22 @@ func buildActionJob(actionJob *coh.ActionJob, deployment *coh.Coherence) *batchv
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      actionJob.Labels,
 			Annotations: actionJob.Annotations,
-			Name:        deployment.Name + "-" + "todo", // TODO: add action name to Action type
-			Namespace:   deployment.GetNamespace(),
+			GenerateName: generateName,
+			Namespace: deployment.GetNamespace(),
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion: deployment.APIVersion,
-					Kind: deployment.Kind,
-					Name: deployment.Name,
-					UID: deployment.UID,
-					Controller: pointer.BoolPtr(true),
+					APIVersion:         deployment.APIVersion,
+					Kind:               deployment.Kind,
+					Name:               deployment.Name,
+					UID:                deployment.UID,
+					Controller:         pointer.BoolPtr(true),
 					BlockOwnerDeletion: pointer.BoolPtr(false),
 				},
 			},
 		},
 		Spec: actionJob.Spec,
 	}
+	return job
 }
 
 func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
