@@ -73,6 +73,7 @@ Action is an action to execute when the StatefulSet becomes ready.
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
+m| name | Action name m| string | false
 m| probe | This is the spec of some sort of probe to fire when the StatefulSet becomes ready m| &#42;<<Probe,Probe>> | false
 m| job | or this is the spec of a Job to create when the StatefulSet becomes ready m| &#42;<<ActionJob,ActionJob>> | false
 |===
@@ -875,7 +876,7 @@ m| role | The effective role name for this deployment. This will come from the S
 m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
 m| conditions | The status conditions. m| status.Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
-m| actionsExecuted | &#160; m| bool | false
+m| actionsExecuted | ActionsExecuted tracks whether actions were executed m| bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
