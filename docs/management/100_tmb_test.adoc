@@ -54,7 +54,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0  # <1>
+      image: ghcr.io/oracle/coherence-ce:21.06.2  # <1>
       ports:
         - name: mbus
           containerPort: 8000
@@ -67,8 +67,7 @@ spec:
         - -bind
         - tmb://0.0.0.0:8000
 ----
-<1> This example uses the Coherence image from Oracle container registry, but any image with `coherence.jar` in it
-could be used.
+<1> This example uses a Coherence CE image, but any image with `coherence.jar` in it could be used.
 <2> The command line that the container will execute is exactly the same as that for the listener process in the
 https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
 
@@ -102,7 +101,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+      image: ghcr.io/oracle/coherence-ce:21.06.2
       command:
         - java                         # <1>
         - -cp
