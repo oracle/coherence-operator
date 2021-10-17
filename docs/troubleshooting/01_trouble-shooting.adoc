@@ -11,7 +11,7 @@
 == Troubleshooting Guide
 
 The purpose of this page is to list troubleshooting guides and work-arounds for issues that you may run into when using the Coherence Operator.
-This paged will be updated and maintained over time to include common issues we see from customers
+This page will be updated and maintained over time to include common issues we see from customers
 
 == Contents
 
