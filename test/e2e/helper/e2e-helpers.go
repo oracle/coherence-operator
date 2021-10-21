@@ -27,6 +27,7 @@ import (
 	"io"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -609,6 +610,26 @@ func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int
 	return pods, err
 }
 
+// WaitForJobsWithLabel waits for at least the required number of Jobs matching the specified labels selector to be created.
+func WaitForJobsWithLabel(ctx TestContext, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]batchv1.Job, error) {
+	var jobs []batchv1.Job
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		jobs, err = ListJobsWithLabelSelector(ctx, namespace, selector)
+		if err != nil {
+			ctx.Logf("Waiting for at least %d Jobs with label selector '%s' - failed due to %s", count, selector, err.Error())
+			return false, err
+		}
+		found := len(jobs) >= count
+		if !found {
+			ctx.Logf("Waiting for at least %d Jobs with label selector '%s' - found %d", count, selector, len(jobs))
+		}
+		return found, nil
+	})
+
+	return jobs, err
+}
+
 // WaitForPodsWithLabelAndField waits for at least the required number of pending Pods
 func WaitForPodsWithLabelAndField(ctx TestContext, namespace, labelSelector, fieldSelector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
@@ -651,6 +672,18 @@ func ListPodsWithLabelSelector(ctx TestContext, namespace, selector string) ([]c
 	list, err := ctx.KubeClient.CoreV1().Pods(namespace).List(ctx.Context, opts)
 	if err != nil {
 		return []corev1.Pod{}, err
+	}
+
+	return list.Items, nil
+}
+
+// ListJobsWithLabelSelector lists the Coherence Cluster Jobs that exist for a given label selector.
+func ListJobsWithLabelSelector(ctx TestContext, namespace, selector string) ([]batchv1.Job, error) {
+	opts := metav1.ListOptions{LabelSelector: selector}
+
+	list, err := ctx.KubeClient.BatchV1().Jobs(namespace).List(ctx.Context, opts)
+	if err != nil {
+		return []batchv1.Job{}, err
 	}
 
 	return list.Items, nil
