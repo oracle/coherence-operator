@@ -16,7 +16,12 @@ import (
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -141,6 +146,11 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				// If the Coherence resource did not exist then service suspension already happened
 				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
+				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, false)
+				// TODO: what to do with error?
+				if err != nil {
+					logger.Info("Error updating deployment status", "error", err.Error())
+				}
 				if deployment.Spec.IsSuspendServicesOnShutdown() {
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
@@ -157,7 +167,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
-			err = in.UpdateDeploymentStatus(ctx, request)
+			_, err = in.UpdateDeploymentStatus(ctx, request)
 			return reconcile.Result{}, err
 		}
 	case !stsExists:
@@ -168,8 +178,14 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, logger)
 	}
 
+	var updated *coh.Coherence
 	if err == nil {
-		err = in.UpdateDeploymentStatus(ctx, request)
+		if updated, err = in.UpdateDeploymentStatus(ctx, request); err == nil {
+			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0  {
+				in.execActions(ctx, stsCurrent, deployment)
+				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, true)
+			}
+		}
 	}
 
 	if err != nil {
@@ -179,6 +195,95 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 	logger.Info("Finished reconciling StatefulSet for deployment")
 	return result, nil
+}
+
+// UpdateDeploymentStatusActionsState updates the Coherence resource's status ActionsExecuted flag.
+func (in *ReconcileStatefulSet) UpdateDeploymentStatusActionsState(ctx context.Context, key types.NamespacedName, actionExecuted bool) error {
+	deployment := &coh.Coherence{}
+	err := in.GetClient().Get(ctx, key, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", key.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		if deployment.Status.ActionsExecuted != actionExecuted {
+			updated := deployment.DeepCopy()
+			updated.Status.ActionsExecuted = actionExecuted
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+			if err != nil {
+				return errors.Wrap(err, "creating Coherence resource status patch")
+			}
+			if patch != nil {
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
+				if err != nil {
+					return errors.Wrap(err, "updating Coherence resource status")
+				}
+			}
+		}
+	}
+	return err
+}
+
+// execActions executes actions
+func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment *coh.Coherence) {
+	coherenceProbe := CoherenceProbe{
+		Client: in.GetClient(),
+		Config: in.GetManager().GetConfig(),
+	}
+
+	for _, action := range deployment.Spec.Actions {
+		if action.Probe != nil {
+			if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
+				log.Info("Action probe execution failed.", "probe", action.Probe)
+			}
+		}
+		if action.Job != nil {
+			job := buildActionJob(action.Name, action.Job, deployment)
+			if err := in.GetClient().Create(ctx, job); err != nil {
+				log.Info("Action job creation failed", "error", err.Error())
+			} else {
+				log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
+			}
+		}
+	}
+}
+
+// buildActionJob creates job based on ActionJob config
+func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh.Coherence) *batchv1.Job {
+	generateName := deployment.Name + "-"
+	if actionName := strings.TrimSpace(actionName); actionName != "" {
+		generateName = generateName + actionName + "-"
+	}
+	job := &batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      actionJob.Labels,
+			Annotations: actionJob.Annotations,
+			GenerateName: generateName,
+			Namespace: deployment.GetNamespace(),
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         deployment.APIVersion,
+					Kind:               deployment.Kind,
+					Name:               deployment.Name,
+					UID:                deployment.UID,
+					Controller:         pointer.BoolPtr(true),
+					BlockOwnerDeletion: pointer.BoolPtr(false),
+				},
+			},
+		},
+		Spec: actionJob.Spec,
+	}
+	return job
 }
 
 func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {

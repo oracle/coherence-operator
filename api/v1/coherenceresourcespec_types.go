@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -297,6 +298,34 @@ type CoherenceResourceSpec struct {
 	// The default is true, to always check for StatusHA before updating a Coherence deployment.
 	// +optional
 	HABeforeUpdate *bool `json:"haBeforeUpdate,omitempty"`
+	// Actions to execute once all of the Pods are ready after an initial deployment
+	// +optional
+	Actions []Action `json:"actions,omitempty"`
+}
+
+// Action is an action to execute when the StatefulSet becomes ready.
+type Action struct {
+	// Action name
+	// +optional
+	Name string `json:"name,omitempty"`
+
+	// This is the spec of some sort of probe to fire when the StatefulSet becomes ready
+	Probe *Probe `json:"probe,omitempty"`
+	// or this is the spec of a Job to create when the StatefulSet becomes ready
+	Job *ActionJob `json:"job,omitempty"`
+}
+
+type ActionJob struct {
+	// Spec will be used to create a Job, the name is the
+	// Coherence deployment name + "-" + the action name
+	// The Job will be fire and forget, we do not monitor it in the Operator.
+	// We set its owner to be the Coherence resource so it gets deleted when
+	// the Coherence resource is deleted.
+	Spec batchv1.JobSpec `json:"spec"`
+	// Labels are the extra labels to add to the Job.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Annotations to add to the Job.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // GetReplicas returns the number of replicas required for a deployment.
