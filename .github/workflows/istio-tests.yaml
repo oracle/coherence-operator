@@ -32,8 +32,8 @@ jobs:
       fail-fast: false
       matrix:
         istioVersion:
-        - 1.11
-        - 1.10
+        - latest
+        - 1.10.5
 
     steps:
     - uses: actions/checkout@v2
