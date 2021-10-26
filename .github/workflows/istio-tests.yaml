@@ -1,0 +1,121 @@
+# Copyright 2019, 2021 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence Operator GitHub Actions Backwards Compatibility Tests.
+# ---------------------------------------------------------------------------
+name: Istio Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+    - gh-pages
+    - 1.0.0
+    - 2.x
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - committed
+    branches-ignore:
+    - gh-pages
+    - 1.0.0
+    - 2.x
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        istioVersion:
+        - 1.11
+        - 1.10
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    #   This step will free up disc space on the runner by removing
+    #   lots of things that we do not need.
+    - name: disc
+      shell: bash
+      run: |
+        echo "Listing 100 largest packages"
+        dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+        df -h
+        echo "Removing large packages"
+        sudo apt-get remove -y '^dotnet-.*'
+        sudo apt-get remove -y '^llvm-.*'
+        sudo apt-get remove -y 'monodoc-http'
+        sudo apt-get remove -y 'php.*'
+        sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+        sudo apt-get autoremove -y
+        sudo apt-get clean
+        df -h
+        echo "Removing large directories"
+        rm -rf /usr/share/dotnet/
+        df -h
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: '1.8'
+
+    - name: Cache Go Modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-mods-
+
+    - name: Cache Maven packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+
+    - name: Start KinD Cluster
+#     Start a KinD K8s cluster with single worker node
+      shell: bash
+      run: |
+        make kind
+        kubectl version
+        kubectl get nodes
+        docker pull gcr.io/distroless/java
+        docker pull gcr.io/distroless/java:11
+
+    - name: Build
+      shell: bash
+      run: make all
+
+    - name: Load Images to KinD
+#     Load the images just built to the KinD cluster
+      shell: bash
+      run: |
+        make kind-load
+
+    - name: Istio Tests
+      shell: bash
+      run: |
+        ISTIO_VERSION=${{ matrix.istioVersion }} make get-istio
+        make install-istio
+        make e2e-client-test
+        make uninstall-istio
+
+    - uses: actions/upload-artifact@v1
+#      if: failure()
+      with:
+        name: test-output
+        path: build/_output/test-logs
