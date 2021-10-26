@@ -109,8 +109,7 @@ jobs:
     - name: Istio Tests
       shell: bash
       run: |
-        ISTIO_VERSION=${{ matrix.istioVersion }} make get-istio
-        make install-istio
+        ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
         make e2e-client-test
         make uninstall-istio
 
