@@ -34,6 +34,7 @@ jobs:
         istioVersion:
         - latest
         - 1.10.5
+        - 1.9.7
 
     steps:
     - uses: actions/checkout@v2
@@ -113,7 +114,7 @@ jobs:
         ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
         make e2e-client-test
         make undeploy
-        make uninstall-istio
+        ISTIO_VERSION=${{ matrix.istioVersion }} make uninstall-istio
 
     - uses: actions/upload-artifact@v1
 #      if: failure()
