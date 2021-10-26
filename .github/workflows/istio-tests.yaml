@@ -110,7 +110,9 @@ jobs:
       shell: bash
       run: |
         ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
+        make deploy
         make e2e-client-test
+        make undeploy
         make uninstall-istio
 
     - uses: actions/upload-artifact@v1
