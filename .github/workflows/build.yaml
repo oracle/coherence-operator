@@ -110,13 +110,13 @@ jobs:
       shell: bash
       run: make test-all
 
-    - name: E2E Local Tests
-      shell: bash
-      run: make e2e-local-test
-
-    - name: E2E Remote Tests
-      shell: bash
-      run: make e2e-test
+#    - name: E2E Local Tests
+#      shell: bash
+#      run: make e2e-local-test
+#
+#    - name: E2E Remote Tests
+#      shell: bash
+#      run: make e2e-test
 
     - name: E2E Elasticsearch Tests
       shell: bash

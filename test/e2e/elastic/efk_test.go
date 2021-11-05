@@ -77,7 +77,9 @@ func assertAllHaveFluentdContainers(t *testing.T, pods []corev1.Pod) {
 
 	for _, pod := range pods {
 		found := false
+		fmt.Println(pod.Name)
 		for _, c := range pod.Spec.Containers {
+			fmt.Println(c.Name + " " + c.Image)
 			if c.Name == "fluentd" {
 				found = true
 				break
