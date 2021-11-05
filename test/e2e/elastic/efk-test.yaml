@@ -23,7 +23,7 @@ spec:
       mountPath: "/fluentd/etc/fluentd-coherence.conf"
       subPath: "fluentd-coherence.conf"
   sideCars:
-    - name: fluent
+    - name: fluentd
       image: "fluent/fluentd-kubernetes-daemonset:v1.14-debian-elasticsearch7-1"
       args:
         - "-vv"
