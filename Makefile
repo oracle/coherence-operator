@@ -1805,7 +1805,7 @@ docs:
 		-Doperator.utils.image=$(UTILS_IMAGE) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
-	cp -R docs/images/ build/_output/docs/images/
+	cp -R docs/images/* build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
 
 # ----------------------------------------------------------------------------------------------------------------------
