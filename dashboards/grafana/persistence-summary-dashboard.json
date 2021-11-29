@@ -179,7 +179,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(name, persistence_mode)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"$ClusterName\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -187,7 +187,7 @@
           "refId": "B"
         },
         {
-          "expr": "max(vendor:coherence_service_persistence_latency_max{cluster=~\"$ClusterName\"}) by(name, persistence_mode)",
+          "expr": "max(vendor:coherence_service_persistence_latency_max{cluster=\"$ClusterName\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -293,7 +293,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(member)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"$ClusterName\"}) by(member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -450,7 +450,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -458,7 +458,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor:coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_total{cluster=\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -466,7 +466,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -474,7 +474,7 @@
           "refId": "D"
         },
         {
-          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=~\"$ClusterName\"} / vendor:coherence_service_persistence_active_space_total{cluster=~\"$ClusterName\"}) by(machine)",
+          "expr": "avg(vendor:coherence_service_persistence_active_space_available{cluster=\"$ClusterName\"} / vendor:coherence_service_persistence_active_space_total{cluster=\"$ClusterName\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -524,7 +524,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"})",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"$ClusterName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Disk Space",
@@ -612,7 +612,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=~\"$ClusterName\"}) by (name)",
+          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"$ClusterName\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -706,7 +706,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -731,7 +731,7 @@
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=~\"$ClusterName\"}, name)",
+        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"$ClusterName\"}, name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -756,7 +756,7 @@
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(vendor:coherence_cache_size{cluster=~\"$ClusterName\"}, name) ",
+        "query": "label_values(vendor:coherence_cache_size{cluster=\"$ClusterName\"}, name) ",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
