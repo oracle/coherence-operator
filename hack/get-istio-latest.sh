@@ -8,7 +8,7 @@
 ISTIO_VERSION=$1
 TOOLS_DIRECTORY=$2
 
-if [ "${ISTIO_VERSION}" = "" ]
+if [ "${ISTIO_VERSION}" = "" -o "${ISTIO_VERSION}" = "latest" ]
 then
   ISTIO_VERSION="$(curl -sL https://github.com/istio/istio/releases | \
                     grep -o 'releases/[0-9]*.[0-9]*.[0-9]*/' | sort --version-sort | \
