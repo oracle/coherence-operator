@@ -1754,12 +1754,12 @@ install-istio: get-istio ## Install the latest version of Istio into k8s
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
 	sleep 10
-	$(eval EGRESS_POD := $(shell kubectl -n istio-system get pod -l app=istio-egressgateway -o name))
-	kubectl -n istio-system wait --for condition=ready --timeout 300s $(EGRESS_POD)
-	$(eval INGRESS_POD := $(shell kubectl -n istio-system get pod -l app=istio-ingressgateway -o name))
-	kubectl -n istio-system wait --for condition=ready --timeout 300s $(INGRESS_POD)
-	$(eval ISTIOD_POD := $(shell kubectl -n istio-system get pod -l app=istiod -o name))
-	kubectl -n istio-system wait --for condition=ready --timeout 300s $(ISTIOD_POD)
+	kubectl -n istio-system get pod -l app=istio-egressgateway -o name | xargs \
+		kubectl -n istio-system wait --for condition=ready --timeout 300s
+	kubectl -n istio-system get pod -l app=istio-ingressgateway -o name | xargs \
+		kubectl -n istio-system wait --for condition=ready --timeout 300s
+	kubectl -n istio-system get pod -l app=istiod -o name | xargs \
+		kubectl -n istio-system wait --for condition=ready --timeout 300s
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
 
 # ----------------------------------------------------------------------------------------------------------------------
