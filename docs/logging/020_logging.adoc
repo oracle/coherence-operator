@@ -147,7 +147,7 @@ spec:
       mountPath: /logs
   sideCars:
     - name: fluentd                                                                    # <1>
-      image: "fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.3"
+      image: "fluent/fluentd-kubernetes-daemonset:v1.14-debian-elasticsearch7-1"
       args:
         - "-c"
         - "/etc/fluent.conf"
