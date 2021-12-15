@@ -29,6 +29,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -175,7 +176,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	testEnv := &envtest.Environment{
 		UseExistingCluster:       &useCluster,
 		AttachControlPlaneOutput: true,
-		CRDs:                     []client.Object{},
+		CRDs:                     []v1.CustomResourceDefinition{},
 	}
 
 	var err error
@@ -503,7 +504,7 @@ func DeleteJob(ctx TestContext, namespace, jobName string) error {
 	if err := client.Delete(ctx.Context, jobName, metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
 		return err
 	}
-	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name=" + jobName)
+	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name="+jobName)
 	if err != nil {
 		return err
 	}
