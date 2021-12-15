@@ -27,7 +27,7 @@ type ExecRequest struct {
 	Timeout   time.Duration
 }
 
-// Execute a command in a Pod.
+// PodExec executes a command in a Pod.
 func PodExec(req *ExecRequest, config *rest.Config) (int, string, string, error) {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 

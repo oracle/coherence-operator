@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// Initialise the canary test in the deployment being scaled.
+// StartCanary initialises the canary test in the deployment being scaled.
 func StartCanary(ctx TestContext, namespace, deploymentName string) error {
 	return canary(ctx, namespace, deploymentName, "canaryStart", http.MethodPut)
 }
