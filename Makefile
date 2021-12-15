@@ -1440,7 +1440,7 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 .PHONY: controller-gen
 CONTROLLER_GEN = $(TOOLS_BIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
@@ -1972,20 +1972,20 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(KUSTOMIZE)
-	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.3 || true
+	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.6 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
 	mkdir -p $(BUILD_OUTPUT)/java-client/java/gen
 	cp $(CURRDIR)/client/generate.sh $(BUILD_OUTPUT)/java-client/java/generate.sh
 	chmod +x $(BUILD_OUTPUT)/java-client/java/generate.sh
 	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile
-	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:v1.0.3 $(BUILD_OUTPUT)/java-client/java
+	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:custom $(BUILD_OUTPUT)/java-client/java
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
 	docker run --rm --network host \
 	  -v "$(LOCAL_MANIFEST_FILE)":"$(LOCAL_MANIFEST_FILE)" \
 	  -v /var/run/docker.sock:/var/run/docker.sock \
 	  -v "$(BUILD_OUTPUT)/java-client/java":"$(BUILD_OUTPUT)/java-client/java" \
-	  crd-model-gen:v1.0.3 \
+	  crd-model-gen:custom \
 	  /generate.sh \
 	  -u $(LOCAL_MANIFEST_FILE) -n com.oracle.coherence -p com.oracle.coherence.k8s.client -o "$(BUILD_OUTPUT)/java-client/java"
 	kind delete cluster || true
