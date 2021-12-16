@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,7 +27,7 @@ type ExecRequest struct {
 	Timeout   time.Duration
 }
 
-// Execute a command in a Pod.
+// PodExec executes a command in a Pod.
 func PodExec(req *ExecRequest, config *rest.Config) (int, string, string, error) {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 
