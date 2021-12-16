@@ -17,20 +17,20 @@ import (
 	"time"
 )
 
-// NewHttpProbe creates Probe that will skip TLS verification while probing.
-func NewHttpProbe() HttpProbe {
+// NewHTTPProbe creates Probe that will skip TLS verification while probing.
+func NewHTTPProbe() HTTPProbe {
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
-	return NewHttpProbeWithTLSConfig(tlsConfig)
+	return NewHTTPProbeWithTLSConfig(tlsConfig)
 }
 
-// NewHttpProbeWithTLSConfig takes tls config as parameter.
-func NewHttpProbeWithTLSConfig(config *tls.Config) HttpProbe {
+// NewHTTPProbeWithTLSConfig takes tls config as parameter.
+func NewHTTPProbeWithTLSConfig(config *tls.Config) HTTPProbe {
 	transport := net.SetTransportDefaults(&http.Transport{TLSClientConfig: config, DisableKeepAlives: true})
 	return httpProbe{transport}
 }
 
-// HttpProbe is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
-type HttpProbe interface {
+// HTTPProbe is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
+type HTTPProbe interface {
 	Probe(url *url.URL, headers http.Header, timeout time.Duration) (Result, string, error)
 }
 

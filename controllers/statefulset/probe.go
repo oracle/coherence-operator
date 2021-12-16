@@ -279,7 +279,7 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 		}
 	}
 
-	p := NewHttpProbe()
+	p := NewHTTPProbe()
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
 	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%v msg=%s error=%v", u.String(), result, s, err))
@@ -306,7 +306,7 @@ func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (boo
 		return false, err
 	}
 
-	p := NewTcpProbe()
+	p := NewTCPProbe()
 	result, _, err := p.Probe(host, port, handler.GetTimeout())
 
 	log.Info(fmt.Sprintf("TCP Probe: %s:%d result=%s error=%s", host, port, result, err))

@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-// NewTcpProbe creates TcpProbe.
-func NewTcpProbe() TcpProbe {
+// NewTCPProbe creates TCPProbe.
+func NewTCPProbe() TCPProbe {
 	return tcpProbe{}
 }
 
-// TcpProbe is an interface that defines the Probe function for doing TCP readiness/liveness checks.
-type TcpProbe interface {
+// TCPProbe is an interface that defines the Probe function for doing TCP readiness/liveness checks.
+type TCPProbe interface {
 	Probe(host string, port int, timeout time.Duration) (Result, string, error)
 }
 
