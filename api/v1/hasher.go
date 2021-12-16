@@ -9,9 +9,10 @@ package v1
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"hash"
 	"hash/fnv"
 	"k8s.io/apimachinery/pkg/util/rand"
-	hashutil "k8s.io/kubernetes/pkg/util/hash"
 )
 
 func EnsureHashLabel(c *Coherence) (string, bool) {
@@ -33,7 +34,7 @@ func EnsureHashLabel(c *Coherence) (string, bool) {
 // The hash will be safe encoded to avoid bad words.
 func ComputeHash(template *CoherenceResourceSpec, collisionCount *int32) string {
 	podTemplateSpecHasher := fnv.New32a()
-	hashutil.DeepHashObject(podTemplateSpecHasher, *template)
+	DeepHashObject(podTemplateSpecHasher, *template)
 
 	// Add collisionCount in the hash if it exists.
 	if collisionCount != nil {
@@ -43,4 +44,18 @@ func ComputeHash(template *CoherenceResourceSpec, collisionCount *int32) string 
 	}
 
 	return rand.SafeEncodeString(fmt.Sprint(podTemplateSpecHasher.Sum32()))
+}
+
+// DeepHashObject writes specified object to hash using the spew library
+// which follows pointers and prints actual values of the nested objects
+// ensuring the hash does not change when a pointer changes.
+func DeepHashObject(hasher hash.Hash, objectToWrite interface{}) {
+	hasher.Reset()
+	printer := spew.ConfigState{
+		Indent:         " ",
+		SortKeys:       true,
+		DisableMethods: true,
+		SpewKeys:       true,
+	}
+	_, _ = printer.Fprintf(hasher, "%#v", objectToWrite)
 }

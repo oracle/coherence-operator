@@ -70,6 +70,7 @@ const (
 var setupLog = ctrl.Log.WithName("setup")
 
 var (
+	operatorVersion   = "unknown"
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 	DefaultRackLabels = []string{corev1.LabelTopologyRegion, corev1.LabelFailureDomainBetaRegion,
 		corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
@@ -314,4 +315,12 @@ func DetectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
 		return nil, err
 	}
 	return version.ParseSemantic(sv.GitVersion)
+}
+
+func GetVersion() string {
+	return operatorVersion
+}
+
+func SetVersion(v string) {
+	operatorVersion = v
 }
