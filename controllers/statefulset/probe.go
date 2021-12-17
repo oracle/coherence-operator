@@ -17,14 +17,23 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/rest"
-	"k8s.io/kubernetes/pkg/probe"
-	httpprobe "k8s.io/kubernetes/pkg/probe/http"
-	tcprobe "k8s.io/kubernetes/pkg/probe/tcp"
 	"net/http"
 	"net/url"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"strings"
+)
+
+// Result is a string used to handle the results for probing container readiness/livenss
+type Result string
+
+const (
+	// Success Result
+	Success Result = "success"
+	// Failure Result
+	Failure Result = "failure"
+	// Unknown Result
+	Unknown Result = "unknown"
 )
 
 type CoherenceProbe struct {
@@ -270,12 +279,12 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 		}
 	}
 
-	p := httpprobe.New()
+	p := NewHTTPProbe()
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
 	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%v msg=%s error=%v", u.String(), result, s, err))
 
-	return result == probe.Success, err
+	return result == Success, err
 }
 
 func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (bool, error) {
@@ -297,12 +306,12 @@ func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (boo
 		return false, err
 	}
 
-	p := tcprobe.New()
+	p := NewTCPProbe()
 	result, _, err := p.Probe(host, port, handler.GetTimeout())
 
 	log.Info(fmt.Sprintf("TCP Probe: %s:%d result=%s error=%s", host, port, result, err))
 
-	return result == probe.Success, err
+	return result == Success, err
 }
 
 func (in *CoherenceProbe) findPort(pod corev1.Pod, port intstr.IntOrString) (int, error) {
