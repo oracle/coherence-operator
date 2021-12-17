@@ -216,6 +216,8 @@ func execute() {
 func initialiseOperator(ctx context.Context, v *version.Version, cl client.Client) {
 	opLog := ctrl.Log.WithName("operator")
 
+	operator.SetVersion(Version)
+
 	// Ensure that the CRDs exist
 	if operator.ShouldInstallCRDs() {
 		err := coh.EnsureCRDs(ctx, v, scheme, cl)
