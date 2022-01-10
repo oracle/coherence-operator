@@ -233,7 +233,7 @@
       "dashes": false,
       "datasource": "prometheus",
       "decimals": 0,
-      "description": "Total tasks in progress and rejected for this executor",
+      "description": "Total tasks in progress for this executor",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
