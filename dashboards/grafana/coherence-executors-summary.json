@@ -448,9 +448,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "14.1.2.0.0 (dev-timmiddleton)",
-          "value": "14.1.2.0.0 (dev-timmiddleton)"
         },
         "datasource": "prometheus",
         "definition": "",
