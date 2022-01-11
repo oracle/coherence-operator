@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -28,6 +28,7 @@ NOTE: Note: The Grafana dashboards require Coherence metrics, which is available
 .. <<machines,Machines Summary Dashboard>>
 .. <<http,HTTP Servers Summary Dashboard>>
 .. <<ed,Elastic Data Summary Dashboard>>
+.. <<executors,Executors Summary & Details Dashboards>>
 
 [#navigation]
 == Navigation
@@ -235,3 +236,22 @@ Shows an overview of all HTTP Servers running in the cluster including metrics s
 * RAM and Flash compactions
 
 image::../images/grafana-elastic-data.png[Elastic Data,width="950",align="center"]
+
+[#executors]
+=== 11. Executors Summary & Details Dashboards
+
+Shows an overview of all Executors running in the cluster including metrics such as:
+
+* Tasks in Progress
+
+* Completed and Rejected Tasks
+
+* Individual Executor status
+
+==== Executors Summary
+
+image::../images/grafana-executors-summary.png[Executors Summary,width="950",align="center"]
+
+==== Executor Details
+
+image::../images/grafana-executor-detail.png[Executor Detail,width="950",align="center"]
