@@ -322,7 +322,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "((sum(vendor:coherence_service_thread_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member))) > 0",
+          "expr": "((sum(vendor:coherence_service_thread_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=\"$ClusterName\",name='$ServiceName'}) by (member)))",
           "format": "time_series",
           "instant": false,
           "interval": "",

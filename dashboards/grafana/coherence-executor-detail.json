@@ -15,9 +15,18 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 33,
-  "iteration": 1592182512663,
+  "id": 19,
+  "iteration": 1641538562880,
   "links": [
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "title": "Back to Executors Summary Dashboard",
+      "type": "link",
+      "url": "/d/coh-executors-summary/executors-summary-dashboard"
+    },
     {
       "icon": "dashboard",
       "includeVars": true,
@@ -41,7 +50,7 @@
   ],
   "panels": [
     {
-      "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
+      "content": "<center><h3>Executor Detail - $ExecutorName</h3></center>",
       "datasource": "prometheus",
       "gridPos": {
         "h": 2,
@@ -83,7 +92,7 @@
           "type": "hidden"
         },
         {
-          "alias": "Member Count",
+          "alias": "Machine",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -93,14 +102,17 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
+          "link": true,
+          "linkTooltip": "Drill down to machines summary",
+          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
           "mappingType": 1,
-          "pattern": "Value #A",
+          "pattern": "machine",
           "thresholds": [],
           "type": "number",
           "unit": "short"
         },
         {
-          "alias": "Service",
+          "alias": "Member Name",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -111,16 +123,16 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName",
+          "linkTooltip": "Drill down to member details for  ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
           "mappingType": 1,
-          "pattern": "name",
+          "pattern": "member",
           "thresholds": [],
           "type": "string",
           "unit": "short"
         },
         {
-          "alias": "Total Requests",
+          "alias": "Member Id",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -131,15 +143,15 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "Value #B",
+          "pattern": "member_id",
           "thresholds": [],
           "type": "number",
           "unit": "short"
         },
         {
-          "alias": "Error Count",
+          "alias": "Executor Name",
           "align": "auto",
-          "colorMode": "value",
+          "colorMode": null,
           "colors": [
             "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
@@ -148,16 +160,15 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "Value #C",
+          "pattern": "name",
           "thresholds": [
-            "1",
-            "2"
+            ""
           ],
           "type": "number",
           "unit": "short"
         },
         {
-          "alias": "Avg Request Time",
+          "alias": "State",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -168,92 +179,61 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "Value #D",
+          "pattern": "Value",
           "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Unauth Connection Attemps",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [
-            "0",
-            "1"
-          ],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "text": "JOINING",
+              "value": "1"
+            },
+            {
+              "text": "RUNNING",
+              "value": "2"
+            },
+            {
+              "text": "CLOSING GRACEFULLY",
+              "value": "3"
+            },
+            {
+              "text": "CLOSING",
+              "value": "4"
+            },
+            {
+              "text": "CLOSED",
+              "value": "5"
+            },
+            {
+              "text": "REJECTING TASKS",
+              "value": "6"
+            }
+          ]
         }
       ],
       "targets": [
         {
-          "expr": "count(vendor:coherence_connection_manager_total_request_count{cluster=\"$ClusterName\",protocol=~\"http\"}) by (name) ",
+          "expr": "avg(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) by (machine, member, member_id, name)",
           "format": "table",
           "instant": true,
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_total_request_count{cluster=\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_total_error_count{cluster=\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_average_request_time{cluster=\"$ClusterName\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
-      "title": "HTTP Servers List",
+      "title": "Executor Members",
       "transform": "table",
       "type": "table"
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "prometheus",
       "decimals": 0,
+      "description": "Total tasks in progress for this executor",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -269,14 +249,14 @@
         "current": true,
         "max": true,
         "min": false,
-        "show": true,
+        "show": false,
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "options": {
         "dataLinks": []
       },
@@ -290,11 +270,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}}",
+          "legendFormat": "In Progress",
           "refId": "A"
         }
       ],
@@ -302,7 +282,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Requests/ sec",
+      "title": "Tasks In Progress",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -319,8 +299,8 @@
       "yaxes": [
         {
           "decimals": 0,
-          "format": "reqps",
-          "label": "",
+          "format": "short",
+          "label": "Task Count",
           "logBase": 1,
           "max": null,
           "min": "0",
@@ -347,6 +327,7 @@
       "dashes": false,
       "datasource": "prometheus",
       "decimals": 0,
+      "description": "Total completed and rejected tasks for this executor",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -358,12 +339,14 @@
       "hiddenSeries": false,
       "id": 39,
       "legend": {
+        "alignAsTable": true,
         "avg": false,
         "current": true,
         "hideZero": true,
         "max": false,
         "min": false,
-        "show": true,
+        "rightSide": true,
+        "show": false,
         "total": false,
         "values": true
       },
@@ -384,51 +367,27 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval",
+          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) - sum(vendor:coherence_executor_tasks_completed_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}} 100-199",
+          "legendFormat": "Completed",
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) -sum(vendor:cohence_executor_tasks_rejected_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{name}} 200-299",
+          "legendFormat": "Rejected",
           "refId": "B"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 300-399",
-          "refId": "C"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval ",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 400-499",
-          "refId": "D"
-        },
-        {
-          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=\"$ClusterName\",protocol=~\"http\"} offset $__interval",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}} 500-599",
-          "refId": "E"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "HTTP Response Codes",
+      "title": "Completed/ Rejected Tasks",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -446,7 +405,7 @@
         {
           "decimals": 0,
           "format": "short",
-          "label": "",
+          "label": "Task Count",
           "logBase": 1,
           "max": null,
           "min": "0",
@@ -467,7 +426,7 @@
       }
     }
   ],
-  "refresh": "30s",
+  "refresh": "5s",
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
@@ -512,11 +471,38 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\"}, name)",
+        "hide": 0,
+        "includeAll": false,
+        "index": -1,
+        "label": "Executor Name",
+        "multi": false,
+        "name": "ExecutorName",
+        "options": [
+          {
+          }
+        ],
+        "query": "label_values(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\"}, name)",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
         "tagsQuery": "",
@@ -555,10 +541,10 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence HTTP Servers Summary Dashboard",
-  "uid": "coh-http-servers-summary",
+  "title": "Coherence Executor Detail",
+  "uid": "coh-executor-detail",
   "variables": {
     "list": []
   },
-  "version": 2
+  "version": 3
 }
