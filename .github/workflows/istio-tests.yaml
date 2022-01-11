@@ -1,4 +1,4 @@
-# Copyright 2019, 2021 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2022, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -33,8 +33,9 @@ jobs:
       matrix:
         istioVersion:
         - latest
-        - 1.10.5
-        - 1.9.7
+        - 1.12.1
+        - 1.11.5
+        - 1.10.6
 
     steps:
     - uses: actions/checkout@v2
@@ -86,6 +87,12 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+
+    - name: Edit DNS Resolve
+      shell: bash
+      run: |
+        sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
+        sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
     - name: Start KinD Cluster
 #     Start a KinD K8s cluster with single worker node
