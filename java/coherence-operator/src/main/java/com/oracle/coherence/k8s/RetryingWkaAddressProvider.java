@@ -7,20 +7,15 @@
 package com.oracle.coherence.k8s;
 
 import java.io.IOException;
-
 import java.net.UnknownHostException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import java.util.stream.Collectors;
 
 import com.tangosol.coherence.config.Config;
-
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.ConfigurableAddressProvider;
-
 import com.tangosol.util.Base;
 
 /**
