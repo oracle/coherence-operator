@@ -51,3 +51,4 @@ bundle.Dockerfile
 /__debug_bin
 hack/istio*/
 /java/certs/
+.flattened-pom.xml

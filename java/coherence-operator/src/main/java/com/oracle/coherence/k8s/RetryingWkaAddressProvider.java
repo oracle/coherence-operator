@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,14 +7,20 @@
 package com.oracle.coherence.k8s;
 
 import java.io.IOException;
+
 import java.net.UnknownHostException;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import java.util.stream.Collectors;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.ConfigurableAddressProvider;
+
 import com.tangosol.util.Base;
 
 /**
@@ -72,7 +78,6 @@ public class RetryingWkaAddressProvider
      */
     public RetryingWkaAddressProvider(Iterable<AddressHolder> addressHolders, boolean fSafe, long frequency, long timeout) {
         super(addressHolders, fSafe);
-
         wkaDNSReresolveFrequency = frequency;
         wkaDNSResolutionTimeout = timeout;
     }
@@ -91,7 +96,7 @@ public class RetryingWkaAddressProvider
      * @throws UnknownHostException if the WKA address is invalid
      */
     public static AddressProvider create() throws UnknownHostException {
-        return create(System.getProperty(PROP_WKA_OVERRIDE));
+        return create(Config.getProperty(PROP_WKA_OVERRIDE));
     }
 
     /**
@@ -201,8 +206,8 @@ public class RetryingWkaAddressProvider
         }
 
         throw new UnknownHostException(RetryingWkaAddressProvider.class.getName()
-                                               + " failed to resolve configured WKA address(es) "
-                                               + System.getProperty(PROP_WKA_OVERRIDE)
+                                               + " failed to resolve any configured WKA address(es) "
+                                               + Config.getProperty(PROP_WKA_OVERRIDE)
                                                + " within " + wkaDNSResolutionTimeout + " milliseconds.");
     }
 }
