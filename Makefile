@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -88,6 +88,7 @@ GPG_PASSPHRASE :=
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
+TEST_APPLICATION_IMAGE_WITH_UTILS  := $(RELEASE_IMAGE_PREFIX)operator-test-with-utils:1.0.0
 TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
 TEST_APPLICATION_IMAGE_CLIENT      := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
 TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
@@ -413,8 +414,7 @@ build-operator-images: $(BUILD_TARGETS)/build-operator build-utils ## Build all 
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
-build-test-images: build-mvn build-client-image ## Build all of the test images
-	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
+build-test-images: build-mvn build-client-image build-basic-test-image ## Build all of the test images
 	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
@@ -423,6 +423,14 @@ build-test-images: build-mvn build-client-image ## Build all of the test images
 	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Build the basic Operator Test image
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-basic-test-image
+build-basic-test-image: build-mvn ## Build the basic Operator test image
+	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-with-utils package jib:dockerBuild -am -nsu -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_WITH_UTILS) $(MAVEN_BUILD_OPTS)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
@@ -471,7 +479,7 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
 build-mvn: ## Build the Java artefacts
-	./mvnw -B -f java package -DskipTests $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java clean install -DskipTests $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build Java client
