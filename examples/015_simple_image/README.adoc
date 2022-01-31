@@ -136,7 +136,7 @@ In the `pom.xml` file we configure the plugin where it is declared in the `plugi
     <version>${version.plugin.jib}</version>
     <configuration>
         <from>
-            <image>gcr.io/distroless:java11</image>    <1>
+            <image>gcr.io/distroless/java11</image>    <1>
         </from>
         <to>
             <image>${project.artifactId}</image>        <2>
@@ -152,7 +152,7 @@ In the `pom.xml` file we configure the plugin where it is declared in the `plugi
     </configuration>
 </plugin>
 ----
-<1> The base image will be `gcr.io/distroless:java11`
+<1> The base image will be `gcr.io/distroless/java11`
 <2> The image name is set to the Maven module name using the property `${project.artifactId}`
 <3> There will be two tags for the image, `latest` and the project version taken from the `${project.version}` property.
 <4> The main class to use when the image is run is set to `com.tangosol.net.Coherence`
@@ -166,7 +166,7 @@ In the `build.gradle` file we configure JIB in the `jib` section:
 ----
 jib {
   from {
-    image = 'gcr.io/distroless:java11'    // <1>
+    image = 'gcr.io/distroless/java11'    // <1>
   }
   to {
     image = "${project.name}"              // <2>
@@ -178,7 +178,7 @@ jib {
   }
 }
 ----
-<1> The base image will be `gcr.io/distroless:java11`
+<1> The base image will be `gcr.io/distroless/java11`
 <2> The image name is set to the Maven module name using the property `${project.artifactId}`
 <3> There will be two tags for the image, `latest` and the project version taken from the `${project.version}` property.
 <4> The main class to use when the image is run is set to `com.tangosol.net.Coherence`
