@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,13 +7,9 @@
 package runner
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -31,18 +27,6 @@ const (
 	ArgName = "name"
 	// ArgCondition is the required condition status command argument.
 	ArgCondition = "condition"
-	// ArgTimeout is the timeout status command argument.
-	ArgTimeout = "timeout"
-	// ArgInterval is the retry interval status command argument.
-	ArgInterval = "interval"
-	// ArgSkipInsecure is the skip insecure https checks status command argument.
-	ArgSkipInsecure = "insecure-skip-tls-verify"
-	// ArgCertAuthority is the location of the CA file status command argument.
-	ArgCertAuthority = "certificate-authority"
-	// ArgCert is the location of the cert file status command argument.
-	ArgCert = "client-certificate"
-	// ArgKey is the location of the key file status command argument.
-	ArgKey = "client-key"
 )
 
 // statusCommand creates the Corba "status" sub-command
@@ -100,53 +84,12 @@ func statusQuery(cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	i, err := flagSet.GetBool(ArgSkipInsecure)
-	if err != nil {
-		return err
-	}
-	clientCertFile, err := flagSet.GetString(ArgCert)
-	if err != nil {
-		return err
-	}
-	clientKeyFile, err := flagSet.GetString(ArgKey)
-	if err != nil {
-		return err
-	}
-	caCertFile, err := flagSet.GetString(ArgCertAuthority)
+
+	client, err := createHttpClient(cmd)
 	if err != nil {
 		return err
 	}
 
-	var certs []tls.Certificate
-	var caCertPool *x509.CertPool
-
-	if clientCertFile != "" && clientKeyFile != "" {
-		cert, err := tls.LoadX509KeyPair(clientCertFile, clientKeyFile)
-		if err != nil {
-			return errors.Wrapf(err, "creating x509 keypair from client cert file '%s' and client key file '%s'", clientCertFile, clientKeyFile)
-		}
-		certs = []tls.Certificate{cert}
-	}
-
-	if caCertFile != "" {
-		caCert, err := ioutil.ReadFile(caCertFile)
-		if err != nil {
-			return errors.Wrapf(err, "opening cert file %s", caCertFile)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			Certificates: certs,
-			RootCAs:      caCertPool,
-		},
-	}
-
-	tr.TLSClientConfig.InsecureSkipVerify = i
-
-	client := http.Client{Transport: tr}
 	request := fmt.Sprintf("%s/status/%s/%s?phase=%s", url, ns, n, condition)
 
 	maxTime := time.Now().Add(timeout)

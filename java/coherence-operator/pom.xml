@@ -22,6 +22,14 @@
     <artifactId>coherence-operator</artifactId>
     <name>coherence-operator</name>
 
+    <properties>
+        <docker.registry>ghcr.io/oracle</docker.registry>
+        <image.name>${docker.registry}/coherence-operator-test-base:${project.version}</image.name>
+        <image.arch>amd64</image.arch>
+        <base.image.name.amd>gcr.io/distroless/java11</base.image.name.amd>
+        <base.image.name.arm>gcr.io/distroless/java11</base.image.name.arm>
+    </properties>
+
     <dependencies>
         <!-- module dependencies -->
         <dependency>
@@ -230,6 +238,120 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>test-base-image</id>
+            <build>
+                <plugins>
+                    <!--
+                    The exec plugin runs Buildah in a container which will build the images
+                    by running the build-images.sh shell script.
+                    -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${version.plugin.maven.exec}</version>
+                        <executions>
+                            <execution>
+                                <id>build-images</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <executable>sh</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/run-buildah.sh</argument>
+                                        <argument>BUILD</argument>
+                                    </arguments>
+                                    <environmentVariables>
+                                        <VERSION>${project.version}</VERSION>
+                                        <IMAGE_NAME>${image.name}</IMAGE_NAME>
+                                        <IMAGE_ARCH>${image.arch}</IMAGE_ARCH>
+                                        <AMD_BASE_IMAGE>${base.image.name.amd}</AMD_BASE_IMAGE>
+                                        <ARM_BASE_IMAGE>${base.image.name.arm}</ARM_BASE_IMAGE>
+                                        <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                                        <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                                        <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                                        <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
+                                        <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                                        <PROJECT_URL>${project.url}</PROJECT_URL>
+                                        <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                                        <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>push-test-base-image</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>push-image</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>install</phase>
+                                <configuration>
+                                    <executable>sh</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/run-buildah.sh</argument>
+                                        <argument>PUSH</argument>
+                                    </arguments>
+                                    <environmentVariables>
+                                        <VERSION>${project.version}</VERSION>
+                                        <IMAGE_NAME>${image.name}</IMAGE_NAME>
+                                        <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                                        <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                                        <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- This profile is enabled if this build is running on amd64 hardware -->
+        <profile>
+            <id>arch-amd64</id>
+            <activation>
+                <property>
+                    <name>os.arch</name>
+                    <value>x86_64</value>
+                </property>
+            </activation>
+            <properties>
+                <docker.image.arch>amd64</docker.image.arch>
+            </properties>
+        </profile>
+
+        <!-- This profile is enabled if this build is running on ARM 64 hardware -->
+        <profile>
+            <id>arch-arm64</id>
+            <activation>
+                <property>
+                    <name>os.arch</name>
+                    <value>aarch64</value>
+                </property>
+            </activation>
+            <properties>
+                <docker.image.arch>arm64</docker.image.arch>
+            </properties>
         </profile>
     </profiles>
 </project>
