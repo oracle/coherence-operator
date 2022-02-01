@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -15,7 +15,7 @@ This would typically be used to expose metrics to something like Prometheus.
 
 NOTE: The default metrics endpoint is *disabled* by default in Coherence clusters but can be enabled and configured by
 setting the relevant fields in the `Coherence` CRD.
-If your Coherence version is before CE 21.06.2 this example assumes that your application has included the
+If your Coherence version is before CE 21.12.1 this example assumes that your application has included the
 `coherence-metrics` module as a dependency.
 See the Coherence product documentation for more details on enabling metrics
 in your application.

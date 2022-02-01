@@ -85,7 +85,7 @@ func statusQuery(cmd *cobra.Command) error {
 		return err
 	}
 
-	client, err := createHttpClient(cmd)
+	client, err := createHTTPClient(cmd)
 	if err != nil {
 		return err
 	}

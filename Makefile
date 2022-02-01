@@ -35,8 +35,8 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
-COHERENCE_VERSION ?= 21.12
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12
+COHERENCE_VERSION ?= 21.12.1
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.

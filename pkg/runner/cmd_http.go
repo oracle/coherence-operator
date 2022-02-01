@@ -33,7 +33,7 @@ const (
 	ArgKey = "client-key"
 )
 
-func createHttpClient(cmd *cobra.Command) (http.Client, error) {
+func createHTTPClient(cmd *cobra.Command) (http.Client, error) {
 	client := http.Client{}
 	flagSet := cmd.Flags()
 
@@ -97,7 +97,7 @@ func executeQuery(cmd *cobra.Command) error {
 		return err
 	}
 
-	client, err := createHttpClient(cmd)
+	client, err := createHTTPClient(cmd)
 	if err != nil {
 		return err
 	}

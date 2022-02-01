@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -145,9 +145,9 @@ curl -X GET http://127.0.0.1:9612/metrics/Coherence.Cluster.Size
 which will display something like this:
 [source,bash]
 ----
-vendor:coherence_cluster_size{cluster="storage", version="21.06.2"} 3
+vendor:coherence_cluster_size{cluster="storage", version="21.12.1"} 3
 ----
-This displays the metric name in Prometheus format `vendor:coherence_cluster_size`, the metric labels `cluster="storage", version="21.06.2"` and the metric value, in this case `3` as there are three cluster members because we specified a replicas value of 3 in the `StatefulSet`.
+This displays the metric name in Prometheus format `vendor:coherence_cluster_size`, the metric labels `cluster="storage", version="21.12.1"` and the metric value, in this case `3` as there are three cluster members because we specified a replicas value of 3 in the `StatefulSet`.
 
 We can also receive the same response as `json` by using either the accepted media type header `"Accept: application/json"`:
 [source,bash]
@@ -163,7 +163,7 @@ curl -X GET http://127.0.0.1:9612/metrics/Coherence.Cluster.Size.json
 Both requests will display something like this:
 [source,bash]
 ----
-[{"name":"Coherence.Cluster.Size","tags":{"cluster":"storage","version":"21.06.2"},"scope":"VENDOR","value":3}]
+[{"name":"Coherence.Cluster.Size","tags":{"cluster":"storage","version":"21.12.1"},"scope":"VENDOR","value":3}]
 ----
 
 We have now verified that the `Pods` in the cluster are producing metrics.
