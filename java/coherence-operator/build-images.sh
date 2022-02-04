@@ -46,6 +46,8 @@ then
   IMAGE_ARCH="amd64"
 fi
 
+# we must use docker format to use health checks
+export BUILDAH_FORMAT=docker
 
 # Build the entrypoint command line.
 ENTRY_POINT="/coherence-operator/utils/runner"
@@ -69,10 +71,10 @@ common_image(){
   buildah from --arch "${1}" --os "${2}" --name "container-${1}" ${3}
 
   # Add the configuration, entrypoint, etc...
+  buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" container-${1}
+
   buildah config --arch "${1}" --os "${2}" \
       --entrypoint "[\"${ENTRY_POINT}\"]" --cmd "${CMD}" \
-      --healthcheck "[\"${ENTRY_POINT}\",\"${HEALTH_CMD}\"]" \
-      --healthcheck-interval=10s --healthcheck-start-period=10s \
       --annotation "org.opencontainers.image.created=${CREATED}" \
       --annotation "org.opencontainers.image.url=${PROJECT_URL}" \
       --annotation "org.opencontainers.image.version=${VERSION}" \
@@ -89,6 +91,10 @@ common_image(){
   # Copy files into the container
   buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/linux/${1}/runner" /coherence-operator/utils/runner
   buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/lib"               /app/libs
+
+  echo
+  buildah inspect container-${1}
+  echo
 
   # Commit the container to an image
   buildah commit "container-${1}" "coherence-operator:${1}"
