@@ -72,6 +72,8 @@ There are many examples and scripts on available in the community that show how 
 The Coherence Operator source contains a script that can be used for this purpose
 https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh[grafana-import.sh]
 
+NOTE: The `grafana-import.sh` script requires the https://stedolan.github.io/jq/[JQ] utility to parse json.
+
 The commands below will download and run the shell script to import the dashboards.
 Change the `<GRAFANA-USER>` and `<GRAFANA_PWD>` to the Grafana credentials for your environment.
 For example if using the default Prometheus Operator installation they are as specified on the
@@ -82,8 +84,14 @@ We do not document the credentials here as the default values have been known to
 ----
 curl -Lo grafana-import.sh https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh
 chmod +x grafana-import.sh
-./grafana-import.sh -u <GRAFANA-USER> -w <GRAFANA_PWD> -p dashboards/grafana -t localhost:3000
 ----
+[source,bash]
+----
+./grafana-import.sh -u <GRAFANA-USER> -w <GRAFANA_PWD> -d dashboards/grafana -t localhost:3000
+----
+Note: the command above assumes you can reach Grafana on `localhost:3000` (for example, if you have a kubectl port forward process
+running to forward localhost:3000 to the Grafana service in Kubernetes). You may need to change the host and port to match however
+you are exposing your Grafana instance.
 
 Coherence clusters can now be created as described in the <<docs/metrics/020_metrics.adoc,Publish Metrics>>
 page, and metrics will eventually appear in Prometheus and Grafana. It can sometimes take a minute or so for
