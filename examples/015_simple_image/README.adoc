@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -52,7 +52,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:21.06.2")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:21.12.1")
 ----
 
 We can then add the `coherence` and `coherence-management` modules as dependencies
@@ -77,7 +77,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:21.06.2")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:21.12.1")
 
     implementation "com.oracle.coherence.ce:coherence"
     implementation "com.oracle.coherence.ce:coherence-management"
@@ -136,7 +136,7 @@ In the `pom.xml` file we configure the plugin where it is declared in the `plugi
     <version>${version.plugin.jib}</version>
     <configuration>
         <from>
-            <image>gcr.io/distroless/java:11</image>    <1>
+            <image>gcr.io/distroless/java11</image>    <1>
         </from>
         <to>
             <image>${project.artifactId}</image>        <2>
@@ -152,7 +152,7 @@ In the `pom.xml` file we configure the plugin where it is declared in the `plugi
     </configuration>
 </plugin>
 ----
-<1> The base image will be `gcr.io/distroless/java:11`
+<1> The base image will be `gcr.io/distroless/java11`
 <2> The image name is set to the Maven module name using the property `${project.artifactId}`
 <3> There will be two tags for the image, `latest` and the project version taken from the `${project.version}` property.
 <4> The main class to use when the image is run is set to `com.tangosol.net.Coherence`
@@ -166,7 +166,7 @@ In the `build.gradle` file we configure JIB in the `jib` section:
 ----
 jib {
   from {
-    image = 'gcr.io/distroless/java:11'    // <1>
+    image = 'gcr.io/distroless/java11'    // <1>
   }
   to {
     image = "${project.name}"              // <2>
@@ -178,7 +178,7 @@ jib {
   }
 }
 ----
-<1> The base image will be `gcr.io/distroless/java:11`
+<1> The base image will be `gcr.io/distroless/java11`
 <2> The image name is set to the Maven module name using the property `${project.artifactId}`
 <3> There will be two tags for the image, `latest` and the project version taken from the `${project.version}` property.
 <4> The main class to use when the image is run is set to `com.tangosol.net.Coherence`

@@ -29,11 +29,14 @@ COMPATIBLE_VERSION  = 3.2.4
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
+# The GitHub project URL
+PROJECT_URL = https://github.com/oracle/coherence-operator
+
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
-COHERENCE_VERSION ?= 21.12
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12
+COHERENCE_VERSION ?= 21.12.1
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -76,11 +79,13 @@ OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
+TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
 # The Operator images to push
-OPERATOR_RELEASE_REPO  ?= $(OPERATOR_IMAGE_REPO)
-OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)
-UTILS_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
-BUNDLE_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
+OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
+OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
+UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
+TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
+BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
 GPG_PASSPHRASE :=
 
@@ -88,7 +93,6 @@ GPG_PASSPHRASE :=
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
 TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
-TEST_APPLICATION_IMAGE_WITH_UTILS  := $(RELEASE_IMAGE_PREFIX)operator-test-with-utils:1.0.0
 TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
 TEST_APPLICATION_IMAGE_CLIENT      := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
 TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
@@ -405,10 +409,26 @@ build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator util
 	docker tag $(UTILS_IMAGE)-$(IMAGE_ARCH) $(UTILS_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Build the Operator base test image
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: build-test-base
+build-test-base: export ARTIFACT_DIR        := $(CURRDIR)/java/coherence-operator
+build-test-base: export VERSION             := $(VERSION)
+build-test-base: export IMAGE_NAME          := $(TEST_BASE_IMAGE)
+build-test-base: export AMD_BASE_IMAGE      := gcr.io/distroless/java11
+build-test-base: export ARM_BASE_IMAGE      := gcr.io/distroless/java11
+build-test-base: export PROJECT_URL         := $(PROJECT_URL)
+build-test-base: export PROJECT_VENDOR      := Oracle
+build-test-base: export PROJECT_DESCRIPTION := Oracle Coherence bease test image
+build-test-base: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence test base image
+	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
+	$(CURRDIR)/java/coherence-operator/run-buildah.sh BUILD
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator images without the test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-operator-images
-build-operator-images: $(BUILD_TARGETS)/build-operator build-utils ## Build all operator images
+build-operator-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base ## Build all operator images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
@@ -430,7 +450,6 @@ build-test-images: build-mvn build-client-image build-basic-test-image ## Build 
 .PHONY: build-basic-test-image
 build-basic-test-image: build-mvn ## Build the basic Operator test image
 	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-test-with-utils package jib:dockerBuild -am -nsu -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_WITH_UTILS) $(MAVEN_BUILD_OPTS)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
@@ -440,7 +459,7 @@ build-client-image: ## Build the test client image
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
-build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-images ## Build all images (including tests)
+build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base build-test-images ## Build all images (including tests)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
@@ -1569,6 +1588,24 @@ else
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Push the test base images
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-test-base-images
+push-test-base-images:
+ifeq ($(TEST_BASE_RELEASE_IMAGE), $(TEST_BASE_IMAGE))
+	@echo "Pushing $(TEST_BASE_IMAGE)"
+	./mvnw -B -f java/coherence-operator  package -P push-test-base-image -pl coherence-operator \
+		-DskipTests -Dimage.name=$(TEST_BASE_IMAGE)
+else
+	@echo "Tagging $(TEST_BASE_IMAGE)-amd64 as $(TEST_BASE_RELEASE_IMAGE)-amd64"
+	docker tag $(TEST_BASE_IMAGE)-amd64 $(TEST_BASE_RELEASE_IMAGE)-amd64
+	@echo "Tagging $(TEST_BASE_IMAGE)-arm64 as $(TEST_BASE_RELEASE_IMAGE)-arm64"
+	docker tag $(TEST_BASE_IMAGE)-arm64 $(TEST_BASE_RELEASE_IMAGE)-arm64
+	./mvnw -B -f java/coherence-operator  package -P push-test-base-image -pl coherence-operator \
+		-DskipTests -Dimage.name=$(TEST_BASE_RELEASE_IMAGE)
+endif
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
@@ -1603,13 +1640,13 @@ push-compatibility-image:
 # Push all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
-push-all-images: push-test-images push-utils-image push-operator-image
+push-all-images: push-test-images push-test-base-images push-utils-image push-operator-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-utils-image push-operator-image
+push-release-images: push-test-base-images push-utils-image push-operator-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

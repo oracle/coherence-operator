@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -623,7 +623,7 @@ We will see json something like this:
   "refreshTime": "2021-03-07T12:27:20.193Z",
   "licenseMode": "Development",
   "localMemberId": 1,
-  "version": "21.06",
+  "version": "21.12.1",
   "running": true,
   "clusterName": "test-cluster",
   "membersDepartureCount": 0,
@@ -901,7 +901,7 @@ kubectl -n coherence-test logs client
 
 [source]
 ----
-2021-03-07 12:53:13.481/1.992 Oracle Coherence CE 21.06 <Error> (thread=main, member=n/a): Error while starting service "Proxy": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: []
+2021-03-07 12:53:13.481/1.992 Oracle Coherence CE 21.12.1 <Error> (thread=main, member=n/a): Error while starting service "Proxy": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: []
 ----
 This tells us that the client failed to connect to the cluster, because the client is not using TLS.
 

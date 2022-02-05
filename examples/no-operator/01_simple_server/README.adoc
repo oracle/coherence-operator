@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -267,8 +267,8 @@ Map (?): cache test
 We should see output something like this:
 [source]
 ----
-2021-09-17 12:25:12.143/14.600 Oracle Coherence CE 21.06.2 <Info> (thread=com.tangosol.net.CacheFactory.main(), member=1): Loaded cache configuration from "file:/Users/jonathanknight/dev/Projects/GitOracle/coherence-operator-3.0/examples/no-operator/test-client/target/classes/client-cache-config.xml"
-2021-09-17 12:25:12.207/14.664 Oracle Coherence CE 21.06.2 <D5> (thread=com.tangosol.net.CacheFactory.main(), member=1): Created cache factory com.tangosol.net.ExtensibleConfigurableCacheFactory
+2021-09-17 12:25:12.143/14.600 Oracle Coherence CE 21.12.1 <Info> (thread=com.tangosol.net.CacheFactory.main(), member=1): Loaded cache configuration from "file:/Users/jonathanknight/dev/Projects/GitOracle/coherence-operator-3.0/examples/no-operator/test-client/target/classes/client-cache-config.xml"
+2021-09-17 12:25:12.207/14.664 Oracle Coherence CE 21.12.1 <D5> (thread=com.tangosol.net.CacheFactory.main(), member=1): Created cache factory com.tangosol.net.ExtensibleConfigurableCacheFactory
 
 Cache Configuration: test
   SchemeName: remote
