@@ -26,7 +26,6 @@
         <module>coherence-operator-client</module>
         <module>operator-compatibility</module>
         <module>operator-test</module>
-        <module>operator-test-with-utils</module>
         <module>operator-test-helidon</module>
         <module>operator-test-spring</module>
         <module>operator-test-client</module>
@@ -46,7 +45,7 @@
         <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
         <coherence.test.version>${coherence.version}</coherence.test.version>
 
-        <coherence.test.base.image>gcr.io/distroless/java:11</coherence.test.base.image>
+        <coherence.test.base.image>gcr.io/distroless/java11</coherence.test.base.image>
         <coherence.compatibility.coherence.image>oraclecoherence/coherence-ce:${coherence.version}
         </coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}

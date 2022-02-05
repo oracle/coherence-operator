@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -54,7 +54,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:21.06.2  # <1>
+      image: ghcr.io/oracle/coherence-ce:21.12.1  # <1>
       ports:
         - name: mbus
           containerPort: 8000
@@ -101,7 +101,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:21.06.2
+      image: ghcr.io/oracle/coherence-ce:21.12.1
       command:
         - java                         # <1>
         - -cp

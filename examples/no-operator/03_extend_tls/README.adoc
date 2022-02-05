@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -347,7 +347,7 @@ Map (?): cache test
 This will not throw an exception because the client is not using TLS so the server rejected the connection.
 [source]
 ----
-2021-09-17 18:19:39.182/12.090 Oracle Coherence CE 21.06.2 <Error> (thread=com.tangosol.net.CacheFactory.main(), member=1): Error while starting service "RemoteCache": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: [127.0.0.1:20000]
+2021-09-17 18:19:39.182/12.090 Oracle Coherence CE 21.12.1 <Error> (thread=com.tangosol.net.CacheFactory.main(), member=1): Error while starting service "RemoteCache": com.tangosol.net.messaging.ConnectionException: could not establish a connection to one of the following addresses: [127.0.0.1:20000]
 	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator.openConnection(TcpInitiator.CDB:139)
 	at com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator.ensureConnection(Initiator.CDB:11)
 	at com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService.openChannel(RemoteCacheService.CDB:7)
