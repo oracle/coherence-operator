@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -52,6 +52,12 @@ type CoherenceReconciler struct {
 	Log         logr.Logger
 	Scheme      *runtime.Scheme
 	reconcilers []reconciler.SecondaryResourceReconciler
+}
+
+// Failure is a simple holder for a named error
+type Failure struct {
+	Name  string
+	Error error
 }
 
 // blank assignment to verify that CoherenceReconciler implements reconcile.Reconciler
@@ -211,13 +217,22 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// process the secondary resources in the order they should be created
+	var failures []Failure
 	for _, rec := range in.reconcilers {
 		log.Info("Reconciling Coherence resource secondary resources", "controller", rec.GetControllerName())
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
-			return reconcile.Result{}, err
+			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
 		}
 		result.Requeue = result.Requeue || r.Requeue
+	}
+
+	if len(failures) > 0 {
+		// one or more reconcilers failed:
+		for _, failure := range failures {
+			log.Error(failure.Error, "Secondary Reconciler failed", "Reconciler", failure.Name)
+		}
+		return reconcile.Result{}, fmt.Errorf("one or more secondary resource reconcilers failed to reconcile")
 	}
 
 	// if replica count is zero update the status to Stopped
