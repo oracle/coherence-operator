@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -214,11 +214,46 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, nam
 
 	logger.Info("Patching ServiceMonitor")
 	_, err = in.monClient.ServiceMonitors(namespace).Patch(ctx, name, in.GetPatchType(), data, metav1.PatchOptions{})
-	if hashMatches {
-		logger.Info("Patch applied to ServiceMonitor even though hashes matched (possible external update)")
-	}
 	if err != nil {
-		return errors.Wrapf(err, "cannot patch ServiceMonitor %s/%s", namespace, name)
+		// Patch or update failed - resort to an update with retry as sometimes custom resource (like ServiceMonitor) cannot be patched
+		count := 1
+		reason := "patch"
+		for err != nil && count <= 5 {
+			logger.Info(fmt.Sprintf("Failed to %s ServiceMonitor - retrying update", reason),
+				"Attempt", count, "Error", err.Error())
+			count++
+			// re-fetch the current spec
+			current, err = in.monClient.ServiceMonitors(namespace).Get(ctx, current.Name, metav1.GetOptions{})
+			switch {
+			case err != nil && apierrors.IsNotFound(err):
+				// not found error so try creating the ServiceMonitor (shouldn't really get here!)
+				reason = "create"
+				_, err = in.monClient.ServiceMonitors(namespace).Create(ctx, desired.Spec.(*monitoring.ServiceMonitor), metav1.CreateOptions{})
+			case err != nil:
+				// Error reading the object - requeue the request.
+				// We can't call the error handler as we do not even have an owning Coherence resource.
+				// We log the error and do not requeue the request.
+				logger.Info("Failed to re-fetch ServiceMonitor")
+			default:
+				// update the current spec
+				reason = "update"
+				current.Spec = desired.Spec.(*monitoring.ServiceMonitor).Spec
+				_, err = in.monClient.ServiceMonitors(namespace).Update(ctx, current, metav1.UpdateOptions{})
+			}
+		}
+
+		if err != nil {
+			logger.Info(fmt.Sprintf("Failed to %s ServiceMonitor %s - Gave up after %d attempts.", reason, name, count),
+				"Error", err.Error())
+		}
+	}
+
+	if err == nil {
+		if hashMatches {
+			logger.Info("Update applied to ServiceMonitor even though hashes matched (possible external update)")
+		} else {
+			logger.Info("Update applied to ServiceMonitor")
+		}
 	}
 
 	return nil
