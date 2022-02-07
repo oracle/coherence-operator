@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -212,33 +213,61 @@ func ExecuteWithArgs(env map[string]string, args []string) (Execution, error) {
 	return e, err
 }
 
+// RunFunction is a function to run a command
+type RunFunction func(*RunDetails, *cobra.Command)
+
+// MaybeRunFunction is a function to maybe run a command depending on the return bool
+type MaybeRunFunction func(*RunDetails, *cobra.Command) (bool, error)
+
+// always is a wrapper around a RunFunction to turn it into a MaybeFunction that always runs
+type always struct {
+	Fn RunFunction
+}
+
+// run will wrap a RunFunction and always return true
+func (in always) run(details *RunDetails, cmd *cobra.Command) (bool, error) {
+	in.Fn(details, cmd)
+	return true, nil
+}
+
 // run executes the required command.
-func run(cmd *cobra.Command, fn func(*RunDetails, *cobra.Command)) error {
+func run(cmd *cobra.Command, fn RunFunction) error {
+	a := always{Fn: fn}
+	return maybeRun(cmd, a.run)
+}
+
+// maybeRun executes the required command.
+func maybeRun(cmd *cobra.Command, fn MaybeRunFunction) error {
 	var err error
 	e := fromContext(cmd.Context())
 
 	details := NewRunDetails(e.V)
-	fn(details, cmd)
-
-	e.App, e.OsCmd, err = createCommand(details)
-
+	runCommand, err := fn(details, cmd)
 	if err != nil {
 		return err
 	}
 
-	if e.OsCmd != nil {
-		b := new(bytes.Buffer)
-		sep := ""
-		for _, value := range e.OsCmd.Env {
-			_, _ = fmt.Fprintf(b, "%s%s", sep, value)
-			sep = ", "
+	if runCommand {
+		e.App, e.OsCmd, err = createCommand(details)
+
+		if err != nil {
+			return err
 		}
 
-		log.Info("Executing command", "dryRun", dryRun, "application", e.App,
-			"path", e.OsCmd.Path, "args", strings.Join(e.OsCmd.Args, " "), "env", b.String())
+		if e.OsCmd != nil {
+			b := new(bytes.Buffer)
+			sep := ""
+			for _, value := range e.OsCmd.Env {
+				_, _ = fmt.Fprintf(b, "%s%s", sep, value)
+				sep = ", "
+			}
 
-		if !dryRun {
-			return e.OsCmd.Run()
+			log.Info("Executing command", "dryRun", dryRun, "application", e.App,
+				"path", e.OsCmd.Path, "args", strings.Join(e.OsCmd.Args, " "), "env", b.String())
+
+			if !dryRun {
+				return e.OsCmd.Run()
+			}
 		}
 	}
 	return nil
@@ -576,7 +605,8 @@ func readFirstLineFromFile(fqfn string, fi os.FileInfo) string {
 	for scanner.Scan() {
 		text = append(text, scanner.Text())
 	}
-	file.Close()
+	closeFile(file, log)
+
 	if len(text) == 0 {
 		return ""
 	}
@@ -618,7 +648,7 @@ func _createBuildPackCommand(_ *RunDetails, className string, args []string) (*e
 	if err != nil {
 		return nil, err
 	}
-	defer argsFile.Close()
+	defer closeFile(argsFile, log)
 
 	// write the JVM args to the file
 	data := strings.Join(args, "\n")
@@ -948,5 +978,12 @@ func addSSL(prefix, prop string, details *RunDetails) {
 
 	if details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLRequireClientCert) != "" {
 		details.addArg("-Dcoherence." + prop + ".http.auth=cert")
+	}
+}
+
+func closeFile(f *os.File, log logr.Logger) {
+	err := f.Close()
+	if err != nil {
+		log.Error(err, "error closing file "+f.Name())
 	}
 }

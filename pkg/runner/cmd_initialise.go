@@ -37,7 +37,7 @@ func initCommand(env map[string]string) *cobra.Command {
 		Short: "Initialise a Coherence server",
 		Long:  "Initialise a Coherence server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd, initialise)
+			return maybeRun(cmd, initialise)
 		},
 	}
 
@@ -60,8 +60,9 @@ func initCommand(env map[string]string) *cobra.Command {
 }
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
-func initialise(details *RunDetails, cmd *cobra.Command) {
-	_ = initialiseWithEnv(cmd, os.Getenv)
+func initialise(details *RunDetails, cmd *cobra.Command) (bool, error) {
+	err := initialiseWithEnv(cmd, details.Getenv)
+	return false, err
 }
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
