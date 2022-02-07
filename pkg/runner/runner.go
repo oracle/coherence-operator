@@ -113,7 +113,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.yaml)", defaultConfig))
 	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 
-	rootCmd.AddCommand(initCommand())
+	rootCmd.AddCommand(initCommand(env))
 	rootCmd.AddCommand(serverCommand())
 	rootCmd.AddCommand(consoleCommand())
 	rootCmd.AddCommand(queryPlusCommand())

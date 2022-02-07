@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,42 +14,95 @@ import (
 	"os"
 )
 
+const (
+	// ArgCommand is an additional command to run after initialisation
+	ArgCommand = "cmd"
+	// ArgRootDir is the root directory to initialise and directories files in
+	ArgRootDir = "root"
+	// ArgUtilsDir is the utils directory name
+	ArgUtilsDir = "utils"
+	// ArgPersistenceDir is root the persistence directory name
+	ArgPersistenceDir = "persistence"
+	// ArgSnapshotsDir is root the snapshots directory name
+	ArgSnapshotsDir = "snapshots"
+)
+
+// EnvFunction is a function that returns an environment variable for a given name.
+type EnvFunction func(string) string
+
 // initCommand creates the corba "init" sub-command
-func initCommand() *cobra.Command {
-	return &cobra.Command{
+func initCommand(env map[string]string) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   v1.RunnerInit,
 		Short: "Initialise a Coherence server",
 		Long:  "Initialise a Coherence server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return initialise()
+			return run(cmd, initialise)
 		},
 	}
+
+	utilDir, found := env[v1.EnvVarCohUtilDir]
+	if !found || utilDir == "" {
+		utilDir = v1.VolumeMountPathUtils
+	}
+
+	persistenceDir := v1.VolumeMountPathPersistence
+	snapshotDir := v1.VolumeMountPathSnapshots
+
+	flagSet := cmd.Flags()
+	flagSet.StringSlice(ArgCommand, nil, "An additional command to run after initialisation")
+	flagSet.String(ArgRootDir, "", "The root directory to use to initialise files and directories in")
+	flagSet.String(ArgUtilsDir, utilDir, "The utils files root directory")
+	flagSet.String(ArgPersistenceDir, persistenceDir, "The root persistence directory")
+	flagSet.String(ArgSnapshotsDir, snapshotDir, "The root snapshots directory")
+
+	return cmd
 }
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
-func initialise() error {
+func initialise(details *RunDetails, cmd *cobra.Command) {
+	_ = initialiseWithEnv(cmd, os.Getenv)
+}
+
+// initialise will initialise a Coherence Pod - typically this is run from an init-container
+func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 	var err error
 
+	flagSet := cmd.Flags()
+
+	rootDir, err := flagSet.GetString(ArgRootDir)
+	if err != nil {
+		return err
+	}
+
 	pathSep := string(os.PathSeparator)
-	filesDir := pathSep + "files"
+	filesDir := rootDir + pathSep + "files"
 	loggingSrc := filesDir + pathSep + "logging"
 	libSrc := filesDir + pathSep + "lib"
-	snapshotDir := v1.VolumeMountPathSnapshots
-	persistenceDir := v1.VolumeMountPathPersistence
+
+	persistenceDir, err := flagSet.GetString(ArgPersistenceDir)
+	if err != nil {
+		return err
+	}
 	persistenceActiveDir := persistenceDir + pathSep + "active"
 	persistenceTrashDir := persistenceDir + pathSep + "trash"
 	persistenceSnapshotsDir := persistenceDir + pathSep + "snapshots"
 
+	snapshotDir, err := flagSet.GetString(ArgSnapshotsDir)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("Starting container initialisation")
 
-	utilDir := os.Getenv(v1.EnvVarCohUtilDir)
-	if utilDir == "" {
-		utilDir = v1.VolumeMountPathUtils
+	utilDir, err := flagSet.GetString(ArgUtilsDir)
+	if err != nil {
+		return err
 	}
 
 	loggingDir := utilDir + pathSep + "logging"
 
-	libDir := os.Getenv(v1.EnvVarCohUtilLibDir)
+	libDir := getEnv(v1.EnvVarCohUtilLibDir)
 	if libDir == "" {
 		libDir = utilDir + pathSep + "lib"
 	}
@@ -102,14 +155,14 @@ func initialise() error {
 
 	_, err = os.Stat(persistenceDir)
 	if err == nil {
-		// if "/persistence" exists then we'll create the sub-directories
+		// if "/persistence" exists then we'll create the subdirectories
 		dirNames = append(dirNames, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir)
 	}
 
 	_, err = os.Stat(snapshotDir)
 	if err == nil {
 		// if "/snapshot" exists then we'll create the cluster snapshot directory
-		clusterName := os.Getenv(v1.EnvVarCohClusterName)
+		clusterName := getEnv(v1.EnvVarCohClusterName)
 		if clusterName != "" {
 			snapshotClusterDir := pathSep + "snapshot" + pathSep + clusterName
 			dirNames = append(dirNames, snapshotClusterDir)
@@ -135,5 +188,15 @@ func initialise() error {
 	}
 
 	fmt.Println("Finished container initialisation")
-	return nil
+
+	c, err := flagSet.GetStringSlice(ArgCommand)
+	if err != nil {
+		return err
+	}
+	if len(c) != 0 {
+		fmt.Printf("Running post initialisation command: %s\n", c)
+		_, err = ExecuteWithArgs(nil, c)
+	}
+
+	return err
 }

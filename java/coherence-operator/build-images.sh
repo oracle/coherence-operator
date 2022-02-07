@@ -50,10 +50,10 @@ fi
 export BUILDAH_FORMAT=docker
 
 # Build the entrypoint command line.
-ENTRY_POINT="/coherence-operator/utils/runner"
+ENTRY_POINT="/coherence-operator/files/runner"
 
 # The command line
-CMD="server"
+CMD="init --root /coherence-operator --cmd server"
 
 # The health check command line
 HEALTH_CMD="ready"
@@ -81,6 +81,7 @@ common_image(){
       --annotation "org.opencontainers.image.source=http://github.com/oracle/coherence-operator" \
       --annotation "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
       --annotation "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${VERSION}" \
+      --env "COH_UTIL_DIR=/coherence-operator/utils" \
       --label "org.opencontainers.image.url=${PROJECT_URL}" \
       --label "org.opencontainers.image.version=${VERSION}" \
       --label "org.opencontainers.image.source=http://github.com/oracle/coherence-operator" \
@@ -89,8 +90,9 @@ common_image(){
       "container-${1}"
 
   # Copy files into the container
-  buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/linux/${1}/runner" /coherence-operator/utils/runner
-  buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/lib"               /app/libs
+  buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/linux/${1}/runner" /coherence-operator/files/runner
+  buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/logging"           /coherence-operator/files/logging
+  buildah copy "container-${1}" "${ARTIFACT_DIR}/target/docker/lib"               /coherence-operator/files/lib
 
   echo
   buildah inspect container-${1}
