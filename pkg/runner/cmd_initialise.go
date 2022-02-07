@@ -61,19 +61,18 @@ func initCommand(env map[string]string) *cobra.Command {
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
 func initialise(details *RunDetails, cmd *cobra.Command) (bool, error) {
-	err := initialiseWithEnv(cmd, details.Getenv)
-	return false, err
+	return initialiseWithEnv(cmd, details.Getenv)
 }
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
-func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
+func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 	var err error
 
 	flagSet := cmd.Flags()
 
 	rootDir, err := flagSet.GetString(ArgRootDir)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	pathSep := string(os.PathSeparator)
@@ -83,7 +82,7 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 
 	persistenceDir, err := flagSet.GetString(ArgPersistenceDir)
 	if err != nil {
-		return err
+		return false, err
 	}
 	persistenceActiveDir := persistenceDir + pathSep + "active"
 	persistenceTrashDir := persistenceDir + pathSep + "trash"
@@ -91,14 +90,14 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 
 	snapshotDir, err := flagSet.GetString(ArgSnapshotsDir)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	fmt.Println("Starting container initialisation")
 
 	utilDir, err := flagSet.GetString(ArgUtilsDir)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	loggingDir := utilDir + pathSep + "logging"
@@ -111,25 +110,25 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 	fmt.Printf("Creating target directories under %s\n", utilDir)
 	err = os.MkdirAll(loggingDir, os.ModePerm)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	err = os.MkdirAll(libDir, os.ModePerm)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	fmt.Printf("Copying files to %s\n", utilDir)
 	fmt.Printf("Copying %s to %s\n", loggingSrc, loggingDir)
 	err = utils.CopyDir(loggingSrc, loggingDir, func(f string) bool { return true })
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	fmt.Printf("Copying %s to %s\n", libSrc, libDir)
 	err = utils.CopyDir(libSrc, libDir, func(f string) bool { return true })
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	cp := filesDir + pathSep + "copy"
@@ -138,7 +137,7 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 		fmt.Println("Copying copy utility")
 		err = utils.CopyFile(cp, utilDir+pathSep+"copy")
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 
@@ -148,7 +147,7 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 		fmt.Println("Copying runner utility")
 		err = utils.CopyFile(run, utilDir+pathSep+"runner")
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 
@@ -174,16 +173,16 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 		fmt.Printf("Creating directory %s\n", dirName)
 		err = os.MkdirAll(dirName, os.ModePerm)
 		if err != nil {
-			return err
+			return false, err
 		}
 		info, err := os.Stat(dirName)
 		if err != nil {
-			return err
+			return false, err
 		}
 		if info.Mode().Perm() != os.ModePerm {
 			err = os.Chmod(dirName, os.ModePerm)
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
 	}
@@ -192,12 +191,13 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) error {
 
 	c, err := flagSet.GetStringSlice(ArgCommand)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if len(c) != 0 {
 		fmt.Printf("Running post initialisation command: %s\n", c)
 		_, err = ExecuteWithArgs(nil, c)
+		return true, err
 	}
 
-	return err
+	return false, err
 }
