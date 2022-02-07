@@ -148,7 +148,7 @@ func createFakeFile(filename string) error {
 		return err
 	}
 
-	defer closeFile(f)
+	defer closeIgnoreError(f)
 
 	data := rand.Intn(100)
 	if _, err = f.WriteString(fmt.Sprintf("%d", data)); err != nil {
@@ -158,6 +158,7 @@ func createFakeFile(filename string) error {
 	return nil
 }
 
-func closeFile(f *os.File) {
+func closeIgnoreError(f *os.File) {
 	_ = f.Close()
+
 }
