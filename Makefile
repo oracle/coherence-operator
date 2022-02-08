@@ -419,7 +419,7 @@ build-test-base: export AMD_BASE_IMAGE      := gcr.io/distroless/java11
 build-test-base: export ARM_BASE_IMAGE      := gcr.io/distroless/java11
 build-test-base: export PROJECT_URL         := $(PROJECT_URL)
 build-test-base: export PROJECT_VENDOR      := Oracle
-build-test-base: export PROJECT_DESCRIPTION := Oracle Coherence bease test image
+build-test-base: export PROJECT_DESCRIPTION := Oracle Coherence base test image
 build-test-base: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence test base image
 	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
 	$(CURRDIR)/java/coherence-operator/run-buildah.sh BUILD
@@ -1591,19 +1591,17 @@ endif
 # Push the test base images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-base-images
+push-test-base-images: export ARTIFACT_DIR        := $(CURRDIR)/java/coherence-operator
+push-test-base-images: export VERSION             := $(VERSION)
+push-test-base-images: export IMAGE_NAME          := $(TEST_BASE_IMAGE)
+push-test-base-images: export AMD_BASE_IMAGE      := gcr.io/distroless/java11
+push-test-base-images: export ARM_BASE_IMAGE      := gcr.io/distroless/java11
+push-test-base-images: export PROJECT_URL         := $(PROJECT_URL)
+push-test-base-images: export PROJECT_VENDOR      := Oracle
+push-test-base-images: export PROJECT_DESCRIPTION := Oracle Coherence base test image
 push-test-base-images:
-ifeq ($(TEST_BASE_RELEASE_IMAGE), $(TEST_BASE_IMAGE))
-	@echo "Pushing $(TEST_BASE_IMAGE)"
-	./mvnw -B -f java/coherence-operator  package -P push-test-base-image -pl coherence-operator \
-		-DskipTests -Dimage.name=$(TEST_BASE_IMAGE)
-else
-	@echo "Tagging $(TEST_BASE_IMAGE)-amd64 as $(TEST_BASE_RELEASE_IMAGE)-amd64"
-	docker tag $(TEST_BASE_IMAGE)-amd64 $(TEST_BASE_RELEASE_IMAGE)-amd64
-	@echo "Tagging $(TEST_BASE_IMAGE)-arm64 as $(TEST_BASE_RELEASE_IMAGE)-arm64"
-	docker tag $(TEST_BASE_IMAGE)-arm64 $(TEST_BASE_RELEASE_IMAGE)-arm64
-	./mvnw -B -f java/coherence-operator  package -P push-test-base-image -pl coherence-operator \
-		-DskipTests -Dimage.name=$(TEST_BASE_RELEASE_IMAGE)
-endif
+	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
+	$(CURRDIR)/java/coherence-operator/run-buildah.sh PUSH
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
