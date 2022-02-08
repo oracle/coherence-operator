@@ -1982,7 +1982,7 @@ ifeq (true, $(RELEASE_DRY_RUN))
 release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
 else
-release: build-all-images release-ghpages push-release-images
+release: build-all-images push-release-images release-ghpages
 endif
 
 
