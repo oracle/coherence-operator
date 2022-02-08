@@ -79,12 +79,12 @@ OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
 UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
-TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
+TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-test-base
 # The Operator images to push
 OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
 UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
-TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
+TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)-test-base
 BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
 
 GPG_PASSPHRASE :=
@@ -1591,17 +1591,36 @@ endif
 # Push the test base images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-base-images
-push-test-base-images: export ARTIFACT_DIR        := $(CURRDIR)/java/coherence-operator
-push-test-base-images: export VERSION             := $(VERSION)
-push-test-base-images: export IMAGE_NAME          := $(TEST_BASE_IMAGE)
-push-test-base-images: export AMD_BASE_IMAGE      := gcr.io/distroless/java11
-push-test-base-images: export ARM_BASE_IMAGE      := gcr.io/distroless/java11
-push-test-base-images: export PROJECT_URL         := $(PROJECT_URL)
-push-test-base-images: export PROJECT_VENDOR      := Oracle
-push-test-base-images: export PROJECT_DESCRIPTION := Oracle Coherence base test image
 push-test-base-images:
-	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-	$(CURRDIR)/java/coherence-operator/run-buildah.sh PUSH
+ifeq ($(TEST_BASE_RELEASE_IMAGE), $(TEST_BASE_IMAGE))
+	@echo "Pushing $(TEST_BASE_IMAGE)-amd64"
+	docker push $(TEST_BASE_IMAGE)-amd64
+	@echo "Pushing $(TEST_BASE_IMAGE)-arm64"
+	docker push $(TEST_BASE_IMAGE)-arm64
+	@echo "Creating $(TEST_BASE_IMAGE) manifest"
+	docker manifest create $(TEST_BASE_IMAGE) \
+		--amend $(TEST_BASE_IMAGE)-amd64 \
+		--amend $(TEST_BASE_IMAGE)-arm64
+	docker manifest annotate $(TEST_BASE_IMAGE) $(TEST_BASE_IMAGE)-arm64 --arch arm64
+	@echo "Pushing $(TEST_BASE_IMAGE) manifest"
+	docker manifest push $(TEST_BASE_IMAGE)
+else
+	@echo "Tagging $(TEST_BASE_IMAGE)-amd64 as $(TEST_BASE_RELEASE_IMAGE)-amd64"
+	docker tag $(TEST_BASE_IMAGE)-amd64 $(TEST_BASE_RELEASE_IMAGE)-amd64
+	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE)-amd64"
+	docker push $(TEST_BASE_RELEASE_IMAGE)-amd64
+	@echo "Tagging $(TEST_BASE_IMAGE)-arm64 as $(TEST_BASE_RELEASE_IMAGE)-arm64"
+	docker tag $(TEST_BASE_IMAGE)-arm64 $(TEST_BASE_RELEASE_IMAGE)-arm64
+	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE)-arm64"
+	docker push $(TEST_BASE_RELEASE_IMAGE)-arm64
+	@echo "Creating $(TEST_BASE_RELEASE_IMAGE) manifest"
+	docker manifest create $(TEST_BASE_RELEASE_IMAGE) \
+		--amend $(TEST_BASE_RELEASE_IMAGE)-amd64 \
+		--amend $(TEST_BASE_RELEASE_IMAGE)-arm64
+	docker manifest annotate $(TEST_BASE_RELEASE_IMAGE) $(TEST_BASE_RELEASE_IMAGE)-arm64 --arch arm64
+	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE) manifest"
+	docker manifest push $(TEST_BASE_RELEASE_IMAGE)
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
