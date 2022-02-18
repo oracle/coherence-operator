@@ -37,7 +37,7 @@ Building a simple Coherence image with JIB using Maven or Gradle.
 ====
 [CARD]
 .Deployment
-[link=examples/020_deployment.adoc]
+[link=examples/021_deployment/README.adoc]
 --
 This example showcases how to deploy Coherence applications using the Coherence Operator.
 --
@@ -82,7 +82,7 @@ Istio Support
 ====
 [CARD]
 .Coherence Demo App
-[link=examples/900_demo.adoc]
+[link=examples/900_demo/README.adoc]
 --
 Deploying the Coherence demo application.
 --
