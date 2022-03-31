@@ -67,7 +67,7 @@
         <version.lib.junit>4.13.1</version.lib.junit>
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
         <version.lib.mockito>3.10.0</version.lib.mockito>
-        <version.lib.spring>2.4.2</version.lib.spring>
+        <version.lib.spring>2.5.12</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
         <version.lib.gson>2.8.6</version.lib.gson>
