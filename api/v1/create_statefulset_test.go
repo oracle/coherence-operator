@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -372,6 +372,220 @@ func TestCreateStatefulSetWithAppLabel(t *testing.T) {
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Labels["app"] = "foo"
 	stsExpected.Spec.Template.Labels["app"] = "foo"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithActiveDeadlineSeconds(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		ActiveDeadlineSeconds: pointer.Int64(19),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.ActiveDeadlineSeconds = pointer.Int64(19)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithEnableServiceLinksFalse(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		EnableServiceLinks: pointer.BoolPtr(false),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.BoolPtr(false)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithEnableServiceLinksTrue(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		EnableServiceLinks: pointer.BoolPtr(true),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.BoolPtr(true)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithOverheadEmpty(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Overhead: corev1.ResourceList{},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Overhead = corev1.ResourceList{}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithOverhead(t *testing.T) {
+	qty, _ := resource.ParseQuantity("1500m")
+
+	overhead := corev1.ResourceList{}
+	overhead[corev1.ResourceCPU] = qty
+	spec := coh.CoherenceResourceSpec{
+		Overhead: overhead,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Overhead = overhead
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithPreemptionPolicy(t *testing.T) {
+	policy := corev1.PreemptNever
+	spec := coh.CoherenceResourceSpec{
+		PreemptionPolicy: &policy,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.PreemptionPolicy = &policy
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithPriority(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Priority: pointer.Int32(19),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Priority = pointer.Int32(19)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithPriorityClassName(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		PriorityClassName: stringPtr("foo"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.PriorityClassName = "foo"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithRestartPolicy(t *testing.T) {
+	policy := corev1.RestartPolicyOnFailure
+	spec := coh.CoherenceResourceSpec{
+		RestartPolicy: &policy,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.RestartPolicy = policy
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithRuntimeClassName(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		RuntimeClassName: stringPtr("foo"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.RuntimeClassName = stringPtr("foo")
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithSchedulerName(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		SchedulerName: stringPtr("foo"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.SchedulerName = "foo"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithTopologySpreadConstraintsEmpty(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		TopologySpreadConstraints: []corev1.TopologySpreadConstraint{},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithTopologySpreadConstraints(t *testing.T) {
+	selector := make(map[string]string)
+	selector["foo"] = "bar"
+
+	constraint := corev1.TopologySpreadConstraint{
+		MaxSkew:           19,
+		TopologyKey:       "foo",
+		WhenUnsatisfiable: corev1.DoNotSchedule,
+		LabelSelector: &metav1.LabelSelector{
+			MatchLabels: selector,
+		},
+		MinDomains: pointer.Int32(2),
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		TopologySpreadConstraints: []corev1.TopologySpreadConstraint{constraint},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{constraint}
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

@@ -52,6 +52,8 @@ rules:
   - coherence.oracle.com
   resources:
   - coherence
+  - coherence/finalizers
+  - coherence/status
   verbs:
   - create
   - delete
@@ -60,14 +62,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - coherence.oracle.com
-  resources:
-  - coherence/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - monitoring.coreos.com
   resources:
