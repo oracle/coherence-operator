@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -257,6 +257,60 @@ func TestCreateStatefulSetWithNetworkSpecWithHostname(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Hostname = "foo.com"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithNetworkSpecWithSetHostnameAsFQDNTrue(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Network: &coh.NetworkSpec{
+			SetHostnameAsFQDN: boolPtr(true),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.SetHostnameAsFQDN = boolPtr(true)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithNetworkSpecWithSetHostnameAsFQDNFalse(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Network: &coh.NetworkSpec{
+			SetHostnameAsFQDN: boolPtr(false),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.SetHostnameAsFQDN = boolPtr(false)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithNetworkSpecWithSubdomain(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Network: &coh.NetworkSpec{
+			Subdomain: stringPtr("foo"),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Subdomain = "foo"
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022 Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package operator_test
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/fakes"
@@ -26,7 +27,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ctx := context.TODO()
-	log := fakes.TestLogger{T: t}
+	log := logr.New(fakes.TestLogSink{T: t})
 
 	err = v1.EnsureV1CRDs(ctx, log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -74,7 +75,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	log := fakes.TestLogger{T: t}
+	log := logr.New(fakes.TestLogSink{T: t})
 
 	err = v1.EnsureV1CRDs(ctx, log, mgr.Scheme, mgr.Client)
 	g.Expect(err).NotTo(HaveOccurred())

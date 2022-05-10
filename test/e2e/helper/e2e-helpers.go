@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -176,7 +176,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	testEnv := &envtest.Environment{
 		UseExistingCluster:       &useCluster,
 		AttachControlPlaneOutput: true,
-		CRDs:                     []v1.CustomResourceDefinition{},
+		CRDs:                     []*v1.CustomResourceDefinition{},
 	}
 
 	var err error

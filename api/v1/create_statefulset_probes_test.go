@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -53,7 +53,7 @@ func TestCreateStatefulSetWithReadinessProbeSpec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultReadinessPath,
@@ -102,7 +102,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -143,7 +143,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithTCPSocket(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			TCPSocket: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -183,7 +183,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithExec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -237,7 +237,7 @@ func TestCreateStatefulSetWithLivenessProbeSpec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].LivenessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
@@ -286,7 +286,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].LivenessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -327,7 +327,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithTCPSocket(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].LivenessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			TCPSocket: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -367,7 +367,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithExec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].LivenessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -438,7 +438,7 @@ func TestCreateStatefulSetWithStartupProbeSpec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
@@ -487,7 +487,7 @@ func TestCreateStatefulSetWithStartupProbeSpecWithHttpGet(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -528,7 +528,7 @@ func TestCreateStatefulSetWithStartupProbeSpecWithTCPSocket(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			TCPSocket: handler,
 		},
 		InitialDelaySeconds: 10,
@@ -568,7 +568,7 @@ func TestCreateStatefulSetWithStartupProbeSpecWithExec(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			Exec: handler,
 		},
 		InitialDelaySeconds: 10,
