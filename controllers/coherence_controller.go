@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -64,8 +64,7 @@ type Failure struct {
 // There will be a compile-time error here if this breaks
 var _ reconcile.Reconciler = &CoherenceReconciler{}
 
-// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence;coherence/finalizers;coherence/status,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete

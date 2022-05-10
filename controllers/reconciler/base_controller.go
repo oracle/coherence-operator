@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -86,9 +86,6 @@ func (in *CommonReconciler) GetEventRecorder() record.EventRecorder {
 	return in.mgr.GetEventRecorderFor(in.name)
 }
 func (in *CommonReconciler) GetLog() logr.Logger {
-	if in.logger == nil {
-		in.logger = logf.Log.WithName(in.name)
-	}
 	return in.logger
 }
 
@@ -320,10 +317,8 @@ func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, n
 
 	// log the patch
 	kind := current.GetObjectKind().GroupVersionKind().Kind
-	logger := in.GetLog()
-	if logger != nil {
-		in.GetLog().V(2).Info(fmt.Sprintf("Created patch for %s/%s\n%s", kind, name, string(data)))
-	}
+
+	in.GetLog().V(2).Info(fmt.Sprintf("Created patch for %s/%s\n%s", kind, name, string(data)))
 
 	return client.RawPatch(patchType, data), nil
 }

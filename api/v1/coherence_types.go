@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -1953,7 +1953,7 @@ type ScalingSpec struct {
 // Enabled to false then no check will take place and a deployment will be assumed to be safe).
 // +k8s:openapi-gen=true
 type Probe struct {
-	corev1.Handler `json:",inline"`
+	corev1.ProbeHandler `json:",inline"`
 	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
 	// Defaults to 1 second. Minimum value is 1.
 	// +optional
@@ -2102,6 +2102,17 @@ type NetworkSpec struct {
 	// Specifies the hostname of the Pod If not specified, the pod's hostname will be set to a system-defined value.
 	// +optional
 	Hostname *string `json:"hostname,omitempty"`
+	// SetHostnameAsFQDN if true the pod's hostname will be configured as the pod's FQDN, rather than the leaf name (the default).
+	// In Linux containers, this means setting the FQDN in the hostname field of the kernel (the nodename field of struct utsname).
+	// In Windows containers, this means setting the registry value of hostname for the registry key HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters to FQDN.
+	// If a pod does not have FQDN, this has no effect.
+	// Default to false.
+	// +optional
+	SetHostnameAsFQDN *bool `json:"setHostnameAsFQDN,omitempty"`
+	// Subdomain, if specified, the fully qualified Pod hostname will be "<hostname>.<subdomain>.<pod namespace>.svc.<cluster domain>".
+	// If not specified, the pod will not have a domain name at all.
+	// +optional
+	Subdomain *string `json:"subdomain,omitempty"`
 }
 
 // UpdateStatefulSet updates the specified StatefulSet's network settings.
@@ -2119,6 +2130,8 @@ func (in *NetworkSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 	sts.Spec.Template.Spec.HostAliases = in.HostAliases
 	sts.Spec.Template.Spec.HostNetwork = notNilBool(in.HostNetwork)
 	sts.Spec.Template.Spec.Hostname = notNilString(in.Hostname)
+	sts.Spec.Template.Spec.SetHostnameAsFQDN = in.SetHostnameAsFQDN
+	sts.Spec.Template.Spec.Subdomain = notNilString(in.Subdomain)
 }
 
 // ----- PodDNSConfig -------------------------------------------------------

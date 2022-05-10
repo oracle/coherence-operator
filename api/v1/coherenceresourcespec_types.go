@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -301,6 +301,72 @@ type CoherenceResourceSpec struct {
 	// Actions to execute once all of the Pods are ready after an initial deployment
 	// +optional
 	Actions []Action `json:"actions,omitempty"`
+	// ActiveDeadlineSeconds is the optional duration in seconds the pod may be active on the node relative to
+	// StartTime before the system will actively try to mark it failed and kill associated containers.
+	// Value must be a positive integer.
+	// +optional
+	ActiveDeadlineSeconds *int64 `json:"activeDeadlineSeconds,omitempty"`
+	// EnableServiceLinks indicates whether information about services should be injected into pod's
+	// environment variables, matching the syntax of Docker links.
+	// Optional: Defaults to true.
+	// +optional
+	EnableServiceLinks *bool `json:"enableServiceLinks,omitempty"`
+	// Overhead represents the resource overhead associated with running a pod for a given RuntimeClass.
+	// This field will be autopopulated at admission time by the RuntimeClass admission controller. If
+	// the RuntimeClass admission controller is enabled, overhead must not be set in Pod create requests.
+	// The RuntimeClass admission controller will reject Pod create requests which have the overhead already
+	// set. If RuntimeClass is configured and selected in the PodSpec, Overhead will be set to the value
+	// defined in the corresponding RuntimeClass, otherwise it will remain unset and treated as zero.
+	// More info: https://git.k8s.io/enhancements/keps/sig-node/688-pod-overhead/README.md
+	// +optional
+	Overhead corev1.ResourceList `json:"overhead,omitempty" protobuf:"bytes,32,opt,name=overhead"`
+	// PreemptionPolicy is the Policy for preempting pods with lower priority.
+	// One of Never, PreemptLowerPriority.
+	// Defaults to PreemptLowerPriority if unset.
+	// +optional
+	PreemptionPolicy *corev1.PreemptionPolicy `json:"preemptionPolicy,omitempty"`
+	// Priority is the priority value. Various system components use this field to find the
+	// priority of the pod. When Priority Admission Controller is enabled, it
+	// prevents users from setting this field. The admission controller populates
+	// this field from PriorityClassName.
+	// The higher the value, the higher the priority.
+	// +optional
+	Priority *int32 `json:"priority,omitempty"`
+	// PriorityClassName, if specified, indicates the pod's priority. "system-node-critical" and
+	// "system-cluster-critical" are two special keywords which indicate the
+	// highest priorities with the former being the highest priority. Any other
+	// name must be defined by creating a PriorityClass object with that name.
+	// If not specified, the pod priority will be default or zero if there is no
+	// default.
+	// +optional
+	PriorityClassName *string `json:"priorityClassName,omitempty"`
+	// Restart policy for all containers within the pod.
+	// One of Always, OnFailure, Never.
+	// Default to Always.
+	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
+	// +optional
+	RestartPolicy *corev1.RestartPolicy `json:"restartPolicy,omitempty"`
+	// RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used
+	// to run this pod.  If no RuntimeClass resource matches the named class, the pod will not be run.
+	// If unset or empty, the "legacy" RuntimeClass will be used, which is an implicit class with an
+	// empty definition that uses the default runtime handler.
+	// More info: https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class
+	// +optional
+	RuntimeClassName *string `json:"runtimeClassName,omitempty"`
+	// If specified, the pod will be dispatched by specified scheduler.
+	// If not specified, the pod will be dispatched by default scheduler.
+	// +optional
+	SchedulerName *string `json:"schedulerName,omitempty" protobuf:"bytes,19,opt,name=schedulerName"`
+	// TopologySpreadConstraints describes how a group of pods ought to spread across topology
+	// domains. Scheduler will schedule pods in a way which abides by the constraints.
+	// All topologySpreadConstraints are ANDed.
+	// +optional
+	// +patchMergeKey=topologyKey
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=topologyKey
+	// +listMapKey=whenUnsatisfiable
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" patchStrategy:"merge" patchMergeKey:"topologyKey"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -445,7 +511,7 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 
 	probe := Probe{
 		TimeoutSeconds: &timeout,
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path: "/ha",
 				Port: intstr.FromString(PortNameHealth),
@@ -476,7 +542,7 @@ func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
 
 	probe := Probe{
 		TimeoutSeconds: timeout,
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path: "/suspend",
 				Port: intstr.FromString(PortNameHealth),
@@ -722,16 +788,25 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				Annotations: in.Annotations,
 			},
 			Spec: corev1.PodSpec{
-				ImagePullSecrets:             in.GetImagePullSecrets(),
-				ServiceAccountName:           in.GetServiceAccountName(),
-				AutomountServiceAccountToken: in.AutomountServiceAccountToken,
-				SecurityContext:              in.SecurityContext,
-				ShareProcessNamespace:        in.ShareProcessNamespace,
-				HostIPC:                      notNilBool(in.HostIPC),
-				Tolerations:                  in.Tolerations,
 				Affinity:                     in.EnsurePodAffinity(deployment),
+				ActiveDeadlineSeconds:        in.ActiveDeadlineSeconds,
+				AutomountServiceAccountToken: in.AutomountServiceAccountToken,
+				EnableServiceLinks:           in.EnableServiceLinks,
+				HostIPC:                      notNilBool(in.HostIPC),
+				ImagePullSecrets:             in.GetImagePullSecrets(),
+				Overhead:                     in.Overhead,
+				PreemptionPolicy:             in.PreemptionPolicy,
+				Priority:                     in.Priority,
+				PriorityClassName:            notNilString(in.PriorityClassName),
 				NodeSelector:                 in.NodeSelector,
 				ReadinessGates:               in.ReadinessGates,
+				RuntimeClassName:             in.RuntimeClassName,
+				SchedulerName:                notNilString(in.SchedulerName),
+				SecurityContext:              in.SecurityContext,
+				ServiceAccountName:           in.GetServiceAccountName(),
+				ShareProcessNamespace:        in.ShareProcessNamespace,
+				Tolerations:                  in.Tolerations,
+				TopologySpreadConstraints:    in.TopologySpreadConstraints,
 				InitContainers: []corev1.Container{
 					in.CreateUtilsContainer(deployment),
 				},
@@ -741,6 +816,10 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				},
 			},
 		},
+	}
+
+	if in.RestartPolicy != nil {
+		sts.Spec.Template.Spec.RestartPolicy = *in.RestartPolicy
 	}
 
 	// Add any network settings
