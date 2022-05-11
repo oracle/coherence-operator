@@ -50,7 +50,7 @@
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="#examples/020_deployment.adoc" @click.native="this.scrollFix('#examples/020_deployment.adoc')"><div class="card__link-hover"/>
+<router-link to="/examples/021_deployment/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
 <span style="text-align:center">Deployment</span>
@@ -136,7 +136,7 @@
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="#examples/900_demo.adoc" @click.native="this.scrollFix('#examples/900_demo.adoc')"><div class="card__link-hover"/>
+<router-link to="/examples/900_demo/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
 <span style="text-align:center">Coherence Demo App</span>
