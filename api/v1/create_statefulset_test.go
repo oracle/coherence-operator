@@ -472,21 +472,6 @@ func TestCreateStatefulSetWithPreemptionPolicy(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithPriority(t *testing.T) {
-	spec := coh.CoherenceResourceSpec{
-		Priority: pointer.Int32(19),
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Priority = pointer.Int32(19)
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
 func TestCreateStatefulSetWithPriorityClassName(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		PriorityClassName: stringPtr("foo"),
