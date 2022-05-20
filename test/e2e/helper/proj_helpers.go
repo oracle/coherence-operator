@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -367,7 +367,7 @@ func SkipIfCoherenceVersionLessThan(t *testing.T, version ...int) {
 	switch {
 	case err == nil && !ok:
 		versionStr := os.Getenv(CoherenceVersionEnv)
-		t.Skip(fmt.Sprintf("Skipping test as COHERENCE_VERSION %s is less than requested version %v", versionStr, version))
+		t.Skipf("Skipping test as COHERENCE_VERSION %s is less than requested version %v", versionStr, version)
 	case err != nil:
 		t.Fatalf(fmt.Sprintf("Failed to check COHERENCE_VERSION due to %s", err.Error()))
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -220,7 +220,7 @@ func (in *RunDetails) getSpringBootCommand() []string {
 
 func (in *RunDetails) getSpringBootArgs() []string {
 	var cmd []string
-	cp := strings.Replace(in.getClasspath(), ":", ",", -1)
+	cp := strings.ReplaceAll(in.getClasspath(), ":", ",")
 	if cp != "" {
 		cmd = append(cmd, "-Dloader.path="+cp)
 	}
@@ -234,27 +234,29 @@ func (in *RunDetails) getSpringBootArgs() []string {
 	return cmd
 }
 
-//func (in *RunDetails) getGraalCommand() []string {
-//	cmd := in.getCommand()
-//	for i, c := range cmd {
-//		switch {
-//		case c == "-cp":
-//			cmd[i] = "--vm.cp"
-//		case strings.HasPrefix(c, "-D"):
-//			cmd[i] = "--vm." + c[1:]
-//		case strings.HasPrefix(c, "-XX"):
-//			cmd[i] = "--vm." + c[1:]
-//		case strings.HasPrefix(c, "-Xms"):
-//			cmd[i] = "--vm." + c[1:]
-//		case strings.HasPrefix(c, "-Xmx"):
-//			cmd[i] = "--vm." + c[1:]
-//		case strings.HasPrefix(c, "-Xss"):
-//			cmd[i] = "--vm." + c[1:]
-//		}
-//	}
-//
-//	return cmd
-//}
+/*
+func (in *RunDetails) getGraalCommand() []string {
+	cmd := in.getCommand()
+	for i, c := range cmd {
+		switch {
+		case c == "-cp":
+			cmd[i] = "--vm.cp"
+		case strings.HasPrefix(c, "-D"):
+			cmd[i] = "--vm." + c[1:]
+		case strings.HasPrefix(c, "-XX"):
+			cmd[i] = "--vm." + c[1:]
+		case strings.HasPrefix(c, "-Xms"):
+			cmd[i] = "--vm." + c[1:]
+		case strings.HasPrefix(c, "-Xmx"):
+			cmd[i] = "--vm." + c[1:]
+		case strings.HasPrefix(c, "-Xss"):
+			cmd[i] = "--vm." + c[1:]
+		}
+	}
+
+	return cmd
+}
+*/
 
 func (in *RunDetails) addArgs(args ...string) {
 	for _, a := range args {

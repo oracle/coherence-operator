@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -602,7 +602,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 		err = in.Create(ctx, name, storage, logger)
 	default:
 		// Both the resource and owning Coherence resource exist so this is maybe an update
-		err = in.Update(ctx, name, resource.(client.Object), storage, logger)
+		err = in.Update(ctx, name, resource, storage, logger)
 	}
 
 	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
@@ -673,7 +673,7 @@ func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, c
 
 func (in *ReconcileSecondaryResource) FindResource(ctx context.Context, namespace, name string) (client.Object, bool, error) {
 	object := in.NewFromTemplate(namespace, name)
-	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, object.(client.Object))
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, object)
 	var found bool
 	switch {
 	case err != nil && apierrors.IsNotFound(err):

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -24,7 +24,6 @@ func TestMain(m *testing.M) {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	defer os.RemoveAll(dir)
 
 	TestAppDir = dir
 	err = os.Setenv(v1.EnvVarCohAppDir, dir)
@@ -87,5 +86,7 @@ func TestMain(m *testing.M) {
 	}
 
 	exitCode := m.Run()
+
+	_ = os.RemoveAll(dir)
 	os.Exit(exitCode)
 }

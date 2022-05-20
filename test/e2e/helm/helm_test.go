@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -288,7 +288,7 @@ func Cleanup(namespace, name string) {
 // Remove the web-hooks that the Operator install creates to
 // ensure that nothing is left from a previous test.
 func RemoveWebHook() error {
-	//DefaultValidatingWebhookName
+	// DefaultValidatingWebhookName
 	client := testContext.KubeClient.AdmissionregistrationV1()
 
 	err := client.MutatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})

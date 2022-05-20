@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -157,8 +157,6 @@ func (f *PortForwarder) Start() error {
 		}
 		if len(errOut.String()) != 0 {
 			fmt.Println(errOut.String())
-			//} else if len(out.String()) != 0 {
-			//	fmt.Println(out.String())
 		}
 	}()
 

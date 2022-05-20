@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -118,7 +118,6 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-XX:+PrintFlagsFinal",
 		"-Dcoherence.wka=test-wka..svc.cluster.local",
 		"-Dcoherence.cluster=test",
-		//"-Dcoherence.k8s.operator.identity=test@",
 		"-Dcoherence.k8s.operator.health.port=6676",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",
@@ -161,8 +160,6 @@ func RemoveArgWithPrefix(args []string, prefix string) []string {
 
 func GetJavaCommand() string {
 	return os.Getenv("JAVA_HOME") + "/bin/java"
-	//cmd := exec.Command("java")
-	//return cmd.Path
 }
 
 func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
