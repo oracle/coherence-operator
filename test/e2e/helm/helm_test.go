@@ -57,9 +57,9 @@ func TestCreateWebhookCertSecretWithName(t *testing.T) {
 	g.Expect(senv.Value).To(Equal("foo"))
 }
 
-func TestNotCreateWebhookCertSecretIfNotSelfSigned(t *testing.T) {
+func TestNotCreateWebhookCertSecretIfManualCertManager(t *testing.T) {
 	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhookCertType=cert-manager")
+	result, err := helmInstall("--set", "webhookCertType=manual")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(result).NotTo(BeNil())
 
