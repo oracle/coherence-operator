@@ -710,6 +710,8 @@ copyright:  ## Check copyright headers
 	  -X .png \
 	  -X PROJECT \
 	  -X .sh \
+	  -X tanzu/package/package.yml \
+	  -X tanzu/package/values.yml \
 	  -X temp/ \
 	  -X temp/olm/ \
 	  -X /test-report.xml \
